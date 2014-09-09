@@ -25,7 +25,7 @@ class Car(models.Model):
 class Person(models.Model):
     """ All individuals require a name, email, and (optionally) a cell. """
     name = models.CharField(max_length=255)
-    email = models.EmailField()
+    email = models.EmailField(unique=True)
     cell_phone = PhoneNumberField(null=True, blank=True)  # Hi, Sheep.
 
     class Meta:
