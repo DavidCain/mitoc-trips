@@ -36,9 +36,16 @@ class EmergencyContact(Person):
     relationship = models.CharField(max_length=63)
 
 
+class EmergencyInfo(models.Model):
+    emergency_contact = models.OneToOneField(EmergencyContact)
+    allergies = models.CharField(max_length=255, blank=True)
+    medications = models.CharField(max_length=255, blank=True)
+    medical_history = models.TextField(blank=True, help_text="Anything your trip leader would want to know about.")
+
+
 class TripGoer(Person):
     """ Anyone going on a trip needs WIMP info, and info about their car. """
-    emergency_contact = models.OneToOneField(EmergencyContact)
+    emergency_info = models.OneToOneField(EmergencyInfo)
     car = OptionalOneToOneField(Car)
 
     class Meta(Person.Meta):
