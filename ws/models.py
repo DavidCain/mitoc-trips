@@ -15,6 +15,13 @@ class OptionalOneToOneField(models.OneToOneField):
         super(OptionalOneToOneField, self).__init__(*args, null=null, blank=blank, **kwargs)
 
 
+class Car(models.Model):
+    license_plate = models.CharField(max_length=7)
+    make = models.CharField(max_length=63)
+    model = models.CharField(max_length=63)
+    year = models.IntegerField()
+
+
 class Person(models.Model):
     """ All individuals require a name, email, and (optionally) a cell. """
     name = models.CharField(max_length=255)
@@ -29,14 +36,16 @@ class EmergencyContact(Person):
     relationship = models.CharField(max_length=63)
 
 
-class Car(models.Model):
-    license_plate = models.CharField(max_length=7)
-    make = models.CharField(max_length=63)
-    model = models.CharField(max_length=63)
-    year = models.IntegerField()
+class TripGoer(Person):
+    """ Anyone going on a trip needs WIMP info, and info about their car. """
+    emergency_contact = models.OneToOneField(EmergencyContact)
+    car = OptionalOneToOneField(Car)
+
+    class Meta(Person.Meta):
+        abstract = True
 
 
-class Leader(Person):
+class Leader(TripGoer):
     rating = models.CharField(max_length=255)  # Leave long for comments about rating
     car = OptionalOneToOneField(Car)
 
@@ -61,15 +70,13 @@ class Trip(models.Model):
                                           ('fcfs', 'first-come, first-serve')])
 
 
-class Participant(Person):
+class Participant(TripGoer):
     affiliation = models.CharField(max_length=1,
                                    choices=[("S", "Student"),
                                             ("M", "MIT affiliate"),
                                             ("N", "Non-affiliate")])
     attended_lectures = models.BooleanField(default=False)
-    emergency_contact = models.OneToOneField(EmergencyContact)
     trips_attended = models.ManyToManyField('Trip')
-    car = OptionalOneToOneField(Car)
 
 
 class Feedback(models.Model):
