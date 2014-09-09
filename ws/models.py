@@ -5,18 +5,12 @@ from __future__ import unicode_literals
 from django.db import models
 
 from phonenumber_field.modelfields import PhoneNumberField
-
-
-class OptionalOneToOneField(models.OneToOneField):
-    """ One-to-one relationships in schema can (and often will be) null. """
-    def __init__(self, *args, **kwargs):
-        null = kwargs.pop('null', True)
-        blank = kwargs.pop('blank', True)
-        super(OptionalOneToOneField, self).__init__(*args, null=null, blank=blank, **kwargs)
+from ws.fields import OptionalOneToOneField, StateField
 
 
 class Car(models.Model):
     license_plate = models.CharField(max_length=7)
+    state = StateField()
     make = models.CharField(max_length=63)
     model = models.CharField(max_length=63)
     year = models.IntegerField()
