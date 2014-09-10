@@ -1,0 +1,18 @@
+<form action="" method="post">
+    {% csrf_token %}
+    <table>
+        <tr><th colspan="2">Personal info</th></tr>
+        {{ participant_form }}
+
+        <tr><th colspan="2">Car</th></tr>
+        <tr><td></td><td><input type="checkbox" name="has_car" value="Car" />I have a car</td></th>
+        {{ car_form }}
+
+        <tr><th colspan="2">Emergency info</th></tr>
+        {{ emergency_info_form }}
+
+        <tr><th colspan="2">Emergency contact</th></tr>
+        {{ emergency_contact_form }}
+    </table>
+    <input type="submit" value="Submit" />
+</form>
