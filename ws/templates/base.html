@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+{% block head %}
+    {% block meta %}
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="author" content="David Cain">
+    {% endblock %}
+    <title>{% block title %}MITOC Winter School{% endblock %}</title>
+    {% block css %}
+    {% endblock %}
+
+    {% block js %}
+    {% endblock js %}
+
+    {# Special CSS class so content only shown to those with JS enabled #}
+    <noscript><style> .jsonly { display: none } </style></noscript>
+{% endblock head %}
+</head>
+
+<body>
+    {% block body %}
+    {% endblock body %}
+</body>
+</html>
