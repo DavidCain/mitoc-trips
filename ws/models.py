@@ -19,7 +19,6 @@ class Car(models.Model):
 class Person(models.Model):
     """ All individuals require a name, email, and (optionally) a cell. """
     name = models.CharField(max_length=255)
-    email = models.EmailField(unique=True)
     cell_phone = PhoneNumberField(null=True, blank=True)  # Hi, Sheep.
 
     class Meta:
@@ -28,6 +27,7 @@ class Person(models.Model):
 
 class EmergencyContact(Person):
     relationship = models.CharField(max_length=63)
+    email = models.EmailField()
 
 
 class EmergencyInfo(models.Model):
@@ -40,6 +40,7 @@ class EmergencyInfo(models.Model):
 class TripGoer(Person):
     """ Anyone going on a trip needs WIMP info, and info about their car. """
     emergency_info = models.OneToOneField(EmergencyInfo)
+    email = models.EmailField(unique=True)
     car = OptionalOneToOneField(Car)
 
     class Meta(Person.Meta):
