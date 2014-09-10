@@ -1,16 +1,15 @@
 from __future__ import unicode_literals
 
-#from django.core.exceptions import ValidationError
-#from django.core.validators import RegexValidator
 from django.db import models
 
-from phonenumber_field.modelfields import PhoneNumberField
-from ws.fields import OptionalOneToOneField, StateField
+from localflavor.us.models import PhoneNumberField
+from ws.fields import OptionalOneToOneField
+from localflavor.us.models import USStateField
 
 
 class Car(models.Model):
     license_plate = models.CharField(max_length=7)
-    state = StateField()
+    state = USStateField()
     make = models.CharField(max_length=63)
     model = models.CharField(max_length=63)
     year = models.IntegerField()
