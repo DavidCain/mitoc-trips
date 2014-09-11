@@ -83,7 +83,7 @@ TEMPLATE_LOADERS = (
 TEMPLATE_DIRS = (os.path.join(PROJECT_ROOT, 'templates'),)
 
 # auth and allauth settings
-LOGIN_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = '/accounts/'
 ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 SITE_ID = "1"
 

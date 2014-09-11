@@ -6,6 +6,7 @@ from ws import views
 from ws import settings
 
 urlpatterns = patterns('',
+    url(r'^accounts/$', views.account_home),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^accounts/', include('allauth.urls')),
     url(r'^accounts/update_info/', views.update_info),

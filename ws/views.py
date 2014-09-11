@@ -94,3 +94,8 @@ def _save_forms(user, post_forms):
     else:
         participant.car = car
     participant.save()
+
+
+@login_required
+def account_home(request):
+    return render(request, 'account_home.html')
