@@ -25,3 +25,9 @@ class EmergencyInfoForm(forms.ModelForm):
     class Meta:
         model = models.EmergencyInfo
         fields = ['allergies', 'medications', 'medical_history']
+
+
+class LeaderForm(forms.ModelForm):
+    class Meta:
+        model = models.Leader
+        fields = ['participant', 'rating']

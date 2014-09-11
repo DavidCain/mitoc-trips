@@ -10,5 +10,7 @@ urlpatterns = patterns('',
     url(r'^admin/', include(admin.site.urls)),
     url(r'^accounts/', include('allauth.urls')),
     url(r'^accounts/update_info/', views.update_info),
+    url(r'^accounts/wsc/add_leader/', views.add_leader),
+    url(r'^accounts/wsc/manage_leaders/', views.manage_leaders),
 
 ) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

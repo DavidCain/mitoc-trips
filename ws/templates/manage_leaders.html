@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% if messages %}
+<h3> Messages </h3>
+<ul class="messages">
+    {% for message in messages %}
+    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>
+        {% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}
+    </li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+<form action="" method="post">
+    {% csrf_token %}
+    <table>
+        {{ formset.management_form }}
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Rating</th>
+                <th>Delete</th>
+                {% if formset.is_bound and not formset.is_valid %}
+                <th class="error">Errors</th>
+                {% endif %}
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for form in formset %}
+
+        <tr>
+            {{ form.id }} {# hidden id #}
+            <td> <a href="mailto:{{ form.instance.participant.email }}">{{ form.instance.participant.name }}</a></td>
+            <td> {{ form.rating }}</td>
+            <td> {{ form.DELETE }}</td>
+            {% if formset.errors %}
+            <td> {{ form.errors }}</td>
+            {% endif %}
+        </tr>
+
+        {% endfor %}
+        </tbody>
+    </table>
+    <input type="submit" value="Submit" />
+</form>
+{% endblock content %}

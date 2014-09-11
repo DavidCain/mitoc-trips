@@ -2,11 +2,12 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
+from django.forms.models import modelformset_factory
 from django.shortcuts import render, redirect
 from django.utils import timezone
 
-
 from ws import forms
+from ws import models
 
 
 @login_required
@@ -68,6 +69,7 @@ def update_info(request):
             _save_forms(request.user, required_dict)
             messages.add_message(request, messages.SUCCESS, 'Personal information updated successfully')
             return redirect('/accounts/')
+        # TODO: If POST fails, "this is required" comes up on all car fields
 
     return render(request, 'add_participant.html', form_dict)
 
@@ -117,3 +119,32 @@ def _participant_info_current(user):
         # Information is already stored, check if it's too old
         since_last_update = timezone.now() - participant.last_updated
         return since_last_update.days < settings.MUST_UPDATE_AFTER_DAYS
+
+
+@login_required
+def add_leader(request):
+    """ Create a Leader record for an existing Participant. """
+    if request.method == "POST":
+        form = forms.LeaderForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.add_message(request, messages.SUCCESS, 'Added new leader')
+    else:
+        # Regardless of success, empty form for quick addition of another
+        form = forms.LeaderForm()
+    return render(request, 'add_leader.html', {'leader_form': form})
+
+
+@login_required
+def manage_leaders(request):
+    LeaderFormSet = modelformset_factory(models.Leader, can_delete=True, extra=0,
+                                         exclude=('participant',))
+    if request.method == 'POST':
+        formset = LeaderFormSet(request.POST)
+        if formset.is_valid():
+            formset.save()
+            messages.add_message(request, messages.SUCCESS, 'Updated leaders')
+            formset = LeaderFormSet()  # Render updated forms
+    else:
+        formset = LeaderFormSet()
+    return render(request, 'manage_leaders.html', {'formset': formset})

@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 from django.contrib.auth.models import User
 from django.db import models
+from django.core.exceptions import ObjectDoesNotExist
 
 from localflavor.us.models import PhoneNumberField
 from ws.fields import OptionalOneToOneField
@@ -54,6 +55,14 @@ class Participant(Person):
     attended_lectures = models.BooleanField(default=False)
     trips_attended = models.ManyToManyField('Trip')
 
+    def __unicode__(self):
+        try:
+            is_leader = self.leader
+        except ObjectDoesNotExist:
+            return self.name
+        else:
+            return "{} ({})".format(self.name, self.leader.rating)
+
 
 class Leader(models.Model):
     """ A Leader is a special participant (just one with extra privileges).
@@ -71,6 +80,9 @@ class Leader(models.Model):
     """
     participant = models.OneToOneField(Participant)
     rating = models.CharField(max_length=255)  # Leave long for comments about rating
+
+    def __unicode__(self):
+        return unicode(self.participant)
 
 
 class Trip(models.Model):
