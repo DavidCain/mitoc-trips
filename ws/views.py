@@ -3,8 +3,10 @@ from django.shortcuts import render
 from ws import forms
 
 from django.http import HttpResponse
+from django.contrib.auth.decorators import login_required
 
 
+@login_required
 def add_participant(request):
     """ Create a new Participant record, and related records. """
     # The Participant and EmergencyContact are both Person models, have
