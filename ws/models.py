@@ -42,6 +42,7 @@ class Participant(Person):
 
     Even leaders will have a Participant record (see docstring of Leader)
     """
+    last_updated = models.DateTimeField(auto_now=True)
     user = models.OneToOneField(User)
     emergency_info = models.OneToOneField(EmergencyInfo)
     email = models.EmailField(unique=True)

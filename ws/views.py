@@ -1,8 +1,10 @@
-from django.shortcuts import render
-
-from django.http import HttpResponse
+from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
+from django.shortcuts import render, redirect
+from django.utils import timezone
+
 
 from ws import forms
 
@@ -64,7 +66,8 @@ def update_info(request):
 
         if all(form.is_valid() for form in required_dict.values()):
             _save_forms(request.user, required_dict)
-            return HttpResponse("Information updated", content_type="text/plain")
+            messages.add_message(request, messages.SUCCESS, 'Personal information updated successfully')
+            return redirect('/accounts/')
 
     return render(request, 'add_participant.html', form_dict)
 
@@ -98,4 +101,19 @@ def _save_forms(user, post_forms):
 
 @login_required
 def account_home(request):
+    if not _participant_info_current(request.user):
+        messages.add_message(request, messages.WARNING,
+            'Personal information missing or out of date. <a href="update_info/">Please update!</a>',
+            extra_tags='safe')
     return render(request, 'account_home.html')
+
+
+def _participant_info_current(user):
+    try:
+        participant = user.participant
+    except ObjectDoesNotExist:
+        return False  # No information!
+    else:
+        # Information is already stored, check if it's too old
+        since_last_update = timezone.now() - participant.last_updated
+        return since_last_update.days < settings.MUST_UPDATE_AFTER_DAYS

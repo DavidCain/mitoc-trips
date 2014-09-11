@@ -1,6 +1,16 @@
 {% extends "base.html" %}
 
 {% block content %}
+{% if messages %}
+<h3> Messages </h3>
+<ul class="messages">
+    {% for message in messages %}
+    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>
+        {% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}
+    </li>
+    {% endfor %}
+</ul>
+{% endif %}
 <h3> Account home </h3>
 
 <ul id="menu">

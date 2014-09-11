@@ -1,6 +1,16 @@
 {% extends "base.html" %}
 
 {% block content %}
+
+<div id="last_updated">
+{% if not user.participant %}
+<p> Please complete the below fields. <strong>You will not be able to attend a Winter School trip until this form is completed.</strong></p>
+{% else %}
+<p>You last updated your information on {{ user.participant.last_updated }}</p>
+<p>Periodically, we will request that you update this information. A notification to do so will appear on your <a href="/accounts/">account homepage</a>.</p>
+{% endif %}
+</div>
+
 <form action="" method="post">
     {% csrf_token %}
     <table>

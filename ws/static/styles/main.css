@@ -1,3 +1,11 @@
 .hidden {
     display: none;
 }
+
+.success {
+    color: green;
+}
+
+.warning {
+    color: red;
+}
