@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+from django.contrib.auth.models import User
 from django.db import models
 
 from localflavor.us.models import PhoneNumberField
@@ -41,6 +42,7 @@ class Participant(Person):
 
     Even leaders will have a Participant record (see docstring of Leader)
     """
+    user = models.OneToOneField(User)
     emergency_info = models.OneToOneField(EmergencyInfo)
     email = models.EmailField(unique=True)
     car = OptionalOneToOneField(Car)
