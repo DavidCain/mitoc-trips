@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% load messages_ul %}
+
+{% block content %}
+{% if messages %}
+<h3> Messages </h3>
+{% messages_ul %}
+{% endif %}
+{% endblock content %}

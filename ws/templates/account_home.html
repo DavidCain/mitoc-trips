@@ -1,11 +1,7 @@
-{% extends "base.html" %}
-{% load messages_ul %}
+{% extends "messages_page.html" %}
 
 {% block content %}
-{% if messages %}
-<h3> Messages </h3>
-{% messages_ul %}
-{% endif %}
+{{ block.super }}
 <h3> Account home </h3>
 
 <ul id="menu">
