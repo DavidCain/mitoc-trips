@@ -31,3 +31,11 @@ class LeaderForm(forms.ModelForm):
     class Meta:
         model = models.Leader
         fields = ['participant', 'rating']
+
+
+class TripForm(forms.ModelForm):
+    class Meta:
+        model = models.Trip
+        fields = ['leaders', 'name', 'description', 'trip_date', 'capacity',
+                  'leaders_willing_to_rent', 'difficulty_rating', 'prereqs',
+                  'algorithm']

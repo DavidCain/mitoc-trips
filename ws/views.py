@@ -6,8 +6,9 @@ from django.forms.models import modelformset_factory
 from django.shortcuts import render, redirect
 from django.utils.decorators import method_decorator
 from django.utils import timezone
-from django.views.generic import View
+from django.views.generic import CreateView
 from django.views.generic import DetailView
+from django.views.generic import View
 
 from ws import forms
 from ws import models
@@ -133,6 +134,12 @@ class ParticipantDetailView(DetailView):
         return context
 
 
+class TripDetailView(DetailView):
+    queryset = models.Trip.objects.all()
+    context_object_name = 'trip'
+    template_name = 'trip_detail.html'
+
+
 @login_required
 def account_home(request):
     if not _participant_info_current(request.user):
@@ -200,3 +207,32 @@ def manage_participants(request):
     else:
         formset = ParticipantFormSet()
     return render(request, 'manage_participants.html', {'formset': formset})
+
+
+class AddTrip(CreateView):
+    model = models.Trip
+    fields = ['leaders', 'name', 'description', 'trip_date', 'capacity',
+              'leaders_willing_to_rent', 'difficulty_rating', 'prereqs',
+              'algorithm']
+    template_name = 'add_trip.html'
+    success_url = '/accounts/view_trip/%(id)s/'
+
+    def get_initial(self):
+        """ Default with trip creator among leaders. """
+        initial = super(AddTrip, self).get_initial().copy()
+        initial['leaders'] = [self.request.user.participant.leader]
+        return initial
+
+    def form_valid(self, form):
+        """ After is_valid(), assign creator from User. """
+        creator = self.request.user.participant.leader
+        trip = form.save(commit=False)
+        trip.creator = creator
+        # TODO: Warn if the creator isn't one of the trip leaders,
+        # Prompt them to edit the trip, add themselves
+
+        return super(AddTrip, self).form_valid(form)
+
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super(AddTrip, self).dispatch(request, *args, **kwargs)
