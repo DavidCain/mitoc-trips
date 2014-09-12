@@ -5,6 +5,9 @@
 
 <form action="" method="post">
     {% csrf_token %}
+    {% if not formset.total_form_count %}
+    <p> No leaders found! Try <a href="../add_leader/">adding leaders</a>. </p>
+    {% else %}
     <table>
         {{ formset.management_form }}
         <thead>
@@ -35,5 +38,6 @@
         </tbody>
     </table>
     <input type="submit" value="Submit" />
+    {% endif %}
 </form>
 {% endblock content %}
