@@ -10,6 +10,7 @@ urlpatterns = patterns('',
     url(r'^admin/', include(admin.site.urls)),
     url(r'^accounts/', include('allauth.urls')),
     url(r'^accounts/update_info/', views.UpdateParticipantView.as_view()),
+    url(r'^accounts/wsc/$', views.wsc_home),
     url(r'^accounts/wsc/add_leader/', views.add_leader),
 
 ) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

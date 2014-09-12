@@ -1,0 +1,15 @@
+{% extends "home.html" %}
+{% load messages_ul %}
+
+{% block content %}
+{{ block.super }}
+<h3> WSC control panel </h3>
+
+<ul id="menu">
+    {#<li> <a href="update_info/">Update personal information</a> </li>#}
+    <li> <a href="add_leader/"> Add new leader(s) </a> </li>
+    <li> <a href="manage_leaders/"> Manage existing leaders </a> </li>
+    <li> <a href="manage_trips/"> Manage trips </a> </li>
+    <li> <a href="manage_participants/"> Manage participants </a> </li>
+</ul>
+{% endblock content %}

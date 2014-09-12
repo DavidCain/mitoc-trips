@@ -132,6 +132,11 @@ def _participant_info_current(user):
 
 
 @login_required
+def wsc_home(request):
+    return render(request, 'wsc_home.html')
+
+
+@login_required
 def add_leader(request):
     """ Create a Leader record for an existing Participant. """
     if request.method == "POST":
