@@ -15,6 +15,7 @@ urlpatterns = patterns('',
     url(r'^accounts/wsc/add_leader/', views.add_leader),
     url(r'^accounts/wsc/manage_leaders/', views.manage_leaders),
     url(r'^accounts/wsc/manage_participants/', views.manage_participants),
+    url(r'^accounts/wsc/manage_trips/', views.manage_trips),
     url(r'^accounts/view_participant/(?P<pk>\d+)/$', views.ParticipantDetailView.as_view(), name='participant-detail'),
     url(r'^accounts/view_trip/(?P<pk>\d+)/$', views.TripDetailView.as_view(), name='trip-detail'),
 

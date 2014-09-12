@@ -209,6 +209,22 @@ def manage_participants(request):
     return render(request, 'manage_participants.html', {'formset': formset})
 
 
+@login_required
+def manage_trips(request):
+    TripFormSet = modelformset_factory(models.Trip, can_delete=True, extra=0,
+                                       fields=('algorithm', 'wsc_approved'))
+    if request.method == 'POST':
+        formset = TripFormSet(request.POST)
+        if formset.is_valid():
+            formset.save()
+            messages.add_message(request, messages.SUCCESS, 'Updated trips')
+            formset = TripFormSet()
+    else:
+        formset = TripFormSet()
+    return render(request, 'manage_trips.html', {'formset': formset})
+
+
+
 class AddTrip(CreateView):
     model = models.Trip
     fields = ['leaders', 'name', 'description', 'trip_date', 'capacity',

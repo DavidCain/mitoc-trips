@@ -1,0 +1,45 @@
+{% extends "messages_page.html" %}
+
+{% block content %}
+{{ block.super }}
+
+<form action="" method="post">
+    {% csrf_token %}
+    <table>
+        {{ formset.management_form }}
+        <thead>
+            <tr>
+                <th>Name</th>  {# Link out #}
+                <th>Leaders</th>
+                <th>Date</th>
+                <th>Algorithm</th>
+                <th>Approved</th>
+                <th>Delete</th>
+                {% if formset.is_bound and not formset.is_valid %}
+                <th class="error">Errors</th>
+                {% endif %}
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for form in formset %}
+
+        <tr>
+            {{ form.id }} {# hidden id #}
+            <td>  <a href="/accounts/view_trip/{{ form.instance.id }}">{{ form.instance.name }}</a></td>
+            <td> {{ form.instance.leaders.all|join:", " }}</td>
+            <td> {{ form.instance.trip_date|date:"Y-m-d" }}</td>
+            <td> {{ form.algorithm }}</td>
+            <td> {{ form.wsc_approved }}</td>
+            <td> {{ form.DELETE }}</td>
+            {% if formset.errors %}
+            <td> {{ form.errors }}</td>
+            {% endif %}
+        </tr>
+
+        {% endfor %}
+        </tbody>
+    </table>
+    <input type="submit" value="Submit" />
+</form>
+{% endblock content %}
