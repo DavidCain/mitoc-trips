@@ -12,5 +12,8 @@ urlpatterns = patterns('',
     url(r'^accounts/update_info/', views.UpdateParticipantView.as_view()),
     url(r'^accounts/wsc/$', views.wsc_home),
     url(r'^accounts/wsc/add_leader/', views.add_leader),
+    url(r'^accounts/wsc/manage_leaders/', views.manage_leaders),
+    url(r'^accounts/wsc/manage_participants/', views.manage_participants),
+    url(r'^accounts/view_participant/(?P<pk>\d+)/$', views.ParticipantDetailView.as_view(), name='participant-detail'),
 
 ) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

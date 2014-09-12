@@ -7,6 +7,7 @@ from django.shortcuts import render, redirect
 from django.utils.decorators import method_decorator
 from django.utils import timezone
 from django.views.generic import View
+from django.views.generic import DetailView
 
 from ws import forms
 from ws import models
@@ -111,6 +112,27 @@ class UpdateParticipantView(View):
         return super(UpdateParticipantView, self).dispatch(request, *args, **kwargs)
 
 
+class ParticipantDetailView(DetailView):
+    queryset = models.Participant.objects.all()
+    context_object_name = 'participant'
+    template_name = 'participant_detail.html'
+
+    def get_context_data(self, **kwargs):
+        # By default, this method just returns a context with the object
+        # However, I couldn't easily display a read-only summary of the model
+        # So, this is the hackish solution
+        participant = self.get_object()
+        e_info = participant.emergency_info
+        e_contact = e_info.emergency_contact
+        context = {'participant_form': forms.ParticipantForm(instance=participant),
+                   'emergency_info_form':  forms.EmergencyInfoForm(instance=e_info),
+                   'emergency_contact_form':  forms.EmergencyContactForm(instance=e_contact),
+                   }
+        if participant.car:
+            context['car_form'] = forms.CarForm(instance=participant.car)
+        return context
+
+
 @login_required
 def account_home(request):
     if not _participant_info_current(request.user):
@@ -163,3 +185,18 @@ def manage_leaders(request):
     else:
         formset = LeaderFormSet()
     return render(request, 'manage_leaders.html', {'formset': formset})
+
+
+@login_required
+def manage_participants(request):
+    ParticipantFormSet = modelformset_factory(models.Participant, can_delete=True, extra=0,
+                                              fields=('attended_lectures',))
+    if request.method == 'POST':
+        formset = ParticipantFormSet(request.POST)
+        if formset.is_valid():
+            formset.save()
+            messages.add_message(request, messages.SUCCESS, 'Updated participants')
+            formset = ParticipantFormSet()
+    else:
+        formset = ParticipantFormSet()
+    return render(request, 'manage_participants.html', {'formset': formset})

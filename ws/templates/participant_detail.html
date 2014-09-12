@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load readonly_form %}
+
+{% block content %}
+
+<h3> Participant info </h3>
+{% readonly_form participant_form %}
+
+<h3> Car </h3>
+{% if car_form %}
+{% readonly_form car_form %}
+{% else %}
+<p> (no car) </p>
+{% endif %}
+
+<h3> Medical info </h3>
+{% readonly_form emergency_info_form %}
+
+<h3> Emergency Contact </h3>
+{% readonly_form emergency_contact_form %}
+
+{% endblock %}
