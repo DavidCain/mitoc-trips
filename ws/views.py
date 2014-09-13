@@ -163,7 +163,6 @@ def _participant_info_current(user):
         return since_last_update.days < settings.MUST_UPDATE_AFTER_DAYS
 
 
-@login_required
 def home(request):
     return render(request, 'home.html')
 
