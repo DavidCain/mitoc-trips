@@ -16,6 +16,11 @@ class Car(models.Model):
     model = models.CharField(max_length=63)
     year = models.IntegerField()
 
+    def __unicode__(self):
+        car_info = "{} {} {}".format(self.year, self.make, self.model)
+        registration_info = "-".join([self.license_plate, self.state])
+        return "{} ({})".format(car_info, registration_info)
+
 
 class Person(models.Model):
     """ All individuals require a name, email, and (optionally) a cell. """
@@ -30,12 +35,20 @@ class EmergencyContact(Person):
     relationship = models.CharField(max_length=63)
     email = models.EmailField()
 
+    def __unicode__(self):
+        return "{} ({}): {}".format(self.name, self.relationship, self.cell_phone)
+
 
 class EmergencyInfo(models.Model):
     emergency_contact = models.OneToOneField(EmergencyContact)
     allergies = models.CharField(max_length=255, blank=True)
     medications = models.CharField(max_length=255, blank=True)
     medical_history = models.TextField(blank=True, help_text="Anything your trip leader would want to know about.")
+
+    def __unicode__(self):
+        return ("Allergies: {} | Medications: {} | History: {} | "
+                "Contact: {}".format(self.allergies, self.medications,
+                                     self.medical_history, self.emergency_contact))
 
 
 class Participant(Person):
@@ -104,6 +117,9 @@ class Trip(models.Model):
                                  choices=[('lottery', 'lottery'),
                                           ('fcfs', 'first-come, first-serve')])
 
+    def __unicode__(self):
+        return self.name
+
 
 class Feedback(models.Model):
     """ Feedback given for a participant on one trip. """
@@ -115,3 +131,7 @@ class Feedback(models.Model):
     # Allows general feedback (i.e. not linked to a trip)
     trip = models.ForeignKey(Trip, null=True, blank=True)
     time_created = models.DateTimeField(auto_now_add=True)
+
+    def __unicode__(self):
+        author = "anonymous" if self.prefer_anonymous else self.leader
+        return '{}: "{}" - {}'.format(self.participant, self.comments, author)
