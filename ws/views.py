@@ -164,6 +164,11 @@ def _participant_info_current(user):
 
 
 def home(request):
+    authenticated = request.user.is_authenticated()
+    if authenticated and not _participant_info_current(request.user):
+        msg = ('Personal information missing or out of date. '
+               '<a href="{}">Please update!</a>'.format(reverse('update_info')))
+        messages.add_message(request, messages.WARNING, msg, extra_tags='safe')
     return render(request, 'home.html')
 
 
