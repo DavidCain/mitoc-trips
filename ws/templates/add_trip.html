@@ -3,9 +3,14 @@
 {% block content %}
 {{ block.super }}
 
+{% if not user.participant.leader %}
+<p> A Leader record must be associated with the trip creator in order to create a trip.
+<a href="{% url 'add_leader' %}">Add a leader</a> record for yourself, then try again.</p>
+{% else %}
 <form action="" method="post">
     {% csrf_token %}
     {{ form.as_p }}
     <input type="submit" value="Submit" />
 </form>
+{% endif %}
 {% endblock content %}

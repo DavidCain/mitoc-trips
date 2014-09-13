@@ -251,7 +251,10 @@ class AddTrip(CreateView):
     def get_initial(self):
         """ Default with trip creator among leaders. """
         initial = super(AddTrip, self).get_initial().copy()
-        initial['leaders'] = [self.request.user.participant.leader]
+        try:
+            initial['leaders'] = [self.request.user.participant.leader]
+        except ObjectDoesNotExist:  # WSC (with no Leader) tries to add trip
+            pass
         return initial
 
     def form_valid(self, form):
