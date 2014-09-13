@@ -1,5 +1,25 @@
 {% extends "base.html" %}
 
+{% block js %}
+{{ block.super }}
+<script>
+    function toggle_car_form(has_car) {
+        var car_rows = document.getElementsByClassName('car_row');
+        for (var i = 0; i < car_rows.length; ++i) {
+            var tr = car_rows[i];
+            if(has_car.checked)
+                tr.style.display = 'table-row';
+            else
+                tr.style.display = 'none';
+        }
+    }
+
+    window.onload = function (){
+        toggle_car_form(document.getElementById('has_car_checkbox'));
+    }
+</script>
+{% endblock %}
+
 {% block content %}
 
 <div id="last_updated">
@@ -18,8 +38,13 @@
         {{ participant_form }}
 
         <tr><th colspan="2">Car</th></tr>
-        <tr><td></td><td><input type="checkbox" name="has_car" value="Car" />I have a car</td></th>
-        {{ car_form }}
+        <tr><td></td><td><input type="checkbox" id="has_car_checkbox" name="has_car" value="Car" onclick='toggle_car_form(this)'/ {% if has_car_checked %}checked{% endif %}>I have a car</td></th>
+        {% for field in car_form %}
+        <tr class="car_row">
+            <th> {{ field.label_tag }} </th>
+            <td> {{ field.errors }} {{ field }} </td>
+        </tr>
+        {% endfor %}
 
         <tr><th colspan="2">Emergency info</th></tr>
         {{ emergency_info_form }}

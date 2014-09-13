@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.forms.models import modelformset_factory
+from django.forms import ModelForm
 from django.shortcuts import render, redirect
 from django.utils.decorators import method_decorator
 from django.utils import timezone
@@ -34,8 +35,9 @@ class UpdateParticipantView(View):
         except ObjectDoesNotExist:
             return None
 
-    def _get_forms(self, request):
-        """ Return a dictionary of forms to be passed for template rendering
+    def get_context_data(self, request):
+        """ Return a dictionary primarily of forms to for template rendering.
+        Also includes a value for the "I have a car" checkbox.
 
         Outputs three types of forms:
             - Bound forms, if POSTed
@@ -57,32 +59,36 @@ class UpdateParticipantView(View):
         if not participant:
             par_kwargs["initial"] = {'email': request.user.email}
 
-        form_dict = {
+        context = {
             'participant_form':  forms.ParticipantForm(post, **par_kwargs),
             'car_form': forms.CarForm(post, instance=car),
             'emergency_info_form':  forms.EmergencyInfoForm(post, instance=e_info),
             'emergency_contact_form':  forms.EmergencyContactForm(post, prefix=self.e_prefix, instance=e_contact),
         }
-        return form_dict
+        context['has_car_checked'] = self._has_car(request) if post else True
+
+        return context
 
     def get(self, request, *args, **kwargs):
-        form_dict = self._get_forms(request)
-        return render(request, self.template_name, form_dict)
+        context = self.get_context_data(request)
+        return render(request, self.template_name, context)
 
     def post(self, request, *args, **kwargs):
-        form_dict = self._get_forms(request)
-        required_dict = form_dict.copy()
+        """ Validate POSTed forms, except CarForm if "no car" stated. """
+        context = self.get_context_data(request)
+        required_dict = {key: val for key, val in context.items()
+                         if isinstance(val, ModelForm)}
 
         if not self._has_car(request):
             required_dict.pop('car_form')
+            context['car_form'] = forms.CarForm()  # Avoid validation errors
 
         if all(form.is_valid() for form in required_dict.values()):
             self._save_forms(request.user, required_dict)
             messages.add_message(request, messages.SUCCESS, self.update_msg)
             return redirect('home')
         else:
-            # TODO: If POST fails, "this is required" displays on all car fields
-            return render(request, self.template_name, form_dict)
+            return render(request, self.template_name, context)
 
     def _save_forms(self, user, post_forms):
         """ Given completed, validated forms, handle saving all.
