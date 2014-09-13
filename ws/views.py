@@ -12,6 +12,7 @@ from django.views.generic import View
 
 from ws import forms
 from ws import models
+from ws.decorators import group_required
 
 
 class UpdateParticipantView(View):
@@ -133,11 +134,21 @@ class ParticipantDetailView(DetailView):
             context['car_form'] = forms.CarForm(instance=participant.car)
         return context
 
+    #@method_decorator(permission_required('ws.can_view_participant',
+    #                                      raise_exception=True))
+    @method_decorator(group_required('WSC'))
+    def dispatch(self, request, *args, **kwargs):
+        return super(ParticipantDetailView, self).dispatch(request, *args, **kwargs)
+
 
 class TripDetailView(DetailView):
     queryset = models.Trip.objects.all()
     context_object_name = 'trip'
     template_name = 'trip_detail.html'
+
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super(TripDetailView, self).dispatch(request, *args, **kwargs)
 
 
 @login_required
@@ -160,12 +171,13 @@ def _participant_info_current(user):
         return since_last_update.days < settings.MUST_UPDATE_AFTER_DAYS
 
 
-@login_required
+@group_required('WSC')
 def wsc_home(request):
     return render(request, 'wsc_home.html')
 
 
-@login_required
+#@permission_required('ws.can_add_leader', raise_exception=True)
+@group_required('WSC')
 def add_leader(request):
     """ Create a Leader record for an existing Participant. """
     if request.method == "POST":
@@ -179,7 +191,7 @@ def add_leader(request):
     return render(request, 'add_leader.html', {'leader_form': form})
 
 
-@login_required
+@group_required('WSC')
 def manage_leaders(request):
     LeaderFormSet = modelformset_factory(models.Leader, can_delete=True, extra=0,
                                          exclude=('participant',))
@@ -194,7 +206,7 @@ def manage_leaders(request):
     return render(request, 'manage_leaders.html', {'formset': formset})
 
 
-@login_required
+@group_required('WSC')
 def manage_participants(request):
     ParticipantFormSet = modelformset_factory(models.Participant, can_delete=True, extra=0,
                                               fields=('attended_lectures',))
@@ -209,7 +221,7 @@ def manage_participants(request):
     return render(request, 'manage_participants.html', {'formset': formset})
 
 
-@login_required
+@group_required('WSC')
 def manage_trips(request):
     TripFormSet = modelformset_factory(models.Trip, can_delete=True, extra=0,
                                        fields=('algorithm', 'wsc_approved'))
@@ -222,7 +234,6 @@ def manage_trips(request):
     else:
         formset = TripFormSet()
     return render(request, 'manage_trips.html', {'formset': formset})
-
 
 
 class AddTrip(CreateView):
@@ -249,6 +260,6 @@ class AddTrip(CreateView):
 
         return super(AddTrip, self).form_valid(form)
 
-    @method_decorator(login_required)
+    @method_decorator(group_required('WSC', 'leaders'))
     def dispatch(self, request, *args, **kwargs):
         return super(AddTrip, self).dispatch(request, *args, **kwargs)
