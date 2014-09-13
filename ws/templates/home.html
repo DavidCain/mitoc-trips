@@ -1,7 +1,39 @@
 {% extends "messages_page.html" %}
+{% load auth_tags %}
 
 {% block content %}
+<p> Welcome to Winter School! </p>
+
 {{ block.super }}
 
-<p> Welcome to Winter School! </p>
+<h3> Main Menu </h3>
+<ul id="main_menu">
+    <li> <a href="{% url 'update_info' %}">Update personal information</a> </li>
+    {# <li> <a href="{% url 'view_trips' %}"> View trips</a> </li> #}
+</ul>
+
+{% if user|has_group:"leaders" %}
+<h3> Leader actions </h3>
+
+<ul id="leader_menu">
+    <li> <a href="{% url 'add_trip' %}"> Create new trip </a> </li>
+</ul>
+{% endif %}
+
+{% if user|has_group:"WSC" %}
+<h3> WSC control panel </h3>
+
+<ul id="wsc_menu">
+    <li> <a href="{% url 'add_leader' %}"> Add new leader(s) </a> </li>
+    <li> <a href="{% url 'manage_leaders' %}"> Manage existing leaders </a> </li>
+    <li> <a href="{% url 'manage_trips' %}"> Manage trips </a> </li>
+    <li> <a href="{% url 'manage_participants' %}"> Manage participants </a> </li>
+</ul>
+{% endif %}
+
+<h3> Account Menu </h3>
+<ul id="account_menu">
+    <li> <a href="{% url 'account_logout' %}">Logout</a> </li>
+    <li> <a href="{% url 'account_change_password' %}">Change password</a> </li>
+</ul>
 {% endblock content %}

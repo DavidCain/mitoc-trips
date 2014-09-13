@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.urlresolvers import reverse
 from django.forms.models import modelformset_factory
 from django.shortcuts import render, redirect
 from django.utils.decorators import method_decorator
@@ -78,7 +79,7 @@ class UpdateParticipantView(View):
         if all(form.is_valid() for form in required_dict.values()):
             self._save_forms(request.user, required_dict)
             messages.add_message(request, messages.SUCCESS, self.update_msg)
-            return redirect('/accounts/')
+            return redirect('home')
         else:
             # TODO: If POST fails, "this is required" displays on all car fields
             return render(request, self.template_name, form_dict)
@@ -151,15 +152,6 @@ class TripDetailView(DetailView):
         return super(TripDetailView, self).dispatch(request, *args, **kwargs)
 
 
-@login_required
-def account_home(request):
-    if not _participant_info_current(request.user):
-        messages.add_message(request, messages.WARNING,
-            'Personal information missing or out of date. <a href="update_info/">Please update!</a>',
-            extra_tags='safe')
-    return render(request, 'account_home.html')
-
-
 def _participant_info_current(user):
     try:
         participant = user.participant
@@ -171,9 +163,9 @@ def _participant_info_current(user):
         return since_last_update.days < settings.MUST_UPDATE_AFTER_DAYS
 
 
-@group_required('WSC')
-def wsc_home(request):
-    return render(request, 'wsc_home.html')
+@login_required
+def home(request):
+    return render(request, 'home.html')
 
 
 #@permission_required('ws.can_add_leader', raise_exception=True)
@@ -242,7 +234,9 @@ class AddTrip(CreateView):
               'leaders_willing_to_rent', 'difficulty_rating', 'prereqs',
               'algorithm']
     template_name = 'add_trip.html'
-    success_url = '/accounts/view_trip/%(id)s/'
+
+    def get_success_url(self):
+        return reverse('view_trip', args=(self.object.id,))
 
     def get_initial(self):
         """ Default with trip creator among leaders. """

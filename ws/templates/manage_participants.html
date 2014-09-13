@@ -28,7 +28,7 @@
 
         <tr>
             {{ form.id }} {# hidden id #}
-            <td>  <a href="/accounts/view_participant/{{ form.instance.id }}">{{ form.instance.name }}</a></td>
+            <td>  <a href="{% url 'view_participant' form.instance.id %}">{{ form.instance.name }}</a></td>
             <td> <a href="mailto:{{ form.instance.email }}">{{ form.instance.email }}</a></td>
             <td> {{ form.instance.cell_phone }}</td>
             <td> {{ form.instance.leader.rating }}</td>

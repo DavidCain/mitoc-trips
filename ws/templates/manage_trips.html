@@ -26,7 +26,7 @@
 
         <tr>
             {{ form.id }} {# hidden id #}
-            <td>  <a href="/accounts/view_trip/{{ form.instance.id }}">{{ form.instance.name }}</a></td>
+            <td>  <a href="{% url 'view_trip' form.instance.id %}">{{ form.instance.name }}</a></td>
             <td> {{ form.instance.leaders.all|join:", " }}</td>
             <td> {{ form.instance.trip_date|date:"Y-m-d" }}</td>
             <td> {{ form.algorithm }}</td>

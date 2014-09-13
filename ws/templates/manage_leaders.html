@@ -6,7 +6,7 @@
 <form action="" method="post">
     {% csrf_token %}
     {% if not formset.total_form_count %}
-    <p> No leaders found! Try <a href="../add_leader/">adding leaders</a>. </p>
+    <p> No leaders found! Try <a href="{% url 'add_leader' %}">adding leaders</a>. </p>
     {% else %}
     <table>
         {{ formset.management_form }}
