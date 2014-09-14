@@ -17,9 +17,10 @@ class Car(models.Model):
     make = models.CharField(max_length=63)
     model = models.CharField(max_length=63)
     year = models.IntegerField()
+    color = models.CharField(max_length=63)
 
     def __unicode__(self):
-        car_info = "{} {} {}".format(self.year, self.make, self.model)
+        car_info = "{} {} {} {}".format(self.color, self.year, self.make, self.model)
         registration_info = "-".join([self.license_plate, self.state])
         return "{} ({})".format(car_info, registration_info)
 

@@ -12,7 +12,7 @@ class ParticipantForm(forms.ModelForm):
 class CarForm(forms.ModelForm):
     class Meta:
         model = models.Car
-        fields = ['license_plate', 'state', 'make', 'model', 'year']
+        fields = ['license_plate', 'state', 'make', 'model', 'year', 'color']
 
 
 class EmergencyContactForm(forms.ModelForm):
