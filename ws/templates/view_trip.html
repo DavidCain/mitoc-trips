@@ -65,12 +65,16 @@
 
 
 {% if trip.signups_open %}
+{% if trip in user.participant.trip_set.all %}
+<p>You are signed up for this trip.</p>
+{% else %}
 <p>Signups are open!</p>
 <form action="{% url 'trip_signup' %}" method="post">
     {% csrf_token %}
     {{ signup_form.as_p }}
     <input type="submit" value="Sign up" />
 </form>
+{% endif %}
 {% elif trip.signups_closed %}
 
 <p>Signups for this trip are closed.</p>
