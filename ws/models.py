@@ -29,6 +29,7 @@ class Person(models.Model):
 
     class Meta:
         abstract = True
+        ordering = ["name"]
 
 
 class EmergencyContact(Person):
@@ -97,6 +98,9 @@ class Leader(models.Model):
     def __unicode__(self):
         return unicode(self.participant)
 
+    class Meta:
+        ordering = ["participant"]
+
 
 class Trip(models.Model):
     creator = models.ForeignKey(Leader, related_name='created_trips')
@@ -120,6 +124,9 @@ class Trip(models.Model):
     def __unicode__(self):
         return self.name
 
+    class Meta:
+        ordering = ["-trip_date"]
+
 
 class Feedback(models.Model):
     """ Feedback given for a participant on one trip. """
@@ -135,3 +142,6 @@ class Feedback(models.Model):
     def __unicode__(self):
         author = "anonymous" if self.prefer_anonymous else self.leader
         return '{}: "{}" - {}'.format(self.participant, self.comments, author)
+
+    class Meta:
+        ordering = ["participant", "time_created"]
