@@ -63,13 +63,46 @@
     {% endif %}
 </table>
 
+
 {% if trip.signups_open %}
 <p>Signups are open!</p>
-{# TODO: Signup form goes here #}
+<form action="{% url 'trip_signup' %}" method="post">
+    {% csrf_token %}
+    {{ signup_form.as_p }}
+    <input type="submit" value="Sign up" />
+</form>
 {% elif trip.signups_closed %}
+
 <p>Signups for this trip are closed.</p>
 {% else %}
 <p>Signups for this trip are not yet open.</p>
 {% endif %}
+
+{% if signups %}
+<h3>Participants ({{ signups|length }} / {{trip.capacity }})</h3>
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            {% if trip.notes %}
+            <th>Notes</th>
+            {% endif %}
+        </tr>
+    </thead>
+
+    <tbody>
+    {% for signup in signups %}
+    <tr>
+        <td>{{ signup.participant }}</td>
+        {% if trip.notes %}
+        <td>{{ signup.notes }}</td>
+        {% endif %}
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+
+
 
 {% endblock content %}

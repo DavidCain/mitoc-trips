@@ -3,7 +3,8 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.forms.models import modelformset_factory
-from django.forms import ModelForm
+from django.forms import ModelForm, HiddenInput
+from django.forms.util import ErrorList
 from django.shortcuts import render, redirect
 from django.utils.decorators import method_decorator
 from django.views.generic import CreateView, DetailView, ListView, View
@@ -147,14 +148,66 @@ class ParticipantDetailView(DetailView):
         return super(ParticipantDetailView, self).dispatch(request, *args, **kwargs)
 
 
-class TripDetailView(DetailView):
-    queryset = models.Trip.objects.all()
-    context_object_name = 'trip'
-    template_name = 'trip_detail.html'
+class SignUpView(CreateView):
+    """ Special view designed to be accessed only on invalid signup form
+
+    The "select trip" field is hidden, as this page is meant to be accessed
+    only from a Trip-viewing page. Technically, by manipulating POST data on
+    the hidden field (Trip), participants could sign up for any trip this way.
+    This is not really an issue, though, so no security flaw.
+    """
+    model = models.SignUp
+    form_class = forms.SignUpForm
+    template_name = 'trip_signup.html'
+
+    def get_form(self, form_class):
+        signup_form = super(SignUpView, self).get_form(form_class)
+        signup_form.fields['trip'].widget = HiddenInput()
+        return signup_form
+
+    def form_valid(self, form):
+        """ After is_valid() and some checks, assign participant from User.
+
+        If the participant has signed up before, halt saving, and return
+        a form with errors (this shouldn't happen, as a template should
+        prevent the form from being displayed in the first place).
+        """
+        participant = self.request.user.participant
+        signup = form.save(commit=False)
+        signup.participant = participant
+        if signup.trip in participant.trip_set.all():
+            form.errors['__all__'] = ErrorList(["Already signed up!"])
+            return self.form_invalid(form)
+        return super(SignUpView, self).form_valid(form)
+
+    def get_success_url(self):
+        messages.add_message(self.request, messages.SUCCESS, "Signed up!")
+        return reverse('view_trip', args=(self.object.trip.id,))
 
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
-        return super(TripDetailView, self).dispatch(request, *args, **kwargs)
+        return super(SignUpView, self).dispatch(request, *args, **kwargs)
+
+
+class ViewTrip(DetailView):
+    queryset = models.Trip.objects.all()
+    context_object_name = 'trip'
+    template_name = 'view_trip.html'
+
+    def get_context_data(self, **kwargs):
+        """ Create form for signup (only if signups open). """
+        context = super(ViewTrip, self).get_context_data()
+        trip = self.get_object()
+        if trip.signups_open:
+            signup_form = forms.SignUpForm(initial={'trip': trip})
+            signup_form.fields['trip'].widget = HiddenInput()
+            context['signup_form'] = signup_form
+        context['signups'] = models.SignUp.objects.filter(trip=trip)
+        return context
+
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super(ViewTrip, self).dispatch(request, *args, **kwargs)
 
 
 def _warn_if_needs_update(request):

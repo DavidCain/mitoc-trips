@@ -113,6 +113,48 @@ class Leader(models.Model):
         ordering = ["participant"]
 
 
+class SignUp(models.Model):
+    """ An editable record relating a Participant to a Trip.
+
+    The time of creation determines ordering in first-come, first-serve.
+    """
+    participant = models.ForeignKey(Participant)
+    trip = models.ForeignKey("Trip")
+    time_created = models.DateTimeField(auto_now_add=True)
+    notes = models.TextField(blank=True)  # e.g. Answers to questions
+
+    def save(self, **kwargs):
+        """ Assert that the Participant is not signing up twice.
+
+        The AssertionError here should never be thrown - it's a last defense
+        against a less-than-obvious implementation of adding Participant
+        records after getting a bound form.
+        """
+        if not kwargs.pop('commit', True):
+            assert self.trip not in self.participant.trip_set.all()
+        super(SignUp, self).save(**kwargs)
+
+    def clean(self):
+        """ Trip must be open, notes only required if the trip has notes. """
+        try:
+            trip = self.trip
+        except ObjectDoesNotExist:
+            pass  # A missing trip will be caught
+        else:
+            if trip.notes and not self.notes:
+                raise ValidationError("Please complete notes to sign up!")
+            if not trip.signups_open:
+                # Interface shouldn't allow this, but a clever person
+                # could try to POST data.  No harm in making sure...
+                raise ValidationError("Signups aren't open for this trip!")
+
+    def __unicode__(self):
+        return "{} on {}".format(self.participant.name, self.trip)
+
+    class Meta:
+        ordering = ["time_created"]
+
+
 def _nearest_sat():
     """ Give the date of the nearest Saturday (next week if today is Saturday)
 
@@ -148,6 +190,7 @@ class Trip(models.Model):
     signups_close_at = models.DateTimeField(default=_three_days_from_now,
                                             null=True, blank=True)
 
+    signed_up_participants = models.ManyToManyField(Participant, through=SignUp)
     algorithm = models.CharField(max_length='31', default='lottery',
                                  choices=[('lottery', 'lottery'),
                                           ('fcfs', 'first-come, first-serve')])

@@ -39,3 +39,9 @@ class TripForm(forms.ModelForm):
         fields = ['leaders', 'name', 'description', 'trip_date', 'capacity',
                   'leaders_willing_to_rent', 'difficulty_rating', 'prereqs',
                   'algorithm', 'signups_open_at', 'signups_close_at', 'notes']
+
+
+class SignUpForm(forms.ModelForm):
+    class Meta:
+        model = models.SignUp
+        fields = ['trip', 'notes']
