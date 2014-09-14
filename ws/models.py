@@ -1,8 +1,10 @@
 from __future__ import unicode_literals
 
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils import timezone
 
 from localflavor.us.models import PhoneNumberField
 from ws.fields import OptionalOneToOneField
@@ -68,6 +70,11 @@ class Participant(Person):
                                             ("N", "Non-affiliate")])
     attended_lectures = models.BooleanField(default=False)
     trips_attended = models.ManyToManyField('Trip')
+
+    @property
+    def info_current(self):
+        since_last_update = timezone.now() - self.last_updated
+        return since_last_update.days < settings.MUST_UPDATE_AFTER_DAYS
 
     def __unicode__(self):
         try:

@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
@@ -7,7 +6,6 @@ from django.forms.models import modelformset_factory
 from django.forms import ModelForm
 from django.shortcuts import render, redirect
 from django.utils.decorators import method_decorator
-from django.utils import timezone
 from django.views.generic import CreateView, DetailView, ListView, View
 
 from ws import forms
@@ -156,23 +154,26 @@ class TripDetailView(DetailView):
         return super(TripDetailView, self).dispatch(request, *args, **kwargs)
 
 
-def _participant_info_current(user):
+def _warn_if_needs_update(request):
+    """ Create message if Participant info needs update. Otherwise, do nothing. """
+    if not request.user.is_authenticated():
+        return
+
     try:
-        participant = user.participant
-    except ObjectDoesNotExist:
-        return False  # No information!
+        participant = request.user.participant
+    except ObjectDoesNotExist:  # Authenticated, but no info yet
+        msg = 'Personal information missing.'
     else:
-        # Information is already stored, check if it's too old
-        since_last_update = timezone.now() - participant.last_updated
-        return since_last_update.days < settings.MUST_UPDATE_AFTER_DAYS
+        if participant.info_current:  # Record exists, is up to date
+            return
+        msg = 'Personal information is out of date.'
+
+    msg += ' <a href="{}">Please update!</a>'.format(reverse('update_info'))
+    messages.add_message(request, messages.WARNING, msg, extra_tags='safe')
 
 
 def home(request):
-    authenticated = request.user.is_authenticated()
-    if authenticated and not _participant_info_current(request.user):
-        msg = ('Personal information missing or out of date. '
-               '<a href="{}">Please update!</a>'.format(reverse('update_info')))
-        messages.add_message(request, messages.WARNING, msg, extra_tags='safe')
+    _warn_if_needs_update(request)
     return render(request, 'home.html')
 
 
