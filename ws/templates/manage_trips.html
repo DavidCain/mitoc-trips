@@ -3,6 +3,12 @@
 {% block content %}
 {{ block.super }}
 
+{% if not formset.total_form_count %}
+<p> No trips found!
+Once <a href="{% url 'manage_leaders' %}">leaders</a> have
+<a href="{% url 'add_trip' %}">created trips,</a>
+they will appear here.</p>
+{% else %}
 <form action="" method="post">
     {% csrf_token %}
     <table>
@@ -42,4 +48,5 @@
     </table>
     <input type="submit" value="Submit" />
 </form>
+{% endif %}
 {% endblock content %}

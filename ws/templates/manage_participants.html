@@ -3,6 +3,12 @@
 {% block content %}
 {{ block.super }}
 
+{% if not formset.total_form_count %}
+<p> No participants found!
+Once people <a href="{% url 'account_signup' %}">sign up</a>,
+and <a href="{% url 'update_info' %}">add personal information</a>,
+they will appear here.</p>
+{% else %}
 <form action="" method="post">
     {% csrf_token %}
     <table>
@@ -46,4 +52,5 @@
     </table>
     <input type="submit" value="Submit" />
 </form>
+{% endif %}
 {% endblock content %}

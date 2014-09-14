@@ -3,6 +3,14 @@
 {% block content %}
 {{ block.super }}
 
+{% if not trip_list %}
+{% if user.participant.leader %}
+<p> No trips found! <a href="{% url 'add_trip' %}">Create one?</a></p>
+{% else %}
+<p> There are currently no trips. Once leaders create trips, they will appear here.</p>
+{% endif %}
+
+{% else %}
     <table>
         <thead>
             <tr>
@@ -32,5 +40,6 @@
         {% endfor %}
         </tbody>
     </table>
+{% endif %}
 
 {% endblock content %}
