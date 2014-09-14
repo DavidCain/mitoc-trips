@@ -17,5 +17,6 @@ urlpatterns = patterns('',
     url(r'^wsc/manage_trips/', views.manage_trips, name='manage_trips'),
     url(r'^view_participant/(?P<pk>\d+)/$', views.ParticipantDetailView.as_view(), name='view_participant'),
     url(r'^view_trip/(?P<pk>\d+)/$', views.TripDetailView.as_view(), name='view_trip'),
+    url(r'^view_trips/', views.ViewTrips.as_view(), name='view_trips'),
 
 ) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

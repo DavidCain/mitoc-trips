@@ -8,9 +8,7 @@ from django.forms import ModelForm
 from django.shortcuts import render, redirect
 from django.utils.decorators import method_decorator
 from django.utils import timezone
-from django.views.generic import CreateView
-from django.views.generic import DetailView
-from django.views.generic import View
+from django.views.generic import CreateView, DetailView, ListView, View
 
 from ws import forms
 from ws import models
@@ -270,3 +268,16 @@ class AddTrip(CreateView):
     @method_decorator(group_required('WSC', 'leaders'))
     def dispatch(self, request, *args, **kwargs):
         return super(AddTrip, self).dispatch(request, *args, **kwargs)
+
+
+class ViewTrips(ListView):
+    model = models.Trip
+    context_object_name = 'trip_list'
+    fields = ['name', 'trip_date', 'description', 'capacity', 'algorithm',
+              'difficulty_rating']
+
+    template_name = 'view_trips.html'
+
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super(ViewTrips, self).dispatch(request, *args, **kwargs)
