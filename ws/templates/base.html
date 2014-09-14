@@ -23,5 +23,13 @@
 <body>
     {% block content %}
     {% endblock content %}
+
+    <hr> {# Before we bother with styling, gives 'good enough' divide #}
+
+    <footer>
+    {% block footer %}
+    <a href="{% url 'home' %}">Home</a> | Written by David Cain
+    {% endblock footer %}
+    </footer>
 </body>
 </html>
