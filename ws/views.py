@@ -242,9 +242,7 @@ def manage_trips(request):
 
 class AddTrip(CreateView):
     model = models.Trip
-    fields = ['leaders', 'name', 'description', 'trip_date', 'capacity',
-              'leaders_willing_to_rent', 'difficulty_rating', 'prereqs',
-              'algorithm', 'signups_open_at', 'signups_close_at', 'notes']
+    form_class = forms.TripForm
     template_name = 'add_trip.html'
 
     def get_success_url(self):
