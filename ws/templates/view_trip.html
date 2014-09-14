@@ -75,12 +75,12 @@
     <input type="submit" value="Sign up" />
 </form>
 {% endif %}
-{% elif trip.signups_closed %}
 
+{% elif trip.signups_closed %}
 <p>Signups for this trip are closed.</p>
-{% else %}
+{% elif trip.signups_not_yet_open %}
 <p>Signups for this trip are not yet open.</p>
-{% endif %}
+{% endif %} {# No else - the three states should cover all cases #}
 
 {% if signups %}
 <h3>Participants ({{ signups|length }} / {{trip.capacity }})</h3>
