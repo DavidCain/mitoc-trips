@@ -148,7 +148,7 @@ class Trip(models.Model):
     signups_close_at = models.DateTimeField(default=_three_days_from_now,
                                             null=True, blank=True)
 
-    algorithm = models.CharField(max_length='31',
+    algorithm = models.CharField(max_length='31', default='lottery',
                                  choices=[('lottery', 'lottery'),
                                           ('fcfs', 'first-come, first-serve')])
 
