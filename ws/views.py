@@ -61,7 +61,10 @@ class UpdateParticipantView(View):
             'emergency_info_form':  forms.EmergencyInfoForm(post, instance=e_info),
             'emergency_contact_form':  forms.EmergencyContactForm(post, prefix=self.e_prefix, instance=e_contact),
         }
-        context['has_car_checked'] = self._has_car(request) if post else True
+        if post:
+            context['has_car_checked'] = self._has_car(request)
+        else:
+            context['has_car_checked'] = bool(participant.car) if participant else True
 
         return context
 
