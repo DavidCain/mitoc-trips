@@ -20,10 +20,6 @@
         <td>{{ trip.trip_date|date:"Y-m-d" }}</td>
     </tr>
     <tr>
-        <th>Capacity:</th>
-        <td>{{ trip.capacity }}</td>
-    </tr>
-    <tr>
         <th>Leaders willing to rent:</th>
         <td>{{ trip.willing_to_rent|yesno }}</td>
     </tr>
@@ -31,13 +27,49 @@
         <th>Difficulty rating:</th>
         <td>{{ trip.difficulty_rating }}</td>
     </tr>
+    {% if trip.prereqs %}
     <tr>
         <th>Prerequisites:</th>
         <td>{{ trip.prereqs }}</td>
     </tr>
+    {% endif %}
+    {% if trip.notes %}
+    <tr>
+        <th>Notes:</th>
+        <td>{{ trip.notes }}</td>
+    </tr>
+    {% endif %}
+</table>
+
+<h3> Signup </h3>
+<table>
     <tr>
         <th>Algorithm:</th>
         <td>{{ trip.algorithm }}</td>
     </tr>
+    <tr>
+        <th>Capacity:</th>
+        <td>{{ trip.capacity }}</td>
+    </tr>
+    <tr>
+        <th>Signups {{ trip.signups_open|yesno:"opened,open" }} at:</th>
+        <td>{{ trip.signups_open_at }}</td>
+    </tr>
+    {% if trip.signups_close_at %}  {# Not all trips have a close time #}
+    <tr>
+        <th>Signups {{ trip.signups_closed|yesno:"closed,close" }} at:</th>
+        <td>{{ trip.signups_close_at }}</td>
+    </tr>
+    {% endif %}
 </table>
+
+{% if trip.signups_open %}
+<p>Signups are open!</p>
+{# TODO: Signup form goes here #}
+{% elif trip.signups_closed %}
+<p>Signups for this trip are closed.</p>
+{% else %}
+<p>Signups for this trip are not yet open.</p>
+{% endif %}
+
 {% endblock content %}
