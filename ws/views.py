@@ -338,18 +338,48 @@ class ViewTrips(ListView):
         return super(ViewTrips, self).dispatch(request, *args, **kwargs)
 
 
-@login_required
-def trip_preferences(request):
-    # TODO: Must have participant (Raise error on no participant, decorator?)
-    queryset = models.SignUp.objects.filter(participant=request.user.participant)
-    SignUpFormSet = modelformset_factory(models.SignUp, can_delete=True,
-                                         extra=0, fields=('order',))
-    if request.method == 'POST':
-        formset = SignUpFormSet(request.POST, queryset=queryset)
-        if formset.is_valid():
+class TripPreferencesView(View):
+    template_name = 'trip_preferences.html'
+    update_msg = 'Lottery preferences updated'
+
+    @property
+    def factory_formset(self):
+        return modelformset_factory(models.SignUp, can_delete=True, extra=0,
+                                    fields=('order',))
+
+    def get_formset(self, request):
+        # TODO: Needs participant, else error
+        participant = request.user.participant
+        queryset = models.SignUp.objects.filter(participant=participant)
+        post = request.POST if request.method == "POST" else None
+        return self.factory_formset(post, queryset=queryset)
+
+    def get_lottery_form(self, request):
+        post = request.POST if request.method == "POST" else None
+        try:
+            lottery_info = request.user.participant.lotteryinfo
+        except ObjectDoesNotExist:
+            lottery_info = None
+        return forms.LotteryInfoForm(post, instance=lottery_info)
+
+    def get_context(self, request):
+        return {"formset": self.get_formset(request),
+                "lottery_form": self.get_lottery_form(request)}
+
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, self.get_context(request))
+
+    def post(self, request, *args, **kwargs):
+        context = self.get_context(request)
+        lottery_form, formset = context['lottery_form'], context['formset']
+        if (lottery_form.is_valid() and formset.is_valid()):
+            lottery_info = lottery_form.save(commit=False)
+            lottery_info.participant = request.user.participant
+            lottery_info.save()
             formset.save()
-            messages.add_message(request, messages.SUCCESS, 'Updated preferences')
-            formset = SignUpFormSet(queryset=queryset)  # Render updated forms
-    else:
-        formset = SignUpFormSet(queryset=queryset)
-    return render(request, 'trip_preferences.html', {'formset': formset})
+            messages.add_message(request, messages.SUCCESS, self.update_msg)
+        return render(request, self.template_name, context)
+
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super(TripPreferencesView, self).dispatch(request, *args, **kwargs)

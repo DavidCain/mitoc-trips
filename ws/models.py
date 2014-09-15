@@ -124,6 +124,8 @@ class SignUp(models.Model):
     notes = models.TextField(blank=True)  # e.g. Answers to questions
     order = models.IntegerField(null=True, blank=True)
 
+    on_trip = models.BooleanField(default=False)
+
     def save(self, **kwargs):
         """ Assert that the Participant is not signing up twice.
 
@@ -231,3 +233,14 @@ class Feedback(models.Model):
 
     class Meta:
         ordering = ["participant", "time_created"]
+
+
+class LotteryInfo(models.Model):
+    """ Persists from week-to-week, but can be changed. """
+    participant = models.OneToOneField(Participant)
+    own_a_car = models.BooleanField(default=False)
+    willing_to_rent = models.BooleanField(default=False)
+    number_of_passengers = models.PositiveIntegerField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["own_a_car", "willing_to_rent", "number_of_passengers"]

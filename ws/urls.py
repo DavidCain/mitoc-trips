@@ -19,6 +19,6 @@ urlpatterns = patterns('',
     url(r'^view_trip/(?P<pk>\d+)/$', views.ViewTrip.as_view(), name='view_trip'),
     url(r'^view_trips/', views.ViewTrips.as_view(), name='view_trips'),
     url(r'^trip_signup/$', views.SignUpView.as_view(), name='trip_signup'),
-    url(r'^trip_preferences/$', views.trip_preferences, name='trip_preferences'),
+    url(r'^trip_preferences/$', views.TripPreferencesView.as_view(), name='trip_preferences'),
 
 ) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

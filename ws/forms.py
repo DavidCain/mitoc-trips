@@ -45,3 +45,9 @@ class SignUpForm(forms.ModelForm):
     class Meta:
         model = models.SignUp
         fields = ['trip', 'notes']
+
+
+class LotteryInfoForm(forms.ModelForm):
+    class Meta:
+        model = models.LotteryInfo
+        fields = ['own_a_car', 'willing_to_rent', 'number_of_passengers']

@@ -3,11 +3,13 @@
 {% block content %}
 {{ block.super }}
 
+<h2> Lottery Preferences </h2>
 <h3>Winter School Lottery</h3>
 <p>Due to the large number of Winter School participants and a limited number
 of trips, placement for each weekend's trips will be done by lottery. </p>
 
 <h3>Your trips</h3>
+
 {% if not formset.total_form_count %}
 <p>Begin by signing up for any trips you're interested in. You can always
 <a href="{% url 'view_trips' %}">browse all available trips</a>.</p>
@@ -18,9 +20,28 @@ trips you'd like to go on, they will appear here.</p>
 numbers (negatives are valid) are given higher priority over other trips.</p>
 <p>If you do not rank your trips, they will be considered in the order of
 signup.</p>
+{% endif %}
+
+<h3> Cars </h3>
+<p> Drivers are given priority on trips that would not otherwise be able
+to transport lottery-winning participants. If you state that you have a
+car or are willing to rent, you may or may not be asked to drive. </p>
+
+<hr>  {# Until better styling done with CSS #}
+
+<h4> Car info </h4>
 <form action="" method="post">
+{% csrf_token %}
 <table>
-    {{ formset.management_form }}
+    {{ lottery_form.as_table }}
+</table>
+
+<h4> Ranked trips </h4>
+{{ formset.management_form }}
+{% if not formset.total_form_count %}
+<p> You haven't signed up for any <a href="{% url 'view_trips' %}">trips!</a> </p>
+{% else %}
+<table>
     <thead>
         <tr>
             <th>Trip</th>
@@ -49,8 +70,9 @@ signup.</p>
         {% endfor %}
     </tbody>
 </table>
+{% endif %}
+
 <input type="submit" value="Submit" />
 </form>
-{% endif %}
 
 {% endblock content %}
