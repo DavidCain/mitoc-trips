@@ -33,12 +33,6 @@
         <td>{{ trip.prereqs }}</td>
     </tr>
     {% endif %}
-    {% if trip.notes %}
-    <tr>
-        <th>Notes:</th>
-        <td>{{ trip.notes }}</td>
-    </tr>
-    {% endif %}
 </table>
 
 <h3> Signup </h3>
@@ -59,6 +53,12 @@
     <tr>
         <th>Signups {{ trip.signups_closed|yesno:"closed,close" }} at:</th>
         <td>{{ trip.signups_close_at }}</td>
+    </tr>
+    {% endif %}
+    {% if trip.notes %}
+    <tr>
+        <th>Notes:</th>
+        <td>{{ trip.notes }}</td>
     </tr>
     {% endif %}
 </table>
