@@ -74,7 +74,6 @@ class Participant(Person):
                                             ("M", "MIT affiliate"),
                                             ("N", "Non-affiliate")])
     attended_lectures = models.BooleanField(default=False)
-    trips_attended = models.ManyToManyField('Trip')
 
     @property
     def info_current(self):
