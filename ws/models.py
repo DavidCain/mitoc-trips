@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -10,8 +10,9 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 
 from localflavor.us.models import PhoneNumberField
-from ws.fields import OptionalOneToOneField
 from localflavor.us.models import USStateField
+from ws.fields import OptionalOneToOneField
+from ws.dateutils import nearest_sat, wed_at_noon
 
 
 class Car(models.Model):
@@ -155,21 +156,6 @@ class SignUp(models.Model):
         ordering = ["time_created"]
 
 
-def _nearest_sat():
-    """ Give the date of the nearest Saturday (next week if today is Saturday)
-
-    Because most trips are posted during the week, and occur that weekend,
-    defaulting to Saturday is reasonable. (It's rare that a trip posted on
-    Saturday is for that day or the next day, so default to next Saturday).
-    """
-    now = datetime.now()
-    if now.weekday() == 5:  # (today is Saturday)
-        delta = timedelta(days=7)
-    else:  # Nearest Saturday
-        delta = timedelta((12 - now.weekday()) % 7)
-    return (now + delta).date()
-
-
 class Trip(models.Model):
     creator = models.ForeignKey(Leader, related_name='created_trips')
     leaders = models.ManyToManyField(Leader)
@@ -184,11 +170,9 @@ class Trip(models.Model):
 
     time_created = models.DateTimeField(auto_now_add=True)
     last_edited = models.DateTimeField(auto_now=True)
-    trip_date = models.DateField(default=_nearest_sat)
+    trip_date = models.DateField(default=nearest_sat)
     signups_open_at = models.DateTimeField(default=datetime.now)
-    _three_days_from_now = lambda: datetime.now() + timedelta(days=3)
-    signups_close_at = models.DateTimeField(default=_three_days_from_now,
-                                            null=True, blank=True)
+    signups_close_at = models.DateTimeField(default=wed_at_noon, null=True, blank=True)
 
     signed_up_participants = models.ManyToManyField(Participant, through=SignUp)
     algorithm = models.CharField(max_length='31', default='lottery',
