@@ -1,0 +1,56 @@
+{% extends "messages_page.html" %}
+
+{% block content %}
+{{ block.super }}
+
+<h3>Winter School Lottery</h3>
+<p>Due to the large number of Winter School participants and a limited number
+of trips, placement for each weekend's trips will be done by lottery. </p>
+
+<h3>Your trips</h3>
+{% if not formset.total_form_count %}
+<p>Begin by signing up for any trips you're interested in. You can always
+<a href="{% url 'view_trips' %}">browse all available trips</a>.</p>
+<p>If you'd like to go on a trip, sign up for it. Once you've signed up for
+trips you'd like to go on, they will appear here.</p>
+{% else %}
+<p>Please rank your trips in the order of preference. Trips with lower
+numbers (negatives are valid) are given higher priority over other trips.</p>
+<p>If you do not rank your trips, they will be considered in the order of
+signup.</p>
+<form action="" method="post">
+<table>
+    {{ formset.management_form }}
+    <thead>
+        <tr>
+            <th>Trip</th>
+            <th>Notes</th>
+            <th>Order</th>
+            <th>Delete</th>
+            {% if formset.is_bound and not formset.is_valid %}
+            <th class="error">Errors</th>
+            {% endif %}
+        </tr>
+    </thead>
+
+    {% csrf_token %}
+    <tbody>
+        {% for form in formset %}
+        <tr>
+            {{ form.id }}
+            <td> <a href="{% url 'view_trip' form.instance.trip.id %}">{{ form.instance.trip|truncatechars:30 }}</a></td>
+            <td> {{ form.instance.notes }} </td>
+            <td> {{ form.order }} </td>
+            <td> {{ form.DELETE }} </td>
+            {% if formset.errors %}
+            <td> {{ form.errors }}</td>
+            {% endif %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<input type="submit" value="Submit" />
+</form>
+{% endif %}
+
+{% endblock content %}

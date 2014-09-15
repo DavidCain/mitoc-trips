@@ -123,6 +123,7 @@ class SignUp(models.Model):
     trip = models.ForeignKey("Trip")
     time_created = models.DateTimeField(auto_now_add=True)
     notes = models.TextField(blank=True)  # e.g. Answers to questions
+    order = models.IntegerField(null=True, blank=True)
 
     def save(self, **kwargs):
         """ Assert that the Participant is not signing up twice.
@@ -153,7 +154,7 @@ class SignUp(models.Model):
         return "{} on {}".format(self.participant.name, self.trip)
 
     class Meta:
-        ordering = ["time_created"]
+        ordering = ["order", "time_created"]
 
 
 class Trip(models.Model):

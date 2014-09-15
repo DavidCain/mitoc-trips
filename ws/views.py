@@ -336,3 +336,20 @@ class ViewTrips(ListView):
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         return super(ViewTrips, self).dispatch(request, *args, **kwargs)
+
+
+@login_required
+def trip_preferences(request):
+    # TODO: Must have participant (Raise error on no participant, decorator?)
+    queryset = models.SignUp.objects.filter(participant=request.user.participant)
+    SignUpFormSet = modelformset_factory(models.SignUp, can_delete=True,
+                                         extra=0, fields=('order',))
+    if request.method == 'POST':
+        formset = SignUpFormSet(request.POST, queryset=queryset)
+        if formset.is_valid():
+            formset.save()
+            messages.add_message(request, messages.SUCCESS, 'Updated preferences')
+            formset = SignUpFormSet(queryset=queryset)  # Render updated forms
+    else:
+        formset = SignUpFormSet(queryset=queryset)
+    return render(request, 'trip_preferences.html', {'formset': formset})
