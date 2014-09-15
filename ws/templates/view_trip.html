@@ -69,11 +69,17 @@
 <p>You are signed up for this trip.</p>
 {% else %}
 <p>Signups are open!</p>
+
+{% if not user.participant %}
+<p> You cannot sign up for trips until you <a href="{% url 'update_info' %}">submit personal information.</a></p>
+{% else %}
 <form action="{% url 'trip_signup' %}" method="post">
     {% csrf_token %}
     {{ signup_form.as_p }}
     <input type="submit" value="Sign up" />
 </form>
+{% endif %}
+
 {% endif %}
 
 {% elif trip.signups_closed %}

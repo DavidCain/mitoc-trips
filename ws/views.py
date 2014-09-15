@@ -11,7 +11,7 @@ from django.views.generic import CreateView, DetailView, ListView, View
 
 from ws import forms
 from ws import models
-from ws.decorators import group_required
+from ws.decorators import group_required, user_info_required
 
 
 class UpdateParticipantView(View):
@@ -74,7 +74,10 @@ class UpdateParticipantView(View):
         return render(request, self.template_name, context)
 
     def post(self, request, *args, **kwargs):
-        """ Validate POSTed forms, except CarForm if "no car" stated. """
+        """ Validate POSTed forms, except CarForm if "no car" stated.
+
+        Upon validation, redirect to homepage or `next` url, if specified.
+        """
         context = self.get_context_data(request)
         required_dict = {key: val for key, val in context.items()
                          if isinstance(val, ModelForm)}
@@ -86,7 +89,8 @@ class UpdateParticipantView(View):
         if all(form.is_valid() for form in required_dict.values()):
             self._save_forms(request.user, required_dict)
             messages.add_message(request, messages.SUCCESS, self.update_msg)
-            return redirect('home')
+            next_url = request.GET['next'] if 'next' in request.GET else 'home'
+            return redirect(next_url)
         else:
             return render(request, self.template_name, context)
 
@@ -141,8 +145,6 @@ class ParticipantDetailView(DetailView):
             context['car_form'] = forms.CarForm(instance=participant.car)
         return context
 
-    #@method_decorator(permission_required('ws.can_view_participant',
-    #                                      raise_exception=True))
     @method_decorator(group_required('WSC'))
     def dispatch(self, request, *args, **kwargs):
         return super(ParticipantDetailView, self).dispatch(request, *args, **kwargs)
@@ -184,7 +186,7 @@ class SignUpView(CreateView):
         messages.add_message(self.request, messages.SUCCESS, "Signed up!")
         return reverse('view_trip', args=(self.object.trip.id,))
 
-    @method_decorator(login_required)
+    @method_decorator(user_info_required)
     def dispatch(self, request, *args, **kwargs):
         return super(SignUpView, self).dispatch(request, *args, **kwargs)
 
@@ -348,7 +350,6 @@ class TripPreferencesView(View):
                                     fields=('order',))
 
     def get_formset(self, request):
-        # TODO: Needs participant, else error
         participant = request.user.participant
         queryset = models.SignUp.objects.filter(participant=participant)
         post = request.POST if request.method == "POST" else None
@@ -380,6 +381,6 @@ class TripPreferencesView(View):
             messages.add_message(request, messages.SUCCESS, self.update_msg)
         return render(request, self.template_name, context)
 
-    @method_decorator(login_required)
+    @method_decorator(user_info_required)
     def dispatch(self, request, *args, **kwargs):
         return super(TripPreferencesView, self).dispatch(request, *args, **kwargs)
