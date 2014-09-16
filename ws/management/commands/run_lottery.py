@@ -1,9 +1,10 @@
 from django.core.management.base import BaseCommand
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
+from django.utils import timezone
 
 from ws import models
-from datetime import date
+from datetime import date, timedelta
 
 
 today = date.today()
@@ -13,6 +14,7 @@ jan_1st = date(today.year, 1, 1)
 class Command(BaseCommand):
     def handle(self, *args, **options):
         assign_trips()
+        free_for_all()
 
 
 def get_prioritized_participants():
@@ -82,6 +84,16 @@ def add_to_waitlist(signup):
 
     # Add this signup to the waitlist
     models.WaitListSignup.objects.create(signup=signup, waitlist=waitlist)
+
+
+def free_for_all():
+    """ Make trips first-come, first-serve, open them for another 24 hours. """
+    print "Making all lottery trips first-come, first-serve"
+    lottery_trips = models.Trip.objects.filter(algorithm='lottery')
+    for trip in lottery_trips:
+        trip.algorithm = 'fcfs'
+        trip.signups_close_at = timezone.now() + timedelta(days=1)
+        trip.save()
 
 
 def assign_trips():
