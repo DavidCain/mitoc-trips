@@ -9,7 +9,7 @@
     </thead>
 
     <tbody>
-    {% for signup in signups %}
+    {% for signup in signups.all %}
     <tr>
         <td>{{ signup.participant }}</td>
         {% if has_notes %}

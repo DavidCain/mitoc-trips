@@ -244,5 +244,25 @@ class LotteryInfo(models.Model):
     willing_to_rent = models.BooleanField(default=False)
     number_of_passengers = models.PositiveIntegerField(null=True, blank=True)
 
+    @property
+    def is_driver(self):
+        return self.own_a_car or self.willing_to_rent
+
     class Meta:
         ordering = ["own_a_car", "willing_to_rent", "number_of_passengers"]
+
+
+class WaitListSignup(models.Model):
+    """ Intermediary between initial signup and the trip's waiting list. """
+    signup = models.OneToOneField(SignUp)
+    waitlist = models.ForeignKey("WaitList")
+    time_created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["time_created"]
+
+
+class WaitList(models.Model):
+    """ Treat the waiting list as a simple FIFO queue. """
+    trip = models.OneToOneField(Trip)
+    signups = models.ManyToManyField(SignUp, through=WaitListSignup)

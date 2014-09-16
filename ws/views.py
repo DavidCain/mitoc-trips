@@ -204,7 +204,9 @@ class ViewTrip(DetailView):
             signup_form = forms.SignUpForm(initial={'trip': trip})
             signup_form.fields['trip'].widget = HiddenInput()
             context['signup_form'] = signup_form
-        context['signups'] = models.SignUp.objects.filter(trip=trip)
+        signups = models.SignUp.objects.filter(trip=trip)
+        context['signups'] = signups
+        context['signups_on_trip'] = signups.filter(on_trip=True)
         return context
 
     @method_decorator(login_required)
