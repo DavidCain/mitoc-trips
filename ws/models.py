@@ -215,7 +215,7 @@ class Trip(models.Model):
                 raise ValidationError("Trips can't occur in the past!")
 
     class Meta:
-        ordering = ["-trip_date"]
+        ordering = ["-trip_date", "-time_created"]
 
 
 class Feedback(models.Model):
