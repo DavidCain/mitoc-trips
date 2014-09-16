@@ -155,7 +155,9 @@ class SignUp(models.Model):
         return "{} on {}".format(self.participant.name, self.trip)
 
     class Meta:
-        ordering = ["order", "time_created"]
+        # When ordering for an individual, should order by priority (i.e. 'order')
+        # When ordering for many, should go by time created.
+        ordering = ["time_created"]
 
 
 class Trip(models.Model):
