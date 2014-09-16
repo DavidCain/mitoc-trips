@@ -76,11 +76,7 @@ def add_to_waitlist(signup):
         pass
 
     # Fetch existing waitlist, or create a new one
-    try:
-        waitlist = signup.trip.waitlist
-    except ObjectDoesNotExist:
-        signup.trip.waitlist = models.WaitList.objects.create(trip=signup.trip)
-        waitlist = signup.trip.waitlist
+    waitlist = signup.trip.waitlist
 
     # Add this signup to the waitlist
     models.WaitListSignup.objects.create(signup=signup, waitlist=waitlist)

@@ -315,13 +315,14 @@ class AddTrip(CreateView):
         return initial
 
     def form_valid(self, form):
-        """ After is_valid(), assign creator from User. """
+        """ After is_valid(), assign creator from User, add empty waitlist. """
         creator = self.request.user.participant.leader
         trip = form.save(commit=False)
         trip.creator = creator
         # TODO: Warn if the creator isn't one of the trip leaders,
         # Prompt them to edit the trip, add themselves
-
+        trip.save()  # Means it'll be saved twice...
+        trip.waitlist = models.WaitList.objects.create(trip=trip)
         return super(AddTrip, self).form_valid(form)
 
     @method_decorator(group_required('WSC', 'leaders'))

@@ -96,13 +96,13 @@
 {% endif %}
 
 
-{% if trip.waitlist %}
+{% if trip.waitlist.signups.exists %}
 <h3>Waiting List ({{trip.waitlist.signups.count }}) </h3>
 {% signup_table trip.waitlist.signups trip.notes %}
 {% endif %}
 
 {% if signups %}
-<h3>Signups</h3>
+<h3>All Signups</h3>
 {% signup_table signups trip.notes %}
 {% endif %}
 
