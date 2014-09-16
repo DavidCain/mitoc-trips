@@ -126,19 +126,17 @@ def handle_participant(participant):
     # Place participant on their first choice available trip
     for signup in signups.order_by('order', 'time_created'):
         trip = signup.trip
-        accepted_signups = trip.signup_set.filter(on_trip=True)
-        empty_slots = trip.capacity - accepted_signups.count()
-        if empty_slots:
-            print "{} has {} slot(s), adding {}".format(trip, empty_slots, participant)
+        if trip.open_slots:
+            print "{} has {} slot(s), adding {}".format(trip, trip.open_slots, participant)
             signup.on_trip = True
             signup.save()
             break
-        elif driver and not empty_slots:
+        elif driver and not trip.open_slots:
             # A driver may displace somebody else
             is_driver = (Q(participant__lotteryinfo__own_a_car=True) |
                          Q(participant__lotteryinfo__willing_to_rent=True))
 
-            drivers = accepted_signups.filter(is_driver)
+            drivers = trip.signup_set.filter(is_driver, on_trip=True)
             if drivers.count() < 2:
                 print "{} is full, but doesn't have two drivers".format(trip)
                 print "Adding {} to '{}', as they're a driver".format(signup, trip)

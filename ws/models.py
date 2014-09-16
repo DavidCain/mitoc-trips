@@ -187,6 +187,11 @@ class Trip(models.Model):
         return self.name
 
     @property
+    def open_slots(self):
+        accepted_signups = self.signup_set.filter(on_trip=True)
+        return self.capacity - accepted_signups.count()
+
+    @property
     def signups_open(self):
         passed_signup_date = (timezone.now() > self.signups_open_at)
         return passed_signup_date and not self.signups_closed
