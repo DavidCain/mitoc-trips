@@ -349,11 +349,12 @@ class TripPreferencesView(View):
         return modelformset_factory(models.SignUp, can_delete=True, extra=0,
                                     fields=('order',))
 
-    def get_formset(self, request):
+    def get_formset(self, request, use_post=True):
         participant = request.user.participant
         queryset = models.SignUp.objects.filter(participant=participant)
-        post = request.POST if request.method == "POST" else None
-        return self.factory_formset(post, queryset=queryset)
+        ranked_queryset = queryset.order_by('order', 'time_created')
+        post = request.POST if use_post and request.method == "POST" else None
+        return self.factory_formset(post, queryset=ranked_queryset)
 
     def get_lottery_form(self, request):
         post = request.POST if request.method == "POST" else None
@@ -379,6 +380,7 @@ class TripPreferencesView(View):
             lottery_info.save()
             formset.save()
             messages.add_message(request, messages.SUCCESS, self.update_msg)
+            context['formset'] = self.get_formset(request, use_post=False)
         return render(request, self.template_name, context)
 
     @method_decorator(user_info_required)
