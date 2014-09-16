@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load signup_tags %}
 
 {% block content %}
 <h3> Trip </h3>
@@ -89,28 +90,8 @@
 {% endif %} {# No else - the three states should cover all cases #}
 
 {% if signups %}
-<h3>Participants ({{ signups|length }} / {{trip.capacity }})</h3>
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            {% if trip.notes %}
-            <th>Notes</th>
-            {% endif %}
-        </tr>
-    </thead>
-
-    <tbody>
-    {% for signup in signups %}
-    <tr>
-        <td>{{ signup.participant }}</td>
-        {% if trip.notes %}
-        <td>{{ signup.notes }}</td>
-        {% endif %}
-    </tr>
-    {% endfor %}
-    </tbody>
-</table>
+<h3>Signups ({{ signups|length }} / {{trip.capacity }}) </h3>
+{% signup_table signups trip.notes %}
 {% endif %}
 
 
