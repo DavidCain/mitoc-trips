@@ -1,0 +1,24 @@
+<table>
+    {{ formset.management_form }}
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Notes</th>
+            <th>On trip</th>
+            <th>Delete</th>
+        </tr>
+    </thead>
+
+    <tbody>
+    {% for form in formset %}
+    <tr>
+        {{ form.id }}
+        {{ form.errors }}
+        <td>{{ form.instance.participant }}</td>
+        <td>{{ form.instance.notes }}</td>
+        <td>{{ form.on_trip }}</td>
+        <td>{{ form.DELETE }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>

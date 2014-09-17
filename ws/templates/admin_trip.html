@@ -1,0 +1,30 @@
+{% extends "messages_page.html" %}
+{% load signup_tags %}
+
+{% block content %}
+{% trip_summary trip %}
+
+{% if trip.signups_open %}
+<p>Signups are open!</p>
+{% elif trip.signups_closed %}
+<p>Signups for this trip are closed.</p>
+{% elif trip.signups_not_yet_open %}
+<p>Signups for this trip are not yet open.</p>
+{% endif %}
+
+
+<h3>Participants ({{ ontrip_formset|length }} / {{ trip.capacity }})</h3>
+<form action="" method="post">
+{% csrf_token %}
+{% editable_signup_table ontrip_formset %}
+
+
+{% if trip.waitlist.signups.exists %}
+<h3>Waiting List ({{trip.waitlist.signups.count }}) </h3>
+{% editable_signup_table waitlist_formset %}
+{% endif %}
+
+<input type="submit" value="Submit" />
+</form>
+
+{% endblock %}

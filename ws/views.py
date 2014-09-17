@@ -214,6 +214,56 @@ class ViewTrip(DetailView):
         return super(ViewTrip, self).dispatch(request, *args, **kwargs)
 
 
+class AdminTripView(DetailView):
+    model = models.Trip
+    template_name = 'admin_trip.html'
+    par_prefix = "ontrip"
+    wl = "waitlist"
+
+    @property
+    def signup_formset(self):
+        return modelformset_factory(models.SignUp, can_delete=True, extra=0,
+                                    fields=('on_trip',))
+
+    def get_context(self, request, use_post=True):
+        trip = self.get_object()
+        trip_signups = models.SignUp.objects.filter(trip=trip)
+        post = request.POST if use_post and request.method == "POST" else None
+        ontrip_queryset = trip_signups.filter(on_trip=True)
+        ontrip_formset = self.signup_formset(post, queryset=ontrip_queryset,
+                                             prefix=self.par_prefix)
+
+        waitlist_queryset = trip_signups.filter(waitlist__isnull=False)
+        waitlist_formset = self.signup_formset(post, queryset=waitlist_queryset,
+                                               prefix=self.wl)
+        return {"ontrip_formset": ontrip_formset,
+                "waitlist_formset": waitlist_formset,
+                "trip": trip}
+
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, self.get_context(request))
+
+    def post(self, request, *args, **kwargs):
+        """ Two formsets handle adding/removing people from trip. """
+        context = self.get_context(request)
+        ontrip_formset = context['ontrip_formset']
+        waitlist_formset = context['waitlist_formset']
+        if (ontrip_formset.is_valid() and waitlist_formset.is_valid()):
+            ontrip_formset.save()
+            # Anybody added from waitlist needs to be removed from waitlist
+            for signup in waitlist_formset.save():
+                if signup.on_trip:
+                    signup.waitlistsignup.delete()
+                    signup.save()
+            messages.add_message(request, messages.SUCCESS, "Updated trip")
+            context = self.get_context(request, use_post=False)
+        return render(request, self.template_name, context)
+
+    @method_decorator(group_required('leaders'))
+    def dispatch(self, request, *args, **kwargs):
+        return super(AdminTripView, self).dispatch(request, *args, **kwargs)
+
+
 def _warn_if_needs_update(request):
     """ Create message if Participant info needs update. Otherwise, do nothing. """
     if not request.user.is_authenticated():
