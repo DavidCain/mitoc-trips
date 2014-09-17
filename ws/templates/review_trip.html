@@ -1,0 +1,40 @@
+{% extends "messages_page.html" %}
+{% load signup_tags %}
+
+{% block content %}
+{% trip_summary trip %}
+
+<h3>Post-trip tasks</h3>
+
+<p>After your trip has completed, plase complete reviews for each participant.</p>
+
+
+<h3>Participants</h3>
+<form action="" method="post">
+{% csrf_token %}
+<table>
+    <thead>
+        <tr>
+            <th> Participant </th>
+            <th> Comments </th>
+            <th> Showed up for trip</th>
+            <th> Keep my feedback anonymous </th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for participant, form in feedback_list %}
+        <tr>
+            <td> {{ participant }} </td>
+            <td> {{ form.comments }} </td>
+            <td> {{ form.showed_up }}</td>
+            <td> {{ form.prefer_anonymous }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<input type="submit" value="Submit" />
+</form>
+
+{% endblock %}

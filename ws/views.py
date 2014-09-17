@@ -273,6 +273,76 @@ class AdminTripView(DetailView):
         return super(AdminTripView, self).dispatch(request, *args, **kwargs)
 
 
+class ReviewTripView(DetailView):
+    queryset = models.Trip.objects.all()
+    context_object_name = 'trip'
+    template_name = 'review_trip.html'
+    success_msg = "Thanks for your feedback"
+
+    @property
+    def feedback_formset(self):
+        return modelformset_factory(models.Feedback, extra=0)
+
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, self.get_context(request))
+
+    def post(self, request, *args, **kwargs):
+        feedback_list = self.get_feedback_list(request)
+        if all(form.is_valid() for participant, form in feedback_list):
+            leader = request.user.participant.leader
+            trip = self.get_object()
+            for participant, form in feedback_list:
+                feedback = form.save(commit=False)
+                feedback.leader = leader
+                feedback.participant = participant
+                feedback.trip = trip
+                form.save()
+
+            messages.add_message(request, messages.SUCCESS, self.success_msg)
+            return redirect(reverse('home'))
+        context = self.get_context(request)
+        return render(request, self.template_name, context)
+
+    @property
+    def trip_participants(self):
+        trip = self.get_object()
+        accepted_signups = trip.signup_set.filter(on_trip=True)
+        return [signup.participant for signup in accepted_signups]
+
+    def get_existing_feedback(self, participant, leader):
+        trip = self.get_object()
+        feedback = models.Feedback.objects.filter(participant=participant,
+                                                  trip=trip, leader=leader)
+        return feedback.first() or None
+
+    def get_feedback_list(self, request):
+        post = request.POST if request.method == 'POST' else None
+        trip = self.get_object()
+        leader = request.user.participant.leader
+        feedback_list = []
+        for participant in self.trip_participants:
+            instance = self.get_existing_feedback(participant, leader)
+            initial = {'participant': participant}
+            form = forms.FeedbackForm(post, instance=instance, initial=initial,
+                                      prefix=participant.id)
+            feedback_list.append((participant, form))
+        return feedback_list
+
+    def get_context(self, request):
+        feedback_list = self.get_feedback_list(request)
+        return {"trip": self.get_object(), "feedback_list": feedback_list}
+
+    @method_decorator(group_required('leaders'))
+    def dispatch(self, request, *args, **kwargs):
+        def leader_on_trip(request):
+            leader = request.user.participant.leader
+            trip = self.get_object()
+            return leader == trip.creator or leader in trip.leaders.all()
+        if not leader_on_trip(request):
+            return render(request, 'not_your_trip.html')
+        return super(ReviewTripView, self).dispatch(request, *args, **kwargs)
+
+
 def _warn_if_needs_update(request):
     """ Create message if Participant info needs update. Otherwise, do nothing. """
     if not request.user.is_authenticated():

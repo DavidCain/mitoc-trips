@@ -59,3 +59,9 @@ class LotteryInfoForm(forms.ModelForm):
     class Meta:
         model = models.LotteryInfo
         fields = ['own_a_car', 'willing_to_rent', 'number_of_passengers']
+
+
+class FeedbackForm(forms.ModelForm):
+    class Meta:
+        model = models.Feedback
+        fields = ['comments', 'showed_up', 'prefer_anonymous']
