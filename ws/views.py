@@ -330,17 +330,43 @@ class AddTrip(CreateView):
         return super(AddTrip, self).dispatch(request, *args, **kwargs)
 
 
-class ViewTrips(ListView):
+class TripListView(ListView):
     model = models.Trip
-    context_object_name = 'trip_list'
-    fields = ['name', 'trip_date', 'description', 'capacity', 'algorithm',
-              'difficulty_rating']
-
     template_name = 'view_trips.html'
+    context_object_name = 'trip_list'
+    form_class = forms.SummaryTripForm
 
+
+class ViewTrips(TripListView):
+    """ View all trips. """
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
-        return super(ViewTrips, self).dispatch(request, *args, **kwargs)
+        return super(TripListView, self).dispatch(request, *args, **kwargs)
+
+
+class ViewParticipantTrips(TripListView):
+    """ View trips the user is a participant on. """
+    def get(self, request, *args, **kwargs):
+        participant = request.user.participant
+        accepted_signups = participant.signup_set.filter(on_trip=True)
+        self.queryset = [signup.trip for signup in accepted_signups]
+        return super(TripListView, self).get(request, *args, **kwargs)
+
+    @method_decorator(user_info_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super(TripListView, self).dispatch(request, *args, **kwargs)
+
+
+class ViewLeaderTrips(TripListView):
+    """ View trips the user is leading. """
+    def get(self, request, *args, **kwargs):
+        leader = request.user.participant.leader
+        self.queryset = leader.trip_set.all()
+        return super(ViewLeaderTrips, self).get(request, *args, **kwargs)
+
+    @method_decorator(group_required('leaders'))
+    def dispatch(self, request, *args, **kwargs):
+        return super(ViewLeaderTrips, self).dispatch(request, *args, **kwargs)
 
 
 class TripPreferencesView(View):

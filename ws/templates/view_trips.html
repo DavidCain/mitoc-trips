@@ -7,7 +7,7 @@
 {% if user.participant.leader %}
 <p> No trips found! <a href="{% url 'add_trip' %}">Create one?</a></p>
 {% else %}
-<p> There are currently no trips. Once leaders create trips, they will appear here.</p>
+<p>No trips found.</p>
 {% endif %}
 
 {% else %}
@@ -18,7 +18,7 @@
                 <th>Date</th>
                 <th>Description</th>
                 <th>Leaders</th>
-                <th>Capacity</th> {# TODO: Show how full? #}
+                <th>Capacity</th>
                 <th>Difficulty</th>
                 <th>Algorithm</th>
             </tr>

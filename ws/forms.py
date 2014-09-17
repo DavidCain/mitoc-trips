@@ -41,6 +41,14 @@ class TripForm(forms.ModelForm):
                   'algorithm', 'signups_open_at', 'signups_close_at', 'notes']
 
 
+class SummaryTripForm(forms.ModelForm):
+    """ Intended to be read-only, cover key elements. Seen on view_trips. """
+    class Meta:
+        model = models.Trip
+        fields = ['name', 'trip_date', 'description', 'capacity', 'algorithm',
+                'difficulty_rating']
+
+
 class SignUpForm(forms.ModelForm):
     class Meta:
         model = models.SignUp

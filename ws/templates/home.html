@@ -10,8 +10,9 @@
 <h3> Main Menu </h3>
 <ul id="main_menu">
     <li> <a href="{% url 'update_info' %}">Update personal information</a> </li>
-    <li> <a href="{% url 'view_trips' %}">View all trips</a> </li>
+    <li> <a href="{% url 'view_my_trips' %}">View my trips</a> </li>
     <li> <a href="{% url 'trip_preferences' %}">Manage trip preferences</a> </li>
+    <li> <a href="{% url 'view_trips' %}">View all trips</a> </li>
 </ul>
 
 {% if user|has_group:"leaders" %}
@@ -19,6 +20,7 @@
 
 <ul id="leader_menu">
     <li> <a href="{% url 'add_trip' %}"> Create new trip </a> </li>
+    <li> <a href="{% url 'view_leader_trips' %}"> View trips I'm leading</a> </li>
 </ul>
 {% endif %}
 
