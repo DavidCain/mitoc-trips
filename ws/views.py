@@ -259,8 +259,16 @@ class AdminTripView(DetailView):
             context = self.get_context(request, use_post=False)
         return render(request, self.template_name, context)
 
-    @method_decorator(group_required('leaders'))
+    @method_decorator(group_required('leaders', 'WSC'))
     def dispatch(self, request, *args, **kwargs):
+        """ Only allow trip creator, leaders of this trip and WSC to edit. """
+        def leader_on_trip(request):
+            leader = request.user.participant.leader
+            trip = self.get_object()
+            return leader == trip.creator or leader in trip.leaders.all()
+        is_wsc = bool(request.user.groups.filter(name='WSC'))
+        if leader_on_trip(request) and not is_wsc:
+            return render(request, 'not_your_trip.html')
         return super(AdminTripView, self).dispatch(request, *args, **kwargs)
 
 
