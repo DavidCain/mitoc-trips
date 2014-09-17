@@ -234,9 +234,12 @@ class Feedback(models.Model):
     trip = models.ForeignKey(Trip, null=True, blank=True)
     time_created = models.DateTimeField(auto_now_add=True)
 
+    @property
+    def author(self):
+        return "anonymous" if self.prefer_anonymous else self.leader
+
     def __unicode__(self):
-        author = "anonymous" if self.prefer_anonymous else self.leader
-        return '{}: "{}" - {}'.format(self.participant, self.comments, author)
+        return '{}: "{}" - {}'.format(self.participant, self.comments, self.author)
 
     class Meta:
         ordering = ["participant", "time_created"]

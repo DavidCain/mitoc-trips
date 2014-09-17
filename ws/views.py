@@ -140,6 +140,7 @@ class ParticipantDetailView(DetailView):
         context = {'participant_form': forms.ParticipantForm(instance=participant),
                    'emergency_info_form':  forms.EmergencyInfoForm(instance=e_info),
                    'emergency_contact_form':  forms.EmergencyContactForm(instance=e_contact),
+                   'participant': participant,
                    }
         if participant.car:
             context['car_form'] = forms.CarForm(instance=participant.car)

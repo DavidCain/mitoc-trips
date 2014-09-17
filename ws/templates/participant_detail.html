@@ -19,4 +19,30 @@
 <h3> Emergency Contact </h3>
 {% readonly_form emergency_contact_form %}
 
+<h3 id='feedback'> Past feedback </h3>
+{% if not participant.feedback_set.exists %}
+<p>None available.</p>
+{% else %}
+<table>
+    <thead>
+        <tr>
+            <th>Comments</th>
+            <th>Leader</th>
+            <th>Showed up</th>
+            <th>Trip</th>
+        </tr>
+    </thead>
+    {% for feedback in participant.feedback_set.all %}
+    <tbody>
+        <tr>
+            <td>{{ feedback.comments }}</td>
+            <td>{{ feedback.author }}</td>
+            <td>{{ feedback.showed_up|yesno }}</td>
+            <td>{% if feedback.trip and not feedback.prefer_anonymous%}<a href="{% url 'view_trip' feedback.trip.id %}">{{ feedback.trip }}{% endif %}</a></td>
+        </tr>
+    </tbody>
+    {% endfor %}
+</table>
+{% endif %}
+
 {% endblock %}

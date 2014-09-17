@@ -3,6 +3,7 @@
     <thead>
         <tr>
             <th>Name</th>
+            <th>Past feedback</th>
             <th>Notes</th>
             <th>On trip</th>
             <th>Delete</th>
@@ -14,7 +15,12 @@
     <tr>
         {{ form.id }}
         {{ form.errors }}
-        <td>{{ form.instance.participant }}</td>
+        <td>  <a href="{% url 'view_participant' form.instance.participant.id %}">{{ form.instance.participant.name }}</a></td>
+        <td>
+            {% for feedback in form.instance.participant.feedback_set.all %}
+            "{{ feedback.comments }}" <br>
+            {% endfor %}
+        </td>
         <td>{{ form.instance.notes }}</td>
         <td>{{ form.on_trip }}</td>
         <td>{{ form.DELETE }}</td>
