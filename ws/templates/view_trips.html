@@ -18,9 +18,6 @@
                 <th>Date</th>
                 <th>Description</th>
                 <th>Leaders</th>
-                <th>Capacity</th>
-                <th>Difficulty</th>
-                <th>Algorithm</th>
             </tr>
         </thead>
 
@@ -32,9 +29,6 @@
             <td> {{ trip.trip_date|date:"Y-m-d" }}</td>
             <td> {{ trip.description|truncatechars:50 }}</td>
             <td> {{ trip.leaders.all|join:", " }}</td>
-            <td> {{ trip.capacity }}</td>
-            <td> {{ trip.difficulty_rating }}</td>
-            <td> {{ trip.algorithm }}</td>
         </tr>
 
         {% endfor %}

@@ -34,10 +34,10 @@
 <form action="" method="post">
     {% csrf_token %}
     <table>
-        <tr><th colspan="2"><h3>Personal info</h3></th></tr>
+        <tr><th colspan="2"><h4>Personal info</h4></th></tr>
         {{ participant_form }}
 
-        <tr><th colspan="2"><h3>Car</h3></th></tr>
+        <tr><th colspan="2"><h4>Car</h4></th></tr>
         <tr><td></td><td><input type="checkbox" id="has_car_checkbox" name="has_car" value="Car" onclick='toggle_car_form(this)'/ {% if has_car_checked %}checked{% endif %}>I have a car</td></th>
         {% for field in car_form %}
         <tr class="car_row">
@@ -46,10 +46,10 @@
         </tr>
         {% endfor %}
 
-        <tr><th colspan="2"><h3>Emergency info</h3></th></tr>
+        <tr><th colspan="2"><h4>Emergency info</h4></th></tr>
         {{ emergency_info_form }}
 
-        <tr><th colspan="2"><h3>Emergency contact</h3></th></tr>
+        <tr><th colspan="2"><h4>Emergency contact</h4></th></tr>
         {{ emergency_contact_form }}
     </table>
     <input type="submit" value="Submit" />

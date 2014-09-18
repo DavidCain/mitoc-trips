@@ -17,10 +17,8 @@ they will appear here.</p>
             <tr>
                 <th>Name</th>
                 <th>Email</th>
-                <th>Cell</th>
                 <th>Rating</th>
                 <th>Attended lectures</th>
-                <th>Last updated</th>
                 <th>Information current</th>
                 <th>Number of trips</th>
                 <th>Delete</th>
@@ -37,10 +35,8 @@ they will appear here.</p>
             {{ form.id }} {# hidden id #}
             <td>  <a href="{% url 'view_participant' form.instance.id %}">{{ form.instance.name }}</a></td>
             <td> <a href="mailto:{{ form.instance.email }}">{{ form.instance.email }}</a></td>
-            <td> {{ form.instance.cell_phone }}</td>
             <td> {{ form.instance.leader.rating }}</td>
             <td> {{ form.attended_lectures }}</td>
-            <td> {{ form.instance.last_updated|date:"Y-m-d" }}</td>
             <td> {{ form.instance.info_current|yesno }}</td>
             <td> {{ form.instance.num_trips }}</td>
             <td> {{ form.DELETE }}</td>
