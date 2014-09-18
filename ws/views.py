@@ -12,6 +12,7 @@ from django.views.generic import CreateView, DetailView, ListView, View
 from ws import forms
 from ws import models
 from ws.decorators import group_required, user_info_required
+from ws import message_generators
 
 
 class UpdateParticipantView(View):
@@ -343,26 +344,9 @@ class ReviewTripView(DetailView):
         return super(ReviewTripView, self).dispatch(request, *args, **kwargs)
 
 
-def _warn_if_needs_update(request):
-    """ Create message if Participant info needs update. Otherwise, do nothing. """
-    if not request.user.is_authenticated():
-        return
-
-    try:
-        participant = request.user.participant
-    except ObjectDoesNotExist:  # Authenticated, but no info yet
-        msg = 'Personal information missing.'
-    else:
-        if participant.info_current:  # Record exists, is up to date
-            return
-        msg = 'Personal information is out of date.'
-
-    msg += ' <a href="{}">Please update!</a>'.format(reverse('update_info'))
-    messages.add_message(request, messages.WARNING, msg, extra_tags='safe')
-
-
 def home(request):
-    _warn_if_needs_update(request)
+    message_generators.warn_if_needs_update(request)
+    message_generators.complain_if_missing_feedback(request)
     return render(request, 'home.html')
 
 
