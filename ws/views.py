@@ -15,6 +15,14 @@ from ws.decorators import group_required, user_info_required
 from ws import message_generators
 
 
+def leader_on_trip(request, trip, creator_allowed=False):
+    try:
+        leader = request.user.participant.leader
+    except ObjectDoesNotExist:  # Only a participant
+        return False
+    return leader == trip.creator or leader in trip.leaders.all()
+
+
 class UpdateParticipantView(View):
     # The Participant and EmergencyContact are both Person models, have
     # conflicting names. Use prefixes to keep them distinct in POST data
@@ -264,12 +272,10 @@ class AdminTripView(DetailView):
     @method_decorator(group_required('leaders', 'WSC'))
     def dispatch(self, request, *args, **kwargs):
         """ Only allow trip creator, leaders of this trip and WSC to edit. """
-        def leader_on_trip(request):
-            leader = request.user.participant.leader
-            trip = self.get_object()
-            return leader == trip.creator or leader in trip.leaders.all()
+        trip = self.get_object()
         is_wsc = bool(request.user.groups.filter(name='WSC'))
-        if leader_on_trip(request) and not is_wsc:
+        # NOTE: Fixed logic here
+        if not (leader_on_trip(request, trip, creator_allowed=True) or is_wsc):
             return render(request, 'not_your_trip.html')
         return super(AdminTripView, self).dispatch(request, *args, **kwargs)
 
@@ -318,7 +324,6 @@ class ReviewTripView(DetailView):
 
     def get_feedback_list(self, request):
         post = request.POST if request.method == 'POST' else None
-        trip = self.get_object()
         leader = request.user.participant.leader
         feedback_list = []
         for participant in self.trip_participants:
@@ -335,11 +340,7 @@ class ReviewTripView(DetailView):
 
     @method_decorator(group_required('leaders'))
     def dispatch(self, request, *args, **kwargs):
-        def leader_on_trip(request):
-            leader = request.user.participant.leader
-            trip = self.get_object()
-            return leader == trip.creator or leader in trip.leaders.all()
-        if not leader_on_trip(request):
+        if not leader_on_trip(request, self.get_object()):
             return render(request, 'not_your_trip.html')
         return super(ReviewTripView, self).dispatch(request, *args, **kwargs)
 
