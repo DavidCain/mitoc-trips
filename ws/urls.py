@@ -23,6 +23,7 @@ urlpatterns = patterns('',
     url(r'^view_trips/', views.ViewTrips.as_view(), name='view_trips'),
     url(r'^view_leader_trips/', views.ViewLeaderTrips.as_view(), name='view_leader_trips'),
     url(r'^view_my_trips/', views.ViewParticipantTrips.as_view(), name='view_my_trips'),
+    url(r'^view_waitlisted_trips/', views.ViewWaitlistTrips.as_view(), name='view_waitlisted_trips'),
 
     url(r'^trip_signup/$', views.SignUpView.as_view(), name='trip_signup'),
     url(r'^trip_preferences/$', views.TripPreferencesView.as_view(), name='trip_preferences'),

@@ -486,6 +486,19 @@ class ViewParticipantTrips(TripListView):
         return super(TripListView, self).dispatch(request, *args, **kwargs)
 
 
+class ViewWaitlistTrips(TripListView):
+    """ View trips the user is currently waitlisted on. """
+    def get(self, request, *args, **kwargs):
+        signups = request.user.participant.signup_set
+        waitlisted_signups = signups.filter(waitlistsignup__isnull=False)
+        self.queryset = [signup.trip for signup in waitlisted_signups]
+        return super(TripListView, self).get(request, *args, **kwargs)
+
+    @method_decorator(user_info_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super(TripListView, self).dispatch(request, *args, **kwargs)
+
+
 class ViewLeaderTrips(TripListView):
     """ View trips the user is leading. """
     def get(self, request, *args, **kwargs):
