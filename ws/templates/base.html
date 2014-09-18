@@ -1,4 +1,5 @@
 {% load staticfiles %}
+{% load auth_tags %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,10 +7,11 @@
     {% block meta %}
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="author" content="David Cain">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     {% endblock %}
     <title>{% block title %}MITOC Winter School{% endblock %}</title>
     {% block css %}
-    <link rel="stylesheet" href="{% static "styles/main.css" %}" />
+    <link rel="stylesheet" href="{% static "styles/layout.css" %}" />
     {% endblock %}
 
     {% block js %}
@@ -21,15 +23,85 @@
 </head>
 
 <body>
-    {% block content %}
-    {% endblock content %}
+<div id="container">
+    {% block header %}
+    <div id="header">
+        <div id="logo">
+            <span class="site-name"><a href="{% url 'home' %}" title="Winter School" rel="home">Winter School</a></span>
+            <span class="site-description">MITOC</span>
+        </div>
 
-    <hr> {# Before we bother with styling, gives 'good enough' divide #}
+        <div class="main-nav">
+            <ul class="menu">
+                <li><a href="{% url 'home' %}">Home</a></li>
 
-    <footer>
-    {% block footer %}
-    <a href="{% url 'home' %}">Home</a> | <a href="{% url 'help-home' %}">Help</a> | Written by David Cain
-    {% endblock footer %}
-    </footer>
+                <li class=""><a href="{% url 'view_trips' %}">Trips</a>
+                    <ul class="children">
+                        <li> <a href="{% url 'view_trips' %}">All trips</a> </li>
+                        <li> <a href="{% url 'view_my_trips' %}">My trips</a> </li>
+                        <li> <a href="{% url 'view_waitlisted_trips' %}">Waitlisted trips</a> </li>
+                        <li> <a href="{% url 'trip_preferences' %}">Trip preferences</a> </li>
+                    </ul>
+                </li>
+
+                {% if user|has_group:"leaders" %}
+                <li><a href="#">Leaders</a>
+                    <ul class="children">
+                        <li> <a href="{% url 'add_trip' %}"> New trip </a> </li>
+                        <li> <a href="{% url 'view_leader_trips' %}"> Trips I'm leading</a> </li>
+                    </ul>
+                </li>
+                {% endif %}
+
+                {% if user|has_group:"WSC" %}
+                <li><a href="#">WSC</a>
+                    <ul class="children">
+                        <li> <a href="{% url 'add_leader' %}"> Add new leader(s) </a> </li>
+                        <li> <a href="{% url 'manage_leaders' %}"> Manage existing leaders </a> </li>
+                        <li> <a href="{% url 'manage_trips' %}"> Manage trips </a> </li>
+                        <li> <a href="{% url 'manage_participants' %}"> Manage participants </a> </li>
+                    </ul>
+                {% endif %}
+                <li><a href="#">Account</a>
+                    <ul class="children">
+                        {% if user.is_authenticated %}
+                        <li> <a href="{% url 'update_info' %}">Update personal info</a> </li>
+                        <li> <a href="{% url 'account_logout' %}">Logout</a> </li>
+                        <li> <a href="{% url 'account_change_password' %}">Change password</a> </li>
+                        {% else %}
+                        <li> <a href="{% url 'account_signup' %}">Sign up</a> </li>
+                        <li> <a href="{% url 'account_login' %}">Log in</a> </li>
+                        {% endif %}
+                    </ul>
+                </li>
+                <li><a href="{% url 'help-home' %}">Help</a></li>
+            </ul>
+            <a id="responsive_menu_button"></a>
+        </div>
+    </div>
+    {% endblock %}
+
+    <div id="wrapper" class="clearfix">
+        <div id="content" class="grid col-940">
+            {% block content %}
+            {% endblock content %}
+        </div>
+    </div>
+
+    <div id="footer-wrapper">
+        <div class="grid col-300 copyright"> © 2014 MITOC</div>
+
+        <div class="grid col-300 scroll-top">
+            {% if user.is_authenticated %}
+            Currently logged in as {{ user.email }}
+            {% else %}
+            Anonymous user
+            {% endif %}
+        </div>
+
+        <div class="grid col-300 fit powered">Written by David Cain</div>
+    </div>
+
+</div>
 </body>
 </html>

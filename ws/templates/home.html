@@ -7,42 +7,6 @@
 {{ block.super }}
 
 {% if user.is_authenticated %}
-<h3> Main Menu </h3>
-<ul id="main_menu">
-    <li> <a href="{% url 'update_info' %}">Update personal information</a> </li>
-    <li> <a href="{% url 'view_my_trips' %}">View my trips</a> </li>
-    <li> <a href="{% url 'view_waitlisted_trips' %}">View waitlisted trips</a> </li>
-    <li> <a href="{% url 'trip_preferences' %}">Manage trip preferences</a> </li>
-    <li> <a href="{% url 'view_trips' %}">View all trips</a> </li>
-</ul>
-
-{% if user|has_group:"leaders" %}
-<h3> Leader actions </h3>
-
-<ul id="leader_menu">
-    <li> <a href="{% url 'add_trip' %}"> Create new trip </a> </li>
-    <li> <a href="{% url 'view_leader_trips' %}"> View trips I'm leading</a> </li>
-</ul>
-{% endif %}
-
-{% if user|has_group:"WSC" %}
-<h3> WSC control panel </h3>
-
-<ul id="wsc_menu">
-    <li> <a href="{% url 'add_leader' %}"> Add new leader(s) </a> </li>
-    <li> <a href="{% url 'manage_leaders' %}"> Manage existing leaders </a> </li>
-    <li> <a href="{% url 'manage_trips' %}"> Manage trips </a> </li>
-    <li> <a href="{% url 'manage_participants' %}"> Manage participants </a> </li>
-</ul>
-{% endif %}
-
-<h3> Account Menu </h3>
-<ul id="account_menu">
-    <li> Currently logged in as {{ user.email }}</li>
-    <li> <a href="{% url 'account_logout' %}">Logout</a> </li>
-    <li> <a href="{% url 'account_change_password' %}">Change password</a> </li>
-</ul>
-
 {% else %} {# Anonymous user #}
 <p><strong>This portal is only available to logged-in users.</strong></p>
 
