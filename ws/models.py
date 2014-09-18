@@ -76,6 +76,12 @@ class Participant(Person):
     attended_lectures = models.BooleanField(default=False)
 
     @property
+    def num_trips(self):
+        # NOTE: Do we count trips where the participant didn't show?
+        accepted_signups = self.signup_set.filter(on_trip=True)
+        return accepted_signups.count()
+
+    @property
     def info_current(self):
         since_last_update = timezone.now() - self.last_updated
         return since_last_update.days < settings.MUST_UPDATE_AFTER_DAYS

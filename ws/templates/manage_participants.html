@@ -21,7 +21,8 @@ they will appear here.</p>
                 <th>Rating</th>
                 <th>Attended lectures</th>
                 <th>Last updated</th>
-                <th>Trips attended</th>
+                <th>Information current</th>
+                <th>Number of trips</th>
                 <th>Delete</th>
                 {% if formset.is_bound and not formset.is_valid %}
                 <th class="error">Errors</th>
@@ -39,8 +40,9 @@ they will appear here.</p>
             <td> {{ form.instance.cell_phone }}</td>
             <td> {{ form.instance.leader.rating }}</td>
             <td> {{ form.attended_lectures }}</td>
-            <td> {{ form.instance.last_updated|date:"Y-m-d" }}</td> {# TODO: Use custom filter to give yes/no #}
-            <td> None </td>  {# TODO: Get all trips associated with #}
+            <td> {{ form.instance.last_updated|date:"Y-m-d" }}</td>
+            <td> {{ form.instance.info_current|yesno }}</td>
+            <td> {{ form.instance.num_trips }}</td>
             <td> {{ form.DELETE }}</td>
             {% if formset.errors %}
             <td> {{ form.errors }}</td>
