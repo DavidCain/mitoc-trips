@@ -468,12 +468,15 @@ input[type='password'] {
 th,
 td,
 table {
-	border: 1px solid #dddddd;
+	border: 0px solid #dddddd;
+}
+
+th {
+	font-weight: 700;
 }
 
 table {
 	border-collapse: collapse;
-	width: 100%;
 }
 
 /* =Lists
@@ -572,7 +575,7 @@ blockquote {
 }
 
 th, td {
-	padding: .8em;
+	padding: .3em;
 }
 
 caption {
