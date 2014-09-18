@@ -1,9 +1,11 @@
 from django.conf.urls import patterns, include, url
 from django.contrib import admin
 from django.conf.urls.static import static
+from django.views.generic import TemplateView
 
 from ws import views
 from ws import settings
+from ws.decorators import group_required
 
 urlpatterns = patterns('',
     url(r'^$', views.home, name="home"),
@@ -27,5 +29,12 @@ urlpatterns = patterns('',
 
     url(r'^trip_signup/$', views.SignUpView.as_view(), name='trip_signup'),
     url(r'^trip_preferences/$', views.TripPreferencesView.as_view(), name='trip_preferences'),
+
+    url(r'^help/$', TemplateView.as_view(template_name='help/home.html'), name='help-home'),
+    url(r'^help/participants/personal_info$', TemplateView.as_view(template_name='help/participants/personal_info.html'), name='help-personal_info'),
+    url(r'^help/participants/lottery$', TemplateView.as_view(template_name='help/participants/lottery.html'), name='help-lottery'),
+    url(r'^help/participants/signups$', TemplateView.as_view(template_name='help/participants/signups.html'), name='help-signups'),
+    url(r'^help/leaders/feedback$', group_required('leaders', 'WSC')(TemplateView.as_view(template_name='help/leaders/feedback.html')), name='help-feedback'),
+
 
 ) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

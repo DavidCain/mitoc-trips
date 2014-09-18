@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h3> Topics </h3>
+<ul id='topics'>
+    <li><a href="{% url 'help-personal_info' %}">Personal information, privacy</a></li>
+    <li><a href="{% url 'help-lottery' %}">The signup lottery</a></li>
+    <li><a href="{% url 'help-signups' %}">Signing up for trips</a></li>
+</ul>
+
+{% if user.participant.leader %}
+<h3> Leader Topics </h3>
+<ul id='leader_topics'>
+    <li><a href="{% url 'help-feedback' %}">Feedback</a></li>
+</ul>
+{% endif %}
+{% endblock content %}
