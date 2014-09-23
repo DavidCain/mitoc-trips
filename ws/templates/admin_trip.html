@@ -28,4 +28,10 @@
 <input type="submit" value="Submit" />
 </form>
 
+{% if signups.exists %}
+<hr>
+<h3>All Signups</h3>
+{% signup_table signups trip.notes %}
+{% endif %}
+
 {% endblock content %}

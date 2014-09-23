@@ -219,6 +219,12 @@ class ViewTrip(DetailView):
         context['signups_on_trip'] = signups.filter(on_trip=True)
         return context
 
+    def get(self, request, *args, **kwargs):
+        trip = self.get_object()
+        if leader_on_trip(request, trip):
+            return redirect(reverse('admin_trip', args=(trip.id,)))
+        return super(ViewTrip, self).get(request, *args, **kwargs)
+
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         return super(ViewTrip, self).dispatch(request, *args, **kwargs)
@@ -249,6 +255,7 @@ class AdminTripView(DetailView):
         return {"ontrip_signups": ontrip_queryset,
                 "ontrip_formset": ontrip_formset,
                 "waitlist_formset": waitlist_formset,
+                "signups": trip_signups,
                 "trip": trip}
 
     def get(self, request, *args, **kwargs):
