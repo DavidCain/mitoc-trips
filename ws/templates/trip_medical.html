@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load signup_tags %}
+
+{% block content %}
+{{ block.super }}
+
+<h3>Medical information for '<a href="{% url 'admin_trip' trip.id %}">{{ trip.name }}</a>'</h3>
+
+<h4>Participants</h4>
+{% if signups.exists %}
+{% medical_table signups %}
+{% else %}
+<p> No participants. </p>
+{% endif %}
+
+<h4>Leaders</h4>
+{% medical_table trip.leaders.all %}
+
+{% endblock content %}

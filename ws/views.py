@@ -246,7 +246,8 @@ class AdminTripView(DetailView):
         waitlist_queryset = trip_signups.filter(waitlist__isnull=False)
         waitlist_formset = self.signup_formset(post, queryset=waitlist_queryset,
                                                prefix=self.wl)
-        return {"ontrip_formset": ontrip_formset,
+        return {"ontrip_signups": ontrip_queryset,
+                "ontrip_formset": ontrip_formset,
                 "waitlist_formset": waitlist_formset,
                 "trip": trip}
 
@@ -351,7 +352,6 @@ def home(request):
     return render(request, 'home.html')
 
 
-#@permission_required('ws.can_add_leader', raise_exception=True)
 @group_required('WSC')
 def add_leader(request):
     """ Create a Leader record for an existing Participant. """
@@ -542,3 +542,21 @@ class TripPreferencesView(View):
     @method_decorator(user_info_required)
     def dispatch(self, request, *args, **kwargs):
         return super(TripPreferencesView, self).dispatch(request, *args, **kwargs)
+
+
+class TripMedicalView(DetailView):
+    queryset = models.Trip.objects.all()
+    template_name = 'trip_medical.html'
+
+    def get_context_data(self, **kwargs):
+        trip = self.get_object()
+        return {'trip': trip, 'signups': trip.signup_set.filter(on_trip=True)}
+
+    @method_decorator(group_required('leaders', 'WSC'))
+    def dispatch(self, request, *args, **kwargs):
+        """ Only allow trip creator, leaders of this trip and WSC to view. """
+        trip = self.get_object()
+        is_wsc = bool(request.user.groups.filter(name='WSC'))
+        if not (leader_on_trip(request, trip, creator_allowed=True) or is_wsc):
+            return render(request, 'not_your_trip.html')
+        return super(TripMedicalView, self).dispatch(request, *args, **kwargs)

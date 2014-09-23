@@ -16,3 +16,8 @@ def editable_signup_table(formset):
 @register.inclusion_tag('for_templatetags/trip_summary.html')
 def trip_summary(trip):
     return {'trip': trip}
+
+
+@register.inclusion_tag('for_templatetags/medical_table.html')
+def medical_table(signups):
+    return {'signups': signups}
