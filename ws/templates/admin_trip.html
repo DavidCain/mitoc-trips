@@ -17,7 +17,11 @@
 <h3>Participants ({{ ontrip_formset|length }} / {{ trip.capacity }})</h3>
 <form action="" method="post">
 {% csrf_token %}
+{% if ontrip_formset|length %}
 {% editable_signup_table ontrip_formset %}
+{% else %}
+<p>This trip is currently empty.</p>
+{% endif %}
 
 
 {% if trip.waitlist.signups.exists %}

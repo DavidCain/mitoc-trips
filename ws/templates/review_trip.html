@@ -10,6 +10,9 @@
 
 
 <h3>Participants</h3>
+{% if not feedback_list %}
+<p>Nobody attended this trip.</p>
+{% else %}
 <form action="" method="post">
 {% csrf_token %}
 <table>
@@ -36,5 +39,6 @@
 
 <input type="submit" value="Submit" />
 </form>
+{% endif %}
 
 {% endblock content %}
