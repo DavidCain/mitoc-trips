@@ -38,7 +38,8 @@
                 <li><a href="{% url 'view_trips' %}">Trips</a>
                     {% if user.is_authenticated %}
                     <ul class="children">
-                        <li> <a href="{% url 'view_trips' %}">All trips</a> </li>
+                        <li> <a href="{% url 'view_all_trips' %}">All trips</a> </li>
+                        <li> <a href="{% url 'view_trips' %}">Upcoming trips</a> </li>
                         <li> <a href="{% url 'view_my_trips' %}">My trips</a> </li>
                         <li> <a href="{% url 'view_waitlisted_trips' %}">Waitlisted trips</a> </li>
                         <li> <a href="{% url 'trip_preferences' %}">Trip preferences</a> </li>

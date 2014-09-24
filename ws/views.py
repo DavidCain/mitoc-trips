@@ -453,6 +453,7 @@ class AddTrip(CreateView):
 
 
 class TripListView(ListView):
+    """ Superclass for any view that displays a list of trips. """
     model = models.Trip
     template_name = 'view_trips.html'
     context_object_name = 'trip_queryset'
@@ -470,8 +471,29 @@ class TripListView(ListView):
                 context_data['past_trips'].append(trip)
         return context_data
 
-class ViewTrips(TripListView):
-    """ View all trips. """
+
+class CurrentTripListView(TripListView):
+    """ Superclass for any view that displays only current/upcoming trips. """
+    context_object_name = 'current_trips'
+
+    def get_queryset(self):
+        queryset = super(TripListView, self).get_queryset()
+        return queryset.filter(trip_date__gte=timezone.now().date())
+
+    def get_context_data(self, **kwargs):
+        # No point sorting into current, past (queryset already handles)
+        return super(TripListView, self).get_context_data(**kwargs)
+
+
+class ViewTrips(CurrentTripListView):
+    """ View current trips. """
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super(TripListView, self).dispatch(request, *args, **kwargs)
+
+
+class ViewAllTrips(TripListView):
+    """ View all trips, past and present. """
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         return super(TripListView, self).dispatch(request, *args, **kwargs)
