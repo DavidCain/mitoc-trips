@@ -17,19 +17,22 @@
 <h3>Participants ({{ ontrip_formset|length }} / {{ trip.capacity }})</h3>
 <form action="" method="post">
 {% csrf_token %}
+{{ ontrip_formset.management_form }}
 {% if ontrip_formset|length %}
-{% editable_signup_table ontrip_formset %}
+    {% editable_signup_table ontrip_formset %}
 {% else %}
-<p>This trip is currently empty.</p>
+    <p>This trip is currently empty.</p>
 {% endif %}
 
-
+{{ waitlist_formset.management_form }}
 {% if trip.waitlist.signups.exists %}
-<h3>Waiting List ({{trip.waitlist.signups.count }}) </h3>
-{% editable_signup_table waitlist_formset %}
+    <h3>Waiting List ({{trip.waitlist.signups.count }}) </h3>
+    {% editable_signup_table waitlist_formset %}
 {% endif %}
 
+{% if trip.waitlist.signups.exists or ontrip_formset|length %}
 <input type="submit" value="Submit" />
+{% endif %}
 </form>
 
 {% if signups.exists %}
