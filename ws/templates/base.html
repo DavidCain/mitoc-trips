@@ -8,11 +8,11 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="author" content="David Cain">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    {% endblock %}
-    <title>{% block title %}MITOC Winter School{% endblock %}</title>
+    {% endblock meta %}
+    <title>{% block title %}MITOC Winter School{% endblock title %}</title>
     {% block css %}
     <link rel="stylesheet" href="{% static "styles/layout.css" %}" />
-    {% endblock %}
+    {% endblock css %}
 
     {% block js %}
     {% endblock js %}
@@ -79,7 +79,7 @@
             <a id="responsive_menu_button"></a>
         </div>
     </div>
-    {% endblock %}
+    {% endblock header %}
 
     <div id="wrapper" class="clearfix">
         <div id="content" class="grid col-940">
