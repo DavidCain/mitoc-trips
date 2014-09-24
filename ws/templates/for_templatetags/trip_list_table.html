@@ -1,0 +1,23 @@
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>  {# Link out #}
+            <th>Date</th>
+            <th>Description</th>
+            <th>Leaders</th>
+        </tr>
+    </thead>
+
+    <tbody>
+    {% for trip in trip_list %}
+
+    <tr>
+        <td>  <a href="{% url 'view_trip' trip.id %}">{{ trip.name|truncatechars:45 }}</a></td>
+        <td> {{ trip.trip_date|date:"Y-m-d" }}</td>
+        <td> {{ trip.description|truncatechars:50 }}</td>
+        <td> {{ trip.leaders.all|join:", " }}</td>
+    </tr>
+
+    {% endfor %}
+    </tbody>
+</table>

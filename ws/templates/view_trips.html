@@ -1,39 +1,23 @@
 {% extends "base.html" %}
+{% load trip_tags %}
 
 {% block content %}
 {{ block.super }}
 
-{% if not trip_list %}
-{% if user.participant.leader %}
-<p> No trips found! <a href="{% url 'add_trip' %}">Create one?</a></p>
+<h3> Current trips </h3>
+{% if current_trips %}
+    {% trip_list_table current_trips %}
 {% else %}
-<p>No trips found.</p>
+    <p> No current or upcoming trips!
+    {% if user.participant.leader %}
+    <a href="{% url 'add_trip' %}">Create one?</a>
+    {% endif %}
+    </p>
 {% endif %}
 
-{% else %}
-    <table>
-        <thead>
-            <tr>
-                <th>Name</th>  {# Link out #}
-                <th>Date</th>
-                <th>Description</th>
-                <th>Leaders</th>
-            </tr>
-        </thead>
-
-        <tbody>
-        {% for trip in trip_list %}
-
-        <tr>
-            <td>  <a href="{% url 'view_trip' trip.id %}">{{ trip.name|truncatechars:45 }}</a></td>
-            <td> {{ trip.trip_date|date:"Y-m-d" }}</td>
-            <td> {{ trip.description|truncatechars:50 }}</td>
-            <td> {{ trip.leaders.all|join:", " }}</td>
-        </tr>
-
-        {% endfor %}
-        </tbody>
-    </table>
+{% if past_trips %}
+    <h3> Past trips </h3>
+    {% trip_list_table past_trips %}
 {% endif %}
 
 {% endblock content %}

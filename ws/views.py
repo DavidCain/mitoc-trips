@@ -6,6 +6,7 @@ from django.forms.models import modelformset_factory
 from django.forms import ModelForm, HiddenInput
 from django.forms.util import ErrorList
 from django.shortcuts import render, redirect
+from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.generic import CreateView, DetailView, ListView, View
 
@@ -454,9 +455,20 @@ class AddTrip(CreateView):
 class TripListView(ListView):
     model = models.Trip
     template_name = 'view_trips.html'
-    context_object_name = 'trip_list'
+    context_object_name = 'trip_queryset'
     form_class = forms.SummaryTripForm
 
+    def get_context_data(self, **kwargs):
+        """ Sort trips into past and present trips. """
+        context_data = super(TripListView, self).get_context_data(**kwargs)
+        context_data['current_trips'], context_data['past_trips'] = [], []
+        today = timezone.now().date()
+        for trip in context_data[self.context_object_name]:
+            if trip.trip_date >= today:
+                context_data['current_trips'].append(trip)
+            else:
+                context_data['past_trips'].append(trip)
+        return context_data
 
 class ViewTrips(TripListView):
     """ View all trips. """
