@@ -3,6 +3,7 @@ Some shortcuts to retrieve meaningful dates.
 """
 
 from datetime import datetime, timedelta, time
+from django.utils import timezone
 
 
 def nearest_sat():
@@ -12,7 +13,7 @@ def nearest_sat():
     defaulting to Saturday is reasonable. (It's rare that a trip posted on
     Saturday is for that day or the next day, so default to next Saturday).
     """
-    now = datetime.now()
+    now = timezone.now()
     if now.weekday() == 5:  # (today is Saturday)
         delta = timedelta(days=7)
     else:  # Nearest Saturday
@@ -21,11 +22,11 @@ def nearest_sat():
 
 
 def days_from_now(days=3):
-    return datetime.now() + timedelta(days=days)
+    return timezone.now() + timedelta(days=days)
 
 
 def wed_at_noon():
-    now = datetime.now()
+    now = timezone.now()
     days_til_wed = timedelta((9 - now.weekday()) % 7)
-    wed = (now + days_til_wed).date()
-    return datetime.combine(wed, time(12, 00))
+    wed = (now + days_til_wed)
+    return wed.replace(hour=12, minute=0, second=0, microsecond=0)

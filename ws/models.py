@@ -1,7 +1,5 @@
 from __future__ import unicode_literals
 
-from datetime import datetime
-
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
@@ -181,7 +179,7 @@ class Trip(models.Model):
     time_created = models.DateTimeField(auto_now_add=True)
     last_edited = models.DateTimeField(auto_now=True)
     trip_date = models.DateField(default=nearest_sat)
-    signups_open_at = models.DateTimeField(default=datetime.now)
+    signups_open_at = models.DateTimeField(default=timezone.now)
     signups_close_at = models.DateTimeField(default=wed_at_noon, null=True, blank=True)
 
     signed_up_participants = models.ManyToManyField(Participant, through=SignUp)
@@ -222,7 +220,7 @@ class Trip(models.Model):
             raise ValidationError("Signups can't be closed already!")
         if not self.time_created:  # Trip first being created
             # Careful here - don't want to disallow editing of past trips
-            if self.trip_date < datetime.now().date():
+            if self.trip_date < timezone.now().date():
                 raise ValidationError("Trips can't occur in the past!")
 
     class Meta:
