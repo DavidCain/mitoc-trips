@@ -6,5 +6,9 @@ class WinterSchoolConfig(AppConfig):
     verbose_name = "Winter School Signup"
 
     def ready(self):
-        import signals
-        print "Loaded signals"
+        try:
+            import signals
+        except:
+            print "Failed to load signals"  # Database initialization, etc.
+        else:
+            print "Loaded signals"
