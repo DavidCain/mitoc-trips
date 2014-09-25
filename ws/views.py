@@ -548,10 +548,12 @@ class TripPreferencesView(View):
 
     def get_formset(self, request, use_post=True):
         participant = request.user.participant
-        queryset = models.SignUp.objects.filter(participant=participant)
-        ranked_queryset = queryset.order_by('order', 'time_created')
+        today = timezone.now().date()
+        future_trips = models.SignUp.objects.filter(participant=participant,
+                                                    trip__trip_date__gte=today)
+        ranked_trips = future_trips.order_by('order', 'time_created')
         post = request.POST if use_post and request.method == "POST" else None
-        return self.factory_formset(post, queryset=ranked_queryset)
+        return self.factory_formset(post, queryset=ranked_trips)
 
     def get_lottery_form(self, request):
         post = request.POST if request.method == "POST" else None
