@@ -7,8 +7,6 @@ from django.dispatch import receiver
 from ws.models import Leader, Participant
 
 
-# TODO: These groups are assumed to exist, with appropriate permissions
-# Programmatically define them, so they need not be created in `admin`
 leaders_group = Group.objects.get(name='leaders')
 users_with_info = Group.objects.get(name='users_with_info')
 
