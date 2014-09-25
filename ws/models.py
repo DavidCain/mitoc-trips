@@ -74,6 +74,10 @@ class Participant(Person):
     attended_lectures = models.BooleanField(default=False)
 
     @property
+    def email_addr(self):
+        return '"{}" <{}>'.format(self.name, self.email)
+
+    @property
     def num_trips(self):
         # NOTE: Do we count trips where the participant didn't show?
         accepted_signups = self.signup_set.filter(on_trip=True)

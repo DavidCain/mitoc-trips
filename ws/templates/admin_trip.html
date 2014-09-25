@@ -32,6 +32,8 @@
 
 {% if trip.waitlist.signups.exists or ontrip_formset|length %}
 <input type="submit" value="Submit" />
+<h5>Email all participants</h5>
+<pre>{% for signup in ontrip_signups %}{{ signup.participant.email_addr }}{% if not forloop.last %}, {% endif %}{% endfor %}</pre>
 {% endif %}
 </form>
 
