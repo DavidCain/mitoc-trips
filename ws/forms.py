@@ -36,16 +36,17 @@ class LeaderForm(forms.ModelForm):
 class TripForm(forms.ModelForm):
     class Meta:
         model = models.Trip
-        fields = ['leaders', 'name', 'description', 'trip_date', 'capacity',
-                  'leaders_willing_to_rent', 'difficulty_rating', 'prereqs',
-                  'algorithm', 'signups_open_at', 'signups_close_at', 'notes']
+        fields = ['leaders', 'name', 'description', 'trip_date',
+                  'maximum_participants', 'leaders_willing_to_rent',
+                  'difficulty_rating', 'prereqs', 'algorithm',
+                  'signups_open_at', 'signups_close_at', 'notes']
 
 
 class SummaryTripForm(forms.ModelForm):
     """ Intended to be read-only, cover key elements. Seen on view_trips. """
     class Meta:
         model = models.Trip
-        fields = ['name', 'trip_date', 'description', 'capacity', 'algorithm',
+        fields = ['name', 'trip_date', 'description', 'maximum_participants', 'algorithm',
                 'difficulty_rating']
 
 

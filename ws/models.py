@@ -173,7 +173,7 @@ class Trip(models.Model):
     leaders = models.ManyToManyField(Leader)
     name = models.CharField(max_length=127)
     description = models.TextField()
-    capacity = models.PositiveIntegerField(default=10)
+    maximum_participants = models.PositiveIntegerField(default=8)
     leaders_willing_to_rent = models.BooleanField(default=False)
     difficulty_rating = models.CharField(max_length=127)
     prereqs = models.CharField(max_length=255, blank=True)
@@ -197,7 +197,7 @@ class Trip(models.Model):
     @property
     def open_slots(self):
         accepted_signups = self.signup_set.filter(on_trip=True)
-        return self.capacity - accepted_signups.count()
+        return self.maximum_participants - accepted_signups.count()
 
     @property
     def signups_open(self):
