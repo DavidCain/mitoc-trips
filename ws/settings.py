@@ -137,3 +137,5 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 # Project-specific settings
 MUST_UPDATE_AFTER_DAYS = 180
+SIGNUPS_OPEN = True
+ACCOUNT_ADAPTER = 'ws.users.adapter.AllowSignupAdapter'
