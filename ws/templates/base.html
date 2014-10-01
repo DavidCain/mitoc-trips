@@ -65,6 +65,13 @@
                         <li> <a href="{% url 'manage_participants' %}"> Manage participants </a> </li>
                     </ul>
                 {% endif %}
+                {% if user.is_superuser %}
+                <li><a href="{% url 'admin:index' %}">Admin</a>
+                    <ul class="children">
+                        <li> <a href="{% url 'admin:index' %}"> Site administration </a> </li>
+                        <li> <a href="{% url 'admin_manage_trips' %}"> Manage trips </a> </li>
+                    </ul>
+                {% endif %}
                 <li><a href="#">Account</a>
                     <ul class="children">
                         {% if user.is_authenticated %}

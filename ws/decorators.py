@@ -18,3 +18,6 @@ def group_required(*group_names, **kwargs):
 
 user_info_required = group_required('users_with_info',
                                     login_url=reverse_lazy('update_info'))
+
+admin_only = user_passes_test(lambda u: u.is_superuser,
+                              login_url=reverse_lazy('admin:login'))

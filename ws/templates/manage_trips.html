@@ -20,7 +20,7 @@ they will appear here.</p>
                 <th>Date</th>
                 <th>Algorithm</th>
                 <th>Approved</th>
-                <th>Delete</th>
+                {% if formset.can_delete %}<th>Delete</th>{% endif %}
                 {% if formset.is_bound and not formset.is_valid %}
                 <th class="error">Errors</th>
                 {% endif %}
@@ -35,9 +35,9 @@ they will appear here.</p>
             <td>  <a href="{% url 'view_trip' form.instance.id %}">{{ form.instance.name }}</a></td>
             <td> {{ form.instance.leaders.all|join:", " }}</td>
             <td> {{ form.instance.trip_date|date:"Y-m-d" }}</td>
-            <td> {{ form.algorithm }}</td>
+            <td> {% if form.algorithm %}{{ form.algorithm }}{% else %} {{form.instance.algorithm}} {% endif %}</td>
             <td> {{ form.wsc_approved }}</td>
-            <td> {{ form.DELETE }}</td>
+            {% if formset.can_delete %}<td> {{ form.DELETE }}</td>{% endif %}
             {% if formset.errors %}
             <td> {{ form.errors }}</td>
             {% endif %}

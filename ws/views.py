@@ -12,7 +12,7 @@ from django.views.generic import CreateView, DetailView, ListView, View
 
 from ws import forms
 from ws import models
-from ws.decorators import group_required, user_info_required
+from ws.decorators import group_required, user_info_required, admin_only
 from ws import message_generators
 
 
@@ -404,10 +404,7 @@ def manage_participants(request):
     return render(request, 'manage_participants.html', {'formset': formset})
 
 
-@group_required('WSC')
-def manage_trips(request):
-    TripFormSet = modelformset_factory(models.Trip, can_delete=True, extra=0,
-                                       fields=('algorithm', 'wsc_approved'))
+def _manage_trips(request, TripFormSet):
     if request.method == 'POST':
         formset = TripFormSet(request.POST)
         if formset.is_valid():
@@ -417,6 +414,20 @@ def manage_trips(request):
     else:
         formset = TripFormSet()
     return render(request, 'manage_trips.html', {'formset': formset})
+
+
+@group_required('WSC')
+def manage_trips(request):
+    TripFormSet = modelformset_factory(models.Trip, can_delete=False, extra=0,
+                                       fields=('wsc_approved',))
+    return _manage_trips(request, TripFormSet)
+
+
+@admin_only
+def admin_manage_trips(request):
+    TripFormSet = modelformset_factory(models.Trip, can_delete=True, extra=0,
+                                       fields=('algorithm', 'wsc_approved'))
+    return _manage_trips(request, TripFormSet)
 
 
 class AddTrip(CreateView):

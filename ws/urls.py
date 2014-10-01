@@ -13,6 +13,9 @@ urlpatterns = patterns('',
     url(r'^accounts/', include('allauth.urls')),
     url(r'^add_trip/', views.AddTrip.as_view(), name='add_trip'),
     url(r'^update_info/', views.UpdateParticipantView.as_view(), name='update_info'),
+
+    url(r'^admin/manage_trips/', views.admin_manage_trips, name='admin_manage_trips'),
+
     url(r'^wsc/add_leader/', views.add_leader, name='add_leader'),
     url(r'^wsc/manage_leaders/', views.manage_leaders, name='manage_leaders'),
     url(r'^wsc/manage_participants/', views.manage_participants, name='manage_participants'),
