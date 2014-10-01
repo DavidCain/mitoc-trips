@@ -56,7 +56,7 @@
                 </li>
                 {% endif %}
 
-                {% if user|has_group:"WSC" %}
+                {% if user|has_group:"WSC" and not user.is_superuser %}
                 <li><a href="#">WSC</a>
                     <ul class="children">
                         <li> <a href="{% url 'add_leader' %}"> Add new leader(s) </a> </li>
@@ -69,7 +69,10 @@
                 <li><a href="{% url 'admin:index' %}">Admin</a>
                     <ul class="children">
                         <li> <a href="{% url 'admin:index' %}"> Site administration </a> </li>
+                        <li> <a href="{% url 'add_leader' %}"> Add new leader(s) </a> </li>
+                        <li> <a href="{% url 'manage_leaders' %}"> Manage existing leaders </a> </li>
                         <li> <a href="{% url 'admin_manage_trips' %}"> Manage trips </a> </li>
+                        <li> <a href="{% url 'manage_participants' %}"> Manage participants </a> </li>
                     </ul>
                 {% endif %}
                 <li><a href="#">Account</a>
