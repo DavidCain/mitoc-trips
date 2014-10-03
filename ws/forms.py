@@ -1,6 +1,7 @@
 from django import forms
 
 from ws import models
+import django_select2.widgets
 
 
 class ParticipantForm(forms.ModelForm):
@@ -40,6 +41,11 @@ class TripForm(forms.ModelForm):
                   'maximum_participants', 'leaders_willing_to_rent',
                   'difficulty_rating', 'prereqs', 'algorithm',
                   'signups_open_at', 'signups_close_at', 'notes']
+        widgets = {'leaders': django_select2.widgets.Select2MultipleWidget}
+
+    def __init__(self, *args, **kwargs):
+        super(TripForm, self).__init__(*args, **kwargs)
+        self.fields['leaders'].help_text = None  # Disable "Hold command..."
 
 
 class SummaryTripForm(forms.ModelForm):
