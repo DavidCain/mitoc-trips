@@ -357,6 +357,9 @@ class ReviewTripView(DetailView):
 def home(request):
     message_generators.warn_if_needs_update(request)
     message_generators.complain_if_missing_feedback(request)
+
+    lottery_messages = message_generators.LotteryMessages(request)
+    lottery_messages.supply_all_messages()
     return render(request, 'home.html')
 
 

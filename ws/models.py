@@ -258,6 +258,7 @@ class LotteryInfo(models.Model):
     own_a_car = models.BooleanField(default=False)
     willing_to_rent = models.BooleanField(default=False)
     number_of_passengers = models.PositiveIntegerField(null=True, blank=True)
+    last_updated = models.DateTimeField(auto_now=True)
 
     @property
     def is_driver(self):
