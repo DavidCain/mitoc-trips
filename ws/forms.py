@@ -39,7 +39,7 @@ class TripForm(forms.ModelForm):
         model = models.Trip
         fields = ['leaders', 'name', 'description', 'trip_date',
                   'maximum_participants', 'difficulty_rating', 'prereqs',
-                  'algorithm', 'signups_open_at', 'signups_close_at', 'notes']
+                  'notes']
         widgets = {'leaders': django_select2.widgets.Select2MultipleWidget}
 
     def __init__(self, *args, **kwargs):
