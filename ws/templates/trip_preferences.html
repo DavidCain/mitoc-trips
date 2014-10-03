@@ -17,7 +17,7 @@ placed on trips they're interested in.
 </p>
 {% endif %}
 
-<h3>Your trips</h3>
+<h3>About ranking trips</h3>
 
 {% if not formset.total_form_count %}
 <p>Begin by signing up for any trips you're interested in. You can always
@@ -26,7 +26,9 @@ placed on trips they're interested in.
 trips you'd like to go on, they will appear here.</p>
 {% else %}
 <p>Please rank your trips in the order of preference. Trips with lower
-numbers (negatives are valid) are given higher priority over other trips.</p>
+numbers (negatives are valid) are given higher priority over other trips.
+For example, you could give your top-choice trip an order value of "1,"
+and your second choice a value of "2."</p>
 <p>If you do not rank your trips, they will be considered in the order of
 signup.</p>
 {% endif %}
@@ -45,11 +47,12 @@ car or are willing to rent, you may or may not be asked to drive. </p>
     {{ lottery_form.as_table }}
 </table>
 
-<h4> Ranked trips </h4>
+<h4 id="ranked_trips"> Ranked trips </h4>
 {{ formset.management_form }}
 {% if not formset.total_form_count %}
 <p> You haven't signed up for any <a href="{% url 'view_trips' %}">trips!</a> </p>
 {% else %}
+<span class="helptext">Higher-ranked trips appear first in this list.</span>
 <table>
     <thead>
         <tr>
