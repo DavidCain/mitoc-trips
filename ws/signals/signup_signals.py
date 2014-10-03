@@ -3,7 +3,7 @@ Handle aspects of trip creation/modification when receiving signup changes.
 """
 from __future__ import unicode_literals
 
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
 
 from ws.models import SignUp, WaitListSignup
@@ -31,3 +31,13 @@ def trip_or_wait(signup, created):
             # cause issues.
             WaitListSignup.objects.create(signup=signup,
                                           waitlist=signup.trip.waitlist)
+
+
+@receiver(pre_delete, sender=SignUp)
+def free_spot_on_trip(sender, instance, using, **kwargs):
+    """ When somebody drops off a trip, bump up the top waitlist signup. """
+    if instance.on_trip and instance.trip.algorithm == 'fcfs':
+        first_signup = instance.trip.waitlist.signups.first()
+        first_signup.on_trip = True
+        first_signup.waitlistsignup.delete()
+        first_signup.save()

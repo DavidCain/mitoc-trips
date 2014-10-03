@@ -4,8 +4,7 @@
             <th>Name</th>
             <th>Past feedback</th>
             <th>Notes</th>
-            <th>On trip</th>
-            <th>Delete</th>
+            <th>Remove from trip</th>
         </tr>
     </thead>
 
@@ -21,7 +20,6 @@
             {% endfor %}
         </td>
         <td>{{ form.instance.notes }}</td>
-        <td>{{ form.on_trip }}</td>
         <td>{{ form.DELETE }}</td>
     </tr>
     {% endfor %}

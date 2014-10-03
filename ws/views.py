@@ -240,7 +240,7 @@ class AdminTripView(DetailView):
     @property
     def signup_formset(self):
         return modelformset_factory(models.SignUp, can_delete=True, extra=0,
-                                    fields=('on_trip',))
+                                    fields=())  # on_trip to manage wait list
 
     def get_context(self, request, use_post=True):
         trip = self.get_object()
@@ -271,6 +271,9 @@ class AdminTripView(DetailView):
             ontrip_formset.save()
             # Anybody added from waitlist needs to be removed from waitlist
             for signup in waitlist_formset.save():
+                # NOTE: this only applies for manual waitlist management
+                # Manual management needs the `on_trip` field, and for the
+                # pre_delete SignUp signal to be deactivated
                 if signup.on_trip:
                     signup.waitlistsignup.delete()
                     signup.save()
