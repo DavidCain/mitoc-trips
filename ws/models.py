@@ -174,7 +174,6 @@ class Trip(models.Model):
     name = models.CharField(max_length=127)
     description = models.TextField()
     maximum_participants = models.PositiveIntegerField(default=8)
-    leaders_willing_to_rent = models.BooleanField(default=False)
     difficulty_rating = models.CharField(max_length=127)
     prereqs = models.CharField(max_length=255, blank=True)
     wsc_approved = models.BooleanField(default=False)  # TODO: What if trip changes?

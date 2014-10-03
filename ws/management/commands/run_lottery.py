@@ -132,8 +132,11 @@ def handle_participant(participant):
             is_driver = (Q(participant__lotteryinfo__own_a_car=True) |
                          Q(participant__lotteryinfo__willing_to_rent=True))
 
-            drivers = trip.signup_set.filter(is_driver, on_trip=True)
-            if drivers.count() < 2:
+            participant_drivers = trip.signup_set.filter(is_driver, on_trip=True)
+            lottery_leaders = trip.leaders.filter(participant__lotteryinfo__isnull=False)
+            leader_drivers = sum(leader.participant.lotteryinfo.is_driver
+                                 for leader in lottery_leaders)
+            if (participant_drivers.count() + leader_drivers) < 2:
                 print "{} is full, but doesn't have two drivers".format(trip)
                 print "Adding {} to '{}', as they're a driver".format(signup, trip)
                 add_to_waitlist(lowest_non_driver(trip))
