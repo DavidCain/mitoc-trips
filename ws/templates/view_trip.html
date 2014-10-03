@@ -32,6 +32,11 @@
 {% if signups_on_trip %}
 <h3>Participants ({{ signups_on_trip.count }} / {{ trip.maximum_participants }})</h3>
 {% signup_table signups_on_trip trip.notes %}
+
+{% if signups_on_trip.exists %}
+<h5>Email all participants</h5>
+<pre>{% for signup in signups_on_trip %}{{ signup.participant.email_addr }}{% if not forloop.last %}, {% endif %}{% endfor %}</pre>
+{% endif %}
 {% endif %}
 
 

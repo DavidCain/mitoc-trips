@@ -2,7 +2,9 @@
 <table>
     <tr>
         <th>Leaders:</th>
-        <td>{{ trip.leaders.all|join:", " }}</td>
+        <td>{% for leader in trip.leaders.all %}
+            <a href="mailto:{{ leader.participant.email }}">{{ leader }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}
+        </td>
     </tr>
     <tr>
         <th>Name:</th>
