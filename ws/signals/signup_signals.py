@@ -3,6 +3,8 @@ Handle aspects of trip creation/modification when receiving signup changes.
 """
 from __future__ import unicode_literals
 
+from django.core.mail import send_mail
+from django.core.urlresolvers import reverse
 from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
 
@@ -37,7 +39,18 @@ def trip_or_wait(signup, created):
 def free_spot_on_trip(sender, instance, using, **kwargs):
     """ When somebody drops off a trip, bump up the top waitlist signup. """
     if instance.on_trip and instance.trip.algorithm == 'fcfs':
-        first_signup = instance.trip.waitlist.signups.first()
+        trip = instance.trip
+        first_signup = trip.waitlist.signups.first()
         first_signup.on_trip = True
         first_signup.waitlistsignup.delete()
         first_signup.save()
+
+        trip_url = reverse('view_trip', args=(trip.id,))
+        trip_link = '<a href="{}">"{}"</a>'.format(trip_url, trip)
+        trip_link = trip  # TODO: The link above only does relative URL
+        send_mail("You're signed up for {}".format(trip),
+                  "You're on {}! If you can't make it, please remove yourself "
+                  "from the trip so others can join.".format(trip_link),
+                  trip.creator.participant.email,
+                  [first_signup.participant.email],
+                  fail_silently=True)
