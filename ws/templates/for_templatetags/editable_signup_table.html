@@ -4,7 +4,9 @@
             <th>Name</th>
             <th>Past feedback</th>
             <th>Notes</th>
+            {% if formset.can_delete %}
             <th>Remove from trip</th>
+            {% endif %}
         </tr>
     </thead>
 
@@ -20,7 +22,9 @@
             {% endfor %}
         </td>
         <td>{{ form.instance.notes }}</td>
+        {% if formset.can_delete %}
         <td>{{ form.DELETE }}</td>
+        {% endif %}
     </tr>
     {% endfor %}
     </tbody>

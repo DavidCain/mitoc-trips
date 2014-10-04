@@ -253,6 +253,7 @@ class AdminTripView(DetailView):
         waitlist_queryset = trip_signups.filter(waitlist__isnull=False)
         waitlist_formset = self.signup_formset(post, queryset=waitlist_queryset,
                                                prefix=self.wl)
+        waitlist_formset.can_delete = False
         return {"ontrip_signups": ontrip_queryset,
                 "ontrip_formset": ontrip_formset,
                 "waitlist_formset": waitlist_formset,
