@@ -5,10 +5,10 @@ from __future__ import unicode_literals
 
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
-from django.db.models.signals import post_save, pre_delete
+from django.db.models.signals import post_save, pre_delete, m2m_changed
 from django.dispatch import receiver
 
-from ws.models import SignUp, WaitListSignup
+from ws.models import SignUp, WaitList, WaitListSignup, Trip
 
 
 @receiver(post_save, sender=SignUp)
@@ -45,9 +45,7 @@ def free_spot_on_trip(sender, instance, using, **kwargs):
         first_signup.waitlistsignup.delete()
         first_signup.save()
 
-        trip_url = reverse('view_trip', args=(trip.id,))
-        trip_link = '<a href="{}">"{}"</a>'.format(trip_url, trip)
-        trip_link = trip  # TODO: The link above only does relative URL
+        trip_link = get_trip_link(trip)
         send_mail("You're signed up for {}".format(trip),
                   "You're on {}! If you can't make it, please remove yourself "
                   "from the trip so others can join.".format(trip_link),
@@ -56,8 +54,40 @@ def free_spot_on_trip(sender, instance, using, **kwargs):
                   fail_silently=True)
 
 
+def get_trip_link(trip):
+    trip_url = reverse('view_trip', args=(trip.id,))
+    #return '<a href="{}">"{}"</a>'.format(trip_url, trip)
+    return trip  # TODO: The link above only does relative URL
+
+
 @receiver(post_save, sender=Trip)
 def add_waitlist(sender, instance, created, raw, using, update_fields, **kwargs):
     if created:
-        instance.waitlist = models.WaitList.objects.create(trip=instance)
+        instance.waitlist = WaitList.objects.create(trip=instance)
         instance.save()
+
+
+@receiver(m2m_changed, sender=Trip.leaders.through)
+def inform_leaders(sender, instance, action, reverse, model, pk_set, using,
+                   **kwargs):
+    """ Inform all leaders that they're on a given trip.
+
+    Emails will be sent any time a new leader is added to the ManyToMany
+    relation (that is, at trip creation, or if a new Leader is added).
+    All messages come from the trip creator.
+
+    Nothing happens if former leaders are removed.
+    """
+    if action == 'post_add':
+        for leader in instance.leaders.all():
+            send_coleader_email(instance, leader)
+
+
+def send_coleader_email(trip, leader):
+    trip_link = get_trip_link(trip)
+    send_mail("You're a leader on {}".format(trip),
+              # TODO: What information should be contained in this message?
+              "You're leading '{}' on {}.".format(trip_link, trip.trip_date),
+              trip.creator.participant.email,
+              [leader.participant.email],
+              fail_silently=True)
