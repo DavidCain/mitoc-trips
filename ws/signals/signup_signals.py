@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
-from django.db.models.signals import post_save, pre_delete, m2m_changed
+from django.db.models.signals import post_save, pre_delete, post_delete, m2m_changed
 from django.dispatch import receiver
 
 from ws.models import SignUp, WaitList, WaitListSignup, Trip
@@ -35,12 +35,32 @@ def trip_or_wait(signup, created):
                                           waitlist=signup.trip.waitlist)
 
 
-@receiver(pre_delete, sender=SignUp)
+@receiver(pre_delete, sender=Trip)
+def empty_waitlist(sender, instance, using, **kwargs):
+    """ Before emptying a Trip, empty the waitlist.
+
+    This is needed because `free_spot_on_trip` will be triggered as part of the
+    trip deletion process. If signups on the trip are deleted with a waitlist
+    present, members of the waitlist will be emailed saying they made it on the
+    trip (only to see the trip removed).
+    """
+    for signup in instance.waitlist.signups.all():
+        signup.delete()
+
+
+@receiver(post_delete, sender=SignUp)
 def free_spot_on_trip(sender, instance, using, **kwargs):
-    """ When somebody drops off a trip, bump up the top waitlist signup. """
+    """ When somebody drops off a trip, bump up the top waitlist signup.
+
+    This will be triggered when an entire trip is deleted. `empty_waitlist()`
+    will ensure that nobody is emailed about a free spot when a trip is
+    being deleted.
+    """
     if instance.on_trip and instance.trip.algorithm == 'fcfs':
         trip = instance.trip
         first_signup = trip.waitlist.signups.first()
+        if not first_signup:  # Empty waiting list, no need to open
+            return
         first_signup.on_trip = True
         first_signup.waitlistsignup.delete()
         first_signup.save()
