@@ -54,3 +54,10 @@ def free_spot_on_trip(sender, instance, using, **kwargs):
                   trip.creator.participant.email,
                   [first_signup.participant.email],
                   fail_silently=True)
+
+
+@receiver(post_save, sender=Trip)
+def add_waitlist(sender, instance, created, raw, using, update_fields, **kwargs):
+    if created:
+        instance.waitlist = models.WaitList.objects.create(trip=instance)
+        instance.save()
