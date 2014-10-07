@@ -25,6 +25,11 @@ def leader_on_trip(request, trip, creator_allowed=False):
     return leader == trip.creator or leader in trip.leaders.all()
 
 
+def is_wsc(request, admin_okay=True):
+    wsc = bool(request.user.groups.filter(name='WSC'))
+    return wsc or request.user.is_superuser and admin_okay
+
+
 class UpdateParticipantView(View):
     # The Participant and EmergencyContact are both Person models, have
     # conflicting names. Use prefixes to keep them distinct in POST data
@@ -287,9 +292,8 @@ class AdminTripView(DetailView):
     def dispatch(self, request, *args, **kwargs):
         """ Only allow trip creator, leaders of this trip and WSC to edit. """
         trip = self.get_object()
-        is_wsc = bool(request.user.groups.filter(name='WSC'))
-        # NOTE: Fixed logic here
-        if not (leader_on_trip(request, trip, creator_allowed=True) or is_wsc):
+        wsc = is_wsc(request)
+        if not (leader_on_trip(request, trip, creator_allowed=True) or wsc):
             return render(request, 'not_your_trip.html')
         return super(AdminTripView, self).dispatch(request, *args, **kwargs)
 
@@ -703,7 +707,7 @@ class TripMedicalView(DetailView):
     def dispatch(self, request, *args, **kwargs):
         """ Only allow trip creator, leaders of this trip and WSC to view. """
         trip = self.get_object()
-        is_wsc = bool(request.user.groups.filter(name='WSC'))
-        if not (leader_on_trip(request, trip, creator_allowed=True) or is_wsc):
+        wsc = is_wsc(request)
+        if not (leader_on_trip(request, trip, creator_allowed=True) or wsc):
             return render(request, 'not_your_trip.html')
         return super(TripMedicalView, self).dispatch(request, *args, **kwargs)
