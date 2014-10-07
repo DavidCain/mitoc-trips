@@ -121,6 +121,33 @@ class Leader(models.Model):
         ordering = ["participant"]
 
 
+class LeaderApplication(models.Model):
+    # NOTE: Previous rating is needed during transition to new system
+    # Leave ratings long for miscellaneous comments
+    participant = models.OneToOneField(Participant)
+    time_created = models.DateTimeField(auto_now_add=True)
+    previous_rating = models.CharField(max_length=255, blank=True,
+            help_text="Previous rating (if any)")
+    desired_rating = models.CharField(max_length=255)
+
+    taking_wfa = models.CharField(max_length=10,
+                                  choices=[("Yes", "Yes"),
+                                           ("No", "No"),
+                                           ("Maybe", "Maybe/don't know")],
+                                  verbose_name="Do you plan on taking the subsidized WFA at MIT?",
+                                  help_text="Save $110 on the course fee by leading two or more trips!")
+    training = models.TextField(blank=True,
+                                verbose_name="Formal training and qualifications",
+                                help_text="Details of any medical, technical, or leadership training and qualifications relevant to the winter environment. State the approximate dates of these activities. Leave blank if not applicable.")
+    winter_experience = models.TextField(blank=True,
+                                         help_text="Details of previous winter outdoors experience. Include the type of trip (x-country skiiing, above treeline, snowshoeing, ice climbing, etc), approximate dates and locations, numbers of participants, notable trail and weather conditions. Please also give details of whether you participated, lead, or co-lead these trips.")
+    other_experience = models.TextField(blank=True,
+                                        verbose_name="Other outdoors/leadership experience",
+                                        help_text="Details about any relevant non-winter experience")
+    notes_or_comments = models.TextField(blank=True,
+                                         help_text="Any relevant details, such as any limitations on availability on Tue/Thurs nights or weekends during IAP.")
+
+
 class SignUp(models.Model):
     """ An editable record relating a Participant to a Trip.
 

@@ -14,11 +14,15 @@ urlpatterns = patterns('',
     url(r'^add_trip/', views.AddTrip.as_view(), name='add_trip'),
     url(r'^update_info/', views.UpdateParticipantView.as_view(), name='update_info'),
 
+    url(r'^become_leader/', views.BecomeLeader.as_view(), name='become_leader'),
+
     url(r'^admin/manage_trips/', views.admin_manage_trips, name='admin_manage_trips'),
 
     url(r'^wsc/add_leader/', views.add_leader, name='add_leader'),
     url(r'^wsc/manage_leaders/', views.manage_leaders, name='manage_leaders'),
     url(r'^wsc/manage_participants/', views.manage_participants, name='manage_participants'),
+    url(r'^wsc/manage_applications/', views.AllLeaderApplications.as_view(), name='manage_applications'),
+    url(r'^wsc/view_application/(?P<pk>\d+)/$', views.LeaderApplicationView.as_view(), name='view_application'),
     url(r'^wsc/manage_trips/', views.manage_trips, name='manage_trips'),
     url(r'^view_participant/(?P<pk>\d+)/$', views.ParticipantDetailView.as_view(), name='view_participant'),
 
@@ -39,6 +43,7 @@ urlpatterns = patterns('',
     url(r'^help/participants/personal_info$', TemplateView.as_view(template_name='help/participants/personal_info.html'), name='help-personal_info'),
     url(r'^help/participants/lottery$', TemplateView.as_view(template_name='help/participants/lottery.html'), name='help-lottery'),
     url(r'^help/participants/signups$', TemplateView.as_view(template_name='help/participants/signups.html'), name='help-signups'),
+    url(r'^help/participants/leading_trips$', TemplateView.as_view(template_name='help/participants/leading_trips.html'), name='help-leading_trips'),
     url(r'^help/leaders/feedback$', group_required('leaders', 'WSC')(TemplateView.as_view(template_name='help/leaders/feedback.html')), name='help-feedback'),
 
 

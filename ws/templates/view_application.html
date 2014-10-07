@@ -1,0 +1,49 @@
+{% extends "messages_page.html" %}
+
+{% block content %}
+{{ block.super }}
+
+<h2> Leader Application for <a href="{% url 'view_participant' application.participant.id %}">{{ application.participant.name }}</a></h2>
+<table>
+    <tr>
+        <td><strong>Previous rating:</strong></td>
+        <td>{{ application.previous_rating|default:None }}</td>
+    </tr>
+    <tr>
+        <td><strong>Desired rating:</strong></td>
+        <td>{{ application.desired_rating }}</td>
+    </tr>
+    <tr>
+        <td><strong>Taking WFA:</strong></td>
+        <td>{{ application.taking_wfa }}</td>
+    </tr>
+</table>
+
+{% if application.training %}
+<h5>Formal training and qualifications</h5>
+<p>{{ application.training|linebreaks }}</p>
+{% endif %}
+
+{% if application.winter_experience %}
+<h5>Winter experience</h5>
+<p>{{ application.winter_experience|linebreaks }}</p>
+{% endif %}
+
+{% if application.other_experience %}
+<h5>Other outdoors/leadership experience</h5>
+<p>{{ application.other_experience|linebreaks }}</p>
+{% endif %}
+
+{% if application.notes_or_comments %}
+<h5>Notes or comments</h5>
+<p>{{ application.notes_or_comments|linebreaks }}</p>
+{% endif %}
+
+<h2>Leader rating</h2>
+
+<form action="" method="post">
+    {% csrf_token %}
+    {{ leader_form.as_p }}
+    <input type="submit" value="Submit" />
+</form>
+{% endblock content %}

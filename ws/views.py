@@ -367,6 +367,93 @@ def home(request):
     return render(request, 'home.html')
 
 
+class BecomeLeader(CreateView):
+    template_name = "become_leader.html"
+    model = models.LeaderApplication
+    fields = ['previous_rating', 'desired_rating', 'taking_wfa',
+              'training', 'winter_experience', 'other_experience',
+              'notes_or_comments']
+
+    @method_decorator(user_info_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super(BecomeLeader, self).dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        """ Link the application to the submitting participant. """
+        application = form.save(commit=False)
+        application.participant = self.request.user.participant
+        msg = "Leader application received!"
+        return super(BecomeLeader, self).form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        """ Give next year's value in the context. """
+        context_data = super(BecomeLeader, self).get_context_data(**kwargs)
+        context_data['year'] = timezone.now().date().year + 1
+        return context_data
+
+    def get_success_url(self):
+        return reverse('home')
+
+
+class AllLeaderApplications(ListView):
+    model = models.LeaderApplication
+    context_object_name = 'leader_applications'
+    template_name = 'manage_applications.html'
+
+    @method_decorator(group_required('WSC'))
+    def dispatch(self, request, *args, **kwargs):
+        return super(AllLeaderApplications, self).dispatch(request, *args, **kwargs)
+
+
+class LeaderApplicationView(DetailView):
+    model = models.LeaderApplication
+    context_object_name = 'application'
+    template_name = 'view_application.html'
+
+    def get_context_data(self, **kwargs):
+        """ Add on a form to assign/modify leader permissions. """
+        context_data = super(LeaderApplicationView, self).get_context_data(**kwargs)
+        application = self.get_object()
+        leader = self.get_leader(application)
+        initial = {'participant': application.participant}
+        leader_form = forms.LeaderForm(instance=leader, initial=initial)
+        leader_form.fields['participant'].widget = HiddenInput()
+
+        context_data['leader_form'] = leader_form
+        return context_data
+
+    def get_leader(self, application):
+        """ Get the existing leader instance, if there is one. """
+        try:
+            return application.participant.leader
+        except ObjectDoesNotExist:
+            return None
+
+    def post(self, request, *args, **kwargs):
+        """ Save a rating for the leader. """
+        application = self.get_object()
+        leader_form = forms.LeaderForm(request.POST, instance=self.get_leader(application))
+
+        if leader_form.is_valid():
+            leader_form.save()
+            leader = leader_form.instance
+            update_msg = "{} given {} rating".format(leader.participant.name,
+                                                     leader.rating)
+            messages.add_message(request, messages.SUCCESS, update_msg)
+            return redirect(reverse('manage_applications'))
+        elif not leader_form.instance.rating:  # Assume to mean "no leader"
+            msg = "{} not given a leader rating".format(application.participant)
+            messages.add_message(request, messages.INFO, msg)
+            return redirect(reverse('manage_applications'))
+
+        else:  # Any miscellaneous error form could possibly produce
+            return render(request, 'add_leader.html', {'leader_form': leader_form})
+
+    @method_decorator(group_required('WSC'))
+    def dispatch(self, request, *args, **kwargs):
+        return super(LeaderApplicationView, self).dispatch(request, *args, **kwargs)
+
+
 @group_required('WSC')
 def add_leader(request):
     """ Create a Leader record for an existing Participant. """
