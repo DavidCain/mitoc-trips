@@ -10,7 +10,7 @@
 {% else %}
 <p>Signups are open!</p>
 
-{% if not user.participant %}
+{% if not user.participant.info_current %}
 <p> You cannot sign up for trips until you <a href="{% url 'update_info' %}">submit personal information.</a></p>
 {% else %}
 <form action="{% url 'trip_signup' %}" method="post">

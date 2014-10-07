@@ -95,7 +95,7 @@ def warn_if_needs_update(request):
             return
         msg = 'Personal information is out of date.'
 
-    msg += ' <a href="{}">Please update!</a>'.format(reverse('update_info'))
+    msg += ' Please update to <a href="{}">sign up for Winter School!</a>'.format(reverse('update_info'))
     messages.add_message(request, WARNING, msg, extra_tags='safe')
 
 
