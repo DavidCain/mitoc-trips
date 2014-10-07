@@ -19,7 +19,6 @@ they will appear here.</p>
                 <th>Email</th>
                 <th>Rating</th>
                 <th>Attended lectures</th>
-                <th>Information current</th>
                 <th>Number of trips</th>
                 <th>Delete</th>
                 {% if formset.is_bound and not formset.is_valid %}
@@ -37,7 +36,6 @@ they will appear here.</p>
             <td> <a href="mailto:{{ form.instance.email }}">{{ form.instance.email }}</a></td>
             <td> {{ form.instance.leader.rating }}</td>
             <td> {{ form.attended_lectures }}</td>
-            <td> {{ form.instance.info_current|yesno }}</td>
             <td> {{ form.instance.num_trips }}</td>
             <td> {{ form.DELETE }}</td>
             {% if formset.errors %}

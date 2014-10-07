@@ -13,6 +13,7 @@ from django.views.generic import CreateView, DetailView, ListView, View
 from ws import forms
 from ws import models
 from ws.decorators import group_required, user_info_required, admin_only
+from ws import dateutils
 from ws import message_generators
 
 
@@ -494,7 +495,9 @@ def manage_participants(request):
             messages.add_message(request, messages.SUCCESS, 'Updated participants')
             formset = ParticipantFormSet()
     else:
-        formset = ParticipantFormSet()
+        cutoff = dateutils.participant_cutoff()
+        current = models.Participant.objects.filter(last_updated__gt=cutoff)
+        formset = ParticipantFormSet(queryset=current)
     return render(request, 'manage_participants.html', {'formset': formset})
 
 

@@ -4,6 +4,7 @@ Some shortcuts to retrieve meaningful dates.
 
 from datetime import datetime, timedelta, time
 from django.utils import timezone
+from django.conf import settings
 
 
 def nearest_sat():
@@ -30,3 +31,8 @@ def wed_at_noon():
     days_til_wed = timedelta((9 - now.weekday()) % 7)
     wed = (now + days_til_wed)
     return wed.replace(hour=12, minute=0, second=0, microsecond=0)
+
+def participant_cutoff():
+    """ Datetime at which previous signups are no longer current/valid. """
+    delta = timedelta(settings.MUST_UPDATE_AFTER_DAYS)
+    return timezone.now() - delta
