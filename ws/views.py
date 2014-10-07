@@ -577,8 +577,24 @@ class EditTrip(UpdateView):
     def get_success_url(self):
         return reverse('view_trip', args=(self.object.id,))
 
+    def _ignore_leaders_if_unchanged(self, form):
+        """ Don't update the leaders m2m field if unchanged.
+
+        This is a hack to avoid updating the m2m set (normally cleared, then
+        reset) Without this, post_add (signal used to send emails) will send
+        out a message to all leaders on _every_ trip update.
+
+        A compromise: Only send emails when the leader list is changed.
+        See ticket 6707 for an eventual fix to this behavior
+        """
+        old_pks = set(leader.pk for leader in self.object.leaders.all())
+        new_pks = set(leader.pk for leader in form.cleaned_data['leaders'])
+        if not old_pks.symmetric_difference(new_pks):
+            form.cleaned_data.pop('leaders')
+
     def form_valid(self, form):
-        # TODO: Only email _new_ leaders
+        self._ignore_leaders_if_unchanged(form)
+
         trip = form.save(commit=False)
         if not is_wsc(self.request):
             trip.wsc_approved = False

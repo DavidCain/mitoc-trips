@@ -107,9 +107,11 @@ def inform_leaders(sender, instance, action, reverse, model, pk_set, using,
 
 def send_coleader_email(trip, leader):
     trip_link = get_trip_link(trip)
+    leaders = ', '.join(unicode(leader) for leader in trip.leaders.all())
+    msg = "You're leading '{}' with {} on {}.".format(trip_link, leaders, trip.trip_date)
     send_mail("You're a leader on {}".format(trip),
               # TODO: What information should be contained in this message?
-              "You're leading '{}' on {}.".format(trip_link, trip.trip_date),
+              msg,
               trip.creator.participant.email,
               [leader.participant.email],
               fail_silently=True)
