@@ -203,7 +203,7 @@ class Trip(models.Model):
     maximum_participants = models.PositiveIntegerField(default=8)
     difficulty_rating = models.CharField(max_length=127)
     prereqs = models.CharField(max_length=255, blank=True)
-    wsc_approved = models.BooleanField(default=False)  # TODO: What if trip changes?
+    wsc_approved = models.BooleanField(default=False)
     notes = models.TextField(blank=True)
 
     time_created = models.DateTimeField(auto_now_add=True)

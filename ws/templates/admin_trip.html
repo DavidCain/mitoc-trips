@@ -2,7 +2,10 @@
 {% load signup_tags %}
 
 {% block content %}
-<a href="{% url 'trip_medical' trip.id %}">WIMP info</a>
+<ul>
+    <li><a href="{% url 'trip_medical' trip.id %}">WIMP info</a></li>
+    <li><a href="{% url 'edit_trip' trip.id %}">Edit trip</a></li>
+</ul>
 {% trip_summary trip %}
 
 {% if trip.signups_open %}

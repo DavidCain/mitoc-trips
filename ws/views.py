@@ -8,7 +8,8 @@ from django.forms.util import ErrorList
 from django.shortcuts import render, redirect
 from django.utils import timezone
 from django.utils.decorators import method_decorator
-from django.views.generic import CreateView, DetailView, ListView, View
+from django.views.generic import CreateView, DetailView, ListView, UpdateView
+from django.views.generic import View
 
 from ws import forms
 from ws import models
@@ -558,6 +559,30 @@ class AddTrip(CreateView):
     @method_decorator(group_required('WSC', 'leaders'))
     def dispatch(self, request, *args, **kwargs):
         return super(AddTrip, self).dispatch(request, *args, **kwargs)
+
+
+class EditTrip(UpdateView):
+    model = models.Trip
+    form_class = forms.TripForm
+    template_name = 'edit_trip.html'
+
+    @method_decorator(group_required('leaders', 'WSC'))
+    def dispatch(self, request, *args, **kwargs):
+        trip = self.get_object()
+        wsc = is_wsc(request)
+        if not (leader_on_trip(request, trip, creator_allowed=True) or wsc):
+            return render(request, 'not_your_trip.html')
+        return super(EditTrip, self).dispatch(request, *args, **kwargs)
+
+    def get_success_url(self):
+        return reverse('view_trip', args=(self.object.id,))
+
+    def form_valid(self, form):
+        # TODO: Only email _new_ leaders
+        trip = form.save(commit=False)
+        if not is_wsc(self.request):
+            trip.wsc_approved = False
+        return super(EditTrip, self).form_valid(form)
 
 
 class TripListView(ListView):

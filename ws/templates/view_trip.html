@@ -1,7 +1,16 @@
 {% extends "base.html" %}
 {% load signup_tags %}
+{% load auth_tags %}
 
 {% block content %}
+{% if user|has_group:"WSC" or user.is_superuser %}
+<h4>WSC functions</h4>
+<ul>
+    <li><a href="{% url 'trip_medical' trip.id %}">WIMP info</a></li>
+    <li><a href="{% url 'edit_trip' trip.id %}">Edit trip</a></li>
+    <li><a href="{% url 'admin_trip' trip.id %}">Admin trip</a></li>
+</ul>
+{% endif %}
 {% trip_summary trip %}
 
 {% if trip.signups_open %}

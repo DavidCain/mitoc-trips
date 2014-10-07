@@ -5,7 +5,9 @@ from __future__ import unicode_literals
 
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
-from django.db.models.signals import post_save, pre_delete, post_delete, m2m_changed
+from django.db.models.signals import pre_save, post_save
+from django.db.models.signals import pre_delete, post_delete
+from django.db.models.signals import m2m_changed
 from django.dispatch import receiver
 
 from ws.models import SignUp, WaitList, WaitListSignup, Trip

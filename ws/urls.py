@@ -12,6 +12,7 @@ urlpatterns = patterns('',
     url(r'^admin/', include(admin.site.urls)),
     url(r'^accounts/', include('allauth.urls')),
     url(r'^add_trip/', views.AddTrip.as_view(), name='add_trip'),
+    url(r'^edit_trip/(?P<pk>\d+)/$', views.EditTrip.as_view(), name='edit_trip'),
     url(r'^update_info/', views.UpdateParticipantView.as_view(), name='update_info'),
 
     url(r'^become_leader/', views.BecomeLeader.as_view(), name='become_leader'),

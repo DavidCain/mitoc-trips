@@ -1,29 +1,11 @@
-{% extends "messages_page.html" %}
-{% load staticfiles %}
-
-{% block head %}
-{{ block.super }}
-<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-{{ form.media }}
-
-<style>  {# Simple, doesn't need its own stylesheet. #}
-.select2-container-multi {
-    width: 350px;
-}
-</style>
-{% endblock head %}
+{% extends "add_or_create_trip.html" %}
 
 {% block content %}
-{{ block.super }}
 
-{% if not user.participant.leader %}
+{% if not user.participant.leader %}  {# Only WSC/admins will see this #}
 <p> A Leader record must be associated with the trip creator in order to create a trip.
 <a href="{% url 'add_leader' %}">Add a leader</a> record for yourself, then try again.</p>
 {% else %}
-<form action="" method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <input type="submit" value="Submit" />
-</form>
+{{ block.super }}
 {% endif %}
 {% endblock content %}
