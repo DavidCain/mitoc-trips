@@ -10,25 +10,16 @@ https://docs.djangoproject.com/en/1.7/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 PROJECT_ROOT = os.path.normpath(os.path.dirname(os.path.abspath(__file__)))
 
+# Settings may override these defaults (easily defined here due to BASE_DIR)
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/1.7/howto/deployment/checklist/
+from conf.local_settings import *
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '-6xhhnvt=i%tkmiy2#nm@mu^-=%bk-wbe5pu1vrd_gm^6&%v*s'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-TEMPLATE_DEBUG = True
-
-ALLOWED_HOSTS = []
-
-
-# Application definition
 
 INSTALLED_APPS = (
     'django.contrib.admin',
@@ -84,8 +75,6 @@ TEMPLATE_LOADERS = (
 TEMPLATE_DIRS = (os.path.join(PROJECT_ROOT, 'templates'),)
 
 # auth and allauth settings
-LOGIN_REDIRECT_URL = '/'
-ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 SITE_ID = "1"
 
 # Log in with only email
@@ -106,16 +95,6 @@ ROOT_URLCONF = 'ws.urls'
 WSGI_APPLICATION = 'ws.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/1.7/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
-}
-
 # Internationalization
 # https://docs.djangoproject.com/en/1.7/topics/i18n/
 
@@ -129,12 +108,6 @@ USE_L10N = True
 
 USE_TZ = True
 
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/1.7/howto/static-files/
-
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 # Project-specific settings
 MUST_UPDATE_AFTER_DAYS = 180
