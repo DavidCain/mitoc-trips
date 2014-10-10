@@ -33,7 +33,9 @@ they will appear here.</p>
         <tr>
             {{ form.id }} {# hidden id #}
             <td>  <a href="{% url 'view_trip' form.instance.id %}">{{ form.instance.name }}</a></td>
-            <td> {{ form.instance.leaders.all|join:", " }}</td>
+            <td>{% for leader in form.instance.leaders.all %}
+                <a href="{% url 'view_participant' leader.participant.id %}">{{ leader }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}
+            </td>
             <td> {{ form.instance.trip_date|date:"Y-m-d" }}</td>
             <td> {% if form.algorithm %}{{ form.algorithm }}{% else %} {{form.instance.algorithm}} {% endif %}</td>
             <td> {{ form.wsc_approved }}</td>

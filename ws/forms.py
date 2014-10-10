@@ -29,6 +29,11 @@ class EmergencyInfoForm(forms.ModelForm):
 
 
 class LeaderForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(LeaderForm, self).__init__(*args, **kwargs)
+        all_par = models.Participant.objects.all()
+        self.fields['participant'].queryset = all_par.select_related('leader')
+
     class Meta:
         model = models.Leader
         fields = ['participant', 'rating']

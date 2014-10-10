@@ -223,6 +223,7 @@ class ViewTrip(DetailView):
             signup_form.fields['trip'].widget = HiddenInput()
             context['signup_form'] = signup_form
         signups = models.SignUp.objects.filter(trip=trip)
+        signups = signups.select_related('participant')
         context['signups'] = signups
         context['signups_on_trip'] = signups.filter(on_trip=True)
         return context
@@ -333,6 +334,7 @@ class ReviewTripView(DetailView):
     def trip_participants(self):
         trip = self.get_object()
         accepted_signups = trip.signup_set.filter(on_trip=True)
+        accepted_signups = accepted_signups.select_related('participant')
         return [signup.participant for signup in accepted_signups]
 
     def get_existing_feedback(self, participant, leader):
@@ -485,7 +487,8 @@ def manage_leaders(request):
             messages.add_message(request, messages.SUCCESS, 'Updated leaders')
             formset = LeaderFormSet()  # Render updated forms
     else:
-        formset = LeaderFormSet()
+        leaders = models.Leader.objects.all().select_related('participant')
+        formset = LeaderFormSet(queryset=leaders)
     return render(request, 'manage_leaders.html', {'formset': formset})
 
 
@@ -502,6 +505,8 @@ def manage_participants(request):
     else:
         cutoff = dateutils.participant_cutoff()
         current = models.Participant.objects.filter(last_updated__gt=cutoff)
+        current = current.select_related('leader')
+        # TODO: participant.num_trips uses signup_set, adds n extra queries
         formset = ParticipantFormSet(queryset=current)
     return render(request, 'manage_participants.html', {'formset': formset})
 
@@ -514,7 +519,10 @@ def _manage_trips(request, TripFormSet):
             messages.add_message(request, messages.SUCCESS, 'Updated trips')
             formset = TripFormSet()
     else:
-        formset = TripFormSet()
+        all_trips = models.Trip.objects.all()
+        # FIXME: Doesn't seem to reduce query count
+        all_trips.select_related('leaders__participant')
+        formset = TripFormSet(queryset=all_trips)
     return render(request, 'manage_trips.html', {'formset': formset})
 
 
@@ -608,6 +616,11 @@ class TripListView(ListView):
     context_object_name = 'trip_queryset'
     form_class = forms.SummaryTripForm
 
+    def get_queryset(self):
+        # Each trip will need information about its leaders, so prefetch models
+        trips = super(TripListView, self).get_queryset()
+        return trips.prefetch_related('leaders__participant')
+
     def get_context_data(self, **kwargs):
         """ Sort trips into past and present trips. """
         context_data = super(TripListView, self).get_context_data(**kwargs)
@@ -626,7 +639,7 @@ class CurrentTripListView(TripListView):
     context_object_name = 'current_trips'
 
     def get_queryset(self):
-        queryset = super(TripListView, self).get_queryset()
+        queryset = super(CurrentTripListView, self).get_queryset()
         return queryset.filter(trip_date__gte=timezone.now().date())
 
     def get_context_data(self, **kwargs):
@@ -650,9 +663,13 @@ class ViewAllTrips(TripListView):
 
 class ViewParticipantTrips(TripListView):
     """ View trips the user is a participant on. """
+    def get_queryset(self):
+        return self.queryset
+
     def get(self, request, *args, **kwargs):
         participant = request.user.participant
         accepted_signups = participant.signup_set.filter(on_trip=True)
+        accepted_signups = accepted_signups.select_related('trip')
         self.queryset = [signup.trip for signup in accepted_signups]
         return super(TripListView, self).get(request, *args, **kwargs)
 
@@ -663,9 +680,13 @@ class ViewParticipantTrips(TripListView):
 
 class ViewWaitlistTrips(TripListView):
     """ View trips the user is currently waitlisted on. """
+    def get_queryset(self):
+        return self.queryset
+
     def get(self, request, *args, **kwargs):
         signups = request.user.participant.signup_set
         waitlisted_signups = signups.filter(waitlistsignup__isnull=False)
+        waitlisted_signups = waitlisted_signups.select_related('trip')
         self.queryset = [signup.trip for signup in waitlisted_signups]
         return super(TripListView, self).get(request, *args, **kwargs)
 
@@ -695,12 +716,15 @@ class TripPreferencesView(View):
         return modelformset_factory(models.SignUp, can_delete=True, extra=0,
                                     fields=('order',))
 
-    def get_formset(self, request, use_post=True):
-        participant = request.user.participant
+    def get_ranked_trips(self, participant):
         today = timezone.now().date()
         future_trips = models.SignUp.objects.filter(participant=participant,
                                                     trip__trip_date__gte=today)
         ranked_trips = future_trips.order_by('order', 'time_created')
+        return ranked_trips.select_related('trip')
+
+    def get_formset(self, request, use_post=True):
+        ranked_trips = self.get_ranked_trips(request.user.participant)
         post = request.POST if use_post and request.method == "POST" else None
         return self.factory_formset(post, queryset=ranked_trips)
 
