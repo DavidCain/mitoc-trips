@@ -246,9 +246,9 @@ class Trip(models.Model):
         if close_time and close_time < self.signups_open_at:
             raise ValidationError("Trips cannot open after they close.")
 
-        if self.signups_closed:
-            raise ValidationError("Signups can't be closed already!")
         if not self.time_created:  # Trip first being created
+            if self.signups_closed:
+                raise ValidationError("Signups can't be closed already!")
             # Careful here - don't want to disallow editing of past trips
             if self.trip_date < timezone.now().date():
                 raise ValidationError("Trips can't occur in the past!")
