@@ -2567,8 +2567,8 @@ a.black:hover {
 	color: #212121;
 }
 
-.required {
-	color: #d5243f;
+.required label:after {
+    content: '*';
 }
 
 /* =WooCommerce

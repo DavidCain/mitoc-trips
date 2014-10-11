@@ -4,31 +4,40 @@ from ws import models
 import django_select2.widgets
 
 
-class ParticipantForm(forms.ModelForm):
+class RequiredModelForm(forms.ModelForm):
+    required_css_class = 'required'
+    error_css_class = 'warning'
+
+
+class ParticipantForm(RequiredModelForm):
     class Meta:
         model = models.Participant
         fields = ['name', 'email', 'cell_phone', 'affiliation']
 
 
-class CarForm(forms.ModelForm):
+class CarForm(RequiredModelForm):
+    # All fields are required - 'car_row' lets JS toggle visibility of all rows
+    required_css_class = 'required car_row'
+
     class Meta:
         model = models.Car
         fields = ['license_plate', 'state', 'make', 'model', 'year', 'color']
+        widgets = {'state': django_select2.widgets.Select2Widget}
 
 
-class EmergencyContactForm(forms.ModelForm):
+class EmergencyContactForm(RequiredModelForm):
     class Meta:
         model = models.EmergencyContact
         fields = ['name', 'email', 'cell_phone', 'relationship']
 
 
-class EmergencyInfoForm(forms.ModelForm):
+class EmergencyInfoForm(RequiredModelForm):
     class Meta:
         model = models.EmergencyInfo
         fields = ['allergies', 'medications', 'medical_history']
 
 
-class LeaderForm(forms.ModelForm):
+class LeaderForm(RequiredModelForm):
     def __init__(self, *args, **kwargs):
         super(LeaderForm, self).__init__(*args, **kwargs)
         all_par = models.Participant.objects.all()
@@ -39,7 +48,7 @@ class LeaderForm(forms.ModelForm):
         fields = ['participant', 'rating']
 
 
-class TripForm(forms.ModelForm):
+class TripForm(RequiredModelForm):
     class Meta:
         model = models.Trip
         fields = ['leaders', 'name', 'description', 'trip_date',
@@ -60,19 +69,19 @@ class SummaryTripForm(forms.ModelForm):
                 'difficulty_rating']
 
 
-class SignUpForm(forms.ModelForm):
+class SignUpForm(RequiredModelForm):
     class Meta:
         model = models.SignUp
         fields = ['trip', 'notes']
 
 
-class LotteryInfoForm(forms.ModelForm):
+class LotteryInfoForm(RequiredModelForm):
     class Meta:
         model = models.LotteryInfo
         fields = ['own_a_car', 'willing_to_rent', 'number_of_passengers']
 
 
-class FeedbackForm(forms.ModelForm):
+class FeedbackForm(RequiredModelForm):
     class Meta:
         model = models.Feedback
         fields = ['comments', 'showed_up', 'prefer_anonymous']
