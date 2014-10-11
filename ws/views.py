@@ -663,6 +663,8 @@ class ViewAllTrips(TripListView):
 
 class ViewParticipantTrips(TripListView):
     """ View trips the user is a participant on. """
+    template_name = 'view_my_trips.html'
+
     def get_queryset(self):
         return self.queryset
 
