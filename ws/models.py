@@ -27,17 +27,9 @@ class Car(models.Model):
         return "{} ({})".format(car_info, registration_info)
 
 
-class Person(models.Model):
-    """ All individuals require a name, email, and (optionally) a cell. """
+class EmergencyContact(models.Model):
     name = models.CharField(max_length=255)
-    cell_phone = PhoneNumberField(null=True, blank=True)  # Hi, Sheep.
-
-    class Meta:
-        abstract = True
-        ordering = ["name"]
-
-
-class EmergencyContact(Person):
+    cell_phone = PhoneNumberField()
     relationship = models.CharField(max_length=63)
     email = models.EmailField()
 
@@ -57,11 +49,13 @@ class EmergencyInfo(models.Model):
                                      self.medical_history, self.emergency_contact))
 
 
-class Participant(Person):
+class Participant(models.Model):
     """ Anyone going on a trip needs WIMP info, and info about their car.
 
     Even leaders will have a Participant record (see docstring of Leader)
     """
+    name = models.CharField(max_length=255)
+    cell_phone = PhoneNumberField(null=True, blank=True)  # Hi, Sheep.
     last_updated = models.DateTimeField(auto_now=True)
     user = models.OneToOneField(User)
     emergency_info = models.OneToOneField(EmergencyInfo)
@@ -95,6 +89,9 @@ class Participant(Person):
             return self.name
         else:
             return "{} ({})".format(self.name, self.leader.rating)
+
+    class Meta:
+        ordering = ['name', 'email']
 
 
 class Leader(models.Model):
