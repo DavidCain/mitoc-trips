@@ -25,11 +25,9 @@ def new_fcfs_signup(sender, instance, created, raw, using, update_fields, **kwar
 def trip_or_wait(signup, created):
     if created and signup.trip.algorithm == 'fcfs':
         if signup.trip.open_slots:  # There's room, sign them up!
-            print "{} is on '{}'.".format(signup.participant, signup.trip)
             signup.on_trip = True
             signup.save()
         else:  # If no room, add them to the waiting list
-            print "Putting {} on the waiting list for '{}'.".format(signup.participant, signup.trip)
             # TODO: Signals documentation warns against modifying database
             # (rationale is unclear). While signals are threadsafe, this may
             # cause issues.
