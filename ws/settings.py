@@ -86,10 +86,6 @@ ACCOUNT_USERNAME_REQUIRED = False
 # Just click the link to verify
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True
 
-# Login is disable until email is verified
-ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
-
-
 ROOT_URLCONF = 'ws.urls'
 
 WSGI_APPLICATION = 'ws.wsgi.application'

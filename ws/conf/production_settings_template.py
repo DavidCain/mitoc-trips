@@ -37,3 +37,6 @@ STATIC_URL = os.path.join(URL_ROOT, 'static/')
 STATIC_ROOT = os.path.join('/mit/mitoc/web_scripts/', BASE_NAME, 'static')
 
 ADMIN_MEDIA_PREFIX = '/__scripts/django/static/admin/'
+
+# Emails _must_ be verified before sign-in allowed
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'

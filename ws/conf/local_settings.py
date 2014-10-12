@@ -28,3 +28,6 @@ DATABASES = {
         'NAME': 'db.sqlite3',
     }
 }
+
+# Don't send emails to verify email addresses (rapid account creation)
+ACCOUNT_EMAIL_VERIFICATION = 'none'
