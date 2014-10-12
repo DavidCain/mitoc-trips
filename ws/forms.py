@@ -1,7 +1,9 @@
 from django import forms
 
-from ws import models
 import django_select2.widgets
+from localflavor.us.us_states import US_STATES
+
+from ws import models
 
 
 class RequiredModelForm(forms.ModelForm):
@@ -22,7 +24,7 @@ class CarForm(RequiredModelForm):
     class Meta:
         model = models.Car
         fields = ['license_plate', 'state', 'make', 'model', 'year', 'color']
-        widgets = {'state': django_select2.widgets.Select2Widget}
+        widgets = {'state': forms.Select(choices=US_STATES)}
 
 
 class EmergencyContactForm(RequiredModelForm):
