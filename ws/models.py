@@ -1,8 +1,11 @@
 from __future__ import unicode_literals
 
+import re
+
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator, RegexValidator
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
@@ -13,12 +16,24 @@ from ws.fields import OptionalOneToOneField
 from ws.dateutils import nearest_sat, wed_at_noon
 
 
+class SassyMax(MaxValueValidator):
+    message = "Do you drive a bus?..."
+max_13 = SassyMax(13)
+
+alphanum = RegexValidator(r'^[a-zA-Z0-9 ]*$',
+                          "Only alphanumeric characters and spaces allowed")
+# As long as this module is reloaded once a year, this is fine
+# (First license plates were issued in Mass in 1903, go +1 for model years)
+model_years = [(year, year) for year in range(1903, timezone.now().year + 2)]
+
+
 class Car(models.Model):
-    license_plate = models.CharField(max_length=7)
+    # Loosely validate - may wish to use international plates in the future
+    license_plate = models.CharField(max_length=31, validators=[alphanum])
     state = USStateField()
     make = models.CharField(max_length=63)
     model = models.CharField(max_length=63)
-    year = models.IntegerField()
+    year = models.IntegerField(max_length=4, choices=model_years)
     color = models.CharField(max_length=63)
 
     def __unicode__(self):
@@ -281,7 +296,8 @@ class LotteryInfo(models.Model):
     participant = models.OneToOneField(Participant)
     own_a_car = models.BooleanField(default=False)
     willing_to_rent = models.BooleanField(default=False)
-    number_of_passengers = models.PositiveIntegerField(null=True, blank=True)
+    number_of_passengers = models.PositiveIntegerField(null=True, blank=True,
+                                                       validators=[max_13])
     last_updated = models.DateTimeField(auto_now=True)
 
     @property

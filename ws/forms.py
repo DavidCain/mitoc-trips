@@ -24,7 +24,8 @@ class CarForm(RequiredModelForm):
     class Meta:
         model = models.Car
         fields = ['license_plate', 'state', 'make', 'model', 'year', 'color']
-        widgets = {'state': forms.Select(choices=US_STATES)}
+        widgets = {'state': forms.Select(choices=US_STATES),
+                   'year': forms.NumberInput()}
 
 
 class EmergencyContactForm(RequiredModelForm):
