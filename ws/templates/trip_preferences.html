@@ -12,16 +12,19 @@
                 car_table.style.display = 'none';
                 renting_request.style.display = 'none';
                 num_passengers.style.display= 'none';
+                num_passengers.className = '';
                 break;
             case 'own':
                 car_table.style.display = 'block';
                 renting_request.style.display = 'none';
                 num_passengers.style.display= 'table-row';
+                num_passengers.className = 'required';
                 break;
             case 'rent':
                 car_table.style.display = 'none';
                 renting_request.style.display = 'block';
                 num_passengers.style.display= 'table-row';
+                num_passengers.className = '';
                 break;
         }
     }
@@ -84,7 +87,7 @@ to transport lottery-winning participants. </p>
             {{ lottery_form.car_status }}</td>
     </tr>
     <tr id='number_of_passengers_row'>
-        <th>{{ lottery_form.number_of_passengers.label }}:</th>
+        <th>{{ lottery_form.number_of_passengers.label_tag }}</th>
         <td>{{ lottery_form.number_of_passengers.errors }}
             {{ lottery_form.number_of_passengers }}</td>
     </tr>
