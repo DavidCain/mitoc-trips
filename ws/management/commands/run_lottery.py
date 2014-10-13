@@ -59,8 +59,7 @@ def priority_key(participant):
 def lowest_non_driver(trip):
     """ Return the lowest priority non-driver on the trip. """
     accepted_signups = trip.signup_set.filter(on_trip=True)
-    non_driver_kwargs = {'participant__lotteryinfo__own_a_car': False,
-                         'participant__lotteryinfo__willing_to_rent': False}
+    non_driver_kwargs = {'participant__lotteryinfo__car_status': 'none'}
     non_drivers = accepted_signups.filter(**non_driver_kwargs)
     return max(non_drivers, key=lambda signup: priority_key(signup.participant))
 
@@ -131,9 +130,7 @@ def handle_participant(participant):
             break
         elif driver and not trip.open_slots:
             # A driver may displace somebody else
-            is_driver = (Q(participant__lotteryinfo__own_a_car=True) |
-                         Q(participant__lotteryinfo__willing_to_rent=True))
-
+            is_driver = Q(participant__lotteryinfo__car_status__in=['own', 'rent'])
             participant_drivers = trip.signup_set.filter(is_driver, on_trip=True)
             lottery_leaders = trip.leaders.filter(participant__lotteryinfo__isnull=False)
             leader_drivers = sum(leader.participant.lotteryinfo.is_driver

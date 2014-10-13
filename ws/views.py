@@ -739,7 +739,10 @@ class TripPreferencesView(View):
         return forms.LotteryInfoForm(post, instance=lottery_info)
 
     def get_context(self, request):
+        car = request.user.participant.car
+        post = request.POST if request.method == "POST" else None
         return {"formset": self.get_formset(request),
+                'car_form': forms.CarForm(post, instance=car),
                 "lottery_form": self.get_lottery_form(request)}
 
     def get(self, request, *args, **kwargs):
@@ -748,7 +751,12 @@ class TripPreferencesView(View):
     def post(self, request, *args, **kwargs):
         context = self.get_context(request)
         lottery_form, formset = context['lottery_form'], context['formset']
-        if (lottery_form.is_valid() and formset.is_valid()):
+        car_form = context['car_form']
+        skip_car_form = lottery_form.data['car_status'] != 'own'
+        car_form_okay = skip_car_form or car_form.is_valid()
+        if (lottery_form.is_valid() and formset.is_valid() and car_form_okay):
+            if not skip_car_form:
+                request.user.participant.car = car_form.save()
             lottery_info = lottery_form.save(commit=False)
             lottery_info.participant = request.user.participant
             lottery_info.save()

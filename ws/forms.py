@@ -78,10 +78,11 @@ class SignUpForm(RequiredModelForm):
         fields = ['trip', 'notes']
 
 
-class LotteryInfoForm(RequiredModelForm):
+class LotteryInfoForm(forms.ModelForm):
     class Meta:
         model = models.LotteryInfo
-        fields = ['own_a_car', 'willing_to_rent', 'number_of_passengers']
+        fields = ['car_status', 'number_of_passengers']
+        widgets = {'car_status': forms.RadioSelect(attrs={'onclick': 'handle_driver(this);'})}
 
 
 class FeedbackForm(RequiredModelForm):

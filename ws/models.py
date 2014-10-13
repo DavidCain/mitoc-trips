@@ -294,18 +294,26 @@ class Feedback(models.Model):
 class LotteryInfo(models.Model):
     """ Persists from week-to-week, but can be changed. """
     participant = models.OneToOneField(Participant)
-    own_a_car = models.BooleanField(default=False)
-    willing_to_rent = models.BooleanField(default=False)
+    car_status = models.CharField(max_length=7,
+                                  choices=[("none", "No car"),
+                                           ("own", "Can drive own car"),
+                                           ("rent", "Willing to rent")],
+                                  default="none")
     number_of_passengers = models.PositiveIntegerField(null=True, blank=True,
                                                        validators=[max_13])
     last_updated = models.DateTimeField(auto_now=True)
 
     @property
     def is_driver(self):
-        return self.own_a_car or self.willing_to_rent
+        return self.car_status in ['own', 'rent']
+
+    def clean(self):
+        # Renters might not yet know number of passengers
+        if self.car_status == 'own' and not self.number_of_passengers:
+            raise ValidationError("How many passengers can you bring?")
 
     class Meta:
-        ordering = ["own_a_car", "willing_to_rent", "number_of_passengers"]
+        ordering = ["car_status", "number_of_passengers"]
 
 
 class WaitListSignup(models.Model):

@@ -33,17 +33,17 @@
 <form action="" method="post">
     {% csrf_token %}
     <table>
-        <tr><th colspan="2"><h4>Personal info</h4></th></tr>
+        <tr><th colspan="2"><h4 id="personal_info">Personal info</h4></th></tr>
         {{ participant_form }}
 
-        <tr><th colspan="2"><h4>Car</h4></th></tr>
+        <tr><th colspan="2"><h4 id="car">Car</h4></th></tr>
         <tr><td></td><td><input type="checkbox" id="has_car_checkbox" name="has_car" value="Car" onclick='toggle_car_form(this)'/ {% if has_car_checked %}checked{% endif %}>I have a car</td></th>
         {{ car_form }}
 
-        <tr><th colspan="2"><h4>Emergency info</h4></th></tr>
+        <tr><th colspan="2"><h4 id="emergency_info">Emergency info</h4></th></tr>
         {{ emergency_info_form }}
 
-        <tr><th colspan="2"><h4>Emergency contact</h4></th></tr>
+        <tr><th colspan="2"><h4 id="emergency_contact">Emergency contact</h4></th></tr>
         {{ emergency_contact_form }}
     </table>
     <input type="submit" value="Submit" />

@@ -1,5 +1,42 @@
 {% extends "messages_page.html" %}
 
+{% block js %}
+{{ block.super }}
+<script>
+    function handle_driver(car_status) {
+        var car_table = document.getElementById('car_table');
+        var renting_request = document.getElementById('renting_request');
+        var num_passengers = document.getElementById('number_of_passengers_row');
+        switch (car_status.value){
+            case 'none':
+                car_table.style.display = 'none';
+                renting_request.style.display = 'none';
+                num_passengers.style.display= 'none';
+                break;
+            case 'own':
+                car_table.style.display = 'block';
+                renting_request.style.display = 'none';
+                num_passengers.style.display= 'table-row';
+                break;
+            case 'rent':
+                car_table.style.display = 'none';
+                renting_request.style.display = 'block';
+                num_passengers.style.display= 'table-row';
+                break;
+        }
+    }
+
+    window.onload = function (){
+        var options = document.getElementsByName('car_status');
+        for (var i = 0; i < options.length; i++){
+            if (options[i].checked) {
+                handle_driver(options[i]);
+            }
+        }
+    }
+</script>
+{% endblock js %}
+
 {% block content %}
 {{ block.super }}
 
@@ -33,19 +70,35 @@ and your second choice a value of "2."</p>
 signup.</p>
 {% endif %}
 
-<h3> Cars </h3>
-<p> Drivers are given priority on trips that would not otherwise be able
-to transport lottery-winning participants. If you state that you have a
-car or are willing to rent, you may or may not be asked to drive. </p>
-
 <hr>  {# Until better styling done with CSS #}
 
 <h4> Car info </h4>
+<p> Drivers are given priority on trips that would not otherwise be able
+to transport lottery-winning participants. </p>
 <form action="" method="post">
 {% csrf_token %}
 <table>
-    {{ lottery_form.as_table }}
+    {{ lottery_form.non_field_errors }}
+    <tr>
+        <td>{{ lottery_form.car_status.errors }}
+            {{ lottery_form.car_status }}</td>
+    </tr>
+    <tr id='number_of_passengers_row'>
+        <th>{{ lottery_form.number_of_passengers.label }}:</th>
+        <td>{{ lottery_form.number_of_passengers.errors }}
+            {{ lottery_form.number_of_passengers }}</td>
+    </tr>
 </table>
+
+<div id='car_table'>
+    <p>Please ensure that the form below matches the car you'll be driving.</p>
+    <table>
+        {{ car_form.as_table }}
+    </table>
+</div>
+
+<p id='renting_request'>If you end up renting a car, please <a href="{% url 'update_info' %}#car">supply identifying
+information about the vehicle</a> before you leave on your trip.</p>
 
 <h4 id="ranked_trips"> Ranked trips </h4>
 {{ formset.management_form }}
