@@ -2531,7 +2531,7 @@ a.black:hover {
 	text-align: left;
 }
 
-.warning {
+.warning, .errorlist, .error {
 	background-color: #faebeb;
 	border: 1px solid #dc7070;
 	color: #212121;

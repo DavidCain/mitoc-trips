@@ -57,6 +57,7 @@ Please fill in the details below. Contact the Winter School chair (ws-chair@mit.
 
 <form action="" method="post">
     {% csrf_token %}
+    {{ form.non_field_errors }}
     {% for field in form %}
         <h5><strong>{{ field.label }}</strong></h5>
         <p>{% if field.help_text %}{{ field.help_text }} </br>{% endif %} {{ field.errors }}{{ field }}</p>
