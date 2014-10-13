@@ -1,7 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, reverse_lazy
 from django.forms.models import modelformset_factory
 from django.forms import ModelForm, HiddenInput
 from django.forms.util import ErrorList
@@ -11,11 +11,21 @@ from django.utils.decorators import method_decorator
 from django.views.generic import CreateView, DetailView, ListView, UpdateView
 from django.views.generic import View
 
+from allauth.account.views import PasswordChangeView
+
 from ws import forms
 from ws import models
 from ws.decorators import group_required, user_info_required, admin_only
 from ws import dateutils
 from ws import message_generators
+
+
+class LoginAfterPasswordChangeView(PasswordChangeView):
+    @property
+    def success_url(self):
+        return reverse_lazy('account_login')
+
+login_after_password_change = login_required(LoginAfterPasswordChangeView.as_view())
 
 
 def leader_on_trip(request, trip, creator_allowed=False):

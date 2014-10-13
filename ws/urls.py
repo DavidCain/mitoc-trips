@@ -10,6 +10,8 @@ from ws.decorators import group_required
 # Access is controlled in views, but URLs are roughly grouped by access
 urlpatterns = patterns('',
     url(r'^$', views.home, name='home'),
+    # Redirect to home page after changing password (default is annoying loop)
+    url(r'^accounts/password/change/$', views.login_after_password_change, name='account_change_password'),
     url(r'^accounts/', include('allauth.urls')),
 
     # Administrator views
