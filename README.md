@@ -3,11 +3,11 @@ This Django project supports MITOC's [Winter School][ws], providing a unified
 system for participants, leaders, and administrators.
 
 ## Background
-Every January, the MIT Outing Club (MITOC) runs a program known as Winter School.
-The program is designed to familiarize members of the community with the outdoors
-and teach the specific skills required to enjoy various winter activities.
-Lectures are held during the week, and some fifty volunteers lead trips in the
-White Mountains each weekend.
+Every January, the MIT Outing Club ([MITOC][mitoc]) runs a program known as
+Winter School. The program is designed to familiarize members of the community
+with the outdoors and teach the specific skills required to enjoy various
+winter activities. Lectures are held during the week, and some fifty volunteers
+lead trips in the White Mountains each weekend.
 
 Every year, approximately 600 people participate in Winter School. 
 
@@ -84,7 +84,9 @@ whatever you named this new configuration file).
 
 Be sure to modify the appropriate `Site` object:
 
-    UPDATE django_site SET domain='mitoc.scripts.mit.edu/ws/', name='Winter School' WHERE id=1;
+    UPDATE django_site
+    SET domain='mitoc.scripts.mit.edu/ws/', name='Winter School'
+    WHERE id=1;
 
 ### URL Rewriting
 Use the simple `.htaccess` file provided with Scripts' default Django install,
@@ -127,6 +129,7 @@ in `~/web_scripts/<dirname>/static`.
 
 
 
+  [mitoc]: http://web.mit.edu/mitoc/www/
   [django]: https://github.com/django/django
   [allauth]: https://github.com/pennersr/django-allauth
   [localflavor]: https://github.com/django/django-localflavor
@@ -134,4 +137,4 @@ in `~/web_scripts/<dirname>/static`.
 
   [scripts]: http://scripts.mit.edu
   [ws]: http://mitoc.scripts.mit.edu/ws
-  [responsive]: cyberchimps.com/responsive-theme/
+  [responsive]: http://cyberchimps.com/responsive-theme/
