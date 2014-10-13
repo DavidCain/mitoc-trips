@@ -56,7 +56,8 @@ class EmergencyInfo(models.Model):
     emergency_contact = models.OneToOneField(EmergencyContact)
     allergies = models.CharField(max_length=255, blank=True)
     medications = models.CharField(max_length=255, blank=True)
-    medical_history = models.TextField(blank=True, help_text="Anything your trip leader would want to know about.")
+    medical_history = models.TextField(blank=True, max_length=2000,
+                                       help_text="Anything your trip leader would want to know about.")
 
     def __unicode__(self):
         return ("Allergies: {} | Medications: {} | History: {} | "
@@ -147,15 +148,15 @@ class LeaderApplication(models.Model):
                                            ("Maybe", "Maybe/don't know")],
                                   verbose_name="Do you plan on taking the subsidized WFA at MIT?",
                                   help_text="Save $110 on the course fee by leading two or more trips!")
-    training = models.TextField(blank=True,
+    training = models.TextField(blank=True, max_length=5000,
                                 verbose_name="Formal training and qualifications",
                                 help_text="Details of any medical, technical, or leadership training and qualifications relevant to the winter environment. State the approximate dates of these activities. Leave blank if not applicable.")
-    winter_experience = models.TextField(blank=True,
+    winter_experience = models.TextField(blank=True, max_length=5000,
                                          help_text="Details of previous winter outdoors experience. Include the type of trip (x-country skiiing, above treeline, snowshoeing, ice climbing, etc), approximate dates and locations, numbers of participants, notable trail and weather conditions. Please also give details of whether you participated, lead, or co-lead these trips.")
-    other_experience = models.TextField(blank=True,
+    other_experience = models.TextField(blank=True, max_length=5000,
                                         verbose_name="Other outdoors/leadership experience",
                                         help_text="Details about any relevant non-winter experience")
-    notes_or_comments = models.TextField(blank=True,
+    notes_or_comments = models.TextField(blank=True, max_length=5000,
                                          help_text="Any relevant details, such as any limitations on availability on Tue/Thurs nights or weekends during IAP.")
 
 
@@ -167,7 +168,7 @@ class SignUp(models.Model):
     participant = models.ForeignKey(Participant)
     trip = models.ForeignKey("Trip")
     time_created = models.DateTimeField(auto_now_add=True)
-    notes = models.TextField(blank=True)  # e.g. Answers to questions
+    notes = models.TextField(blank=True, max_length=1000)  # e.g. Answers to questions
     order = models.IntegerField(null=True, blank=True)
 
     on_trip = models.BooleanField(default=False)
@@ -215,7 +216,7 @@ class Trip(models.Model):
     difficulty_rating = models.CharField(max_length=127)
     prereqs = models.CharField(max_length=255, blank=True)
     wsc_approved = models.BooleanField(default=False)
-    notes = models.TextField(blank=True)
+    notes = models.TextField(blank=True, max_length=2000)
 
     time_created = models.DateTimeField(auto_now_add=True)
     last_edited = models.DateTimeField(auto_now=True)
@@ -272,7 +273,7 @@ class Feedback(models.Model):
     """ Feedback given for a participant on one trip. """
     participant = models.ForeignKey(Participant)
     showed_up = models.BooleanField(default=True)
-    comments = models.TextField()
+    comments = models.TextField(max_length=2000)
     leader = models.ForeignKey(Leader)
     prefer_anonymous = models.BooleanField(default=False)
     # Allows general feedback (i.e. not linked to a trip)
