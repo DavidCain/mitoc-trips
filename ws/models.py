@@ -54,9 +54,9 @@ class EmergencyContact(models.Model):
 
 class EmergencyInfo(models.Model):
     emergency_contact = models.OneToOneField(EmergencyContact)
-    allergies = models.CharField(max_length=255, blank=True)
-    medications = models.CharField(max_length=255, blank=True)
-    medical_history = models.TextField(blank=True, max_length=2000,
+    allergies = models.CharField(max_length=255)
+    medications = models.CharField(max_length=255)
+    medical_history = models.TextField(max_length=2000,
                                        help_text="Anything your trip leader would want to know about.")
 
     def __unicode__(self):
