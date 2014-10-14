@@ -401,7 +401,8 @@ class BecomeLeader(CreateView):
         """ Link the application to the submitting participant. """
         application = form.save(commit=False)
         application.participant = self.request.user.participant
-        msg = "Leader application received!"
+        received = "Leader application received!"
+        messages.add_message(self.request, messages.SUCCESS, received)
         return super(BecomeLeader, self).form_valid(form)
 
     def get_context_data(self, **kwargs):
