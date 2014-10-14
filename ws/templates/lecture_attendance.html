@@ -1,0 +1,15 @@
+{% extends "messages_page.html" %}
+
+{% block content %}
+{{ block.super }}
+
+<h3>Winter School Lecture Sign-in</h3>
+<form action="" method="post">
+    {% csrf_token %}
+    <table>
+        {{ form.as_table }}
+    </table>
+    <input type="submit" value="Submit" />
+</form>
+
+{% endblock content %}

@@ -25,6 +25,7 @@ urlpatterns = patterns('',
     url(r'^wsc/manage_applications/$', views.AllLeaderApplications.as_view(), name='manage_applications'),
     url(r'^wsc/view_application/(?P<pk>\d+)/$', views.LeaderApplicationView.as_view(), name='view_application'),
     url(r'^wsc/manage_trips/$', views.manage_trips, name='manage_trips'),
+    url(r'^wsc/lecture_attendance/$', views.LectureAttendanceView.as_view(), name='lecture_attendance'),
 
     # Leader views
     url(r'^view_leader_trips/$', views.ViewLeaderTrips.as_view(), name='view_leader_trips'),

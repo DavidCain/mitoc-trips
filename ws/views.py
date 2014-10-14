@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse, reverse_lazy
@@ -8,7 +9,7 @@ from django.forms.util import ErrorList
 from django.shortcuts import render, redirect
 from django.utils import timezone
 from django.utils.decorators import method_decorator
-from django.views.generic import CreateView, DetailView, ListView, UpdateView
+from django.views.generic import CreateView, DetailView, FormView, ListView, UpdateView
 from django.views.generic import View
 
 from allauth.account.views import PasswordChangeView
@@ -801,3 +802,35 @@ class TripMedicalView(DetailView):
         if not (leader_on_trip(request, trip, creator_allowed=True) or wsc):
             return render(request, 'not_your_trip.html')
         return super(TripMedicalView, self).dispatch(request, *args, **kwargs)
+
+
+class LectureAttendanceView(FormView):
+    form_class = forms.AttendedLecturesForm
+    template_name = 'lecture_attendance.html'
+    success_url = reverse_lazy('lecture_attendance')
+
+    @method_decorator(group_required('WSC'))
+    def dispatch(self, request, *args, **kwargs):
+        return super(LectureAttendanceView, self).dispatch(request, *args, **kwargs)
+
+    def user_or_none(self, email):
+        try:
+            return User.objects.get(email=email)
+        except ObjectDoesNotExist:
+            return None
+
+    def form_valid(self, form):
+        user = self.user_or_none(form.cleaned_data['email'])
+        if user and user.check_password(form.cleaned_data['password']):
+            self.record_attendance(user)
+            return super(LectureAttendanceView, self).form_valid(form)
+        else:
+            failure_msg = 'Incorrect email + password'
+            messages.add_message(self.request, messages.ERROR, failure_msg)
+            return self.form_invalid(form)
+
+    def record_attendance(self, user):
+        user.participant.attended_lectures = True
+        user.participant.save()
+        success_msg = 'Lecture attendance recorded for {}'.format(user.email)
+        messages.add_message(self.request, messages.SUCCESS, success_msg)

@@ -89,3 +89,8 @@ class FeedbackForm(RequiredModelForm):
     class Meta:
         model = models.Feedback
         fields = ['comments', 'showed_up', 'prefer_anonymous']
+
+
+class AttendedLecturesForm(forms.Form):
+    email = forms.EmailField()
+    password = forms.CharField(widget=forms.PasswordInput())
