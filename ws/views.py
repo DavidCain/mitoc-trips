@@ -735,6 +735,11 @@ class TripPreferencesView(View):
         ranked_trips = future_trips.order_by('order', 'time_created')
         return ranked_trips.select_related('trip')
 
+    def get_car_form(self, request, use_post=True):
+        car = request.user.participant.car
+        post = request.POST if use_post and request.method == "POST" else None
+        return forms.CarForm(post, instance=car)
+
     def get_formset(self, request, use_post=True):
         ranked_trips = self.get_ranked_trips(request.user.participant)
         post = request.POST if use_post and request.method == "POST" else None
@@ -749,10 +754,8 @@ class TripPreferencesView(View):
         return forms.LotteryInfoForm(post, instance=lottery_info)
 
     def get_context(self, request):
-        car = request.user.participant.car
-        post = request.POST if request.method == "POST" else None
-        return {"formset": self.get_formset(request),
-                'car_form': forms.CarForm(post, instance=car),
+        return {"formset": self.get_formset(request, use_post=True),
+                'car_form': self.get_car_form(request, use_post=True),
                 "lottery_form": self.get_lottery_form(request)}
 
     def get(self, request, *args, **kwargs):
@@ -765,7 +768,9 @@ class TripPreferencesView(View):
         skip_car_form = lottery_form.data['car_status'] != 'own'
         car_form_okay = skip_car_form or car_form.is_valid()
         if (lottery_form.is_valid() and formset.is_valid() and car_form_okay):
-            if not skip_car_form:
+            if skip_car_form:  # New form so submission doesn't show errors
+                context['car_form'] = self.get_car_form(request, use_post=False)
+            else:
                 request.user.participant.car = car_form.save()
             lottery_info = lottery_form.save(commit=False)
             lottery_info.participant = request.user.participant
