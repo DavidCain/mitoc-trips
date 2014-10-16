@@ -54,12 +54,15 @@ def get_flake_factor(participant):
 def priority_key(participant):
     """ Return tuple for sorting participants. """
     flake_factor = get_flake_factor(participant)
+    # If we use raw flake factor, participants who've been on trips
+    # will have an advantage over those who've been on none
+    flaky_or_neutral = max(flake_factor, 0)
     number_of_trips = get_number_of_trips(participant)
     affiliation = ['S', 'M', 'N'].index(participant.affiliation)
 
     # Lower = higher in the list
     # Random float faily resolves ties without using database order
-    return (flake_factor, number_of_trips, affiliation, random.random())
+    return (flaky_or_neutral, number_of_trips, affiliation, random.random())
 
 
 def lowest_non_driver(trip):
