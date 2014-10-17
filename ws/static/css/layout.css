@@ -86,6 +86,10 @@ body {
 
 /* =Typography
 -------------------------------------------------------------- */
+.nowrap {
+	white-space: nowrap;
+}
+
 p {
 	word-wrap: break-word;
 }
@@ -383,6 +387,10 @@ input[type="email"] {
 	padding: 6px 8px;
 	vertical-align: middle;
 	max-width: 100%;
+}
+
+input[type="number"] {
+    width: 4em;
 }
 
 select {

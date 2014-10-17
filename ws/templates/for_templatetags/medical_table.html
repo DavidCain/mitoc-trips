@@ -1,22 +1,22 @@
-<table>
-<tr>
-    <th>Name</th>
-    <th>Cell</th>
-    <th>Email</th>
-    <th>Allergies</th>
-    <th>Medications</th>
-    <th>History</th>
-    <th>Trip Notes</th>
-</tr>
-{% for signup in signups %}  {# 'signups' can also be Leader objects (no notes will be shown) #}
-<tr>
-    <td>{{ signup.participant.name }}</td>
-    <td>{{ signup.participant.cell_phone }}</td>
-    <td>{{ signup.participant.email }}</td>
-    <td>{{ signup.participant.emergency_info.allergies }}</td>
-    <td>{{ signup.participant.emergency_info.medications }}</td>
-    <td>{{ signup.participant.emergency_info.medical_history }}</td>
-    <td>{{ signup.notes }}</td>
-</tr>
+<table class="footable">
+<thead>
+    <tr>
+        <th>Name</th>
+        <th>Cell</th>
+        <th data-hide="phone">Allergies</th>
+        <th data-hide="phone">Medications</th>
+        <th data-hide="phone,tablet">History</th>
+    </tr>
+</thead>
+<tbody>
+    {% for signup in signups %}  {# 'signups' can also be Leader objects (no notes will be shown) #}
+    <tr>
+        <td class="nowrap"><a href="mailto:{{ signup.participant.email }}">{{ signup.participant.name }}</a></td>
+        <td class="nowrap">{{ signup.participant.cell_phone }}</td>
+        <td>{{ signup.participant.emergency_info.allergies }}</td>
+        <td>{{ signup.participant.emergency_info.medications }}</td>
+        <td>{{ signup.participant.emergency_info.medical_history }}</td>
+    </tr>
+</tbody>
 {% endfor %}
 </table>

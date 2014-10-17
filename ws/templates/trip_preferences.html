@@ -83,7 +83,7 @@ to transport lottery-winning participants. </p>
 <table>
     {{ lottery_form.non_field_errors }}
     <tr>
-        <td>{{ lottery_form.car_status.errors }}
+        <td colspan="2">{{ lottery_form.car_status.errors }}
             {{ lottery_form.car_status }}</td>
     </tr>
     <tr id='number_of_passengers_row'>
@@ -109,11 +109,11 @@ information about the vehicle</a> before you leave on your trip.</p>
 <p> You haven't signed up for any <a href="{% url 'view_trips' %}">trips!</a> </p>
 {% else %}
 <span class="helptext">Higher-ranked trips appear first in this list.</span>
-<table>
+<table class="footable" data-sort="false">
     <thead>
         <tr>
             <th>Trip</th>
-            <th>Notes</th>
+            <th data-hide="phone">Notes</th>
             <th>Order</th>
             <th>Delete</th>
             {% if formset.is_bound and not formset.is_valid %}
@@ -125,8 +125,8 @@ information about the vehicle</a> before you leave on your trip.</p>
     {% csrf_token %}
     <tbody>
         {% for form in formset %}
+        {{ form.id }}
         <tr>
-            {{ form.id }}
             <td> <a href="{% url 'view_trip' form.instance.trip.id %}">{{ form.instance.trip|truncatechars:30 }}</a></td>
             <td> {{ form.instance.notes }} </td>
             <td> {{ form.order }} </td>

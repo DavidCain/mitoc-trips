@@ -11,10 +11,25 @@
     {% endblock meta %}
     <title>{% block title %}MITOC Winter School{% endblock title %}</title>
     {% block css %}
-    <link rel="stylesheet" href="{% static "styles/layout.css" %}" />
+    <link rel="stylesheet" href="{% static 'css/layout.css' %}" />
+    <link href="{% static 'css/footable.core.css' %}" rel="stylesheet" type="text/css" />
+    <link href="{% static 'css/footable.standalone.css' %}" rel="stylesheet" type="text/css" />
     {% endblock css %}
 
     {% block js %}
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js" type="text/javascript"></script>
+    <script src="{% static "js/footable.js" %}" type="text/javascript"></script>
+    <script src="{% static "js/footable.sort.js" %}" type="text/javascript"></script>
+    <script type="text/javascript">
+        $(function () {
+            $('.footable').footable({
+                breakpoints: {
+                    phone: 480,
+                    tablet: 900, {# Content column is 940 before resizing #}
+                }
+            });
+        });
+    </script>
     {% endblock js %}
 
     {# Special CSS class so content only shown to those with JS enabled #}
@@ -48,7 +63,7 @@
                 </li>
 
                 {% if user|has_group:"leaders" %}
-                <li><a href="#">Leaders</a>
+                <li><a>Leaders</a>
                     <ul class="children">
                         <li> <a href="{% url 'add_trip' %}"> New trip </a> </li>
                         <li> <a href="{% url 'view_leader_trips' %}">My trips</a> </li>
@@ -57,7 +72,7 @@
                 {% endif %}
 
                 {% if user|has_group:"WSC" and not user.is_superuser %}
-                <li><a href="#">WSC</a>
+                <li><a>WSC</a>
                     <ul class="children">
                         <li> <a href="{% url 'add_leader' %}"> Add new leader(s) </a> </li>
                         <li> <a href="{% url 'manage_applications' %}"> Manage leader applications </a> </li>
@@ -67,7 +82,7 @@
                     </ul>
                 {% endif %}
                 {% if user.is_superuser %}
-                <li><a href="{% url 'admin:index' %}">Admin</a>
+                <li><a>Admin</a>
                     <ul class="children">
                         <li> <a href="{% url 'admin:index' %}"> Site administration </a> </li>
                         <li> <a href="{% url 'add_leader' %}"> Add new leader(s) </a> </li>
@@ -76,7 +91,7 @@
                         <li> <a href="{% url 'manage_participants' %}"> Manage participants </a> </li>
                     </ul>
                 {% endif %}
-                <li><a href="#">Account</a>
+                <li><a>Account</a>
                     <ul class="children">
                         {% if user.is_authenticated %}
                         <li> <a href="{% url 'update_info' %}">Update personal info</a> </li>

@@ -1,31 +1,31 @@
-<table>
+<table class="footable">
     <thead>
         <tr>
             <th>Name</th>
-            <th>Past feedback</th>
-            <th>Notes</th>
+            <th data-hide="phone,tablet" data-sort-ignore="true">Feedback</th>
+            <th data-hide="phone" data-sort-ignore="true">Notes</th>
             {% if formset.can_delete %}
-            <th>Remove from trip</th>
+            <th data-sort-ignore="true">Remove</th>
             {% endif %}
         </tr>
     </thead>
 
     <tbody>
     {% for form in formset %}
-    <tr>
         {{ form.id }}
-        {{ form.errors }}
-        <td>  <a href="{% url 'view_participant' form.instance.participant.id %}">{{ form.instance.participant.name }}</a></td>
-        <td>
-            {% for feedback in form.instance.participant.feedback_set.all %}
-            "{{ feedback.comments }}" <br>
-            {% endfor %}
-        </td>
-        <td>{{ form.instance.notes }}</td>
-        {% if formset.can_delete %}
-        <td>{{ form.DELETE }}</td>
-        {% endif %}
-    </tr>
+        <tr>
+            {{ form.errors }}
+            <td class="nowrap"><a href="{% url 'view_participant' form.instance.participant.id %}">{{ form.instance.participant.name }}</a></td>
+            <td>
+                {% for feedback in form.instance.participant.feedback_set.all %}
+                "{{ feedback.comments }}" <br>
+                {% endfor %}
+            </td>
+            <td>{{ form.instance.notes }}</td>
+            {% if formset.can_delete %}
+            <td>{{ form.DELETE }}</td>
+            {% endif %}
+        </tr>
     {% endfor %}
     </tbody>
 </table>

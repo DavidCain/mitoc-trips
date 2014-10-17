@@ -7,22 +7,26 @@
 {% if not leader_applications %}
 <p>No leader applications.</p>
 {% else %}
-<table>
-<tr>
-    <th>Name</th>
-    <th>Past rating</th>
-    <th>Desired rating</th>
-    <th>Assigned rating</th>
-</tr>
-{% for application in leader_applications %}
-<tr>
-    <td>  <a href="{% url 'view_application' application.id %}">{{ application.participant.name }}</a></td>
-    <td>{{ application.previous_rating }}</td>
-    <td>{{ application.desired_rating }}</td>
-    <td>{{ application.participant.leader.rating }}</td>
-</tr>
+<table class="footable">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th data-hide="phone">Past rating</th>
+            <th>Desired rating</th>
+            <th data-hide="phone">Assigned rating</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for application in leader_applications %}
+        <tr>
+            <td>  <a href="{% url 'view_application' application.id %}">{{ application.participant.name }}</a></td>
+            <td>{{ application.previous_rating }}</td>
+            <td>{{ application.desired_rating }}</td>
+            <td>{{ application.participant.leader.rating }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
 
-{% endfor %}
 </table>
 {% endif %}
 {% endblock content %}

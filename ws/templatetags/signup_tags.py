@@ -21,3 +21,8 @@ def trip_summary(trip):
 @register.inclusion_tag('for_templatetags/medical_table.html')
 def medical_table(signups):
     return {'signups': signups}
+
+
+@register.filter
+def subtract(value, arg):
+    return value - arg

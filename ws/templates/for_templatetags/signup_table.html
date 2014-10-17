@@ -1,21 +1,21 @@
-<table>
+<table class="footable">
     <thead>
         <tr>
             <th>Name</th>
             {% if has_notes %}
-            <th>Notes</th>
+            <th data-sort-ignore="true">Notes</th>
             {% endif %}
         </tr>
     </thead>
 
     <tbody>
-    {% for signup in signups.all %}
-    <tr>
-        <td>{{ signup.participant }}</td>
-        {% if has_notes %}
-        <td>{{ signup.notes }}</td>
-        {% endif %}
-    </tr>
-    {% endfor %}
+        {% for signup in signups.all %}
+        <tr>
+            <td>{{ signup.participant }}</td>
+            {% if has_notes %}
+            <td>{{ signup.notes }}</td>
+            {% endif %}
+        </tr>
+        {% endfor %}
     </tbody>
 </table>

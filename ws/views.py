@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse, reverse_lazy
+from django.db.models import Count
 from django.forms.models import modelformset_factory
 from django.forms import ModelForm, HiddenInput
 from django.forms.util import ErrorList
@@ -645,6 +646,7 @@ class TripListView(ListView):
     def get_queryset(self):
         # Each trip will need information about its leaders, so prefetch models
         trips = super(TripListView, self).get_queryset()
+        trips = trips.annotate(num_signups=Count('signup'))
         return trips.prefetch_related('leaders__participant')
 
     def get_context_data(self, **kwargs):
