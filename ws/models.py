@@ -78,8 +78,9 @@ class Participant(models.Model):
     email = models.EmailField(unique=True)
     car = OptionalOneToOneField(Car)
     affiliation = models.CharField(max_length=1,
-                                   choices=[("M", "MIT affiliate"),
-                                            ("N", "Non-affiliate")])
+                                   choices=[('S', "MIT student"),
+                                            ('M', "MIT affiliate"),
+                                            ('N', "Non-affiliate")])
     attended_lectures = models.BooleanField(default=False)
 
     @property

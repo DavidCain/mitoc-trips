@@ -32,6 +32,12 @@ def wed_at_noon():
     wed = (now + days_til_wed)
     return wed.replace(hour=12, minute=0, second=0, microsecond=0)
 
+def thur_at_noon():
+    now = local_now()
+    days_till_thur = timedelta((10 - now.weekday()) % 7)
+    thur = (now + days_till_thur)
+    return thur.replace(hour=12, minute=0, second=0, microsecond=0)
+
 def participant_cutoff():
     """ Datetime at which previous signups are no longer current/valid. """
     delta = timedelta(settings.MUST_UPDATE_AFTER_DAYS)

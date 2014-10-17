@@ -1,11 +1,14 @@
 from __future__ import unicode_literals
 
+import random
+
 from django.core.management.base import BaseCommand
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.utils import timezone
 import pytz
 
+from ws import dateutils
 from ws import models
 from datetime import date, timedelta
 
@@ -52,10 +55,11 @@ def priority_key(participant):
     """ Return tuple for sorting participants. """
     flake_factor = get_flake_factor(participant)
     number_of_trips = get_number_of_trips(participant)
-    not_mit_affiliated = participant.affiliation == 'N'
+    affiliation = ['S', 'M', 'N'].index(participant.affiliation)
 
     # Lower = higher in the list
-    return (flake_factor, number_of_trips, not_mit_affiliated)
+    # Random float faily resolves ties without using database order
+    return (flake_factor, number_of_trips, affiliation, random.random())
 
 
 def lowest_non_driver(trip):
@@ -67,6 +71,7 @@ def lowest_non_driver(trip):
 
 
 def add_to_waitlist(signup):
+    """ Put a given signup on its corresponding trip's wait list. """
     print "Adding {} to the waiting list for {}.".format(signup.participant, signup.trip)
     signup.on_trip = False
     signup.save()
@@ -86,20 +91,28 @@ def add_to_waitlist(signup):
 
 
 def free_for_all():
-    """ Make trips first-come, first-serve, open them for another 24 hours. """
+    """ Make trips first-come, first-serve.
+
+    Trips re-open Thursday at noon, close at midnight before trip.
+    """
     print "Making all lottery trips first-come, first-serve"
     lottery_trips = models.Trip.objects.filter(algorithm='lottery')
     for trip in lottery_trips:
         trip.algorithm = 'fcfs'
-        trip.signups_close_at = timezone.now() + timedelta(days=1)
+        trip.signups_open_at = dateutils.thur_at_noon()
+        day_before = trip.trip_date - timedelta(days=1)
+        midnight = timezone.datetime(day_before.year, day_before.month,
+                                     day_before.day, 23, 59, 59)
+        trip.signups_close_at = pytz_timezone.localize(midnight)
         trip.save()
 
 
 def assign_trips():
     # First-come, first-serve trips are separate from the lottery system
     for participant in get_prioritized_participants():
-        print "Handling {}".format(participant)
-        print 12 * '-'
+        handling_text = "Handling {}".format(participant)
+        print handling_text
+        print '-' * len(handling_text)
         handle_participant(participant)
         print
 
