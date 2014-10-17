@@ -19,6 +19,7 @@ from ws.dateutils import local_now
 from ws.decorators import group_required, user_info_required, admin_only
 from ws import dateutils
 from ws import message_generators
+from ws import signup_utils
 
 
 class LoginAfterPasswordChangeView(PasswordChangeView):
@@ -225,6 +226,12 @@ class ViewTrip(DetailView):
     context_object_name = 'trip'
     template_name = 'view_trip.html'
 
+    @property
+    def participant_signup(self):
+        """ Return viewer's signup for this trip (if one exists, else None) """
+        participant = self.request.user.participant
+        return participant.signup_set.filter(trip=self.get_object()).first()
+
     def get_context_data(self, **kwargs):
         """ Create form for signup (only if signups open). """
         context = super(ViewTrip, self).get_context_data()
@@ -235,6 +242,7 @@ class ViewTrip(DetailView):
             context['signup_form'] = signup_form
         signups = models.SignUp.objects.filter(trip=trip)
         signups = signups.select_related('participant')
+        context['participant_signup'] = self.participant_signup
         context['signups'] = signups
         context['signups_on_trip'] = signups.filter(on_trip=True)
         return context
@@ -244,6 +252,11 @@ class ViewTrip(DetailView):
         if leader_on_trip(request, trip):
             return redirect(reverse('admin_trip', args=(trip.id,)))
         return super(ViewTrip, self).get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        """ Add signup to trip or waitlist, if applicable. """
+        signup_utils.trip_or_wait(self.participant_signup, self.request)
+        return self.get(request)
 
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):

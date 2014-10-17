@@ -1,8 +1,9 @@
-{% extends "base.html" %}
+{% extends "messages_page.html" %}
 {% load signup_tags %}
 {% load auth_tags %}
 
 {% block content %}
+{{ block.super }}
 {% if user|has_group:"WSC" or user.is_superuser %}
 <h4>WSC functions</h4>
 <ul>
@@ -14,8 +15,27 @@
 {% trip_summary trip %}
 
 {% if trip.signups_open %}
-{% if trip in user.participant.trip_set.all %}
-<p>You are signed up for this trip.</p>
+{% if participant_signup %}
+    {% if trip.algorithm == 'fcfs' and not participant_signup.on_trip and not participant_signup.waitlistsignup %}
+    <p>You've already signed up for this trip, but are neither a participant
+    nor on the waitlist. Most likely, this is because you were
+    <a href="{% url 'view_my_trips' %}">placed on another trip</a>.
+    If you can attend this trip and it does not conflict with any of your
+    other trips (<strong>confirm this with your leaders</strong>), you're
+    free to join this trip.</p>
+    <form action="" method="post">
+        {% csrf_token %}
+        {% if trip.open_slots %}
+            <p>This trip has empty slots. Do you want to be added to this trip?</p>
+            <input type="submit" value="Join trip" />
+        {% else %}
+            <p>The trip is full. Do you want to be added to the waitlist?</p>
+            <input type="submit" value="Join waitlist" />
+        {% endif %}
+    </form>
+    {% else %}
+    <p>You are signed up for this trip.</p>
+    {% endif %}
 {% else %}
 <p>Signups are open!</p>
 

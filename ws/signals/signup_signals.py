@@ -11,6 +11,7 @@ from django.db.models.signals import m2m_changed
 from django.dispatch import receiver
 
 from ws.models import SignUp, WaitList, WaitListSignup, Trip
+from ws.signup_utils import trip_or_wait
 
 
 @receiver(post_save, sender=SignUp)
@@ -19,20 +20,8 @@ def new_fcfs_signup(sender, instance, created, raw, using, update_fields, **kwar
 
         When a participant tries to sign up, put them on the trip, or its waiting list.
     """
-    return trip_or_wait(instance, created)
-
-
-def trip_or_wait(signup, created):
-    if created and signup.trip.algorithm == 'fcfs':
-        if signup.trip.open_slots:  # There's room, sign them up!
-            signup.on_trip = True
-            signup.save()
-        else:  # If no room, add them to the waiting list
-            # TODO: Signals documentation warns against modifying database
-            # (rationale is unclear). While signals are threadsafe, this may
-            # cause issues.
-            WaitListSignup.objects.create(signup=signup,
-                                          waitlist=signup.trip.waitlist)
+    if created:
+        trip_or_wait(instance)
 
 
 @receiver(pre_delete, sender=Trip)
