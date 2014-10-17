@@ -13,7 +13,7 @@ from django.utils import timezone
 from localflavor.us.models import PhoneNumberField
 from localflavor.us.models import USStateField
 from ws.fields import OptionalOneToOneField
-from ws.dateutils import nearest_sat, wed_at_noon
+from ws.dateutils import nearest_sat, wed_at_noon, local_now
 
 
 class SassyMax(MaxValueValidator):
@@ -24,7 +24,7 @@ alphanum = RegexValidator(r'^[a-zA-Z0-9 ]*$',
                           "Only alphanumeric characters and spaces allowed")
 # As long as this module is reloaded once a year, this is fine
 # (First license plates were issued in Mass in 1903, go +1 for model years)
-model_years = [(year, year) for year in range(1903, timezone.now().year + 2)]
+model_years = [(year, year) for year in range(1903, local_now().year + 2)]
 
 
 class Car(models.Model):
@@ -262,7 +262,7 @@ class Trip(models.Model):
             if self.signups_closed:
                 raise ValidationError("Signups can't be closed already!")
             # Careful here - don't want to disallow editing of past trips
-            if self.trip_date < timezone.now().date():
+            if self.trip_date < local_now().date():
                 raise ValidationError("Trips can't occur in the past!")
 
     class Meta:

@@ -4,13 +4,15 @@ from django.core.management.base import BaseCommand
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.utils import timezone
+import pytz
 
 from ws import models
 from datetime import date, timedelta
 
 
-today = date.today()
+today = dateutils.local_now().date()
 jan_1st = date(today.year, 1, 1)
+pytz_timezone = timezone.get_default_timezone()
 
 
 class Command(BaseCommand):

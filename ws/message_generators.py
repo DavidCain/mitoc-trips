@@ -9,6 +9,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.utils import timezone
 
+from ws.dateutils import local_now
 from ws import models
 
 
@@ -58,7 +59,7 @@ class LotteryMessages(object):
 
     def warn_if_no_ranked_trips(self):
         """ Warn the user if there are future signups, and none are ranked. """
-        today = timezone.now().date()
+        today = local_now().date()
         manager = models.SignUp.objects
         future_signups = manager.filter(participant=self.participant,
                                         trip__trip_date__gte=today)
@@ -110,7 +111,7 @@ def complain_if_missing_feedback(request):
     except ObjectDoesNotExist:
         return
 
-    past_trips = leader.trip_set.filter(trip_date__lt=timezone.now().date())
+    past_trips = leader.trip_set.filter(trip_date__lt=local_now().date())
     past_with_participants = [trip for trip in past_trips if
                               trip.signup_set.filter(on_trip=True).exists()]
     for trip in past_with_participants:

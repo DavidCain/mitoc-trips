@@ -7,6 +7,10 @@ from django.utils import timezone
 from django.conf import settings
 
 
+def local_now():
+    return timezone.localtime(timezone.now())
+
+
 def nearest_sat():
     """ Give the date of the nearest Saturday (next week if today is Saturday)
 
@@ -14,7 +18,7 @@ def nearest_sat():
     defaulting to Saturday is reasonable. (It's rare that a trip posted on
     Saturday is for that day or the next day, so default to next Saturday).
     """
-    now = timezone.now()
+    now = local_now()
     if now.weekday() == 5:  # (today is Saturday)
         delta = timedelta(days=7)
     else:  # Nearest Saturday
@@ -22,12 +26,8 @@ def nearest_sat():
     return (now + delta).date()
 
 
-def days_from_now(days=3):
-    return timezone.now() + timedelta(days=days)
-
-
 def wed_at_noon():
-    now = timezone.now()
+    now = local_now()
     days_til_wed = timedelta((9 - now.weekday()) % 7)
     wed = (now + days_til_wed)
     return wed.replace(hour=12, minute=0, second=0, microsecond=0)

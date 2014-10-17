@@ -7,7 +7,6 @@ from django.forms.models import modelformset_factory
 from django.forms import ModelForm, HiddenInput
 from django.forms.util import ErrorList
 from django.shortcuts import render, redirect
-from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.generic import CreateView, DetailView, FormView, ListView, UpdateView
 from django.views.generic import View
@@ -16,6 +15,7 @@ from allauth.account.views import PasswordChangeView
 
 from ws import forms
 from ws import models
+from ws.dateutils import local_now
 from ws.decorators import group_required, user_info_required, admin_only
 from ws import dateutils
 from ws import message_generators
@@ -408,7 +408,7 @@ class BecomeLeader(CreateView):
     def get_context_data(self, **kwargs):
         """ Give next year's value in the context. """
         context_data = super(BecomeLeader, self).get_context_data(**kwargs)
-        context_data['year'] = timezone.now().date().year + 1
+        context_data['year'] = local_now().date().year + 1
         return context_data
 
     def get_success_url(self):
@@ -637,7 +637,7 @@ class TripListView(ListView):
         """ Sort trips into past and present trips. """
         context_data = super(TripListView, self).get_context_data(**kwargs)
         context_data['current_trips'], context_data['past_trips'] = [], []
-        today = timezone.now().date()
+        today = local_now().date()
         for trip in context_data[self.context_object_name]:
             if trip.trip_date >= today:
                 context_data['current_trips'].append(trip)
@@ -652,7 +652,7 @@ class CurrentTripListView(TripListView):
 
     def get_queryset(self):
         queryset = super(CurrentTripListView, self).get_queryset()
-        return queryset.filter(trip_date__gte=timezone.now().date())
+        return queryset.filter(trip_date__gte=local_now().date())
 
     def get_context_data(self, **kwargs):
         # No point sorting into current, past (queryset already handles)
@@ -731,7 +731,7 @@ class TripPreferencesView(View):
                                     fields=('order',))
 
     def get_ranked_trips(self, participant):
-        today = timezone.now().date()
+        today = local_now().date()
         future_trips = models.SignUp.objects.filter(participant=participant,
                                                     trip__trip_date__gte=today)
         ranked_trips = future_trips.order_by('order', 'time_created')
