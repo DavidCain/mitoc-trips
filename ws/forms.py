@@ -25,7 +25,8 @@ class CarForm(RequiredModelForm):
         model = models.Car
         fields = ['license_plate', 'state', 'make', 'model', 'year', 'color']
         widgets = {'state': forms.Select(choices=US_STATES),
-                   'year': forms.NumberInput()}
+                   'year': forms.NumberInput(attrs={'min': model.year_min,
+                                                    'max': model.year_max})}
 
 
 class EmergencyContactForm(RequiredModelForm):

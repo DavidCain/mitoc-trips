@@ -1,11 +1,10 @@
 from __future__ import unicode_literals
 
-import re
-
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django.core.validators import MaxValueValidator, RegexValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import RegexValidator
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
@@ -17,23 +16,25 @@ from ws.dateutils import nearest_sat, wed_at_noon, local_now
 
 
 class SassyMax(MaxValueValidator):
-    message = "Do you drive a bus?..."
-max_13 = SassyMax(13)
+    message = "Do you drive a bus?..."  # Can set as param in Django 1.8
+
 
 alphanum = RegexValidator(r'^[a-zA-Z0-9 ]*$',
                           "Only alphanumeric characters and spaces allowed")
-# As long as this module is reloaded once a year, this is fine
-# (First license plates were issued in Mass in 1903, go +1 for model years)
-model_years = [(year, year) for year in range(1903, local_now().year + 2)]
 
 
 class Car(models.Model):
+    # As long as this module is reloaded once a year, this is fine
+    # (First license plates were issued in Mass in 1903)
+    year_min, year_max = 1903, local_now().year + 2
     # Loosely validate - may wish to use international plates in the future
     license_plate = models.CharField(max_length=31, validators=[alphanum])
     state = USStateField()
     make = models.CharField(max_length=63)
     model = models.CharField(max_length=63)
-    year = models.IntegerField(max_length=4, choices=model_years)
+    year = models.PositiveIntegerField(max_length=4,
+                                       validators=[MaxValueValidator(year_max),
+                                                   MinValueValidator(year_min)])
     color = models.CharField(max_length=63)
 
     def __unicode__(self):
@@ -301,7 +302,7 @@ class LotteryInfo(models.Model):
                                            ("rent", "Willing to rent")],
                                   default="none")
     number_of_passengers = models.PositiveIntegerField(null=True, blank=True,
-                                                       validators=[max_13])
+                                                       validators=[SassyMax(13)])
     last_updated = models.DateTimeField(auto_now=True)
 
     @property
