@@ -692,14 +692,12 @@ class ViewParticipantTrips(TripListView):
     template_name = 'view_my_trips.html'
 
     def get_queryset(self):
-        return self.queryset
-
-    def get(self, request, *args, **kwargs):
-        participant = request.user.participant
+        participant = self.request.user.participant
         accepted_signups = participant.signup_set.filter(on_trip=True)
-        accepted_signups = accepted_signups.select_related('trip')
-        self.queryset = [signup.trip for signup in accepted_signups]
-        return super(TripListView, self).get(request, *args, **kwargs)
+        signup_ids = [signup.id for signup in accepted_signups]
+
+        trips = super(ViewParticipantTrips, self).get_queryset()
+        return trips.filter(signup__in=signup_ids)
 
     @method_decorator(user_info_required)
     def dispatch(self, request, *args, **kwargs):
@@ -709,14 +707,12 @@ class ViewParticipantTrips(TripListView):
 class ViewWaitlistTrips(TripListView):
     """ View trips the user is currently waitlisted on. """
     def get_queryset(self):
-        return self.queryset
-
-    def get(self, request, *args, **kwargs):
-        signups = request.user.participant.signup_set
+        signups = self.request.user.participant.signup_set
         waitlisted_signups = signups.filter(waitlistsignup__isnull=False)
-        waitlisted_signups = waitlisted_signups.select_related('trip')
-        self.queryset = [signup.trip for signup in waitlisted_signups]
-        return super(TripListView, self).get(request, *args, **kwargs)
+        signup_ids = [signup.id for signup in waitlisted_signups]
+
+        trips = super(ViewWaitlistTrips, self).get_queryset()
+        return trips.filter(signup__in=signup_ids)
 
     @method_decorator(user_info_required)
     def dispatch(self, request, *args, **kwargs):
