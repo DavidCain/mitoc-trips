@@ -244,6 +244,7 @@ class ViewTrip(DetailView):
         signups = signups.select_related('participant')
         context['participant_signup'] = self.participant_signup
         context['signups'] = signups
+        context['has_notes'] = trip.notes or any(s.notes for s in signups)
         context['signups_on_trip'] = signups.filter(on_trip=True)
         return context
 
