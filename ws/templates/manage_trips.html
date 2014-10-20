@@ -19,7 +19,7 @@ they will appear here.</p>
                 <th data-hide="phone">Leaders</th>
                 <th data-hide="phone" data-type="numeric">Date</th>
                 <th data-hide="phone,tablet">Algorithm</th>
-                <th data-sort-ignore="true">Approved</th>
+                <th class="nowrap">Approved</th>
                 {% if formset.can_delete %}<th data-hide="phone" data-sort-ignore="true" class="nowrap">Delete</th>{% endif %}
                 {% if formset.is_bound and not formset.is_valid %}
                 <th class="error" data-sort-ignore="true">Errors</th>
@@ -37,8 +37,8 @@ they will appear here.</p>
                     <a href="{% url 'view_participant' leader.participant.id %}">{{ leader }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}
                 </td>
                 <td class="nowrap" data-value="{{ form.instance.trip_date|date:'U' }}"> {{ form.instance.trip_date|date:"Y-m-d" }}</td>
-                <td> {% if form.algorithm %}{{ form.algorithm }}{% else %} {{form.instance.algorithm}} {% endif %}</td>
-                <td> {{ form.wsc_approved }}</td>
+                <td data-value="{{ form.instance.algorithm }}"> {% if form.algorithm %}{{ form.algorithm }}{% else %} {{form.instance.algorithm}} {% endif %}</td>
+                <td data-value="{{ form.instance.wsc_approved }}"> {{ form.wsc_approved }}</td>
                 {% if formset.can_delete %}<td> {{ form.DELETE }}</td>{% endif %}
                 {% if formset.errors %}
                 <td> {{ form.errors }}</td>
