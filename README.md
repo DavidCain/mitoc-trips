@@ -39,9 +39,10 @@ The system was written with security and usability in mind. Key design features:
       participants, leaders, and administrators.
     - Administrators and safety committee members can easily perform
       administrative actions with a graphical interface
-- Responsive layout
-    - System is easily navigable across devices (slightly modified version of
-      CyberChimps' [Responsive theme][responsive]).
+- Responsive
+    - A [responsive site layout][responsive] combines with [responsive
+      tables][footable] to express information effectively across a
+      range of different screen sizes.
 
 
 # Dependencies
@@ -138,3 +139,4 @@ in `~/web_scripts/<dirname>/static`.
   [scripts]: http://scripts.mit.edu
   [ws]: http://mitoc.scripts.mit.edu/ws
   [responsive]: http://cyberchimps.com/responsive-theme/
+  [footable]: https://github.com/bradvin/FooTable
