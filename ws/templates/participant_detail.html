@@ -36,9 +36,9 @@
     <tbody>
         <tr>
             <td>{{ feedback.comments }}</td>
-            <td>{{ feedback.author }}</td>
+            <td>{{ feedback.leader }}</td>
             <td>{{ feedback.showed_up|yesno }}</td>
-            <td>{% if feedback.trip and not feedback.prefer_anonymous%}<a href="{% url 'view_trip' feedback.trip.id %}">{{ feedback.trip|truncatechars:45 }}{% endif %}</a></td>
+            <td>{% if feedback.trip %}<a href="{% url 'view_trip' feedback.trip.id %}">{{ feedback.trip|truncatechars:45 }}{% endif %}</a></td>
         </tr>
     </tbody>
     {% endfor %}

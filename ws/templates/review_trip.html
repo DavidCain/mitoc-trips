@@ -21,7 +21,6 @@
             <th> Participant </th>
             <th data-hide="phone" data-sort-ignore="true"> Comments </th>
             <th data-sort-ignore="true"> Showed up</th>
-            <th data-hide="phone,tablet" data-sort-ignore="true"> Keep feedback anonymous </th>
         </tr>
     </thead>
 
@@ -31,7 +30,6 @@
             <td> {{ participant }} </td>
             <td> {{ form.comments }} </td>
             <td> {{ form.showed_up }}</td>
-            <td> {{ form.prefer_anonymous }}</td>
         </tr>
         {% endfor %}
     </tbody>

@@ -277,14 +277,9 @@ class Feedback(models.Model):
     showed_up = models.BooleanField(default=True)
     comments = models.TextField(max_length=2000)
     leader = models.ForeignKey(Leader)
-    prefer_anonymous = models.BooleanField(default=False)
     # Allows general feedback (i.e. not linked to a trip)
     trip = models.ForeignKey(Trip, null=True, blank=True)
     time_created = models.DateTimeField(auto_now_add=True)
-
-    @property
-    def author(self):
-        return "anonymous" if self.prefer_anonymous else self.leader
 
     def __unicode__(self):
         return '{}: "{}" - {}'.format(self.participant, self.comments, self.author)

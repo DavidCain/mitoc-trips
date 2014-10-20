@@ -89,7 +89,7 @@ class LotteryInfoForm(forms.ModelForm):
 class FeedbackForm(RequiredModelForm):
     class Meta:
         model = models.Feedback
-        fields = ['comments', 'showed_up', 'prefer_anonymous']
+        fields = ['comments', 'showed_up']
 
 
 class AttendedLecturesForm(forms.Form):
