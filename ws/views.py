@@ -6,6 +6,7 @@ from django.core.urlresolvers import reverse, reverse_lazy
 from django.db.models import Count
 from django.forms.models import modelformset_factory
 from django.forms import ModelForm, HiddenInput
+from django.forms import widgets
 from django.forms.util import ErrorList
 from django.shortcuts import render, redirect
 from django.utils.decorators import method_decorator
@@ -176,7 +177,7 @@ class ParticipantDetailView(DetailView):
             context['car_form'] = forms.CarForm(instance=participant.car)
         return context
 
-    @method_decorator(group_required('WSC'))
+    @method_decorator(group_required('leaders', 'WSC'))
     def dispatch(self, request, *args, **kwargs):
         return super(ParticipantDetailView, self).dispatch(request, *args, **kwargs)
 
@@ -506,7 +507,8 @@ def add_leader(request):
 @group_required('WSC')
 def manage_leaders(request):
     LeaderFormSet = modelformset_factory(models.Leader, can_delete=True, extra=0,
-                                         exclude=('participant',))
+                                         exclude=('participant',),
+                                         widgets={'notes': widgets.TextInput})
     if request.method == 'POST':
         formset = LeaderFormSet(request.POST)
         if formset.is_valid():

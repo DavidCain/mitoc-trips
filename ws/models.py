@@ -126,7 +126,8 @@ class Leader(models.Model):
     wants to go ice climbing).
     """
     participant = models.OneToOneField(Participant)
-    rating = models.CharField(max_length=255)  # Leave long for comments about rating
+    rating = models.CharField(max_length=31)
+    notes = models.TextField(max_length=500, blank=True)  # Contingencies, etc.
 
     def __unicode__(self):
         return unicode(self.participant)

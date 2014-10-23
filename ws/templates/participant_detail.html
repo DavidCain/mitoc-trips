@@ -3,6 +3,22 @@
 
 {% block content %}
 
+{% if participant.leader %}
+<h3> Leader info </h3>
+<table>
+    <tr>
+        <th>Rating:</th>
+        <td>{{ participant.leader.rating }}</td>
+    </tr>
+
+    <tr>
+        <th>Notes:</th>
+        <td>{{ participant.leader.notes }}</td>
+    </tr>
+</table>
+{% endif %}
+
+
 <h3> Participant info </h3>
 {% readonly_form participant_form %}
 

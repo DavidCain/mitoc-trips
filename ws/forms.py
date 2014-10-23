@@ -49,7 +49,7 @@ class LeaderForm(RequiredModelForm):
 
     class Meta:
         model = models.Leader
-        fields = ['participant', 'rating']
+        fields = ['participant', 'rating', 'notes']
 
 
 class TripForm(RequiredModelForm):
