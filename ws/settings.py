@@ -18,7 +18,7 @@ PROJECT_ROOT = os.path.normpath(os.path.dirname(os.path.abspath(__file__)))
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
-from conf.local_settings import *
+from conf.production_settings import *
 
 
 INSTALLED_APPS = (

@@ -10,7 +10,13 @@ BASE_NAME = 'ws'  # (part of URL that comes after mitoc.scripts.mit.edu/)
                   # Omit the leading slash (should be a relative URL)
 URL_ROOT = os.path.join('/', BASE_NAME)
 
-SECRET_KEY = None
+SECRET_KEY = None  # FIXME: Add a secret key
+
+# Admins get an email on errors in production mode
+ADMINS = (('David Cain', 'djcain@mit.edu'),)
+
+SERVER_EMAIL = 'no-reply@mit.edu'
+DEFAULT_EMAIL_FROM = 'ws-chair@mit.edu'
 
 DEBUG = False
 TEMPLATE_DEBUG = False
