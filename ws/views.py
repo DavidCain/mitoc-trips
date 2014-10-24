@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
@@ -698,10 +699,9 @@ class ViewParticipantTrips(TripListView):
     def get_queryset(self):
         participant = self.request.user.participant
         accepted_signups = participant.signup_set.filter(on_trip=True)
-        signup_ids = [signup.id for signup in accepted_signups]
 
         trips = super(ViewParticipantTrips, self).get_queryset()
-        return trips.filter(signup__in=signup_ids)
+        return trips.filter(signup__in=accepted_signups)
 
     @method_decorator(user_info_required)
     def dispatch(self, request, *args, **kwargs):
@@ -713,10 +713,9 @@ class ViewWaitlistTrips(TripListView):
     def get_queryset(self):
         signups = self.request.user.participant.signup_set
         waitlisted_signups = signups.filter(waitlistsignup__isnull=False)
-        signup_ids = [signup.id for signup in waitlisted_signups]
 
         trips = super(ViewWaitlistTrips, self).get_queryset()
-        return trips.filter(signup__in=signup_ids)
+        return trips.filter(signup__in=waitlisted_signups)
 
     @method_decorator(user_info_required)
     def dispatch(self, request, *args, **kwargs):
@@ -807,7 +806,13 @@ class TripMedicalView(DetailView):
 
     def get_context_data(self, **kwargs):
         trip = self.get_object()
-        return {'trip': trip, 'signups': trip.signup_set.filter(on_trip=True)}
+        signups = trip.signup_set.filter(on_trip=True)
+        on_trip = (Q(participant__leader__in=trip.leaders.all()) |
+                   Q(participant__signup__in=signups))
+        cars = models.Car.objects.filter(on_trip)
+        cars = cars.select_related('participant__lotteryinfo')
+        signups = signups.select_related('participant__emergency_info')
+        return {'trip': trip, 'signups': signups, 'cars': cars}
 
     @method_decorator(group_required('leaders', 'WSC'))
     def dispatch(self, request, *args, **kwargs):
