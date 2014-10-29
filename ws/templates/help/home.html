@@ -9,7 +9,7 @@
     <li><a href="{% url 'help-leading_trips' %}">Leading trips</a></li>
 </ul>
 
-{% if user.participant.leader %}
+{% if "leaders" in groups %}
 <h3> Leader Topics </h3>
 <ul id='leader_topics'>
     <li><a href="{% url 'help-feedback' %}">Feedback</a></li>

@@ -1,5 +1,4 @@
 {% load staticfiles %}
-{% load auth_tags %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -62,7 +61,7 @@
                     {% endif %}
                 </li>
 
-                {% if user|has_group:"leaders" %}
+                {% if "leaders" in groups %}
                 <li><a>Leaders</a>
                     <ul class="children">
                         <li> <a href="{% url 'add_trip' %}"> New trip </a> </li>
@@ -71,7 +70,7 @@
                 </li>
                 {% endif %}
 
-                {% if user|has_group:"WSC" and not user.is_superuser %}
+                {% if "WSC" in groups and not user.is_superuser %}
                 <li><a>WSC</a>
                     <ul class="children">
                         <li> <a href="{% url 'add_leader' %}"> Add new leader(s) </a> </li>

@@ -5,7 +5,7 @@
 If you're looking for lottery trips you've signed up for, see your
 <a href="{% url 'trip_preferences' %}#ranked_trips">trip preferences</a>.
 </p>
-{% if user.participant.leader %}
+{% if "leaders" in groups %}
 <p><a href="{% url 'view_leader_trips' %}">Trips you're leading</a> can
 be found separately.</p>
 {% endif %}

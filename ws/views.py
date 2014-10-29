@@ -298,7 +298,7 @@ class AdminTripView(DetailView):
         return {"ontrip_signups": ontrip_queryset,
                 "ontrip_formset": ontrip_formset,
                 "waitlist_formset": waitlist_formset,
-                "signups": trip_signups,
+                "signups": trip_signups.prefetch_related('participant'),
                 "trip": trip,
                 "trip_completed": today >= trip.trip_date}
 

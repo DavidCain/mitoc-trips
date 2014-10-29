@@ -49,7 +49,7 @@
 of trips, placement for each weekend's trips will be done by lottery.
 For more information, see the <a href="{% url 'help-lottery' %}">help pages</a>.</p>
 
-{% if user.participant.leader %}
+{% if "leaders" in groups %}
 <h3> Leaders </h3>
 <p> If you're able to drive for your trip (or any of the trips you've signed up
 for as a participant), please indicate here. It will help participants get

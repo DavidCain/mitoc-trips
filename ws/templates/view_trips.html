@@ -9,7 +9,7 @@
     {% trip_list_table current_trips %}
 {% else %}
     <p> No current or upcoming trips!
-    {% if user.participant.leader %}
+    {% if "leaders" in groups %}
     <a href="{% url 'add_trip' %}">Create one?</a>
     {% endif %}
     </p>

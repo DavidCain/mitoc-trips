@@ -62,8 +62,8 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.core.context_processors.static",
     "django.core.context_processors.request",
     "django.contrib.messages.context_processors.messages",
-
     "allauth.account.context_processors.account",
+    "ws.context_processors.get_groups",
 )
 
 

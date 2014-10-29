@@ -1,9 +1,8 @@
 {% extends "add_or_create_trip.html" %}
-{% load auth_tags %}
 
 {% block content %}
 
-{% if form.instance.wsc_approved and not user|has_group:"WSC" and not user.is_superuser %}
+{% if form.instance.wsc_approved and not "WSC" in groups and not user.is_superuser %}
 <p><strong class="warning">WARNING:</strong> This trip has been approved by the Winter Safety Committee.
 Making any changes will rescind this approval.</p>
 {% endif %}
