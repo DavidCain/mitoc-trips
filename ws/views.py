@@ -809,7 +809,7 @@ class TripMedicalView(DetailView):
         signups = trip.signup_set.filter(on_trip=True)
         on_trip = (Q(participant__leader__in=trip.leaders.all()) |
                    Q(participant__signup__in=signups))
-        cars = models.Car.objects.filter(on_trip)
+        cars = models.Car.objects.filter(on_trip).distinct()
         cars = cars.select_related('participant__lotteryinfo')
         signups = signups.select_related('participant__emergency_info')
         return {'trip': trip, 'signups': signups, 'cars': cars}
