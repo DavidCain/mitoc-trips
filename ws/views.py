@@ -800,12 +800,8 @@ class TripPreferencesView(View):
         return super(TripPreferencesView, self).dispatch(request, *args, **kwargs)
 
 
-class TripMedicalView(DetailView):
-    queryset = models.Trip.objects.all()
-    template_name = 'trip_medical.html'
-
-    def get_context_data(self, **kwargs):
-        trip = self.get_object()
+class TripMedical(object):
+    def get_trip_info(self, trip):
         signups = trip.signup_set.filter(on_trip=True)
         on_trip = (Q(participant__leader__in=trip.leaders.all()) |
                    Q(participant__signup__in=signups))
@@ -813,6 +809,37 @@ class TripMedicalView(DetailView):
         cars = cars.select_related('participant__lotteryinfo')
         signups = signups.select_related('participant__emergency_info')
         return {'trip': trip, 'signups': signups, 'cars': cars}
+
+
+class WIMPView(ListView, TripMedical):
+    model = models.Trip
+    template_name = 'wimp.html'
+    context_object_name = 'trips'
+    form_class = forms.SummaryTripForm
+
+    def get_queryset(self):
+        trips = super(WIMPView, self).get_queryset()
+        today = local_now().date()
+        return trips.filter(trip_date__gte=today)
+
+    def get_context_data(self, **kwargs):
+        context_data = super(WIMPView, self).get_context_data(**kwargs)
+        by_trip = (self.get_trip_info(trip) for trip in self.get_queryset())
+        context_data['foo'] = [(c['trip'], c['signups'], c['cars'])
+                               for c in by_trip]
+        return context_data
+
+    @method_decorator(group_required('WSC'))
+    def dispatch(self, request, *args, **kwargs):
+        return super(WIMPView, self).dispatch(request, *args, **kwargs)
+
+
+class TripMedicalView(DetailView, TripMedical):
+    queryset = models.Trip.objects.all()
+    template_name = 'trip_medical.html'
+
+    def get_context_data(self, **kwargs):
+        return self.get_trip_info(self.get_object())
 
     @method_decorator(group_required('leaders', 'WSC'))
     def dispatch(self, request, *args, **kwargs):

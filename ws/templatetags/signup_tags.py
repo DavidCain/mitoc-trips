@@ -23,6 +23,11 @@ def medical_table(signups):
     return {'signups': signups}
 
 
+@register.inclusion_tag('for_templatetags/driver_table.html')
+def driver_table(cars):
+    return {'cars': cars}
+
+
 @register.filter
 def subtract(value, arg):
     return value - arg

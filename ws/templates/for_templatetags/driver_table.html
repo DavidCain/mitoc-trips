@@ -1,0 +1,27 @@
+<table class="footable" data-sort="false">
+  <thead>
+    <tr>
+        <th>Driver</th>
+        <th>Make + Model</th>
+        <th>Plate</th>
+        <th data-hide="phone">State</th>
+        <th data-hide="phone">Year</th>
+        <th data-hide="phone,tablet">Color</th>
+        <th data-hide="phone,tablet">Car Status</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {% for car in cars %}
+    <tr>
+        <td>{{ car.participant.name }}</td>
+        <td>{{ car.make }} {{ car.model }}</td>
+        <td>{{ car.license_plate }}</td>
+        <td>{{ car.state }}</td>
+        <td>{{ car.year }}</td>
+        <td>{{ car.color }}</td>
+        <td>{{ car.participant.lotteryinfo.car_status }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>

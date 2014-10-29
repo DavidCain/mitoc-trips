@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load signup_tags %}
+
+{% block content %}
+{{ block.super }}
+
+<h1>WIMP Information Sheet</h1>
+<p>This page contains all known medical information for trips taking place
+on or after {% now "DATE_FORMAT" %}.</p>
+<p>It is intended as a comprehensive sheet for the "Worry If Missing Person,"
+otherwise known as the WIMP.</p>
+
+<h3>Drivers</h3>
+<p>Driver tables are for all trip-goers that submitted car information.
+It may not represent who's actually driving for the trip. The "Car Status"
+column specifies whether they intended to rent a car, drive their own car,
+or not drive for this weekend's trips.</p>
+
+<hr>
+
+
+{% for trip, signups, cars in foo %}
+<h3><a href="{% url 'view_trip' trip.id %}">{{ trip.name }}</a></h3>
+
+<ul>
+    <li><strong>Date:</strong> {{ trip.trip_date|date:"l, M d" }}</li>
+    <li><strong>Description:</strong> {{ trip.description|truncatewords:100 }}</li>
+</ul>
+
+<h4>Participants</h4>
+{% if signups.exists %}
+{% medical_table signups %}
+{% else %}
+<p> No participants. </p>
+{% endif %}
+
+<h4>Leaders</h4>
+{% medical_table trip.leaders.all %}
+
+<h4>Drivers</h4>
+{% if not cars.exists %}
+<p>Nobody on this trip submitted information for a car.</p>
+{% else %}
+{% driver_table cars %}
+{% endif %}
+
+<hr>
+{% empty %}
+<p> No upcoming trips. </p>
+{% endfor %}
+
+<span class="helptext">Report generated {% now "DATETIME_FORMAT" %}.</span>
+{% endblock content %}

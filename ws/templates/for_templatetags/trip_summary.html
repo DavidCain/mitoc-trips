@@ -11,10 +11,6 @@
         <td>{{ trip.name }}</td>
     </tr>
     <tr>
-        <th>Description:</th>
-        <td>{{ trip.description }}</td>
-    </tr>
-    <tr>
         <th>Trip date:</th>
         <td>{{ trip.trip_date|date:"Y-m-d" }}</td>
     </tr>
@@ -28,6 +24,10 @@
         <td>{{ trip.prereqs }}</td>
     </tr>
     {% endif %}
+    <tr>
+        <th>Description:</th>
+        <td>{{ trip.description|linebreaks }}</td>
+    </tr>
 </table>
 
 <h3> Signup </h3>

@@ -79,6 +79,7 @@
                         <li> <a href="{% url 'manage_leaders' %}"> Manage existing leaders </a> </li>
                         <li> <a href="{% url 'manage_trips' %}"> Manage trips </a> </li>
                         <li> <a href="{% url 'manage_participants' %}"> Manage participants </a> </li>
+                        <li> <a href="{% url 'wimp' %}"> WIMP </a> </li>
                     </ul>
                 {% endif %}
                 {% if user.is_superuser %}
@@ -89,6 +90,7 @@
                         <li> <a href="{% url 'manage_leaders' %}"> Manage existing leaders </a> </li>
                         <li> <a href="{% url 'admin_manage_trips' %}"> Manage trips </a> </li>
                         <li> <a href="{% url 'manage_participants' %}"> Manage participants </a> </li>
+                        <li> <a href="{% url 'wimp' %}"> WIMP </a> </li>
                     </ul>
                 {% endif %}
                 <li><a>Account</a>
