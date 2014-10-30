@@ -11,8 +11,8 @@ from django.forms import widgets
 from django.forms.util import ErrorList
 from django.shortcuts import render, redirect
 from django.utils.decorators import method_decorator
-from django.views.generic import CreateView, DetailView, FormView, ListView, UpdateView
-from django.views.generic import View
+from django.views.generic import (CreateView, DetailView, FormView,
+                                  ListView, TemplateView, UpdateView)
 
 from allauth.account.views import PasswordChangeView
 
@@ -46,7 +46,7 @@ def is_wsc(request, admin_okay=True):
     return wsc or request.user.is_superuser and admin_okay
 
 
-class UpdateParticipantView(View):
+class UpdateParticipantView(TemplateView):
     # The Participant and EmergencyContact are both Person models, have
     # conflicting names. Use prefixes to keep them distinct in POST data
     par_prefix = "participant"
@@ -55,16 +55,18 @@ class UpdateParticipantView(View):
     template_name = 'update_info.html'
     update_msg = 'Personal information updated successfully'
 
-    def _has_car(self, request):
-        return 'has_car' in request.POST
+    @property
+    def has_car(self):
+        return 'has_car' in self.request.POST
 
-    def _participant(self, request):
+    @property
+    def participant(self):
         try:
-            return request.user.participant
+            return self.request.user.participant
         except ObjectDoesNotExist:
             return None
 
-    def get_context_data(self, request):
+    def get_context_data(self):
         """ Return a dictionary primarily of forms to for template rendering.
         Also includes a value for the "I have a car" checkbox.
 
@@ -75,8 +77,8 @@ class UpdateParticipantView(View):
 
         Forms are bound to model instances for UPDATE if such instances exist.
         """
-        post = request.POST if request.method == "POST" else None
-        participant = self._participant(request)
+        post = self.request.POST if self.request.method == "POST" else None
+        participant = self.participant
 
         # Access other models within participant
         car = participant and participant.car
@@ -86,7 +88,7 @@ class UpdateParticipantView(View):
         # If no Participant object, fill at least with User email
         par_kwargs = {"prefix": self.par_prefix, "instance": participant}
         if not participant:
-            par_kwargs["initial"] = {'email': request.user.email}
+            par_kwargs["initial"] = {'email': self.request.user.email}
 
         context = {
             'participant_form':  forms.ParticipantForm(post, **par_kwargs),
@@ -95,26 +97,22 @@ class UpdateParticipantView(View):
             'emergency_contact_form':  forms.EmergencyContactForm(post, prefix=self.e_prefix, instance=e_contact),
         }
         if post:
-            context['has_car_checked'] = self._has_car(request)
+            context['has_car_checked'] = self.has_car
         else:
             context['has_car_checked'] = bool(participant.car) if participant else True
 
         return context
-
-    def get(self, request, *args, **kwargs):
-        context = self.get_context_data(request)
-        return render(request, self.template_name, context)
 
     def post(self, request, *args, **kwargs):
         """ Validate POSTed forms, except CarForm if "no car" stated.
 
         Upon validation, redirect to homepage or `next` url, if specified.
         """
-        context = self.get_context_data(request)
+        context = self.get_context_data()
         required_dict = {key: val for key, val in context.items()
                          if isinstance(val, ModelForm)}
 
-        if not self._has_car(request):
+        if not self.has_car:
             required_dict.pop('car_form')
             context['car_form'] = forms.CarForm()  # Avoid validation errors
 
@@ -734,7 +732,7 @@ class ViewLeaderTrips(TripListView):
         return super(ViewLeaderTrips, self).dispatch(request, *args, **kwargs)
 
 
-class TripPreferencesView(View):
+class TripPreferencesView(TemplateView):
     template_name = 'trip_preferences.html'
     update_msg = 'Lottery preferences updated'
 
@@ -743,6 +741,10 @@ class TripPreferencesView(View):
         return modelformset_factory(models.SignUp, can_delete=True, extra=0,
                                     fields=('order',))
 
+    @property
+    def post_data(self):
+        return self.request.POST if self.request.method == "POST" else None
+
     def get_ranked_trips(self, participant):
         today = local_now().date()
         future_trips = models.SignUp.objects.filter(participant=participant,
@@ -750,41 +752,37 @@ class TripPreferencesView(View):
         ranked_trips = future_trips.order_by('order', 'time_created')
         return ranked_trips.select_related('trip')
 
-    def get_car_form(self, request, use_post=True):
-        car = request.user.participant.car
-        post = request.POST if use_post and request.method == "POST" else None
+    def get_car_form(self, use_post=True):
+        car = self.request.user.participant.car
+        post = self.post_data if use_post else None
         return forms.CarForm(post, instance=car)
 
-    def get_formset(self, request, use_post=True):
-        ranked_trips = self.get_ranked_trips(request.user.participant)
-        post = request.POST if use_post and request.method == "POST" else None
+    def get_formset(self, use_post=True):
+        ranked_trips = self.get_ranked_trips(self.request.user.participant)
+        post = self.post_data if use_post else None
         return self.factory_formset(post, queryset=ranked_trips)
 
-    def get_lottery_form(self, request):
-        post = request.POST if request.method == "POST" else None
+    def get_lottery_form(self):
         try:
-            lottery_info = request.user.participant.lotteryinfo
+            lottery_info = self.request.user.participant.lotteryinfo
         except ObjectDoesNotExist:
             lottery_info = None
-        return forms.LotteryInfoForm(post, instance=lottery_info)
+        return forms.LotteryInfoForm(self.post_data, instance=lottery_info)
 
-    def get_context(self, request):
-        return {"formset": self.get_formset(request, use_post=True),
-                'car_form': self.get_car_form(request, use_post=True),
-                "lottery_form": self.get_lottery_form(request)}
-
-    def get(self, request, *args, **kwargs):
-        return render(request, self.template_name, self.get_context(request))
+    def get_context_data(self):
+        return {"formset": self.get_formset(use_post=True),
+                'car_form': self.get_car_form(use_post=True),
+                "lottery_form": self.get_lottery_form()}
 
     def post(self, request, *args, **kwargs):
-        context = self.get_context(request)
+        context = self.get_context_data()
         lottery_form, formset = context['lottery_form'], context['formset']
         car_form = context['car_form']
         skip_car_form = lottery_form.data['car_status'] != 'own'
         car_form_okay = skip_car_form or car_form.is_valid()
         if (lottery_form.is_valid() and formset.is_valid() and car_form_okay):
             if skip_car_form:  # New form so submission doesn't show errors
-                context['car_form'] = self.get_car_form(request, use_post=False)
+                context['car_form'] = self.get_car_form(use_post=False)
             else:
                 request.user.participant.car = car_form.save()
             lottery_info = lottery_form.save(commit=False)
@@ -792,7 +790,7 @@ class TripPreferencesView(View):
             lottery_info.save()
             formset.save()
             messages.add_message(request, messages.SUCCESS, self.update_msg)
-            context['formset'] = self.get_formset(request, use_post=False)
+            context['formset'] = self.get_formset(use_post=False)
         return render(request, self.template_name, context)
 
     @method_decorator(user_info_required)
