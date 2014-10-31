@@ -51,7 +51,7 @@ The system was written with security and usability in mind. Key design features:
 - [Django][django] v. 1.7
 - [`django-allauth`][allauth]
 - [`django-localflavor`][localflavor]
-- [`django_select2`][django_select2]
+- [`django-select2`][django_select2]
 
 
 # Deployment
@@ -86,7 +86,7 @@ whatever you named this new configuration file).
 Be sure to modify the appropriate `Site` object:
 
     UPDATE django_site
-    SET domain='mitoc.scripts.mit.edu/ws/', name='Winter School'
+    SET domain='mitoc.scripts.mit.edu', name='Winter School'
     WHERE id=1;
 
 ### URL Rewriting
