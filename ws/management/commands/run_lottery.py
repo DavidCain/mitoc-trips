@@ -99,13 +99,13 @@ def add_to_waitlist(signup):
 def free_for_all():
     """ Make trips first-come, first-serve.
 
-    Trips re-open Thursday at noon, close at midnight before trip.
+    Trips re-open Wednesday at noon, close at midnight before trip.
     """
     print "Making all lottery trips first-come, first-serve"
     lottery_trips = models.Trip.objects.filter(algorithm='lottery')
     for trip in lottery_trips:
         trip.algorithm = 'fcfs'
-        trip.signups_open_at = dateutils.thur_at_noon()
+        trip.signups_open_at = dateutils.closest_wed_at_noon()
         day_before = trip.trip_date - timedelta(days=1)
         midnight = timezone.datetime(day_before.year, day_before.month,
                                      day_before.day, 23, 59, 59)

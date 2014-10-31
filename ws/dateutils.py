@@ -26,17 +26,23 @@ def nearest_sat():
     return (now + delta).date()
 
 
-def wed_at_noon():
+def wed_morning():
     now = local_now()
     days_til_wed = timedelta((9 - now.weekday()) % 7)
     wed = (now + days_til_wed)
-    return wed.replace(hour=12, minute=0, second=0, microsecond=0)
+    return wed.replace(hour=6, minute=0, second=0, microsecond=0)
 
-def thur_at_noon():
+
+def closest_wed_at_noon():
+    """ Useful in case lottery is run slightly after noon on Wednesday. """
     now = local_now()
-    days_till_thur = timedelta((10 - now.weekday()) % 7)
-    thur = (now + days_till_thur)
-    return thur.replace(hour=12, minute=0, second=0, microsecond=0)
+    days_til_wed = timedelta((9 - now.weekday()) % 7)
+    next_wed = (now + days_til_wed)
+    last_wed = next_wed - timedelta(7)
+
+    closest_wed = min([next_wed, last_wed], key=lambda dt: abs(now - dt))
+    return closest_wed.replace(hour=12, minute=0, second=0, microsecond=0)
+
 
 def participant_cutoff():
     """ Datetime at which previous signups are no longer current/valid. """

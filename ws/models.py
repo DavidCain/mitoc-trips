@@ -12,7 +12,7 @@ from django.utils import timezone
 from localflavor.us.models import PhoneNumberField
 from localflavor.us.models import USStateField
 from ws.fields import OptionalOneToOneField
-from ws.dateutils import nearest_sat, wed_at_noon, local_now
+from ws.dateutils import nearest_sat, wed_morning, local_now
 
 
 class SassyMax(MaxValueValidator):
@@ -225,7 +225,7 @@ class Trip(models.Model):
     last_edited = models.DateTimeField(auto_now=True)
     trip_date = models.DateField(default=nearest_sat)
     signups_open_at = models.DateTimeField(default=timezone.now)
-    signups_close_at = models.DateTimeField(default=wed_at_noon, null=True, blank=True)
+    signups_close_at = models.DateTimeField(default=wed_morning, null=True, blank=True)
 
     signed_up_participants = models.ManyToManyField(Participant, through=SignUp)
     algorithm = models.CharField(max_length='31', default='lottery',
