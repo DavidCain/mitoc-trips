@@ -30,7 +30,8 @@ def get_prioritized_participants():
             - affiliation (MIT affiliated is higher priority)
             - 'flakiness' (more flakes -> lower priority
     """
-    participants = models.Participant.objects.filter(attended_lectures=True)
+    participants = models.Participant.objects.all()
+    #participants = participants.filter(attended_lectures=True)
     return sorted(participants, key=priority_key)
 
 
