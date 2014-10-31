@@ -732,18 +732,99 @@ class ViewLeaderTrips(TripListView):
         return super(ViewLeaderTrips, self).dispatch(request, *args, **kwargs)
 
 
+class LotteryPairView(CreateView):
+    model = models.LotteryInfo
+    template_name = 'lottery_pair.html'
+    form_class = forms.LotteryPairForm
+    success_url = reverse_lazy('trip_preferences')
+
+    def get_context_data(self, **kwargs):
+        """ Get a list of all other participants who've requested pairing. """
+        context = super(LotteryPairView, self).get_context_data(**kwargs)
+        requested = Q(lotteryinfo__paired_with=self.request.user.participant)
+        context['pair_requests'] = models.Participant.objects.filter(requested)
+        return context
+
+    def get_form_kwargs(self):
+        """ Edit existing instance, prevent user from pairing with self. """
+        kwargs = super(LotteryPairView, self).get_form_kwargs()
+        kwargs['user'] = self.request.user
+        try:
+            kwargs['instance'] = self.request.user.participant.lotteryinfo
+        except ObjectDoesNotExist:
+            pass
+        return kwargs
+
+    def form_valid(self, form):
+        participant = self.request.user.participant
+        lottery_info = form.save(commit=False)
+        lottery_info.participant = participant
+        paired_par = form.instance.paired_with
+        if not paired_par:
+            no_pair_msg = "Requested normal behavior (no pairing) in lottery"
+            messages.add_message(self.request, messages.SUCCESS, no_pair_msg)
+        else:
+            self.add_pairing_messages(paired_par)
+        return super(LotteryPairView, self).form_valid(form)
+
+    def add_pairing_messages(self, paired_par):
+        """ Add messages that explain next steps for lottery pairing. """
+        participant = self.request.user.participant
+        try:
+            reciprocal = paired_par.lotteryinfo.paired_with == participant
+        except ObjectDoesNotExist:  # No lottery info for paired participant
+            reciprocal = False
+
+        pre = "Successfully paired" if reciprocal else "Requested pairing"
+        paired_msg = pre + " with {}".format(paired_par)
+        messages.add_message(self.request, messages.SUCCESS, paired_msg)
+
+        if reciprocal:
+            msg = ("You must both sign up for trips you're interested in: "
+                   "you'll only be placed on a trip if you both signed up. "
+                   "Either one of you can rank the trips.")
+            messages.add_message(self.request, messages.INFO, msg)
+        else:
+            msg = "{} must also select to be paired with you".format(paired_par)
+            messages.add_message(self.request, messages.INFO, msg)
+
+    @method_decorator(user_info_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super(LotteryPairView, self).dispatch(request, *args, **kwargs)
+
+
 class TripPreferencesView(TemplateView):
     template_name = 'trip_preferences.html'
     update_msg = 'Lottery preferences updated'
 
     @property
+    def post_data(self):
+        return self.request.POST if self.request.method == "POST" else None
+
+    @property
+    def paired_par(self):
+        participant = self.request.user.participant
+        try:
+            return participant.lotteryinfo.paired_with
+        except ObjectDoesNotExist:  # No lottery info for paired participant
+            return None
+
+    @property
+    def paired(self):
+        """ Return if the participant is reciprocally paired with another. """
+        participant = self.request.user.participant
+        paired_par = self.paired_par
+        if paired_par:
+            try:
+                return paired_par.lotteryinfo.paired_with == participant
+            except ObjectDoesNotExist:
+                return False
+        return False
+
+    @property
     def factory_formset(self):
         return modelformset_factory(models.SignUp, can_delete=True, extra=0,
                                     fields=('order',))
-
-    @property
-    def post_data(self):
-        return self.request.POST if self.request.method == "POST" else None
 
     def get_ranked_trips(self, participant):
         today = local_now().date()
@@ -772,7 +853,8 @@ class TripPreferencesView(TemplateView):
     def get_context_data(self):
         return {"formset": self.get_formset(use_post=True),
                 'car_form': self.get_car_form(use_post=True),
-                "lottery_form": self.get_lottery_form()}
+                'lottery_form': self.get_lottery_form(),
+                'paired': self.paired}
 
     def post(self, request, *args, **kwargs):
         context = self.get_context_data()
@@ -788,10 +870,30 @@ class TripPreferencesView(TemplateView):
             lottery_info = lottery_form.save(commit=False)
             lottery_info.participant = request.user.participant
             lottery_info.save()
-            formset.save()
+            self.save_signups(formset)
             messages.add_message(request, messages.SUCCESS, self.update_msg)
             context['formset'] = self.get_formset(use_post=False)
         return render(request, self.template_name, context)
+
+    def save_signups(self, formset):
+        formset.save()
+        if not self.paired:
+            return
+
+        paired_par = self.paired_par
+        # Don't just iterate through saved forms. This could miss signups
+        # that participant ranks, then the other signs up for later
+        for signup in (form.instance for form in formset):
+            trip = signup.trip
+            try:
+                pair_signup = models.SignUp.objects.get(participant=paired_par,
+                                                        trip=trip)
+            except ObjectDoesNotExist:
+                msg = "{} hasn't signed up for {}.".format(paired_par, trip)
+                messages.add_message(self.request, messages.WARNING, msg)
+            else:
+                pair_signup.order = signup.order
+                pair_signup.save()
 
     @method_decorator(user_info_required)
     def dispatch(self, request, *args, **kwargs):

@@ -86,6 +86,21 @@ class LotteryInfoForm(forms.ModelForm):
         widgets = {'car_status': forms.RadioSelect(attrs={'onclick': 'handle_driver(this);'})}
 
 
+class LotteryPairForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user')
+        super(LotteryPairForm, self).__init__(*args, **kwargs)
+        participants = models.Participant.objects.all()
+        all_but_user = participants.exclude(pk=user.participant.pk)
+        self.fields['paired_with'].queryset = all_but_user.select_related('leader')
+        self.fields['paired_with'].empty_label = 'Nobody'
+
+    class Meta:
+        model = models.LotteryInfo
+        fields = ['paired_with']
+        widgets = {'paired_with': django_select2.widgets.Select2Widget}
+
+
 class FeedbackForm(RequiredModelForm):
     class Meta:
         model = models.Feedback

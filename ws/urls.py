@@ -47,6 +47,7 @@ urlpatterns = patterns('',
     url(r'^view_waitlisted_trips/$', views.ViewWaitlistTrips.as_view(), name='view_waitlisted_trips'),
     url(r'^trip_signup/$', views.SignUpView.as_view(), name='trip_signup'),
     url(r'^trip_preferences/$', views.TripPreferencesView.as_view(), name='trip_preferences'),
+    url(r'^lottery_pair/$', views.LotteryPairView.as_view(), name='lottery_pair'),
 
     # Help views (most pages available to anyone, some require groups)
     url(r'^help/$', TemplateView.as_view(template_name='help/home.html'), name='help-home'),

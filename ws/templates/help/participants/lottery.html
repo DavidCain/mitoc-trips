@@ -23,5 +23,8 @@
 <p>The algorithm only attempts to place participants on one trip per weekend. After the lottery has completed, you may sign up for other trips as you wish.</p>
 
 <h4 id="id-only-like-to-go-on-a-trip-if-i-can-go-with-my-friendsignificant-otheretc.">I'd only like to go on a trip if I can go with my friend/significant other/etc.</h4>
-<p>We're working on a feature that will allow you to specify your signup as one unit. Those signing up as a &quot;package deal&quot; will have a lesser chance of being placed, but will only be placed on a trip if all others in their party can go as well.</p>
+<p>You can <a href="{% url 'lottery_pair' %}">specify another participant</a>
+that you'd like to go on trips with. When the lottery runs, you will either
+both be placed on a trip or be placed on your highest ranked trip's
+waitlist.</p>
 {% endblock content %}

@@ -300,6 +300,8 @@ class LotteryInfo(models.Model):
     number_of_passengers = models.PositiveIntegerField(null=True, blank=True,
                                                        validators=[SassyMax(13)])
     last_updated = models.DateTimeField(auto_now=True)
+    paired_with = models.ForeignKey(Participant, null=True, blank=True,
+                                    related_name='paired_by')
 
     @property
     def is_driver(self):

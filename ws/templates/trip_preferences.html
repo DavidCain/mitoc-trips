@@ -104,6 +104,19 @@ to transport lottery-winning participants. </p>
 information about the vehicle</a> before you leave on your trip.</p>
 
 <h4 id="ranked_trips"> Ranked trips </h4>
+
+{% if paired %}
+<p>You are <a href="{% url 'lottery_pair' %}">paired with {{ user.participant.lotteryinfo.paired_with }}</a>.
+You will only be placed on a trip if there is room for both of you.
+You must <em>both</em> sign up for a trip in order to be considered for it
+(if only one of you signs up for a trip, that signup will be ignored).</p>
+<p>You can rank your trip preferences below. So long as you've both signed
+up for the same trips, the rankings will apply for both of you.
+</p>
+{% else %}
+<p><a href="{% url 'lottery_pair' %}">Sign up for trips as a pair</a></p>
+{% endif %}
+
 {{ formset.management_form }}
 {% if not formset.total_form_count %}
 <p> You haven't signed up for any <a href="{% url 'view_trips' %}">trips!</a> </p>
