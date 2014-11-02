@@ -829,7 +829,7 @@ class TripPreferencesView(TemplateView):
     def get_ranked_trips(self, participant):
         today = local_now().date()
         future_trips = models.SignUp.objects.filter(participant=participant,
-                                                    trip__trip_date__gte=today)
+                                                    trip__trip_date__gt=today)
         ranked_trips = future_trips.order_by('order', 'time_created')
         return ranked_trips.select_related('trip')
 
