@@ -2,6 +2,9 @@
 {% load signup_tags %}
 
 {% block content %}
+{% if not trip_completed %}
+<p><strong>This trip has not yet completed.</strong> Please check back on {{ trip.trip_date|date:"F jS" }} or later!</p>
+{% endif %}
 {% trip_summary trip %}
 
 <h3>Post-trip tasks</h3>
@@ -9,12 +12,14 @@
 <p>After your trip has completed, plase complete reviews for each participant.</p>
 
 
+{% if trip_completed %}
 <h3>Participants</h3>
 {% if not feedback_list %}
 <p>Nobody attended this trip.</p>
 {% else %}
 <form action="" method="post">
 {% csrf_token %}
+{{ form.non_field_errors }}
 <table class="footable">
     <thead>
         <tr>
@@ -28,7 +33,7 @@
         {% for participant, form in feedback_list %}
         <tr>
             <td> {{ participant }} </td>
-            <td> {{ form.comments }} </td>
+            <td> {{ form.comments.errors }}{{ form.comments }} </td>
             <td> {{ form.showed_up }}</td>
         </tr>
         {% endfor %}
@@ -37,6 +42,7 @@
 
 <input type="submit" value="Submit" />
 </form>
+{% endif %}
 {% endif %}
 
 {% endblock content %}

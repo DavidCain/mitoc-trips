@@ -269,37 +269,38 @@ class AdminTripView(DetailView):
     model = models.Trip
     template_name = 'admin_trip.html'
     par_prefix = "ontrip"
-    wl = "waitlist"
+    wl_prefix = "waitlist"
+
 
     @property
     def signup_formset(self):
         return modelformset_factory(models.SignUp, can_delete=True, extra=0,
                                     fields=())  # on_trip to manage wait list
 
-    def get_context(self, request, use_post=True):
+    def get_context_data(self, **kwargs):
         trip = self.get_object()
         trip_signups = models.SignUp.objects.filter(trip=trip)
-        post = request.POST if use_post and request.method == "POST" else None
+        post = self.request.POST if self.request.method == "POST" else None
         ontrip_queryset = trip_signups.filter(on_trip=True)
         ontrip_formset = self.signup_formset(post, queryset=ontrip_queryset,
                                              prefix=self.par_prefix)
 
         waitlist_queryset = trip_signups.filter(waitlist__isnull=False)
         waitlist_formset = self.signup_formset(post, queryset=waitlist_queryset,
-                                               prefix=self.wl)
+                                               prefix=self.wl_prefix)
+        # For manual waitlist managament, enable deletion, disable some signals
         waitlist_formset.can_delete = False
+        today = local_now().date()
         return {"ontrip_signups": ontrip_queryset,
                 "ontrip_formset": ontrip_formset,
                 "waitlist_formset": waitlist_formset,
                 "signups": trip_signups,
-                "trip": trip}
-
-    def get(self, request, *args, **kwargs):
-        return render(request, self.template_name, self.get_context(request))
+                "trip": trip,
+                "trip_completed": today >= trip.trip_date}
 
     def post(self, request, *args, **kwargs):
         """ Two formsets handle adding/removing people from trip. """
-        context = self.get_context(request)
+        context = self.get_context_data()
         ontrip_formset = context['ontrip_formset']
         waitlist_formset = context['waitlist_formset']
         if (ontrip_formset.is_valid() and waitlist_formset.is_valid()):
@@ -313,8 +314,7 @@ class AdminTripView(DetailView):
                     signup.waitlistsignup.delete()
                     signup.save()
             messages.add_message(request, messages.SUCCESS, "Updated trip")
-            context = self.get_context(request, use_post=False)
-        return render(request, self.template_name, context)
+        return self.get(request, *args, **kwargs)
 
     @method_decorator(group_required('leaders', 'WSC'))
     def dispatch(self, request, *args, **kwargs):
@@ -336,11 +336,8 @@ class ReviewTripView(DetailView):
     def feedback_formset(self):
         return modelformset_factory(models.Feedback, extra=0)
 
-    def get(self, request, *args, **kwargs):
-        return render(request, self.template_name, self.get_context(request))
-
     def post(self, request, *args, **kwargs):
-        feedback_list = self.get_feedback_list(request)
+        feedback_list = self.feedback_list
         if all(form.is_valid() for participant, form in feedback_list):
             leader = request.user.participant.leader
             trip = self.get_object()
@@ -353,8 +350,7 @@ class ReviewTripView(DetailView):
 
             messages.add_message(request, messages.SUCCESS, self.success_msg)
             return redirect(reverse('home'))
-        context = self.get_context(request)
-        return render(request, self.template_name, context)
+        return self.get(request, *args, **kwargs)
 
     @property
     def trip_participants(self):
@@ -369,9 +365,10 @@ class ReviewTripView(DetailView):
                                                   trip=trip, leader=leader)
         return feedback.first() or None
 
-    def get_feedback_list(self, request):
-        post = request.POST if request.method == 'POST' else None
-        leader = request.user.participant.leader
+    @property
+    def feedback_list(self):
+        post = self.request.POST if self.request.method == 'POST' else None
+        leader = self.request.user.participant.leader
         feedback_list = []
         for participant in self.trip_participants:
             instance = self.get_existing_feedback(participant, leader)
@@ -381,9 +378,11 @@ class ReviewTripView(DetailView):
             feedback_list.append((participant, form))
         return feedback_list
 
-    def get_context(self, request):
-        feedback_list = self.get_feedback_list(request)
-        return {"trip": self.get_object(), "feedback_list": feedback_list}
+    def get_context_data(self, **kwargs):
+        today = local_now().date()
+        trip = self.get_object()
+        return {"trip": trip, "trip_completed": today >= trip.trip_date,
+                "feedback_list": self.feedback_list}
 
     @method_decorator(group_required('leaders'))
     def dispatch(self, request, *args, **kwargs):
