@@ -37,10 +37,17 @@ def get_prioritized_participants():
     return sorted(participants, key=priority_key)
 
 
+def get_past_trips(participant):
+    """ Past trips participant has been on this year. """
+    return participant.trip_set.filter(trip_date__gt=jan_1st,
+                                       trip_date__lt=today)
+
+
 def get_number_of_trips(participant):
     """ Number of trips the participant has been on this year. """
-    signups = participant.signup_set.filter(trip__trip_date__gt=jan_1st)
-    return sum(signup.on_trip for signup in signups)
+    past_trips = get_past_trips(participant)
+    signups = participant.signup_set.filter(trip__in=past_trips, on_trip=True)
+    return signups.count()
 
 
 def get_flake_factor(participant):
@@ -49,8 +56,13 @@ def get_flake_factor(participant):
     A lower score indicates a more reliable participant.
     """
     score = 0
-    for feedback in participant.feedback_set.all():
-        score += 5 if not feedback.showed_up else -2
+    for trip in get_past_trips(participant):
+        trip_feedback = participant.feedback_set.filter(trip=trip)
+        if not trip_feedback.exists():
+            continue
+        # If any leader says they flaked, then assume a flake
+        showed_up = all(feedback.showed_up for feedback in trip_feedback)
+        score += 5 if not showed_up else -2
     return score
 
 
