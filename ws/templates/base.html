@@ -105,7 +105,11 @@
                         {% endif %}
                     </ul>
                 </li>
-                <li><a href="{% url 'help-home' %}">Help</a></li>
+                <li><a href="{% url 'help-home' %}">Help</a>
+                    <ul class="children">
+                        <li><a href="{% url 'help-about' %}">About</a></li>
+                    </ul>
+                </li>
             </ul>
             <a id="responsive_menu_button"></a>
         </div>
