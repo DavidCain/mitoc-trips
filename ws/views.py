@@ -230,7 +230,10 @@ class ViewTrip(DetailView):
     @property
     def participant_signup(self):
         """ Return viewer's signup for this trip (if one exists, else None) """
-        participant = self.request.user.participant
+        try:
+            participant = self.request.user.participant
+        except ObjectDoesNotExist:  # Logged in, no participant info
+            return None
         return participant.signup_set.filter(trip=self.get_object()).first()
 
     def get_context_data(self, **kwargs):
