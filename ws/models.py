@@ -321,12 +321,25 @@ class WaitListSignup(models.Model):
     signup = models.OneToOneField(SignUp)
     waitlist = models.ForeignKey("WaitList")
     time_created = models.DateTimeField(auto_now_add=True)
+    # Specify to override ordering by time created
+    manual_order = models.IntegerField(null=True, blank=True)
+
+    def __unicode__(self):
+        return "{} waitlisted on {}".format(self.signup.participant.name,
+                                            self.signup.trip)
 
     class Meta:
-        ordering = ["time_created"]
+        # None will come after after integer in reverse sorted,
+        # So anyone with a manual ordering integer will be first
+        ordering = ["-manual_order", "time_created"]
 
 
 class WaitList(models.Model):
     """ Treat the waiting list as a simple FIFO queue. """
     trip = models.OneToOneField(Trip)
-    signups = models.ManyToManyField(SignUp, through=WaitListSignup)
+    unordered_signups = models.ManyToManyField(SignUp, through=WaitListSignup)
+
+    @property
+    def signups(self):
+        # Don't know of any way to apply this ordering to signups field
+        return self.unordered_signups.order_by('waitlistsignup')

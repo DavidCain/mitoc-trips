@@ -288,8 +288,9 @@ class AdminTripView(DetailView):
         ontrip_formset = self.signup_formset(post, queryset=ontrip_queryset,
                                              prefix=self.par_prefix)
 
-        waitlist_queryset = trip_signups.filter(waitlist__isnull=False)
-        waitlist_formset = self.signup_formset(post, queryset=waitlist_queryset,
+        wl_queryset = trip_signups.filter(waitlist__isnull=False)
+        wl_queryset = wl_queryset.order_by('waitlistsignup')
+        waitlist_formset = self.signup_formset(post, queryset=wl_queryset,
                                                prefix=self.wl_prefix)
         # For manual waitlist managament, enable deletion, disable some signals
         waitlist_formset.can_delete = False

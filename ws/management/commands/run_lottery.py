@@ -88,7 +88,22 @@ def lowest_non_driver(trip):
     return max(non_drivers, key=lambda signup: priority_key(signup.participant))
 
 
-def add_to_waitlist(signup):
+def priority_add(waitlist_signup):
+    """ Add the signup towards the top of the list.
+
+    Place below all other previous priority waitlist spots, but above
+    standard waitlist entries.
+
+    A standard use case for this is when a participant is displaced by a driver
+    (they were on the trip, so they should go to the top of the waitlist).
+    """
+    last_wl_signup = waitlist_signup.waitlist.waitlistsignup_set.last()
+    min_order = last_wl_signup.manual_order or 11  # Could be None
+    waitlist_signup.manual_order = min_order - 1
+    waitlist_signup.save()
+
+
+def add_to_waitlist(signup, priority_spot=False):
     """ Put a given signup on its corresponding trip's wait list. """
     print "Adding {} to the waiting list for {}.".format(signup.participant, signup.trip)
     signup.on_trip = False
@@ -97,7 +112,7 @@ def add_to_waitlist(signup):
     # Ensure not already waitlisted
     try:
         if signup.waitlistsignup:
-            return
+            return priority_spot and priority_add(signup.waitlistsignup)
     except ObjectDoesNotExist:
         pass
 
@@ -105,7 +120,10 @@ def add_to_waitlist(signup):
     waitlist = signup.trip.waitlist
 
     # Add this signup to the waitlist
-    models.WaitListSignup.objects.create(signup=signup, waitlist=waitlist)
+    wl_signup = models.WaitListSignup.objects.create(signup=signup,
+                                                     waitlist=waitlist)
+    if priority_spot:
+        priority_add(wl_signup)
 
 
 def free_for_all():
@@ -230,7 +248,7 @@ class ParticipantHandler(object):
             if self.count_drivers_on_trip(trip) < 2:
                 print "{} is full, but doesn't have two drivers".format(trip)
                 print "Adding {} to '{}', as they're a driver".format(signup, trip)
-                add_to_waitlist(lowest_non_driver(trip))
+                add_to_waitlist(lowest_non_driver(trip), priority_spot=True)
                 signup.on_trip = True
                 signup.save()
                 return True
