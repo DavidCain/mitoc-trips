@@ -39,6 +39,7 @@ class EmergencyInfoForm(RequiredModelForm):
     class Meta:
         model = models.EmergencyInfo
         fields = ['allergies', 'medications', 'medical_history']
+        widgets = {'medical_history': forms.Textarea(attrs={'rows': 5})}
 
 
 class LeaderForm(RequiredModelForm):
@@ -46,19 +47,23 @@ class LeaderForm(RequiredModelForm):
         super(LeaderForm, self).__init__(*args, **kwargs)
         all_par = models.Participant.objects.all()
         self.fields['participant'].queryset = all_par.select_related('leader')
+        self.fields['participant'].empty_label = 'Nobody'
 
     class Meta:
         model = models.Leader
         fields = ['participant', 'rating', 'notes']
+        widgets = {'participant': django_select2.widgets.Select2Widget,
+                   'notes': forms.Textarea(attrs={'rows': 4})}
 
 
 class TripForm(RequiredModelForm):
     class Meta:
         model = models.Trip
-        fields = ['leaders', 'name', 'description', 'trip_date',
+        fields = ['name', 'leaders', 'description', 'trip_date',
                   'maximum_participants', 'difficulty_rating', 'prereqs',
                   'notes']
-        widgets = {'leaders': django_select2.widgets.Select2MultipleWidget}
+        widgets = {'leaders': django_select2.widgets.Select2MultipleWidget,
+                   'notes': forms.Textarea(attrs={'rows': 4})}
 
     def __init__(self, *args, **kwargs):
         super(TripForm, self).__init__(*args, **kwargs)
@@ -69,8 +74,8 @@ class SummaryTripForm(forms.ModelForm):
     """ Intended to be read-only, cover key elements. Seen on view_trips. """
     class Meta:
         model = models.Trip
-        fields = ['name', 'trip_date', 'description', 'maximum_participants', 'algorithm',
-                'difficulty_rating']
+        fields = ['name', 'trip_date', 'description', 'maximum_participants',
+                  'algorithm', 'difficulty_rating']
 
 
 class SignUpForm(RequiredModelForm):
@@ -110,3 +115,9 @@ class FeedbackForm(RequiredModelForm):
 class AttendedLecturesForm(forms.Form):
     email = forms.EmailField()
     password = forms.CharField(widget=forms.PasswordInput())
+
+
+class LeaderApplicationForm(RequiredModelForm):
+    class Meta:
+        exclude = ['participant']
+        model = models.LeaderApplication

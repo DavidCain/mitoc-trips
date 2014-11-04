@@ -30,22 +30,34 @@
 {% endif %}
 </div>
 
+<div id="respond" class="narrow">
 <form action="" method="post">
     {% csrf_token %}
+    <h4 id="personal_info">Personal info</h4>
     <table>
-        <tr><th colspan="2"><h4 id="personal_info">Personal info</h4></th></tr>
         {{ participant_form }}
+    </table>
 
-        <tr><th colspan="2"><h4 id="car">Car</h4></th></tr>
-        <tr><td></td><td><input type="checkbox" id="has_car_checkbox" name="has_car" value="Car" onclick='toggle_car_form(this)'/ {% if has_car_checked %}checked{% endif %}>I have a car</td></th>
+    <hr>
+
+    <h4 id="car">Car</h4>
+    <label for="has_car_checkbox">I have a car:</label> <input type="checkbox" id="has_car_checkbox" name="has_car" value="Car" onclick='toggle_car_form(this)'/ {% if has_car_checked %}checked{% endif %}>
+    <table>
         {{ car_form }}
+    </table>
 
-        <tr><th colspan="2"><h4 id="emergency_info">Emergency info</h4></th></tr>
-        {{ emergency_info_form }}
+    <hr>
 
-        <tr><th colspan="2"><h4 id="emergency_contact">Emergency contact</h4></th></tr>
+    <h4 id="emergency_info">Emergency info</h4>
+    {{ emergency_info_form.as_p }}
+
+    <hr>
+
+    <h4 id="emergency_contact">Emergency contact</h4>
+    <table>
         {{ emergency_contact_form }}
     </table>
     <input type="submit" value="Submit" />
 </form>
+</div>
 {% endblock content %}

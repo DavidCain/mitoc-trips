@@ -1763,11 +1763,23 @@ ul.menu > li:hover {
 	clear: both;
 	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#ffffff, endColorstr=#eaeaea);
 	margin-top: 15px;
-	padding: 10px 20px 50px;
+	padding: 10px 20px 10px;
+}
+
+#respond.narrow {
+    max-width: 500px;
 }
 
 #respond label {
 	display: inline;
+}
+
+#respond .select2-container,
+#respond select,
+#respond input[type="text"],
+#respond textarea {
+	display: block;
+	width: 100%;
 }
 
 .reply {

@@ -1,11 +1,19 @@
 {% extends "messages_page.html" %}
 
+{% block head %}
+{{ block.super }}
+{{ leader_form.media }}
+{% endblock head %}
+
 {% block content %}
 {{ block.super }}
 
+<h2>Add new leader</h2>
+<div id="respond" class="narrow">
 <form action="" method="post">
     {% csrf_token %}
     {{ leader_form.as_p }}
     <input type="submit" value="Submit" />
 </form>
+</div>
 {% endblock content %}

@@ -6,6 +6,7 @@
 <p> A Leader record must be associated with the trip creator in order to create a trip.
 <a href="{% url 'add_leader' %}">Add a leader</a> record for yourself, then try again.</p>
 {% else %}
+<h2>Create new trip</h2>
 {{ block.super }}
 {% endif %}
 {% endblock content %}

@@ -75,6 +75,7 @@ signup.</p>
 
 <hr>  {# Until better styling done with CSS #}
 
+<div id="respond">
 <h4> Car info </h4>
 <p> Drivers are given priority on trips that would not otherwise be able
 to transport lottery-winning participants. </p>
@@ -102,6 +103,8 @@ to transport lottery-winning participants. </p>
 
 <p id='renting_request'>If you end up renting a car, please <a href="{% url 'update_info' %}#car">supply identifying
 information about the vehicle</a> before you leave on your trip.</p>
+
+<hr>
 
 <h4 id="ranked_trips"> Ranked trips </h4>
 
@@ -155,5 +158,6 @@ up for the same trips, the rankings will apply for both of you.
 
 <input type="submit" value="Submit" />
 </form>
+</div>
 
 {% endblock content %}

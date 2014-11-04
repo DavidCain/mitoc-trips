@@ -5,19 +5,16 @@
 {{ block.super }}
 {{ form.media }}
 
-<style>  {# Simple, doesn't need its own stylesheet. #}
-.select2-container-multi {
-    width: 350px;
-}
-</style>
 {% endblock head %}
 
 {% block content %}
 {{ block.super }}
 
+<div id="respond" class="narrow">
 <form action="" method="post">
     {% csrf_token %}
     {{ form.as_p }}
     <input type="submit" value="Submit" />
 </form>
+</div>
 {% endblock content %}

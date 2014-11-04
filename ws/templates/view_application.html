@@ -39,6 +39,7 @@
 <p>{{ application.notes_or_comments|linebreaks }}</p>
 {% endif %}
 
+<div id="respond" class="narrow">
 <h2>Leader rating</h2>
 
 <form action="" method="post">
@@ -46,4 +47,5 @@
     {{ leader_form.as_p }}
     <input type="submit" value="Submit" />
 </form>
+</div>
 {% endblock content %}
