@@ -36,7 +36,7 @@
 {% readonly_form emergency_contact_form %}
 
 <h3 id='feedback'> Past feedback </h3>
-{% if not participant.feedback_set.exists %}
+{% if not all_feedback %}
 <p>None available.</p>
 {% else %}
 <table class="footable">
@@ -48,7 +48,7 @@
             <th>Trip</th>
         </tr>
     </thead>
-    {% for feedback in participant.feedback_set.all %}
+    {% for feedback in all_feedback %}
     <tbody>
         <tr>
             <td>{{ feedback.comments }}</td>

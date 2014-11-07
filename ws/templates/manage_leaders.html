@@ -3,7 +3,7 @@
 {% block content %}
 {{ block.super }}
 
-{% if not formset.total_form_count %}
+{% if not formset %}
 <p> No leaders found! Try <a href="{% url 'add_leader' %}">adding leaders</a>. </p>
 {% else %}
 <form action="" method="post">

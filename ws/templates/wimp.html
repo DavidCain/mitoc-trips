@@ -28,7 +28,7 @@ or not drive for this weekend's trips.</p>
 </ul>
 
 <h4>Participants</h4>
-{% if signups.exists %}
+{% if signups %}
 {% medical_table signups %}
 {% else %}
 <p> No participants. </p>
@@ -38,7 +38,7 @@ or not drive for this weekend's trips.</p>
 {% medical_table trip.leaders.all %}
 
 <h4>Drivers</h4>
-{% if not cars.exists %}
+{% if not cars %}
 <p>Nobody on this trip submitted information for a car.</p>
 {% else %}
 {% driver_table cars %}

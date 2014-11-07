@@ -112,9 +112,10 @@ def complain_if_missing_feedback(request):
         return
 
     past_trips = leader.trip_set.filter(trip_date__lt=local_now().date())
-    past_with_participants = [trip for trip in past_trips if
-                              trip.signup_set.filter(on_trip=True).exists()]
-    for trip in past_with_participants:
+    past_trips = past_trips.filter(signup__on_trip=True).distinct()
+
+    # TODO: Could be made more efficient- O(n) queries, where n= number of trips
+    for trip in past_trips:
         trip_feedback = models.Feedback.objects.filter(leader=leader, trip=trip)
         if not trip_feedback.exists():
             trip_url = reverse('review_trip', args=(trip.id,))

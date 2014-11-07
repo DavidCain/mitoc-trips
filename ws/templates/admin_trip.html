@@ -37,19 +37,19 @@ Instead, <a href="{% url 'review_trip' trip.id %}">review them as no-shows</a>.<
 {% endif %}
 
 {{ waitlist_formset.management_form }}
-{% if trip.waitlist.signups.exists %}
+{% if trip.waitlist.signups %}
     <h3>Waiting List ({{trip.waitlist.signups.count }}) </h3>
     {% editable_signup_table waitlist_formset %}
 {% endif %}
 
-{% if trip.waitlist.signups.exists or ontrip_formset|length %}
+{% if trip.waitlist.signups or ontrip_formset|length %}
 <input type="submit" value="Submit" />
 <h5>Email all participants</h5>
 <pre>{% for signup in ontrip_signups %}{{ signup.participant.email_addr }}{% if not forloop.last %}, {% endif %}{% endfor %}</pre>
 {% endif %}
 </form>
 
-{% if signups.exists %}
+{% if signups %}
 <hr>
 <h3>All Signups</h3>
 {% signup_table signups has_notes=True %}

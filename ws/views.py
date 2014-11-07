@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse, reverse_lazy
-from django.db.models import Count
+from django.db.models import Count, Sum
 from django.forms.models import modelformset_factory
 from django.forms import ModelForm, HiddenInput
 from django.forms import widgets
@@ -167,10 +167,13 @@ class ParticipantDetailView(DetailView):
         participant = self.get_object()
         e_info = participant.emergency_info
         e_contact = e_info.emergency_contact
+        feedback = participant.feedback_set.select_related('trip', 'leader',
+                                                           'leader__participant')
         context = {'participant_form': forms.ParticipantForm(instance=participant),
                    'emergency_info_form':  forms.EmergencyInfoForm(instance=e_info),
                    'emergency_contact_form':  forms.EmergencyContactForm(instance=e_contact),
                    'participant': participant,
+                   'all_feedback': feedback,
                    }
         if participant.car:
             context['car_form'] = forms.CarForm(instance=participant.car)
@@ -222,31 +225,38 @@ class SignUpView(CreateView):
         return super(SignUpView, self).dispatch(request, *args, **kwargs)
 
 
-class ViewTrip(DetailView):
-    queryset = models.Trip.objects.all()
+class TripView(DetailView):
+    model = models.Trip
     context_object_name = 'trip'
+
+    def get_queryset(self):
+        trips = super(TripView, self).get_queryset()
+        return trips.select_related('leaders__participant', 'waitlist__signups')
+
+
+class ViewTrip(TripView):
     template_name = 'view_trip.html'
 
-    @property
-    def participant_signup(self):
+    def get_participant_signup(self, trip=None):
         """ Return viewer's signup for this trip (if one exists, else None) """
         try:
             participant = self.request.user.participant
         except ObjectDoesNotExist:  # Logged in, no participant info
             return None
-        return participant.signup_set.filter(trip=self.get_object()).first()
+        trip = trip or self.get_object()
+        return participant.signup_set.filter(trip=trip).first()
 
     def get_context_data(self, **kwargs):
         """ Create form for signup (only if signups open). """
         context = super(ViewTrip, self).get_context_data()
-        trip = self.get_object()
+        trip = context['trip']
         if trip.signups_open:
             signup_form = forms.SignUpForm(initial={'trip': trip})
             signup_form.fields['trip'].widget = HiddenInput()
             context['signup_form'] = signup_form
         signups = models.SignUp.objects.filter(trip=trip)
-        signups = signups.select_related('participant')
-        context['participant_signup'] = self.participant_signup
+        signups = signups.select_related('participant__leader')
+        context['participant_signup'] = self.get_participant_signup(trip)
         context['signups'] = signups
         context['has_notes'] = trip.notes or any(s.notes for s in signups)
         context['signups_on_trip'] = signups.filter(on_trip=True)
@@ -259,8 +269,12 @@ class ViewTrip(DetailView):
         return super(ViewTrip, self).get(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
-        """ Add signup to trip or waitlist, if applicable. """
-        signup_utils.trip_or_wait(self.participant_signup, self.request)
+        """ Add signup to trip or waitlist, if applicable.
+
+        Used if the participant has signed up, but wasn't placed.
+        """
+        signup = self.get_participant_signup()
+        signup_utils.trip_or_wait(signup, self.request)
         return self.get(request)
 
     @method_decorator(login_required)
@@ -268,12 +282,10 @@ class ViewTrip(DetailView):
         return super(ViewTrip, self).dispatch(request, *args, **kwargs)
 
 
-class AdminTripView(DetailView):
-    model = models.Trip
+class AdminTripView(TripView):
     template_name = 'admin_trip.html'
     par_prefix = "ontrip"
     wl_prefix = "waitlist"
-
 
     @property
     def signup_formset(self):
@@ -281,7 +293,8 @@ class AdminTripView(DetailView):
                                     fields=())  # on_trip to manage wait list
 
     def get_context_data(self, **kwargs):
-        trip = self.get_object()
+        context = super(AdminTripView, self).get_context_data()
+        trip = context["trip"]
         trip_signups = models.SignUp.objects.filter(trip=trip)
         post = self.request.POST if self.request.method == "POST" else None
         ontrip_queryset = trip_signups.filter(on_trip=True)
@@ -294,13 +307,12 @@ class AdminTripView(DetailView):
                                                prefix=self.wl_prefix)
         # For manual waitlist managament, enable deletion, disable some signals
         waitlist_formset.can_delete = False
-        today = local_now().date()
-        return {"ontrip_signups": ontrip_queryset,
-                "ontrip_formset": ontrip_formset,
-                "waitlist_formset": waitlist_formset,
-                "signups": trip_signups.prefetch_related('participant'),
-                "trip": trip,
-                "trip_completed": today >= trip.trip_date}
+        context["waitlist_formset"] = waitlist_formset
+        context["ontrip_signups"] = ontrip_queryset
+        context["ontrip_formset"] = ontrip_formset
+        context["signups"] = trip_signups.prefetch_related('participant')
+        context["trip_completed"] = local_now().date() >= trip.trip_date
+        return context
 
     def post(self, request, *args, **kwargs):
         """ Two formsets handle adding/removing people from trip. """
@@ -322,7 +334,7 @@ class AdminTripView(DetailView):
 
     @method_decorator(group_required('leaders', 'WSC'))
     def dispatch(self, request, *args, **kwargs):
-        """ Only allow trip creator, leaders of this trip and WSC to edit. """
+        """ Only allow trip creator, leaders of this trip, and WSC to edit. """
         trip = self.get_object()
         wsc = is_wsc(request)
         if not (leader_on_trip(request, trip, creator_allowed=True) or wsc):
@@ -439,6 +451,10 @@ class AllLeaderApplications(ListView):
     context_object_name = 'leader_applications'
     template_name = 'manage_applications.html'
 
+    def get_queryset(self):
+        applications = super(AllLeaderApplications, self).get_queryset()
+        return applications.select_related('participant', 'participant__leader')
+
     @method_decorator(group_required('WSC'))
     def dispatch(self, request, *args, **kwargs):
         return super(AllLeaderApplications, self).dispatch(request, *args, **kwargs)
@@ -537,9 +553,9 @@ def manage_participants(request):
     else:
         cutoff = dateutils.participant_cutoff()
         current = models.Participant.objects.filter(last_updated__gt=cutoff)
-        current = current.select_related('leader')
-        # TODO: participant.num_trips uses signup_set, adds n extra queries
-        formset = ParticipantFormSet(queryset=current)
+        participants = current.select_related('leader')
+        participants = participants.annotate(num_trips=Sum('signup__on_trip'))
+        formset = ParticipantFormSet(queryset=participants)
     return render(request, 'manage_participants.html', {'formset': formset})
 
 
@@ -552,8 +568,7 @@ def _manage_trips(request, TripFormSet):
             formset = TripFormSet()
     else:
         all_trips = models.Trip.objects.all()
-        # FIXME: Doesn't seem to reduce query count
-        all_trips.select_related('leaders__participant')
+        all_trips = all_trips.prefetch_related('leaders__participant')
         formset = TripFormSet(queryset=all_trips)
     return render(request, 'manage_trips.html', {'formset': formset})
 
