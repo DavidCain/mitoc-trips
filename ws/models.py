@@ -156,6 +156,12 @@ class LeaderApplication(models.Model):
     notes_or_comments = models.TextField(blank=True, max_length=5000,
                                          help_text="Any relevant details, such as any limitations on availability on Tue/Thurs nights or weekends during IAP.")
 
+    def __unicode__(self):
+        return "{}'s application".format(self.participant)
+
+    class Meta:
+        ordering = ["id"]
+
 
 class SignUp(models.Model):
     """ An editable record relating a Participant to a Trip.
