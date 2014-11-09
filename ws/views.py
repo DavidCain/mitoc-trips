@@ -38,7 +38,8 @@ def leader_on_trip(request, trip, creator_allowed=False):
         leader = request.user.participant.leader
     except ObjectDoesNotExist:  # Only a participant
         return False
-    return leader == trip.creator or leader in trip.leaders.all()
+    return (leader in trip.leaders.all() or
+            creator_allowed and leader == trip.creator)
 
 
 def is_wsc(request, admin_okay=True):
