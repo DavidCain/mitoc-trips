@@ -38,7 +38,6 @@ table {
 
 button, input, select, textarea {
 	font-size: 100%;
-	overflow: visible;
 	margin: 0;
 	vertical-align: baseline;
 	width: auto;
