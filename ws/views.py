@@ -417,6 +417,20 @@ def home(request):
     return render(request, 'home.html')
 
 
+class LeaderView(ListView):
+    model = models.Leader
+    context_object_name = 'leaders'
+    template_name = 'leaders.html'
+
+    def get_queryset(self):
+        leaders = super(LeaderView, self).get_queryset()
+        return leaders.select_related('participant')
+
+    @method_decorator(group_required('leaders'))
+    def dispatch(self, request, *args, **kwargs):
+        return super(LeaderView, self).dispatch(request, *args, **kwargs)
+
+
 class BecomeLeader(CreateView):
     template_name = "become_leader.html"
     model = models.LeaderApplication
