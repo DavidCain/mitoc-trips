@@ -227,6 +227,8 @@ class Trip(models.Model):
     signups_open_at = models.DateTimeField(default=timezone.now)
     signups_close_at = models.DateTimeField(default=wed_morning, null=True, blank=True)
 
+    worry_time = models.CharField(max_length=63, help_text="If the WIMP has not heard from you after this time and is unable to make contact with any leaders or participants, the authorities will be called.")
+
     signed_up_participants = models.ManyToManyField(Participant, through=SignUp)
     algorithm = models.CharField(max_length='31', default='lottery',
                                  choices=[('lottery', 'lottery'),

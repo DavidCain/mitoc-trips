@@ -8,6 +8,8 @@
     <li><a href="{% url 'edit_trip' trip.id %}">Edit trip</a></li>
     <li><a href="{% url 'review_trip' trip.id %}">Give participant feedback</a></li>
 </ul>
+
+<label>Worry time:</label> {{ trip.worry_time }}
 <hr>
 {% trip_summary trip %}
 

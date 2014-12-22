@@ -61,7 +61,7 @@ class TripForm(RequiredModelForm):
         model = models.Trip
         fields = ['name', 'leaders', 'description', 'trip_date',
                   'maximum_participants', 'difficulty_rating', 'prereqs',
-                  'notes']
+                  'notes', 'worry_time']
         widgets = {'leaders': django_select2.widgets.Select2MultipleWidget,
                    'notes': forms.Textarea(attrs={'rows': 4})}
 
