@@ -44,10 +44,18 @@ def get_past_trips(participant):
 
 
 def get_number_of_trips(participant):
-    """ Number of trips the participant has been on this year. """
+    """ Number of trips the participant has been on this year.
+
+    Leaders who've led more trips are given priority over others.
+    (A dedicated MITOC leader should be given priority)
+    """
     past_trips = get_past_trips(participant)
     signups = participant.signup_set.filter(trip__in=past_trips, on_trip=True)
-    return signups.count()
+    try:
+        trips_led = participant.leader.trip_set.count()
+    except ObjectDoesNotExist:
+        trips_led = 0
+    return signups.count() - trips_led
 
 
 def get_flake_factor(participant):
