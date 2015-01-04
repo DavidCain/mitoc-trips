@@ -51,6 +51,7 @@ urlpatterns = patterns('',
     url(r'^lottery_pair/$', views.LotteryPairView.as_view(), name='lottery_pair'),
 
     # Help views (most pages available to anyone, some require groups)
+    url(r'^contact/$', TemplateView.as_view(template_name='contact.html'), name='contact'),
     url(r'^help/$', TemplateView.as_view(template_name='help/home.html'), name='help-home'),
     url(r'^help/about/$', TemplateView.as_view(template_name='help/about.html'), name='help-about'),
     url(r'^help/participants/personal_info/$', TemplateView.as_view(template_name='help/participants/personal_info.html'), name='help-personal_info'),
