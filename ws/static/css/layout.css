@@ -639,7 +639,7 @@ ol {
 
 ul,
 ol {
-	margin: 0 1.5em 1.5em 0;
+	margin-bottom: 0.5em;
 	padding-left: 2.0em;
 }
 
@@ -2554,6 +2554,11 @@ a.black:hover {
 	background-color: #faebeb;
 	border: 1px solid #dc7070;
 	color: #212121;
+}
+
+.warning, .error, .info, .success {
+    padding: 1px 3px;
+    margin: 3px 0px;
 }
 
 .address {
