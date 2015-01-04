@@ -86,6 +86,9 @@ ACCOUNT_USERNAME_REQUIRED = False
 # Just click the link to verify
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True
 
+# Always "remember me"
+ACCOUNT_SESSION_REMEMBER = True
+
 ROOT_URLCONF = 'ws.urls'
 
 WSGI_APPLICATION = 'ws.wsgi.application'

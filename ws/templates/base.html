@@ -97,7 +97,7 @@
                     <ul class="children">
                         {% if user.is_authenticated %}
                         <li> <a href="{% url 'update_info' %}">Update personal info</a> </li>
-                        <li> <a href="{% url 'account_logout' %}">Logout</a> </li>
+                        <li> <a href="{% url 'account_logout' %}">Log out</a> </li>
                         <li> <a href="{% url 'account_change_password' %}">Change password</a> </li>
                         {% else %}
                         <li> <a href="{% url 'account_signup' %}">Sign up</a> </li>

@@ -1,0 +1,45 @@
+{% extends "account/base.html" %}
+
+{% load i18n %}
+{% load account %}
+{% load url from future %}
+
+{% block head_title %}{% trans "Log In" %}{% endblock %}
+
+{% block content %}
+
+<h1>{% trans "Log In" %}</h1>
+
+<p>{% blocktrans %}If you have not created an account yet, then please
+<a href="{{ signup_url }}">sign up</a> first.{% endblocktrans %}</p>
+
+<div id="respond" class="narrow">
+    <form class="login" method="POST" action="{% url 'account_login' %}">
+        {% csrf_token %}
+        <table>
+            {{ form.non_field_errors }}
+            <tr>
+                <th>{{ form.login.label_tag }}</th>
+                <td>{{ form.login.errors }}{{ form.login }}</td>
+            </tr>
+            <tr>
+                <th>{{ form.password.label_tag }}</th>
+                <td>{{ form.password.errors }}{{ form.password }}</td>
+            </tr>
+            <tr>
+                <th></th>
+                <td>
+                    <input type="submit" value="{% trans "Log In" %}" />
+                    <small><a href="{% url 'account_reset_password' %}">{% trans "Forgot your password?" %}</a></small>
+                </td>
+            </tr>
+        </table>
+
+        {% if redirect_field_value %}
+        <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+        {% endif %}
+
+    </form>
+</div>
+
+{% endblock %}
