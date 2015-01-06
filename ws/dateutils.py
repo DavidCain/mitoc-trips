@@ -34,7 +34,7 @@ def wed_morning():
     now = local_now()
     days_til_wed = timedelta((9 - now.weekday()) % 7)
     wed = (now + days_til_wed)
-    return wed.replace(hour=6, minute=0, second=0, microsecond=0)
+    return wed.replace(hour=9, minute=0, second=0, microsecond=0)
 
 
 def closest_wed_at_noon():
