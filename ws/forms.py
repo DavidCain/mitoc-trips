@@ -56,12 +56,26 @@ class LeaderForm(RequiredModelForm):
                    'notes': forms.Textarea(attrs={'rows': 4})}
 
 
+class TripInfoForm(RequiredModelForm):
+    accurate = forms.BooleanField(required=True, label='I affirm that all participant and driver information is correct')
+
+    class Meta:
+        model = models.TripInfo
+        fields = ['drivers', 'start_location', 'start_time', 'turnaround_time',
+                  'return_time', 'worry_time', 'itinerary']
+        widgets = {'drivers': django_select2.widgets.Select2MultipleWidget}
+
+    def __init__(self, *args, **kwargs):
+        super(TripInfoForm, self).__init__(*args, **kwargs)
+        self.fields['drivers'].help_text = self.fields['drivers'].help_text
+
+
 class TripForm(RequiredModelForm):
     class Meta:
         model = models.Trip
         fields = ['name', 'leaders', 'description', 'trip_date',
                   'maximum_participants', 'difficulty_rating', 'prereqs',
-                  'notes', 'worry_time']
+                  'notes']
         widgets = {'leaders': django_select2.widgets.Select2MultipleWidget,
                    'notes': forms.Textarea(attrs={'rows': 4})}
 

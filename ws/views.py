@@ -985,6 +985,40 @@ class TripMedicalView(DetailView, TripMedical):
         return super(TripMedicalView, self).dispatch(request, *args, **kwargs)
 
 
+class TripInfoView(UpdateView):
+    """ A hybrid view for creating/editing trip info for a given trip. """
+    model = models.Trip
+    context_object_name = 'trip'
+    template_name = 'trip_info.html'
+    form_class = forms.TripInfoForm
+
+    def get_initial(self):
+        self.trip = self.object  # Form instance will become object
+        return {'trip': self.trip}
+
+    def get_form_kwargs(self):
+        kwargs = super(TripInfoView, self).get_form_kwargs()
+        kwargs['instance'] = self.trip.info
+        return kwargs
+
+    def get_form(self, form_class):
+        form = super(TripInfoView, self).get_form(form_class)
+        signups = self.trip.signup_set.filter(on_trip=True)
+        on_trip = (Q(leader__in=self.trip.leaders.all()) |
+                   Q(signup__in=signups))
+        participants = models.Participant.objects.filter(on_trip).distinct()
+        form.fields['drivers'].queryset = participants
+        return form
+
+    def form_valid(self, form):
+        self.trip.info = form.save()
+        self.trip.save()
+        return super(TripInfoView, self).form_valid(form)
+
+    def get_success_url(self):
+        return reverse('view_trip', args=(self.trip.id,))
+
+
 class LectureAttendanceView(FormView):
     form_class = forms.AttendedLecturesForm
     template_name = 'lecture_attendance.html'

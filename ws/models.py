@@ -3,11 +3,13 @@ from __future__ import unicode_literals
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.core.urlresolvers import reverse_lazy
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.validators import RegexValidator
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
+from django.utils.translation import string_concat
 
 from localflavor.us.models import PhoneNumberField
 from localflavor.us.models import USStateField
@@ -210,6 +212,21 @@ class SignUp(models.Model):
         ordering = ["time_created"]
 
 
+class TripInfo(models.Model):
+    drivers = models.ManyToManyField(Participant, blank=True,
+                                     help_text=string_concat("If a trip participant is driving, but is not on this list, they must first submit <a href='",
+                                                             reverse_lazy('update_info'),
+                                                             "#car'>information about their car</a>. They should then be added here."))
+    start_location = models.CharField(max_length=127)
+    start_time = models.CharField(max_length=63)
+    turnaround_time = models.CharField(max_length=63, blank=True,
+                                       help_text="The time at which you'll turn back and head for your car/starting location")
+    return_time = models.CharField(max_length=63, help_text="When you expect to return to your car/starting location and be able to call the WIMP")
+    worry_time = models.CharField(max_length=63, help_text="Suggested: return time +3 hours. If the WIMP has not heard from you after this time and is unable to make contact with any leaders or participants, the authorities will be called.")
+    itinerary = models.TextField(help_text="A detailed account of your trip plan. Where will you be going? What route will you be taking? "
+                                           "Include trails, peaks, intermediate destinations, back-up plans- anything that would help rescuers find you.")
+
+
 class Trip(models.Model):
     creator = models.ForeignKey(Leader, related_name='created_trips')
     leaders = models.ManyToManyField(Leader)
@@ -227,7 +244,7 @@ class Trip(models.Model):
     signups_open_at = models.DateTimeField(default=timezone.now)
     signups_close_at = models.DateTimeField(default=wed_morning, null=True, blank=True)
 
-    worry_time = models.CharField(max_length=63, help_text="If the WIMP has not heard from you after this time and is unable to make contact with any leaders or participants, the authorities will be called.")
+    info = OptionalOneToOneField(TripInfo)
 
     signed_up_participants = models.ManyToManyField(Participant, through=SignUp)
     algorithm = models.CharField(max_length='31', default='lottery',
