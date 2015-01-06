@@ -33,10 +33,14 @@ all participant, leader, and trip information is up to date.</p>
 
 <div id="respond" class="narrow">
     <h2>WIMP information submission</h2>
+    {% if form_available %}
     <form action="" method="post">
         {% csrf_token %}
         {{ form.as_p }}
         <input type="submit" value="Submit" />
     </form>
+    {% else %}
+    <p>This form will be available on {{ friday_before }}.</p>
+    {% endif %}
 </div>
 {% endblock content %}

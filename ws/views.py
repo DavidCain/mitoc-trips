@@ -992,6 +992,22 @@ class TripInfoView(UpdateView):
     template_name = 'trip_info.html'
     form_class = forms.TripInfoForm
 
+    @property
+    def friday_before(self):
+        return dateutils.friday_before(self.trip.trip_date)
+
+    @property
+    def form_available(self):
+        """ Only make form available Friday before trip. """
+        today = local_now().date()
+        return today >= self.friday_before
+
+    def get_context_data(self, **kwargs):
+        context_data = super(TripInfoView, self).get_context_data(**kwargs)
+        context_data['form_available'] = self.form_available
+        context_data['friday_before'] = self.friday_before
+        return context_data
+
     def get_initial(self):
         self.trip = self.object  # Form instance will become object
         return {'trip': self.trip}
@@ -1011,6 +1027,9 @@ class TripInfoView(UpdateView):
         return form
 
     def form_valid(self, form):
+        if not self.form_available:
+            form.errors['__all__'] = ErrorList(["Form not yet available!"])
+            return self.form_invalid(form)
         self.trip.info = form.save()
         self.trip.save()
         return super(TripInfoView, self).form_valid(form)

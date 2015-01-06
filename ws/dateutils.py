@@ -7,6 +7,10 @@ from django.utils import timezone
 from django.conf import settings
 
 
+def friday_before(trip_date):
+    trip_dow = trip_date.weekday()
+    return trip_date - timedelta(days=(trip_dow - 4) % 7)
+
 def local_now():
     return timezone.localtime(timezone.now())
 
