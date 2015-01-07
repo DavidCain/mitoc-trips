@@ -1037,7 +1037,7 @@ class TripInfoView(UpdateView, TripInfoEditable):
     """ A hybrid view for creating/editing trip info for a given trip. """
     model = models.Trip
     context_object_name = 'trip'
-    template_name = 'trip_info.html'
+    template_name = 'trip_itinerary.html'
     form_class = forms.TripInfoForm
 
     def get_context_data(self, **kwargs):

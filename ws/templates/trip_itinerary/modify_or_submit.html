@@ -1,6 +1,6 @@
-<a href="{% url 'trip_info' trip.id %}">{{ trip.info|yesno:"Modify,Submit" }} trip itinerary</a>
+<a href="{% url 'trip_itinerary' trip.id %}">{{ trip.info|yesno:"Modify,Submit" }} trip itinerary</a>
 {% if info_form_available and not trip.info %}
     <strong class='warning'>Must be completed before trip departure!</strong>
 {% elif not trip.info %}
-    (will be available {{ friday_before }}))
+    (will be available {{ friday_before }})
 {% endif %}
