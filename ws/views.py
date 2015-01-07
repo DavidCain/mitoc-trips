@@ -12,7 +12,7 @@ from django.forms.util import ErrorList
 from django.shortcuts import render, redirect
 from django.utils.decorators import method_decorator
 from django.views.generic import (CreateView, DetailView, FormView,
-                                  ListView, TemplateView, UpdateView)
+                                  ListView, TemplateView, UpdateView, View)
 
 from allauth.account.views import PasswordChangeView
 
@@ -23,6 +23,17 @@ from ws.decorators import group_required, user_info_required, admin_only
 from ws import dateutils
 from ws import message_generators
 from ws import signup_utils
+
+
+class LeadersOnlyView(View):
+    @method_decorator(group_required('leaders', 'WSC'))
+    def dispatch(self, request, *args, **kwargs):
+        """ Only allow trip creator, leaders of this trip, and WSC to edit. """
+        trip = self.get_object()
+        wsc = is_wsc(request)
+        if not (leader_on_trip(request, trip, creator_allowed=True) or wsc):
+            return render(request, 'not_your_trip.html')
+        return super(LeadersOnlyView, self).dispatch(request, *args, **kwargs)
 
 
 class LoginAfterPasswordChangeView(PasswordChangeView):
@@ -310,7 +321,7 @@ class TripInfoEditable(object):
         return info_form
 
 
-class AdminTripView(TripView, TripInfoEditable):
+class AdminTripView(TripView, LeadersOnlyView, TripInfoEditable):
     template_name = 'admin_trip.html'
     par_prefix = "ontrip"
     wl_prefix = "waitlist"
@@ -361,15 +372,6 @@ class AdminTripView(TripView, TripInfoEditable):
                     signup.save()
             messages.add_message(request, messages.SUCCESS, "Updated trip")
         return self.get(request, *args, **kwargs)
-
-    @method_decorator(group_required('leaders', 'WSC'))
-    def dispatch(self, request, *args, **kwargs):
-        """ Only allow trip creator, leaders of this trip, and WSC to edit. """
-        trip = self.get_object()
-        wsc = is_wsc(request)
-        if not (leader_on_trip(request, trip, creator_allowed=True) or wsc):
-            return render(request, 'not_your_trip.html')
-        return super(AdminTripView, self).dispatch(request, *args, **kwargs)
 
 
 class ReviewTripView(DetailView):
@@ -660,18 +662,10 @@ class AddTrip(CreateView):
         return super(AddTrip, self).dispatch(request, *args, **kwargs)
 
 
-class EditTrip(UpdateView):
+class EditTrip(UpdateView, LeadersOnlyView):
     model = models.Trip
     form_class = forms.TripForm
     template_name = 'edit_trip.html'
-
-    @method_decorator(group_required('leaders', 'WSC'))
-    def dispatch(self, request, *args, **kwargs):
-        trip = self.get_object()
-        wsc = is_wsc(request)
-        if not (leader_on_trip(request, trip, creator_allowed=True) or wsc):
-            return render(request, 'not_your_trip.html')
-        return super(EditTrip, self).dispatch(request, *args, **kwargs)
 
     def get_success_url(self):
         return reverse('view_trip', args=(self.object.id,))
@@ -1011,7 +1005,8 @@ class WIMPView(ListView, TripMedical, TripInfoEditable):
         return super(WIMPView, self).dispatch(request, *args, **kwargs)
 
 
-class TripMedicalView(DetailView, TripMedical, TripInfoEditable):
+class TripMedicalView(DetailView, LeadersOnlyView, TripMedical,
+                      TripInfoEditable):
     queryset = models.Trip.objects.all()
     template_name = 'trip_medical.html'
 
@@ -1023,17 +1018,8 @@ class TripMedicalView(DetailView, TripMedical, TripInfoEditable):
         context_data.update(self.info_form_context(trip))
         return context_data
 
-    @method_decorator(group_required('leaders', 'WSC'))
-    def dispatch(self, request, *args, **kwargs):
-        """ Only allow trip creator, leaders of this trip and WSC to view. """
-        trip = self.get_object()
-        wsc = is_wsc(request)
-        if not (leader_on_trip(request, trip, creator_allowed=True) or wsc):
-            return render(request, 'not_your_trip.html')
-        return super(TripMedicalView, self).dispatch(request, *args, **kwargs)
 
-
-class TripInfoView(UpdateView, TripInfoEditable):
+class TripInfoView(UpdateView, LeadersOnlyView, TripInfoEditable):
     """ A hybrid view for creating/editing trip info for a given trip. """
     model = models.Trip
     context_object_name = 'trip'
