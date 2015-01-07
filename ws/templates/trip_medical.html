@@ -5,7 +5,7 @@
 {% block content %}
 {{ block.super }}
 
-<h2>Trip Itinerary</h2>
+<h2>Trip Itinerary for '<a href="{% url 'admin_trip' trip.id %}">{{ trip.name }}</a>'</h2>
 {% if not trip.info %}
     {% include 'trip_info/modify_or_submit.html' %}
 {% else %}
@@ -14,7 +14,7 @@
 
 <hr>
 
-<h3>Medical information for '<a href="{% url 'admin_trip' trip.id %}">{{ trip.name }}</a>'</h3>
+<h3>Medical information </h3>
 
 <h4>Participants</h4>
 {% if signups %}

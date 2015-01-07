@@ -7,7 +7,7 @@
 
 {% block content %}
 
-<h2>{{ trip }}: Trip Emergency Information</h2>
+<h2><a href="{% url 'view_trip' trip.id %}">{{ trip }}</a>: Trip Emergency Information</h2>
 
 <p>Before departing on your trip, it's imperative that one of the leaders
 complete the following form. The responses you give here are very important -
