@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load signup_tags %}
+{% load readonly_form %}
 
 {% block content %}
 {{ block.super }}
@@ -19,13 +20,20 @@ or not drive for this weekend's trips.</p>
 <hr>
 
 
-{% for trip, signups, cars in foo %}
+{% for trip, signups, cars, info_form in all_trips %}
 <h3><a href="{% url 'view_trip' trip.id %}">{{ trip.name }}</a></h3>
 
 <ul>
     <li><strong>Date:</strong> {{ trip.trip_date|date:"l, M d" }}</li>
     <li><strong>Description:</strong> {{ trip.description|truncatewords:100 }}</li>
 </ul>
+
+<h4>Itinerary</h4>
+{% if info_form %}
+    {% readonly_form info_form %}
+{% else %}
+    <strong class='warning'>No trip itinerary information submitted!</strong>
+{% endif %}
 
 <h4>Participants</h4>
 {% if signups %}

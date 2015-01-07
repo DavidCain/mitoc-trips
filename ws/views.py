@@ -296,6 +296,19 @@ class TripInfoEditable(object):
         return {'info_form_available': self.info_form_available(trip),
                 'friday_before': self.friday_before(trip)}
 
+    def get_info_form(self, trip):
+        """ Return a stripped form for read-only display.
+
+        Drivers will be displayed separately, and the 'accuracy' checkbox
+        isn't needed for display.
+        """
+        if not trip.info:
+            return None
+        info_form = forms.TripInfoForm(instance=trip.info)
+        info_form.fields.pop('drivers')
+        info_form.fields.pop('accurate')
+        return info_form
+
 
 class AdminTripView(TripView, TripInfoEditable):
     template_name = 'admin_trip.html'
@@ -950,18 +963,31 @@ class TripPreferencesView(TemplateView):
         return super(TripPreferencesView, self).dispatch(request, *args, **kwargs)
 
 
-class TripMedical(object):
+class TripMedical(TripInfoEditable):
+    def get_cars(self, trip):
+        """ Return cars of specified drivers, otherwise all drivers' cars.
+
+        If a trip leader says who's driving in the trip itinerary, then
+        only return those participants' cars. Otherwise, gives all cars.
+        The template will give a note specifying if these were the drivers
+        given by the leader, of if they're all possible drivers.
+        """
+        signups = trip.signup_set.filter(on_trip=True)
+        par_on_trip = (Q(participant__leader__in=trip.leaders.all()) |
+                       Q(participant__signup__in=signups))
+        cars = models.Car.objects.filter(par_on_trip).distinct()
+        if trip.info:
+            cars = cars.filter(participant__in=trip.info.drivers.all())
+        return cars.select_related('participant__lotteryinfo')
+
     def get_trip_info(self, trip):
         signups = trip.signup_set.filter(on_trip=True)
-        on_trip = (Q(participant__leader__in=trip.leaders.all()) |
-                   Q(participant__signup__in=signups))
-        cars = models.Car.objects.filter(on_trip).distinct()
-        cars = cars.select_related('participant__lotteryinfo')
         signups = signups.select_related('participant__emergency_info')
-        return {'trip': trip, 'signups': signups, 'cars': cars}
+        return {'trip': trip, 'signups': signups, 'cars': self.get_cars(trip),
+                'info_form': self.get_info_form(trip)}
 
 
-class WIMPView(ListView, TripMedical):
+class WIMPView(ListView, TripMedical, TripInfoEditable):
     model = models.Trip
     template_name = 'wimp.html'
     context_object_name = 'trips'
@@ -975,8 +1001,9 @@ class WIMPView(ListView, TripMedical):
     def get_context_data(self, **kwargs):
         context_data = super(WIMPView, self).get_context_data(**kwargs)
         by_trip = (self.get_trip_info(trip) for trip in self.get_queryset())
-        context_data['foo'] = [(c['trip'], c['signups'], c['cars'])
-                               for c in by_trip]
+        all_trips = [(c['trip'], c['signups'], c['cars'], c['info_form'])
+                     for c in by_trip]
+        context_data['all_trips'] = all_trips
         return context_data
 
     @method_decorator(group_required('WSC'))
@@ -984,12 +1011,17 @@ class WIMPView(ListView, TripMedical):
         return super(WIMPView, self).dispatch(request, *args, **kwargs)
 
 
-class TripMedicalView(DetailView, TripMedical):
+class TripMedicalView(DetailView, TripMedical, TripInfoEditable):
     queryset = models.Trip.objects.all()
     template_name = 'trip_medical.html'
 
     def get_context_data(self, **kwargs):
-        return self.get_trip_info(self.get_object())
+        """ Get a trip info form for display as readonly. """
+        trip = self.get_object()
+        context_data = self.get_trip_info(trip)
+        context_data['info_form'] = self.get_info_form(trip)
+        context_data.update(self.info_form_context(trip))
+        return context_data
 
     @method_decorator(group_required('leaders', 'WSC'))
     def dispatch(self, request, *args, **kwargs):
@@ -1028,7 +1060,8 @@ class TripInfoView(UpdateView, TripInfoEditable):
         on_trip = (Q(leader__in=self.trip.leaders.all()) |
                    Q(signup__in=signups))
         participants = models.Participant.objects.filter(on_trip).distinct()
-        form.fields['drivers'].queryset = participants
+        has_car_info = participants.filter(car__isnull=False)
+        form.fields['drivers'].queryset = has_car_info
         return form
 
     def form_valid(self, form):

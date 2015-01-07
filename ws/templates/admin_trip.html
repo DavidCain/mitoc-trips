@@ -4,13 +4,7 @@
 {% block content %}
 <h4>Trip actions</h4>
 <ul>
-    <li><a href="{% url 'trip_info' trip.id %}">{{ trip.info|yesno:"Modify,Submit" }} trip itinerary</a>
-        {% if info_form_available and not trip.info %}
-            <strong class='warning'>Must be completed before trip departure!</strong>
-        {% elif not trip.info %}
-            (will be available {{ friday_before }}))
-        {% endif %}
-    </li>
+    <li>{% include 'trip_info/modify_or_submit.html' %}</li>
     <li><a href="{% url 'trip_medical' trip.id %}">Show WIMP info</a></li>
     <li><a href="{% url 'edit_trip' trip.id %}">Edit trip</a></li>
     <li><a href="{% url 'review_trip' trip.id %}">Give participant feedback</a></li>

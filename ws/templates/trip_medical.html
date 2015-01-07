@@ -1,8 +1,18 @@
 {% extends "base.html" %}
 {% load signup_tags %}
+{% load readonly_form %}
 
 {% block content %}
 {{ block.super }}
+
+<h2>Trip Itinerary</h2>
+{% if not trip.info %}
+    {% include 'trip_info/modify_or_submit.html' %}
+{% else %}
+{% readonly_form info_form %}
+{% endif %}
+
+<hr>
 
 <h3>Medical information for '<a href="{% url 'admin_trip' trip.id %}">{{ trip.name }}</a>'</h3>
 
@@ -17,13 +27,19 @@
 {% medical_table trip.leaders.all %}
 
 <h4>Drivers</h4>
+<p>
 {% if not cars %}
-<p>Nobody on this trip submitted information for a car.</p>
+    Nobody on this trip submitted information for a car.
 {% else %}
-<p>The below table is for all trip-goers that submitted car information.
-It may not represent who's actually driving for this trip. The "Car Status"
-column specifies whether they intended to rent a car, drive their own car,
-or not drive for this weekend's trips.</p>
-{% driver_table cars %}
+    {% if not trip.info %}
+        The below table is for all trip-goers that submitted car information.
+        It may not represent who's actually driving for this trip.
+    {% endif %}
+
+    The "Car Status" column specifies whether they intended to rent a car, drive
+    their own car, or not drive for this weekend's trips.
+
+    {% driver_table cars %}
 {% endif %}
+</p>
 {% endblock content %}
