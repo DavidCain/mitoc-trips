@@ -283,7 +283,21 @@ class ViewTrip(TripView):
         return super(ViewTrip, self).dispatch(request, *args, **kwargs)
 
 
-class AdminTripView(TripView):
+class TripInfoEditable(object):
+    def friday_before(self, trip):
+        return dateutils.friday_before(trip.trip_date)
+
+    def info_form_available(self, trip):
+        """ Trip itinerary should only be submitted Friday before or later. """
+        today = local_now().date()
+        return today >= self.friday_before(trip)
+
+    def info_form_context(self, trip):
+        return {'info_form_available': self.info_form_available(trip),
+                'friday_before': self.friday_before(trip)}
+
+
+class AdminTripView(TripView, TripInfoEditable):
     template_name = 'admin_trip.html'
     par_prefix = "ontrip"
     wl_prefix = "waitlist"
@@ -313,6 +327,8 @@ class AdminTripView(TripView):
         context["ontrip_formset"] = ontrip_formset
         context["signups"] = trip_signups.prefetch_related('participant')
         context["trip_completed"] = local_now().date() >= trip.trip_date
+
+        context.update(self.info_form_context(trip))
         return context
 
     def post(self, request, *args, **kwargs):
@@ -985,27 +1001,16 @@ class TripMedicalView(DetailView, TripMedical):
         return super(TripMedicalView, self).dispatch(request, *args, **kwargs)
 
 
-class TripInfoView(UpdateView):
+class TripInfoView(UpdateView, TripInfoEditable):
     """ A hybrid view for creating/editing trip info for a given trip. """
     model = models.Trip
     context_object_name = 'trip'
     template_name = 'trip_info.html'
     form_class = forms.TripInfoForm
 
-    @property
-    def friday_before(self):
-        return dateutils.friday_before(self.trip.trip_date)
-
-    @property
-    def form_available(self):
-        """ Only make form available Friday before trip. """
-        today = local_now().date()
-        return today >= self.friday_before
-
     def get_context_data(self, **kwargs):
         context_data = super(TripInfoView, self).get_context_data(**kwargs)
-        context_data['form_available'] = self.form_available
-        context_data['friday_before'] = self.friday_before
+        context_data.update(self.info_form_context(self.trip))
         return context_data
 
     def get_initial(self):
@@ -1027,7 +1032,7 @@ class TripInfoView(UpdateView):
         return form
 
     def form_valid(self, form):
-        if not self.form_available:
+        if not self.info_form_available(self.trip):
             form.errors['__all__'] = ErrorList(["Form not yet available!"])
             return self.form_invalid(form)
         self.trip.info = form.save()

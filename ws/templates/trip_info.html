@@ -33,7 +33,7 @@ all participant, leader, and trip information is up to date.</p>
 
 <div id="respond" class="narrow">
     <h2>WIMP information submission</h2>
-    {% if form_available %}
+    {% if info_form_available %}
     <form action="" method="post">
         {% csrf_token %}
         {{ form.as_p }}
