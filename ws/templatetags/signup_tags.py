@@ -4,8 +4,9 @@ register = template.Library()
 
 
 @register.inclusion_tag('for_templatetags/signup_table.html')
-def signup_table(signups, has_notes=False):
-    return {'signups': signups, 'has_notes': has_notes}
+def signup_table(signups, has_notes=False, show_drivers=False):
+    return {'signups': signups, 'has_notes': has_notes,
+            'show_drivers': show_drivers}
 
 
 @register.inclusion_tag('for_templatetags/editable_signup_table.html')

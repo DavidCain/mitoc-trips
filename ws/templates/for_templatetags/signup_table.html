@@ -5,6 +5,10 @@
             {% if has_notes %}
             <th data-sort-ignore="true">Notes</th>
             {% endif %}
+            {% if show_drivers %}
+            <th data-sort-ignore="true">Car</th>
+            <th data-sort-ignore="true">Passengers</th>
+            {% endif %}
         </tr>
     </thead>
 
@@ -14,6 +18,11 @@
             <td>{{ signup.participant }}</td>
             {% if has_notes %}
             <td>{{ signup.notes }}</td>
+            {% endif %}
+
+            {% if show_drivers %}
+            <td>{{ signup.participant.lotteryinfo.car_status }}</td>
+            <td>{{ signup.participant.lotteryinfo.number_of_passengers|default_if_none:"" }}</td>
             {% endif %}
         </tr>
         {% endfor %}

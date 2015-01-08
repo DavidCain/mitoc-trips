@@ -245,6 +245,12 @@ class TripView(DetailView):
         trips = super(TripView, self).get_queryset()
         return trips.select_related('leaders__participant', 'waitlist__signups')
 
+    def get_signups(self):
+        """ Signups, with related fields used in templates preselected. """
+        signups = models.SignUp.objects.filter(trip=self.object)
+        signups = signups.select_related('participant__leader')
+        return signups.select_related('participant__lotteryinfo')
+
 
 class ViewTrip(TripView):
     template_name = 'view_trip.html'
@@ -261,15 +267,13 @@ class ViewTrip(TripView):
     def get_context_data(self, **kwargs):
         """ Create form for signup (only if signups open). """
         context = super(ViewTrip, self).get_context_data()
-        trip = context['trip']
+        trip = self.object
         if trip.signups_open:
             signup_form = forms.SignUpForm(initial={'trip': trip})
             signup_form.fields['trip'].widget = HiddenInput()
             context['signup_form'] = signup_form
-        signups = models.SignUp.objects.filter(trip=trip)
-        signups = signups.select_related('participant__leader')
         context['participant_signup'] = self.get_participant_signup(trip)
-        context['signups'] = signups
+        context['signups'] = signups = self.get_signups()
         context['has_notes'] = trip.notes or any(s.notes for s in signups)
         context['signups_on_trip'] = signups.filter(on_trip=True)
         return context
@@ -333,8 +337,8 @@ class AdminTripView(TripView, LeadersOnlyView, TripInfoEditable):
 
     def get_context_data(self, **kwargs):
         context = super(AdminTripView, self).get_context_data()
-        trip = context["trip"]
-        trip_signups = models.SignUp.objects.filter(trip=trip)
+        trip = self.object
+        trip_signups = self.get_signups()
         post = self.request.POST if self.request.method == "POST" else None
         ontrip_queryset = trip_signups.filter(on_trip=True)
         ontrip_formset = self.signup_formset(post, queryset=ontrip_queryset,
