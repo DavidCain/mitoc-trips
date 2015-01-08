@@ -3,6 +3,7 @@ Handle aspects of trip creation/modification when receiving signup changes.
 """
 from __future__ import unicode_literals
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.db.models.signals import pre_save, post_save
@@ -33,8 +34,11 @@ def empty_waitlist(sender, instance, using, **kwargs):
     present, members of the waitlist will be emailed saying they made it on the
     trip (only to see the trip removed).
     """
-    for signup in instance.waitlist.signups.all():
-        signup.delete()
+    try:
+        for signup in instance.waitlist.signups.all():
+            signup.delete()
+    except ObjectDoesNotExist:  # Not all trips will have waitlists
+        pass
 
 
 @receiver(post_delete, sender=SignUp)
