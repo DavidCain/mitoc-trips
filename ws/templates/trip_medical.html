@@ -7,7 +7,7 @@
 
 <h2>Trip Itinerary for '<a href="{% url 'admin_trip' trip.id %}">{{ trip.name }}</a>'</h2>
 {% if not trip.info %}
-    {% include 'trip_info/modify_or_submit.html' %}
+    {% include 'trip_itinerary/modify_or_submit.html' %}
 {% else %}
 {% readonly_form info_form %}
 {% endif %}
