@@ -336,8 +336,8 @@ class AdminTripView(TripView, LeadersOnlyView, TripInfoEditable):
                                     fields=())  # on_trip to manage wait list
 
     def get_context_data(self, **kwargs):
+        trip = self.object = self.get_object()
         context = super(AdminTripView, self).get_context_data()
-        trip = self.object
         trip_signups = self.get_signups()
         post = self.request.POST if self.request.method == "POST" else None
         ontrip_queryset = trip_signups.filter(on_trip=True)
@@ -361,7 +361,7 @@ class AdminTripView(TripView, LeadersOnlyView, TripInfoEditable):
 
     def post(self, request, *args, **kwargs):
         """ Two formsets handle adding/removing people from trip. """
-        context = self.get_context_data()
+        context = self.get_context_data(**kwargs)
         ontrip_formset = context['ontrip_formset']
         waitlist_formset = context['waitlist_formset']
         if (ontrip_formset.is_valid() and waitlist_formset.is_valid()):
@@ -375,7 +375,7 @@ class AdminTripView(TripView, LeadersOnlyView, TripInfoEditable):
                     signup.waitlistsignup.delete()
                     signup.save()
             messages.add_message(request, messages.SUCCESS, "Updated trip")
-        return self.get(request, *args, **kwargs)
+        return redirect(reverse('admin_trip', args=(self.object.id,)))
 
 
 class ReviewTripView(DetailView):
