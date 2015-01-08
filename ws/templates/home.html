@@ -3,6 +3,10 @@
 {% block content %}
 <p> Welcome to Winter School! </p>
 
+{% if "WIMP" in groups %}
+View the <a href="{% url 'wimp' %}">WIMP sheet</a>.
+{% endif %}
+
 {{ block.super }}
 
 {% if user.is_authenticated %}

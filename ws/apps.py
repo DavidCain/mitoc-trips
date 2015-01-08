@@ -22,6 +22,7 @@ class WinterSchoolConfig(AppConfig):
             Group.objects.get_or_create(name='leaders')
             Group.objects.get_or_create(name='users_with_info')
             Group.objects.get_or_create(name='WSC')
+            Group.objects.get_or_create(name='WIMP')
         except (OperationalError, ProgrammingError):
             print "Can't create groups"
             print "Django tables likely not created yet (run migrate)."

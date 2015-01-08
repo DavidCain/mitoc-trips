@@ -1004,7 +1004,7 @@ class WIMPView(ListView, TripMedical, TripInfoEditable):
         context_data['all_trips'] = all_trips
         return context_data
 
-    @method_decorator(group_required('WSC'))
+    @method_decorator(group_required('WSC', 'WIMP'))
     def dispatch(self, request, *args, **kwargs):
         return super(WIMPView, self).dispatch(request, *args, **kwargs)
 
