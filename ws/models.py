@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+from datetime import timedelta
+
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
@@ -14,7 +16,10 @@ from django.utils.translation import string_concat
 from localflavor.us.models import PhoneNumberField
 from localflavor.us.models import USStateField
 from ws.fields import OptionalOneToOneField
-from ws.dateutils import nearest_sat, wed_morning, local_now
+from ws import dateutils
+
+
+pytz_timezone = timezone.get_default_timezone()
 
 
 class SassyMax(MaxValueValidator):
@@ -28,7 +33,7 @@ alphanum = RegexValidator(r'^[a-zA-Z0-9 ]*$',
 class Car(models.Model):
     # As long as this module is reloaded once a year, this is fine
     # (First license plates were issued in Mass in 1903)
-    year_min, year_max = 1903, local_now().year + 2
+    year_min, year_max = 1903, dateutils.local_now().year + 2
     # Loosely validate - may wish to use international plates in the future
     license_plate = models.CharField(max_length=31, validators=[alphanum])
     state = USStateField()
@@ -240,9 +245,9 @@ class Trip(models.Model):
 
     time_created = models.DateTimeField(auto_now_add=True)
     last_edited = models.DateTimeField(auto_now=True)
-    trip_date = models.DateField(default=nearest_sat)
+    trip_date = models.DateField(default=dateutils.nearest_sat)
     signups_open_at = models.DateTimeField(default=timezone.now)
-    signups_close_at = models.DateTimeField(default=wed_morning, null=True, blank=True)
+    signups_close_at = models.DateTimeField(default=dateutils.wed_morning, null=True, blank=True)
 
     info = OptionalOneToOneField(TripInfo)
 
@@ -253,6 +258,20 @@ class Trip(models.Model):
 
     def __unicode__(self):
         return self.name
+
+    @property
+    def after_lottery(self):
+        """ True if it's after the lottery, but takes place before the next one. """
+        # Assumes lotteries take place at same time. Should be 'good enough'
+        next_lottery = dateutils.wed_morning()
+        past_lottery = dateutils.lottery_time(next_lottery - timedelta(7))
+
+        return (dateutils.local_now()> past_lottery and
+                self.midnight_before < next_lottery)
+
+    @property
+    def midnight_before(self):
+        return pytz_timezone.localize(dateutils.midnight_before(self.trip_date))
 
     @property
     def open_slots(self):
@@ -274,18 +293,26 @@ class Trip(models.Model):
         """ True if signups open at some point in the future, else False. """
         return timezone.now() < self.signups_open_at
 
+    def make_fcfs(self, signups_open_at=None):
+        self.algorithm = 'fcfs'
+        self.signups_open_at = signups_open_at or dateutils.local_now()
+        self.signups_close_at = self.midnight_before
+
     def clean(self):
         """ Ensure that all trip dates are reasonable. """
+        if not self.time_created:  # Trip first being created
+            if self.after_lottery:
+                self.make_fcfs()
+            if self.signups_closed:
+                raise ValidationError("Signups can't be closed already!")
+            # Careful here - don't want to disallow editing of past trips
+            if self.trip_date < dateutils.local_now().date():
+                raise ValidationError("Trips can't occur in the past!")
+
         close_time = self.signups_close_at
         if close_time and close_time < self.signups_open_at:
             raise ValidationError("Trips cannot open after they close.")
 
-        if not self.time_created:  # Trip first being created
-            if self.signups_closed:
-                raise ValidationError("Signups can't be closed already!")
-            # Careful here - don't want to disallow editing of past trips
-            if self.trip_date < local_now().date():
-                raise ValidationError("Trips can't occur in the past!")
 
     class Meta:
         ordering = ["-trip_date", "-time_created"]

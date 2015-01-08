@@ -2,7 +2,7 @@
 Some shortcuts to retrieve meaningful dates.
 """
 
-from datetime import datetime, timedelta, time
+from datetime import timedelta
 from django.utils import timezone
 from django.conf import settings
 
@@ -10,6 +10,14 @@ from django.conf import settings
 def friday_before(trip_date):
     trip_dow = trip_date.weekday()
     return trip_date - timedelta(days=(trip_dow - 4) % 7)
+
+
+def midnight_before(trip_date):
+    day_before = trip_date - timedelta(days=1)
+    # Use 11:59 to be clear
+    return timezone.datetime(day_before.year, day_before.month,
+                             day_before.day, 23, 59, 59)
+
 
 def local_now():
     return timezone.localtime(timezone.now())
@@ -30,21 +38,32 @@ def nearest_sat():
     return (now + delta).date()
 
 
+def lottery_time(lottery_date):
+    """ Given a date, return the datetime when lottery trips should close.
+
+    If change the lottery time, modify just this method (others depend on it)
+    """
+    return lottery_date.replace(hour=9, minute=0, second=0, microsecond=0)
+
+
 def wed_morning():
     now = local_now()
     days_til_wed = timedelta((9 - now.weekday()) % 7)
     wed = (now + days_til_wed)
-    return wed.replace(hour=9, minute=0, second=0, microsecond=0)
+    return lottery_time(wed)
 
 
-def closest_wed_at_noon():
-    """ Useful in case lottery is run slightly after noon on Wednesday. """
+def closest_wednesday():
     now = local_now()
     days_til_wed = timedelta((9 - now.weekday()) % 7)
     next_wed = (now + days_til_wed)
     last_wed = next_wed - timedelta(7)
+    return min([next_wed, last_wed], key=lambda dt: abs(now - dt))
 
-    closest_wed = min([next_wed, last_wed], key=lambda dt: abs(now - dt))
+
+def closest_wed_at_noon():
+    """ Useful in case lottery is run slightly after noon on Wednesday. """
+    closest_wed = closest_wednesday()
     return closest_wed.replace(hour=12, minute=0, second=0, microsecond=0)
 
 
