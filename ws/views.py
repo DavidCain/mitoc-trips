@@ -251,6 +251,10 @@ class TripView(DetailView):
         signups = signups.select_related('participant__leader')
         return signups.select_related('participant__lotteryinfo')
 
+    def get_leaders(self):
+        leaders = self.object.leaders.all()
+        return leaders.select_related('participant__lotteryinfo')
+
 
 class ViewTrip(TripView):
     template_name = 'view_trip.html'
@@ -273,6 +277,7 @@ class ViewTrip(TripView):
             signup_form.fields['trip'].widget = HiddenInput()
             context['signup_form'] = signup_form
         context['participant_signup'] = self.get_participant_signup(trip)
+        context['leaders'] = self.get_leaders()
         context['signups'] = signups = self.get_signups()
         context['has_notes'] = trip.notes or any(s.notes for s in signups)
         context['signups_on_trip'] = signups.filter(on_trip=True)

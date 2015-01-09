@@ -13,7 +13,7 @@
     </thead>
 
     <tbody>
-        {% for signup in signups %}
+        {% for signup in signups %} {# Also works well with leaders, so long as has_notes is False #}
         <tr>
             <td>{{ signup.participant }}</td>
             {% if has_notes %}
