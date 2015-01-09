@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
 {% block content %}
-<p>You are not a leader on this trip.</p>
-{# TODO: Give message instructing to contact trip leader? #}
+<h2>Must be a leader to administrate trip</h2>
+<p>You are not a leader on <a href="{% url 'view_trip' trip.id %}">{{ trip.name }}</a>.</p>
 {% endblock content %}

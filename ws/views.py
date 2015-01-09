@@ -32,7 +32,7 @@ class LeadersOnlyView(View):
         trip = self.get_object()
         wsc = is_wsc(request)
         if not (leader_on_trip(request, trip, creator_allowed=True) or wsc):
-            return render(request, 'not_your_trip.html')
+            return render(request, 'not_your_trip.html', {'trip': trip})
         return super(LeadersOnlyView, self).dispatch(request, *args, **kwargs)
 
 
@@ -448,8 +448,9 @@ class ReviewTripView(DetailView):
 
     @method_decorator(group_required('leaders'))
     def dispatch(self, request, *args, **kwargs):
-        if not leader_on_trip(request, self.get_object()):
-            return render(request, 'not_your_trip.html')
+        trip = self.get_object()
+        if not leader_on_trip(request, trip):
+            return render(request, 'not_your_trip.html', {'trip': trip})
         return super(ReviewTripView, self).dispatch(request, *args, **kwargs)
 
 
