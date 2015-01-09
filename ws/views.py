@@ -255,6 +255,13 @@ class TripView(DetailView):
         leaders = self.object.leaders.all()
         return leaders.select_related('participant__lotteryinfo')
 
+    def get_context_data(self, **kwargs):
+        """ Create form for signup (only if signups open). """
+        context = super(TripView, self).get_context_data()
+        context['leaders'] = self.get_leaders()
+        context['signups'] = self.get_signups()
+        return context
+
 
 class ViewTrip(TripView):
     template_name = 'view_trip.html'
@@ -271,14 +278,13 @@ class ViewTrip(TripView):
     def get_context_data(self, **kwargs):
         """ Create form for signup (only if signups open). """
         context = super(ViewTrip, self).get_context_data()
+        signups = context['signups']
         trip = self.object
         if trip.signups_open:
             signup_form = forms.SignUpForm(initial={'trip': trip})
             signup_form.fields['trip'].widget = HiddenInput()
             context['signup_form'] = signup_form
         context['participant_signup'] = self.get_participant_signup(trip)
-        context['leaders'] = self.get_leaders()
-        context['signups'] = signups = self.get_signups()
         context['has_notes'] = trip.notes or any(s.notes for s in signups)
         context['signups_on_trip'] = signups.filter(on_trip=True)
         return context
@@ -343,7 +349,7 @@ class AdminTripView(TripView, LeadersOnlyView, TripInfoEditable):
     def get_context_data(self, **kwargs):
         trip = self.object = self.get_object()
         context = super(AdminTripView, self).get_context_data()
-        trip_signups = self.get_signups()
+        trip_signups = context['signups']
         post = self.request.POST if self.request.method == "POST" else None
         ontrip_queryset = trip_signups.filter(on_trip=True)
         ontrip_formset = self.signup_formset(post, queryset=ontrip_queryset,
@@ -358,7 +364,6 @@ class AdminTripView(TripView, LeadersOnlyView, TripInfoEditable):
         context["waitlist_formset"] = waitlist_formset
         context["ontrip_signups"] = ontrip_queryset
         context["ontrip_formset"] = ontrip_formset
-        context["signups"] = trip_signups.prefetch_related('participant')
         context["trip_completed"] = local_now().date() >= trip.trip_date
 
         context.update(self.info_form_context(trip))

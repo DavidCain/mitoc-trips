@@ -2,6 +2,8 @@
 {% load signup_tags %}
 
 {% block content %}
+{{ block.super }}
+
 <h4>Trip actions</h4>
 <ul>
     <li>{% include 'trip_itinerary/modify_or_submit.html' %}</li>
@@ -14,47 +16,52 @@
 {% trip_summary trip %}
 
 {% if trip.signups_open %}
-<p>Signups are open!</p>
+    <p>Signups are open!</p>
 {% elif trip.signups_closed %}
-<p>Signups for this trip are closed.</p>
+    <p>Signups for this trip are closed.</p>
 {% elif trip.signups_not_yet_open %}
-<p>Signups for this trip are not yet open.</p>
+    <p>Signups for this trip are not yet open.</p>
 {% endif %}
 
+
+{% if 'leaders' in groups %}
+    <h3>Leaders</h3>
+    {% signup_table leaders False True %}
+{% endif %}
 
 <h3>Participants ({{ ontrip_formset|length }} / {{ trip.maximum_participants }})</h3>
 
 {% if trip_completed %}
-<p><strong>Please don't remove participants who didn't show up for your trip.</strong>
-Instead, <a href="{% url 'review_trip' trip.id %}">review them as no-shows</a>.</p>
+    <p><strong>Please don't remove participants who didn't show up for your trip.</strong>
+    Instead, <a href="{% url 'review_trip' trip.id %}">review them as no-shows</a>.</p>
 {% endif %}
 
 <form action="" method="post">
-{% csrf_token %}
-{{ ontrip_formset.management_form }}
-{% if ontrip_formset|length %}
-    {% editable_signup_table ontrip_formset %}
-{% else %}
-    <p>This trip is currently empty.</p>
-{% endif %}
+    {% csrf_token %}
+    {{ ontrip_formset.management_form }}
+    {% if ontrip_formset|length %}
+        {% editable_signup_table ontrip_formset %}
+    {% else %}
+        <p>This trip is currently empty.</p>
+    {% endif %}
 
-{{ waitlist_formset.management_form }}
-{% if trip.waitlist.signups %}
-    <h3>Waiting List ({{trip.waitlist.signups.count }}) </h3>
-    {% editable_signup_table waitlist_formset %}
-{% endif %}
+    {{ waitlist_formset.management_form }}
+    {% if trip.waitlist.signups %}
+        <h3>Waiting List ({{trip.waitlist.signups.count }}) </h3>
+        {% editable_signup_table waitlist_formset %}
+    {% endif %}
 
-{% if trip.waitlist.signups or ontrip_formset|length %}
-<input type="submit" value="Submit" />
-<h5>Email all participants</h5>
-<pre>{% for signup in ontrip_signups %}{{ signup.participant.email_addr }}{% if not forloop.last %}, {% endif %}{% endfor %}</pre>
-{% endif %}
+    {% if trip.waitlist.signups or ontrip_formset|length %}
+        <input type="submit" value="Submit" />
+        <h5>Email all participants</h5>
+        <pre>{% for signup in ontrip_signups %}{{ signup.participant.email_addr }}{% if not forloop.last %}, {% endif %}{% endfor %}</pre>
+    {% endif %}
 </form>
 
 {% if signups %}
-<hr>
-<h3>All Signups</h3>
-{% signup_table signups has_notes=True %}
+    <hr>
+    <h3>All Signups</h3>
+    {% signup_table signups has_notes=True %}
 {% endif %}
 
 {% endblock content %}

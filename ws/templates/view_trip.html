@@ -3,82 +3,83 @@
 
 {% block content %}
 {{ block.super }}
+
 {% if "WSC" in groups or user.is_superuser %}
-<h4>WSC functions</h4>
-<ul>
-    <li><a href="{% url 'trip_medical' trip.id %}">WIMP info</a></li>
-    <li><a href="{% url 'edit_trip' trip.id %}">Edit trip</a></li>
-    <li><a href="{% url 'admin_trip' trip.id %}">Admin trip</a></li>
-</ul>
+    <h4>WSC functions</h4>
+    <ul>
+        <li><a href="{% url 'trip_medical' trip.id %}">WIMP info</a></li>
+        <li><a href="{% url 'edit_trip' trip.id %}">Edit trip</a></li>
+        <li><a href="{% url 'admin_trip' trip.id %}">Admin trip</a></li>
+    </ul>
+<hr>
 {% endif %}
+
 {% trip_summary trip %}
 
 {% if trip.signups_open %}
-{% if participant_signup %}
-    {% if trip.algorithm == 'fcfs' and not participant_signup.on_trip and not participant_signup.waitlistsignup %}
-    <p>You've already signed up for this trip, but are neither a participant
-    nor on the waitlist. Most likely, this is because you were
-    <a href="{% url 'view_my_trips' %}">placed on another trip</a>.
-    If you can attend this trip and it does not conflict with any of your
-    other trips (<strong>confirm this with your leaders</strong>), you're
-    free to join this trip.</p>
-    <form action="" method="post">
-        {% csrf_token %}
-        {% if trip.open_slots %}
-            <p>This trip has empty slots. Do you want to be added to this trip?</p>
-            <input type="submit" value="Join trip" />
+    {% if participant_signup %}
+        {% if trip.algorithm == 'fcfs' and not participant_signup.on_trip and not participant_signup.waitlistsignup %}
+            <p>You've already signed up for this trip, but are neither a participant
+            nor on the waitlist. Most likely, this is because you were
+            <a href="{% url 'view_my_trips' %}">placed on another trip</a>.
+            If you can attend this trip and it does not conflict with any of your
+            other trips (<strong>confirm this with your leaders</strong>), you're
+            free to join this trip.</p>
+            <form action="" method="post">
+                {% csrf_token %}
+                {% if trip.open_slots %}
+                    <p>This trip has empty slots. Do you want to be added to this trip?</p>
+                    <input type="submit" value="Join trip" />
+                {% else %}
+                    <p>The trip is full. Do you want to be added to the waitlist?</p>
+                    <input type="submit" value="Join waitlist" />
+                {% endif %}
+            </form>
         {% else %}
-            <p>The trip is full. Do you want to be added to the waitlist?</p>
-            <input type="submit" value="Join waitlist" />
+            <p>You are signed up for this trip.</p>
         {% endif %}
-    </form>
     {% else %}
-    <p>You are signed up for this trip.</p>
+        <p>Signups are open!</p>
+
+        {% if not user.participant.info_current %}
+            <p> You cannot sign up for trips until you <a href="{% url 'update_info' %}">submit personal information.</a></p>
+        {% else %}
+            <form action="{% url 'trip_signup' %}" method="post">
+                {% csrf_token %}
+                {{ signup_form.as_p }}
+                <input type="submit" value="Sign up" />
+            </form>
+        {% endif %}
+
     {% endif %}
-{% else %}
-<p>Signups are open!</p>
-
-{% if not user.participant.info_current %}
-<p> You cannot sign up for trips until you <a href="{% url 'update_info' %}">submit personal information.</a></p>
-{% else %}
-<form action="{% url 'trip_signup' %}" method="post">
-    {% csrf_token %}
-    {{ signup_form.as_p }}
-    <input type="submit" value="Sign up" />
-</form>
-{% endif %}
-
-{% endif %}
 
 {% elif trip.signups_closed %}
-<p>Signups for this trip are closed.</p>
+    <p>Signups for this trip are closed.</p>
 {% elif trip.signups_not_yet_open %}
-<p>Signups for this trip are not yet open.</p>
+    <p>Signups for this trip are not yet open.</p>
 {% endif %} {# No else - the three states should cover all cases #}
 
 {% if 'leaders' in groups %}
-<h3>Leaders</h3>
-{% signup_table leaders False True %}
+    <h3>Leaders</h3>
+    {% signup_table leaders False True %}
 {% endif %}
 
 {% if signups_on_trip %}
-<h3>Participants ({{ signups_on_trip.count }} / {{ trip.maximum_participants }})</h3>
-{% signup_table signups_on_trip has_notes user.participant.leader %}
+    <h3>Participants ({{ signups_on_trip.count }} / {{ trip.maximum_participants }})</h3>
+    {% signup_table signups_on_trip has_notes user.participant.leader %}
 
-{% if signups_on_trip %}
-<h5>Email all participants</h5>
-<pre>{% for signup in signups_on_trip %}{{ signup.participant.email_addr }}{% if not forloop.last %}, {% endif %}{% endfor %}</pre>
-{% endif %}
+    <h5>Email all participants</h5>
+    <pre>{% for signup in signups_on_trip %}{{ signup.participant.email_addr }}{% if not forloop.last %}, {% endif %}{% endfor %}</pre>
 {% endif %}
 
 {% if trip.waitlist.signups %}
-<h3>Waiting List ({{trip.waitlist.signups.count }}) </h3>
-{% signup_table trip.waitlist.signups has_notes user.participant.leader %}
+    <h3>Waiting List ({{trip.waitlist.signups.count }}) </h3>
+    {% signup_table trip.waitlist.signups has_notes user.participant.leader %}
 {% endif %}
 
 {% if signups %}
-<h3>All Signups</h3>
-{% signup_table signups has_notes %}
+    <h3>All Signups</h3>
+    {% signup_table signups has_notes %}
 {% endif %}
 
 {% endblock content %}
