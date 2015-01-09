@@ -1,0 +1,46 @@
+{% extends "help/home.html" %}
+{% block content %}
+{{ block.super }}<hr>
+
+<h4 id="trip_approval">How does does the WSC approve trips?</h4>
+<p>To mark a trip as approved, use the <a href="{% url 'manage_trips' %}">trip management interface</a>. Simply tick each
+trip as approved, and click submit.</p>
+
+<h4 id="trip_approval">How do trips lose approval?</h4>
+<p>If trip leaders edit the trip itself, they will lose its approval. Leaders are
+given a warning about this behavior if their trip is already approved.</p>
+
+<p>
+Previously approved trips lose their approval when:
+<ul>
+    <li>A trip leader edits any field of the trip. This includes the leader list, trip date, description, etc.</li>
+</ul>
+</p>
+
+<p>
+Trips do <em>not</em> lose approval if:
+<ul>
+    <li>An admin or WSC member edits the trip</li>
+    <li>Leaders submit or modify trip itinerary</li>
+    <li>The participant list changes for any reason</li>
+</ul>
+</p>
+
+<h4 id="lecture_attendance">How do we record lecture attendance?</h4>
+<p>Lecture attendance can always be manually set for any participant on the
+<a href="{% url 'manage_participants' %}">manage participants</a> page.</p>
+<p>A <a href="{% url 'lecture_attendance' %}">special page</a> exists that allows
+participants to enter their login information and be marked as having attended
+lectures. Note that this does not actually log in the participants. The page
+is only viewable to the WSC - committee members are encouraged to bring laptops
+to lecture for sign-in. Alternatively, an admin can temporarily alter
+permissions to allow any participant to view the page.
+</p>
+
+<h4 id="wimp">How is the WIMP specified?</h4>
+<p> A comprehensive <a href="{% url 'wimp' %}">sheet for the WIMP</a> is
+available at any time. It lists all the emergency information for all upcoming
+trips. This page is viewable only to members of the WSC and designated WIMPs.
+To specify a WIMP for a given week, have an admin add the participant to the
+WIMP group.</p>
+{% endblock %}

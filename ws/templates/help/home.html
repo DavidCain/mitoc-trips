@@ -15,4 +15,11 @@
     <li><a href="{% url 'help-feedback' %}">Feedback</a></li>
 </ul>
 {% endif %}
+
+{% if "WSC" in groups or user.is_superuser %}
+<h3> WSC Topics </h3>
+<ul id='wsc_topics'>
+    <li><a href="{% url 'help-wsc' %}">Winter Safety Committee</a></li>
+</ul>
+{% endif %}
 {% endblock content %}
