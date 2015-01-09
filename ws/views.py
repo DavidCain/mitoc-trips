@@ -1092,7 +1092,13 @@ class LectureAttendanceView(FormView):
             return self.form_invalid(form)
 
     def record_attendance(self, user):
-        user.participant.attended_lectures = True
-        user.participant.save()
-        success_msg = 'Lecture attendance recorded for {}'.format(user.email)
-        messages.add_message(self.request, messages.SUCCESS, success_msg)
+        try:
+            user.participant.attended_lectures = True
+        except ObjectDoesNotExist:
+            msg = ("Personal info required to sign in to lectures. "
+                   "Log in to your personal account, then visit this page.")
+            messages.add_message(self.request, messages.ERROR, msg)
+        else:
+            user.participant.save()
+            success_msg = 'Lecture attendance recorded for {}'.format(user.email)
+            messages.add_message(self.request, messages.SUCCESS, success_msg)
