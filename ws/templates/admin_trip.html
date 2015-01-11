@@ -1,6 +1,11 @@
 {% extends "messages_page.html" %}
 {% load signup_tags %}
 
+{% block head %}
+{{ block.super }}
+{{ leader_signup_form.media }}
+{% endblock head %}
+
 {% block content %}
 {{ block.super }}
 
@@ -47,6 +52,22 @@ so that you can <a href="{% url 'review_trip' trip.id %}">review them as no-show
         <p>This trip is currently empty.</p>
     {% endif %}
 
+    {% if trip.algorithm == 'fcfs' %}
+        <div id="respond" class="narrow">
+            <h4>Priority add participants / bump existing participants</h4>
+            <p>Participants added through this form will be placed on the trip if open slots are available,
+            or given priority on the waiting list if all slots are filled.</p>
+            <p>If the participant already signed up, they will be given priority.</p>
+            {{ leader_signup_form.as_p }}
+        </div>
+    {% endif %}
+    {% if trip.algorithm == 'fcfs' or ontrip_formset|length %}
+        <input type="submit" value="Update participants" />
+        <hr>
+    {% endif %}
+
+
+
     {{ waitlist_formset.management_form }}
     {% if trip.waitlist.signups %}
         <h3>Waiting List ({{trip.waitlist.signups.count }}) </h3>
@@ -55,7 +76,6 @@ so that you can <a href="{% url 'review_trip' trip.id %}">review them as no-show
     {% endif %}
 
     {% if trip.waitlist.signups or ontrip_formset|length %}
-        <input type="submit" value="Submit" />
         <h5>Email all participants</h5>
         <pre>{% for signup in ontrip_signups %}{{ signup.participant.email_addr }}{% if not forloop.last %}, {% endif %}{% endfor %}</pre>
     {% endif %}
@@ -64,6 +84,8 @@ so that you can <a href="{% url 'review_trip' trip.id %}">review them as no-show
 {% if signups %}
     <hr>
     <h3>All Signups</h3>
+    <small>Note: this is not the waiting list. Instead, these are all signups - including those of
+        participants who may have been placed on other trips.</small>
     {% signup_table signups has_notes=True %}
 {% endif %}
 

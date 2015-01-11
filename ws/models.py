@@ -408,3 +408,17 @@ class WaitList(models.Model):
     def signups(self):
         # Don't know of any way to apply this ordering to signups field
         return self.unordered_signups.order_by('waitlistsignup')
+
+    @property
+    def first_of_priority(self):
+        """ The 'manual_order' value to be first in the waitlist. """
+        first_wl_signup = self.waitlistsignup_set.first()
+        max_order = first_wl_signup.manual_order or 9  # Could be None
+        return max_order + 1
+
+    @property
+    def last_of_priority(self):
+        """ The 'manual_order' value to be priority, but below others. """
+        last_wl_signup = self.waitlistsignup_set.last()
+        min_order = last_wl_signup.manual_order or 11  # Could be None
+        return min_order - 1

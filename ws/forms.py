@@ -1,11 +1,11 @@
 from django import forms
-from django.db.models import Q
 
 import django_select2.widgets
 from django_select2.fields import ModelSelect2MultipleField
 from localflavor.us.us_states import US_STATES
 
 from ws import models
+from ws import signup_utils
 
 
 class RequiredModelForm(forms.ModelForm):
@@ -100,6 +100,22 @@ class SignUpForm(RequiredModelForm):
         fields = ['trip', 'notes']
 
 
+class LeaderSignUpForm(RequiredModelForm):
+    top_spot = forms.BooleanField(required=False, label='Move to top spot',
+                                  help_text='Move the participant above other prioritized waitlist spots (e.g. participants previously added with this form, or those who were bumped off to allow a driver on)')
+
+    class Meta:
+        model = models.SignUp
+        fields = ['participant', 'notes']
+        widgets = {'participant': django_select2.widgets.Select2Widget,
+                   'notes': forms.Textarea(attrs={'rows': 4})}
+
+    def __init__(self, trip, *args, **kwargs):
+        super(LeaderSignUpForm, self).__init__(*args, **kwargs)
+        self.fields['participant'].queryset = signup_utils.non_trip_participants(trip)
+        self.fields['participant'].help_text = None  # Disable "Hold command..."
+
+
 class LotteryInfoForm(forms.ModelForm):
     class Meta:
         model = models.LotteryInfo
@@ -133,13 +149,7 @@ class FlakeForm(forms.Form):
 
     def __init__(self, trip, *args, **kwargs):
         super(FlakeForm, self).__init__(*args, **kwargs)
-        non_trip_pars = models.Participant.objects.all()
-        signups = trip.signup_set.filter(on_trip=True)
-        par_on_trip = (Q(leader__in=trip.leaders.all()) |
-                       Q(signup__in=signups))
-        non_trip_pars = non_trip_pars.exclude(par_on_trip)
-
-        self.fields['flakers'].queryset = non_trip_pars
+        self.fields['flakers'].queryset = signup_utils.non_trip_participants(trip)
         self.fields['flakers'].help_text = None  # Disable "Hold command..."
 
 

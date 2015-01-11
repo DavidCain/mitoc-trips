@@ -23,6 +23,7 @@ from ws.decorators import group_required, user_info_required, admin_only
 from ws import dateutils
 from ws import message_generators
 from ws import signup_utils
+from ws.signup_utils import trip_or_wait, prioritize_wl_signup
 
 
 class LeadersOnlyView(View):
@@ -373,16 +374,42 @@ class AdminTripView(TripView, LeadersOnlyView, TripInfoEditable):
         context["ontrip_signups"] = ontrip_queryset
         context["ontrip_formset"] = ontrip_formset
         context["trip_completed"] = local_now().date() >= trip.trip_date
+        leader_form = forms.LeaderSignUpForm(trip, post, empty_permitted=True)
+        context["leader_signup_form"] = leader_form
 
         context.update(self.info_form_context(trip))
         return context
+
+    def handle_leader_signup(self, form):
+        """ Handle a leader manually signing up a participant. """
+        signup = form.save(commit=False)
+        signup.trip = self.object
+        signup.save()  # Signals automatically call trip_or_wait()
+
+        try:  # After signals process the signup, check if waitlisted
+            wl_signup = models.WaitListSignup.objects.get(signup=signup)
+        except models.WaitListSignup.DoesNotExist:
+            pass  # Signup went straight to trip, no prioritizing needed
+        else:
+            top_spot = form.cleaned_data['top_spot']
+            prioritize_wl_signup(wl_signup, top_spot)
+            base = "{} given {}priority on the waiting list"
+            msg = base.format(signup.participant, "top " if top_spot else "")
+            messages.add_message(self.request, messages.SUCCESS, msg)
 
     def post(self, request, *args, **kwargs):
         """ Two formsets handle adding/removing people from trip. """
         context = self.get_context_data(**kwargs)
         ontrip_formset = context['ontrip_formset']
         waitlist_formset = context['waitlist_formset']
-        if (ontrip_formset.is_valid() and waitlist_formset.is_valid()):
+        leader_signup_form = context['leader_signup_form']
+        all_forms = [ontrip_formset, waitlist_formset, leader_signup_form]
+
+
+        if all(form.is_valid() for form in all_forms):
+            if leader_signup_form.cleaned_data:
+                self.handle_leader_signup(leader_signup_form)
+
             ontrip_formset.save()
             # Anybody added from waitlist needs to be removed from waitlist
             for signup in waitlist_formset.save():

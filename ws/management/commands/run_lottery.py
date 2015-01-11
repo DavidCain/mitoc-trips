@@ -8,6 +8,7 @@ from django.db.models import Q
 from django.utils import timezone
 
 from ws import dateutils
+from ws.signup_utils import prioritize_wl_signup
 from ws import models
 from datetime import date, timedelta
 
@@ -96,21 +97,6 @@ def lowest_non_driver(trip):
     return max(non_drivers, key=lambda signup: priority_key(signup.participant))
 
 
-def priority_add(waitlist_signup):
-    """ Add the signup towards the top of the list.
-
-    Place below all other previous priority waitlist spots, but above
-    standard waitlist entries.
-
-    A standard use case for this is when a participant is displaced by a driver
-    (they were on the trip, so they should go to the top of the waitlist).
-    """
-    last_wl_signup = waitlist_signup.waitlist.waitlistsignup_set.last()
-    min_order = last_wl_signup.manual_order or 11  # Could be None
-    waitlist_signup.manual_order = min_order - 1
-    waitlist_signup.save()
-
-
 def add_to_waitlist(signup, priority_spot=False):
     """ Put a given signup on its corresponding trip's wait list. """
     print "Adding {} to the waiting list for {}.".format(signup.participant, signup.trip)
@@ -120,7 +106,7 @@ def add_to_waitlist(signup, priority_spot=False):
     # Ensure not already waitlisted
     try:
         if signup.waitlistsignup:
-            return priority_spot and priority_add(signup.waitlistsignup)
+            return priority_spot and prioritize_wl_signup(signup.waitlistsignup)
     except ObjectDoesNotExist:
         pass
 
@@ -131,7 +117,7 @@ def add_to_waitlist(signup, priority_spot=False):
     wl_signup = models.WaitListSignup.objects.create(signup=signup,
                                                      waitlist=waitlist)
     if priority_spot:
-        priority_add(wl_signup)
+        prioritize_wl_signup(wl_signup)
 
 
 def free_for_all():
