@@ -1,7 +1,18 @@
 {% extends "messages_page.html" %}
 {% load signup_tags %}
 
+{% block head %}
+    {{ block.super }}
+    {{ flake_form.media }}
+    <style>  {# Simple, doesn't need its own stylesheet. #}
+    .select2-container {
+        width: 18em;
+    }
+</style>
+{% endblock head %}
+
 {% block content %}
+{{ block.super }}
 {% if not trip_completed %}
 <p><strong>This trip has not yet completed.</strong> Please check back on {{ trip.trip_date|date:"F jS" }} or later!</p>
 {% endif %}
@@ -9,7 +20,11 @@
 
 <h3>Post-trip tasks</h3>
 
-<p>After your trip has completed, plase complete reviews for each participant.</p>
+<p>After your trip has completed, plase complete reviews for each participant.
+For help on participant reviews, see the <a href="{% url 'help-feedback'%}">help pages</a>.</p>
+If a participant had extraordinary circumstances that prevented their attendance,
+and you don't wish to consider them as having "flaked" please remove their
+signup on your <a href="{% url 'admin_trip' trip.id %}">trip admin page.</a></p>
 
 
 {% if trip_completed %}
@@ -39,6 +54,10 @@
         {% endfor %}
     </tbody>
 </table>
+<p>Please note any participants that did not show for your trip below. Upon
+form submission, you'll have a chance to add any comments if you wish.</p>
+
+{{ flake_form.as_p }}
 
 <input type="submit" value="Submit" />
 </form>

@@ -393,16 +393,29 @@ class ReviewTripView(DetailView):
     context_object_name = 'trip'
     template_name = 'review_trip.html'
     success_msg = "Thanks for your feedback"
+    flake_msg = "Feel free to elaborate on why flaking participants didn't show"
 
     @property
     def feedback_formset(self):
         return modelformset_factory(models.Feedback, extra=0)
 
+    def create_flake_feedback(self, trip, leader, participants):
+        flaky = {'showed_up': False, 'comments': " ",
+                 'leader': leader, 'trip': trip}
+        for participant in participants:
+            if not models.Feedback.objects.filter(leader=leader, trip=trip,
+                                                  participant=participant):
+                models.Feedback.objects.create(participant=participant, **flaky)
+
     def post(self, request, *args, **kwargs):
+        flake_form = self.flake_form
         feedback_list = self.feedback_list
-        if all(form.is_valid() for participant, form in feedback_list):
+
+        if (all(form.is_valid() for participant, form in feedback_list) and
+                flake_form.is_valid()):
             leader = request.user.participant.leader
-            trip = self.get_object()
+            trip = self.object
+
             for participant, form in feedback_list:
                 feedback = form.save(commit=False)
                 feedback.leader = leader
@@ -410,41 +423,64 @@ class ReviewTripView(DetailView):
                 feedback.trip = trip
                 form.save()
 
+            flake_participants = flake_form.cleaned_data['flakers']
+            self.create_flake_feedback(trip, leader, flake_participants)
+
             messages.add_message(request, messages.SUCCESS, self.success_msg)
-            return redirect(reverse('home'))
+            if flake_participants:
+                messages.add_message(request, messages.SUCCESS, self.flake_msg)
+                return redirect(reverse('review_trip', args=(trip.id,)))
+            else:
+                return redirect(reverse('home'))
         return self.get(request, *args, **kwargs)
 
     @property
     def trip_participants(self):
-        trip = self.get_object()
-        accepted_signups = trip.signup_set.filter(on_trip=True)
+        accepted_signups = self.object.signup_set.filter(on_trip=True)
         accepted_signups = accepted_signups.select_related('participant')
         return [signup.participant for signup in accepted_signups]
 
     def get_existing_feedback(self, participant, leader):
-        trip = self.get_object()
+        trip = self.object
         feedback = models.Feedback.objects.filter(participant=participant,
                                                   trip=trip, leader=leader)
         return feedback.first() or None
+
+    @property
+    def flake_form(self):
+        post = self.request.POST if self.request.method == 'POST' else None
+        return forms.FlakeForm(self.object, post)
+
+    def all_flake_feedback(self, leader):
+        trip = self.object
+        feedback = models.Feedback.objects.filter(trip=trip, leader=leader)
+        return feedback.exclude(participant__in=self.trip_participants)
 
     @property
     def feedback_list(self):
         post = self.request.POST if self.request.method == 'POST' else None
         leader = self.request.user.participant.leader
         feedback_list = []
+
         for participant in self.trip_participants:
             instance = self.get_existing_feedback(participant, leader)
             initial = {'participant': participant}
             form = forms.FeedbackForm(post, instance=instance, initial=initial,
                                       prefix=participant.id)
             feedback_list.append((participant, form))
+
+        for feedback in self.all_flake_feedback(leader):
+            form = forms.FeedbackForm(post, instance=feedback, initial=initial,
+                                      prefix=participant.id)
+            feedback_list.append((feedback.participant, form))
         return feedback_list
 
     def get_context_data(self, **kwargs):
         today = local_now().date()
         trip = self.get_object()
         return {"trip": trip, "trip_completed": today >= trip.trip_date,
-                "feedback_list": self.feedback_list}
+                "feedback_list": self.feedback_list,
+                "flake_form": self.flake_form}
 
     @method_decorator(group_required('leaders'))
     def dispatch(self, request, *args, **kwargs):

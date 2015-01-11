@@ -1,6 +1,8 @@
 from django import forms
+from django.db.models import Q
 
 import django_select2.widgets
+from django_select2.fields import ModelSelect2MultipleField
 from localflavor.us.us_states import US_STATES
 
 from ws import models
@@ -124,6 +126,21 @@ class FeedbackForm(RequiredModelForm):
     class Meta:
         model = models.Feedback
         fields = ['comments', 'showed_up']
+
+
+class FlakeForm(forms.Form):
+    flakers = ModelSelect2MultipleField(required=False)
+
+    def __init__(self, trip, *args, **kwargs):
+        super(FlakeForm, self).__init__(*args, **kwargs)
+        non_trip_pars = models.Participant.objects.all()
+        signups = trip.signup_set.filter(on_trip=True)
+        par_on_trip = (Q(leader__in=trip.leaders.all()) |
+                       Q(signup__in=signups))
+        non_trip_pars = non_trip_pars.exclude(par_on_trip)
+
+        self.fields['flakers'].queryset = non_trip_pars
+        self.fields['flakers'].help_text = None  # Disable "Hold command..."
 
 
 class AttendedLecturesForm(forms.Form):

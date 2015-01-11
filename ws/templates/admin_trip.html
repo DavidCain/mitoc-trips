@@ -31,10 +31,8 @@
 
 <h3>Participants ({{ ontrip_formset|length }} / {{ trip.maximum_participants }})</h3>
 
-{% if trip_completed %}
-    <p><strong>Please don't remove participants who didn't show up for your trip.</strong>
-    Instead, <a href="{% url 'review_trip' trip.id %}">review them as no-shows</a>.</p>
-{% endif %}
+<p><strong>When deleting any last-minute drops, please take note of participant names</strong>
+so that you can <a href="{% url 'review_trip' trip.id %}">review them as no-shows</a>.</p>
 
 <form action="" method="post">
     {% csrf_token %}
