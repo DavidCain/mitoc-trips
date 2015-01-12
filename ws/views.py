@@ -412,13 +412,13 @@ class ReviewTripView(DetailView):
                 models.Feedback.objects.create(participant=participant, **flaky)
 
     def post(self, request, *args, **kwargs):
+        trip = self.object = self.get_object()
         flake_form = self.flake_form
         feedback_list = self.feedback_list
 
         if (all(form.is_valid() for participant, form in feedback_list) and
                 flake_form.is_valid()):
             leader = request.user.participant.leader
-            trip = self.object
 
             for participant, form in feedback_list:
                 feedback = form.save(commit=False)
@@ -481,7 +481,7 @@ class ReviewTripView(DetailView):
 
     def get_context_data(self, **kwargs):
         today = local_now().date()
-        trip = self.get_object()
+        trip = self.object = self.get_object()
         return {"trip": trip, "trip_completed": today >= trip.trip_date,
                 "feedback_list": self.feedback_list,
                 "flake_form": self.flake_form}
