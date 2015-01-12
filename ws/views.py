@@ -220,11 +220,13 @@ class SignUpView(CreateView):
         a form with errors (this shouldn't happen, as a template should
         prevent the form from being displayed in the first place).
         """
-        participant = self.request.user.participant
         signup = form.save(commit=False)
-        signup.participant = participant
-        if signup.trip in participant.trip_set.all():
+        signup.participant = self.request.user.participant
+        if signup.trip in signup.participant.trip_set.all():
             form.errors['__all__'] = ErrorList(["Already signed up!"])
+            return self.form_invalid(form)
+        elif not signup.trip.signups_open:  # Guards against direct POST
+            form.errors['__all__'] = ErrorList(["Signups aren't open!"])
             return self.form_invalid(form)
         return super(SignUpView, self).form_valid(form)
 
@@ -385,6 +387,8 @@ class AdminTripView(TripView, LeadersOnlyView, TripInfoEditable):
                     signup.waitlistsignup.delete()
                     signup.save()
             messages.add_message(request, messages.SUCCESS, "Updated trip")
+        else:
+            return self.get(request, *args, **kwargs)
         return redirect(reverse('admin_trip', args=(self.object.id,)))
 
 

@@ -203,10 +203,6 @@ class SignUp(models.Model):
         else:
             if trip.notes and not self.notes:
                 raise ValidationError("Please complete notes to sign up!")
-            if not trip.signups_open:
-                # Interface shouldn't allow this, but a clever person
-                # could try to POST data.  No harm in making sure...
-                raise ValidationError("Signups aren't open for this trip!")
 
     def __unicode__(self):
         return "{} on {}".format(self.participant.name, self.trip)
