@@ -13,6 +13,7 @@ from django.dispatch import receiver
 
 from ws.models import SignUp, WaitList, WaitListSignup, Trip
 from ws.signup_utils import trip_or_wait
+from ws.dateutils import local_now
 
 
 @receiver(post_save, sender=SignUp)
@@ -45,10 +46,17 @@ def empty_waitlist(sender, instance, using, **kwargs):
 def free_spot_on_trip(sender, instance, using, **kwargs):
     """ When somebody drops off a trip, bump up the top waitlist signup.
 
+    Only performs bumping if the trip date hasn't arrived (if a leader is
+    making changes the day of a trip, it's safe to assume the waitlisted
+    spot won't be pulled in in time). Similarly, this would not make
+    room for future signups, as FCFS signups close at midnight before.
+
     This will be triggered when an entire trip is deleted. `empty_waitlist()`
     will ensure that nobody is emailed about a free spot when a trip is
     being deleted.
     """
+    if local_now().date() >= instance.trip.trip_date:
+        return
     if instance.on_trip and instance.trip.algorithm == 'fcfs':
         trip = instance.trip
         first_signup = trip.waitlist.signups.first()
