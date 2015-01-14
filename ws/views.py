@@ -687,7 +687,7 @@ def manage_trips(request):
 @admin_only
 def admin_manage_trips(request):
     TripFormSet = modelformset_factory(models.Trip, can_delete=True, extra=0,
-                                       fields=('algorithm', 'wsc_approved'))
+                                       fields=('wsc_approved',))
     return _manage_trips(request, TripFormSet)
 
 
