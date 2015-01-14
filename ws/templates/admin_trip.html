@@ -31,8 +31,12 @@
 
 <h3>Participants ({{ ontrip_formset|length }} / {{ trip.maximum_participants }})</h3>
 
+{% if ontrip_formset|length %}
 <p><strong>When deleting any last-minute drops, please take note of participant names</strong>
 so that you can <a href="{% url 'review_trip' trip.id %}">review them as no-shows</a>.</p>
+
+<label>Notes:</label> {{ trip.notes }}
+{% endif %}
 
 <form action="" method="post">
     {% csrf_token %}
@@ -46,6 +50,7 @@ so that you can <a href="{% url 'review_trip' trip.id %}">review them as no-show
     {{ waitlist_formset.management_form }}
     {% if trip.waitlist.signups %}
         <h3>Waiting List ({{trip.waitlist.signups.count }}) </h3>
+        <label>Notes:</label> {{ trip.notes }}
         {% editable_signup_table waitlist_formset %}
     {% endif %}
 

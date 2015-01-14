@@ -237,7 +237,9 @@ class Trip(models.Model):
     difficulty_rating = models.CharField(max_length=127)
     prereqs = models.CharField(max_length=255, blank=True)
     wsc_approved = models.BooleanField(default=False)
-    notes = models.TextField(blank=True, max_length=2000)
+    notes = models.TextField(blank=True, max_length=2000,
+                             help_text="Participants must add notes to their signups if you complete this field. "
+                            "This is a great place to ask important questions.")
 
     time_created = models.DateTimeField(auto_now_add=True)
     last_edited = models.DateTimeField(auto_now=True)
