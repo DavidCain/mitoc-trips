@@ -46,6 +46,14 @@ def lottery_time(lottery_date):
     return lottery_date.replace(hour=9, minute=0, second=0, microsecond=0)
 
 
+def next_lottery():
+    lottery_morning = wed_morning()  # Closest Wednesday, at 9 am
+    if local_now() > lottery_morning:  # Today is Wednesday, after lottery
+        return lottery_time(lottery_morning + timedelta(days=7))
+    else:
+        return lottery_morning
+
+
 def wed_morning():
     now = local_now()
     days_til_wed = timedelta((9 - now.weekday()) % 7)

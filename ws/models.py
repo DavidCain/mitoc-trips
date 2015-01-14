@@ -261,10 +261,10 @@ class Trip(models.Model):
     def after_lottery(self):
         """ True if it's after the lottery, but takes place before the next one. """
         # Assumes lotteries take place at same time. Should be 'good enough'
-        next_lottery = dateutils.wed_morning()
+        next_lottery = dateutils.next_lottery()
         past_lottery = dateutils.lottery_time(next_lottery - timedelta(7))
 
-        return (dateutils.local_now()> past_lottery and
+        return (dateutils.local_now() > past_lottery and
                 self.midnight_before < next_lottery)
 
     @property
@@ -292,8 +292,16 @@ class Trip(models.Model):
         return timezone.now() < self.signups_open_at
 
     def make_fcfs(self, signups_open_at=None):
+        """ Set the algorithm to FCFS, adjust signup times appropriately. """
         self.algorithm = 'fcfs'
-        self.signups_open_at = signups_open_at or dateutils.local_now()
+        now = dateutils.local_now()
+        if signups_open_at:
+            self.signups_open_at = signups_open_at
+        elif dateutils.wed_morning() <= now < dateutils.closest_wed_at_noon():
+            # If posted between lottery time and noon, make it open at noon
+            self.signups_open_at = dateutils.closest_wed_at_noon()
+        else:
+            self.signups_open_at = now
         self.signups_close_at = self.midnight_before
 
     def clean(self):
