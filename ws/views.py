@@ -156,11 +156,14 @@ class UpdateParticipantView(TemplateView):
         except KeyError:  # No CarForm posted
             # If the Participant already existed and has a stored Car, delete it
             if participant.car:
-                participant.car.delete()
+                car = participant.car
                 participant.car = None
+                # The car object must be deleted after the participant object
+                participant.save()
+                car.delete()
         else:
             participant.car = car
-        participant.save()
+            participant.save()
 
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
