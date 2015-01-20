@@ -581,6 +581,10 @@ blockquote {
 	margin: 1.6em 0;
 }
 
+td hr {
+    margin: 0.5em 0;
+}
+
 th, td {
 	padding: .3em;
 }

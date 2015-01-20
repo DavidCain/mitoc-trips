@@ -21,7 +21,8 @@
             <td class="nowrap"><a href="{% url 'view_participant' form.instance.participant.id %}">{{ form.instance.participant.name }}</a></td>
             <td>
                 {% for feedback in form.instance.participant.feedback_set.all %}
-                "{{ feedback.comments }}" <br>
+                "{{ feedback.comments }}" - <small>{{ feedback.leader }} on <a href="{% url 'view_trip' feedback.trip.id %}">{{ feedback.trip }}</a></small>
+                {% if not forloop.last %}<hr>{% endif %}
                 {% endfor %}
             </td>
             <td>{{ form.instance.notes }}</td>
