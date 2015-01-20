@@ -4,6 +4,19 @@
 {% block head %}
 {{ block.super }}
 {{ leader_signup_form.media }}
+
+<script>
+    $(document).ready(function(){
+        $("#toggle_action").click(function() {
+            if($('#togglable-content:visible').length)
+                $('#togglable-content').hide();
+            else
+                $('#togglable-content').show();
+            $('#toggle_action').toggleClass('toggled');
+        });
+    });
+</script>
+
 {% endblock head %}
 
 {% block content %}
@@ -54,11 +67,12 @@ so that you can <a href="{% url 'review_trip' trip.id %}">review them as no-show
 
     {% if trip.algorithm == 'fcfs' %}
         <div id="respond" class="narrow">
-            <h4>Priority add participants / bump existing participants</h4>
-            <p>Participants specified on this form will be placed on the trip if open slots are available,
-            or given priority on the waiting list if all slots are filled.</p>
-            <p>If the participant already signed up, they will be given priority.</p>
-            {{ leader_signup_form.as_p }}
+            <h5 id="toggle_action" class="untoggled">Priority add participants / bump existing participants</h5>
+            <div id="togglable-content">
+                <p>Participants specified through this form will be placed on the trip if open slots are available
+                or given priority on the waiting list if all slots are filled.</p>
+                {{ leader_signup_form.as_p }}
+            </div>
         </div>
     {% endif %}
     {% if trip.algorithm == 'fcfs' or ontrip_formset|length %}

@@ -176,3 +176,29 @@
 .footable-odd {
   background-color: #f7f7f7;
 }
+
+
+/* Leverage FooTable defaults to make "togglable" buttons, etc. */
+
+#toggle_action:hover {
+    cursor: pointer;
+}
+
+#toggle_action:before {
+  display: inline-block;
+  font-family: 'footable';
+  -webkit-font-smoothing: antialiased;
+  padding-right: 5px;
+}
+
+#toggle_action:before {
+    content: '\e000';
+}
+
+#toggle_action.toggled:before {
+    content: '\e001';
+}
+
+#togglable-content {
+    display: none;
+}
