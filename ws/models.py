@@ -183,6 +183,19 @@ class SignUp(models.Model):
 
     on_trip = models.BooleanField(default=False)
 
+    @property
+    def other_signups(self):
+        """ Return other relevant signups for this participant.
+
+        The point of this property is to help leaders coordinate driving.
+        """
+        on_trips = self.__class__.objects.filter(on_trip=True,
+                                                 participant=self.participant)
+        others = on_trips.exclude(trip=self.trip)
+        within_three_days = (self.trip.trip_date - timedelta(3),
+                             self.trip.trip_date + timedelta(3))
+        return others.filter(trip__trip_date__range=within_three_days)
+
     def save(self, **kwargs):
         """ Assert that the Participant is not signing up twice.
 

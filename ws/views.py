@@ -357,6 +357,9 @@ class AdminTripView(TripView, LeadersOnlyView, TripInfoEditable):
         trip_signups = context['signups']
         post = self.request.POST if self.request.method == "POST" else None
         ontrip_queryset = trip_signups.filter(on_trip=True)
+        # TODO: We use a _lot_ of related models
+        # - Prefetch all feedback for all participants (signup table)
+        # - Prefetch all signups and related trips for all participants ("Also on")
         ontrip_formset = self.signup_formset(post, queryset=ontrip_queryset,
                                              prefix=self.par_prefix)
 

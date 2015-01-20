@@ -18,7 +18,21 @@
         {{ form.id }}
         <tr>
             {{ form.errors }}
-            <td class="nowrap"><a href="{% url 'view_participant' form.instance.participant.id %}">{{ form.instance.participant.name }}</a></td>
+            <td class="nowrap">
+                <a href="{% url 'view_participant' form.instance.participant.id %}">{{ form.instance.participant.name }}</a>
+                {% if form.instance.other_signups %}
+                    <small>
+                        <br>Also on:
+                    <ul>
+                    {% for signup in form.instance.other_signups %}
+                        <li>
+                            <a href="{% url 'view_trip' signup.trip.id %}">{{ signup.trip }}</a>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                    </small>
+                {% endif %}
+            </td>
             <td>
                 {% for feedback in form.instance.participant.feedback_set.all %}
                 "{{ feedback.comments }}" - <small>{{ feedback.leader }} on <a href="{% url 'view_trip' feedback.trip.id %}">{{ feedback.trip }}</a></small>
