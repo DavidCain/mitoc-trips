@@ -14,6 +14,10 @@
                 $('#togglable-content').show();
             $('#toggle_action').toggleClass('toggled');
         });
+
+        $('input[name*="-DELETE"]').click(function() {
+            $('#deletion_warning').show();
+        });
     });
 </script>
 
@@ -50,9 +54,6 @@
 <h3>Participants ({{ ontrip_formset|length }} / {{ trip.maximum_participants }})</h3>
 
 {% if ontrip_formset|length %}
-<p><strong>When deleting any last-minute drops, please take note of participant names</strong>
-so that you can <a href="{% url 'review_trip' trip.id %}">review them as no-shows</a>.</p>
-
 {% if trip.notes %}<label>Notes:</label> {{ trip.notes }}{% endif %}
 {% endif %}
 
@@ -61,6 +62,11 @@ so that you can <a href="{% url 'review_trip' trip.id %}">review them as no-show
     {{ ontrip_formset.management_form }}
     {% if ontrip_formset|length %}
         {% editable_signup_table ontrip_formset %}
+        <p id="deletion_warning" class="info" style="display:none">
+            <strong>When deleting any last-minute drops, please take note of participant names</strong>
+            so that you can <a href="{% url 'review_trip' trip.id %}">review them as no-shows</a>.
+        </p>
+
     {% else %}
         <p>This trip is currently empty.</p>
     {% endif %}
