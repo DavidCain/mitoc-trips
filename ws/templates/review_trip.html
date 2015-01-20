@@ -32,6 +32,8 @@ signup on your <a href="{% url 'admin_trip' trip.id %}">trip admin page.</a></p>
 {% if not feedback_list %}
 <p>Nobody attended this trip.</p>
 {% else %}
+<p>There's <a href="{% url 'help-feedback' %}#signing_feedback">no need to sign any feedback</a>- comments are automatically linked to both this trip and your account.</p>
+
 <form action="" method="post">
 {% csrf_token %}
 {{ form.non_field_errors }}
