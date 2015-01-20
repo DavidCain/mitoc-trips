@@ -383,10 +383,20 @@ class AdminTripView(TripView, LeadersOnlyView, TripInfoEditable):
     def handle_leader_signup(self, form):
         """ Handle a leader manually signing up a participant. """
         signup = form.save(commit=False)
-        signup.trip = self.object
-        signup.save()  # Signals automatically call trip_or_wait()
 
-        try:  # After signals process the signup, check if waitlisted
+        # If existing signup exists, use that. Otherwise, create new signup
+        try:
+            existing = models.SignUp.objects.get(participant=signup.participant,
+                                                 trip=self.object)
+        except models.SignUp.DoesNotExist:
+            signup.trip = self.object
+            signup.save()  # Signals automatically call trip_or_wait()
+        else:
+            signup = existing
+            signup_utils.trip_or_wait(signup, self.request)
+
+        # Check if waitlisted. If so, apply prioritization
+        try:
             wl_signup = models.WaitListSignup.objects.get(signup=signup)
         except models.WaitListSignup.DoesNotExist:
             pass  # Signup went straight to trip, no prioritizing needed

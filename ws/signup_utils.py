@@ -5,6 +5,10 @@ from ws import models
 
 
 def trip_or_wait(signup, request=None):
+    if signup.on_trip:  # Sanity check
+        add_message(request, ERROR, "Already on trip!")
+        return
+
     trip = signup.trip
     if trip.signups_open and trip.algorithm == 'fcfs':
         if trip.open_slots:  # There's room, sign them up!
@@ -12,9 +16,12 @@ def trip_or_wait(signup, request=None):
             signup.save()
             request and add_message(request, SUCCESS, "Signed up!")
         else:  # If no room, add them to the waiting list
-            models.WaitListSignup.objects.create(signup=signup,
-                                                 waitlist=trip.waitlist)
-            request and add_message(request, SUCCESS, "Added to waitlist.")
+            try:  # Check if already on waiting list (do nothing if so)
+                models.WaitListSignup.objects.get(signup=signup)
+            except models.WaitListSignup.DoesNotExist:
+                models.WaitListSignup.objects.create(signup=signup,
+                                                    waitlist=trip.waitlist)
+                request and add_message(request, SUCCESS, "Added to waitlist.")
     elif request:
         trip_not_eligible = "Trip is not an open first-come, first-serve trip"
         add_message(request, ERROR, trip_not_eligible)

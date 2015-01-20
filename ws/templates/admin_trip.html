@@ -55,7 +55,7 @@ so that you can <a href="{% url 'review_trip' trip.id %}">review them as no-show
     {% if trip.algorithm == 'fcfs' %}
         <div id="respond" class="narrow">
             <h4>Priority add participants / bump existing participants</h4>
-            <p>Participants added through this form will be placed on the trip if open slots are available,
+            <p>Participants specified on this form will be placed on the trip if open slots are available,
             or given priority on the waiting list if all slots are filled.</p>
             <p>If the participant already signed up, they will be given priority.</p>
             {{ leader_signup_form.as_p }}
