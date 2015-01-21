@@ -1,0 +1,102 @@
+{% extends "help/home.html" %}
+{% block content %}
+{{ block.super }}<hr>
+<h4 id="about">What is the trip admin view?</h4>
+<p>The trip administration view is similar to the trip-viewing page that
+everyone else sees, but it includes some features available only to the
+trip's creator and the leaders on the trip. Key features include the ability
+to:</p>
+
+<ul>
+    <li>Edit trip details</li>
+    <li>Modify the participant list</li>
+    <li>View trip medical information</li>
+    <li>Submit trip itinerary to the WIMP</li>
+    <li>Give participant feedback</li>
+</ul>
+
+<p>To explore the trip admin interface, you can navigate to your trip's
+viewing page (e.g. through <a href="{% url 'view_trips' %}">upcoming trips</a>).
+You'll be automatically redirected to the trip administration page.
+You can also go directly to trip administration at
+<a href="{% url 'view_leader_trips' %}">trips you're leading</a></p>
+
+<h4 id="before_trip">What do I need to do before leaving on my trip?</h4>
+<p>
+<small><em>Disclaimer:</em> These are the steps that need to take place on the web
+    site. This does not include standard Winter School pre-trip procedures.
+</small>
+<ul>
+    <li>
+        Ensure that the participant list is accurate: remove anyone who's not
+        on your trip, and <a href="#leader_added">manually add</a> anyone who
+        doesn't appear on the participant roster.
+    </li>
+    <li>Make sure that all participant (and leader) information is accurate.</li>
+    <li>Submit your <a href="#trip_itinerary">trip itinerary</a> to the WIMP.</li>
+</ul>
+
+<h4 id="before_trip">What do I need to do after my trip?</h4>
+<p><a href="{% url 'help-feedback' %}">Leave feedback!</a></p>
+
+<h4 id="trip_medical">How do I view everyone's contact or medical information?</h4>
+<p>You can always click on a participant's name for a detailed summary of their information.
+However, if you'd like to see a summary of everyone on your trip (leaders
+included), click on "show WIMP info." The linked page will include medical
+information and contact information for each person on your trip.</p>
+
+<h4 id="trip_itinerary">What do I put in the trip itinerary?</h4>
+<p>Your trip itinerary should contain everything that a rescue party would
+want to know. It should contain at minimum which cars are driving for your
+trip, a complete list of participants, and accurate medical information for
+everyone. It should also contain a detailed description of your group's
+intentions. Your plans may change, so you are encouraged to update your
+itinerary as often as needed to ensure it's up-to-date. The WIMP will always
+have access to the most recent trip itinerary.</p>
+
+<h4 id="signups">How do signups work?</h4>
+<p>A "signup" denotes that a participant has shown interest in your trip.
+When your trip is in lottery mode, participants can freely sign up without
+being placed on your trip or its wait list. The lottery algorithm will later
+decide if they should be placed on your trip (for more information, see
+the <a href="{% url 'help-lottery' %}">lottery help pages</a>).</p>
+
+<p>When your trip is in "first-come, first-serve" mode, any participants
+signing up will immediately be placed on your trip or on the next available
+spot on the waiting list.</p>
+
+<h4 id="waitlist">How does the waitlist work?</h4>
+<p>The waitlist is an ordered queue of participant signups. Whenever a spot
+opens up on your trip, the first signup from the queue is automatically added
+to your trip. When a participant is placed on a trip, he or she receives an
+email urging them to contact that trip's leaders.</p>
+
+<h4 id="priority">How is the waitlist ordered?</h4>
+<p>Normally, when a signup is added to the waitlist, that signup goes to
+the bottom. However, under certain circumstances, the signup can be added
+towards the top. For example, if a participant
+<a href="{% url 'help-lottery' %}#driver_priority">loses their trip spot to a driver</a>,
+they will go to the top of the list. Additionally, leaders can add participants
+directly to the trip. If the trip is full, leader-added participants will be placed
+towards to the top of the waiting list.</p>
+
+<h4 id="leader_added">How do leader-added signups work?</h4>
+<p>Normally, participants will sign themselves up for a trip. However, under
+certain circumstances, a leader may want to sign up participants. For example,
+a participant may be a last-minute addition, and the leader wants to ensure
+that the participant list is accurate for the WIMP form. Alternatively,
+a given participant may be needed so that the trip has enough drivers. The
+leader can add this participant (or bump an existing signup) so that he or she
+bypasses the waiting list queue.</p>
+
+<p>When using the manual participant signup form, participants are normally
+placed above existing waitlist signups, but below other prioritized signups
+(such as participants who were bumped due to lack of drivers). Leaders can
+optionally override this behavior so that the signup in question goes to
+the absolute first position in the waitlist.</p>
+
+<h4 id="trip_creation">Can I create a trip where I'm not a leader?</h4>
+<p>Yes. You can create trips for other leaders and retain the ability
+to administer that trip.</p>
+
+{% endblock content %}
