@@ -62,4 +62,7 @@ urlpatterns = patterns('',
     url(r'^help/leaders/feedback/$', group_required('leaders', 'WSC')(TemplateView.as_view(template_name='help/leaders/feedback.html')), name='help-feedback'),
     url(r'^help/leaders/trip_admin/$', group_required('leaders', 'WSC')(TemplateView.as_view(template_name='help/leaders/trip_admin.html')), name='help-trip_admin'),
     url(r'^help/wsc/wsc/$', group_required('WSC')(TemplateView.as_view(template_name='help/wsc/wsc.html')), name='help-wsc'),
+
+    # API (must have account in system)
+    url(r'^api/check_trip_overflow/(?P<pk>\d+)', views.CheckTripOverflow.as_view(), name='check_trip_overflow'),
 ) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
