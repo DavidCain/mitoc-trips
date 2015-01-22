@@ -152,19 +152,22 @@ class UpdateParticipantView(TemplateView):
         participant = post_forms['participant_form'].save(commit=False)
         participant.user = user
         participant.emergency_info = e_info
+
+        del_car = False
         try:
             car = post_forms['car_form'].save()
         except KeyError:  # No CarForm posted
-            # If the Participant already existed and has a stored Car, delete it
+            # If Participant existed and has a stored Car, mark it for deletion
             if participant.car:
                 car = participant.car
                 participant.car = None
-                # The car object must be deleted after the participant object
-                participant.save()
-                car.delete()
+                del_car = True
         else:
             participant.car = car
-            participant.save()
+
+        participant.save()
+        if del_car:
+            car.delete()
 
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
