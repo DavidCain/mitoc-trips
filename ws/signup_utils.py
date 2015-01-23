@@ -21,7 +21,8 @@ def add_to_waitlist(signup, request=None, prioritize=False, top_spot=False):
     return wl_signup
 
 
-def trip_or_wait(signup, request=None, prioritize=False, top_spot=False):
+def trip_or_wait(signup, request=None, prioritize=False, top_spot=False,
+                 trip_must_be_open=False):
     """ Given a signup object, attempt to place the participant on the trip.
 
     If the trip is full, instead place that person on the waiting list.
@@ -29,9 +30,10 @@ def trip_or_wait(signup, request=None, prioritize=False, top_spot=False):
     :param request: If given, will supply messages to the request
     :param prioritize: Give any waitlist signup priority
     :param top_spot: Give any waitlist signup top priority
+    :param trip_must_be_open: If true, don't sign up on closed trip
     """
     trip = signup.trip
-    if trip.signups_open and trip.algorithm == 'fcfs':
+    if trip.algorithm == 'fcfs' and (trip.signups_open or not trip_must_be_open):
         try:
             wl_signup = models.WaitListSignup.objects.get(signup=signup)
         except models.WaitListSignup.DoesNotExist:

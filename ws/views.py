@@ -314,7 +314,7 @@ class ViewTrip(TripView):
         Used if the participant has signed up, but wasn't placed.
         """
         signup = self.get_participant_signup()
-        signup_utils.trip_or_wait(signup, self.request)
+        signup_utils.trip_or_wait(signup, self.request, trip_must_be_open=True)
         return self.get(request)
 
     @method_decorator(login_required)
