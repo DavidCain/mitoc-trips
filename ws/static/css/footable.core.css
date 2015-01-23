@@ -180,10 +180,12 @@
 
 /* Leverage FooTable defaults to make "togglable" buttons, etc. */
 
+.expand:hover,
 #toggle_action:hover {
     cursor: pointer;
 }
 
+.expand:before,
 #toggle_action:before {
   display: inline-block;
   font-family: 'footable';
@@ -191,6 +193,7 @@
   padding-right: 5px;
 }
 
+.expand:before,
 #toggle_action:before {
     content: '\e000';
 }

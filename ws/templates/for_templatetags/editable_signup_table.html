@@ -5,7 +5,6 @@
             <th data-hide="phone,tablet" data-sort-ignore="true">Feedback</th>
             <th data-hide="phone,tablet" data-sort-ignore="true">Notes</th>
             <th data-sort-ignore="true">Car</th>
-            <th data-sort-ignore="true">Passengers</th>
             {% if formset.can_delete %}
             <th data-sort-ignore="true">Remove</th>
             {% endif %}
@@ -18,8 +17,8 @@
         {{ form.id }}
         <tr>
             {{ form.errors }}
-            <td class="nowrap">
-                <a href="{% url 'view_participant' form.instance.participant.id %}">{{ form.instance.participant.name }}</a>
+            <td>
+                <a class="nowrap" href="{% url 'view_participant' form.instance.participant.id %}">{{ form.instance.participant.name }}</a>
                 {% if form.instance.other_signups %}
                     <small>
                         <br>Also on:
@@ -34,16 +33,27 @@
                 {% endif %}
             </td>
             <td>
-                {% for feedback in form.instance.participant.feedback_set.all %}
-                "{{ feedback.comments }}" - <small>{{ feedback.leader }} on <a href="{% url 'view_trip' feedback.trip.id %}">{{ feedback.trip }}</a></small>
-                {% if not forloop.last %}<hr>{% endif %}
+                {% for feedback in participant.feedback_set.reverse %}
+                    {% if forloop.counter == 3 %}
+                        <a class="expand" onclick="$('#more_feedback_{{participant.id}}').show();$(this).remove();">Show more</a>
+                        <div id="more_feedback_{{participant.id}}" style="display:none">
+                    {% endif %}
+                    "{{ feedback.comments }}" - <small>{{ feedback.leader }} on <a href="{% url 'view_trip' feedback.trip.id %}">{{ feedback.trip }}</a></small>
+                    {% if not forloop.last %}<hr>{% endif %}
                 {% endfor %}
+                {% if forloop.counter > 3 %}</div>{% endif %}
             </td>
             <td>{{ form.instance.notes }}</td>
-            <td>{{ form.instance.participant.lotteryinfo.car_status }}</td>
-            <td>{{ form.instance.participant.lotteryinfo.number_of_passengers|default_if_none:"" }}</td>
+
+            {% with car_status=participant.lotteryinfo.car_status passengers=participant.lotteryinfo.number_of_passengers %}
+            <td><span {% if car_status == 'own' %}title="Participant owns a car, with room for {{ passengers }} passengers."
+                    {% elif car_status == 'rent' %}title="Participant is willing to rent car {% if passengers %}with room for {{ passengers }} passengers.{% endif %}"{% endif %}>
+                    {{ car_status }}{% if passengers %}, +{{ passengers }}{% endif %}
+            </span></td>
+            {% endwith %}
+
             {% if formset.can_delete %}
-            <td>{{ form.DELETE }}</td>
+                <td>{{ form.DELETE }}</td>
             {% endif %}
         </tr>
         {% endwith %}
