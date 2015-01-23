@@ -36,7 +36,7 @@
                 {% for feedback in participant.feedback_set.reverse %}
                     {% if forloop.counter == 3 %}
                         <a class="expand" onclick="$('#more_feedback_{{participant.id}}').show();$(this).remove();">Show more</a>
-                        <div id="more_feedback_{{participant.id}}" style="display:none">
+                        <div id="more_feedback_{{participant.id}}" class="expandable">
                     {% endif %}
                     "{{ feedback.comments }}" - <small>{{ feedback.leader }} on <a href="{% url 'view_trip' feedback.trip.id %}">{{ feedback.trip }}</a></small>
                     {% if not forloop.last %}<hr>{% endif %}

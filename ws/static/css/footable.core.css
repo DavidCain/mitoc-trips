@@ -205,3 +205,19 @@
 #togglable-content {
     display: none;
 }
+
+.expandable {
+    display: none;
+}
+
+/* FooTable doesn't play nice with hiding/showing content.
+ *
+ * Disable controls that allow expanding within a FooTable row,
+ * just show the content as fully expanded.
+ * */
+.footable-row-detail .expandable {
+    display: block;
+}
+.footable-row-detail .expand {
+    display: none;
+}
