@@ -2,6 +2,7 @@ from django.contrib.messages import add_message, ERROR, SUCCESS
 from django.db.models import Q
 
 from ws import models
+from ws.dateutils import local_now
 
 
 def add_to_waitlist(signup, request=None, prioritize=False, top_spot=False):
@@ -50,6 +51,13 @@ def trip_or_wait(signup, request=None, prioritize=False, top_spot=False,
         trip_not_eligible = "Trip is not an open first-come, first-serve trip"
         request and add_message(request, ERROR, trip_not_eligible)
 
+
+def update_queues_if_trip_open(trip):
+    """ Update queues if the trip is an open, first-come, first-serve trip. """
+    if local_now().date() >= trip.trip_date:
+        return
+    if trip.algorithm == 'fcfs':
+        update_signup_queues(trip)
 
 def update_signup_queues(trip):
     """ Update the participant and waitlist queues for a trip.

@@ -3,17 +3,16 @@ Handle aspects of trip creation/modification when receiving signup changes.
 """
 from __future__ import unicode_literals
 
-from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
-from django.db.models.signals import pre_save, post_save
+from django.db.models.signals import post_save
 from django.db.models.signals import pre_delete, post_delete
 from django.db.models.signals import m2m_changed
 from django.dispatch import receiver
 
-from ws.models import SignUp, WaitList, WaitListSignup, Trip
-from ws.signup_utils import trip_or_wait, update_signup_queues
 from ws.dateutils import local_now
+from ws.models import SignUp, WaitList, WaitListSignup, Trip
+from ws import signup_utils
 
 
 @receiver(post_save, sender=SignUp)
@@ -23,13 +22,17 @@ def new_fcfs_signup(sender, instance, created, raw, using, update_fields, **kwar
         When a participant tries to sign up, put them on the trip, or its waiting list.
     """
     if created:
-        trip_or_wait(instance)
+        signup_utils.trip_or_wait(instance)
 
 
 @receiver(post_save, sender=Trip)
 def changed_trip_size(sender, instance, created, raw, using, update_fields, **kwargs):
+    """ When a leader changes a trip size, update the signup queues.
+
+    This is done regardless of whether or not the trip is open.
+    """
     if not created:
-        update_signup_queues(instance)
+        signup_utils.update_signup_queues(instance)
 
 
 @receiver(pre_delete, sender=Trip)
@@ -44,41 +47,55 @@ def empty_waitlist(sender, instance, using, **kwargs):
     try:
         for signup in instance.waitlist.signups.all():
             signup.delete()
-    except ObjectDoesNotExist:  # Not all trips will have waitlists
+    except WaitList.DoesNotExist:  # Not all trips will have waitlists
         pass
 
 
 @receiver(post_delete, sender=SignUp)
 def free_spot_on_trip(sender, instance, using, **kwargs):
-    """ When somebody drops off a trip, bump up the top waitlist signup.
+    """ When a participant deletes a signup, update queues if applicable. """
+    signup_utils.update_queues_if_trip_open(instance.trip)
+
+
+@receiver(post_save, sender=SignUp)
+def on_trip_bump(sender, instance, created, raw, using, update_fields, **kwargs):
+    """ When a signup is no longer on the trip, bump up any waitlist spots.
 
     Only performs bumping if the trip date hasn't arrived (if a leader is
     making changes the day of a trip, it's safe to assume the waitlisted
     spot won't be pulled in in time). Similarly, this would not make
     room for future signups, as FCFS signups close at midnight before.
-
-    This will be triggered when an entire trip is deleted. `empty_waitlist()`
-    will ensure that nobody is emailed about a free spot when a trip is
-    being deleted.
     """
-    if local_now().date() >= instance.trip.trip_date:
-        return
-    if instance.on_trip and instance.trip.algorithm == 'fcfs':
-        trip = instance.trip
-        first_signup = trip.waitlist.signups.first()
-        if not first_signup:  # Empty waiting list, no need to open
-            return
-        first_signup.on_trip = True
-        first_signup.waitlistsignup.delete()
-        first_signup.save()
+    if not instance.on_trip:
+        signup_utils.update_queues_if_trip_open(instance.trip)
 
-        trip_link = get_trip_link(trip)
-        send_mail("You're signed up for {}".format(trip),
-                  "You're on {}! If you can't make it, please remove yourself "
-                  "from the trip so others can join.".format(trip_link),
-                  trip.creator.participant.email,
-                  [first_signup.participant.email],
-                  fail_silently=True)
+
+@receiver(post_delete, sender=WaitListSignup)
+def bumped_from_waitlist(sender, instance, using, **kwargs):
+    """ Notify previously waitlisted participants if they're on trip.
+
+    If the trip happened in the past, it's safe to assume it's just the
+    leader modifying the participant list. Don't notify in this case.
+
+    When a waitlist signup is deleted, it generally means the participant
+    is on the trip. The only other case is a complete trip deletion,
+    or a manual signup deletion. In either case, these actions are only
+    triggered by admins. Notifications will only be sent out if the
+    corresponding signup is now on the trip.
+    """
+    wl_signup, signup = instance, instance.signup
+    if not wl_signup.signup.on_trip:
+        return  # Could just be deleted, don't want to falsely notify
+    trip = signup.trip
+    if trip.trip_date < local_now().date():
+        return  # Trip was yesterday or earlier, no point notifying
+    trip_link = get_trip_link(trip)
+    send_mail("You're signed up for {}".format(trip),
+              "You're on {}! If you can't make it, please remove yourself "
+              "from the trip so others can join.".format(trip_link),
+              trip.creator.participant.email,
+              [signup.participant.email],
+              fail_silently=True)
 
 
 def get_trip_link(trip):

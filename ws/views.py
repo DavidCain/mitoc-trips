@@ -414,6 +414,15 @@ class AdminTripView(TripView, LeadersOnlyView, TripInfoEditable):
             msg = base.format(signup.participant, "top " if top_spot else "")
             messages.add_message(self.request, messages.SUCCESS, msg)
 
+    def remove_instead_of_delete(self, signup_formset):
+        """ Instead of deleting SignUp objects, set on_trip=False instead. """
+        # Starting in 1.7, commit=False does not perform deletion
+        for modified_signup in signup_formset.save(commit=False):
+            modified_signup.save()   # (Currently no way to modify signups)
+        for deleted_signup in signup_formset.deleted_objects:
+            deleted_signup.on_trip = False
+            deleted_signup.save()
+
     def post(self, request, *args, **kwargs):
         """ Two formsets handle adding/removing people from trip. """
         context = self.get_context_data(**kwargs)
@@ -422,20 +431,12 @@ class AdminTripView(TripView, LeadersOnlyView, TripInfoEditable):
         leader_signup_form = context['leader_signup_form']
         all_forms = [ontrip_formset, waitlist_formset, leader_signup_form]
 
-
         if all(form.is_valid() for form in all_forms):
             if leader_signup_form.cleaned_data:
                 self.handle_leader_signup(leader_signup_form)
 
-            ontrip_formset.save()
-            # Anybody added from waitlist needs to be removed from waitlist
-            for signup in waitlist_formset.save():
-                # NOTE: this only applies for manual waitlist management
-                # Manual management needs the `on_trip` field, and for the
-                # pre_delete SignUp signal to be deactivated
-                if signup.on_trip:
-                    signup.waitlistsignup.delete()
-                    signup.save()
+            self.remove_instead_of_delete(ontrip_formset)
+            # For now, we don't do anything with the waitlist formset
             messages.add_message(request, messages.SUCCESS, "Updated trip")
         else:
             return self.get(request, *args, **kwargs)
