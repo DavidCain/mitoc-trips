@@ -4,27 +4,68 @@ from django.db.models import Q
 from ws import models
 
 
-def trip_or_wait(signup, request=None):
-    if signup.on_trip:  # Sanity check
-        add_message(request, ERROR, "Already on trip!")
-        return
+def add_to_waitlist(signup, request=None, prioritize=False, top_spot=False):
+    """ Add the given signup to the waitlist, optionally prioritizing it. """
+    signup.on_trip = False
+    signup.save()
 
+    try:
+        wl_signup = models.WaitListSignup.objects.get(signup=signup)
+    except models.WaitListSignup.DoesNotExist:
+        wl_signup = models.WaitListSignup.objects.create(signup=signup,
+                                                         waitlist=signup.trip.waitlist)
+        request and add_message(request, SUCCESS, "Added to waitlist.")
+
+    if prioritize:
+        prioritize_wl_signup(wl_signup, top_spot)
+    return wl_signup
+
+
+def trip_or_wait(signup, request=None, prioritize=False, top_spot=False):
+    """ Given a signup object, attempt to place the participant on the trip.
+
+    If the trip is full, instead place that person on the waiting list.
+
+    :param request: If given, will supply messages to the request
+    :param prioritize: Give any waitlist signup priority
+    :param top_spot: Give any waitlist signup top priority
+    """
     trip = signup.trip
     if trip.signups_open and trip.algorithm == 'fcfs':
-        if trip.open_slots:  # There's room, sign them up!
+        try:
+            wl_signup = models.WaitListSignup.objects.get(signup=signup)
+        except models.WaitListSignup.DoesNotExist:
+            wl_signup = None
+
+        if trip.open_slots > 0:  # There's room, sign them up!
             signup.on_trip = True
             signup.save()
             request and add_message(request, SUCCESS, "Signed up!")
+            wl_signup and wl_signup.delete()  # Remove (if applicable)
         else:  # If no room, add them to the waiting list
-            try:  # Check if already on waiting list (do nothing if so)
-                models.WaitListSignup.objects.get(signup=signup)
-            except models.WaitListSignup.DoesNotExist:
-                models.WaitListSignup.objects.create(signup=signup,
-                                                    waitlist=trip.waitlist)
-                request and add_message(request, SUCCESS, "Added to waitlist.")
+            add_to_waitlist(signup, request, prioritize, top_spot)
     elif request:
         trip_not_eligible = "Trip is not an open first-come, first-serve trip"
-        add_message(request, ERROR, trip_not_eligible)
+        request and add_message(request, ERROR, trip_not_eligible)
+
+
+def update_signup_queues(trip):
+    """ Update the participant and waitlist queues for a trip.
+
+    This is intended to be used when the trip size changes. If the size
+    is the same, nothing will happen.
+    """
+    on_trip = trip.signup_set.filter(on_trip=True)
+    diff = trip.maximum_participants - on_trip.count()
+
+    waitlisted = models.WaitListSignup.objects.filter(signup__trip=trip)
+    if diff > 0:  # Trip is growing, add waitlisted participants if applicable
+        for waitlist_signup in waitlisted[:diff]:
+            trip_or_wait(waitlist_signup.signup)
+    elif diff < 0:  # Trip is shrinking, move lowest signups to waitlist
+        for i in range(abs(diff)):
+            last = trip.signup_set.filter(on_trip=True).last()
+            trip_or_wait(last, prioritize=True, top_spot=True)
 
 
 def non_trip_participants(trip, exclude_only_non_trip=True):

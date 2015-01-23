@@ -12,7 +12,7 @@ from django.db.models.signals import m2m_changed
 from django.dispatch import receiver
 
 from ws.models import SignUp, WaitList, WaitListSignup, Trip
-from ws.signup_utils import trip_or_wait
+from ws.signup_utils import trip_or_wait, update_signup_queues
 from ws.dateutils import local_now
 
 
@@ -24,6 +24,12 @@ def new_fcfs_signup(sender, instance, created, raw, using, update_fields, **kwar
     """
     if created:
         trip_or_wait(instance)
+
+
+@receiver(post_save, sender=Trip)
+def changed_trip_size(sender, instance, created, raw, using, update_fields, **kwargs):
+    if not created:
+        update_signup_queues(instance)
 
 
 @receiver(pre_delete, sender=Trip)
