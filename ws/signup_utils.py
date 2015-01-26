@@ -34,6 +34,8 @@ def trip_or_wait(signup, request=None, prioritize=False, top_spot=False,
     :param trip_must_be_open: If true, don't sign up on closed trip
     """
     trip = signup.trip
+    if signup.on_trip:
+        return
     if trip.algorithm == 'fcfs' and (trip.signups_open or not trip_must_be_open):
         try:
             wl_signup = models.WaitListSignup.objects.get(signup=signup)
