@@ -8,7 +8,7 @@ from django.db.models import Q
 from django.utils import timezone
 
 from ws import dateutils
-from ws.signup_utils import prioritize_wl_signup
+from ws.signup_utils import add_to_waitlist
 from ws import models
 from datetime import date, timedelta
 
@@ -95,29 +95,6 @@ def lowest_non_driver(trip):
     non_driver_kwargs = {'participant__lotteryinfo__car_status': 'none'}
     non_drivers = accepted_signups.filter(**non_driver_kwargs)
     return max(non_drivers, key=lambda signup: priority_key(signup.participant))
-
-
-def add_to_waitlist(signup, priority_spot=False):
-    """ Put a given signup on its corresponding trip's wait list. """
-    print "Adding {} to the waiting list for {}.".format(signup.participant, signup.trip)
-    signup.on_trip = False
-    signup.save()
-
-    # Ensure not already waitlisted
-    try:
-        if signup.waitlistsignup:
-            return priority_spot and prioritize_wl_signup(signup.waitlistsignup)
-    except ObjectDoesNotExist:
-        pass
-
-    # Fetch existing waitlist, or create a new one
-    waitlist = signup.trip.waitlist
-
-    # Add this signup to the waitlist
-    wl_signup = models.WaitListSignup.objects.create(signup=signup,
-                                                     waitlist=waitlist)
-    if priority_spot:
-        prioritize_wl_signup(wl_signup)
 
 
 def free_for_all():
@@ -238,7 +215,7 @@ class ParticipantHandler(object):
             if self.count_drivers_on_trip(trip) < 2:
                 print "{} is full, but doesn't have two drivers".format(trip)
                 print "Adding {} to '{}', as they're a driver".format(signup, trip)
-                add_to_waitlist(lowest_non_driver(trip), priority_spot=True)
+                add_to_waitlist(lowest_non_driver(trip), prioritize=True)
                 signup.on_trip = True
                 signup.save()
                 return True
