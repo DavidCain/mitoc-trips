@@ -526,7 +526,7 @@ class ReviewTripView(DetailView):
 
         for feedback in self.all_flake_feedback(leader):
             form = forms.FeedbackForm(post, instance=feedback, initial=initial,
-                                      prefix=participant.id)
+                                      prefix=feedback.participant.id)
             feedback_list.append((feedback.participant, form))
         return feedback_list
 
