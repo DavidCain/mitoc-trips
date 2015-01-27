@@ -20,7 +20,7 @@
         <td>{{ car.state }}</td>
         <td>{{ car.year }}</td>
         <td>{{ car.color }}</td>
-        <td>{{ car.participant.lotteryinfo.car_status }}</td>
+        <td>{{ car.participant.lotteryinfo.get_car_status_display }}</td>
     </tr>
     {% endfor %}
   </tbody>
