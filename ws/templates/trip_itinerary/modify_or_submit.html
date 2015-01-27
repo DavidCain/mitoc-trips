@@ -2,5 +2,5 @@
 {% if info_form_available and not trip.info %}
     <strong class='warning'>Must be completed before trip departure!</strong>
 {% elif not trip.info %}
-    (will be available {{ friday_before }})
+    (will be available {{ friday_before|date:"l, F jS" }})
 {% endif %}

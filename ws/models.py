@@ -248,7 +248,7 @@ class Trip(models.Model):
     name = models.CharField(max_length=127)
     description = models.TextField()
     maximum_participants = models.PositiveIntegerField(default=8)
-    difficulty_rating = models.CharField(max_length=127)
+    difficulty_rating = models.CharField(max_length=63)
     prereqs = models.CharField(max_length=255, blank=True)
     wsc_approved = models.BooleanField(default=False)
     notes = models.TextField(blank=True, max_length=2000,
@@ -270,6 +270,10 @@ class Trip(models.Model):
 
     def __unicode__(self):
         return self.name
+
+    @property
+    def in_past(self):
+        return self.trip_date < dateutils.local_now().date()
 
     @property
     def after_lottery(self):

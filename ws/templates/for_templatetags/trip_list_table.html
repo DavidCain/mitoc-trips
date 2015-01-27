@@ -3,7 +3,7 @@
     <thead>
         <tr>
             <th>Name</th>  {# Link out #}
-            <th data-type="numeric">Date</th>
+            <th data-type="numeric" class="nowrap">Date</th>
             <th data-hide="phone,tablet" data-sort-ignore="true">Description</th>
             <th data-type="numeric" class="nowrap">Signups</th>
             <th data-hide="phone,tablet">Leaders</th>
@@ -15,8 +15,14 @@
 
     <tr>
         <td><a href="{% url 'view_trip' trip.id %}">{{ trip.name|truncatechars:45 }}</a></td>
-        <td class="nowrap" data-value="{{ trip.trip_date|date:'U' }}"> {{ trip.trip_date|date:"Y-m-d" }}</td>
-        <td> {{ trip.description|truncatechars:50 }}</td>
+        <td class="nowrap" data-value="{{ trip.trip_date|date:'U' }}">
+            {% if trip.in_past %}
+                {{ trip.trip_date|date:"Y-m-d" }}
+            {% else %}
+                {{ trip.trip_date|date:"D" }}
+            {% endif %}
+        </td>
+        <td><strong>{{ trip.difficulty_rating }}</strong> {{ trip.description|truncatechars:50 }}</td>
         <td data-value={{ trip.maximum_participants|subtract:trip.num_signups }}> {{ trip.num_signups }} / {{ trip.maximum_participants }}</td>
         <td> {{ trip.leaders.all|join:", " }}</td>
     </tr>
