@@ -1,59 +1,55 @@
-<h3> Trip </h3>
-<table>
-    <tr>
-        <th>Leaders:</th>
-        <td>{% for leader in trip.leaders.all %}
+<h3> {{ trip.name }} </h3>
+<div class="table">
+    <div class="table-row">
+        <div class="table-heading">Leaders</div>
+        <div class="table-cell">{% for leader in trip.leaders.all %}
             <a href="mailto:{{ leader.participant.email }}">{{ leader }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}
-        </td>
-    </tr>
-    <tr>
-        <th>Name:</th>
-        <td>{{ trip.name }}</td>
-    </tr>
-    <tr>
-        <th>Trip date:</th>
-        <td>{{ trip.trip_date|date:"Y-m-d" }}</td>
-    </tr>
-    <tr>
-        <th>Difficulty rating:</th>
-        <td>{{ trip.difficulty_rating }}</td>
-    </tr>
+        </div>
+    </div>
+    <div class="table-row">
+        <div class="table-heading">Trip date</div>
+        <div class="table-cell">{{ trip.trip_date|date:"l, F jS" }}</div>
+    </div>
+    <div class="table-row">
+        <div class="table-heading">Difficulty rating</div>
+        <div class="table-cell">{{ trip.difficulty_rating }}</div>
+    </div>
     {% if trip.prereqs %}
-    <tr>
-        <th>Prerequisites:</th>
-        <td>{{ trip.prereqs }}</td>
-    </tr>
+    <div class="table-row">
+        <div class="table-heading">Prerequisites</div>
+        <div class="table-cell">{{ trip.prereqs }}</div>
+    </div>
     {% endif %}
-    <tr>
-        <th>Description:</th>
-        <td>{{ trip.description|linebreaks }}</td>
-    </tr>
-</table>
+    <div class="table-row">
+        <div class="table-heading">Description</div>
+        <div class="table-cell">{{ trip.description|linebreaks }}</div>
+    </div>
+</div>
 
 <h3> Signup </h3>
-<table>
-    <tr>
-        <th>Algorithm:</th>
-        <td>{{ trip.algorithm }}</td>
-    </tr>
-    <tr>
-        <th>Maximum participants:</th>
-        <td>{{ trip.maximum_participants }}</td>
-    </tr>
-    <tr>
-        <th>Signups {{ trip.signups_open|yesno:"opened,open" }} at:</th>
-        <td>{{ trip.signups_open_at }}</td>
-    </tr>
+<div class="table">
+    <div class="table-row">
+        <div class="table-heading">Algorithm</div>
+        <div class="table-cell">{{ trip.get_algorithm_display }}</div>
+    </div>
+    <div class="table-row">
+        <div class="table-heading">Maximum participants</div>
+        <div class="table-cell">{{ trip.maximum_participants }}</div>
+    </div>
+    <div class="table-row">
+        <div class="table-heading">Signups {{ trip.signups_open|yesno:"opened,open" }} at</div>
+        <div class="table-cell">{{ trip.signups_open_at }}</div>
+    </div>
     {% if trip.signups_close_at %}  {# Not all trips have a close time #}
-    <tr>
-        <th>Signups {{ trip.signups_closed|yesno:"closed,close" }} at:</th>
-        <td>{{ trip.signups_close_at }}</td>
-    </tr>
+    <div class="table-row">
+        <div class="table-heading">Signups {{ trip.signups_closed|yesno:"closed,close" }} at</div>
+        <div class="table-cell">{{ trip.signups_close_at }}</div>
+    </div>
     {% endif %}
     {% if trip.notes %}
-    <tr>
-        <th>Notes:</th>
-        <td>{{ trip.notes }}</td>
-    </tr>
+    <div class="table-row">
+        <div class="table-heading">Notes</div>
+        <div class="table-cell">{{ trip.notes }}</div>
+    </div>
     {% endif %}
-</table>
+</div>
