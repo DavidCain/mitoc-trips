@@ -99,6 +99,17 @@ class SignUpForm(RequiredModelForm):
         model = models.SignUp
         fields = ['trip', 'notes']
 
+    def __init__(self, *args, **kwargs):
+        """ Set notes to required if trip notes are present.
+
+        Trips should always be given via initial. We can check if the trip
+        has a notes field this way.
+        """
+        super(SignUpForm, self).__init__(*args, **kwargs)
+        trip = self.initial.get('trip')
+        if trip and trip.notes:
+            self.fields['notes'].required = True
+
 
 class LeaderSignUpForm(RequiredModelForm):
     top_spot = forms.BooleanField(required=False, label='Move to top spot',
