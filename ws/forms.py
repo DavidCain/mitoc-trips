@@ -79,7 +79,8 @@ class TripForm(RequiredModelForm):
                   'maximum_participants', 'difficulty_rating', 'prereqs',
                   'notes']
         widgets = {'leaders': django_select2.widgets.Select2MultipleWidget,
-                   'notes': forms.Textarea(attrs={'rows': 4})}
+                   'notes': forms.Textarea(attrs={'rows': 4}),
+                   'trip_date': forms.DateInput(attrs={'class':'datepicker'})}
 
     def __init__(self, *args, **kwargs):
         super(TripForm, self).__init__(*args, **kwargs)

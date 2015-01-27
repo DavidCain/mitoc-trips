@@ -5,6 +5,17 @@
 {{ block.super }}
 {{ form.media }}
 
+<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/themes/smoothness/jquery-ui.css" />
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js"></script>
+<script>
+$(function() {
+    $(".datepicker").datepicker({
+        dateFormat: "yy-mm-dd",
+        minDate: 0,
+        maxDate: 7,
+    });
+});
+</script>
 {% endblock head %}
 
 {% block content %}
