@@ -356,7 +356,7 @@ class Feedback(models.Model):
         return '{}: "{}" - {}'.format(self.participant, self.comments, self.leader)
 
     class Meta:
-        ordering = ["participant", "time_created"]
+        ordering = ["participant", "-time_created"]
 
 
 class LotteryInfo(models.Model):

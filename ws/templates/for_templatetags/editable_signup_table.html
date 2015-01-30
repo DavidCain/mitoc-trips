@@ -33,7 +33,7 @@
                 {% endif %}
             </td>
             <td>
-                {% for feedback in participant.feedback_set.reverse %}
+                {% for feedback in participant.feedback_set.all %}
                     {% if forloop.counter == 3 %}
                         <a class="expand" onclick="$('#more_feedback_{{participant.id}}').show();$(this).remove();">Show more</a>
                         <div id="more_feedback_{{participant.id}}" class="expandable">
