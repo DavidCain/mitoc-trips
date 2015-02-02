@@ -13,7 +13,7 @@ URL_ROOT = os.path.join('/', BASE_NAME)
 SECRET_KEY = None  # FIXME: Add a secret key
 
 # Admins get an email on errors in production mode
-ADMINS = (('David Cain', 'djcain@mit.edu'),)
+ADMINS = (('David Cain', 'davidjosephcain@gmail.com'),)
 
 SERVER_EMAIL = 'no-reply@mit.edu'
 DEFAULT_EMAIL_FROM = 'ws-chair@mit.edu'
@@ -32,7 +32,7 @@ LOGOUT_URL = URL_ROOT
 DATABASES = {
      'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'djcain+ws',
+        'NAME': 'mitoc+ws',
         'OPTIONS': {
             'read_default_file': os.path.expanduser('~/.my.cnf'),
         }

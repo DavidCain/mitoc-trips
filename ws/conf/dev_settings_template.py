@@ -26,7 +26,7 @@ LOGOUT_URL = URL_ROOT
 DATABASES = {
      'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'djcain+ws_dev',
+        'NAME': 'mitoc+ws_dev',
         'OPTIONS': {
             'read_default_file': os.path.expanduser('~/.my.cnf'),
         }
