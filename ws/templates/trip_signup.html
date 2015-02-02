@@ -3,6 +3,11 @@
 {% block content %}
 {{ block.super }}
 
+{% with trip=form.instance.trip %}
+{% if trip %}
+    <h3>Signup for <a href="{% url 'view_trip' trip.pk %}">{{ trip }}</a></h3>
+
+    <label>Notes:</label> {{ trip.notes }}
 <div id="respond" class="narrow">
 <form action="" method="post">
     {% csrf_token %}
@@ -10,4 +15,9 @@
     <input type="submit" value="Sign up" />
 </form>
 </div>
+{% else %}
+    <p>Not signing up for any given trip. <a href="{% url 'view_trips' %}">Browse available trips?</a></p>
+{% endif %}
+{% endwith %}
+
 {% endblock content %}
