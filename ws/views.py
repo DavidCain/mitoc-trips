@@ -828,18 +828,17 @@ class TripListView(ListView):
         # Each trip will need information about its leaders, so prefetch models
         trips = super(TripListView, self).get_queryset()
         trips = trips.annotate(num_signups=Count('signup'))
-        return trips.prefetch_related('leaders__participant')
+        trips = trips.prefetch_related('leaders__participant')
+        return trips.annotate(signups_on_trip=Sum('signup__on_trip'))
 
     def get_context_data(self, **kwargs):
         """ Sort trips into past and present trips. """
         context_data = super(TripListView, self).get_context_data(**kwargs)
-        context_data['current_trips'], context_data['past_trips'] = [], []
+        trips = context_data[self.context_object_name]
+
         today = local_now().date()
-        for trip in context_data[self.context_object_name]:
-            if trip.trip_date >= today:
-                context_data['current_trips'].append(trip)
-            else:
-                context_data['past_trips'].append(trip)
+        context_data['current_trips'] = trips.filter(trip_date__gte=today)
+        context_data['past_trips'] = trips.filter(trip_date__lt=today)
         return context_data
 
 
