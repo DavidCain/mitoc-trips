@@ -2,6 +2,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 
 import django_select2.widgets
+from django_select2.fields import ModelSelect2Field
 from django_select2.fields import ModelSelect2MultipleField
 from localflavor.us.us_states import US_STATES
 
@@ -18,6 +19,22 @@ class ParticipantForm(RequiredModelForm):
     class Meta:
         model = models.Participant
         fields = ['name', 'email', 'cell_phone', 'affiliation']
+
+
+class ParticipantLookupForm(forms.Form):
+    """ Perform lookup of a given participant, loading on selection. """
+    participant = ModelSelect2Field(queryset=models.Participant.objects.all())
+
+    def __init__(self, *args, **kwargs):
+        super(ParticipantLookupForm, self).__init__(*args, **kwargs)
+        participant_field = self.fields['participant']
+        participant_field.help_text = None  # Disable "Hold command..."
+        participant_field.label = ''
+        initial = kwargs.get('initial')
+        if initial and initial.get('participant'):
+            participant_field.empty_label = None
+
+        participant_field.widget.attrs['onchange'] = 'this.form.submit();'
 
 
 class CarForm(RequiredModelForm):

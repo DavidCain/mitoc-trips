@@ -37,6 +37,7 @@ urlpatterns = patterns('',
     url(r'^trip_itinerary/(?P<pk>\d+)/$', views.TripInfoView.as_view(), name='trip_itinerary'),
     url(r'^review_trip/(?P<pk>\d+)/$', views.ReviewTripView.as_view(), name='review_trip'),
     url(r'^view_participant/(?P<pk>\d+)/$', views.ParticipantDetailView.as_view(), name='view_participant'),
+    url(r'^participant_lookup/$', views.ParticipantLookupView.as_view(), name='participant_lookup'),
     url(r'^trip_medical/(?P<pk>\d+)/$', views.TripMedicalView.as_view(), name='trip_medical'),
 
     # General views (anyone can view or only participants with info)

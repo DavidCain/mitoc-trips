@@ -1,7 +1,25 @@
 {% extends "base.html" %}
 {% load readonly_form %}
 
+{% block head %}
+{{ block.super }}
+{{ form.media }}
+
+<style>  {# Simple, doesn't need its own stylesheet. #}
+.select2-container {
+    width: 18em;
+}
+</style>
+{% endblock head %}
 {% block content %}
+
+<form action="" method="post">
+    <h5>View participant</h5>
+    {% csrf_token %}
+    {{ form }}
+</form>
+{% if participant %}
+<hr>
 
 {% if participant.leader %}
 <h3> Leader info </h3>
@@ -63,4 +81,5 @@
 {% endif %}
 {% endif %}
 
+{% endif %}
 {% endblock content %}

@@ -178,33 +178,44 @@ class UpdateParticipantView(TemplateView):
         return super(UpdateParticipantView, self).dispatch(request, *args, **kwargs)
 
 
-class ParticipantDetailView(DetailView):
+class ParticipantLookupView(FormView):
+    template_name = 'participant_detail.html'
+    form_class = forms.ParticipantLookupForm
+
+    def form_valid(self, lookup_form):
+        participant = lookup_form.cleaned_data['participant']
+        return redirect(reverse('view_participant', args=(participant.id,)))
+
+    @method_decorator(group_required('leaders', 'WSC'))
+    def dispatch(self, request, *args, **kwargs):
+        return super(ParticipantLookupView, self).dispatch(request, *args, **kwargs)
+
+
+class ParticipantDetailView(ParticipantLookupView, DetailView):
     queryset = models.Participant.objects.all()
     context_object_name = 'participant'
     template_name = 'participant_detail.html'
 
+    def get_initial(self):
+        return {'participant': self.get_object()}
+
     def get_context_data(self, **kwargs):
-        # By default, this method just returns a context with the object
-        # However, I couldn't easily display a read-only summary of the model
-        # So, this is the hackish solution
+        context = {'form': self.get_form(self.form_class)}
+        post = self.request.POST if self.request.method == "POST" else None
         participant = self.get_object()
         e_info = participant.emergency_info
         e_contact = e_info.emergency_contact
         feedback = participant.feedback_set.select_related('trip', 'leader',
                                                            'leader__participant')
-        context = {'participant_form': forms.ParticipantForm(instance=participant),
-                   'emergency_info_form':  forms.EmergencyInfoForm(instance=e_info),
-                   'emergency_contact_form':  forms.EmergencyContactForm(instance=e_contact),
-                   'participant': participant,
-                   'all_feedback': feedback,
-                   }
+        context['participant_form'] = forms.ParticipantForm(instance=participant)
+        context['emergency_info_form'] =  forms.EmergencyInfoForm(instance=e_info)
+        context['emergency_contact_form'] = forms.EmergencyContactForm(instance=e_contact)
+        context['participant'] = participant
+        context['all_feedback'] = feedback
+
         if participant.car:
             context['car_form'] = forms.CarForm(instance=participant.car)
         return context
-
-    @method_decorator(group_required('leaders', 'WSC'))
-    def dispatch(self, request, *args, **kwargs):
-        return super(ParticipantDetailView, self).dispatch(request, *args, **kwargs)
 
 
 class SignUpView(CreateView):
