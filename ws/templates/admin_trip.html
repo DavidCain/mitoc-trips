@@ -89,13 +89,13 @@
 
 
     {{ waitlist_formset.management_form }}
-    {% if trip.waitlist.signups %}
-        <h3>Waiting List ({{trip.waitlist.signups.count }}) </h3>
+    {% if waitlist_signups %}
+        <h3>Waiting List ({{waitlist_signups.count }}) </h3>
         {% if trip.notes %}<label>Notes:</label> {{ trip.notes }}{% endif %}
         {% editable_signup_table waitlist_formset %}
     {% endif %}
 
-    {% if trip.waitlist.signups or ontrip_formset|length %}
+    {% if waitlist_signups or ontrip_formset|length %}
         <h5>Email all participants</h5>
         <pre>{% for signup in ontrip_signups %}{{ signup.participant.email_addr }}{% if not forloop.last %}, {% endif %}{% endfor %}</pre>
     {% endif %}

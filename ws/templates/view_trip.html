@@ -72,9 +72,9 @@
     <pre>{% for signup in signups_on_trip %}{{ signup.participant.email_addr }}{% if not forloop.last %}, {% endif %}{% endfor %}</pre>
 {% endif %}
 
-{% if trip.waitlist.signups %}
-    <h3>Waiting List ({{trip.waitlist.signups.count }}) </h3>
-    {% signup_table trip.waitlist.signups has_notes user.participant.leader %}
+{% if waitlist_signups %}
+    <h3>Waiting List ({{ waitlist_signups.count }}) </h3>
+    {% signup_table waitlist_signups has_notes user.participant.leader %}
 {% endif %}
 
 {% if signups %}

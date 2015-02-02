@@ -273,7 +273,8 @@ class TripView(DetailView):
 
     def get_queryset(self):
         trips = super(TripView, self).get_queryset()
-        return trips.select_related('leaders__participant', 'waitlist__signups')
+        trips = trips.select_related('waitlist__signups', 'info')
+        return trips.prefetch_related('leaders__participant')
 
     def get_signups(self):
         """ Signups, with related fields used in templates preselected. """
@@ -285,11 +286,18 @@ class TripView(DetailView):
         leaders = self.object.leaders.all()
         return leaders.select_related('participant__lotteryinfo')
 
+    @property
+    def wl_signups(self):
+        trip = self.object
+        return trip.waitlist.signups.select_related('participant__leader',
+                                                    'participant__lotteryinfo')
+
     def get_context_data(self, **kwargs):
         """ Create form for signup (only if signups open). """
         context = super(TripView, self).get_context_data()
         context['leaders'] = self.get_leaders()
         context['signups'] = self.get_signups()
+        context['waitlist_signups'] = self.wl_signups
         return context
 
 
