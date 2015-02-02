@@ -23,7 +23,7 @@ class ParticipantForm(RequiredModelForm):
 
 class ParticipantLookupForm(forms.Form):
     """ Perform lookup of a given participant, loading on selection. """
-    participant = ModelSelect2Field(queryset=models.Participant.objects.all())
+    participant = ModelSelect2Field(queryset=models.Participant.objects.all().select_related('leader'))
 
     def __init__(self, *args, **kwargs):
         super(ParticipantLookupForm, self).__init__(*args, **kwargs)
@@ -150,7 +150,8 @@ class LeaderSignUpForm(RequiredModelForm):
 
     def __init__(self, trip, *args, **kwargs):
         super(LeaderSignUpForm, self).__init__(*args, **kwargs)
-        self.fields['participant'].queryset = signup_utils.non_trip_participants(trip)
+        non_trip = signup_utils.non_trip_participants(trip)
+        self.fields['participant'].queryset = non_trip.select_related('leader')
         self.fields['participant'].help_text = None  # Disable "Hold command..."
 
 

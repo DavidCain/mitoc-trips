@@ -196,13 +196,19 @@ class ParticipantDetailView(ParticipantLookupView, DetailView):
     context_object_name = 'participant'
     template_name = 'participant_detail.html'
 
+    def get_queryset(self):
+        participant = super(ParticipantDetailView, self).get_queryset()
+        return participant.select_related('waitlist__signups', 'leader',
+                                          'emergency_info__emergency_contact')
+
     def get_initial(self):
-        return {'participant': self.get_object()}
+        participant = self.object = self.get_object()
+        return {'participant': participant}
 
     def get_context_data(self, **kwargs):
         context = {'form': self.get_form(self.form_class)}
         post = self.request.POST if self.request.method == "POST" else None
-        participant = self.get_object()
+        participant = self.object
         e_info = participant.emergency_info
         e_contact = e_info.emergency_contact
         feedback = participant.feedback_set.select_related('trip', 'leader',
@@ -272,7 +278,7 @@ class TripView(DetailView):
     def get_signups(self):
         """ Signups, with related fields used in templates preselected. """
         signups = models.SignUp.objects.filter(trip=self.object)
-        signups = signups.select_related('participant__leader')
+        signups = signups.select_related('participant__leader', 'trip')
         return signups.select_related('participant__lotteryinfo')
 
     def get_leaders(self):
