@@ -376,23 +376,24 @@ class AdminTripView(TripView, LeadersOnlyView, TripInfoEditable):
         return modelformset_factory(models.SignUp, can_delete=True, extra=0,
                                     fields=())  # on_trip to manage wait list
 
+    def prefetch_feedback(self, signups):
+        return signups.prefetch_related('participant__feedback_set__trip',
+                'participant__feedback_set__leader__participant')
+
     def get_context_data(self, **kwargs):
         trip = self.object = self.get_object()
         context = super(AdminTripView, self).get_context_data()
-        trip_signups = context['signups']
+        signups = context['signups']
         post = self.request.POST if self.request.method == "POST" else None
-        ontrip_queryset = trip_signups.filter(on_trip=True)
-        # TODO: We use a _lot_ of related models
-        # - Prefetch all feedback for all participants (signup table)
-        # - Prefetch all signups and related trips for all participants ("Also on")
+        ontrip_queryset = self.prefetch_feedback(signups.filter(on_trip=True))
         ontrip_formset = self.signup_formset(post, queryset=ontrip_queryset,
                                              prefix=self.par_prefix)
 
-        wl_queryset = trip_signups.filter(waitlist__isnull=False)
+        wl_queryset = signups.filter(waitlist__isnull=False)
+        wl_queryset = self.prefetch_feedback(wl_queryset)
         wl_queryset = wl_queryset.order_by('waitlistsignup')
         waitlist_formset = self.signup_formset(post, queryset=wl_queryset,
                                                prefix=self.wl_prefix)
-        # For manual waitlist managament, enable deletion, disable some signals
         waitlist_formset.can_delete = False
         context["waitlist_formset"] = waitlist_formset
         context["ontrip_signups"] = ontrip_queryset
