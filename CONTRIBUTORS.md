@@ -6,6 +6,7 @@ much-needed testing and detailed feedback.
 - Adam Rosenfield
 - Anna de Regt
 - Ariel Sommer
+- Chris Saulnier
 - Christie Ciarlo
 - Dan Weber
 - Daniel Walker

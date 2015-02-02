@@ -1,4 +1,5 @@
 from django import forms
+from django.core.exceptions import ValidationError
 
 import django_select2.widgets
 from django_select2.fields import ModelSelect2MultipleField
@@ -100,6 +101,13 @@ class SignUpForm(RequiredModelForm):
         model = models.SignUp
         fields = ['trip', 'notes']
 
+    def clean_notes(self):
+        trip = self.cleaned_data['trip']
+        signup_notes = self.cleaned_data['notes'].strip()
+        if trip.notes and not signup_notes:
+            raise ValidationError("Please complete notes to sign up!")
+        return signup_notes
+
     def __init__(self, *args, **kwargs):
         """ Set notes to required if trip notes are present.
 
@@ -113,6 +121,7 @@ class SignUpForm(RequiredModelForm):
 
 
 class LeaderSignUpForm(RequiredModelForm):
+    """ For leaders to sign up participants. Notes aren't required. """
     top_spot = forms.BooleanField(required=False, label='Move to top spot',
                                   help_text='Move the participant above other prioritized waitlist spots (e.g. participants previously added with this form, or those who were bumped off to allow a driver on)')
 

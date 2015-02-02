@@ -208,16 +208,6 @@ class SignUp(models.Model):
             assert self.trip not in self.participant.trip_set.all()
         super(SignUp, self).save(**kwargs)
 
-    def clean(self):
-        """ Trip must be open, notes only required if the trip has notes. """
-        try:
-            trip = self.trip
-        except ObjectDoesNotExist:
-            pass  # A missing trip will be caught
-        else:
-            if trip.notes and not self.notes:
-                raise ValidationError("Please complete notes to sign up!")
-
     def __unicode__(self):
         return "{} on {}".format(self.participant.name, self.trip)
 
