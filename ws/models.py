@@ -102,7 +102,7 @@ class Participant(models.Model):
 
     def __unicode__(self):
         try:
-            is_leader = self.leader
+            self.leader
         except ObjectDoesNotExist:
             return self.name
         else:
@@ -143,7 +143,7 @@ class LeaderApplication(models.Model):
     participant = models.OneToOneField(Participant)
     time_created = models.DateTimeField(auto_now_add=True)
     previous_rating = models.CharField(max_length=255, blank=True,
-            help_text="Previous rating (if any)")
+                                       help_text="Previous rating (if any)")
     desired_rating = models.CharField(max_length=255)
 
     taking_wfa = models.CharField(max_length=10,
@@ -243,7 +243,7 @@ class Trip(models.Model):
     wsc_approved = models.BooleanField(default=False)
     notes = models.TextField(blank=True, max_length=2000,
                              help_text="Participants must add notes to their signups if you complete this field. "
-                            "This is a great place to ask important questions.")
+                                       "This is a great place to ask important questions.")
 
     time_created = models.DateTimeField(auto_now_add=True)
     last_edited = models.DateTimeField(auto_now=True)
@@ -326,7 +326,6 @@ class Trip(models.Model):
         close_time = self.signups_close_at
         if close_time and close_time < self.signups_open_at:
             raise ValidationError("Trips cannot open after they close.")
-
 
     class Meta:
         ordering = ["-trip_date", "-time_created"]

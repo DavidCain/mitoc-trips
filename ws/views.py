@@ -27,7 +27,6 @@ from ws.decorators import group_required, user_info_required, admin_only
 from ws import dateutils
 from ws import message_generators
 from ws import signup_utils
-from ws.signup_utils import trip_or_wait, prioritize_wl_signup
 
 
 class LeadersOnlyView(View):
@@ -207,14 +206,14 @@ class ParticipantDetailView(ParticipantLookupView, DetailView):
 
     def get_context_data(self, **kwargs):
         context = {'form': self.get_form(self.form_class)}
-        post = self.request.POST if self.request.method == "POST" else None
+        # post = self.request.POST if self.request.method == "POST" else None
         participant = self.object
         e_info = participant.emergency_info
         e_contact = e_info.emergency_contact
         feedback = participant.feedback_set.select_related('trip', 'leader',
                                                            'leader__participant')
         context['participant_form'] = forms.ParticipantForm(instance=participant)
-        context['emergency_info_form'] =  forms.EmergencyInfoForm(instance=e_info)
+        context['emergency_info_form'] = forms.EmergencyInfoForm(instance=e_info)
         context['emergency_contact_form'] = forms.EmergencyContactForm(instance=e_contact)
         context['participant'] = participant
         context['all_feedback'] = feedback
@@ -435,7 +434,7 @@ class AdminTripView(TripView, LeadersOnlyView, TripInfoEditable):
             pass  # Signup went straight to trip, no prioritizing needed
         else:
             top_spot = form.cleaned_data['top_spot']
-            prioritize_wl_signup(wl_signup, top_spot)
+            signup_utils.prioritize_wl_signup(wl_signup, top_spot)
             base = "{} given {}priority on the waiting list"
             msg = base.format(signup.participant, "top " if top_spot else "")
             messages.add_message(self.request, messages.SUCCESS, msg)
