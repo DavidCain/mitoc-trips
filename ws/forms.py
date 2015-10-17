@@ -68,11 +68,13 @@ class LeaderForm(RequiredModelForm):
         all_par = models.Participant.objects.all()
         self.fields['participant'].queryset = all_par.select_related('leader')
         self.fields['participant'].empty_label = 'Nobody'
+        # TODO: Filter the activity types that people can apply
 
     class Meta:
-        model = models.Leader
-        fields = ['participant', 'rating', 'notes']
+        model = models.LeaderRating
+        fields = ['participant', 'activity', 'rating', 'notes']
         widgets = {'participant': django_select2.widgets.Select2Widget,
+                   'activity': django_select2.widgets.Select2Widget,
                    'notes': forms.Textarea(attrs={'rows': 4})}
 
 
@@ -98,7 +100,7 @@ class TripForm(RequiredModelForm):
                   'notes']
         widgets = {'leaders': django_select2.widgets.Select2MultipleWidget,
                    'notes': forms.Textarea(attrs={'rows': 4}),
-                   'trip_date': forms.DateInput(attrs={'class':'datepicker'})}
+                   'trip_date': forms.DateInput(attrs={'class': 'datepicker'})}
 
     def __init__(self, *args, **kwargs):
         super(TripForm, self).__init__(*args, **kwargs)

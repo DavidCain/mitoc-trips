@@ -5,11 +5,11 @@ from datetime import timedelta
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse_lazy
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.validators import RegexValidator
 from django.db import models
-from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 from django.utils.translation import string_concat
 
@@ -76,7 +76,7 @@ class EmergencyInfo(models.Model):
 class Participant(models.Model):
     """ Anyone going on a trip needs WIMP info, and info about their car.
 
-    Even leaders will have a Participant record (see docstring of Leader)
+    Even leaders will have a Participant record (see docstring of LeaderRating).
     """
     name = models.CharField(max_length=255)
     cell_phone = PhoneNumberField(null=True, blank=True)  # Hi, Sheep.
@@ -92,6 +92,18 @@ class Participant(models.Model):
     attended_lectures = models.BooleanField(default=False)
 
     @property
+    def rating(self):
+        # TODO: Interim method to transition over
+        try:
+            return self.leaderrating_set.get(activity=LeaderRating.WINTER_SCHOOL).rating
+        except ObjectDoesNotExist:
+            return None
+
+    @property
+    def is_leader(self):
+        return self.leaderrating_set.exists()
+
+    @property
     def email_addr(self):
         return '"{}" <{}>'.format(self.name, self.email)
 
@@ -101,32 +113,33 @@ class Participant(models.Model):
         return since_last_update.days < settings.MUST_UPDATE_AFTER_DAYS
 
     def __unicode__(self):
-        try:
-            self.leader
-        except ObjectDoesNotExist:
-            return self.name
-        else:
-            return "{} ({})".format(self.name, self.leader.rating)
+        return self.name  # TODO: Include rating in some contexts?
 
     class Meta:
         ordering = ['name', 'email']
 
 
-class Leader(models.Model):
-    """ A Leader is a special participant (just one with extra privileges).
-
-    This is acheived by pointing to a participant object.
+class LeaderRating(models.Model):
+    """ A leader is just a participant with ratings for at least one activity type.
 
     The same personal + emergency information is required of leaders, but
     additional fields are present. So, we keep a Participant record for any
     leader. This makes it easy to check if any participant is a leader (just
-    see `participant.leader`), easy to promote somebody to leader (just make a
-    new leader record, point to their old participant record, etc.)
+    see `participant.ratings`) and easy to promote somebody to leader.
 
     It also allows leaders to function as participants (e.g. if a "SC" leader
     wants to go ice climbing).
     """
-    participant = models.OneToOneField(Participant)
+    HIKING = 'hiking'
+    CLIMBING = 'climbing'
+    WINTER_SCHOOL = 'winter_school'
+    ACTIVITIES = [(HIKING, 'Hiking'),
+                  (CLIMBING, 'Climbing'),
+                  (WINTER_SCHOOL, 'Winter School')]
+
+    participant = models.ForeignKey(Participant)
+    activity = models.CharField(max_length='31',
+                                choices=ACTIVITIES)
     rating = models.CharField(max_length=31)
     notes = models.TextField(max_length=500, blank=True)  # Contingencies, etc.
 
@@ -233,8 +246,8 @@ class TripInfo(models.Model):
 
 
 class Trip(models.Model):
-    creator = models.ForeignKey(Leader, related_name='created_trips')
-    leaders = models.ManyToManyField(Leader)
+    creator = models.ForeignKey(Participant, related_name='created_trips')
+    leaders = models.ManyToManyField(Participant, related_name='trips_led')
     name = models.CharField(max_length=127)
     description = models.TextField()
     maximum_participants = models.PositiveIntegerField(default=8)
@@ -334,9 +347,9 @@ class Trip(models.Model):
 class Feedback(models.Model):
     """ Feedback given for a participant on one trip. """
     participant = models.ForeignKey(Participant)
+    leader = models.ForeignKey(Participant, related_name="authored_feedback")
     showed_up = models.BooleanField(default=True)
     comments = models.TextField(max_length=2000)
-    leader = models.ForeignKey(Leader)
     # Allows general feedback (i.e. not linked to a trip)
     trip = models.ForeignKey(Trip, null=True, blank=True)
     time_created = models.DateTimeField(auto_now_add=True)

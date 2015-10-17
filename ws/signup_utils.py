@@ -61,6 +61,7 @@ def update_queues_if_trip_open(trip):
     if trip.algorithm == 'fcfs':
         update_signup_queues(trip)
 
+
 def update_signup_queues(trip):
     """ Update the participant and waitlist queues for a trip.
 
@@ -80,12 +81,11 @@ def update_signup_queues(trip):
             trip_or_wait(last, prioritize=True, top_spot=True)
 
 
-def non_trip_participants(trip, exclude_only_non_trip=True):
-    """ All participants not currently on a trip. """
+def non_trip_participants(trip):
+    """ All participants not currently on the given trip. """
     all_participants = models.Participant.objects.all()
-    if exclude_only_non_trip:
-        signups = trip.signup_set.filter(on_trip=True)
-    par_on_trip = (Q(leader__in=trip.leaders.all()) |
+    signups = trip.signup_set.filter(on_trip=True)
+    par_on_trip = (Q(pk__in=trip.leaders.all()) |
                    Q(signup__in=signups))
     return all_participants.exclude(par_on_trip)
 

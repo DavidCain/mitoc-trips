@@ -93,7 +93,7 @@ def bumped_from_waitlist(sender, instance, using, **kwargs):
     send_mail("You're signed up for {}".format(trip),
               "You're on {}! If you can't make it, please remove yourself "
               "from the trip so others can join.".format(trip_link),
-              trip.creator.participant.email,
+              trip.creator.email,
               [signup.participant.email],
               fail_silently=True)
 
@@ -117,7 +117,7 @@ def inform_leaders(sender, instance, action, reverse, model, pk_set, using,
     """ Inform all leaders that they're on a given trip.
 
     Emails will be sent any time a new leader is added to the ManyToMany
-    relation (that is, at trip creation, or if a new Leader is added).
+    relation (that is, at trip creation, or if a new leader is added).
     All messages come from the trip creator.
 
     Nothing happens if former leaders are removed.
@@ -134,6 +134,6 @@ def send_coleader_email(trip, leader):
     send_mail("You're a leader on {}".format(trip),
               # TODO: What information should be contained in this message?
               msg,
-              trip.creator.participant.email,
-              [leader.participant.email],
+              trip.creator.email,
+              [leader.email],
               fail_silently=True)

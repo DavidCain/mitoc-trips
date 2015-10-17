@@ -10,7 +10,7 @@ from django.utils import timezone
 from ws import dateutils
 from ws.signup_utils import add_to_waitlist
 from ws import models
-from datetime import date, timedelta
+from datetime import date
 
 
 today = dateutils.local_now().date()
@@ -34,7 +34,6 @@ def get_prioritized_participants():
             - 'flakiness' (more flakes -> lower priority
     """
     participants = models.Participant.objects.all()
-    #participants = participants.filter(attended_lectures=True)
     return sorted(participants, key=priority_key)
 
 
@@ -52,11 +51,7 @@ def get_number_of_trips(participant):
     """
     past_trips = get_past_trips(participant)
     signups = participant.signup_set.filter(trip__in=past_trips, on_trip=True)
-    try:
-        trips_led = participant.leader.trip_set.count()
-    except ObjectDoesNotExist:
-        trips_led = 0
-    return signups.count() - trips_led
+    return signups.count() - participant.trips_led.count()
 
 
 def get_flake_factor(participant):
@@ -199,8 +194,8 @@ class ParticipantHandler(object):
 
     def count_drivers_on_trip(self, trip):
         participant_drivers = trip.signup_set.filter(self.is_driver_q, on_trip=True)
-        lottery_leaders = trip.leaders.filter(participant__lotteryinfo__isnull=False)
-        num_leader_drivers = sum(leader.participant.lotteryinfo.is_driver
+        lottery_leaders = trip.leaders.filter(lotteryinfo__isnull=False)
+        num_leader_drivers = sum(leader.lotteryinfo.is_driver
                                  for leader in lottery_leaders)
         return participant_drivers.count() + num_leader_drivers
 

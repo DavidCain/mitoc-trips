@@ -18,9 +18,9 @@
     <tbody>
         {% for leader in leaders %}
         <tr>
-            <td>  <a href="mailto:{{ leader.participant.email }}">{{ leader.participant.name }}</a></td>
+            <td>  <a href="mailto:{{ leader.email }}">{{ leader.name }}</a></td>
             <td>{{ leader.rating }}</td>
-            <td>{{ leader.participant.cell_phone }}</td>
+            <td>{{ leader.cell_phone }}</td>
         </tr>
         {% endfor %}
     </tbody>

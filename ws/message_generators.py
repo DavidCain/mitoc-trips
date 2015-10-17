@@ -107,16 +107,19 @@ def complain_if_missing_feedback(request):
         return
 
     try:
-        leader = request.user.participant.leader
-    except ObjectDoesNotExist:
+        participant = request.user.participant
+    except ObjectDoesNotExist:  # Authenticated, but no info yet
         return
 
-    past_trips = leader.trip_set.filter(trip_date__lt=local_now().date())
+    if not participant.is_leader:
+        return
+
+    past_trips = participant.trips_led.filter(trip_date__lt=local_now().date())
     past_trips = past_trips.filter(signup__on_trip=True).distinct()
 
     # TODO: Could be made more efficient- O(n) queries, where n= number of trips
     for trip in past_trips:
-        trip_feedback = models.Feedback.objects.filter(leader=leader, trip=trip)
+        trip_feedback = models.Feedback.objects.filter(leader=participant, trip=trip)
         if not trip_feedback.exists():
             trip_url = reverse('review_trip', args=(trip.id,))
             msg = ('Please supply feedback for '

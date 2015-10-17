@@ -49,10 +49,7 @@ login_after_password_change = login_required(LoginAfterPasswordChangeView.as_vie
 
 
 def leader_on_trip(request, trip, creator_allowed=False):
-    try:
-        leader = request.user.participant.leader
-    except ObjectDoesNotExist:  # Only a participant
-        return False
+    leader = request.user.participant
     return (leader in trip.leaders.all() or
             creator_allowed and leader == trip.creator)
 
@@ -210,8 +207,7 @@ class ParticipantDetailView(ParticipantLookupView, DetailView):
         participant = self.object
         e_info = participant.emergency_info
         e_contact = e_info.emergency_contact
-        feedback = participant.feedback_set.select_related('trip', 'leader',
-                                                           'leader__participant')
+        feedback = participant.feedback_set.select_related('trip', 'leader')
         context['participant_form'] = forms.ParticipantForm(instance=participant)
         context['emergency_info_form'] = forms.EmergencyInfoForm(instance=e_info)
         context['emergency_contact_form'] = forms.EmergencyContactForm(instance=e_contact)
@@ -272,13 +268,12 @@ class TripView(DetailView):
 
     def get_queryset(self):
         trips = super(TripView, self).get_queryset()
-        trips = trips.select_related('waitlist__signups', 'info')
-        return trips.prefetch_related('leaders__participant')
+        return trips.select_related('waitlist__signups', 'info', 'leaders')
 
     def get_signups(self):
         """ Signups, with related fields used in templates preselected. """
         signups = models.SignUp.objects.filter(trip=self.object)
-        signups = signups.select_related('participant__leader', 'trip')
+        signups = signups.select_related('participant', 'trip')
         return signups.select_related('participant__lotteryinfo')
 
     def get_leaders(self):
@@ -288,7 +283,7 @@ class TripView(DetailView):
     @property
     def wl_signups(self):
         trip = self.object
-        return trip.waitlist.signups.select_related('participant__leader',
+        return trip.waitlist.signups.select_related('participant',
                                                     'participant__lotteryinfo')
 
     def get_context_data(self, **kwargs):
@@ -385,7 +380,7 @@ class AdminTripView(TripView, LeadersOnlyView, TripInfoEditable):
 
     def prefetch_feedback(self, signups):
         return signups.prefetch_related('participant__feedback_set__trip',
-                'participant__feedback_set__leader__participant')
+                                        'participant__feedback_set__leader')
 
     def get_context_data(self, **kwargs):
         trip = self.object = self.get_object()
@@ -494,7 +489,7 @@ class ReviewTripView(DetailView):
 
         if (all(form.is_valid() for participant, form in feedback_list) and
                 flake_form.is_valid()):
-            leader = request.user.participant.leader
+            leader = request.user.participant
 
             for participant, form in feedback_list:
                 feedback = form.save(commit=False)
@@ -539,7 +534,7 @@ class ReviewTripView(DetailView):
     @property
     def feedback_list(self):
         post = self.request.POST if self.request.method == 'POST' else None
-        leader = self.request.user.participant.leader
+        leader = self.request.user.participant
         feedback_list = []
 
         for participant in self.trip_participants:
@@ -580,13 +575,13 @@ def home(request):
 
 
 class LeaderView(ListView):
-    model = models.Leader
+    model = models.Participant
     context_object_name = 'leaders'
     template_name = 'leaders.html'
 
     def get_queryset(self):
-        leaders = super(LeaderView, self).get_queryset()
-        return leaders.select_related('participant')
+        participants = super(LeaderView, self).get_queryset()
+        return participants.exclude(leaderrating=None)
 
     @method_decorator(group_required('leaders'))
     def dispatch(self, request, *args, **kwargs):
@@ -630,7 +625,7 @@ class AllLeaderApplications(ListView):
 
     def get_queryset(self):
         applications = super(AllLeaderApplications, self).get_queryset()
-        return applications.select_related('participant', 'participant__leader')
+        return applications.select_related('participant')
 
     @method_decorator(group_required('WSC'))
     def dispatch(self, request, *args, **kwargs):
@@ -688,7 +683,7 @@ class LeaderApplicationView(DetailView):
 
 @group_required('WSC')
 def add_leader(request):
-    """ Create a Leader record for an existing Participant. """
+    """ Create a leader rating for an existing Participant. """
     if request.method == "POST":
         form = forms.LeaderForm(request.POST)
         if form.is_valid():
@@ -745,7 +740,7 @@ def _manage_trips(request, TripFormSet):
             formset = TripFormSet()
     else:
         all_trips = models.Trip.objects.all()
-        all_trips = all_trips.prefetch_related('leaders__participant')
+        all_trips = all_trips.select_related('leaders')
         formset = TripFormSet(queryset=all_trips)
     return render(request, 'manage_trips.html', {'formset': formset})
 
@@ -775,15 +770,14 @@ class AddTrip(CreateView):
     def get_initial(self):
         """ Default with trip creator among leaders. """
         initial = super(AddTrip, self).get_initial().copy()
-        try:
-            initial['leaders'] = [self.request.user.participant.leader]
-        except ObjectDoesNotExist:  # WSC (with no Leader) tries to add trip
-            pass
+        # It's possible for WSC to create trips while not being a leader
+        if self.request.user.participant.is_leader:
+            initial['leaders'] = [self.request.user.participant]
         return initial
 
     def form_valid(self, form):
         """ After is_valid(), assign creator from User, add empty waitlist. """
-        creator = self.request.user.participant.leader
+        creator = self.request.user.participant
         trip = form.save(commit=False)
         trip.creator = creator
         return super(AddTrip, self).form_valid(form)
@@ -836,7 +830,7 @@ class TripListView(ListView):
         # Each trip will need information about its leaders, so prefetch models
         trips = super(TripListView, self).get_queryset()
         trips = trips.annotate(num_signups=Count('signup'))
-        trips = trips.prefetch_related('leaders__participant')
+        trips = trips.select_related('leaders')
         return trips.annotate(signups_on_trip=Sum('signup__on_trip'))
 
     def get_context_data(self, **kwargs):
@@ -910,8 +904,7 @@ class ViewWaitlistTrips(TripListView):
 class ViewLeaderTrips(TripListView):
     """ View trips the user is leading. """
     def get(self, request, *args, **kwargs):
-        leader = request.user.participant.leader
-        self.queryset = leader.trip_set.all()
+        self.queryset = request.user.participant.trips_led.all()
         return super(ViewLeaderTrips, self).get(request, *args, **kwargs)
 
     @method_decorator(group_required('leaders'))
@@ -1097,7 +1090,7 @@ class TripMedical(TripInfoEditable):
         given by the leader, of if they're all possible drivers.
         """
         signups = trip.signup_set.filter(on_trip=True)
-        par_on_trip = (Q(participant__leader__in=trip.leaders.all()) |
+        par_on_trip = (Q(participant__in=trip.leaders.all()) |
                        Q(participant__signup__in=signups))
         cars = models.Car.objects.filter(par_on_trip).distinct()
         if trip.info:
@@ -1173,7 +1166,7 @@ class TripInfoView(UpdateView, LeadersOnlyView, TripInfoEditable):
     def get_form(self, form_class):
         form = super(TripInfoView, self).get_form(form_class)
         signups = self.trip.signup_set.filter(on_trip=True)
-        on_trip = (Q(leader__in=self.trip.leaders.all()) |
+        on_trip = (Q(pk__in=self.trip.leaders.all()) |
                    Q(signup__in=signups))
         participants = models.Participant.objects.filter(on_trip).distinct()
         has_car_info = participants.filter(car__isnull=False)
