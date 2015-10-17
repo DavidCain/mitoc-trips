@@ -9,7 +9,6 @@ from django.core.urlresolvers import reverse, reverse_lazy
 from django.db.models import Count, Sum
 from django.forms.models import modelformset_factory
 from django.forms import ModelForm, HiddenInput
-from django.forms import widgets
 from django.forms.util import ErrorList
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
@@ -693,23 +692,6 @@ def add_leader(request):
         # Regardless of success, empty form for quick addition of another
         form = forms.LeaderForm()
     return render(request, 'add_leader.html', {'leader_form': form})
-
-
-@group_required('WSC')
-def manage_leaders(request):
-    LeaderFormSet = modelformset_factory(models.Leader, can_delete=True, extra=0,
-                                         exclude=('participant',),
-                                         widgets={'notes': widgets.TextInput})
-    if request.method == 'POST':
-        formset = LeaderFormSet(request.POST)
-        if formset.is_valid():
-            formset.save()
-            messages.add_message(request, messages.SUCCESS, 'Updated leaders')
-            formset = LeaderFormSet()  # Render updated forms
-    else:
-        leaders = models.Leader.objects.all().select_related('participant')
-        formset = LeaderFormSet(queryset=leaders)
-    return render(request, 'manage_leaders.html', {'formset': formset})
 
 
 @group_required('WSC')

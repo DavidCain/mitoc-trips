@@ -20,7 +20,6 @@ urlpatterns = patterns('',
 
     # WSC views
     url(r'^wsc/add_leader/$', views.add_leader, name='add_leader'),
-    url(r'^wsc/manage_leaders/$', views.manage_leaders, name='manage_leaders'),
     url(r'^wsc/manage_participants/$', views.manage_participants, name='manage_participants'),
     url(r'^wsc/manage_applications/$', views.AllLeaderApplications.as_view(), name='manage_applications'),
     url(r'^wsc/view_application/(?P<pk>\d+)/$', views.LeaderApplicationView.as_view(), name='view_application'),
