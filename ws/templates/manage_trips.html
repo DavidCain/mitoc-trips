@@ -33,7 +33,7 @@ they will appear here.</p>
             <tr>
                 <td>  <a href="{% url 'view_trip' form.instance.id %}">{{ form.instance.name }}</a></td>
                 <td>{% for leader in form.instance.leaders.all %}
-                    <a href="{% url 'view_participant' leader.participant.id %}">{{ leader }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}
+                    <a href="{% url 'view_participant' leader.id %}">{{ leader }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}
                 </td>
                 <td class="nowrap" data-value="{{ form.instance.trip_date|date:'U' }}"> {{ form.instance.trip_date|date:"Y-m-d" }}</td>
                 <td data-value="{{ form.instance.wsc_approved }}"> {{ form.wsc_approved }}</td>

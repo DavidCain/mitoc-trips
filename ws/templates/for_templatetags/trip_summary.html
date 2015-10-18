@@ -3,7 +3,7 @@
     <div class="table-row">
         <div class="table-heading">Leaders</div>
         <div class="table-cell">{% for leader in trip.leaders.all %}
-            <a href="mailto:{{ leader.participant.email }}">{{ leader }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}
+            <a href="mailto:{{ leader.email }}">{{ leader }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}
         </div>
     </div>
     <div class="table-row">

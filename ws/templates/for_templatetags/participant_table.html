@@ -1,0 +1,24 @@
+<table class="footable">
+    <thead>
+        <tr>
+            <th>Name</th>
+            {% if show_drivers %}
+            <th data-sort-ignore="true">Car</th>
+            <th data-sort-ignore="true">Passengers</th>
+            {% endif %}
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for participant in participants %}
+        <tr>
+            <td>{{ participant }}</td>
+
+            {% if show_drivers %}
+            <td>{{ participant.lotteryinfo.car_status }}</td>
+            <td>{{ participant.lotteryinfo.number_of_passengers|default_if_none:"" }}</td>
+            {% endif %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

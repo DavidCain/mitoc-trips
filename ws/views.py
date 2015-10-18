@@ -1079,9 +1079,11 @@ class TripMedical(TripInfoEditable):
         return cars.select_related('participant__lotteryinfo')
 
     def get_trip_info(self, trip):
+        participants = trip.signed_up_participants.filter(signup__on_trip=True)
+        participants = participants.select_related('emergency_info')
         signups = trip.signup_set.filter(on_trip=True)
         signups = signups.select_related('participant__emergency_info')
-        return {'trip': trip, 'signups': signups, 'cars': self.get_cars(trip),
+        return {'trip': trip, 'participants': participants, 'cars': self.get_cars(trip),
                 'info_form': self.get_info_form(trip)}
 
 
@@ -1099,7 +1101,7 @@ class WIMPView(ListView, TripMedical, TripInfoEditable):
     def get_context_data(self, **kwargs):
         context_data = super(WIMPView, self).get_context_data(**kwargs)
         by_trip = (self.get_trip_info(trip) for trip in self.get_queryset())
-        all_trips = [(c['trip'], c['signups'], c['cars'], c['info_form'])
+        all_trips = [(c['trip'], c['participants'], c['cars'], c['info_form'])
                      for c in by_trip]
         context_data['all_trips'] = all_trips
         return context_data

@@ -59,14 +59,14 @@
     <p>Signups for this trip are not yet open.</p>
 {% endif %} {# No else - the three states should cover all cases #}
 
-{% if 'leaders' in groups %}
+{% if 'leader' in groups %}
     <h3>Leaders</h3>
-    {% signup_table leaders False True %}
+    {% participant_table leaders show_drivers=True %}
 {% endif %}
 
 {% if signups_on_trip %}
     <h3>Participants ({{ signups_on_trip.count }} / {{ trip.maximum_participants }})</h3>
-    {% signup_table signups_on_trip has_notes user.participant.leader %}
+    {% signup_table signups_on_trip has_notes show_drivers=user.participant.is_leader %}
 
     <h5>Email all participants</h5>
     <pre>{% for signup in signups_on_trip %}{{ signup.participant.email_addr }}{% if not forloop.last %}, {% endif %}{% endfor %}</pre>
@@ -74,12 +74,12 @@
 
 {% if waitlist_signups %}
     <h3>Waiting List ({{ waitlist_signups.count }}) </h3>
-    {% signup_table waitlist_signups has_notes user.participant.leader %}
+    {% signup_table waitlist_signups has_notes show_drivers=user.participant.is_leader %}
 {% endif %}
 
 {% if signups %}
     <h3>All Signups</h3>
-    {% signup_table signups has_notes %}
+    {% signup_table signups has_notes show_drivers=False %}
 {% endif %}
 
 {% endblock content %}

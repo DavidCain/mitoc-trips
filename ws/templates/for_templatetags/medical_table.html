@@ -10,14 +10,14 @@
     </tr>
 </thead>
 <tbody>
-    {% for signup in signups %}  {# 'signups' can also be Leader objects (no notes will be shown) #}
+    {% for participant in participants %}
     <tr>
-        <td class="nowrap"><a href="mailto:{{ signup.participant.email }}">{{ signup.participant.name }}</a></td>
-        <td class="nowrap">{{ signup.participant.cell_phone }}</td>
-        <td>{{ signup.participant.emergency_info.allergies }}</td>
-        <td>{{ signup.participant.emergency_info.medications }}</td>
-        <td>{{ signup.participant.emergency_info.medical_history }}</td>
-        <td>{{ signup.participant.attended_lectures|yesno:'Yes,<strong>No</strong>'|safe }}</td>
+        <td class="nowrap"><a href="mailto:{{ participant.email }}">{{ participant.name }}</a></td>
+        <td class="nowrap">{{ participant.cell_phone }}</td>
+        <td>{{ participant.emergency_info.allergies }}</td>
+        <td>{{ participant.emergency_info.medications }}</td>
+        <td>{{ participant.emergency_info.medical_history }}</td>
+        <td>{{ participant.attended_lectures|yesno:'Yes,<strong>No</strong>'|safe }}</td>
     </tr>
 </tbody>
 {% endfor %}

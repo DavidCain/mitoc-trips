@@ -22,7 +22,7 @@ It may not represent who's actually driving for the trip.</p>
 <hr>
 
 
-{% for trip, signups, cars, info_form in all_trips %}
+{% for trip, participants, cars, info_form in all_trips %}
 <h3><a href="{% url 'view_trip' trip.id %}">{{ trip.name }}</a></h3>
 
 <ul>
@@ -38,8 +38,8 @@ It may not represent who's actually driving for the trip.</p>
 {% endif %}
 
 <h4>Participants</h4>
-{% if signups %}
-{% medical_table signups %}
+{% if participants %}
+{% medical_table participants %}
 {% else %}
 <p> No participants. </p>
 {% endif %}

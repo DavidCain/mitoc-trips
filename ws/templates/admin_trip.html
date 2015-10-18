@@ -48,7 +48,7 @@
 
 {% if 'leaders' in groups %}
     <h3>Leaders</h3>
-    {% signup_table leaders False True %}
+    {% participant_table leaders True %}
 {% endif %}
 
 <h3>Participants ({{ ontrip_formset|length }} / {{ trip.maximum_participants }})</h3>
