@@ -579,8 +579,7 @@ class LeaderView(ListView):
     template_name = 'leaders.html'
 
     def get_queryset(self):
-        participants = super(LeaderView, self).get_queryset()
-        return participants.exclude(leaderrating=None)
+        return models.Participant.leaders.get_queryset()
 
     @method_decorator(group_required('leaders'))
     def dispatch(self, request, *args, **kwargs):

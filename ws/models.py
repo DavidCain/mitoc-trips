@@ -73,11 +73,19 @@ class EmergencyInfo(models.Model):
                                      self.medical_history, self.emergency_contact))
 
 
+class LeaderManager(models.Manager):
+    def get_queryset(self):
+        participants = super(LeaderManager, self).get_queryset()
+        return participants.exclude(leaderrating=None)
+
+
 class Participant(models.Model):
     """ Anyone going on a trip needs WIMP info, and info about their car.
 
     Even leaders will have a Participant record (see docstring of LeaderRating).
     """
+    objects = models.Manager()
+    leaders = LeaderManager()
     name = models.CharField(max_length=255)
     cell_phone = PhoneNumberField(null=True, blank=True)  # Hi, Sheep.
     last_updated = models.DateTimeField(auto_now=True)
@@ -247,6 +255,8 @@ class TripInfo(models.Model):
 
 class Trip(models.Model):
     creator = models.ForeignKey(Participant, related_name='created_trips')
+    # Leaders should be privileged at time of trip creation, but may no longer
+    # be leaders later (and we don't want to break the relation)
     leaders = models.ManyToManyField(Participant, related_name='trips_led')
     name = models.CharField(max_length=127)
     description = models.TextField()

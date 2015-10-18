@@ -104,6 +104,7 @@ class TripForm(RequiredModelForm):
 
     def __init__(self, *args, **kwargs):
         super(TripForm, self).__init__(*args, **kwargs)
+        self.fields['leaders'].queryset = models.Participant.leaders.get_queryset()
         self.fields['leaders'].help_text = None  # Disable "Hold command..."
 
 
