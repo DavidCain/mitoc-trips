@@ -261,12 +261,12 @@ class SignUpView(CreateView):
         return super(SignUpView, self).dispatch(request, *args, **kwargs)
 
 
-class TripView(DetailView):
+class TripDetailView(DetailView):
     model = models.Trip
     context_object_name = 'trip'
 
     def get_queryset(self):
-        trips = super(TripView, self).get_queryset()
+        trips = super(TripDetailView, self).get_queryset()
         return trips.select_related('waitlist__signups', 'info', 'leaders')
 
     def get_signups(self):
@@ -287,14 +287,14 @@ class TripView(DetailView):
 
     def get_context_data(self, **kwargs):
         """ Create form for signup (only if signups open). """
-        context = super(TripView, self).get_context_data()
+        context = super(TripDetailView, self).get_context_data()
         context['leaders'] = self.get_leaders()
         context['signups'] = self.get_signups()
         context['waitlist_signups'] = self.wl_signups
         return context
 
 
-class ViewTrip(TripView):
+class TripView(TripDetailView):
     template_name = 'view_trip.html'
 
     def get_participant_signup(self, trip=None):
@@ -308,7 +308,7 @@ class ViewTrip(TripView):
 
     def get_context_data(self, **kwargs):
         """ Create form for signup (only if signups open). """
-        context = super(ViewTrip, self).get_context_data()
+        context = super(TripView, self).get_context_data()
         signups = context['signups']
         trip = self.object
         if trip.signups_open:
@@ -324,7 +324,7 @@ class ViewTrip(TripView):
         trip = self.get_object()
         if leader_on_trip(request, trip):
             return redirect(reverse('admin_trip', args=(trip.id,)))
-        return super(ViewTrip, self).get(request, *args, **kwargs)
+        return super(TripView, self).get(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
         """ Add signup to trip or waitlist, if applicable.
@@ -337,7 +337,7 @@ class ViewTrip(TripView):
 
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
-        return super(ViewTrip, self).dispatch(request, *args, **kwargs)
+        return super(TripView, self).dispatch(request, *args, **kwargs)
 
 
 class TripInfoEditable(object):
@@ -367,7 +367,7 @@ class TripInfoEditable(object):
         return info_form
 
 
-class AdminTripView(TripView, LeadersOnlyView, TripInfoEditable):
+class AdminTripView(TripDetailView, LeadersOnlyView, TripInfoEditable):
     template_name = 'admin_trip.html'
     par_prefix = "ontrip"
     wl_prefix = "waitlist"
@@ -586,7 +586,7 @@ class LeaderView(ListView):
         return super(LeaderView, self).dispatch(request, *args, **kwargs)
 
 
-class BecomeLeader(CreateView):
+class BecomeLeaderView(CreateView):
     template_name = "become_leader.html"
     model = models.LeaderApplication
     form_class = forms.LeaderApplicationForm
@@ -596,7 +596,7 @@ class BecomeLeader(CreateView):
 
     @method_decorator(user_info_required)
     def dispatch(self, request, *args, **kwargs):
-        return super(BecomeLeader, self).dispatch(request, *args, **kwargs)
+        return super(BecomeLeaderView, self).dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
         """ Link the application to the submitting participant. """
@@ -604,11 +604,11 @@ class BecomeLeader(CreateView):
         application.participant = self.request.user.participant
         received = "Leader application received!"
         messages.add_message(self.request, messages.SUCCESS, received)
-        return super(BecomeLeader, self).form_valid(form)
+        return super(BecomeLeaderView, self).form_valid(form)
 
     def get_context_data(self, **kwargs):
         """ Give next year's value in the context. """
-        context_data = super(BecomeLeader, self).get_context_data(**kwargs)
+        context_data = super(BecomeLeaderView, self).get_context_data(**kwargs)
         context_data['year'] = local_now().date().year + 1
         return context_data
 
@@ -616,18 +616,18 @@ class BecomeLeader(CreateView):
         return reverse('home')
 
 
-class AllLeaderApplications(ListView):
+class AllLeaderApplicationsView(ListView):
     model = models.LeaderApplication
     context_object_name = 'leader_applications'
     template_name = 'manage_applications.html'
 
     def get_queryset(self):
-        applications = super(AllLeaderApplications, self).get_queryset()
+        applications = super(AllLeaderApplicationsView, self).get_queryset()
         return applications.select_related('participant')
 
     @method_decorator(group_required('WSC'))
     def dispatch(self, request, *args, **kwargs):
-        return super(AllLeaderApplications, self).dispatch(request, *args, **kwargs)
+        return super(AllLeaderApplicationsView, self).dispatch(request, *args, **kwargs)
 
 
 class LeaderApplicationView(DetailView):
@@ -740,7 +740,7 @@ def admin_manage_trips(request):
     return _manage_trips(request, TripFormSet)
 
 
-class AddTrip(CreateView):
+class AddTripView(CreateView):
     model = models.Trip
     form_class = forms.TripForm
     template_name = 'add_trip.html'
@@ -750,7 +750,7 @@ class AddTrip(CreateView):
 
     def get_initial(self):
         """ Default with trip creator among leaders. """
-        initial = super(AddTrip, self).get_initial().copy()
+        initial = super(AddTripView, self).get_initial().copy()
         # It's possible for WSC to create trips while not being a leader
         if self.request.user.participant.is_leader:
             initial['leaders'] = [self.request.user.participant]
@@ -761,14 +761,14 @@ class AddTrip(CreateView):
         creator = self.request.user.participant
         trip = form.save(commit=False)
         trip.creator = creator
-        return super(AddTrip, self).form_valid(form)
+        return super(AddTripView, self).form_valid(form)
 
     @method_decorator(group_required('WSC', 'leaders'))
     def dispatch(self, request, *args, **kwargs):
-        return super(AddTrip, self).dispatch(request, *args, **kwargs)
+        return super(AddTripView, self).dispatch(request, *args, **kwargs)
 
 
-class EditTrip(UpdateView, LeadersOnlyView):
+class EditTripView(UpdateView, LeadersOnlyView):
     model = models.Trip
     form_class = forms.TripForm
     template_name = 'edit_trip.html'
@@ -797,7 +797,7 @@ class EditTrip(UpdateView, LeadersOnlyView):
         trip = form.save(commit=False)
         if not is_wsc(self.request):
             trip.wsc_approved = False
-        return super(EditTrip, self).form_valid(form)
+        return super(EditTripView, self).form_valid(form)
 
 
 class TripListView(ListView):
@@ -838,21 +838,21 @@ class CurrentTripListView(TripListView):
         return super(TripListView, self).get_context_data(**kwargs)
 
 
-class ViewTrips(CurrentTripListView):
+class CurrentTripsView(CurrentTripListView):
     """ View current trips. """
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         return super(TripListView, self).dispatch(request, *args, **kwargs)
 
 
-class ViewAllTrips(TripListView):
+class AllTripsView(TripListView):
     """ View all trips, past and present. """
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         return super(TripListView, self).dispatch(request, *args, **kwargs)
 
 
-class ViewParticipantTrips(TripListView):
+class ParticipantTripsView(TripListView):
     """ View trips the user is a participant on. """
     template_name = 'view_my_trips.html'
 
@@ -860,7 +860,7 @@ class ViewParticipantTrips(TripListView):
         participant = self.request.user.participant
         accepted_signups = participant.signup_set.filter(on_trip=True)
 
-        trips = super(ViewParticipantTrips, self).get_queryset()
+        trips = super(ParticipantTripsView, self).get_queryset()
         return trips.filter(signup__in=accepted_signups)
 
     @method_decorator(user_info_required)
@@ -868,13 +868,13 @@ class ViewParticipantTrips(TripListView):
         return super(TripListView, self).dispatch(request, *args, **kwargs)
 
 
-class ViewWaitlistTrips(TripListView):
+class WaitlistTripsView(TripListView):
     """ View trips the user is currently waitlisted on. """
     def get_queryset(self):
         signups = self.request.user.participant.signup_set
         waitlisted_signups = signups.filter(waitlistsignup__isnull=False)
 
-        trips = super(ViewWaitlistTrips, self).get_queryset()
+        trips = super(WaitlistTripsView, self).get_queryset()
         return trips.filter(signup__in=waitlisted_signups)
 
     @method_decorator(user_info_required)
@@ -882,15 +882,15 @@ class ViewWaitlistTrips(TripListView):
         return super(TripListView, self).dispatch(request, *args, **kwargs)
 
 
-class ViewLeaderTrips(TripListView):
+class LeaderTripsView(TripListView):
     """ View trips the user is leading. """
     def get(self, request, *args, **kwargs):
         self.queryset = request.user.participant.trips_led.all()
-        return super(ViewLeaderTrips, self).get(request, *args, **kwargs)
+        return super(LeaderTripsView, self).get(request, *args, **kwargs)
 
     @method_decorator(group_required('leaders'))
     def dispatch(self, request, *args, **kwargs):
-        return super(ViewLeaderTrips, self).dispatch(request, *args, **kwargs)
+        return super(LeaderTripsView, self).dispatch(request, *args, **kwargs)
 
 
 class LotteryPairView(CreateView):
@@ -954,7 +954,7 @@ class LotteryPairView(CreateView):
         return super(LotteryPairView, self).dispatch(request, *args, **kwargs)
 
 
-class TripPreferencesView(TemplateView):
+class LotteryPreferencesView(TemplateView):
     template_name = 'trip_preferences.html'
     update_msg = 'Lottery preferences updated'
 
@@ -1058,7 +1058,7 @@ class TripPreferencesView(TemplateView):
 
     @method_decorator(user_info_required)
     def dispatch(self, request, *args, **kwargs):
-        return super(TripPreferencesView, self).dispatch(request, *args, **kwargs)
+        return super(LotteryPreferencesView, self).dispatch(request, *args, **kwargs)
 
 
 class TripMedical(TripInfoEditable):
@@ -1206,7 +1206,7 @@ class LectureAttendanceView(FormView):
             messages.add_message(self.request, messages.SUCCESS, success_msg)
 
 
-class CheckTripOverflow(View, SingleObjectMixin):
+class CheckTripOverflowView(View, SingleObjectMixin):
     """ JSON-returning view to be used for AJAX on trip editing. """
     model = models.Trip
     clear_response = {"msg": "",  # Returned message
@@ -1214,7 +1214,7 @@ class CheckTripOverflow(View, SingleObjectMixin):
 
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
-        return super(CheckTripOverflow, self).dispatch(request, *args, **kwargs)
+        return super(CheckTripOverflowView, self).dispatch(request, *args, **kwargs)
 
     def response_dict(self, trip, max_participants):
         """ Returns dictionary giving info about effects on the trip lists."""
