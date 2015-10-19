@@ -12,7 +12,7 @@
 <tbody>
     {% for participant in participants %}
     <tr>
-        <td class="nowrap"><a href="mailto:{{ participant.email }}">{{ participant.name }}</a></td>
+        <td class="nowrap"><a href="{% url 'view_participant' participant.id %}">{{ participant.name }}</a></td>
         <td class="nowrap">{{ participant.cell_phone }}</td>
         <td>{{ participant.emergency_info.allergies }}</td>
         <td>{{ participant.emergency_info.medications }}</td>
