@@ -16,40 +16,42 @@ urlpatterns = patterns('',
 
     # Administrator views
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^admin/manage_trips/$', views.admin_manage_trips, name='admin_manage_trips'),
+    url(r'^admin/trips/$', views.admin_manage_trips, name='admin_manage_trips'),
 
-    # WSC views
-    url(r'^wsc/add_leader/$', views.add_leader, name='add_leader'),
-    url(r'^wsc/manage_participants/$', views.manage_participants, name='manage_participants'),
-    url(r'^wsc/manage_applications/$', views.AllLeaderApplicationsView.as_view(), name='manage_applications'),
-    url(r'^wsc/view_application/(?P<pk>\d+)/$', views.LeaderApplicationView.as_view(), name='view_application'),
-    url(r'^wsc/manage_trips/$', views.manage_trips, name='manage_trips'),
-    url(r'^wsc/lecture_attendance/$', views.LectureAttendanceView.as_view(), name='lecture_attendance'),
-    url(r'^wsc/wimp/$', views.WIMPView.as_view(), name='wimp'),
+    # Activity Chair views
+    url(r'^chair/leaders/add/$', views.add_leader, name='add_leader'),
+    url(r'^chair/participants/$', views.manage_participants, name='manage_participants'),
+    url(r'^chair/applications/$', views.AllLeaderApplicationsView.as_view(), name='manage_applications'),
+    url(r'^chair/applications/(?P<pk>\d+)/$', views.LeaderApplicationView.as_view(), name='view_application'),
+    url(r'^chair/trips/$', views.manage_trips, name='manage_trips'),
+    url(r'^chair/participants/lecture_attendance/$', views.LectureAttendanceView.as_view(), name='lecture_attendance'),
+
+    # Activity Chairs or WIMP views
+    url(r'^trips/medical/$', views.WIMPView.as_view(), name='wimp'),
 
     # Leader views
-    url(r'^view_leader_trips/$', views.LeaderTripsView.as_view(), name='view_leader_trips'),
-    url(r'^add_trip/$', views.AddTripView.as_view(), name='add_trip'),
-    url(r'^edit_trip/(?P<pk>\d+)/$', views.EditTripView.as_view(), name='edit_trip'),
+    url(r'^trips/create/$', views.AddTripView.as_view(), name='add_trip'),
+    url(r'^trips/(?P<pk>\d+)/edit/$', views.EditTripView.as_view(), name='edit_trip'),
     url(r'^leaders/$', views.LeaderView.as_view(), name='leaders'),
-    url(r'^admin_trip/(?P<pk>\d+)/$', views.AdminTripView.as_view(), name='admin_trip'),
-    url(r'^trip_itinerary/(?P<pk>\d+)/$', views.TripInfoView.as_view(), name='trip_itinerary'),
-    url(r'^review_trip/(?P<pk>\d+)/$', views.ReviewTripView.as_view(), name='review_trip'),
-    url(r'^view_participant/(?P<pk>\d+)/$', views.ParticipantDetailView.as_view(), name='view_participant'),
-    url(r'^participant_lookup/$', views.ParticipantLookupView.as_view(), name='participant_lookup'),
-    url(r'^trip_medical/(?P<pk>\d+)/$', views.TripMedicalView.as_view(), name='trip_medical'),
+    url(r'^trips/leading/$', views.LeaderTripsView.as_view(), name='view_leader_trips'),
+    url(r'^trips/(?P<pk>\d+)/admin/$', views.AdminTripView.as_view(), name='admin_trip'),
+    url(r'^trips/(?P<pk>\d+)/itinerary/$', views.TripInfoView.as_view(), name='trip_itinerary'),
+    url(r'^trips/(?P<pk>\d+)/review/$', views.ReviewTripView.as_view(), name='review_trip'),
+    url(r'^participants/(?P<pk>\d+)/$', views.ParticipantDetailView.as_view(), name='view_participant'),
+    url(r'^participants/find/$', views.ParticipantLookupView.as_view(), name='participant_lookup'),
+    url(r'^trips/(?P<pk>\d+)/medical/$', views.TripMedicalView.as_view(), name='trip_medical'),
 
     # General views (anyone can view or only participants with info)
-    url(r'^update_info/$', views.UpdateParticipantView.as_view(), name='update_info'),
-    url(r'^become_leader/$', views.BecomeLeaderView.as_view(), name='become_leader'),
-    url(r'^view_trip/(?P<pk>\d+)/$', views.TripView.as_view(), name='view_trip'),
-    url(r'^view_trips/$', views.CurrentTripsView.as_view(), name='view_trips'),
-    url(r'^view_all_trips/$', views.AllTripsView.as_view(), name='view_all_trips'),
-    url(r'^view_my_trips/$', views.ParticipantTripsView.as_view(), name='view_my_trips'),
-    url(r'^view_waitlisted_trips/$', views.WaitlistTripsView.as_view(), name='view_waitlisted_trips'),
-    url(r'^trip_signup/$', views.SignUpView.as_view(), name='trip_signup'),
-    url(r'^trip_preferences/$', views.LotteryPreferencesView.as_view(), name='trip_preferences'),
-    url(r'^lottery_pair/$', views.LotteryPairView.as_view(), name='lottery_pair'),
+    url(r'^personal_info/$', views.UpdateParticipantView.as_view(), name='update_info'),
+    url(r'^leaders/apply/$', views.BecomeLeaderView.as_view(), name='become_leader'),
+    url(r'^trips/(?P<pk>\d+)/$', views.TripView.as_view(), name='view_trip'),
+    url(r'^trips/$', views.CurrentTripsView.as_view(), name='view_trips'),
+    url(r'^trips/all/$', views.AllTripsView.as_view(), name='view_all_trips'),
+    url(r'^trips/mine/$', views.ParticipantTripsView.as_view(), name='view_my_trips'),
+    url(r'^trips/waitlisted/$', views.WaitlistTripsView.as_view(), name='view_waitlisted_trips'),
+    url(r'^trips/signup/$', views.SignUpView.as_view(), name='trip_signup'),
+    url(r'^preferences/lottery/$', views.LotteryPreferencesView.as_view(), name='trip_preferences'),
+    url(r'^preferences/lottery/pairing/$', views.LotteryPairView.as_view(), name='lottery_pair'),
 
     # Help views (most pages available to anyone, some require groups)
     url(r'^contact/$', TemplateView.as_view(template_name='contact.html'), name='contact'),
@@ -64,5 +66,5 @@ urlpatterns = patterns('',
     url(r'^help/wsc/wsc/$', group_required('WSC')(TemplateView.as_view(template_name='help/wsc/wsc.html')), name='help-wsc'),
 
     # API (must have account in system)
-    url(r'^api/check_trip_overflow/(?P<pk>\d+)', views.CheckTripOverflowView.as_view(), name='check_trip_overflow'),
+    url(r'^trips/(?P<pk>\d+)/overflow.json$', views.CheckTripOverflowView.as_view(), name='check_trip_overflow'),
 ) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
