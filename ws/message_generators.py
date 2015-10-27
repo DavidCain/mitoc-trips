@@ -3,6 +3,8 @@ from __future__ import unicode_literals
 Functions that take a request, create messages if applicable.
 """
 
+from datetime import timedelta
+
 from django.contrib import messages
 from django.contrib.messages import INFO, WARNING
 from django.core.exceptions import ObjectDoesNotExist
@@ -101,6 +103,15 @@ def warn_if_needs_update(request):
     messages.add_message(request, WARNING, msg, extra_tags='safe')
 
 
+def _feedback_eligible_trips(participant):
+    """ Recent completed trips where participants were not given feedback. """
+    today = local_now().date()
+    one_month_ago = today - timedelta(days=30)
+    recent_trips = participant.trips_led.filter(trip_date__lt=today,
+                                                trip_date__gt=one_month_ago)
+    return recent_trips.filter(signup__on_trip=True).distinct()
+
+
 def complain_if_missing_feedback(request):
     """ Create message if a Leader should supply feedback. """
     if not request.user.is_authenticated():
@@ -114,11 +125,8 @@ def complain_if_missing_feedback(request):
     if not participant.is_leader:
         return
 
-    past_trips = participant.trips_led.filter(trip_date__lt=local_now().date())
-    past_trips = past_trips.filter(signup__on_trip=True).distinct()
-
     # TODO: Could be made more efficient- O(n) queries, where n= number of trips
-    for trip in past_trips:
+    for trip in _feedback_eligible_trips(participant):
         trip_feedback = models.Feedback.objects.filter(leader=participant, trip=trip)
         if not trip_feedback.exists():
             trip_url = reverse('review_trip', args=(trip.id,))
