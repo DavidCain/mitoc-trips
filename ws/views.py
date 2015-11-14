@@ -639,11 +639,10 @@ class LeaderApplicationView(DetailView):
         """ Add on a form to assign/modify leader permissions. """
         context_data = super(LeaderApplicationView, self).get_context_data(**kwargs)
         application = self.get_object()
-        leader = self.get_leader(application)
         initial = {'participant': application.participant}
-        leader_form = forms.LeaderForm(instance=leader, initial=initial)
+        leader_form = forms.LeaderForm(initial=initial)
+        # TODO: Ensure only one leader rating exists per activity type
         leader_form.fields['participant'].widget = HiddenInput()
-
         context_data['leader_form'] = leader_form
         return context_data
 
@@ -657,7 +656,7 @@ class LeaderApplicationView(DetailView):
     def post(self, request, *args, **kwargs):
         """ Save a rating for the leader. """
         application = self.get_object()
-        leader_form = forms.LeaderForm(request.POST, instance=self.get_leader(application))
+        leader_form = forms.LeaderForm(request.POST)
 
         if leader_form.is_valid():
             leader_form.save()
