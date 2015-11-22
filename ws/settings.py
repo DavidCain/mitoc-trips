@@ -33,6 +33,7 @@ INSTALLED_APPS = (
     'localflavor',
     'allauth',
     'allauth.account',
+    'djangular',
     'ws',
 )
 

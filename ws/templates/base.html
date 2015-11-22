@@ -18,6 +18,8 @@
 
     {% block js %}
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js" type="text/javascript"></script>
+    {#<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.0-beta.2/angular.min.js"></script>#}
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
     <script src="{% static "js/footable.js" %}" type="text/javascript"></script>
     <script src="{% static "js/footable.sort.js" %}" type="text/javascript"></script>
     <script type="text/javascript">
@@ -40,7 +42,7 @@
 {% endblock head %}
 </head>
 
-<body>
+<body ng-app="ws">
 
     <nav class="navbar navbar-inverse navbar-fixed-top">
         <div class="container">

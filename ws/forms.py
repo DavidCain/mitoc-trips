@@ -4,6 +4,10 @@ from django.core.exceptions import ValidationError
 import django_select2.widgets
 from django_select2.fields import ModelSelect2Field
 from django_select2.fields import ModelSelect2MultipleField
+from djangular.forms import NgFormValidationMixin, NgForm
+from djangular.forms import NgModelFormMixin, NgModelForm
+from djangular.styling.bootstrap3.forms import Bootstrap3Form, Bootstrap3FormMixin
+
 from localflavor.us.us_states import US_STATES
 
 from ws import models
@@ -195,7 +199,7 @@ class FlakeForm(forms.Form):
         self.fields['flakers'].help_text = None  # Disable "Hold command..."
 
 
-class AttendedLecturesForm(forms.Form):
+class AttendedLecturesForm(NgFormValidationMixin, Bootstrap3Form):
     email = forms.EmailField()
     password = forms.CharField(widget=forms.PasswordInput())
 

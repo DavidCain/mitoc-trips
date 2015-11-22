@@ -3,13 +3,13 @@
 {% block content %}
 {{ block.super }}
 
+
 <h3>Winter School Lecture Sign-in</h3>
-<form action="" method="post">
+<form name="{{ form.form_name }}" method="post" action="." novalidate>
     {% csrf_token %}
-    <table>
-        {{ form.as_table }}
-    </table>
-    <input type="submit" value="Submit" />
+    {{ form.as_div }}
+    <button type="submit" ng-disabled="{{ form.form_name }}.$invalid" class="btn btn-primary">Submit</button>
+
 </form>
 
 {% endblock content %}
