@@ -2,6 +2,15 @@ from django.core.exceptions import PermissionDenied
 from django.contrib.auth.decorators import user_passes_test
 from django.core.urlresolvers import reverse_lazy
 
+from ws import models
+
+
+#NOTE: Currently excludes the WSC (only the WS chair can assign ratings)
+def chairs_only(*activity_types, **kwargs):
+    if not activity_types:
+        activity_types = [val for val, label in models.LeaderRating.ACTIVITIES]
+    chair_groups = {activity + "_chair" for activity in activity_types}
+    return group_required(*chair_groups, **kwargs)
 
 def group_required(*group_names, **kwargs):
     """ Requires user membership in at least one of the groups passed in. """
