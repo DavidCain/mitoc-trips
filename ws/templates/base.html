@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="{% static 'css/layout.css' %}" />
     <link href="{% static 'css/footable.core.css' %}" rel="stylesheet" type="text/css" />
     <link href="{% static 'css/footable.standalone.css' %}" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous">
     {% endblock css %}
 
     {% block js %}
@@ -29,111 +30,129 @@
             });
         });
     </script>
+    <script src="{% static 'js/ui-bootstrap-tpls-0.14.3.js' %}" type="text/javascript"></script>
+    <script src="{% static 'djangular/js/django-angular.min.js' %}" type="text/javascript"></script>
+    <script>
+        // TODO: Make a custom build with just the templates I need
+        angular.module('ws', ['ui.bootstrap', 'ui.bootstrap.tpls', 'ng.django.forms']);
+    </script>
     {% endblock js %}
 {% endblock head %}
 </head>
 
 <body>
-<div id="container">
-    {% block header %}
-    <div id="header">
-        <div id="logo">
-            <span class="site-name"><a href="{% url 'home' %}" title="Winter School" rel="home">Winter School</a></span>
-            <span class="site-description">MITOC</span>
-        </div>
 
-        <div class="main-nav">
-            <ul class="menu">
-                <li><a href="{% url 'home' %}">Home</a></li>
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    {# Navicon #}<span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="{% url 'home' %}">Winter School</a>
+            </div>
+            <div id="navbar" class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
 
-                <li><a href="{% url 'view_trips' %}">Trips</a>
                     {% if user.is_authenticated %}
-                    <ul class="children">
-                        <li> <a href="{% url 'view_all_trips' %}">All trips</a> </li>
-                        <li> <a href="{% url 'view_trips' %}">Upcoming trips</a> </li>
-                        <li> <a href="{% url 'view_my_trips' %}">My trips</a> </li>
-                        <li> <a href="{% url 'view_waitlisted_trips' %}">Waitlisted trips</a> </li>
-                        <li> <a href="{% url 'trip_preferences' %}">Trip preferences</a> </li>
-                    </ul>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Trips <span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li> <a href="{% url 'view_all_trips' %}">All trips</a> </li>
+                                <li> <a href="{% url 'view_trips' %}">Upcoming trips</a> </li>
+                                <li> <a href="{% url 'view_my_trips' %}">My trips</a> </li>
+                                <li> <a href="{% url 'view_waitlisted_trips' %}">Waitlisted trips</a> </li>
+                                <li role="separator" class="divider"></li>
+                                <li> <a href="{% url 'trip_preferences' %}">Trip preferences</a> </li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li><a href="{% url 'view_trips' %}">Trips</a>
                     {% endif %}
-                </li>
 
-                {% if "leaders" in groups %}
-                <li><a>Leaders</a>
-                    <ul class="children">
-                        <li> <a href="{% url 'add_trip' %}"> New trip </a> </li>
-                        <li> <a href="{% url 'view_leader_trips' %}">My trips</a> </li>
-                        <li> <a href="{% url 'leaders' %}">All leaders</a> </li>
-                        <li> <a href="{% url 'participant_lookup' %}">Participant lookup</a> </li>
-                    </ul>
-                </li>
-                {% endif %}
+                    {% if "leaders" in groups %}
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Leaders <span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li> <a href="{% url 'add_trip' %}"> New trip </a> </li>
+                                <li> <a href="{% url 'view_leader_trips' %}">My trips</a> </li>
+                                <li> <a href="{% url 'leaders' %}">All leaders</a> </li>
+                                <li> <a href="{% url 'participant_lookup' %}">Participant lookup</a> </li>
+                            </ul>
+                        </li>
+                    {% endif %}
 
-                {% if "WSC" in groups and not user.is_superuser %}
-                <li><a>WSC</a>
-                    <ul class="children">
-                        <li> <a href="{% url 'add_leader' %}"> Add new leader(s) </a> </li>
-                        <li> <a href="{% url 'manage_applications' %}"> Manage leader applications </a> </li>
-                        <li> <a href="{% url 'manage_trips' %}"> Manage trips </a> </li>
-                        <li> <a href="{% url 'manage_participants' %}"> Manage participants </a> </li>
-                        <li> <a href="{% url 'wimp' %}"> WIMP </a> </li>
-                    </ul>
-                {% endif %}
-                {% if user.is_superuser %}
-                <li><a>Admin</a>
-                    <ul class="children">
-                        <li> <a href="{% url 'admin:index' %}"> Site administration </a> </li>
-                        <li> <a href="{% url 'add_leader' %}"> Add new leader(s) </a> </li>
-                        <li> <a href="{% url 'admin_manage_trips' %}"> Manage trips </a> </li>
-                        <li> <a href="{% url 'manage_participants' %}"> Manage participants </a> </li>
-                        <li> <a href="{% url 'wimp' %}"> WIMP </a> </li>
-                    </ul>
-                {% endif %}
-                <li><a>Account</a>
-                    <ul class="children">
-                        {% if user.is_authenticated %}
-                        <li> <a href="{% url 'update_info' %}">Update personal info</a> </li>
-                        <li> <a href="{% url 'account_logout' %}">Log out</a> </li>
-                        <li> <a href="{% url 'account_change_password' %}">Change password</a> </li>
-                        {% else %}
-                        <li> <a href="{% url 'account_signup' %}">Sign up</a> </li>
-                        <li> <a href="{% url 'account_login' %}">Log in</a> </li>
-                        {% endif %}
-                    </ul>
-                </li>
-                <li><a href="{% url 'help-home' %}">Help</a>
-                    <ul class="children">
-                        <li><a href="{% url 'contact' %}">Contact</a></li>
-                        <li><a href="{% url 'help-about' %}">About</a></li>
-                    </ul>
-                </li>
-            </ul>
-            <a id="responsive_menu_button"></a>
+                    {% if "WSC" in groups and not user.is_superuser %}
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">WSC <span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li> <a href="{% url 'add_leader' %}"> Add new leader(s) </a> </li>
+                                <li> <a href="{% url 'manage_applications' %}"> Manage leader applications </a> </li>
+                                <li> <a href="{% url 'manage_trips' %}"> Manage trips </a> </li>
+                                <li> <a href="{% url 'manage_participants' %}"> Manage participants </a> </li>
+                                <li> <a href="{% url 'wimp' %}"> WIMP </a> </li>
+                            </ul>
+                        </li>
+                    {% endif %}
+
+
+                    {% if user.is_superuser %}
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Admin <span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li> <a href="{% url 'admin:index' %}"> Site administration </a> </li>
+                                <li> <a href="{% url 'add_leader' %}"> Add new leader(s) </a> </li>
+                                <li> <a href="{% url 'admin_manage_trips' %}"> Manage trips </a> </li>
+                                <li> <a href="{% url 'manage_participants' %}"> Manage participants </a> </li>
+                                <li> <a href="{% url 'wimp' %}"> WIMP </a> </li>
+                            </ul>
+                        </li>
+                    {% endif %}
+
+
+
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Account <span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            {% if user.is_authenticated %}
+                                <li class="dropdown-header">{{ user.email }}</li>
+                                <li> <a href="{% url 'update_info' %}">Personal info</a> </li>
+                                <li> <a href="{% url 'trip_preferences' %}">Lottery preferences</a> </li>
+                                <li role="separator" class="divider"></li>
+                                <li> <a href="{% url 'account_change_password' %}">Change password</a> </li>
+                                <li> <a href="{% url 'account_logout' %}">Log out</a> </li>
+                            {% else %}
+                                <li class="dropdown-header">Anonymous User</li>
+                                <li> <a href="{% url 'account_signup' %}">Sign up</a> </li>
+                                <li> <a href="{% url 'account_login' %}">Log in</a> </li>
+                            {% endif %}
+                        </ul>
+                    </li>
+
+                    <li><a href="{% url 'help-home' %}">Help</a></li>
+                    <li><a href="{% url 'contact' %}">Contact</a></li>
+                </ul>
+            </div><!--/.nav-collapse -->
         </div>
-    </div>
-    {% endblock header %}
+    </nav>
 
-    <div id="wrapper" class="clearfix">
-        <div id="content" class="grid col-940">
-            {% block content %}
-            {% endblock content %}
-        </div>
-    </div>
-
-    <div id="footer-wrapper">
-        <div class="grid col-300 copyright"> © 2014 MITOC</div>
-
-        <div class="grid col-300 scroll-top">
-            {% if user.is_authenticated %}
-            Currently logged in as {{ user.email }}
-            {% else %}
-            Anonymous user
-            {% endif %}
-        </div>
-
-        <div class="grid col-300 fit powered">Written by David Cain</div>
+    <div class="container main-content">
+        {% block content %}
+        {% endblock content %}
     </div>
 
-</div>
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-4 text-muted">© 2015 MITOC</div>
+                <div class="col-sm-4 text-muted"></div>
+                <div class="col-sm-4 text-muted text-right">Written by David Cain</div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js" integrity="sha512-K1qjQ+NcF2TYO/eI3M6v8EiNYZfA95pQumfvcVrTHtwQVDG+aHRqLi/ETn2uB+1JqwYqVG3LIvdm9lj6imS/pQ==" crossorigin="anonymous"></script>
 </body>
 </html>
