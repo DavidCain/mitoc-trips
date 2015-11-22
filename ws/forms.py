@@ -99,7 +99,7 @@ class TripInfoForm(RequiredModelForm):
 class TripForm(RequiredModelForm):
     class Meta:
         model = models.Trip
-        fields = ['name', 'leaders', 'description', 'trip_date',
+        fields = ['activity', 'name', 'leaders', 'description', 'trip_date',
                   'maximum_participants', 'difficulty_rating', 'prereqs',
                   'notes']
         widgets = {'leaders': django_select2.widgets.Select2MultipleWidget,

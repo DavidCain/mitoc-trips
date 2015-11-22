@@ -254,6 +254,9 @@ class TripInfo(models.Model):
 
 
 class Trip(models.Model):
+    activity = models.CharField(max_length='31',
+                                choices=LeaderRating.ACTIVITIES,
+                                default=LeaderRating.WINTER_SCHOOL)
     creator = models.ForeignKey(Participant, related_name='created_trips')
     # Leaders should be privileged at time of trip creation, but may no longer
     # be leaders later (and we don't want to break the relation)
