@@ -22,10 +22,11 @@ from allauth.account.views import PasswordChangeView
 from ws import forms
 from ws import models
 from ws.dateutils import local_now
-from ws.decorators import group_required, user_info_required, admin_only
+from ws.decorators import group_required, user_info_required, admin_only, chairs_only
 from ws import dateutils
 from ws import message_generators
 from ws import signup_utils
+from ws.perm_utils import is_chair
 
 
 class LeadersOnlyView(View):
@@ -678,14 +679,19 @@ class LeaderApplicationView(DetailView):
         return super(LeaderApplicationView, self).dispatch(request, *args, **kwargs)
 
 
-@group_required('WSC')
+@chairs_only()
 def add_leader(request):
     """ Create a leader rating for an existing Participant. """
     if request.method == "POST":
         form = forms.LeaderForm(request.POST)
         if form.is_valid():
-            form.save()
-            messages.add_message(request, messages.SUCCESS, 'Added new leader')
+            activity = form.cleaned_data['activity']
+            if not is_chair(request.user, activity):
+                not_chair = "You cannot assign {} ratings".format(activity)
+                form.add_error("activity", not_chair)
+            else:
+                form.save()
+                messages.add_message(request, messages.SUCCESS, 'Added rating')
     else:
         # Regardless of success, empty form for quick addition of another
         form = forms.LeaderForm()
