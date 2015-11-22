@@ -106,6 +106,24 @@ class TripForm(RequiredModelForm):
                    'notes': forms.Textarea(attrs={'rows': 4}),
                    'trip_date': forms.DateInput(attrs={'class': 'datepicker'})}
 
+    def clean(self):
+        """ Ensure that all leaders can lead the trip.
+
+        We do this in the form instead of the model, because we don't
+        want ValidationErrors when trying to modify old trips where a
+        leader rating may have lapsed.
+        """
+        super(TripForm, self).clean()
+        lacking_privs = []
+        activity = self.cleaned_data['activity']
+        for leader in self.cleaned_data['leaders']:
+            if not leader.leaderrating_set.filter(activity=activity):
+                lacking_privs.append(leader)
+        if lacking_privs:
+            names = ', '.join(leader.name for leader in lacking_privs)
+            msg = "{} can't lead {} trips".format(names, activity)
+            self.add_error('leaders', msg)
+
     def __init__(self, *args, **kwargs):
         super(TripForm, self).__init__(*args, **kwargs)
         self.fields['leaders'].queryset = models.Participant.leaders.get_queryset()
