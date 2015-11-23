@@ -26,7 +26,7 @@ from ws.decorators import group_required, user_info_required, admin_only, chairs
 from ws import dateutils
 from ws import message_generators
 from ws import signup_utils
-from ws.perm_utils import is_chair
+from ws import perm_utils
 
 
 class LeadersOnlyView(View):
@@ -686,7 +686,7 @@ def add_leader(request):
         form = forms.LeaderForm(request.POST)
         if form.is_valid():
             activity = form.cleaned_data['activity']
-            if not is_chair(request.user, activity):
+            if not perm_utils.is_chair(request.user, activity):
                 not_chair = "You cannot assign {} ratings".format(activity)
                 form.add_error("activity", not_chair)
             else:
@@ -750,6 +750,16 @@ class AddTripView(CreateView):
     form_class = forms.TripForm
     template_name = 'add_trip.html'
 
+    @property
+    def participant(self):
+        return self.request.user.participant
+
+    def get_form_kwargs(self):
+        kwargs = super(AddTripView, self).get_form_kwargs()
+        ratings = self.participant.leaderrating_set.all()
+        kwargs['allowed_activities'] = {rating.activity for rating in ratings}
+        return kwargs
+
     def get_success_url(self):
         return reverse('view_trip', args=(self.object.id,))
 
@@ -757,13 +767,13 @@ class AddTripView(CreateView):
         """ Default with trip creator among leaders. """
         initial = super(AddTripView, self).get_initial().copy()
         # It's possible for WSC to create trips while not being a leader
-        if self.request.user.participant.is_leader:
-            initial['leaders'] = [self.request.user.participant]
+        if self.participant.is_leader:
+            initial['leaders'] = [self.participant]
         return initial
 
     def form_valid(self, form):
         """ After is_valid(), assign creator from User, add empty waitlist. """
-        creator = self.request.user.participant
+        creator = self.participant
         trip = form.save(commit=False)
         trip.creator = creator
         return super(AddTripView, self).form_valid(form)

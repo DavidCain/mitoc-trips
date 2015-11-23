@@ -12,6 +12,7 @@ from localflavor.us.us_states import US_STATES
 
 from ws import models
 from ws import signup_utils
+from ws import perm_utils
 
 
 class RequiredModelForm(forms.ModelForm):
@@ -125,9 +126,14 @@ class TripForm(RequiredModelForm):
             self.add_error('leaders', msg)
 
     def __init__(self, *args, **kwargs):
+        allowed_activities = kwargs.pop("allowed_activities", None)
         super(TripForm, self).__init__(*args, **kwargs)
         self.fields['leaders'].queryset = models.Participant.leaders.get_queryset()
         self.fields['leaders'].help_text = None  # Disable "Hold command..."
+        if allowed_activities is not None:
+            activities = filter(lambda (val, label): val in allowed_activities,
+                                self.fields['activity'].choices)
+            self.fields['activity'].choices = activities
 
 
 class SummaryTripForm(forms.ModelForm):
