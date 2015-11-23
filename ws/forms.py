@@ -69,11 +69,15 @@ class EmergencyInfoForm(RequiredModelForm):
 
 class LeaderForm(RequiredModelForm):
     def __init__(self, *args, **kwargs):
+        allowed_activities = kwargs.pop("allowed_activities", None)
         super(LeaderForm, self).__init__(*args, **kwargs)
         all_par = models.Participant.objects.all()
         self.fields['participant'].queryset = all_par.select_related('leader')
         self.fields['participant'].empty_label = 'Nobody'
-        # TODO: Filter the activity types that people can apply
+        if allowed_activities is not None:
+            activities = filter(lambda (val, label): val in allowed_activities,
+                                self.fields['activity'].choices)
+            self.fields['activity'].choices = activities
 
     class Meta:
         model = models.LeaderRating

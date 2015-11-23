@@ -18,3 +18,8 @@ def is_chair(user, activity_type, allow_superusers=True):
 
 activity_types = [val for val, label in models.LeaderRating.ACTIVITIES]
 all_chair_groups = {chair_group(activity) for activity in activity_types}
+
+
+def chair_activities(user):
+    """ All activities for which the user is the chair. """
+    return [activity for activity in activity_types if is_chair(user, activity)]

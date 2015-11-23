@@ -679,6 +679,7 @@ class LeaderApplicationView(DetailView):
         return super(LeaderApplicationView, self).dispatch(request, *args, **kwargs)
 
 
+# TODO: Convert to CreateView
 @chairs_only()
 def add_leader(request):
     """ Create a leader rating for an existing Participant. """
@@ -694,7 +695,11 @@ def add_leader(request):
                 messages.add_message(request, messages.SUCCESS, 'Added rating')
     else:
         # Regardless of success, empty form for quick addition of another
-        form = forms.LeaderForm()
+        allowed_activities = perm_utils.chair_activities(request.user)
+        kwargs = {'allowed_activities': allowed_activities}
+        if len(allowed_activities) == 1:
+            kwargs['initial'] = {'activity': allowed_activities[0]}
+        form = forms.LeaderForm(**kwargs)
     return render(request, 'add_leader.html', {'leader_form': form})
 
 
