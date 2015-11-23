@@ -11,7 +11,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.utils import timezone
 
-from ws.dateutils import local_now
+from ws.dateutils import local_now, is_winter_school
 from ws import models
 
 
@@ -37,7 +37,7 @@ class LotteryMessages(object):
             return None
 
     def supply_all_messages(self):
-        if not self.participant:
+        if not self.participant or not is_winter_school():
             return
         self.warn_if_missing_lottery()
 

@@ -79,3 +79,11 @@ def participant_cutoff():
     """ Datetime at which previous signups are no longer current/valid. """
     delta = timedelta(settings.MUST_UPDATE_AFTER_DAYS)
     return timezone.now() - delta
+
+
+def is_winter_school():
+    """ Returns if Winter School is ongoing.
+
+    Used to give warnings about lottery preferences and such.
+    """
+    return local_now().month == 1
