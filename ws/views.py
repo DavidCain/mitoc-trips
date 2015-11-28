@@ -9,7 +9,7 @@ from django.core.urlresolvers import reverse, reverse_lazy
 from django.db.models import Count, Sum
 from django.forms.models import modelformset_factory
 from django.forms import HiddenInput
-from django.forms.util import ErrorList
+from django.forms.utils import ErrorList
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
 from django.utils.decorators import method_decorator

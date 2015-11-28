@@ -39,8 +39,7 @@ class Car(models.Model):
     state = USStateField()
     make = models.CharField(max_length=63)
     model = models.CharField(max_length=63)
-    year = models.PositiveIntegerField(max_length=4,
-                                       validators=[MaxValueValidator(year_max),
+    year = models.PositiveIntegerField(validators=[MaxValueValidator(year_max),
                                                    MinValueValidator(year_min)])
     color = models.CharField(max_length=63)
 

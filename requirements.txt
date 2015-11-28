@@ -1,4 +1,6 @@
-Django==1.7
-django-allauth==0.18.0
+Django==1.8
+django-allauth
 django-localflavor
 django-select2
+django-angular
+mysql-python

@@ -48,7 +48,7 @@ The system was written with security and usability in mind. Key design features:
 # Dependencies
 (see `requirements.txt`)
 
-- [Django][django] v. 1.7
+- [Django][django] v. 1.8
 - [`django-allauth`][allauth]
 - [`django-localflavor`][localflavor]
 
@@ -100,11 +100,11 @@ which is just the following:
 
 ### Satisfying dependencies
 At time of writing, Scripts supports Django 1.6.6. Most of this project is 
-compatible with Django 1.6. However, a few backwards-incompatible aspects of
-Django 1.7 are utilized (namely, the way signal handling is implemented in the
-new "apps" feature).
+compatible with Django 1.6, but there are a few backwards-incompatible aspects of
+Django 1.7 & 1.8. Namely, we make use of signal handling present in Django >1.7
+"apps" and settings configurations only available in Django >1.8.
 
-The solution for using Django 1.7 and this project's accompanying
+The solution for using Django 1.8 and this project's accompanying
 dependencies is to create a virtual environment.
 
 Create the virtual environment so that it inherits the many packages available

@@ -31,7 +31,7 @@ sys.path.insert(0, base_dir)
 os.chdir(base_dir)
 os.environ['DJANGO_SETTINGS_MODULE'] = app_name + '.settings'
 
-# Activate virtual env to gain access to Django 1.7
+# Activate virtual env to gain access to Django 1.8 & other project dependencies
 activate_env = os.path.expanduser(os.path.join(virtualenv_root, 'bin/activate_this.py'))
 execfile(activate_env, dict(__file__=activate_env))
 
