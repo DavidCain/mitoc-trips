@@ -103,6 +103,7 @@ class TripInfoForm(RequiredModelForm):
 
 
 class TripForm(NgFormValidationMixin, NgModelFormMixin, Bootstrap3FormMixin, NgModelForm):
+    required_css_class = 'required'
 
     class Meta:
         model = models.Trip

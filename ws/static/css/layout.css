@@ -87,3 +87,8 @@ ul.djng-field-errors li.invalid:before {
     content: "\2716";
     margin-right: 10px;
 }
+
+/* Built-in Django 'required content' */
+.required label:after {
+    content: ' *';
+}
