@@ -21,7 +21,8 @@ class RequiredModelForm(forms.ModelForm):
     error_css_class = 'warning'
 
 
-class ParticipantForm(RequiredModelForm):
+class ParticipantForm(NgFormValidationMixin, NgModelFormMixin, Bootstrap3FormMixin, NgModelForm):
+    required_css_class = 'required'
     class Meta:
         model = models.Participant
         fields = ['name', 'email', 'cell_phone', 'affiliation']
@@ -43,9 +44,8 @@ class ParticipantLookupForm(forms.Form):
         participant_field.widget.attrs['onchange'] = 'this.form.submit();'
 
 
-class CarForm(RequiredModelForm):
-    # All fields are required - 'car_row' lets JS toggle visibility of all rows
-    required_css_class = 'required car_row'
+class CarForm(NgFormValidationMixin, NgModelFormMixin, Bootstrap3FormMixin, NgModelForm):
+    required_css_class = 'required'
 
     class Meta:
         model = models.Car
@@ -55,13 +55,15 @@ class CarForm(RequiredModelForm):
                                                     'max': model.year_max})}
 
 
-class EmergencyContactForm(RequiredModelForm):
+class EmergencyContactForm(NgFormValidationMixin, NgModelFormMixin, Bootstrap3FormMixin, NgModelForm):
+    required_css_class = 'required'
     class Meta:
         model = models.EmergencyContact
         fields = ['name', 'email', 'cell_phone', 'relationship']
 
 
-class EmergencyInfoForm(RequiredModelForm):
+class EmergencyInfoForm(NgFormValidationMixin, NgModelFormMixin, Bootstrap3FormMixin, NgModelForm):
+    required_css_class = 'required'
     class Meta:
         model = models.EmergencyInfo
         fields = ['allergies', 'medications', 'medical_history']

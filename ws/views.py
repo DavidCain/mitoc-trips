@@ -8,7 +8,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.db.models import Count, Sum
 from django.forms.models import modelformset_factory
-from django.forms import ModelForm, HiddenInput
+from django.forms import HiddenInput
 from django.forms.util import ErrorList
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
@@ -99,20 +99,21 @@ class UpdateParticipantView(TemplateView):
         e_contact = e_info and e_info.emergency_contact
 
         # If no Participant object, fill at least with User email
-        par_kwargs = {"prefix": self.par_prefix, "instance": participant}
+        par_kwargs = {"scope_prefix": self.par_prefix,
+                      "instance": participant}
         if not participant:
             par_kwargs["initial"] = {'email': self.request.user.email}
 
         context = {
-            'participant_form':  forms.ParticipantForm(post, **par_kwargs),
+            'participant_form': forms.ParticipantForm(post, **par_kwargs),
             'car_form': forms.CarForm(post, instance=car),
-            'emergency_info_form':  forms.EmergencyInfoForm(post, instance=e_info),
-            'emergency_contact_form':  forms.EmergencyContactForm(post, prefix=self.e_prefix, instance=e_contact),
+            'emergency_info_form': forms.EmergencyInfoForm(post, instance=e_info),
+            'emergency_contact_form': forms.EmergencyContactForm(post, prefix=self.e_prefix, scope_prefix=self.e_prefix + '_scope', instance=e_contact),
         }
         if post:
             context['has_car_checked'] = self.has_car
-        else:
-            context['has_car_checked'] = bool(participant.car) if participant else True
+        elif participant:
+            context['has_car_checked'] = bool(participant.car)
 
         return context
 
@@ -123,7 +124,7 @@ class UpdateParticipantView(TemplateView):
         """
         context = self.get_context_data()
         required_dict = {key: val for key, val in context.items()
-                         if isinstance(val, ModelForm)}
+                         if isinstance(val, forms.NgModelForm)}
 
         if not self.has_car:
             required_dict.pop('car_form')
