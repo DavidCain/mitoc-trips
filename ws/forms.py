@@ -13,6 +13,7 @@ from localflavor.us.us_states import US_STATES
 from ws import models
 from ws import signup_utils
 from ws import perm_utils
+from ws import widgets
 
 
 class RequiredModelForm(forms.ModelForm):
@@ -101,7 +102,8 @@ class TripInfoForm(RequiredModelForm):
         self.fields['drivers'].help_text = self.fields['drivers'].help_text
 
 
-class TripForm(RequiredModelForm):
+class TripForm(NgFormValidationMixin, NgModelFormMixin, Bootstrap3FormMixin, NgModelForm):
+
     class Meta:
         model = models.Trip
         fields = ['activity', 'name', 'leaders', 'description', 'trip_date',
@@ -109,7 +111,7 @@ class TripForm(RequiredModelForm):
                   'notes']
         widgets = {'leaders': django_select2.widgets.Select2MultipleWidget,
                    'notes': forms.Textarea(attrs={'rows': 4}),
-                   'trip_date': forms.DateInput(attrs={'class': 'datepicker'})}
+                   'trip_date': widgets.BootstrapDateInput()}
 
     def clean(self):
         """ Ensure that all leaders can lead the trip.
