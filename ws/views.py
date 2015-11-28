@@ -654,8 +654,13 @@ class LeaderApplicationView(DetailView):
         """ Add on a form to assign/modify leader permissions. """
         context_data = super(LeaderApplicationView, self).get_context_data(**kwargs)
         application = self.get_object()
-        initial = {'participant': application.participant}
-        leader_form = forms.LeaderForm(initial=initial)
+        kwargs = {'initial': {'participant': application.participant}}
+        chair_activities = perm_utils.chair_activities(self.request.user)
+        if chair_activities:
+            kwargs['allowed_activities'] = chair_activities
+            if len(chair_activities) == 1:
+                kwargs['initial'] = {'activity': chair_activities[0]}
+        leader_form = forms.LeaderForm(**kwargs)
         # TODO: Ensure only one leader rating exists per activity type
         leader_form.fields['participant'].widget = HiddenInput()
         context_data['leader_form'] = leader_form

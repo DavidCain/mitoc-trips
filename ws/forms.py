@@ -68,7 +68,7 @@ class EmergencyInfoForm(RequiredModelForm):
         widgets = {'medical_history': forms.Textarea(attrs={'rows': 5})}
 
 
-class LeaderForm(RequiredModelForm):
+class LeaderForm(NgFormValidationMixin, NgModelFormMixin, Bootstrap3FormMixin, NgModelForm):
     def __init__(self, *args, **kwargs):
         allowed_activities = kwargs.pop("allowed_activities", None)
         super(LeaderForm, self).__init__(*args, **kwargs)
@@ -84,7 +84,6 @@ class LeaderForm(RequiredModelForm):
         model = models.LeaderRating
         fields = ['participant', 'activity', 'rating', 'notes']
         widgets = {'participant': django_select2.widgets.Select2Widget,
-                   'activity': django_select2.widgets.Select2Widget,
                    'notes': forms.Textarea(attrs={'rows': 4})}
 
 

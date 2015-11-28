@@ -9,11 +9,9 @@
 {{ block.super }}
 
 <h2>Add new leader</h2>
-<div id="respond" class="narrow">
-<form action="" method="post">
+<form name="{{ leader_form.form_name }}" method="post" action="." novalidate>
     {% csrf_token %}
-    {{ leader_form.as_p }}
-    <input type="submit" value="Submit" />
+    {{ leader_form.as_div }}
+    <button type="submit" ng-disabled="{{ leader_form.form_name }}.$invalid" class="btn btn-primary">Submit</button>
 </form>
-</div>
 {% endblock content %}
