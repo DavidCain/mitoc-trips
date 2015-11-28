@@ -1,5 +1,7 @@
 from django.forms import widgets as dj_widgets
 from django.utils.html import format_html
+from django.forms.utils import flatatt
+from django.utils.safestring import mark_safe
 
 
 class BootstrapDateInput(dj_widgets.DateInput):
@@ -36,3 +38,13 @@ class BootstrapDateInput(dj_widgets.DateInput):
                   {}
                </span>'''.format(self.attrs[is_open], date_input)
         )
+
+
+class LeaderSelect(dj_widgets.SelectMultiple):
+    def render(self, name, value, attrs=None, choices=()):
+        if value is None:
+            value = []
+        self.attrs['activity'] = 'activity'
+        final_attrs = self.build_attrs(attrs, name=name)
+        output = [format_html('<leader-select multiple="multiple"{}></leader-select>', flatatt(final_attrs))]
+        return mark_safe('\n'.join(output))

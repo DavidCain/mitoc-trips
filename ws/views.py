@@ -10,7 +10,7 @@ from django.db.models import Count, Sum
 from django.forms.models import modelformset_factory
 from django.forms import ModelForm, HiddenInput
 from django.forms.util import ErrorList
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
 from django.utils.decorators import method_decorator
 from django.views.generic import (CreateView, DetailView, FormView,
@@ -585,6 +585,20 @@ class LeaderView(ListView):
     @method_decorator(group_required('leaders'))
     def dispatch(self, request, *args, **kwargs):
         return super(LeaderView, self).dispatch(request, *args, **kwargs)
+
+
+class JsonLeaderView(LeaderView):
+    def render_to_response(self, context, **response_kwargs):
+        leaders = self.get_queryset()
+        activity = self.kwargs['activity']
+        if activity:
+            leaders = leaders.filter(leaderrating__activity=activity).distinct()
+        ret = [{'name': leader.name, 'id': leader.id,
+                'ratings': list(leader.leaderrating_set.values("activity",
+                                                               "rating"))}
+               for leader in leaders]
+
+        return JsonResponse({'leaders': ret})
 
 
 class BecomeLeaderView(CreateView):

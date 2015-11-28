@@ -51,7 +51,6 @@ The system was written with security and usability in mind. Key design features:
 - [Django][django] v. 1.7
 - [`django-allauth`][allauth]
 - [`django-localflavor`][localflavor]
-- [`django-select2`][django_select2]
 
 
 # Deployment
