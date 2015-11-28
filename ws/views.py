@@ -195,8 +195,7 @@ class ParticipantDetailView(ParticipantLookupView, DetailView):
 
     def get_queryset(self):
         participant = super(ParticipantDetailView, self).get_queryset()
-        return participant.select_related('waitlist__signups', 'leader',
-                                          'emergency_info__emergency_contact')
+        return participant.select_related('emergency_info__emergency_contact')
 
     def get_initial(self):
         participant = self.object = self.get_object()
@@ -269,7 +268,7 @@ class TripDetailView(DetailView):
 
     def get_queryset(self):
         trips = super(TripDetailView, self).get_queryset()
-        return trips.select_related('waitlist__signups', 'info', 'leaders')
+        return trips.select_related('info')
 
     def get_signups(self):
         """ Signups, with related fields used in templates preselected. """
@@ -279,7 +278,7 @@ class TripDetailView(DetailView):
 
     def get_leaders(self):
         leaders = self.object.leaders.all()
-        return leaders.select_related('participant__lotteryinfo')
+        return leaders.select_related('lotteryinfo')
 
     @property
     def wl_signups(self):
@@ -736,7 +735,7 @@ def manage_participants(request):
     else:
         cutoff = dateutils.participant_cutoff()
         current = models.Participant.objects.filter(last_updated__gt=cutoff)
-        participants = current.select_related('leader')
+        participants = current
         participants = participants.annotate(num_trips=Sum('signup__on_trip'))
         formset = ParticipantFormSet(queryset=participants)
     return render(request, 'manage_participants.html', {'formset': formset})
@@ -751,7 +750,7 @@ def _manage_trips(request, TripFormSet):
             formset = TripFormSet()
     else:
         all_trips = models.Trip.objects.all()
-        all_trips = all_trips.select_related('leaders')
+        all_trips = all_trips
         formset = TripFormSet(queryset=all_trips)
     return render(request, 'manage_trips.html', {'formset': formset})
 
@@ -851,7 +850,7 @@ class TripListView(ListView):
         # Each trip will need information about its leaders, so prefetch models
         trips = super(TripListView, self).get_queryset()
         trips = trips.annotate(num_signups=Count('signup'))
-        trips = trips.select_related('leaders')
+        trips = trips
         return trips.annotate(signups_on_trip=Sum('signup__on_trip'))
 
     def get_context_data(self, **kwargs):

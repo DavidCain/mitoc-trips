@@ -30,7 +30,7 @@ class ParticipantForm(NgFormValidationMixin, NgModelFormMixin, Bootstrap3FormMix
 
 class ParticipantLookupForm(forms.Form):
     """ Perform lookup of a given participant, loading on selection. """
-    participant = ModelSelect2Field(queryset=models.Participant.objects.all().select_related('leader'))
+    participant = ModelSelect2Field(queryset=models.Participant.objects.all())
 
     def __init__(self, *args, **kwargs):
         super(ParticipantLookupForm, self).__init__(*args, **kwargs)
@@ -75,7 +75,7 @@ class LeaderForm(NgFormValidationMixin, NgModelFormMixin, Bootstrap3FormMixin, N
         allowed_activities = kwargs.pop("allowed_activities", None)
         super(LeaderForm, self).__init__(*args, **kwargs)
         all_par = models.Participant.objects.all()
-        self.fields['participant'].queryset = all_par.select_related('leader')
+        self.fields['participant'].queryset = all_par
         self.fields['participant'].empty_label = 'Nobody'
         if allowed_activities is not None:
             activities = filter(lambda (val, label): val in allowed_activities,
@@ -191,7 +191,7 @@ class LeaderSignUpForm(RequiredModelForm):
     def __init__(self, trip, *args, **kwargs):
         super(LeaderSignUpForm, self).__init__(*args, **kwargs)
         non_trip = signup_utils.non_trip_participants(trip)
-        self.fields['participant'].queryset = non_trip.select_related('leader')
+        self.fields['participant'].queryset = non_trip
         self.fields['participant'].help_text = None  # Disable "Hold command..."
 
 
@@ -208,7 +208,7 @@ class LotteryPairForm(forms.ModelForm):
         super(LotteryPairForm, self).__init__(*args, **kwargs)
         participants = models.Participant.objects.all()
         all_but_user = participants.exclude(pk=user.participant.pk)
-        self.fields['paired_with'].queryset = all_but_user.select_related('leader')
+        self.fields['paired_with'].queryset = all_but_user
         self.fields['paired_with'].empty_label = 'Nobody'
 
     class Meta:
