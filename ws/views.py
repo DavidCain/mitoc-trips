@@ -60,11 +60,6 @@ def is_wsc(request, admin_okay=True):
 
 
 class UpdateParticipantView(TemplateView):
-    # The Participant and EmergencyContact are both Person models, have
-    # conflicting names. Use prefixes to keep them distinct in POST data
-    par_prefix = "participant"
-    e_prefix = "emergency_contact"
-
     template_name = 'update_info.html'
     update_msg = 'Personal information updated successfully'
 
@@ -98,9 +93,8 @@ class UpdateParticipantView(TemplateView):
         e_info = participant and participant.emergency_info
         e_contact = e_info and e_info.emergency_contact
 
+        par_kwargs = {"instance": participant}
         # If no Participant object, fill at least with User email
-        par_kwargs = {"scope_prefix": self.par_prefix,
-                      "instance": participant}
         if not participant:
             par_kwargs["initial"] = {'email': self.request.user.email}
 
@@ -108,7 +102,7 @@ class UpdateParticipantView(TemplateView):
             'participant_form': forms.ParticipantForm(post, **par_kwargs),
             'car_form': forms.CarForm(post, instance=car),
             'emergency_info_form': forms.EmergencyInfoForm(post, instance=e_info),
-            'emergency_contact_form': forms.EmergencyContactForm(post, prefix=self.e_prefix, scope_prefix=self.e_prefix + '_scope', instance=e_contact),
+            'emergency_contact_form': forms.EmergencyContactForm(post, instance=e_contact),
         }
         if post:
             context['has_car_checked'] = self.has_car

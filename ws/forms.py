@@ -56,7 +56,7 @@ class EmergencyContactForm(NgFormValidationMixin, NgModelFormMixin, Bootstrap3Fo
     required_css_class = 'required'
     class Meta:
         model = models.EmergencyContact
-        fields = ['name', 'email', 'cell_phone', 'relationship']
+        fields = ['contact_name', 'contact_email', 'contact_cell_phone', 'relationship']
 
 
 class EmergencyInfoForm(NgFormValidationMixin, NgModelFormMixin, Bootstrap3FormMixin, NgModelForm):

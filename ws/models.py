@@ -50,13 +50,13 @@ class Car(models.Model):
 
 
 class EmergencyContact(models.Model):
-    name = models.CharField(max_length=255)
-    cell_phone = PhoneNumberField()
+    contact_name = models.CharField(max_length=255, verbose_name="Name")
+    contact_cell_phone = PhoneNumberField(verbose_name="Cell phone")
     relationship = models.CharField(max_length=63)
-    email = models.EmailField()
+    contact_email = models.EmailField(verbose_name="Email")
 
     def __unicode__(self):
-        return "{} ({}): {}".format(self.name, self.relationship, self.cell_phone)
+        return "{} ({}): {}".format(self.contact_name, self.relationship, self.contact_cell_phone)
 
 
 class EmergencyInfo(models.Model):
