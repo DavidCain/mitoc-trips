@@ -1,6 +1,5 @@
 Django==1.8
 django-allauth
 django-localflavor
-django-select2
 django-angular
 mysql-python

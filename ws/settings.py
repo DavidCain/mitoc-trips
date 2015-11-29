@@ -29,7 +29,6 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
-    'django_select2',
     'localflavor',
     'allauth',
     'allauth.account',
@@ -114,6 +113,3 @@ USE_TZ = True
 MUST_UPDATE_AFTER_DAYS = 180
 SIGNUPS_OPEN = True
 ACCOUNT_ADAPTER = 'ws.users.adapter.AllowSignupAdapter'
-
-# Select2 settings
-AUTO_RENDER_SELECT2_STATICS = False

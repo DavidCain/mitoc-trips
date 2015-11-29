@@ -1,9 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
 
-import django_select2.widgets
-from django_select2.fields import ModelSelect2Field
-from django_select2.fields import ModelSelect2MultipleField
 from djangular.forms import NgFormValidationMixin, NgForm
 from djangular.forms import NgModelFormMixin, NgModelForm
 from djangular.styling.bootstrap3.forms import Bootstrap3Form, Bootstrap3FormMixin
@@ -30,7 +27,7 @@ class ParticipantForm(NgFormValidationMixin, NgModelFormMixin, Bootstrap3FormMix
 
 class ParticipantLookupForm(forms.Form):
     """ Perform lookup of a given participant, loading on selection. """
-    participant = ModelSelect2Field(queryset=models.Participant.objects.all())
+    participant = forms.ModelChoiceField(queryset=models.Participant.objects.all())
 
     def __init__(self, *args, **kwargs):
         super(ParticipantLookupForm, self).__init__(*args, **kwargs)
@@ -85,8 +82,7 @@ class LeaderForm(NgFormValidationMixin, NgModelFormMixin, Bootstrap3FormMixin, N
     class Meta:
         model = models.LeaderRating
         fields = ['participant', 'activity', 'rating', 'notes']
-        widgets = {'participant': django_select2.widgets.Select2Widget,
-                   'notes': forms.Textarea(attrs={'rows': 4})}
+        widgets = {'notes': forms.Textarea(attrs={'rows': 4})}
 
 
 class TripInfoForm(RequiredModelForm):
@@ -96,7 +92,6 @@ class TripInfoForm(RequiredModelForm):
         model = models.TripInfo
         fields = ['drivers', 'start_location', 'start_time', 'turnaround_time',
                   'return_time', 'worry_time', 'itinerary']
-        widgets = {'drivers': django_select2.widgets.Select2MultipleWidget}
 
     def __init__(self, *args, **kwargs):
         super(TripInfoForm, self).__init__(*args, **kwargs)
@@ -185,8 +180,7 @@ class LeaderSignUpForm(RequiredModelForm):
     class Meta:
         model = models.SignUp
         fields = ['participant', 'notes']
-        widgets = {'participant': django_select2.widgets.Select2Widget,
-                   'notes': forms.Textarea(attrs={'rows': 4})}
+        widgets = {'notes': forms.Textarea(attrs={'rows': 4})}
 
     def __init__(self, trip, *args, **kwargs):
         super(LeaderSignUpForm, self).__init__(*args, **kwargs)
@@ -214,7 +208,6 @@ class LotteryPairForm(forms.ModelForm):
     class Meta:
         model = models.LotteryInfo
         fields = ['paired_with']
-        widgets = {'paired_with': django_select2.widgets.Select2Widget}
 
 
 class FeedbackForm(RequiredModelForm):
@@ -224,7 +217,7 @@ class FeedbackForm(RequiredModelForm):
 
 
 class FlakeForm(forms.Form):
-    flakers = ModelSelect2MultipleField(required=False)
+    flakers = forms.ModelMultipleChoiceField(required=False, queryset=None)
 
     def __init__(self, trip, *args, **kwargs):
         super(FlakeForm, self).__init__(*args, **kwargs)
