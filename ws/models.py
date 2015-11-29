@@ -90,7 +90,9 @@ class Participant(models.Model):
     last_updated = models.DateTimeField(auto_now=True)
     user = models.OneToOneField(User)
     emergency_info = models.OneToOneField(EmergencyInfo)
-    email = models.EmailField(unique=True)
+    email = models.EmailField(unique=True, help_text=string_concat("This will be shared with leaders & other participants. <a href='",
+                                                                   reverse_lazy('account_email'),
+                                                                   "'>Change your account email</a>."))
     car = OptionalOneToOneField(Car)
     affiliation = models.CharField(max_length=1,
                                    choices=[('S', "MIT student"),
