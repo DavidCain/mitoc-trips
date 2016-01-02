@@ -6,9 +6,25 @@ body {
   margin-top: 20px;
 }
 
+.nowrap {
+  white-space: nowrap;
+}
+
+/* Sticky footer styles */
+html {
+  position: relative;
+  min-height: 100%;
+}
+body {
+  margin-bottom: 55px !important; /* Bootstrap override, used for footer*/
+}
+
 footer {
-  margin-top: 20px;
-  margin-bottom: 20px;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  padding: 15px 0px 10px;
+  height: 55px; /* 30px for row + 25px for padding. Must match body margin-bottom. */
 }
 
 footer .btn {
@@ -17,10 +33,6 @@ footer .btn {
 
 footer a {
   color: #777;
-}
-
-.nowrap {
-  white-space: nowrap;
 }
 
 /* Override Bootstrap styling for more consistent appearance */
