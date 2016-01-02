@@ -8,6 +8,15 @@ body {
 
 footer {
   margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+footer .btn {
+  padding: 0px;
+}
+
+footer a {
+  color: #777;
 }
 
 .nowrap {
