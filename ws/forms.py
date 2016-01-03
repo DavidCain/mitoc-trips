@@ -85,7 +85,8 @@ class LeaderForm(NgFormValidationMixin, NgModelFormMixin, Bootstrap3FormMixin, N
         widgets = {'notes': forms.Textarea(attrs={'rows': 4})}
 
 
-class TripInfoForm(RequiredModelForm):
+class TripInfoForm(NgFormValidationMixin, NgModelFormMixin, Bootstrap3FormMixin, NgModelForm):
+    required_css_class = 'required'
     accurate = forms.BooleanField(required=True, label='I affirm that all participant and driver information is correct')
 
     class Meta:

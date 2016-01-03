@@ -35,10 +35,10 @@ all participant, leader, and trip information is up to date.</p>
 <div id="respond" class="narrow">
     <h2>WIMP information submission</h2>
     {% if info_form_available %}
-    <form action="" method="post">
+    <form name="{{ form.form_name }}" action="" method="post" novalidate>
         {% csrf_token %}
-        {{ form.as_p }}
-        <input type="submit" value="Submit" />
+        {{ form.as_div }}
+        <button type="submit" data-ng-disabled="{{ form.form_name }}.$invalid" class="btn btn-primary">Submit</button>
     </form>
     {% else %}
     <p>This form will be available on {{ friday_before }}.</p>
