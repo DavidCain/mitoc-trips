@@ -1,4 +1,5 @@
 Django==1.8
+pytz
 django-allauth
 django-localflavor
 django-angular
