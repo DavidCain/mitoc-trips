@@ -153,7 +153,7 @@ class SummaryTripForm(forms.ModelForm):
                   'algorithm', 'difficulty_rating']
 
 
-class SignUpForm(RequiredModelForm):
+class SignUpForm(DjangularRequiredModelForm):
     class Meta:
         model = models.SignUp
         fields = ['trip', 'notes']

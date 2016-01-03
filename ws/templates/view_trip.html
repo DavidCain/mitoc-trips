@@ -44,10 +44,10 @@
         {% if not user.participant.info_current %}
             <p> You cannot sign up for trips until you <a href="{% url 'update_info' %}">submit personal information.</a></p>
         {% else %}
-            <form action="{% url 'trip_signup' %}" method="post">
+            <form name="{{ signup_form.form_name }}" action="{% url 'trip_signup' %}" method="post" novalidate>
                 {% csrf_token %}
-                {{ signup_form.as_p }}
-                <input type="submit" value="Sign up" />
+                {{ signup_form.as_div }}
+                <button type="submit" data-ng-disabled="{{ signup_form.form_name }}.$invalid" class="btn btn-primary">Sign Up</button>
             </form>
         {% endif %}
 
