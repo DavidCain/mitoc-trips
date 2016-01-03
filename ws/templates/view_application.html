@@ -4,40 +4,36 @@
 {{ block.super }}
 
 <h2> Leader Application for <a href="{% url 'view_participant' application.participant.id %}">{{ application.participant.name }}</a></h2>
-<table>
-    <tr>
-        <td><strong>Previous rating:</strong></td>
-        <td>{{ application.previous_rating|default:None }}</td>
-    </tr>
-    <tr>
-        <td><strong>Desired rating:</strong></td>
-        <td>{{ application.desired_rating }}</td>
-    </tr>
-    <tr>
-        <td><strong>Taking WFA:</strong></td>
-        <td>{{ application.taking_wfa }}</td>
-    </tr>
-</table>
+<dl class="dl-horizontal">
+    <dt>Previous rating:</dt>
+    <dd>{{ application.previous_rating|default:None }}</dd>
+    <dt>Desired rating:</dt>
+    <dd>{{ application.desired_rating }}</dd>
+    <dt>Taking WFA:</dt>
+    <dd>{{ application.taking_wfa }}</dd>
+</dl>
 
+<dl>
 {% if application.training %}
-<h5>Formal training and qualifications</h5>
-<p>{{ application.training|linebreaks }}</p>
+<dt>Formal training and qualifications</dt>
+<dd>{{ application.training|linebreaks }}</dd>
 {% endif %}
 
 {% if application.winter_experience %}
-<h5>Winter experience</h5>
-<p>{{ application.winter_experience|linebreaks }}</p>
+<dt>Winter experience</dt>
+<dd>{{ application.winter_experience|linebreaks }}</dd>
 {% endif %}
 
 {% if application.other_experience %}
-<h5>Other outdoors/leadership experience</h5>
-<p>{{ application.other_experience|linebreaks }}</p>
+<dt>Other outdoors/leadership experience</dt>
+<dd>{{ application.other_experience|linebreaks }}</dd>
 {% endif %}
 
 {% if application.notes_or_comments %}
-<h5>Notes or comments</h5>
-<p>{{ application.notes_or_comments|linebreaks }}</p>
+<dt>Notes or comments</dt>
+<dd>{{ application.notes_or_comments|linebreaks }}</dd>
 {% endif %}
+<dl>
 
 <div id="respond" class="narrow">
 <h2>Leader rating</h2>

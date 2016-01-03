@@ -1,10 +1,9 @@
-{% if form %}
-<table>
-    {% for field in form %}
-    <tr>
-        <th>{{ field.label }}:</th>
-        <td>{{ field.errors }} {{ field.value }}</td>
-    </tr>
-    {% endfor %}
-</table>
+<dd>{% if form %}
+<dl class="dl-horizontal">
+  {% for field in form %}
+  <dt>{{ field.label }}:</dt>
+  <dd>{{ field.errors }} {{ field.value }}</dd>
+  {% endfor %}
+</dl>
 {% endif %}
+</dd>

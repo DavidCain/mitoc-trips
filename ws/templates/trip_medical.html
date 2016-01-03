@@ -9,7 +9,7 @@
 {% if not trip.info %}
     {% include 'trip_itinerary/modify_or_submit.html' %}
 {% else %}
-{% readonly_form info_form %}
+    {% readonly_form info_form %}
 {% endif %}
 
 <hr>

@@ -46,29 +46,6 @@ leader-select .ui-select-container {
     padding-bottom: 5px !important;
 }
 
-/* Tables that collapse for easier viewing on mobile devices */
-.table {
-    display: table;
-}
-
-.table-row {
-    display:table-row;
-}
-
-.table-cell {
-    display:table-cell;
-    padding: .2em .3em;
-}
-
-.table-heading {
-    font-weight: 700;
-}
-
-.table-heading:after {
-    content: ":";
-}
-
-
 @media screen and (max-width:480px) {
     .table {
         border-collapse: separate;

@@ -14,7 +14,7 @@ complete the following form. The responses you give here are very important -
 they are automatically relayed to the WIMP, and will be used to coordinate
 any search and rescue efforts.</p>
 
-<p> This form becomes available the Friday before your trip, and is available 
+<p>This form becomes available the Friday before your trip, and is available
 for editing through the day of your trip.</p>
 
 <p><strong>Important:</strong> If you make any changes to your trip itinerary,
@@ -25,23 +25,22 @@ that the WIMP has the most up-to-date information regarding your trip.</p>
 <p>Before completing the form, please review your trip details, ensuring that
 all participant, leader, and trip information is up to date.</p>
 <ul>
-    <li><a href="{% url 'trip_medical' trip.id %}">Medical info (will be sent to the WIMP)</a></li>
-    <li><a href="{% url 'edit_trip' trip.id %}">Edit trip</a></li>
-    <li><a href="{% url 'admin_trip' trip.id %}">Admin trip</a></li>
+  <li><a href="{% url 'trip_medical' trip.id %}">Medical info (will be sent to the WIMP)</a></li>
+  <li><a href="{% url 'edit_trip' trip.id %}">Edit trip</a></li>
+  <li><a href="{% url 'admin_trip' trip.id %}">Admin trip</a></li>
 </ul>
 
 <hr />
 
-<div id="respond" class="narrow">
-    <h2>WIMP information submission</h2>
-    {% if info_form_available %}
-    <form name="{{ form.form_name }}" action="" method="post" novalidate>
-        {% csrf_token %}
-        {{ form.as_div }}
-        <button type="submit" data-ng-disabled="{{ form.form_name }}.$invalid" class="btn btn-primary">Submit</button>
-    </form>
-    {% else %}
-    <p>This form will be available on {{ friday_before }}.</p>
-    {% endif %}
-</div>
+<h2>WIMP information submission</h2>
+{% if info_form_available %}
+  <form name="{{ form.form_name }}" action="" method="post" novalidate>
+    {% csrf_token %}
+    {{ form.as_div }}
+    <button type="submit" data-ng-disabled="{{ form.form_name }}.$invalid" class="btn btn-primary">Submit</button>
+  </form>
+{% else %}
+  <p>This form will be available on {{ friday_before }}.</p>
+{% endif %}
+
 {% endblock content %}

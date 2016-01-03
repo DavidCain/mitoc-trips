@@ -25,10 +25,12 @@ It may not represent who's actually driving for the trip.</p>
 {% for trip, participants, cars, info_form in all_trips %}
 <h3><a href="{% url 'view_trip' trip.id %}">{{ trip.name }}</a></h3>
 
-<ul>
-    <li><strong>Date:</strong> {{ trip.trip_date|date:"l, M d" }}</li>
-    <li><strong>Description:</strong> {{ trip.description|truncatewords:100 }}</li>
-</ul>
+<dl class="dl-horizontal">
+    <dt>Date:</dt>
+    <dd>{{ trip.trip_date|date:"l, M d" }}</dd>
+    <dt>Description:</dt>
+    <dd> {{ trip.description|truncatewords:100 }}</dd>
+</dl>
 
 <h4>Itinerary</h4>
 {% if info_form %}
