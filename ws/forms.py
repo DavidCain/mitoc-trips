@@ -106,7 +106,7 @@ class TripForm(NgFormValidationMixin, NgModelFormMixin, Bootstrap3FormMixin, NgM
         fields = ['activity', 'name', 'leaders', 'description', 'trip_date',
                   'maximum_participants', 'difficulty_rating', 'prereqs',
                   'notes']
-        widgets = {'leaders': widgets.LeaderSelect,
+        widgets = {#'leaders': widgets.LeaderSelect,
                    'description': forms.Textarea(attrs={'rows': 4}),
                    'notes': forms.Textarea(attrs={'rows': 4}),
                    'trip_date': widgets.BootstrapDateInput()}
