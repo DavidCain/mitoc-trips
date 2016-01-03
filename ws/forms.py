@@ -13,12 +13,16 @@ from ws import perm_utils
 from ws import widgets
 
 
+class DjangularRequiredModelForm(NgFormValidationMixin, NgModelFormMixin, Bootstrap3FormMixin, NgModelForm):
+    required_css_class = 'required'
+
+
 class RequiredModelForm(forms.ModelForm):
     required_css_class = 'required'
     error_css_class = 'warning'
 
 
-class ParticipantForm(NgFormValidationMixin, NgModelFormMixin, Bootstrap3FormMixin, NgModelForm):
+class ParticipantForm(DjangularRequiredModelForm):
     required_css_class = 'required'
     class Meta:
         model = models.Participant
@@ -41,7 +45,7 @@ class ParticipantLookupForm(forms.Form):
         participant_field.widget.attrs['onchange'] = 'this.form.submit();'
 
 
-class CarForm(NgFormValidationMixin, NgModelFormMixin, Bootstrap3FormMixin, NgModelForm):
+class CarForm(DjangularRequiredModelForm):
     required_css_class = 'required'
 
     class Meta:
@@ -52,14 +56,14 @@ class CarForm(NgFormValidationMixin, NgModelFormMixin, Bootstrap3FormMixin, NgMo
                                                     'max': model.year_max})}
 
 
-class EmergencyContactForm(NgFormValidationMixin, NgModelFormMixin, Bootstrap3FormMixin, NgModelForm):
+class EmergencyContactForm(DjangularRequiredModelForm):
     required_css_class = 'required'
     class Meta:
         model = models.EmergencyContact
         fields = ['contact_name', 'contact_email', 'contact_cell_phone', 'relationship']
 
 
-class EmergencyInfoForm(NgFormValidationMixin, NgModelFormMixin, Bootstrap3FormMixin, NgModelForm):
+class EmergencyInfoForm(DjangularRequiredModelForm):
     required_css_class = 'required'
     class Meta:
         model = models.EmergencyInfo
@@ -67,7 +71,7 @@ class EmergencyInfoForm(NgFormValidationMixin, NgModelFormMixin, Bootstrap3FormM
         widgets = {'medical_history': forms.Textarea(attrs={'rows': 5})}
 
 
-class LeaderForm(NgFormValidationMixin, NgModelFormMixin, Bootstrap3FormMixin, NgModelForm):
+class LeaderForm(DjangularRequiredModelForm):
     def __init__(self, *args, **kwargs):
         allowed_activities = kwargs.pop("allowed_activities", None)
         super(LeaderForm, self).__init__(*args, **kwargs)
@@ -85,7 +89,7 @@ class LeaderForm(NgFormValidationMixin, NgModelFormMixin, Bootstrap3FormMixin, N
         widgets = {'notes': forms.Textarea(attrs={'rows': 4})}
 
 
-class TripInfoForm(NgFormValidationMixin, NgModelFormMixin, Bootstrap3FormMixin, NgModelForm):
+class TripInfoForm(DjangularRequiredModelForm):
     required_css_class = 'required'
     accurate = forms.BooleanField(required=True, label='I affirm that all participant and driver information is correct')
 
@@ -99,7 +103,7 @@ class TripInfoForm(NgFormValidationMixin, NgModelFormMixin, Bootstrap3FormMixin,
         self.fields['drivers'].help_text = self.fields['drivers'].help_text
 
 
-class TripForm(NgFormValidationMixin, NgModelFormMixin, Bootstrap3FormMixin, NgModelForm):
+class TripForm(DjangularRequiredModelForm):
     required_css_class = 'required'
 
     class Meta:
