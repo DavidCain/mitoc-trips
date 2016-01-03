@@ -990,10 +990,11 @@ class LotteryPairView(CreateView):
 class LotteryPreferencesView(TemplateView):
     template_name = 'trip_preferences.html'
     update_msg = 'Lottery preferences updated'
+    car_prefix = 'car'
 
     @property
     def post_data(self):
-        return self.request.POST if self.request.method == "POST" else None
+        return json.loads(self.request.body) if self.request.method == "POST" else None
 
     @property
     def paired_par(self):
@@ -1016,26 +1017,28 @@ class LotteryPreferencesView(TemplateView):
         return False
 
     @property
-    def factory_formset(self):
-        return modelformset_factory(models.SignUp, can_delete=True, extra=0,
-                                    fields=('order',))
+    def participant(self):
+        return self.request.user.participant
 
-    def get_ranked_trips(self, participant):
+    @property
+    def ranked_signups(self):
+        par = self.participant
         today = local_now().date()
-        future_trips = models.SignUp.objects.filter(participant=participant,
-                                                    trip__trip_date__gt=today)
-        ranked_trips = future_trips.order_by('order', 'time_created')
-        return ranked_trips.select_related('trip')
+        future_signups = models.SignUp.objects.filter(participant=par,
+                                                      trip__trip_date__gt=today)
+        ranked = future_signups.order_by('order', 'time_created')
+        return ranked.select_related('trip')
+
+    @property
+    def ranked_signups_dict(self):
+        """ Used by the Angular trip-ranking widget. """
+        return [{'id': s.id, 'trip': {'id': s.trip.id, 'name': s.trip.name}}
+                 for s in self.ranked_signups]
 
     def get_car_form(self, use_post=True):
         car = self.request.user.participant.car
         post = self.post_data if use_post else None
-        return forms.CarForm(post, instance=car)
-
-    def get_formset(self, use_post=True):
-        ranked_trips = self.get_ranked_trips(self.request.user.participant)
-        post = self.post_data if use_post else None
-        return self.factory_formset(post, queryset=ranked_trips)
+        return forms.CarForm(post, instance=car, scope_prefix=self.car_prefix)
 
     def get_lottery_form(self):
         try:
@@ -1045,39 +1048,51 @@ class LotteryPreferencesView(TemplateView):
         return forms.LotteryInfoForm(self.post_data, instance=lottery_info)
 
     def get_context_data(self):
-        return {"formset": self.get_formset(use_post=True),
+        return {'ranked_signups': json.dumps(self.ranked_signups_dict),
                 'car_form': self.get_car_form(use_post=True),
                 'lottery_form': self.get_lottery_form(),
                 'paired': self.paired}
 
     def post(self, request, *args, **kwargs):
         context = self.get_context_data()
-        lottery_form, formset = context['lottery_form'], context['formset']
+        lottery_form = context['lottery_form']
         car_form = context['car_form']
         skip_car_form = lottery_form.data['car_status'] != 'own'
         car_form_okay = skip_car_form or car_form.is_valid()
-        if (lottery_form.is_valid() and formset.is_valid() and car_form_okay):
+        if (lottery_form.is_valid() and car_form_okay):
             if skip_car_form:  # New form so submission doesn't show errors
                 context['car_form'] = self.get_car_form(use_post=False)
             else:
-                request.user.participant.car = car_form.save()
+                self.participant.car = car_form.save()
+                self.participant.save()
             lottery_info = lottery_form.save(commit=False)
-            lottery_info.participant = request.user.participant
+            lottery_info.participant = self.participant
             lottery_info.save()
-            self.save_signups(formset)
-            messages.add_message(request, messages.SUCCESS, self.update_msg)
-            context['formset'] = self.get_formset(use_post=False)
+            self.save_signups()
+            self.handle_paired_signups()
         return render(request, self.template_name, context)
 
-    def save_signups(self, formset):
-        formset.save()
+    def save_signups(self):
+        par = self.participant
+        par_signups = models.SignUp.objects.filter(participant=par)
+        posted_signups = self.post_data['signups']
+
+        for post in [p for p in posted_signups if not p['deleted']]:
+            signup = par_signups.get(pk=post['id'])
+            signup.order = post['order']
+            signup.save()
+        del_ids = [p['id'] for p in self.post_data['signups'] if p['deleted']]
+        if del_ids:
+            signup = par_signups.filter(pk__in=del_ids).delete()
+
+
+    def handle_paired_signups(self):
         if not self.paired:
             return
-
         paired_par = self.paired_par
         # Don't just iterate through saved forms. This could miss signups
         # that participant ranks, then the other signs up for later
-        for signup in (form.instance for form in formset):
+        for signup in self.ranked_signups:
             trip = signup.trip
             try:
                 pair_signup = models.SignUp.objects.get(participant=paired_par,

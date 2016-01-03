@@ -113,3 +113,8 @@ ul.djng-field-errors li.invalid:before {
 .required label:after {
     content: ' *';
 }
+
+/* UI-sortable */
+.ui-sortable li {
+  cursor: move;
+}

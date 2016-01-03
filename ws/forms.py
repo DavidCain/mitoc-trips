@@ -47,6 +47,7 @@ class ParticipantLookupForm(forms.Form):
 
 class CarForm(DjangularRequiredModelForm):
     required_css_class = 'required'
+    form_name = 'car_form'
 
     class Meta:
         model = models.Car
@@ -194,7 +195,7 @@ class LeaderSignUpForm(RequiredModelForm):
         self.fields['participant'].help_text = None  # Disable "Hold command..."
 
 
-class LotteryInfoForm(forms.ModelForm):
+class LotteryInfoForm(DjangularRequiredModelForm):
     class Meta:
         model = models.LotteryInfo
         fields = ['car_status', 'number_of_passengers']

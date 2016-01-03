@@ -1,0 +1,11 @@
+<p ng-hide="signups.length">You haven't signed up for any trips!</p>
+
+<div ng-show="signups.length">
+  <ul class="list-group" ui-sortable="sortableOptions" data-ng-model="activeSignups">
+    <li class="list-group-item" ng-repeat="signup in activeSignups">
+      <span ng-bind="'#' + ($index + 1)"></span>
+      <label ng-bind="signup.trip.name"></label>
+      <button type="button" class="btn btn-sm btn-danger pull-right" data-ng-click="deleteSignup(signup, $index)">Delete</button>
+    </li>
+  </ul>
+</div>

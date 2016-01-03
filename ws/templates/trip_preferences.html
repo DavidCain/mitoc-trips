@@ -3,40 +3,7 @@
 {% block js %}
 {{ block.super }}
 <script>
-    function handle_driver(car_status) {
-        var car_table = document.getElementById('car_table');
-        var renting_request = document.getElementById('renting_request');
-        var num_passengers = document.getElementById('number_of_passengers_row');
-        switch (car_status.value){
-            case 'none':
-                car_table.style.display = 'none';
-                renting_request.style.display = 'none';
-                num_passengers.style.display= 'none';
-                num_passengers.className = '';
-                break;
-            case 'own':
-                car_table.style.display = 'block';
-                renting_request.style.display = 'none';
-                num_passengers.style.display= 'table-row';
-                num_passengers.className = 'required';
-                break;
-            case 'rent':
-                car_table.style.display = 'none';
-                renting_request.style.display = 'block';
-                num_passengers.style.display= 'table-row';
-                num_passengers.className = '';
-                break;
-        }
-    }
-
-    window.onload = function (){
-        var options = document.getElementsByName('car_status');
-        for (var i = 0; i < options.length; i++){
-            if (options[i].checked) {
-                handle_driver(options[i]);
-            }
-        }
-    }
+  var ranked = {signups: {{ ranked_signups|safe }}};
 </script>
 {% endblock js %}
 
@@ -75,89 +42,60 @@ signup.</p>
 
 <hr>  {# Until better styling done with CSS #}
 
-<div id="respond">
+
 <h4> Car info </h4>
+
 <p> Drivers are given priority on trips that would not otherwise be able
 to transport lottery-winning participants. </p>
-<form action="" method="post">
-{% csrf_token %}
-<table>
-    {{ lottery_form.non_field_errors }}
-    <tr>
-        <td colspan="2">{{ lottery_form.car_status.errors }}
-            {{ lottery_form.car_status }}</td>
-    </tr>
-    <tr id='number_of_passengers_row'>
-        <th>{{ lottery_form.number_of_passengers.label_tag }}</th>
-        <td>{{ lottery_form.number_of_passengers.errors }}
-            {{ lottery_form.number_of_passengers }}</td>
-    </tr>
-</table>
 
-<div id='car_table'>
+{# The lottery form doesn't need validation, so just consider this whole form the car form #}
+<form name="{{ car_form.form_name }}" action="" method="post" data-ng-controller="lotteryController" novalidate>
+  {% csrf_token %}
+
+  <div class="btn-group" style="margin-bottom:10px" data-ng-cloak>
+    <label class="btn btn-default" data-ng-model="car_status" uib-btn-radio="'none'"><i class="fa fa-times">&nbsp;No car</i></label>
+    <label class="btn btn-default" data-ng-model="car_status" uib-btn-radio="'rent'"><i class="fa fa-taxi">&nbsp;Willing to rent</i></label>
+    <label class="btn btn-default" data-ng-model="car_status" uib-btn-radio="'own'" ><i class="fa fa-car">&nbsp;Can drive own car</i></label>
+  </div>
+
+  <p data-ng-show="car_status == 'none' || car_status == 'rent'" data-ng-cloak>
+  If you end up renting a car, please
+  <a href="{% url 'update_info' %}#car">supply identifying information about the vehicle</a>
+  before you leave on your trip.
+  </p>
+
+  <div data-ng-show="car_status == 'own'" data-ng-cloak>
     <p>Please ensure that the form below matches the car you'll be driving.</p>
-    <table>
-        {{ car_form.as_table }}
-    </table>
-</div>
+    {{ car_form.as_div }}
+  </div>
 
-<p id='renting_request'>If you end up renting a car, please <a href="{% url 'update_info' %}#car">supply identifying
-information about the vehicle</a> before you leave on your trip.</p>
+  <div class="form-inline" data-ng-show="car_status == 'own' || car_status == 'rent'" data-ng-cloak>
+    <div class="form-group">
+      <label>{{ lottery_form.number_of_passengers.label }}</label>
+      {{ lottery_form.number_of_passengers }}
+      {{ lottery_form.number_of_passengers.errors }}
+    </div>
+  </div>
 
-<hr>
+  <hr>
 
-<h4 id="ranked_trips"> Ranked trips </h4>
+  <h4 id="ranked_trips"> Ranked trips </h4>
 
-{% if paired %}
-<p>You are <a href="{% url 'lottery_pair' %}">paired with {{ user.participant.lotteryinfo.paired_with }}</a>.
-You will only be placed on a trip if there is room for both of you.
-You must <em>both</em> sign up for a trip in order to be considered for it
-(if only one of you signs up for a trip, that signup will be ignored).</p>
-<p>You can rank your trip preferences below. So long as you've both signed
-up for the same trips, the rankings will apply for both of you.
-</p>
-{% else %}
-<p><a href="{% url 'lottery_pair' %}">Sign up for trips as a pair</a></p>
-{% endif %}
+  {% if paired %}
+    <p>You are <a href="{% url 'lottery_pair' %}">paired with {{ user.participant.lotteryinfo.paired_with }}</a>.
+    You will only be placed on a trip if there is room for both of you.
+    You must <em>both</em> sign up for a trip in order to be considered for it
+    (if only one of you signs up for a trip, that signup will be ignored).</p>
+    <p>You can rank your trip preferences below. So long as you've both signed
+    up for the same trips, the rankings will apply for both of you.
+    </p>
+  {% else %}
+    <p><a href="{% url 'lottery_pair' %}">Sign up for trips as a pair</a></p>
+  {% endif %}
 
-{{ formset.management_form }}
-{% if not formset.total_form_count %}
-<p> You haven't signed up for any <a href="{% url 'view_trips' %}">trips!</a> </p>
-{% else %}
-<span class="helptext">Higher-ranked trips appear first in this list.</span>
-<table class="footable" data-sort="false">
-    <thead>
-        <tr>
-            <th>Trip</th>
-            <th data-hide="phone">Notes</th>
-            <th>Order</th>
-            <th>Delete</th>
-            {% if formset.is_bound and not formset.is_valid %}
-            <th class="error">Errors</th>
-            {% endif %}
-        </tr>
-    </thead>
+  <trip-rank signups="ranked.signups"></trip-rank>
 
-    {% csrf_token %}
-    <tbody>
-        {% for form in formset %}
-        {{ form.id }}
-        <tr>
-            <td> <a href="{% url 'view_trip' form.instance.trip.id %}">{{ form.instance.trip|truncatechars:30 }}</a></td>
-            <td> {{ form.instance.notes }} </td>
-            <td> {{ form.order }} </td>
-            <td> {{ form.DELETE }} </td>
-            {% if formset.errors %}
-            <td> {{ form.errors }}</td>
-            {% endif %}
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-{% endif %}
-
-<input type="submit" value="Submit" />
+  <button type="button" data-ng-click="submit()" data-ng-disabled="!car_status || (car_status == 'own' && {{ car_form.form_name }}.$invalid)" class="btn btn-primary">Submit</button>
 </form>
-</div>
 
 {% endblock content %}
