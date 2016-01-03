@@ -1,6 +1,6 @@
-<ui-select multiple ng-model="selectedLeaders" theme="bootstrap" ng-disabled="disabled">
+<ui-select multiple ng-model="selected.leaders" theme="bootstrap" ng-disabled="disabled">
   <ui-select-match placeholder="Select person...">{{$item.name}}</ui-select-match>
-  <ui-select-choices repeat="person.id as person in leaders | propsFilter: {name: $select.search, ratings: $select.search}">
+  <ui-select-choices repeat="person.id as person in allLeaders | propsFilter: {name: $select.search, ratings: $select.search}">
     <span ng-bind-html="person.name | highlight: $select.search"></span> (<span ng-bind-html="''+ person.ratings[0].rating | highlight: $select.search"></span>)
   </ui-select-choices>
 </ui-select>

@@ -64,20 +64,30 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'ng.django.urls'])
     restrict: 'E',
     scope: {
       activity: '=?',
-      selectedLeaders: '=ngModel',
+      leaders: '=ngModel',
     },
     templateUrl: '/static/template/leader-select.html',
     link: function (scope, element, attrs) {
-      if (scope.selectedLeaders == null) { scope.selectedLeaders = []; }
+      //scope.name = attrs.name;
+      if (scope.leaders == null) {
+        // Annoying workaround since Djangular doesn't adhere to "dots in ng-models"
+        // This relies upon the fact that the ng-model in the parent is also leaders
+        // (Alternatively, we could override ng-models for good practice)
+        scope.$parent.leaders = [];
+      }
+      scope.selected = {leaders: scope.$parent.leaders};
 
       function fetchLeaderList(){
         var url = djangoUrl.reverse("json-leaders", [scope.activity]);
         $http.get(url).then(function (response){
-          scope.leaders = response.data.leaders;
+          scope.allLeaders = response.data.leaders;
         });
       }
       fetchLeaderList();
       scope.$watch('activity', fetchLeaderList);
+      scope.$watch('selected.leaders', function(){
+        scope.$parent.leaders = scope.selected.leaders
+      });
     }
   };
 });
