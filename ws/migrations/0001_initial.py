@@ -106,7 +106,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('car_status', models.CharField(default='none', max_length=7, choices=[('none', 'No car'), ('own', 'Can drive own car'), ('rent', 'Willing to rent')])),
-                ('number_of_passengers', models.PositiveIntegerField(blank=True, null=True, validators=[ws.models.SassyMax(13)])),
+                ('number_of_passengers', models.PositiveIntegerField(blank=True, null=True, validators=[django.core.validators.MaxValueValidator(13, message='Do you drive a bus?')])),
                 ('last_updated', models.DateTimeField(auto_now=True)),
             ],
             options={

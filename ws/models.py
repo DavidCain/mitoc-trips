@@ -22,10 +22,6 @@ from ws import dateutils
 pytz_timezone = timezone.get_default_timezone()
 
 
-class SassyMax(MaxValueValidator):
-    message = "Do you drive a bus?..."  # Can set as param in Django 1.8
-
-
 alphanum = RegexValidator(r'^[a-zA-Z0-9 ]*$',
                           "Only alphanumeric characters and spaces allowed")
 
@@ -384,7 +380,7 @@ class LotteryInfo(models.Model):
                                            ("rent", "Willing to rent")],
                                   default="none")
     number_of_passengers = models.PositiveIntegerField(null=True, blank=True,
-                                                       validators=[SassyMax(13)])
+                                                       validators=[MaxValueValidator(13, message="Do you drive a bus?")])
     last_updated = models.DateTimeField(auto_now=True)
     paired_with = models.ForeignKey(Participant, null=True, blank=True,
                                     related_name='paired_by')
