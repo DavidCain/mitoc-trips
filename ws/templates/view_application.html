@@ -35,13 +35,10 @@
 {% endif %}
 <dl>
 
-<div id="respond" class="narrow">
 <h2>Leader rating</h2>
-
-<form action="" method="post">
+<form name="{{ leader_form.form_name }}" method="post" action="." novalidate>
     {% csrf_token %}
     {{ leader_form.as_p }}
-    <input type="submit" value="Submit" />
+    <button type="submit" ng-disabled="{{ leader_form.form_name }}.$invalid" class="btn btn-primary">Submit</button>
 </form>
-</div>
 {% endblock content %}

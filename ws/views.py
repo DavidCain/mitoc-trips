@@ -599,9 +599,6 @@ class BecomeLeaderView(CreateView):
     template_name = "become_leader.html"
     model = models.LeaderApplication
     form_class = forms.LeaderApplicationForm
-    fields = ['previous_rating', 'desired_rating', 'taking_wfa',
-              'training', 'winter_experience', 'other_experience',
-              'notes_or_comments']
 
     @method_decorator(user_info_required)
     def dispatch(self, request, *args, **kwargs):

@@ -55,13 +55,11 @@ Please fill in the details below. Contact the Winter School chair (ws-chair@mit.
 
 <hr />
 
-<div id="respond">
 <h2>Application Form</h2>
-<form action="" method="post">
+<form name="{{ form.form_name }}" method="post" action="." novalidate>
     {% csrf_token %}
-    {{ form.as_p }}
-    <input type="submit" value="Submit application" />
+    {{ form.as_div }}
+    <button type="submit" ng-disabled="{{ form.form_name }}.$invalid" class="btn btn-primary">Submit application</button>
 </form>
-</div>
 {% endif %}
 {% endblock content %}

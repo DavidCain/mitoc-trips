@@ -236,7 +236,7 @@ class AttendedLecturesForm(NgFormValidationMixin, Bootstrap3Form):
     password = forms.CharField(widget=forms.PasswordInput())
 
 
-class LeaderApplicationForm(RequiredModelForm):
+class LeaderApplicationForm(DjangularRequiredModelForm):
     class Meta:
         exclude = ['participant']
         model = models.LeaderApplication
