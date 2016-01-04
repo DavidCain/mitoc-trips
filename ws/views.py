@@ -369,7 +369,9 @@ class AdminTripView(TripDetailView, LeadersOnlyView, TripInfoEditable):
 
     @property
     def signup_formset(self):
-        return modelformset_factory(models.SignUp, can_delete=True, extra=0,
+        # TODO: We'll want to be able to delete signups in the future.
+        # Switch over to a click-and-drag JavaScript solution
+        return modelformset_factory(models.SignUp, can_delete=False, extra=0,
                                     fields=())  # on_trip to manage wait list
 
     def prefetch_feedback(self, signups):
