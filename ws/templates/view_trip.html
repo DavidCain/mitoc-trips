@@ -29,10 +29,10 @@
                 {% csrf_token %}
                 {% if trip.open_slots %}
                     <p>This trip has empty slots. Do you want to be added to this trip?</p>
-                    <input type="submit" value="Join trip" />
+                    <button type="submit" class="btn btn-primary">Join trip</button>
                 {% else %}
                     <p>The trip is full. Do you want to be added to the waitlist?</p>
-                    <input type="submit" value="Join waitlist" />
+                    <button type="submit" class="btn btn-primary">Join waitlist</button>
                 {% endif %}
             </form>
         {% else %}
