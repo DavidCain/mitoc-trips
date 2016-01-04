@@ -100,7 +100,9 @@ class Participant(models.Model):
     def rating(self):
         # TODO: Interim method to transition over
         try:
-            return self.leaderrating_set.get(activity=LeaderRating.WINTER_SCHOOL).rating
+            ratings = self.leaderrating_set
+            ws_ratings = ratings.filter(activity=LeaderRating.WINTER_SCHOOL)
+            return ws_ratings.first().rating
         except ObjectDoesNotExist:
             return None
 
