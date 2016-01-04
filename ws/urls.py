@@ -20,7 +20,6 @@ urlpatterns = patterns('',
 
     # Activity Chair views
     url(r'^chair/leaders/add/$', views.add_leader, name='add_leader'),
-    url(r'^chair/participants/$', views.manage_participants, name='manage_participants'),
     url(r'^chair/applications/$', views.AllLeaderApplicationsView.as_view(), name='manage_applications'),
     url(r'^chair/applications/(?P<pk>\d+)/$', views.LeaderApplicationView.as_view(), name='view_application'),
     url(r'^chair/trips/$', views.manage_trips, name='manage_trips'),

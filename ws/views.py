@@ -713,25 +713,6 @@ def add_leader(request):
     return render(request, 'add_leader.html', {'leader_form': form})
 
 
-@group_required('WSC')
-def manage_participants(request):
-    ParticipantFormSet = modelformset_factory(models.Participant, can_delete=True, extra=0,
-                                              fields=('attended_lectures',))
-    if request.method == 'POST':
-        formset = ParticipantFormSet(request.POST)
-        if formset.is_valid():
-            formset.save()
-            messages.add_message(request, messages.SUCCESS, 'Updated participants')
-            formset = ParticipantFormSet()
-    else:
-        cutoff = dateutils.participant_cutoff()
-        current = models.Participant.objects.filter(last_updated__gt=cutoff)
-        participants = current
-        participants = participants.annotate(num_trips=Sum('signup__on_trip'))
-        formset = ParticipantFormSet(queryset=participants)
-    return render(request, 'manage_participants.html', {'formset': formset})
-
-
 def _manage_trips(request, TripFormSet):
     if request.method == 'POST':
         formset = TripFormSet(request.POST)
