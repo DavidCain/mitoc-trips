@@ -25,50 +25,26 @@ ability to approve trips, manage leadership ratings, and mark mandatory
 participation in lectures.
 
 
-## Design considerations
-The system was written with security and usability in mind. Key design features:
-
-- Dynamic, personalized interface
-    - Authenticated users have access to various controls
-      based on the permissions assosciated with their user account.
-    - Page elements are selectively served depending on trip and/or user status.
-    - Personalized content allows easier use for leaders and participants.
-- User assistance
-    - Extensive help pages cover various uses of the system.
-    - Individualized messages are automatically generated to guide
-      participants, leaders, and administrators.
-    - Administrators and safety committee members can easily perform
-      administrative actions with a graphical interface
-- Responsive
-    - A [responsive site layout][responsive] combines with [responsive
-      tables][footable] to express information effectively across a
-      range of different screen sizes.
-
-
-# Dependencies
-(see `requirements.txt`)
-
-- [Django][django] v. 1.8
-- [`django-allauth`][allauth]
-- [`django-localflavor`][localflavor]
-
-
 # Deployment
-This project will eventually be cleaved into Winter School-related models
-and logic, and a more general-purpose trip signup system. Until then, if you're
-interested in running this system yourself, it's quite straightforward to run
-the project locally, or (if you're MIT-affiliated) on [Scripts][scripts].
-
 ## Deploying locally
 This project is designed to be rapidly deployed on a local system for testing.
-A SQLite database removes the need for a SQL server and Django's console-based
-email backend removes the need for an SMTP server.
+I switched local development to run on MySQL, but the project will happily
+operate on SQLite or other SQL servers.
+
+Django's console-based email backend removes the need for an SMTP server.
+
+    virtualenv venv
+    source venv/bin/activate
+    pip install -r requirements.txt
+    ./manage.py migrate
+    ./manage.py runserver
+
 
 The default settings (`conf/local_settings.py`) contain everything you need to
-get up and running on your own machine. After installing the required
-dependencies, simply run `./manage.py migrate` to initialize the database, then
-`./manage.py runserver` to get your project up and running. Navigate to
-[http://localhost:8000](http://localhost:8000), and you're ready to tinker!
+get up and running on your own machine. Just change the settings module (from
+`production_settings`) in `settings.py` , and run the following to get up and
+running. After completing these steps, you should have a server running at
+[http://localhost:8000](http://localhost:8000).
 
 
 ## Deploying on scripts.mit.edu
@@ -137,5 +113,4 @@ in `~/web_scripts/<dirname>/static`.
 
   [scripts]: http://scripts.mit.edu
   [ws]: http://mitoc.scripts.mit.edu/ws
-  [responsive]: http://cyberchimps.com/responsive-theme/
   [footable]: https://github.com/bradvin/FooTable
