@@ -1052,6 +1052,8 @@ class LotteryPreferencesView(TemplateView):
                 self.participant.save()
             lottery_info = lottery_form.save(commit=False)
             lottery_info.participant = self.participant
+            if lottery_info.car_status == 'none':
+                lottery_info.number_of_passengers = None
             lottery_info.save()
             self.save_signups()
             self.handle_paired_signups()
