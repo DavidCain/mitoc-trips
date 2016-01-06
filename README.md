@@ -29,21 +29,22 @@ participation in lectures.
 ## Deploying locally
 This project is designed to be rapidly deployed on a local system for testing.
 I switched local development to run on MySQL, but the project will happily
-operate on SQLite or other SQL servers.
+operate on SQLite or other SQL servers. If you choose MySQL, just be sure to
+start up a database named `ws_dev`, and put credentials in `~/.my.cnf`.
 
-Django's console-based email backend removes the need for an SMTP server.
+The default settings (`conf/local_settings.py`) contain everything you need to
+get up and running on your own machine. For instance, using Django's
+console-based email backend removes the need for an SMTP server. To install
+all dependencies and start the server:
 
     virtualenv venv
     source venv/bin/activate
     pip install -r requirements.txt
     ./manage.py migrate
-    ./manage.py runserver
+    WS_DJANGO_LOCAL=1 ./manage.py runserver
 
 
-The default settings (`conf/local_settings.py`) contain everything you need to
-get up and running on your own machine. Just change the settings module (from
-`production_settings`) in `settings.py` , and run the following to get up and
-running. After completing these steps, you should have a server running at
+After completing these steps, you should have a server running at
 [http://localhost:8000](http://localhost:8000).
 
 
