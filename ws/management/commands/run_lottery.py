@@ -10,12 +10,13 @@ from django.utils import timezone
 from ws import dateutils
 from ws.signup_utils import add_to_waitlist
 from ws import models
-from datetime import date
+from datetime import date, timedelta
 
 
 today = dateutils.local_now().date()
-jan_1st = date(today.year, 1, 1)
 pytz_timezone = timezone.get_default_timezone()
+jan_1st = timezone.datetime(today.year, 1, 1)
+jan_1st = pytz_timezone.localize(jan_1st)
 
 
 handled = {}  # Key: primary keys, gives boolean if handled
