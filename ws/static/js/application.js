@@ -101,7 +101,13 @@ angular.module('ws.lottery', ['ui.select', 'ui.sortable'])
                    car_status: $scope.car_status,
                    number_of_passengers: $scope.number_of_passengers};
     angular.extend(payload, $scope.car);
-    $http.post('/preferences/lottery/', payload);
+    $http.post('/preferences/lottery/', payload).then(function() {
+        $window.location.href = '/';
+      },
+      function(){
+        $scope.submitError = true;
+      }
+    );
   }
 })
 .directive('tripRank', function(djangoUrl) {

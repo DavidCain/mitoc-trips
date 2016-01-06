@@ -1017,7 +1017,7 @@ class LotteryPreferencesView(TemplateView):
     def ranked_signups_dict(self):
         """ Used by the Angular trip-ranking widget. """
         return [{'id': s.id, 'trip': {'id': s.trip.id, 'name': s.trip.name}}
-                 for s in self.ranked_signups]
+                for s in self.ranked_signups]
 
     def get_car_form(self, use_post=True):
         car = self.request.user.participant.car
@@ -1045,6 +1045,7 @@ class LotteryPreferencesView(TemplateView):
         car_form_okay = skip_car_form or car_form.is_valid()
         if (lottery_form.is_valid() and car_form_okay):
             if skip_car_form:  # New form so submission doesn't show errors
+                # (Only needed when doing a Django response)
                 context['car_form'] = self.get_car_form(use_post=False)
             else:
                 self.participant.car = car_form.save()
@@ -1054,7 +1055,13 @@ class LotteryPreferencesView(TemplateView):
             lottery_info.save()
             self.save_signups()
             self.handle_paired_signups()
-        return render(request, self.template_name, context)
+            resp, status = {'message': self.update_msg}, 200
+        else:
+            resp, status = {'message': "Stuff broke"}, 400
+
+        return HttpResponse(json.dumps(resp), status=status,
+                            content_type='application/json')
+
 
     def save_signups(self):
         par = self.participant
