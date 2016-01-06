@@ -52,6 +52,8 @@ to transport lottery-winning participants. </p>
 <form name="{{ car_form.form_name }}" action="" method="post" data-ng-controller="lotteryController" novalidate>
   {% csrf_token %}
 
+  <div style="display:none">{{ lottery_form.car_status }}</div>
+
   <div class="btn-group" style="margin-bottom:10px" data-ng-cloak>
     <label class="btn btn-default" data-ng-model="car_status" uib-btn-radio="'none'"><i class="fa fa-times">&nbsp;No car</i></label>
     <label class="btn btn-default" data-ng-model="car_status" uib-btn-radio="'rent'"><i class="fa fa-taxi">&nbsp;Willing to rent</i></label>
