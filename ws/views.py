@@ -1061,9 +1061,7 @@ class LotteryPreferencesView(TemplateView):
         else:
             resp, status = {'message': "Stuff broke"}, 400
 
-        return HttpResponse(json.dumps(resp), status=status,
-                            content_type='application/json')
-
+        return JsonResponse(resp, status=status)
 
     def save_signups(self):
         par = self.participant
@@ -1285,4 +1283,4 @@ class CheckTripOverflowView(View, SingleObjectMixin):
             resp = self.clear_response
         else:
             resp = self.response_dict(trip, maximum_participants)
-        return HttpResponse(json.dumps(resp), content_type='application/json')
+        return JsonResponse(resp)
