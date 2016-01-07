@@ -1218,7 +1218,8 @@ class LectureAttendanceView(FormView):
 
     def user_or_none(self, email):
         try:
-            return User.objects.get(email=email)
+            return User.objects.get(emailaddress__email=email,
+                                    emailaddress__verified=True)
         except ObjectDoesNotExist:
             return None
 
