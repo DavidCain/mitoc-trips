@@ -99,12 +99,12 @@ class Participant(models.Model):
     @property
     def rating(self):
         # TODO: Interim method to transition over
-        try:
-            ratings = self.leaderrating_set
-            ws_ratings = ratings.filter(activity=LeaderRating.WINTER_SCHOOL)
-            return ws_ratings.first().rating
-        except ObjectDoesNotExist:
+        ratings = self.leaderrating_set
+        ws_ratings = ratings.filter(activity=LeaderRating.WINTER_SCHOOL)
+        if not ws_ratings:
             return None
+        else:
+            return ws_ratings.first().rating
 
     @property
     def is_leader(self):
@@ -120,6 +120,8 @@ class Participant(models.Model):
         return since_last_update.days < settings.MUST_UPDATE_AFTER_DAYS
 
     def __unicode__(self):
+        if self.rating:
+            return "{} ({})".format(self.name, self.rating)
         return self.name  # TODO: Include rating in some contexts?
 
     class Meta:
