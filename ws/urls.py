@@ -42,6 +42,7 @@ urlpatterns = patterns('',
     url(r'^trips/(?P<pk>\d+)/medical/$', views.TripMedicalView.as_view(), name='trip_medical'),
 
     # General views (anyone can view or only participants with info)
+    url(r'^leaders/(?P<pk>\d+)/ratings/(?P<activity>.+).json', views.get_rating, name='get_rating'),
     url(r'^personal_info/$', views.UpdateParticipantView.as_view(), name='update_info'),
     url(r'^leaders/apply/$', views.BecomeLeaderView.as_view(), name='become_leader'),
     url(r'^trips/(?P<pk>\d+)/$', views.TripView.as_view(), name='view_trip'),

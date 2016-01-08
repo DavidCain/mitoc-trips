@@ -695,6 +695,13 @@ class LeaderApplicationView(DetailView):
         return super(LeaderApplicationView, self).dispatch(request, *args, **kwargs)
 
 
+@login_required
+def get_rating(request, pk, activity):
+    query = Q(participant__pk=pk, activity=activity)
+    lr = models.LeaderRating.objects.filter(query).first()
+    return JsonResponse({'rating': lr.rating if lr else None})
+
+
 # TODO: Convert to CreateView
 @chairs_only()
 def add_leader(request):
@@ -703,6 +710,11 @@ def add_leader(request):
         form = forms.LeaderForm(request.POST)
         if form.is_valid():
             activity = form.cleaned_data['activity']
+            participant = form.cleaned_data['participant']
+            find_rating = Q(participant__pk=participant.pk, activity=activity)
+            existing = models.LeaderRating.objects.filter(find_rating).first()
+            if existing:
+                form = forms.LeaderForm(request.POST, instance=existing)
             if not perm_utils.is_chair(request.user, activity):
                 not_chair = "You cannot assign {} ratings".format(activity)
                 form.add_error("activity", not_chair)

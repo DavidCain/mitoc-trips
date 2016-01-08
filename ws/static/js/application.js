@@ -59,6 +59,18 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'ng.django.urls'])
   };
 })
 
+.controller('leaderRating', function($scope, $http, djangoUrl) {
+  $scope.$watchGroup(['participant', 'activity'], function(){
+    if ($scope.participant && $scope.activity) {
+      var getRatingUrl = '/leaders/' + $scope.participant +
+                         '/ratings/' + $scope.activity + '.json';
+      $http.get(getRatingUrl).then(function (response){
+        $scope.rating = response.data.rating;
+      });
+    }
+  })
+})
+
 .directive('leaderSelect', function($http, djangoUrl) {
   return {
     restrict: 'E',

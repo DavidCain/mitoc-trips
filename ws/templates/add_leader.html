@@ -9,7 +9,7 @@
 {{ block.super }}
 
 <h2>Create or update leader ratings</h2>
-<form name="{{ leader_form.form_name }}" method="post" action="." novalidate>
+<form ng-controller="leaderRating" name="{{ leader_form.form_name }}" method="post" action="." novalidate>
     {% csrf_token %}
     {{ leader_form.as_div }}
     <button type="submit" ng-disabled="{{ leader_form.form_name }}.$invalid" class="btn btn-primary">Submit</button>
