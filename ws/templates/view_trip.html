@@ -6,12 +6,11 @@
 
 {% if "WSC" in groups or user.is_superuser %}
     <h4>WSC functions</h4>
-    <ul>
-        <li><a href="{% url 'trip_medical' trip.id %}">WIMP info</a></li>
-        <li><a href="{% url 'edit_trip' trip.id %}">Edit trip</a></li>
-        <li><a href="{% url 'admin_trip' trip.id %}">Admin trip</a></li>
-    </ul>
-<hr>
+    <div class="btn-group" role="group">
+        <a type="button" class="btn btn-default" href="{% url 'trip_medical' trip.id %}"><i class="fa fa-medkit"></i>&nbsp;WIMP info</a>
+        <a type="button" class="btn btn-default" href="{% url 'edit_trip' trip.id %}"><i class="fa fa-edit"></i>&nbsp;Edit</a>
+        <a type="button" class="btn btn-default" href="{% url 'admin_trip' trip.id %}"><i class="fa fa-wrench"></i>&nbsp;Admin</a>
+    </div>
 {% endif %}
 
 {% trip_summary trip %}
