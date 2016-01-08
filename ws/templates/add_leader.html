@@ -8,7 +8,7 @@
 {% block content %}
 {{ block.super }}
 
-<h2>Add new leader</h2>
+<h2>Create or update leader ratings</h2>
 <form name="{{ leader_form.form_name }}" method="post" action="." novalidate>
     {% csrf_token %}
     {{ leader_form.as_div }}
