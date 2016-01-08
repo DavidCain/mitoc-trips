@@ -1171,6 +1171,7 @@ class TripMedicalView(DetailView, LeadersOnlyView, TripMedical,
         """ Get a trip info form for display as readonly. """
         trip = self.get_object()
         context_data = self.get_trip_info(trip)
+        context_data['participants'] = trip.signed_up_participants.filter(signup__on_trip=True)
         context_data['info_form'] = self.get_info_form(trip)
         context_data.update(self.info_form_context(trip))
         return context_data

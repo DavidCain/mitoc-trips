@@ -17,8 +17,8 @@
 <h3>Medical information </h3>
 
 <h4>Participants</h4>
-{% if signups %}
-{% medical_table trip.signed_up_participants %}
+{% if participants %}
+{% medical_table participants %}
 {% else %}
 <p> No participants. </p>
 {% endif %}
