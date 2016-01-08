@@ -647,6 +647,16 @@ class LeaderApplicationView(DetailView):
     context_object_name = 'application'
     template_name = 'view_application.html'
 
+    def existing_rating(self, activity, participant):
+        find_rating = Q(participant__pk=participant.pk, activity=activity)
+        return models.LeaderRating.objects.filter(find_rating).first()
+
+    def pre_fill_form(self, kwargs, activity, participant):
+        kwargs['initial']['activity'] = activity
+        existing = self.existing_rating(activity, participant)
+        if existing:
+            kwargs['initial']['notes'] = existing.notes
+
     def get_context_data(self, **kwargs):
         """ Add on a form to assign/modify leader permissions. """
         context_data = super(LeaderApplicationView, self).get_context_data(**kwargs)
@@ -656,19 +666,13 @@ class LeaderApplicationView(DetailView):
         if chair_activities:
             kwargs['allowed_activities'] = chair_activities
             if len(chair_activities) == 1:
-                kwargs['initial'] = {'activity': chair_activities[0]}
+                self.pre_fill_form(kwargs, chair_activities[0], application.participant)
+
         leader_form = forms.LeaderForm(**kwargs)
         # TODO: Ensure only one leader rating exists per activity type
         leader_form.fields['participant'].widget = HiddenInput()
         context_data['leader_form'] = leader_form
         return context_data
-
-    def get_leader(self, application):
-        """ Get the existing leader instance, if there is one. """
-        try:
-            return application.participant.leader
-        except ObjectDoesNotExist:
-            return None
 
     def post(self, request, *args, **kwargs):
         """ Save a rating for the leader. """
@@ -676,17 +680,16 @@ class LeaderApplicationView(DetailView):
         leader_form = forms.LeaderForm(request.POST)
 
         if leader_form.is_valid():
+            activity, participant = (leader_form.cleaned_data['activity'],
+                                     leader_form.cleaned_data['participant'])
+            existing = self.existing_rating(activity, participant)
+            leader_form = forms.LeaderForm(request.POST, instance=existing)
             leader_form.save()
             leader = leader_form.instance
             update_msg = "{} given {} rating".format(leader.participant.name,
                                                      leader.rating)
             messages.add_message(request, messages.SUCCESS, update_msg)
             return redirect(reverse('manage_applications'))
-        elif not leader_form.instance.rating:  # Assume to mean "no leader"
-            msg = "{} not given a leader rating".format(application.participant)
-            messages.add_message(request, messages.INFO, msg)
-            return redirect(reverse('manage_applications'))
-
         else:  # Any miscellaneous error form could possibly produce
             return render(request, 'add_leader.html', {'leader_form': leader_form})
 
@@ -699,7 +702,8 @@ class LeaderApplicationView(DetailView):
 def get_rating(request, pk, activity):
     query = Q(participant__pk=pk, activity=activity)
     lr = models.LeaderRating.objects.filter(query).first()
-    return JsonResponse({'rating': lr.rating if lr else None})
+    resp = {'rating': lr.rating, 'notes': lr.notes} if lr else {}
+    return JsonResponse(resp)
 
 
 # TODO: Convert to CreateView

@@ -66,6 +66,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'ng.django.urls'])
                          '/ratings/' + $scope.activity + '.json';
       $http.get(getRatingUrl).then(function (response){
         $scope.rating = response.data.rating;
+        $scope.notes = response.data.notes;
       });
     }
   })

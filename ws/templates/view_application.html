@@ -36,9 +36,9 @@
 <dl>
 
 <h2>Leader rating</h2>
-<form name="{{ leader_form.form_name }}" method="post" action="." novalidate>
+<form name="{{ leader_form.form_name }}" method="post" action="." novalidate data-ng-controller="leaderRating">
     {% csrf_token %}
-    {{ leader_form.as_p }}
+    {{ leader_form.as_div }}
     <button type="submit" ng-disabled="{{ leader_form.form_name }}.$invalid" class="btn btn-primary">Submit</button>
 </form>
 {% endblock content %}
