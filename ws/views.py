@@ -1149,7 +1149,7 @@ class WIMPView(ListView, TripMedical, TripInfoEditable):
     form_class = forms.SummaryTripForm
 
     def get_queryset(self):
-        trips = super(WIMPView, self).get_queryset()
+        trips = super(WIMPView, self).get_queryset().order_by('trip_date')
         today = local_now().date()
         return trips.filter(trip_date__gte=today)
 
