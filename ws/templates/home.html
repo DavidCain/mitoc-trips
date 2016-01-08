@@ -11,9 +11,11 @@ View the <a href="{% url 'wimp' %}">WIMP sheet</a>.
 
 {% if user.is_authenticated %}
 {% else %} {# Anonymous user #}
-<p><strong>This portal is only available to logged-in users.</strong></p>
+<div class="alert alert-info">
+    <p>This portal is only available to authenticated users.</p>
+    <strong><a href="{% url 'account_login' %}"><i class="fa fa-sign-in"></i>&nbsp;Log in</a></strong> or <strong><a href="{% url 'account_signup' %}">sign up!</a></strong>
+</div>
 
-<p>Please <a href="{% url 'account_login' %}">log in</a>. Or if you've not yet made an account, please <a href="{% url 'account_signup' %}">sign up!</a></p>
 <p>If you already have an account, but <a href="{% url 'account_reset_password' %}">forgot your password</a>, you can reset your password via email.</p>
 {% endif %}
 {% endblock content %}

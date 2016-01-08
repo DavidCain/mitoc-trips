@@ -1,32 +1,12 @@
 {% extends "add_or_create_trip.html" %}
 
-{% block js %}
-{{ block.super }}
-<script>
-    $(document).ready(function(){
-        var max_participants_input = $("#id_maximum_participants");
-        $("<p id='overflow'></p>").insertAfter(max_participants_input);
-
-        max_participants_input.change(function() {
-            $.ajax({
-                type: "GET",
-                url: "{% url 'check_trip_overflow' trip.id %}",
-                data: {maximum_participants: max_participants_input.val()}
-            })
-            .done(function( data ) {
-                $('#overflow').text(data['msg']);
-                $("#overflow").attr('class', data['msg_type']);
-            });
-        });
-    });
-</script>
-{% endblock %}
 {% block content %}
-
-{% if form.instance.wsc_approved and not "WSC" in groups and not user.is_superuser %}
-<p><strong class="warning">WARNING:</strong> This trip has been approved by the Winter Safety Committee.
-Making any changes will rescind this approval.</p>
-{% endif %}
-<h2>Edit "{{ trip.name }}"</h2>
-{{ block.super }}
+  {% if form.instance.wsc_approved and not "WSC" in groups and not user.is_superuser %}
+  <div class="alert alert-warning">
+  <strong>WARNING:</strong> This trip has been approved by the Winter Safety Committee.
+  Making any changes will rescind this approval.
+  </div>
+  {% endif %}
+  <h2>Edit "{{ trip.name }}"</h2>
+  {{ block.super }}
 {% endblock content %}

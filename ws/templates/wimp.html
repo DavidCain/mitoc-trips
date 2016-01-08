@@ -36,7 +36,9 @@ It may not represent who's actually driving for the trip.</p>
 {% if info_form %}
     {% readonly_form info_form %}
 {% else %}
-    <strong class='warning'>No trip itinerary information submitted!</strong>
+    <div class='alert alert-danger'>
+        <strong>No trip itinerary information submitted!</strong>
+    </div>
 {% endif %}
 
 <h4>Participants</h4>

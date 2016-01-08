@@ -9,7 +9,9 @@
 {% block content %}
 {{ block.super }}
 {% if not trip_completed %}
-<p><strong>This trip has not yet completed.</strong> Please check back on {{ trip.trip_date|date:"F jS" }} or later!</p>
+<div class="alert alert-info">
+    <strong>This trip has not yet completed.</strong> Please check back on {{ trip.trip_date|date:"F jS" }} or later!
+</div>
 {% endif %}
 {% trip_summary trip %}
 
