@@ -72,6 +72,31 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'ng.django.urls'])
   })
 })
 
+.directive('deleteTrip', function($http, $window, $uibModal) {
+  return {
+    restrict: 'E',
+    scope: {
+      tripId: '=',
+    },
+    templateUrl: '/static/template/delete-trip.html',
+    link: function (scope, element, attrs) {
+      scope.deleteTrip = function(){
+        $http.post('/trips/' + scope.tripId + '/delete/').then(function(){
+          $window.location.href = '/';
+        },
+        function(){
+          scope.error = "An error occurred deleting the trip.";
+        });
+      }
+      scope.confirmDeleteTrip = function(){
+        $uibModal.open({
+          templateUrl: '/static/template/delete-trip-modal.html',
+          scope: scope
+        })
+      }
+    }
+  }
+})
 .directive('leaderSelect', function($http, djangoUrl) {
   return {
     restrict: 'E',

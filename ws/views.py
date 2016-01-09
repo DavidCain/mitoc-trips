@@ -13,7 +13,7 @@ from django.forms.utils import ErrorList
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
 from django.utils.decorators import method_decorator
-from django.views.generic import (CreateView, DetailView, FormView,
+from django.views.generic import (CreateView, DetailView, DeleteView, FormView,
                                   ListView, TemplateView, UpdateView, View)
 from django.views.generic.detail import SingleObjectMixin
 
@@ -795,6 +795,11 @@ class AddTripView(CreateView):
     @method_decorator(group_required('WSC', 'leaders'))
     def dispatch(self, request, *args, **kwargs):
         return super(AddTripView, self).dispatch(request, *args, **kwargs)
+
+
+class DeleteTripView(DeleteView, LeadersOnlyView):
+    model = models.Trip
+    success_url = reverse_lazy('view_leader_trips')
 
 
 class EditTripView(UpdateView, LeadersOnlyView):

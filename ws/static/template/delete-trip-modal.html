@@ -1,0 +1,11 @@
+<div class="modal-header">
+  <h3 class="modal-title">Are you absolutely sure?</h3>
+</div>
+<div class="modal-body">
+  <div data-ng-if="error" data-ng-bind="error" class="alert alert-warning"></div>
+  This cannot be undone.
+</div>
+<div class="modal-footer">
+  <button class="btn btn-danger"  ng-click="deleteTrip()">Delete Trip</button>
+  <button class="btn btn-default" ng-click="$dismiss()">Cancel</button>
+</div>

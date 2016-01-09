@@ -30,6 +30,7 @@ urlpatterns = patterns('',
 
     # Leader views
     url(r'^trips/create/$', views.AddTripView.as_view(), name='add_trip'),
+    url(r'^trips/(?P<pk>\d+)/delete/$', views.DeleteTripView.as_view(), name='delete_trip'),
     url(r'^trips/(?P<pk>\d+)/edit/$', views.EditTripView.as_view(), name='edit_trip'),
     url(r'^leaders/$', views.LeaderView.as_view(), name='leaders'),
     url(r'^leaders.json/(?:(?P<activity>.+)/)?$', views.JsonLeaderView.as_view(), name='json-leaders'),
