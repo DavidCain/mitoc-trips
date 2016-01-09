@@ -30,12 +30,12 @@ from ws import perm_utils
 
 
 class LeadersOnlyView(View):
-    @method_decorator(group_required('leaders', 'WSC'))
+    @method_decorator(group_required('leaders', *perm_utils.all_chair_groups))
     def dispatch(self, request, *args, **kwargs):
-        """ Only allow trip creator, leaders of this trip, and WSC to edit. """
+        """ Only allow creator, leaders of the trip, and chairs to edit. """
         trip = self.get_object()
-        wsc = is_wsc(request)
-        if not (leader_on_trip(request, trip, creator_allowed=True) or wsc):
+        chair = perm_utils.is_chair(request.user, trip.activity)
+        if not (leader_on_trip(request, trip, creator_allowed=True) or chair):
             return render(request, 'not_your_trip.html', {'trip': trip})
         return super(LeadersOnlyView, self).dispatch(request, *args, **kwargs)
 
@@ -56,11 +56,6 @@ def leader_on_trip(request, trip, creator_allowed=False):
     else:
         return (leader in trip.leaders.all() or
                 creator_allowed and leader == trip.creator)
-
-
-def is_wsc(request, admin_okay=True):
-    wsc = bool(request.user.groups.filter(name='WSC'))
-    return wsc or request.user.is_superuser and admin_okay
 
 
 class UpdateParticipantView(TemplateView):
@@ -310,6 +305,7 @@ class TripView(TripDetailView):
         context = super(TripView, self).get_context_data()
         signups = context['signups']
         trip = self.object
+        context['is_chair'] = perm_utils.is_chair(self.request.user, trip.activity)
         if trip.signups_open:
             signup_form = forms.SignUpForm(initial={'trip': trip})
             signup_form.fields['trip'].widget = HiddenInput()
@@ -828,7 +824,7 @@ class EditTripView(UpdateView, LeadersOnlyView):
         self._ignore_leaders_if_unchanged(form)
 
         trip = form.save(commit=False)
-        if not is_wsc(self.request):
+        if not perm_utils.is_chair(self.request.user, trip.activity):
             trip.wsc_approved = False
         return super(EditTripView, self).form_valid(form)
 
