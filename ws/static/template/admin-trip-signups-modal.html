@@ -1,0 +1,14 @@
+<div class="modal-header">
+  <h3 class="modal-title">Modify trip</h3>
+</div>
+<div class="modal-body">
+  <div data-ng-if="error" data-ng-bind="error" class="alert alert-warning"></div>
+
+  You are about to modify the signups for your trip.
+  Please ensure that the desired changes are accurate!
+
+</div>
+<div class="modal-footer">
+  <button class="btn btn-primary" data-ng-click="submit()">Modify Trip</button>
+  <button class="btn btn-default" ng-click="$dismiss()">Cancel</button>
+</div>

@@ -1,10 +1,11 @@
+from itertools import chain
 import json
 
 from django.db.models import Q
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.db.models import Count, Sum
 from django.forms.models import modelformset_factory
@@ -362,101 +363,119 @@ class TripInfoEditable(object):
         return info_form
 
 
+class AdminTripSignupsView(SingleObjectMixin, LeadersOnlyView, TripInfoEditable):
+    model = models.Trip
+
+    # TODO: Select related fields
+    #def get_queryset(self):
+
+    def post(self, request, *args, **kwargs):
+        trip = self.object = self.get_object()
+        postdata = json.loads(self.request.body)
+        signups = postdata.get('signups', [])
+        maximum_participants = postdata.get('maximum_participants')
+        try:
+            signups = list(self.to_objects(signups))
+        except (KeyError, ObjectDoesNotExist):
+            return JsonResponse({'message': 'Bad request'}, status=400)
+
+        if maximum_participants:
+            trip.maximum_participants = maximum_participants
+            try:
+                trip.full_clean()
+            except ValidationError:
+                return JsonResponse({'message': 'Bad request'}, status=400)
+            trip.save()
+        self.update_signups(signups, trip)  # Anything already on should be waitlisted
+
+        return JsonResponse({})
+
+    def update_signups(self, signups, trip):
+        """ Mark all signups as not on trip, then add signups in order. """
+        for signup, remove in signups:
+            signup.on_trip = False
+            signup.skip_signals = True  # Skip the waitlist-bumping behavior
+            signup.save()
+
+        for i, (signup, remove) in enumerate(signups):
+            if remove:
+                signup.delete()
+            else:
+                signup.trip_order = i
+                signup = signup_utils.trip_or_wait(signup, trip_must_be_open=False)
+                try:
+                    wl = signup.waitlistsignup
+                except ObjectDoesNotExist:
+                    pass
+                else:
+                    # Waitlist signups are reversed. See WaitlistSignup.meta
+                    # (This ensures that leader-ranked waitlist signups are
+                    #  above any additional signups after the UI was loaded)
+                    wl.manual_order = -i
+                    wl.save()
+
+
+    def to_objects(self, signups):
+        """ Convert POSTed JSON to an array of its corresponding objects. """
+        for signup_dict in signups:
+            remove = bool(signup_dict.get('deleted'))
+            if signup_dict['id']:
+                signup = models.SignUp.objects.get(pk=signup_dict['id'])
+            elif remove:
+                continue  # No point creating signup, only to remove later
+            else:
+                par_id = signup['participant']['id']
+                par = models.Participant.objects.get(pk=par_id)
+                signup = models.SignUp(participant=par, trip=self.object)
+            yield signup, remove
+
+    def describe_signup(self, signup):
+        """ Yield everything used in the participant-selecting modal."""
+        par = signup.participant
+
+        try:
+            lotteryinfo = par.lotteryinfo
+        except:
+            car_status = num_passengers = None
+        else:
+            car_status = lotteryinfo.car_status
+            num_passengers = lotteryinfo.number_of_passengers
+
+        return {'id': signup.id,
+                'participant': {'id': par.id,
+                                'name': par.name},
+                'feedback': [{'showed_up': f.showed_up,
+                              'leader': f.leader.name,
+                              'comments': f.comments,
+                              'trip': {'id': f.trip.id, 'name': f.trip.name},
+                              } for f in par.feedback_set.all()],
+                'also_on': [{'id': s.trip.id, 'name': s.trip.name}
+                            for s in signup.other_signups],
+                'car_status': car_status,
+                'number_of_passengers': num_passengers,
+                'notes': signup.notes}
+
+    def get(self, request, *args, **kwargs):
+        """ Get information about a trip's signups. """
+        trip = self.get_object()
+        signups = trip.signup_set.filter(on_trip=True)
+
+        ret = [self.describe_signup(signup)
+               for signup in chain(signups, trip.waitlist.signups)]
+
+        return JsonResponse({'signups': ret})
+
+
 class AdminTripView(TripDetailView, LeadersOnlyView, TripInfoEditable):
     template_name = 'admin_trip.html'
     par_prefix = "ontrip"
     wl_prefix = "waitlist"
 
-    @property
-    def signup_formset(self):
-        # TODO: We'll want to be able to delete signups in the future.
-        # Switch over to a click-and-drag JavaScript solution
-        return modelformset_factory(models.SignUp, can_delete=False, extra=0,
-                                    fields=())  # on_trip to manage wait list
-
-    def prefetch_feedback(self, signups):
-        return signups.prefetch_related('participant__feedback_set__trip',
-                                        'participant__feedback_set__leader')
-
     def get_context_data(self, **kwargs):
         trip = self.object = self.get_object()
         context = super(AdminTripView, self).get_context_data()
-        signups = context['signups']
-        post = self.request.POST if self.request.method == "POST" else None
-        ontrip_queryset = self.prefetch_feedback(signups.filter(on_trip=True))
-        ontrip_formset = self.signup_formset(post, queryset=ontrip_queryset,
-                                             prefix=self.par_prefix)
-
-        wl_queryset = signups.filter(waitlist__isnull=False)
-        wl_queryset = self.prefetch_feedback(wl_queryset)
-        wl_queryset = wl_queryset.order_by('waitlistsignup')
-        waitlist_formset = self.signup_formset(post, queryset=wl_queryset,
-                                               prefix=self.wl_prefix)
-        waitlist_formset.can_delete = False
-        context["waitlist_formset"] = waitlist_formset
-        context["ontrip_signups"] = ontrip_queryset
-        context["ontrip_formset"] = ontrip_formset
-        context["trip_completed"] = local_now().date() >= trip.trip_date
-        leader_form = forms.LeaderSignUpForm(trip, post, empty_permitted=True)
-        context["leader_signup_form"] = leader_form
-
         context.update(self.info_form_context(trip))
         return context
-
-    def handle_leader_signup(self, form):
-        """ Handle a leader manually signing up a participant. """
-        signup = form.save(commit=False)
-
-        # If existing signup exists, use that. Otherwise, create new signup
-        try:
-            existing = models.SignUp.objects.get(participant=signup.participant,
-                                                 trip=self.object)
-        except models.SignUp.DoesNotExist:
-            signup.trip = self.object
-            signup.save()  # Signals automatically call trip_or_wait()
-        else:
-            signup = existing
-            signup_utils.trip_or_wait(signup, self.request)
-
-        # Check if waitlisted. If so, apply prioritization
-        try:
-            wl_signup = models.WaitListSignup.objects.get(signup=signup)
-        except models.WaitListSignup.DoesNotExist:
-            pass  # Signup went straight to trip, no prioritizing needed
-        else:
-            top_spot = form.cleaned_data['top_spot']
-            signup_utils.prioritize_wl_signup(wl_signup, top_spot)
-            base = "{} given {}priority on the waiting list"
-            msg = base.format(signup.participant, "top " if top_spot else "")
-            messages.add_message(self.request, messages.SUCCESS, msg)
-
-    def remove_instead_of_delete(self, signup_formset):
-        """ Instead of deleting SignUp objects, set on_trip=False instead. """
-        # Starting in 1.7, commit=False does not perform deletion
-        for modified_signup in signup_formset.save(commit=False):
-            modified_signup.save()   # (Currently no way to modify signups)
-        for deleted_signup in signup_formset.deleted_objects:
-            deleted_signup.on_trip = False
-            deleted_signup.save()
-
-    def post(self, request, *args, **kwargs):
-        """ Two formsets handle adding/removing people from trip. """
-        context = self.get_context_data(**kwargs)
-        ontrip_formset = context['ontrip_formset']
-        waitlist_formset = context['waitlist_formset']
-        leader_signup_form = context['leader_signup_form']
-        all_forms = [ontrip_formset, waitlist_formset, leader_signup_form]
-
-        if all(form.is_valid() for form in all_forms):
-            if leader_signup_form.cleaned_data:
-                self.handle_leader_signup(leader_signup_form)
-
-            self.remove_instead_of_delete(ontrip_formset)
-            # For now, we don't do anything with the waitlist formset
-            messages.add_message(request, messages.SUCCESS, "Updated trip")
-        else:
-            return self.get(request, *args, **kwargs)
-        return redirect(reverse('admin_trip', args=(self.object.id,)))
 
 
 class ReviewTripView(DetailView):

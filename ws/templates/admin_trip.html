@@ -30,44 +30,16 @@
     <p>Signups for this trip are not yet open.</p>
 {% endif %}
 
+<admin-trip-signups data-trip-id="{{ trip.id }}" data-maximum_participants = "{{ trip.maximum_participants }}"></admin-trip-signups>
 
 {% if 'leaders' in groups %}
     <h3>Leaders</h3>
     {% participant_table leaders True %}
 {% endif %}
 
-<h3>Participants ({{ ontrip_formset|length }} / {{ trip.maximum_participants }})</h3>
-
 {% if ontrip_formset|length %}
 {% if trip.notes %}<label>Notes:</label> {{ trip.notes }}{% endif %}
 {% endif %}
-
-<form action="" method="post">
-    {% csrf_token %}
-    {{ ontrip_formset.management_form }}
-    {% if ontrip_formset|length %}
-        {% editable_signup_table ontrip_formset %}
-        <p id="deletion_warning" class="info" style="display:none">
-            <strong>When deleting any last-minute drops, please take note of participant names</strong>
-            so that you can <a href="{% url 'review_trip' trip.id %}">review them as no-shows</a>.
-        </p>
-
-    {% else %}
-        <p>This trip is currently empty.</p>
-    {% endif %}
-
-    {{ waitlist_formset.management_form }}
-    {% if waitlist_signups %}
-        <h3>Waiting List ({{waitlist_signups.count }}) </h3>
-        {% if trip.notes %}<label>Notes:</label> {{ trip.notes }}{% endif %}
-        {% editable_signup_table waitlist_formset %}
-    {% endif %}
-
-    {% if waitlist_signups or ontrip_formset|length %}
-        <h5>Email all participants</h5>
-        <pre>{% for signup in ontrip_signups %}{{ signup.participant.email_addr }}{% if not forloop.last %}, {% endif %}{% endfor %}</pre>
-    {% endif %}
-</form>
 
 {% if signups %}
     <hr>

@@ -15,11 +15,11 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterModelOptions(
             name='signup',
-            options={'ordering': ['trip_order', 'last_updated']},
+            options={'ordering': ['manual_order', 'last_updated']},
         ),
         migrations.AddField(
             model_name='signup',
-            name='trip_order',
+            name='manual_order',
             field=models.IntegerField(null=True, blank=True),
         ),
     ]

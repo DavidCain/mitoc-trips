@@ -5,7 +5,6 @@ from datetime import timedelta
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse_lazy
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.validators import RegexValidator
@@ -203,7 +202,7 @@ class SignUp(models.Model):
     last_updated = models.DateTimeField(auto_now=True)
     notes = models.TextField(blank=True, max_length=1000)  # e.g. Answers to questions
     order = models.IntegerField(null=True, blank=True)  # As ranked by participant
-    trip_order = models.IntegerField(null=True, blank=True)  # Order on trip
+    manual_order = models.IntegerField(null=True, blank=True)  # Order on trip
 
     on_trip = models.BooleanField(default=False)
 
@@ -237,7 +236,7 @@ class SignUp(models.Model):
     class Meta:
         # When ordering for an individual, should order by priority (i.e. 'order')
         # When ordering for many, should go by time created.
-        ordering = ["trip_order", "last_updated"]
+        ordering = ["manual_order", "last_updated"]
 
 
 class TripInfo(models.Model):

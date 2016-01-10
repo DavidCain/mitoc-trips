@@ -92,6 +92,10 @@ ul.djng-field-errors li.invalid:before {
 }
 
 /* UI-sortable */
-.ui-sortable li {
+.ui-sortable .list-group-item {
   cursor: move;
+}
+
+admin-trip-signups button {
+  margin-left: 15px;
 }

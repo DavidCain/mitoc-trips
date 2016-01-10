@@ -21,7 +21,7 @@ def new_fcfs_signup(sender, instance, created, raw, using, update_fields, **kwar
 
         When a participant tries to sign up, put them on the trip, or its waiting list.
     """
-    if created:
+    if created and not getattr(instance, 'skip_signals', False):
         signup_utils.trip_or_wait(instance)
 
 
@@ -44,7 +44,8 @@ def empty_waitlist(sender, instance, using, **kwargs):
 @receiver(post_delete, sender=SignUp)
 def free_spot_on_trip(sender, instance, using, **kwargs):
     """ When a participant deletes a signup, update queues if applicable. """
-    signup_utils.update_queues_if_trip_open(instance.trip)
+    if not getattr(instance, 'skip_signals', False):
+        signup_utils.update_queues_if_trip_open(instance.trip)
 
 
 @receiver(post_save, sender=SignUp)
@@ -74,6 +75,9 @@ def bumped_from_waitlist(sender, instance, using, **kwargs):
     corresponding signup is now on the trip.
     """
     wl_signup, signup = instance, instance.signup
+    if getattr(signup, 'skip_signals', False):
+        return
+
     if not wl_signup.signup.on_trip:
         return  # Could just be deleted, don't want to falsely notify
     trip = signup.trip

@@ -72,6 +72,97 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'ng.django.urls'])
   })
 })
 
+.directive('editableSignupList', function() {
+  return {
+    restrict: 'E',
+    scope: {
+      signups: '=',
+      hideFeedback: '=',
+      sortableOptions: '=',
+      deleteSignup: '='
+    },
+    templateUrl: '/static/template/editable-signup-list.html',
+  }
+})
+
+.directive('adminTripSignups', function($http, filterFilter, $window, $uibModal) {
+  return {
+    restrict: 'E',
+    scope: {
+      tripId: '=',
+      maximumParticipants: '=',
+    },
+    templateUrl: '/static/template/admin-trip-signups.html',
+    link: function (scope, element, attrs) {
+      scope.signups = {};  // Signups, broken into normal + waiting list
+
+      var url = '/trips/' + scope.tripId + '/admin/signups/';
+      $http.get(url).then(function(response){
+        scope.allSignups = response.data.signups;
+        updateSignups();
+      });
+
+      scope.deleteSignup = function(signup){
+        signup.deleted = !signup.deleted;
+        updateSignups();
+      }
+
+      var updateSignups = function(removeDeleted){
+        /* Break all signups into "on trip" and waitlisted signups */
+        if (!scope.allSignups){  // Happens when maximum participants changes
+          return;
+        } else if (scope.signups.waitlist){
+          scope.allSignups = scope.signups.onTrip.concat(scope.signups.waitlist);
+        }
+
+        scope.onTripCount = 0;
+        scope.signups.onTrip = [];
+        scope.signups.waitlist = [];
+        scope.allSignups.forEach(function(signup, index){
+          if (removeDeleted && signup.deleted){ return; }
+
+          if (scope.onTripCount < scope.maximumParticipants){
+            scope.signups.onTrip.push(signup);
+            if (!signup.deleted){
+              scope.onTripCount++;
+            }
+          } else {
+            scope.signups.waitlist.push(signup);
+          }
+        });
+      };
+
+      scope.sortableOptions = {stop: updateSignups,
+                               connectWith: '.signup-list'};
+      scope.$watch('maximumParticipants', updateSignups);
+
+      scope.verifyChanges = function(){
+        scope.modal = $uibModal.open({
+          templateUrl: '/static/template/admin-trip-signups-modal.html',
+          scope: scope
+        })
+      }
+
+      scope.submit = function(){
+        signups = scope.allSignups.map(function(signup){
+          return {id: signup.id,
+                  deleted: signup.deleted,
+                  participant: signup.participant};
+        });
+        var payload = {signups: signups,
+                       maximum_participants: scope.maximumParticipants}
+        $http.post(url, payload).then(function(){
+          scope.modal.dismiss('success');
+          updateSignups(true);  // Remove the deleted signups
+        }, function(response){
+          scope.error = "A server error occurred. Please contact the administrator";
+        });
+      }
+    }
+  }
+
+})
+
 .directive('deleteTrip', function($http, $window, $uibModal) {
   return {
     restrict: 'E',
