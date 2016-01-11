@@ -202,7 +202,8 @@ class SignUp(models.Model):
     time_created = models.DateTimeField(auto_now_add=True)
     last_updated = models.DateTimeField(auto_now=True)
     notes = models.TextField(blank=True, max_length=1000)  # e.g. Answers to questions
-    order = models.IntegerField(null=True, blank=True)
+    order = models.IntegerField(null=True, blank=True)  # As ranked by participant
+    trip_order = models.IntegerField(null=True, blank=True)  # Order on trip
 
     on_trip = models.BooleanField(default=False)
 
@@ -236,7 +237,7 @@ class SignUp(models.Model):
     class Meta:
         # When ordering for an individual, should order by priority (i.e. 'order')
         # When ordering for many, should go by time created.
-        ordering = ["last_updated"]
+        ordering = ["trip_order", "last_updated"]
 
 
 class TripInfo(models.Model):
