@@ -117,6 +117,16 @@ class TripForm(DjangularRequiredModelForm):
                    'notes': forms.Textarea(attrs={'rows': 4}),
                    'trip_date': widgets.BootstrapDateInput()}
 
+    def clean_maximum_participants(self):
+        trip = self.instance
+        new_max = self.cleaned_data['maximum_participants']
+        accepted_signups = trip.signup_set.filter(on_trip=True).count()
+        if self.instance and accepted_signups > new_max:
+            msg = ("Can't shrink trip past number of signed-up participants. "
+                   "To remove participants, admin this trip instead.")
+            raise ValidationError(msg)
+        return new_max
+
     def clean(self):
         """ Ensure that all leaders can lead the trip.
 

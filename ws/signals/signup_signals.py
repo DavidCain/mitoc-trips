@@ -25,16 +25,6 @@ def new_fcfs_signup(sender, instance, created, raw, using, update_fields, **kwar
         signup_utils.trip_or_wait(instance)
 
 
-@receiver(post_save, sender=Trip)
-def changed_trip_size(sender, instance, created, raw, using, update_fields, **kwargs):
-    """ When a leader changes a trip size, update the signup queues.
-
-    This is done regardless of whether or not the trip is open.
-    """
-    if not created:
-        signup_utils.update_signup_queues(instance)
-
-
 @receiver(pre_delete, sender=Trip)
 def empty_waitlist(sender, instance, using, **kwargs):
     """ Before emptying a Trip, empty the waitlist.
