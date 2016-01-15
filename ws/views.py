@@ -10,7 +10,7 @@ from django.db.models import Count, Sum
 from django.forms.models import modelformset_factory
 from django.forms import HiddenInput
 from django.forms.utils import ErrorList
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.utils.decorators import method_decorator
 from django.views.generic import (CreateView, DetailView, DeleteView, FormView,
@@ -672,7 +672,6 @@ class LeaderApplicationView(DetailView):
 
     def post(self, request, *args, **kwargs):
         """ Save a rating for the leader. """
-        application = self.get_object()
         leader_form = forms.LeaderForm(request.POST)
 
         if leader_form.is_valid():
