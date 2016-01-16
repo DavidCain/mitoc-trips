@@ -1,0 +1,17 @@
+{
+  "name": "MITOC Trips",
+  "authors": [
+    "David Cain <davidjosephcain@gmail.com>"
+  ],
+  "description": "",
+  "main": "",
+  "license": "MIT",
+  "homepage": "trips.mitoc.org",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
