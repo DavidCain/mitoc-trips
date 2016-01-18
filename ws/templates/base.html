@@ -1,4 +1,5 @@
 {% load staticfiles %}
+{% load gravatar %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -120,7 +121,7 @@
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Account <span class="caret"></span></a>
                         <ul class="dropdown-menu" data-ng-controller="authController">
                             {% if user.is_authenticated %}
-                                <li class="dropdown-header">{{ user.email }}</li>
+                                <li class="dropdown-header">{{ user.email|gravatar:24 }} &nbsp; {{ user.email }}</li>
                                 <li> <a href="{% url 'update_info' %}">Personal info</a> </li>
                                 <li> <a href="{% url 'trip_preferences' %}">Lottery preferences</a> </li>
                                 <li role="separator" class="divider"></li>

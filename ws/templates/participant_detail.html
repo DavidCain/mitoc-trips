@@ -1,11 +1,7 @@
 {% extends "base.html" %}
 {% load readonly_form %}
+{% load gravatar %}
 
-{% block head %}
-{{ block.super }}
-{{ form.media }}
-
-{% endblock head %}
 {% block content %}
 
 <form action="" method="post">
@@ -16,40 +12,38 @@
 {% if participant %}
 <hr>
 
-{% if participant.leader %}
-<h3> Leader info </h3>
-<table>
-    <tr>
-        <th>Rating:</th>
-        <td>{{ participant.rating }}</td>
-    </tr>
+<div class="row">
+  <div class="col-md-4 col-sm-6">
+    {# TODO: Include leader information in here #}
+    <h2><i class="fa fa-user"></i> {{ participant.name }}</h2>
 
-    <tr>
-        <th>Notes:</th>
-        <td>{{ participant.leader.notes }}</td>
-    </tr>
-</table>
-{% endif %}
+    <div>
+        {{ participant.email|gravatar:200 }}
+    </div>
+    <ul class="list-unstyled">
+      <li><i class="fa fa-fw fa-envelope"></i><a href="mailto:{{ participant.email }}">{{ participant.email }}</a></li>
+      <li><i class="fa fa-fw fa-mobile"></i>{{ participant.cell_phone }}</a></li>
+    </ul>
+  </div>
+  <div class="col-md-4 col-sm-6">
 
+    <h3><i class="fa fa-medkit"></i> Medical info </h3>
+    {% readonly_form emergency_info_form %}
 
-<h3> Participant info </h3>
-{% readonly_form participant_form %}
+    <h4> Emergency Contact </h4>
+    {% readonly_form emergency_contact_form %}
+  </div>
+  {% if car_form %}
+    <div class="col-md-4 col-sm-6">
+      <h3><i class="fa fa-car"></i> Car </h3>
+      {% readonly_form car_form %}
+    </div>
+  {% endif %}
+</div>
 
-<h3> Car </h3>
-{% if car_form %}
-{% readonly_form car_form %}
-{% else %}
-<p> (no car) </p>
-{% endif %}
-
-<h3> Medical info </h3>
-{% readonly_form emergency_info_form %}
-
-<h3> Emergency Contact </h3>
-{% readonly_form emergency_contact_form %}
 
 {% if user.participant != participant %}
-<h3 id='feedback'> Past feedback </h3>
+<h3 id='feedback'><i class="fa fa-comments"></i> Past feedback </h3>
 {% if not all_feedback %}
 <p>None available.</p>
 {% else %}
