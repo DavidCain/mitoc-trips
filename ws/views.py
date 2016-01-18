@@ -1,6 +1,7 @@
 from itertools import chain
 import json
 
+from django.db import transaction
 from django.db.models import Q
 from django.contrib import messages
 from django.contrib.auth.models import User
@@ -371,24 +372,32 @@ class AdminTripSignupsView(SingleObjectMixin, LeadersOnlyView, TripInfoEditable)
 
     def post(self, request, *args, **kwargs):
         trip = self.object = self.get_object()
+        bad_request = JsonResponse({'message': 'Bad request'}, status=400)
+
         postdata = json.loads(self.request.body)
         signups = postdata.get('signups', [])
         maximum_participants = postdata.get('maximum_participants')
         try:
             signups = list(self.to_objects(signups))
         except (KeyError, ObjectDoesNotExist):
-            return JsonResponse({'message': 'Bad request'}, status=400)
+            return bad_request
 
+        # Any non-validation errors will trigger rollback
+        with transaction.atomic():
+            try:
+                self.update(trip, signups, maximum_participants)
+            except ValidationError:
+                return bad_request
+            else:
+                return JsonResponse({})
+
+    def update(self, trip, signups, maximum_participants):
+        """ Take parsed input data and apply the changes. """
         if maximum_participants:
             trip.maximum_participants = maximum_participants
-            try:
-                trip.full_clean()
-            except ValidationError:
-                return JsonResponse({'message': 'Bad request'}, status=400)
+            trip.full_clean()  # Raises ValidationError
             trip.save()
         self.update_signups(signups, trip)  # Anything already on should be waitlisted
-
-        return JsonResponse({})
 
     def update_signups(self, signups, trip):
         """ Mark all signups as not on trip, then add signups in order. """
@@ -397,22 +406,12 @@ class AdminTripSignupsView(SingleObjectMixin, LeadersOnlyView, TripInfoEditable)
             signup.skip_signals = True  # Skip the waitlist-bumping behavior
             signup.save()
 
-        for i, (signup, remove) in enumerate(signups):
+        for order, (signup, remove) in enumerate(signups):
             if remove:
                 signup.delete()
             else:
-                signup.trip_order = i
-                signup = signup_utils.trip_or_wait(signup, trip_must_be_open=False)
-                try:
-                    wl = signup.waitlistsignup
-                except ObjectDoesNotExist:
-                    pass
-                else:
-                    # Waitlist signups are reversed. See WaitlistSignup.meta
-                    # (This ensures that leader-ranked waitlist signups are
-                    #  above any additional signups after the UI was loaded)
-                    wl.manual_order = -i
-                    wl.save()
+                signup_utils.trip_or_wait(signup, trip_must_be_open=False)
+                signup_utils.next_in_order(signup, order)
 
 
     def to_objects(self, signups):

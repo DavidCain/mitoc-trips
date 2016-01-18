@@ -326,6 +326,19 @@ class Trip(models.Model):
         """ True if signups open at some point in the future, else False. """
         return timezone.now() < self.signups_open_at
 
+    @property
+    def last_of_priority(self):
+        """ The 'manual_order' value for a signup to be priority, but below others.
+
+        That is, leader-ordered signups should go above other signups. (Let's
+        say that a leader is organizing signups, but new signups come in before
+        they submit the ordering - we want to be sure all their ordering goes
+        above any new signups).
+        """
+        last_signup = self.signup_set.last()
+        min_order = last_signup.manual_order or 0
+        return min_order + 1
+
     def make_fcfs(self, signups_open_at=None):
         """ Set the algorithm to FCFS, adjust signup times appropriately. """
         self.algorithm = 'fcfs'

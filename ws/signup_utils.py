@@ -5,6 +5,33 @@ from ws import models
 from ws.dateutils import local_now
 
 
+def next_in_order(signup, manual_order=None):
+    """ Add the signup to the next-ordered spot on the trip or in waitlist.
+
+    Waitlists are ordered in reverse so that those without a manual override
+    on their ordering (manual_order = None) will always appear below those that
+    have a manual ordering (i.e. set by leaders).
+
+    If specifying a manual order, use that with its intuitive meaning - that a
+    lower ordering value means the signup shoud be prioritized, whether it's
+    a normal signup or a waitlist signup.
+    """
+    if signup.on_trip:
+        signup.manual_order = manual_order or signup.trip.last_of_priority
+        signup.save()
+    else:
+        try:
+            wl = signup.waitlistsignup
+        except models.WaitListSignup.DoesNotExist:
+            pass
+        else:
+            if manual_order:
+                wl.manual_order = -manual_order  # See WaitlistSignup.meta
+            else:
+                wl.manual_order = wl.waitlist.last_of_priority
+            wl.save()
+
+
 def add_to_waitlist(signup, request=None, prioritize=False, top_spot=False):
     """ Add the given signup to the waitlist, optionally prioritizing it. """
     signup.on_trip = False
