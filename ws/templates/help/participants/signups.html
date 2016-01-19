@@ -1,21 +1,31 @@
 {% extends "help/home.html" %}
-{% block content %}
-{{ block.super }}<hr>
-<h4 id="go_on_trips">What do I need to do to go on trips?</h4>
-<p>You must have up-to-date personal information, and have attended both lectures.</p>
+{% block faq %}
+<div class="well" id="go_on_trips">
+  <h4>What do I need to do to go on trips?</h4>
+  <p>You must have up-to-date personal information, and have attended both lectures.</p>
+</div>
 
-<h4 id="how_to_sign_up">How do I sign up for a trip?</h4>
-<p>Leaders will post trips, along with a brief description to list of trips. Signups for each trip will open at a time given in the &quot;sign up&quot; section of the trip summary.</p>
-<p>When signups open, you can sign up with the form that appears below the trip summary. You may only sign up once.</p>
+<div class="well" id="how_to_sign_up">
+  <h4>How do I sign up for a trip?</h4>
+  <p>Leaders will post trips, along with a brief description to list of trips. Signups for each trip will open at a time given in the &quot;sign up&quot; section of the trip summary.</p>
+  <p>When signups open, you can sign up with the form that appears below the trip summary. You may only sign up once.</p>
+</div>
 
-<h4 id="how_to_delete">How do I remove myself from a trip?</h4>
-To remove yourself from a trip, visit the <a href="{% url 'trip_preferences' %}#ranked_trips">trip preferences</a>
-page. Simply tick "delete" on any trip you no longer wish to attend. This will remove
-you from the trip's waiting list or participant pool. {# TODO: Allow deletion by visiting signup page #}
+<div class="well" id="how_to_delete">
+  <h4>How do I remove myself from a trip?</h4>
+  <p>If you expressed interest in a lottery trip, but the lottery hasn't run, you can
+  visit the <a href="{% url 'trip_preferences' %}#ranked_trips">trip preferences</a>
+  page. Simply tick "delete" on any trip you no longer wish to attend.</p>
+  <p>If you've already been placed on a trip, email your leaders and request to be removed.</p>
+</div>
 
-<h4 id="on_trip">How do I know if I'm on the trip?</h4>
-<p>If the trip was a first-come, first-serve trip, you will immediately be able to see if you made the participant list, or have been placed in the waiting list. If the trip is a lottery trip, you will know once the lottery algorithm has run. For more information, see the lottery section.</p>
+<div class="well" id="on_trip">
+  <h4>How do I know if I'm on the trip?</h4>
+  <p>If the trip was a first-come, first-serve trip, you will immediately be able to see if you made the participant list, or have been placed in the waiting list. If the trip is a lottery trip, you will know once the lottery algorithm has run. For more information, see the lottery section.</p>
+</div>
 
-<h4 id="timezone">What timezone are trip times in?</h4>
-<p>All times are in Eastern Standard Time.</p>
-{% endblock content %}
+<div class="well" id="timezone">
+  <h4>What timezone are trip times in?</h4>
+  <p>All times are in Eastern Standard Time.</p>
+</div>
+{% endblock faq %}

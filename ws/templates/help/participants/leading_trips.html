@@ -1,51 +1,58 @@
 {% extends "help/home.html" %}
-{% block content %}
-{{ block.super }}<hr>
+{% block faq %}
+<div class="well" id="qualifications">
+  <h4>What qualifications are needed to lead a Winter School trip?</h4>
+  <p>Each Winter School trip must have a minimum of two leaders, at least one of whom is rated as a 'primary' leader.
+  The Winter Safety Committe gives ratings to all trip leaders. These ratings control what kinds of trips leaders are permitted to create.</p>
+  <p>Qualifications for a particular category are a combination of outdoor experience and leadership, particularly in winter conditions.</p>
 
-<h4>What qualifications are needed to lead a Winter School trip?</h4>
-<p>Each Winter School trip must have a minimum of two leaders, at least one of whom is rated as a 'primary' leader.
-The Winter Safety Committe gives ratings to all trip leaders. These ratings control what kinds of trips leaders are permitted to create.</p>
-<p>Qualifications for a particular category are a combination of outdoor experience and leadership, particularly in winter conditions.</p>
+  <h5>First aid certifications</h5>
+  <p>WFA or higher is required for all B and C primary leaders.</p>
+</div>
 
-<h5>First aid certifications</h5>
-<p>WFA or higher is required for all B and C primary leaders.</p>
+<div class="well" id="ratings">
+  <h4>How do ratings work?</h4>
+  <p>All leaders are assigned a location rating along with any applicable activity ratings.</p>
 
-<h4>How do ratings work?</h4>
-<p>All leaders are assigned a location rating along with any applicable activity ratings.</p>
+  <h5>Ratings by Location</h5>
 
-<h5>Ratings by Location</h5>
-
-<ul>
+  <ul>
     <li><strong>A</strong>: less than one hour from intensive care (ski resorts, short hikes from the road, et cetera)</li>
     <li><strong>B</strong>: anything below treeline more than one hour from intensive care</li>
     <li><strong>C</strong>: above treeline</li>
-</ul>
+  </ul>
 
-<h5>Ratings by Activity</h5>
+  <h5>Ratings by Activity</h5>
 
-<ul>
+  <ul>
     <li><strong>I</strong>: ice climbing</li>
     <li><strong>S</strong>: telemark/backcountry skiing</li>
-</ul>
+  </ul>
 
-<p>
-Activity ratings are subordinate to location ratings: a {B, S} leader can only lead ski mountaineering trips below treeline.
-A leader rated {A, co-B, co-I} can act as primary leader on A-level trips, can co-lead B-level trips with a full B or C leader, and can co-lead ice climbing trips as long as they qualify as B level or below.
-</p>
+  <p>
+  Activity ratings are subordinate to location ratings: a {B, S} leader can only lead ski mountaineering trips below treeline.
+  A leader rated {A, co-B, co-I} can act as primary leader on A-level trips, can co-lead B-level trips with a full B or C leader, and can co-lead ice climbing trips as long as they qualify as B level or below.
+  </p>
+</div>
 
 
-<h4>Co-leaders</h4>
+<div class="well" id="coleaders">
+  <h4>Co-leaders</h4>
 
-<p>Co-leaders require a primary leader to be present in the group in order to lead a trip.
-Co-ratings are given to those who show promise in an area but have not demonstrated the specific outdoor experience/leadership/group management necessary for a full rating.
-This allows them to gain experience under the supervision of an experienced leader.
-Co-leaders are encouraged to use the earlier weeks of Winter School to demonstrate the skill set necessary to be 'upgraded' to primary leader prior to the close of IAP.
-</p>
+  <p>Co-leaders require a primary leader to be present in the group in order to lead a trip.
+  Co-ratings are given to those who show promise in an area but have not demonstrated the specific outdoor experience/leadership/group management necessary for a full rating.
+  This allows them to gain experience under the supervision of an experienced leader.
+  Co-leaders are encouraged to use the earlier weeks of Winter School to demonstrate the skill set necessary to be 'upgraded' to primary leader prior to the close of IAP.
+  </p>
+</div>
 
-<h4>What benefits come with being a leader?</h4>
-As a trip leader, you receive free gear rentals and a course subsidy for Wilderness First Aid certification (WFA, WAFA, WFR, WEMT).
+<div class="well" id="benefits">
+  <h4>What benefits come with being a leader?</h4>
+  As a trip leader, you receive free gear rentals and a course subsidy for Wilderness First Aid certification (WFA, WAFA, WFR, WEMT).
+</div>
 
-<h4>How do I become a leader?</h4>
-<p>If you're interested in leading trips, fill out a <a href="{% url 'become_leader' %}">leader application form.</a>
-
-{% endblock content %}
+<div class="well" id="apply">
+  <h4>How do I become a leader?</h4>
+  <p>If you're interested in leading trips, fill out a <a href="{% url 'become_leader' %}">leader application form.</a>
+</div>
+{% endblock faq %}

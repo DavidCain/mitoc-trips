@@ -1,26 +1,35 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h3> Topics </h3>
-<ul id='topics'>
-    <li><a href="{% url 'help-personal_info' %}">Personal information, privacy</a></li>
-    <li><a href="{% url 'help-lottery' %}">The signup lottery</a></li>
-    <li><a href="{% url 'help-signups' %}">Signing up for trips</a></li>
-    <li><a href="{% url 'help-leading_trips' %}">Leading trips</a></li>
-</ul>
+<div class="row">
+  <div class="col-md-3">
+    <h3> Topics </h3>
+    <ul class="list-unstyled" id='topics'>
+      <li><a href="{% url 'help-personal_info' %}">Personal information, privacy</a></li>
+      <li><a href="{% url 'help-lottery' %}">The signup lottery</a></li>
+      <li><a href="{% url 'help-signups' %}">Signing up for trips</a></li>
+      <li><a href="{% url 'help-leading_trips' %}">Leading trips</a></li>
+    </ul>
 
-{% if "leaders" in groups %}
-<h3> Leader Topics </h3>
-<ul id='leader_topics'>
-    <li><a href="{% url 'help-feedback' %}">Feedback</a></li>
-    <li><a href="{% url 'help-trip_admin' %}">Trip administration</a></li>
-</ul>
-{% endif %}
+    {% if "leaders" in groups %}
+    <h3> Leader Topics </h3>
+    <ul class="list-unstyled" id='leader_topics'>
+      <li><a href="{% url 'help-feedback' %}">Feedback</a></li>
+      <li><a href="{% url 'help-trip_admin' %}">Trip administration</a></li>
+    </ul>
+    {% endif %}
 
-{% if "WSC" in groups or user.is_superuser %}
-<h3> WSC Topics </h3>
-<ul id='wsc_topics'>
-    <li><a href="{% url 'help-wsc' %}">Winter Safety Committee</a></li>
-</ul>
-{% endif %}
+    {% if "WSC" in groups or user.is_superuser %}
+    <h3> WSC Topics </h3>
+    <ul class="list-unstyled" id='wsc_topics'>
+      <li><a href="{% url 'help-wsc' %}">Winter Safety Committee</a></li>
+    </ul>
+    {% endif %}
+  </div>
+
+  <div class="col-md-9">
+    {% block faq %}
+    {% endblock faq %}
+  </div>
+</div>
 {% endblock content %}

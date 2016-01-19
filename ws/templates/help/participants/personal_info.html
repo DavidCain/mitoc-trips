@@ -1,12 +1,17 @@
 {% extends "help/home.html" %}
-{% block content %}
-{{ block.super }}<hr>
-<h4 id="why-do-you-need-my-personal-information">Why do you need my personal information?</h4>
-<p>It the event of a medical emergency, it is essential that your trip leaders know your medical history. If a trip were to be reported missing, a description of involved vehicles would be given to search and rescue teams.</p>
+{% block faq %}
+<div class="well" id="why-do-you-need-my-personal-information">
+  <h4>Why do you need my personal information?</h4>
+  <p>It the event of a medical emergency, it is essential that your trip leaders know your medical history. If a trip were to be reported missing, a description of involved vehicles would be given to search and rescue teams.</p>
+</div>
 
-<h4 id="who-can-view-this-information">Who can view this information?</h4>
-<p>Members of the Winter Safety Committee are able to see this information, as well as your trip leaders. <strong>No other participants can see this information.</strong></p>
+<div class="well" id="who-can-view-this-information">
+  <h4>Who can view this information?</h4>
+  <p>Members of the Winter Safety Committee are able to see this information, as well as your trip leaders. <strong>No other participants can see this information.</strong></p>
+</div>
 
-<h4 id="is-my-information-confidential">Is my information confidential?</h4>
-<p>Yes. If any aspect of your medical history pertains to a trip you're signed up for, a trip leader will approach you to discuss the issue in private.</p>
-{% endblock content %}
+<div class="well" id="is-my-information-confidential">
+  <h4>Is my information confidential?</h4>
+  <p>Yes. If any aspect of your medical history pertains to a trip you're signed up for, a trip leader will approach you to discuss the issue in private.</p>
+</div>
+{% endblock faq %}

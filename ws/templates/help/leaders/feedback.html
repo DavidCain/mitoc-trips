@@ -1,32 +1,43 @@
 {% extends "help/home.html" %}
-{% block content %}
-{{ block.super }}<hr>
-<h4 id="view_past_feedback">How do I view a participant's past feedback?</h4>
-<p>When <a href="{% url 'help-trip_admin' %}">administrating your trip</a>, a summary of each participant's past feedback will appear in the signup table. Each instance of leader comments will include the leader supplying the feedback as well as the relevant trip. This information is also available on any participant's summary page (click their name in the table).</p>
+{% block faq %}
+  <div class="well" id="view_past_feedback">
+    <h4>How do I view a participant's past feedback?</h4>
+    <p>When <a href="{% url 'help-trip_admin' %}">administrating your trip</a>, a summary of each participant's past feedback will appear in the signup table. Each instance of leader comments will include the leader supplying the feedback as well as the relevant trip. This information is also available on any participant's summary page (click their name in the table).</p>
+  </div>
 
-<h4 id="submit_feedback">How do I submit feedback?</h4>
-<p>After your trip has completed, go to its review page. You will see a table with a form for each participant. Additionally, there will be a box entitled &quot;flakers.&quot; Fill out the feedback forms for your participants, specify any others that &quot;flaked&quot; on your trip in the &quot;flakers&quot; box, then hit &quot;submit.&quot; You're done! Additionally, the system will remind you if you haven't submitted feedback for a trip yet.</p>
+  <div class="well" id="submit_feedback">
+    <h4>How do I submit feedback?</h4>
+    <p>After your trip has completed, go to its review page. You will see a table with a form for each participant. Additionally, there will be a box entitled &quot;flakers.&quot; Fill out the feedback forms for your participants, specify any others that &quot;flaked&quot; on your trip in the &quot;flakers&quot; box, then hit &quot;submit.&quot; You're done! Additionally, the system will remind you if you haven't submitted feedback for a trip yet.</p>
+  </div>
 
-<h4 id="signing_feedback">Do I need to sign feedback?</h4>
-<p>Nope! All actions performed on the site are automatically linked to your account. There's no need to sign feedback with your name, or indicate the trip it pertains to.</p>
+  <div class="well" id="signing_feedback">
+    <h4>Do I need to sign feedback?</h4>
+    <p>Nope! All actions performed on the site are automatically linked to your account. There's no need to sign feedback with your name, or indicate the trip it pertains to.</p>
+  </div>
 
-<h4 id="what_counts_as_flaking">What counts as flaking?</h4>
-<p>It is up to each leader to discern the difference between what counts as flaking and what is a legitimate reason not to attend the trip. However, the following circumstances should generally prompt you to list the participant as a flake:</p>
-<ul>
-    <li>Attending the pre-trip meeting, then later deciding not to attend</li>
-    <li>Failing to show up on time for their ride</li>
-    <li>Abandonding the trip due to coursework, other responsibilities</li>
-</ul>
+  <div class="well" id="what_counts_as_flaking">
+    <h4>What counts as flaking?</h4>
+    <p>It is up to each leader to discern the difference between what counts as flaking and what is a legitimate reason not to attend the trip. However, the following circumstances should generally prompt you to list the participant as a flake:</p>
+    <ul>
+      <li>Attending the pre-trip meeting, then later deciding not to attend</li>
+      <li>Failing to show up on time for their ride</li>
+      <li>Abandonding the trip due to coursework, other responsibilities</li>
+    </ul>
+  </div>
 
-<h4 id="valid_no-show">What if a participant didn't go on my trip, but didn't &quot;flake&quot; either?</h4>
-<p>If you've determined that the participant's reason for not attending your trip should not count as flaking, navigate to your trip administration page and delete their signup. This will reflect that they did not attend your trip while not penalizing them.</p>
+  <div class="well" id="valid_no-show">
+    <h4>What if a participant didn't go on my trip, but didn't &quot;flake&quot; either?</h4>
+    <p>If you've determined that the participant's reason for not attending your trip should not count as flaking, navigate to your trip administration page and delete their signup. This will reflect that they did not attend your trip while not penalizing them.</p>
+  </div>
 
-<h4 id="feedback_content">What should I put in feedback?</h4>
-<p>The feedback feature is designed to help other leaders gauge a participant's abilities and fitness for future trips. Accordingly, please specify anything that would be useful to future leaders. This may include:</p>
-<ul>
-<li>Physical fitness, general demeanor</li>
-<li>Level of preparedness</li>
-<li>Whether or not the participant showed up (please check the box)</li>
-</ul>
-<p>By indicating that a participant did not show up for your trip, you are helping more reliable participants to get placed on trips over &quot;flaky&quot; participants.</p>
-{% endblock content %}
+  <div class="well" id="feedback_content">
+    <h4>What should I put in feedback?</h4>
+    <p>The feedback feature is designed to help other leaders gauge a participant's abilities and fitness for future trips. Accordingly, please specify anything that would be useful to future leaders. This may include:</p>
+    <ul>
+      <li>Physical fitness, general demeanor</li>
+      <li>Level of preparedness</li>
+      <li>Whether or not the participant showed up (please check the box)</li>
+    </ul>
+    <p>By indicating that a participant did not show up for your trip, you are helping more reliable participants to get placed on trips over &quot;flaky&quot; participants.</p>
+  </div>
+{% endblock faq %}
