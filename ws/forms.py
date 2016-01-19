@@ -110,8 +110,8 @@ class TripForm(DjangularRequiredModelForm):
     class Meta:
         model = models.Trip
         fields = ['activity', 'name', 'leaders', 'description', 'trip_date',
-                  'maximum_participants', 'difficulty_rating', 'prereqs',
-                  'notes']
+                  'maximum_participants', 'difficulty_rating', 'level',
+                  'prereqs', 'notes']
         widgets = {#'leaders': widgets.LeaderSelect,
                    'description': forms.Textarea(attrs={'rows': 4}),
                    'notes': forms.Textarea(attrs={'rows': 4}),

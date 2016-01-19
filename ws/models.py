@@ -266,6 +266,7 @@ class Trip(models.Model):
     description = models.TextField()
     maximum_participants = models.PositiveIntegerField(default=8)
     difficulty_rating = models.CharField(max_length=63)
+    level = models.CharField(max_length=255, help_text="For Winter School, this trip's A, B, or C designation (plus I/S rating if applicable).")
     prereqs = models.CharField(max_length=255, blank=True)
     wsc_approved = models.BooleanField(default=False)
     notes = models.TextField(blank=True, max_length=2000,
