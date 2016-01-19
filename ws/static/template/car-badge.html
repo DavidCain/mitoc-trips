@@ -1,0 +1,5 @@
+<span data-ng-if="carStatus && carStatus != 'none'" class="badge"
+  data-uib-tooltip="{{msg}}">
+  <i class="fa" data-ng-class="{'fa-taxi': carStatus == 'rent', 'fa-car': carStatus == 'own'}"></i>
+  <span data-ng-if="numberOfPassengers">+{{ numberOfPassengers }}</span>
+</span>

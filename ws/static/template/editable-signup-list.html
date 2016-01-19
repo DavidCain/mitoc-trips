@@ -3,10 +3,9 @@
     <div class="row">
       <div class="col-md-3">
         <label data-ng-bind="signup.participant.name"></label>
-        <span data-ng-if="signup.car_status && signup.car_status != 'none'" class="badge">
-          <i class="fa" data-ng-class="{'fa-taxi': signup.car_status == 'rent', 'fa-car': signup.car_status == 'own'}"></i>
-          <span data-ng-if="signup.number_of_passengers">+{{ signup.number_of_passengers }}</span>
-        </span>
+        <car-badge data-car-status="signup.car_status"
+                   data-number-of-passengers="signup.number_of_passengers">
+        </car-badge>
         <div data-ng-if="signup.also_on.length">
           <small>
             Also on:
