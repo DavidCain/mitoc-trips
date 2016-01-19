@@ -155,9 +155,13 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'ng.django.urls'])
         });
       };
 
-      scope.sortableOptions = {stop: updateSignups,
+      // So we can use 'updateSignups' as a callback even with truthy first arg
+      var updateKeepDeleted = function(){
+        updateSignups(false);
+      }
+      scope.sortableOptions = {stop: updateKeepDeleted,
                                connectWith: '.signup-list'};
-      scope.$watch('maximumParticipants', updateSignups);
+      scope.$watch('maximumParticipants', updateKeepDeleted);
 
       scope.verifyChanges = function(){
         scope.modal = $uibModal.open({
