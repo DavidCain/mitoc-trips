@@ -15,6 +15,7 @@
   <div class="col-sm-6 col-sm-pull-6">
     <h3>Participants <span data-ng-bind="onTripCount + ' / ' + maximumParticipants"></span>
     <button class="btn btn-sm btn-default"
+            data-ng-if="signups.onTrip.length || signups.waitlist.length"
             data-ng-click="signups.feedbackHidden = !signups.feedbackHidden">
       <i class="fa" data-ng-class="signups.feedbackHidden? 'fa-comments-o' : 'fa-comments'"></i>
       {{ signups.feedbackHidden ? 'Show' : 'Hide'}} Feedback
@@ -23,7 +24,7 @@
 </div>
 <editable-signup-list signups="signups.onTrip" delete-signup="deleteSignup" hide-feedback="signups.feedbackHidden" sortable-options="sortableOptions"></editable-signup-list>
 
-<h3>Waiting list</h3>
+<h3 data-ng-if="signups.waitlist.length">Waiting list</h3>
 <editable-signup-list signups="signups.waitlist" delete-signup="deleteSignup" hide-feedback="signups.feedbackHidden" sortable-options="sortableOptions"></editable-signup-list>
 
 <button data-ng-click="verifyChanges()" class="btn btn-primary">Submit</button>
