@@ -6,6 +6,9 @@
     <a href="mailto:{{ leader.email }}">{{ leader }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}
     </dd>
 
+    <dt>Trip level</dt>
+    <dd>{{ trip.level }}</dd>
+
     <dt>Trip date</dt>
     <dd>{{ trip.trip_date|date:"l, F jS" }}</dd>
 
