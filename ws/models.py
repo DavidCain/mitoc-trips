@@ -106,6 +106,19 @@ class Participant(models.Model):
             return ws_ratings.first().rating
 
     @property
+    def allowed_activities(self):
+        rated = [rating.activity for rating in self.leaderrating_set.all()]
+        if rated:
+            return rated + LeaderRating.OPEN_ACTIVITIES
+        else:  # Not a MITOC leader, can't lead anything
+            return []
+
+    def can_lead(self, activity):
+        activity_okay = (models.Q(activity=activity) |
+                         models.Q(activity__in=LeaderRating.OPEN_ACTIVITIES))
+        return self.leaderrating_set.filter(activity_okay).exists()
+
+    @property
     def is_leader(self):
         return self.leaderrating_set.exists()
 
@@ -138,17 +151,42 @@ class LeaderRating(models.Model):
     It also allows leaders to function as participants (e.g. if a "SC" leader
     wants to go ice climbing).
     """
-    HIKING = 'hiking'
+    # Activities where you must be rated in order to create/lead a trip
+    BIKING = 'biking'
+    BOATING = 'boating'
+    CABIN = 'cabin'
     CLIMBING = 'climbing'
+    HIKING = 'hiking'
     WINTER_SCHOOL = 'winter_school'
+    CLOSED_ACTIVITY_CHOICES = [
+            (BIKING, 'Biking'),
+            (BOATING, 'Boating'),
+            (CABIN, 'Cabin'),
+            (CLIMBING, 'Climbing'),
+            (HIKING, 'Hiking'),
+            (WINTER_SCHOOL, 'Winter School'),
+            ]
+    CLOSED_ACTIVITIES = [val for (val, label) in CLOSED_ACTIVITY_CHOICES]
 
-    ACTIVITIES = [(HIKING, 'Hiking'),
-                  (CLIMBING, 'Climbing'),
-                  (WINTER_SCHOOL, 'Winter School')]
+    # Activities for which a specific leader rating is not necessary
+    # (You must be a MITOC leader, but not necessarily in these activities)
+    CIRCUS = 'circus'
+    OFFICIAL_EVENT = 'official_event'  # Training, films, etc.
+    COURSE = 'course'
+    OPEN_ACTIVITY_CHOICES = [
+            (CIRCUS, 'Circus'),
+            (OFFICIAL_EVENT, 'Official Event'),
+            (COURSE, 'Course'),
+            ]
+
+    OPEN_ACTIVITIES = [val for (val, label) in OPEN_ACTIVITY_CHOICES]
+
+    ACTIVITIES = CLOSED_ACTIVITIES + OPEN_ACTIVITIES
+    ACTIVITY_CHOICES = CLOSED_ACTIVITY_CHOICES + OPEN_ACTIVITY_CHOICES
 
     participant = models.ForeignKey(Participant)
     activity = models.CharField(max_length='31',
-                                choices=ACTIVITIES)
+                                choices=ACTIVITY_CHOICES)
     rating = models.CharField(max_length=31)
     notes = models.TextField(max_length=500, blank=True)  # Contingencies, etc.
 
@@ -257,7 +295,7 @@ class TripInfo(models.Model):
 
 class Trip(models.Model):
     activity = models.CharField(max_length='31',
-                                choices=LeaderRating.ACTIVITIES,
+                                choices=LeaderRating.ACTIVITY_CHOICES,
                                 default=LeaderRating.WINTER_SCHOOL)
     creator = models.ForeignKey(Participant, related_name='created_trips')
     # Leaders should be privileged at time of trip creation, but may no longer

@@ -788,8 +788,7 @@ class AddTripView(CreateView):
 
     def get_form_kwargs(self):
         kwargs = super(AddTripView, self).get_form_kwargs()
-        ratings = self.participant.leaderrating_set.all()
-        kwargs['allowed_activities'] = {rating.activity for rating in ratings}
+        kwargs['allowed_activities'] = self.participant.allowed_activities
         return kwargs
 
     def get_success_url(self):

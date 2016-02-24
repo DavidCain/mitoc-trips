@@ -135,11 +135,11 @@ class TripForm(DjangularRequiredModelForm):
         leader rating may have lapsed.
         """
         super(TripForm, self).clean()
-        lacking_privs = []
         activity = self.cleaned_data['activity']
-        for leader in self.cleaned_data['leaders']:
-            if not leader.leaderrating_set.filter(activity=activity):
-                lacking_privs.append(leader)
+        leaders = self.cleaned_data['leaders']
+
+        lacking_privs = [par for par in leaders if not par.can_lead(activity)]
+
         if lacking_privs:
             names = ', '.join(leader.name for leader in lacking_privs)
             msg = "{} can't lead {} trips".format(names, activity)

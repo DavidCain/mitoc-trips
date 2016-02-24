@@ -16,7 +16,7 @@ def is_chair(user, activity_type, allow_superusers=True):
     return in_any_group(user, [chair_group(activity_type)], allow_superusers)
 
 
-activity_types = [val for val, label in models.LeaderRating.ACTIVITIES]
+activity_types = models.LeaderRating.ACTIVITIES
 all_chair_groups = {chair_group(activity) for activity in activity_types}
 
 
