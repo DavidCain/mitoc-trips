@@ -1,6 +1,8 @@
 # About
 This Django project supports MITOC's [Winter School][ws], providing a unified
-system for participants, leaders, and administrators.
+system for participants, leaders, and administrators. This project is currently
+in the process of being transformed into MITOC's general-purpose trip
+management system.
 
 ## Background
 Every January, the MIT Outing Club ([MITOC][mitoc]) runs a program known as

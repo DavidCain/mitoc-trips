@@ -141,6 +141,7 @@ class LeaderRating(models.Model):
     HIKING = 'hiking'
     CLIMBING = 'climbing'
     WINTER_SCHOOL = 'winter_school'
+
     ACTIVITIES = [(HIKING, 'Hiking'),
                   (CLIMBING, 'Climbing'),
                   (WINTER_SCHOOL, 'Winter School')]
