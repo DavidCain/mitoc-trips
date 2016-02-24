@@ -442,7 +442,8 @@ class AdminTripSignupsView(SingleObjectMixin, LeadersOnlyView, TripInfoEditable)
 
         return {'id': signup.id,
                 'participant': {'id': par.id,
-                                'name': par.name},
+                                'name': par.name,
+                                'email': par.email},
                 'feedback': [{'showed_up': f.showed_up,
                               'leader': f.leader.name,
                               'comments': f.comments,

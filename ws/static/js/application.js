@@ -108,6 +108,48 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'ng.django.urls'])
   }
 })
 
+.directive('emailTripMembers', function(){
+  return {
+    restrict: 'E',
+    scope: {
+      signups: '=',
+    },
+    templateUrl: '/static/template/email-trip-members.html',
+    link: function (scope, element, attrs) {
+
+      scope.showEmails = {
+        onTrip: true,
+        waitlist: false,
+      };
+
+      var updateEmailText = function(){
+        /* Update participant emails according to the selected buttons. */
+        var signups = [];
+        if (scope.signups.waitlist && scope.signups.waitlist.length){
+          for (var sublist in scope.showEmails) {
+            if (scope.showEmails[sublist]) {
+              if (scope.signups[sublist]){
+                signups = signups.concat(scope.signups[sublist]);
+              }
+            }
+          }
+        } else {
+          // If there's no waitlist, don't bother honoring the buttons
+          // (we'll be hiding the controls anyway)
+          signups = scope.signups.onTrip || [];
+        }
+
+        var emails = signups.map(function(signup){
+          return signup.participant.name + ' <' + signup.participant.email + '>';
+        });
+        scope.emailText = emails.join(', ');
+      };
+
+      scope.$watch('signups', updateEmailText, true);
+      scope.$watch('showEmails',  updateEmailText, true);
+    }
+  }
+})
 .directive('adminTripSignups', function($http, filterFilter, $window, $uibModal) {
   return {
     restrict: 'E',
@@ -171,7 +213,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'ng.django.urls'])
       }
 
       scope.submit = function(){
-        signups = scope.allSignups.map(function(signup){
+        var signups = scope.allSignups.map(function(signup){
           return {id: signup.id,
                   deleted: signup.deleted,
                   participant: signup.participant};
