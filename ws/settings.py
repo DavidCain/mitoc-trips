@@ -35,12 +35,12 @@ INSTALLED_APPS = (
     'localflavor',
     'allauth',
     'allauth.account',
-    'djangular',
+    'djng',
     'ws',
 )
 
 MIDDLEWARE_CLASSES = (
-    'djangular.middleware.DjangularUrlMiddleware',
+    'djng.middleware.AngularUrlMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',

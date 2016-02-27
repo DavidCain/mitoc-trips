@@ -1,5 +1,5 @@
 // TODO: Make a custom AngularUI build with just the templates I need
-angular.module('ws', ['ui.bootstrap', 'ui.bootstrap.tpls', 'ng.django.forms',
+angular.module('ws', ['ui.bootstrap', 'ui.bootstrap.tpls', 'djng.forms',
                       'ws.ajax', 'ws.auth', 'ws.forms', 'ws.lottery', 'ws.widgets'])
 
 
@@ -11,7 +11,7 @@ angular.module('ws.ajax', [])
 })
 
 
-angular.module('ws.auth', ['ng.django.urls'])
+angular.module('ws.auth', ['djng.urls'])
 .controller('authController', function($scope, $http, $window, djangoUrl) {
   $scope.logout = function(){
     var logoutUrl = djangoUrl.reverse('account_logout');
@@ -49,7 +49,7 @@ angular.module('ws.widgets', [])
   }
 })
 
-angular.module('ws.forms', ['ui.select', 'ngSanitize', 'ng.django.urls'])
+angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
 // Taken from the AngularUI Select docs - filter by searched property
 .filter('propsFilter', function() {
   return function(items, props) {

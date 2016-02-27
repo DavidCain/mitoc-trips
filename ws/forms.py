@@ -1,9 +1,9 @@
 from django import forms
 from django.core.exceptions import ValidationError
 
-from djangular.forms import NgFormValidationMixin, NgForm
-from djangular.forms import NgModelFormMixin, NgModelForm
-from djangular.styling.bootstrap3.forms import Bootstrap3Form, Bootstrap3FormMixin
+from djng.forms import NgFormValidationMixin, NgForm
+from djng.forms import NgModelFormMixin, NgModelForm
+from djng.styling.bootstrap3.forms import Bootstrap3Form, Bootstrap3FormMixin
 
 from localflavor.us.us_states import US_STATES
 
