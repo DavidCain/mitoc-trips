@@ -75,6 +75,9 @@ class UpdateParticipantView(TemplateView):
         except ObjectDoesNotExist:
             return None
 
+    def prefix(self, base, **kwargs):
+        return dict(prefix=base, scope_prefix=base + '_scope', **kwargs)
+
     def get_context_data(self):
         """ Return a dictionary primarily of forms to for template rendering.
         Also includes a value for the "I have a car" checkbox.
@@ -94,16 +97,16 @@ class UpdateParticipantView(TemplateView):
         e_info = participant and participant.emergency_info
         e_contact = e_info and e_info.emergency_contact
 
-        par_kwargs = {"instance": participant}
         # If no Participant object, fill at least with User email
+        par_kwargs = self.prefix("participant", instance=participant)
         if not participant:
             par_kwargs["initial"] = {'email': self.request.user.email}
 
         context = {
             'participant_form': forms.ParticipantForm(post, **par_kwargs),
-            'car_form': forms.CarForm(post, instance=car, scope_prefix='car_scope', prefix='car'),
-            'emergency_info_form': forms.EmergencyInfoForm(post, instance=e_info, scope_prefix='einfo_scope', prefix='einfo'),
-            'emergency_contact_form': forms.EmergencyContactForm(post, instance=e_contact, scope_prefix='econtact_scope', prefix='econtact'),
+            'car_form': forms.CarForm(post, instance=car, **self.prefix('car')),
+            'emergency_info_form': forms.EmergencyInfoForm(post, instance=e_info, **self.prefix('einfo')),
+            'emergency_contact_form': forms.EmergencyContactForm(post, instance=e_contact, **self.prefix('econtact')),
         }
 
         # Boolean: Already responded to question.

@@ -61,7 +61,7 @@ class EmergencyContactForm(DjangularRequiredModelForm):
     required_css_class = 'required'
     class Meta:
         model = models.EmergencyContact
-        fields = ['contact_name', 'contact_email', 'contact_cell_phone', 'relationship']
+        fields = ['name', 'email', 'cell_phone', 'relationship']
 
 
 class EmergencyInfoForm(DjangularRequiredModelForm):
