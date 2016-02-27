@@ -2,5 +2,5 @@ Django==1.8
 pytz
 django-allauth
 django-localflavor
-django-angular
+django-angular==0.7.15
 mysql-python
