@@ -1,5 +1,6 @@
 {% load staticfiles %}
 {% load gravatar %}
+{% load perm_tags %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -96,6 +97,15 @@
                                 <li> <a href="{% url 'manage_applications' %}"> Manage leader applications </a> </li>
                                 <li> <a href="{% url 'manage_trips' %}"> Manage trips </a> </li>
                                 <li> <a href="{% url 'wimp' %}"> WIMP </a> </li>
+                            </ul>
+                        </li>
+                    {% endif %}
+
+                    {% if user|chair_of_any_activity and not "WSC" in groups %}
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Chair <span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li> <a href="{% url 'add_leader' %}">Leader ratings</a> </li>
                             </ul>
                         </li>
                     {% endif %}
