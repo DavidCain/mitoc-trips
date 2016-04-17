@@ -110,6 +110,7 @@ class TripForm(DjangularRequiredModelForm):
     class Meta:
         model = models.Trip
         fields = ['activity', 'name', 'leaders', 'description', 'trip_date',
+                  'algorithm', 'signups_open_at', 'signups_close_at',
                   'maximum_participants', 'difficulty_rating', 'level',
                   'prereqs', 'notes']
         widgets = {#'leaders': widgets.LeaderSelect,
