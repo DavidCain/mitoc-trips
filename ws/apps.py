@@ -22,9 +22,15 @@ class WinterSchoolConfig(AppConfig):
             Group.objects.get_or_create(name='leaders')
             Group.objects.get_or_create(name='users_with_info')
             Group.objects.get_or_create(name='WSC')
+            Group.objects.get_or_create(name='WIMP')
+
+            # Created based off all activites in LeaderRating.CLOSED_ACTIVITES
+            # (with "WSC" being a special case for the time being)
+            Group.objects.get_or_create(name='biking_chair')
+            Group.objects.get_or_create(name='boating_chair')
+            Group.objects.get_or_create(name='cabin_chair')
             Group.objects.get_or_create(name='climbing_chair')
             Group.objects.get_or_create(name='hiking_chair')
-            Group.objects.get_or_create(name='WIMP')
         except (OperationalError, ProgrammingError):
             print "Can't create groups"
             print "Django tables likely not created yet (run migrate)."
