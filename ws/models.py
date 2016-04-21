@@ -46,7 +46,7 @@ class Car(models.Model):
 
 class EmergencyContact(models.Model):
     contact_name = models.CharField(max_length=255, verbose_name="Name")
-    contact_cell_phone = PhoneNumberField(verbose_name="Cell phone")
+    contact_cell_phone = PhoneNumberField(verbose_name="Cell phone", help_text="US numbers only, please")
     relationship = models.CharField(max_length=63)
     contact_email = models.EmailField(verbose_name="Email")
 
