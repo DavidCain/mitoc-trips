@@ -732,6 +732,7 @@ def get_rating(request, pk, activity):
 @chairs_only()
 def add_leader(request):
     """ Create a leader rating for an existing Participant. """
+    sudo_ok = True
     if request.method == "POST":
         form = forms.LeaderForm(request.POST)
         if form.is_valid():
@@ -741,7 +742,7 @@ def add_leader(request):
             existing = models.LeaderRating.objects.filter(find_rating).first()
             if existing:
                 form = forms.LeaderForm(request.POST, instance=existing)
-            if not perm_utils.is_chair(request.user, activity):
+            if not perm_utils.is_chair(request.user, activity, sudo_ok):
                 not_chair = "You cannot assign {} ratings".format(activity)
                 form.add_error("activity", not_chair)
             else:
@@ -749,7 +750,7 @@ def add_leader(request):
                 messages.add_message(request, messages.SUCCESS, 'Added rating')
     else:
         # Regardless of success, empty form for quick addition of another
-        allowed_activities = perm_utils.chair_activities(request.user)
+        allowed_activities = perm_utils.chair_activities(request.user, sudo_ok)
         kwargs = {'allowed_activities': allowed_activities}
         if len(allowed_activities) == 1:
             kwargs['initial'] = {'activity': allowed_activities[0]}
