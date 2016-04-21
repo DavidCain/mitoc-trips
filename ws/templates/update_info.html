@@ -24,7 +24,7 @@
         </div>
         <div class="col-sm-6">
             <h4 id="car">Do you have a car?
-                <div class="btn-group" role="group" {% if has_car_checked %}data-ng-init="car.owner=true"{% endif %} data-ng-required>
+                <div class="btn-group" role="group" data-ng-init="{{ has_car_checked|yesno:"car.owner=true,car.owner=false," }}" data-ng-required>
                     <label class="btn" data-ng-model="car.owner" data-ng-class="car.owner ? 'btn-primary' : 'btn-default'" data-uib-btn-radio="true">Yes</label>
                     <label class="btn" data-ng-model="car.owner" data-ng-class="car.owner === false ? 'btn-primary' : 'btn-default'" data-uib-btn-radio="false">No</label>
                 </div>
@@ -60,9 +60,6 @@
         </div>
     </div>
 
-
-    {# TODO: WHOLE form must be invalid #}
-    {# http://django-angular.readthedocs.org/en/latest/angular-model-form.html#working-with-nested-forms #}
-    <button type="submit" data-ng-disabled="{{ participant_form.form_name }}.$invalid" class="btn btn-primary">Submit</button>
+    <button type="submit" data-ng-disabled="{{ participant_form.form_name }}.$invalid || !car.hasOwnProperty('owner')" class="btn btn-primary">Submit</button>
 </form>
 {% endblock content %}

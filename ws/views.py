@@ -105,10 +105,15 @@ class UpdateParticipantView(TemplateView):
             'emergency_info_form': forms.EmergencyInfoForm(post, instance=e_info),
             'emergency_contact_form': forms.EmergencyContactForm(post, instance=e_contact),
         }
+
+        # Boolean: Already responded to question.
+        # None: has not responded yet
         if post:
             context['has_car_checked'] = self.has_car
         elif participant:
             context['has_car_checked'] = bool(participant.car)
+        else:
+            context['has_car_checked'] = None
 
         return context
 
