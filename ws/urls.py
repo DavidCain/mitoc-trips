@@ -40,10 +40,10 @@ urlpatterns = patterns('',
     url(r'^trips/(?P<pk>\d+)/itinerary/$', views.TripInfoView.as_view(), name='trip_itinerary'),
     url(r'^trips/(?P<pk>\d+)/review/$', views.ReviewTripView.as_view(), name='review_trip'),
     url(r'^participants/(?P<pk>\d+)/$', views.ParticipantDetailView.as_view(), name='view_participant'),
-    url(r'^participants/find/$', views.ParticipantLookupView.as_view(), name='participant_lookup'),
     url(r'^trips/(?P<pk>\d+)/medical/$', views.TripMedicalView.as_view(), name='trip_medical'),
 
     # General views (anyone can view or only participants with info)
+    url(r'^profile/$', views.ProfileView.as_view(), name='profile'),
     url(r'^leaders/(?P<pk>\d+)/ratings/(?P<activity>.+).json', views.get_rating, name='get_rating'),
     url(r'^personal_info/$', views.UpdateParticipantView.as_view(), name='update_info'),
     url(r'^leaders/apply/$', views.BecomeLeaderView.as_view(), name='become_leader'),

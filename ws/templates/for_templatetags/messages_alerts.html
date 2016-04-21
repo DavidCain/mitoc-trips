@@ -1,0 +1,9 @@
+{% for message in messages %}
+  <div class="alert{% if message.tags %} alert-{{ message.level_tag }}{% endif %}">
+    {% if 'safe' in message.tags %}
+      {{ message|safe }}
+    {% else %}
+      {{ message }}
+    {% endif %}
+  </div>
+{% endfor %}

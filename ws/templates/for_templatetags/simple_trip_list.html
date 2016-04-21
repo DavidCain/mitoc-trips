@@ -1,0 +1,33 @@
+<table class="footable">
+  <thead>
+    <tr>
+      <th>Trip</th>
+      <th data-type="numeric" class="nowrap">Date</th>
+      <th data-hide="phone">Leaders</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {% for trip in trip_list %}
+      <tr>
+        <td>
+          <a href="{% url 'view_trip' trip.id %}">{{ trip.name|truncatechars:max_title_chars }}</a><br>
+          <strong>{{ trip.difficulty_rating }}</strong> {{ trip.description|truncatechars:max_description_chars }}
+        </td>
+        <td class="nowrap" data-value="{{ trip.trip_date|date:'U' }}">
+          {% if trip.in_past %}
+            {{ trip.trip_date|date:"Y-m-d" }}
+          {% else %}
+            {{ trip.trip_date|date:"D" }}
+          {% endif %}
+        </td>
+        <td>
+          {% for leader in trip.leaders_with_rating %}
+            <div class="nowrap">{{ leader }}</div>
+          {% endfor %}
+        </td>
+      </tr>
+
+    {% endfor %}
+  </tbody>
+</table>

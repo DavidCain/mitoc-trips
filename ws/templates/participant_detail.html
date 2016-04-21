@@ -1,74 +1,209 @@
 {% extends "base.html" %}
 {% load readonly_form %}
 {% load gravatar %}
+{% load trip_tags %}
+{% load messages_tags %}
 
 {% block content %}
 
-<form action="" method="post">
-    <h5>View participant</h5>
-    {% csrf_token %}
-    {{ form }}
-</form>
-{% if participant %}
-<hr>
 
 <div class="row">
-  <div class="col-md-4 col-sm-6">
-    {# TODO: Include leader information in here #}
-    <h2><i class="fa fa-user"></i> {{ participant.name }}</h2>
+  <div class="col-md-8">
+    <div class="row">
+      <div class="col-md-12">
 
-    <div>
-        {{ participant.email|gravatar:200 }}
+        <div class="media">
+          <div class="media-left">
+            <div class="media-object">
+              {{ participant.email|gravatar:200 }}
+              <ul class="list-unstyled">
+                <li><i class="fa fa-fw fa-envelope"></i><a href="mailto:{{ participant.email }}">{{ participant.email }}</a></li>
+                {% if participant.cell_phone %}
+                  <li><i class="fa fa-fw fa-mobile"></i>{{ participant.cell_phone }}</li>
+                {% endif %}
+              </ul>
+            </div>
+          </div>
+
+          <div class="media-body">
+            <h1 class="media-heading">{{ participant.name }}</h1>
+
+            {% for activity in chair_activities %}
+              <h4>{{ activity }} Chair</h4>
+            {% endfor %}
+            {% for rating in ratings %}
+              <h4>{{ rating.get_activity_display }} Leader ({{ rating.rating }})</h4>
+            {% endfor %}
+
+          </div>
+        </div>
+
+      </div>
     </div>
-    <ul class="list-unstyled">
-      <li><i class="fa fa-fw fa-envelope"></i><a href="mailto:{{ participant.email }}">{{ participant.email }}</a></li>
-      <li><i class="fa fa-fw fa-mobile"></i>{{ participant.cell_phone }}</a></li>
-    </ul>
-  </div>
-  <div class="col-md-4 col-sm-6">
 
-    <h3><i class="fa fa-medkit"></i> Medical info </h3>
-    {% readonly_form emergency_info_form %}
-
-    <h4> Emergency Contact </h4>
-    {% readonly_form emergency_contact_form %}
-  </div>
-  {% if car_form %}
-    <div class="col-md-4 col-sm-6">
-      <h3><i class="fa fa-car"></i> Car </h3>
-      {% readonly_form car_form %}
+    {% if trips.current.on_trip or trips.current.waitlisted or trips.current.leader %}
+    <div class="row">
+      <div class="col-md-12">
+        <h3><i class="fa fa-suitcase"></i> Upcoming Trips </h3>
+        {% if trips.current.on_trip %}
+          {% simple_trip_list trips.current.on_trip %}
+        {% endif %}
+        {% if trips.current.waitlisted %}
+          <h4 class="text-center">Waitlisted</h4>
+          {% simple_trip_list trips.current.on_trip %}
+        {% endif %}
+        {% if trips.current.leader %}
+          <h4 class="text-center">As a Leader</h4>
+          {% simple_trip_list trips.current.leader %}
+        {% endif %}
+      </div>
     </div>
-  {% endif %}
+    {% endif %}
+
+    <div class="row">
+      <div class="col-sm-6">
+        <h3><i class="fa fa-medkit"></i> Medical info </h3>
+        {% readonly_form emergency_info_form %}
+
+        <h4> Emergency Contact </h4>
+        {% readonly_form emergency_contact_form %}
+      </div>
+
+      <div class="col-sm-6">
+        <h3><i class="fa fa-car"></i> Car </h3>
+        {% if car_form %}
+          {% readonly_form car_form %}
+        {% elif user_viewing %}
+          <div class="well">
+            <p>You indicated you don't own a car, and that's cool.</p>
+            <p>If you do have a car, please <a href="{% url 'update_info' %}">add its information</a>.
+               You'll be under no obligation to drive!
+            </p>
+          </div>
+        {% else %}
+          <p>No car</p>
+        {% endif %}
+      </div>
+    </div>
+
+
+    {% if not user_viewing %}
+      <div class="row">
+        <div class="col-md-12">
+          <h3 id='feedback'><i class="fa fa-comments"></i> Past feedback </h3>
+          {% if not all_feedback %}
+          <p>None available.</p>
+          {% else %}
+          <table class="footable">
+            <thead>
+              <tr>
+                <th data-sort-ignore="true">Comments</th>
+                <th data-hide="phone" class="nowrap">Leader</th>
+                <th data-hide="phone" class="nowrap">Showed</th>
+                <th>Trip</th>
+              </tr>
+            </thead>
+            {% for feedback in all_feedback %}
+            <tbody>
+              <tr>
+                <td>{{ feedback.comments }}</td>
+                <td><a href="{% url 'view_participant' feedback.leader.id %}">{{ feedback.leader|name_with_activity:feedback.trip.activity }}</a></td>
+                <td>{{ feedback.showed_up|yesno }}</td>
+                <td>{% if feedback.trip %}<a href="{% url 'view_trip' feedback.trip.id %}">{{ feedback.trip|truncatechars:45 }}{% endif %}</a></td>
+              </tr>
+            </tbody>
+            {% endfor %}
+          </table>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="col-md-4">
+    {% if user_viewing %}
+      <div class="row">
+        <div class="col-md-12">
+          <h3>Notifications</h3>
+          <div class="alert alert-info">
+            <p>Welcome to the new profile page!</p>
+            <p>We'll continue to add features here. Soon, you'll be able to see
+            which items you've rented from the MITOC office, check your
+            membership status, and more.</p>
+          </div>
+          {% messages_alerts %}
+        </div>
+      </div>
+    {% endif %}
+
+    <div class="row">
+      <div class="col-md-12">
+        <h3>Rented gear</h3>
+        {% if user_viewing %}
+          <p>Rented gear can be returned during <a href="http://web.mit.edu/mitoc/www/#jointrip/calendar.html">office hours</a>.</p>
+        {% endif %}
+        {% if rented_items %} {# TODO: Get this data from the geardb #}
+          <table class="footable">
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Daily Cost</th>
+                <th>Checked out</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Tent</td>
+                <td>$7</td>
+                <td>Apr 16, 2016</td>
+              </tr>
+              <tr>
+                <td>Foam pad</td>
+                <td>$2</td>
+                <td>Apr 16, 2016</td>
+              </tr>
+            </tbody>
+          </table>
+        {% else %}
+          <div class="alert">
+            You'll soon be able to see all rented gear here!
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <h3>Stats</h3>
+        <ul>
+          {% for line in stats %}
+            <li>{{ line }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
 </div>
 
+{% if trips.past.on_trip or trips.past.leader %}
+  <hr>
 
-{% if user.participant != participant %}
-<h3 id='feedback'><i class="fa fa-comments"></i> Past feedback </h3>
-{% if not all_feedback %}
-<p>None available.</p>
-{% else %}
-<table class="footable">
-    <thead>
-        <tr>
-            <th data-sort-ignore="true">Comments</th>
-            <th data-hide="phone" class="nowrap">Leader</th>
-            <th data-hide="phone" class="nowrap">Showed</th>
-            <th>Trip</th>
-        </tr>
-    </thead>
-    {% for feedback in all_feedback %}
-    <tbody>
-        <tr>
-            <td>{{ feedback.comments }}</td>
-            <td>{{ feedback.leader }}</td>
-            <td>{{ feedback.showed_up|yesno }}</td>
-            <td>{% if feedback.trip %}<a href="{% url 'view_trip' feedback.trip.id %}">{{ feedback.trip|truncatechars:45 }}{% endif %}</a></td>
-        </tr>
-    </tbody>
-    {% endfor %}
-</table>
-{% endif %}
+  <div class="row">
+    <div class="col-md-12">
+      <h3><i class="fa fa-suitcase"></i> Past Trips </h3>
+      {% if trips.past.on_trip %}
+        <h4 class="text-center">As a Participant</h4>
+        {% simple_trip_list trips.past.on_trip 90 300 %}
+      {% endif %}
+      {% if trips.past.leader %}
+        <h4 class="text-center">As a Leader</h4>
+        {% simple_trip_list trips.past.leader 90 300 %}
+      {% endif %}
+    </div>
+  </div>
 {% endif %}
 
-{% endif %}
+
 {% endblock content %}

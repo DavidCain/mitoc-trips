@@ -178,48 +178,101 @@ class UpdateParticipantView(TemplateView):
         return super(UpdateParticipantView, self).dispatch(request, *args, **kwargs)
 
 
-class ParticipantLookupView(FormView):
-    template_name = 'participant_detail.html'
-    form_class = forms.ParticipantLookupForm
-
-    def form_valid(self, lookup_form):
-        participant = lookup_form.cleaned_data['participant']
-        return redirect(reverse('view_participant', args=(participant.id,)))
-
-    @method_decorator(group_required('leaders', 'WSC'))
-    def dispatch(self, request, *args, **kwargs):
-        return super(ParticipantLookupView, self).dispatch(request, *args, **kwargs)
-
-
-class ParticipantDetailView(ParticipantLookupView, DetailView):
-    queryset = models.Participant.objects.all()
+class ParticipantView(TemplateView, SingleObjectMixin):
+    model = models.Participant
     context_object_name = 'participant'
     template_name = 'participant_detail.html'
 
-    def get_queryset(self):
-        participant = super(ParticipantDetailView, self).get_queryset()
-        return participant.select_related('emergency_info__emergency_contact')
+    def get_trips(self):
+        participant = self.object or self.get_object()
+        signups = participant.signup_set
 
-    def get_initial(self):
-        participant = self.object = self.get_object()
-        return {'participant': participant}
+        today = local_now().date()
+
+        # Signups
+        in_future = Q(trip__trip_date__gte=today)
+        in_past = Q(trip__trip_date__lt=today)
+        accepted_signups = signups.filter(on_trip=True)
+        waitlisted = signups.filter(in_future, waitlistsignup__isnull=False)
+
+        trips_led = participant.trips_led.all()
+
+        return {'current': {
+                    'on_trip': [signup.trip for signup in accepted_signups.filter(in_future)],
+                    'waitlisted': [signup.trip for signup in waitlisted],
+                    'leader': trips_led.filter(trip_date__gte=today),
+                    },
+                'past': {
+                    'on_trip': [signup.trip for signup in accepted_signups.filter(in_past)],
+                    'leader': trips_led.filter(trip_date__lt=today),
+                    },
+                }
+
+    def get_stats(self, trips):
+        num_attended = len(trips['past']['on_trip'])
+        num_led = len(trips['past']['leader'])
+        stats = ["Attended {} trip".format(num_attended) + ('' if num_attended == 1 else 's'),
+                 "Led {} trip".format(num_led) + ('' if num_led == 1 else 's')]
+        return stats
 
     def get_context_data(self, **kwargs):
-        context = {'form': self.get_form(self.form_class)}
-        # post = self.request.POST if self.request.method == "POST" else None
-        participant = self.object
+        participant = self.object = self.get_object()
+        context = super(ParticipantView, self).get_context_data(**kwargs)
+
+        user_viewing = self.request.user.participant == participant
+        context['user_viewing'] = user_viewing
+
+        context['trips'] = trips = self.get_trips()
+        context['stats'] = self.get_stats(trips)
+
         e_info = participant.emergency_info
         e_contact = e_info.emergency_contact
-        feedback = participant.feedback_set.select_related('trip', 'leader')
-        context['participant_form'] = forms.ParticipantForm(instance=participant)
         context['emergency_info_form'] = forms.EmergencyInfoForm(instance=e_info)
         context['emergency_contact_form'] = forms.EmergencyContactForm(instance=e_contact)
         context['participant'] = participant
-        context['all_feedback'] = feedback
+        if not user_viewing:
+            feedback = participant.feedback_set.select_related('trip', 'leader')
+            context['all_feedback'] = feedback
+        context['ratings'] = participant.leaderrating_set.all()
+        chair_activities = set(perm_utils.chair_activities(participant.user))
+        context['chair_activities'] = [label for (activity, label) in models.LeaderRating.ACTIVITY_CHOICES
+                                       if activity in chair_activities]
 
         if participant.car:
             context['car_form'] = forms.CarForm(instance=participant.car)
         return context
+
+    @method_decorator(user_info_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super(ParticipantView, self).dispatch(request, *args, **kwargs)
+
+
+class ParticipantDetailView(ParticipantView, DetailView):
+    def get_queryset(self):
+        participant = super(ParticipantDetailView, self).get_queryset()
+        return participant.select_related('emergency_info__emergency_contact')
+
+    def get(self, request, *args, **kwargs):
+        if request.user.participant == self.get_object():
+            return redirect(reverse('profile'))
+        return super(ParticipantDetailView, self).get(request, *args, **kwargs)
+
+    @method_decorator(group_required('leaders'))
+    def dispatch(self, request, *args, **kwargs):
+        return super(ParticipantView, self).dispatch(request, *args, **kwargs)
+
+
+class ProfileView(ParticipantView):
+    def get(self, request, *args, **kwargs):
+        message_generators.warn_if_needs_update(request)
+        message_generators.complain_if_missing_feedback(request)
+
+        lottery_messages = message_generators.LotteryMessages(request)
+        lottery_messages.supply_all_messages()
+        return super(ProfileView, self).get(request, *args, **kwargs)
+
+    def get_object(self):
+        return self.request.user.participant
 
 
 class SignUpView(CreateView):
