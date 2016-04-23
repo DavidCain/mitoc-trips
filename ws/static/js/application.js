@@ -257,6 +257,40 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
     }
   }
 })
+/* Expects leaders represented as in json-leaders. */
+.service('activityService', function(){
+  var open_activities = ['circus', 'official_event', 'course'];
+
+  var activityService = this;
+
+  /* Return if the activity is open to all leaders */
+  activityService.isOpen = function(activity){
+    return _(open_activities).contains(activity);
+  }
+
+  /* Give a string representation of the leader's applicable rating.
+   *
+   * When the activity is Winter School, this might return 'B coC'
+   * When it's an open activity, an empty string will be returned
+   */
+  activityService.formatRating = function(activity, leader){
+    if (!activity || activityService.isOpen(activity)){
+      return "";
+    }
+    var leader_rating = _(leader.ratings).findWhere({activity: activity});
+    return leader_rating && leader_rating.rating;
+  }
+
+  /* Return if the person is rated to lead the activity. */
+  activityService.leaderRated = function(activity, leader){
+    if (activityService.isOpen(activity)){
+      return !!leader.ratings.length;
+    }
+
+    var rating = _(leader.ratings).findWhere({activity: activity});
+    return !!rating;
+  }
+})
 .directive('leaderSelect', function($http, djangoUrl) {
   return {
     restrict: 'E',
