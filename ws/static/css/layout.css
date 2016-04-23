@@ -69,6 +69,11 @@ leader-select .ui-select-container {
 form .ng-invalid-bound.ng-pristine, form .ng-invalid.ng-dirty {
     border-color: #e9322d;
 }
+
+.ui-select-container .invalid-leader {
+  text-decoration: line-through;
+}
+
 form .ng-invalid-bound.ng-pristine:focus, form .ng-invalid.ng-dirty:focus {
     box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 6px #ce8483;
 }

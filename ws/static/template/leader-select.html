@@ -1,6 +1,21 @@
-<ui-select multiple ng-model="selected.leaders" theme="bootstrap" ng-disabled="disabled">
-  <ui-select-match placeholder="Select person...">{{$item.name}}</ui-select-match>
-  <ui-select-choices repeat="person.id as person in allLeaders | propsFilter: {name: $select.search, ratings: $select.search}">
-    <span ng-bind-html="person.name | highlight: $select.search"></span> (<span ng-bind-html="''+ person.ratings[0].rating | highlight: $select.search"></span>)
+<ui-select multiple data-ng-model="selected.leaders" data-theme="bootstrap" data-ng-disabled="disabled">
+  <ui-select-match placeholder="Select person...">
+  <span data-ng-class="{'invalid-leader': !$item.canLead}" data-ng-bind="$item.name"
+    data-uib-tooltip="{{ $item.name }} can't lead this type of trip"
+    data-tooltip-enable="{{ !$item.canLead }}"
+    data-tooltip-placement="bottom">
+    </span>
+  </ui-select-match>
+  <ui-select-choices data-repeat="person in filteredLeaders | propsFilter: {name: $select.search, rating: $select.search}">
+    <span data-ng-bind-html="person.name | highlight: $select.search"></span>
+    <span data-ng-if="person.rating">
+      (<span data-ng-bind-html="''+ person.rating | highlight: $select.search"></span>)
+    </span>
   </ui-select-choices>
 </ui-select>
+
+<input type="hidden"
+       data-ng-attr-name="{{ name }}"
+       data-ng-repeat="person in selected.leaders"
+       value="{{ person.id }}">
+</input>

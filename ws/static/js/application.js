@@ -291,34 +291,102 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
     return !!rating;
   }
 })
-.directive('leaderSelect', function($http, djangoUrl) {
+.directive('leaderSelect', function($http, djangoUrl, filterFilter, activityService) {
   return {
     restrict: 'E',
+    require: 'ngModel',
     scope: {
       activity: '=?',
       leaders: '=ngModel',
+      leaderIds: '=?',  // Existing IDs, supplied through widget
+      name: '@'
     },
     templateUrl: '/static/template/leader-select.html',
-    link: function (scope, element, attrs) {
-      //scope.name = attrs.name;
-      if (scope.leaders == null) {
-        // Annoying workaround since Djangular doesn't adhere to "dots in ng-models"
-        // This relies upon the fact that the ng-model in the parent is also leaders
-        // (Alternatively, we could override ng-models for good practice)
-        scope.$parent.leaders = [];
-      }
-      scope.selected = {leaders: scope.$parent.leaders};
+    link: function (scope, element, attrs, ngModelCtrl) {
+      scope.selected = {};
 
+      /* Fetch all leaders and their ratings */
       function fetchLeaderList(){
-        var url = djangoUrl.reverse("json-leaders", [scope.activity]);
-        $http.get(url).then(function (response){
+        $http.get(djangoUrl.reverse("json-leaders")).then(function (response){
           scope.allLeaders = response.data.leaders;
+
+          // Match IDs of leaders (supplied in directive attr) to leaders
+          if (scope.leaderIds && scope.leaderIds.length){
+            scope.selected.leaders = _(scope.allLeaders).filter(function(leader){
+              return _(scope.leaderIds).contains(leader.id);
+            });
+            delete scope.leaderIds;  // Not used elsewhere, prevent doing this again
+          }
+          filterForActivity();
         });
       }
-      fetchLeaderList();
-      scope.$watch('activity', fetchLeaderList);
-      scope.$watch('selected.leaders', function(){
-        scope.$parent.leaders = scope.selected.leaders
+      fetchLeaderList();  // Only called here, but could feasibly want to refresh
+
+      /* Filter the select options to only include leaders for the current activity
+       *
+       * Additionally, the `ratings` field present on all leaders will be replaced
+       * with their activity-appropriate rating.
+       */
+      function filterForActivity(){
+        if (!scope.allLeaders){
+          return;
+        }
+
+        var filteredLeaders;
+        if (!scope.activity || activityService.isOpen(scope.activity)){
+          scope.filteredLeaders = scope.allLeaders;
+        } else {
+          var hasRating = {ratings: {activity: scope.activity}};
+          scope.filteredLeaders = filterFilter(scope.allLeaders, hasRating);
+        }
+
+        // Add a single 'rating' attribute that corresponds to the activity
+        // (for easy searching of leaders by rating)
+        _(scope.filteredLeaders).each(function(leader){
+          leader.rating = activityService.formatRating(scope.activity, leader)
+        });
+      }
+
+      // (Enable Djangular to display errors on the required validator)
+      ngModelCtrl.$isEmpty = function(leaders){
+        return !(leaders && leaders.length);
+      }
+
+      ngModelCtrl.$validators.leadersOkay = function(modelValue, viewValue){
+        return _.every(_(viewValue).pluck('canLead'));
+      }
+
+      ngModelCtrl.$formatters.push(function(modelValue) {
+        return _(scope.allLeaders).filter(function(leader){
+          return _(modelValue).contains(leader.id);
+        });
+      });
+
+      ngModelCtrl.$render = function() {
+        scope.selected.leaders = ngModelCtrl.$viewValue;
+      };
+
+      /* Annotate all selected leaders with an attribute indicating whether
+       * or not they can lead the trip.
+       */
+      var checkSelectedLeaders = function(){
+        var checkLeader = _(activityService.leaderRated).partial(scope.activity);
+        _(scope.selected.leaders).each(function(leader){
+          leader.canLead = checkLeader(leader);
+        });
+      }
+
+      scope.$watch('activity', filterForActivity);
+      scope.$watch('activity', checkSelectedLeaders);
+      scope.$watch('activity', ngModelCtrl.$validate);
+
+      scope.$watch('selected.leaders', function() {
+        checkSelectedLeaders();
+        ngModelCtrl.$setViewValue(scope.selected.leaders);
+      });
+
+      ngModelCtrl.$parsers.push(function(viewValue) {
+        return _(viewValue).pluck('id');
       });
     }
   };
