@@ -10,3 +10,7 @@ def trip_list_table(trip_list):
 @register.filter
 def name_with_activity(leader, activity):
     return leader.name_with_rating(activity)
+
+@register.filter
+def activity_rating(leader, activity):
+    return leader.activity_rating(activity) or ""

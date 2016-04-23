@@ -605,6 +605,15 @@ class LeaderView(ListView):
     def get_queryset(self):
         return models.Participant.leaders.get_queryset()
 
+    def get_context_data(self, **kwargs):
+        context_data = super(LeaderView, self).get_context_data(**kwargs)
+
+        closed_activities = models.LeaderRating.CLOSED_ACTIVITY_CHOICES
+        activities = [(val, label) for (val, label) in closed_activities
+                      if val != 'cabin']
+        context_data['activities'] = activities
+        return context_data
+
     @method_decorator(group_required('leaders'))
     def dispatch(self, request, *args, **kwargs):
         return super(LeaderView, self).dispatch(request, *args, **kwargs)

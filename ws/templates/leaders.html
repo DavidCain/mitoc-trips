@@ -1,4 +1,5 @@
 {% extends "messages_page.html" %}
+{% load trip_tags %}
 
 {% block content %}
 {{ block.super }}
@@ -11,15 +12,19 @@
     <thead>
         <tr>
             <th>Name</th>
-            <th>Rating</th>
+            {% for activity, label in activities %}
+              <th>{{ label }}</th>
+            {% endfor %}
             <th data-sort-ignore="true">Cell</th>
         </tr>
     </thead>
     <tbody>
         {% for leader in leaders %}
         <tr>
-            <td>  <a href="mailto:{{ leader.email }}">{{ leader.name }}</a></td>
-            <td>{{ leader.rating }}</td>
+            <td><a href="mailto:{{ leader.email }}">{{ leader.name }}</a></td>
+            {% for activity, label in activities %}
+              <td> {{ leader|activity_rating:activity }}</td>
+            {% endfor %}
             <td>{{ leader.cell_phone }}</td>
         </tr>
         {% endfor %}
