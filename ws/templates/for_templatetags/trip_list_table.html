@@ -28,7 +28,7 @@
         <td data-value="{{ trip.num_signups }}"> {{ trip.num_signups }} / {{ trip.maximum_participants }}</td>
         <td> {{ trip.maximum_participants|subtract:signups_on_trip }} </td>
         {% endwith %}
-        <td> {{ trip.leaders.all|join:", " }}</td>
+        <td>{{ trip.leaders_with_rating|join:', ' }}</td>
     </tr>
 
     {% endfor %}

@@ -870,6 +870,7 @@ class TripListView(ListView):
     def get_queryset(self):
         # Each trip will need information about its leaders, so prefetch models
         trips = super(TripListView, self).get_queryset()
+        trips = trips.prefetch_related('leaders')
         trips = trips.annotate(num_signups=Count('signup'))
         trips = trips
         return trips.annotate(signups_on_trip=Sum('signup__on_trip'))

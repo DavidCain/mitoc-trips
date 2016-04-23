@@ -1,9 +1,10 @@
+{% load trip_tags %}
 <h3> {{ trip.name }} </h3>
 
 <dl class="dl-horizontal">
     <dt>Leaders</dt>
     <dd>{% for leader in trip.leaders.all %}
-    <a href="mailto:{{ leader.email }}">{{ leader }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}
+    <a href="mailto:{{ leader.email }}">{{ leader|name_with_activity:trip.activity }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}
     </dd>
 
     <dt>Trip level</dt>

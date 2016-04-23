@@ -95,6 +95,17 @@ class Participant(models.Model):
                                             ('N', "Non-affiliate")])
     attended_lectures = models.BooleanField(default=False)
 
+    def name_with_rating(self, activity):
+        rating = self.activity_rating(activity)
+        return "{} ({})".format(self.name, rating) if rating else self.name
+
+    def activity_rating(self, activity):
+        ratings = self.leaderrating_set.filter(activity=activity)
+        if not ratings:
+            return None
+        else:
+            return ratings.first().rating
+
     @property
     def rating(self):
         # TODO: Interim method to transition over
@@ -132,9 +143,7 @@ class Participant(models.Model):
         return since_last_update.days < settings.MUST_UPDATE_AFTER_DAYS
 
     def __unicode__(self):
-        if self.rating:
-            return "{} ({})".format(self.name, self.rating)
-        return self.name  # TODO: Include rating in some contexts?
+        return self.name
 
     class Meta:
         ordering = ['name', 'email']
@@ -406,6 +415,10 @@ class Trip(models.Model):
         close_time = self.signups_close_at
         if close_time and close_time < self.signups_open_at:
             raise ValidationError("Trips cannot open after they close.")
+
+    def leaders_with_rating(self):
+        for leader in self.leaders.all():
+            yield leader.name_with_rating(self.activity)
 
     class Meta:
         ordering = ["-trip_date", "-time_created"]
