@@ -113,7 +113,7 @@ class TripForm(DjangularRequiredModelForm):
                   'algorithm', 'signups_open_at', 'signups_close_at',
                   'maximum_participants', 'difficulty_rating', 'level',
                   'prereqs', 'notes']
-        widgets = {#'leaders': widgets.LeaderSelect,
+        widgets = {'leaders': widgets.LeaderSelect,
                    'description': forms.Textarea(attrs={'rows': 4}),
                    'notes': forms.Textarea(attrs={'rows': 4}),
                    'trip_date': widgets.BootstrapDateInput()}
