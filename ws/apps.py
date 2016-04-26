@@ -11,9 +11,7 @@ class WinterSchoolConfig(AppConfig):
         try:
             import signals
         except:
-            print "Failed to load signals"  # Database initialization, etc.
-        else:
-            print "Loaded signals"
+            pass  # Database initialization, etc.
 
     def create_groups(self):
         # Groups don't need Django permissions defined.
@@ -34,8 +32,6 @@ class WinterSchoolConfig(AppConfig):
         except (OperationalError, ProgrammingError):
             print "Can't create groups"
             print "Django tables likely not created yet (run migrate)."
-        else:
-            print "Groups initialized"  # May have already been there
 
     def ready(self):
         self.load_signals()
