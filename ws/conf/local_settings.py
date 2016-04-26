@@ -23,13 +23,14 @@ ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 DATABASES = {
-     'default': {
-        'ENGINE': 'django.db.backends.mysql',
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'ws_dev',
-        'OPTIONS': {
-            'read_default_file': os.path.expanduser('~/.my.cnf'),
-        }
-     }
+        'USER': 'david',
+        'PASSWORD': 'password',
+        'HOST': 'localhost',
+        #'PORT': '',
+    }
 }
 
 # Don't send emails to verify email addresses (rapid account creation)
