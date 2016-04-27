@@ -125,9 +125,9 @@ class Participant(models.Model):
             return []
 
     def can_lead(self, activity):
-        activity_okay = (models.Q(activity=activity) |
-                         models.Q(activity__in=LeaderRating.OPEN_ACTIVITIES))
-        return self.leaderrating_set.filter(activity_okay).exists()
+        if activity in LeaderRating.OPEN_ACTIVITIES:
+            return True
+        return self.leaderrating_set.filter(activity=activity).exists()
 
     @property
     def is_leader(self):
