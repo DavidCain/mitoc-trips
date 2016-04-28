@@ -15,7 +15,13 @@
         <div class="media">
           <div class="media-left">
             <div class="media-object">
-              {{ participant.email|gravatar:200 }}
+              <div class="profile-photo">
+                {{ participant.email|gravatar:200 }}
+                {% if user_viewing %}
+                  <edit-profile-photo data-participant-email="{{ participant.email }}">
+                  </edit-profile-photo>
+                {% endif %}
+            </div>
               <ul class="list-unstyled">
                 <li><i class="fa fa-fw fa-envelope"></i><a href="mailto:{{ participant.email }}">{{ participant.email }}</a></li>
                 {% if participant.cell_phone %}

@@ -107,3 +107,15 @@ ul.djng-field-errors li.invalid:before {
 admin-trip-signups button {
   margin-left: 15px;
 }
+
+
+/* Profile page */
+.profile-photo {
+  position: relative;
+  display: inline-block;
+}
+edit-profile-photo {
+  position:absolute;
+  bottom: 10px;
+  right: 10px;
+}

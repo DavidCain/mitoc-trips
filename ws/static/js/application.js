@@ -1,6 +1,6 @@
 // TODO: Make a custom AngularUI build with just the templates I need
 angular.module('ws', ['ui.bootstrap', 'ui.bootstrap.tpls', 'djng.forms',
-                      'ws.ajax', 'ws.auth', 'ws.forms', 'ws.lottery', 'ws.widgets'])
+                      'ws.ajax', 'ws.auth', 'ws.profile', 'ws.forms', 'ws.lottery', 'ws.widgets']);
 
 
 angular.module('ws.ajax', [])
@@ -8,7 +8,7 @@ angular.module('ws.ajax', [])
   // XHRs need to adhere to Django's expectations
   $httpProvider.defaults.xsrfCookieName = 'csrftoken';
   $httpProvider.defaults.xsrfHeaderName = 'X-CSRFToken';
-})
+});
 
 
 angular.module('ws.auth', ['djng.urls'])
@@ -23,7 +23,27 @@ angular.module('ws.auth', ['djng.urls'])
       $window.location.href = logoutUrl;
     });
   }
-})
+});
+
+
+angular.module('ws.profile', [])
+.directive('editProfilePhoto', function($uibModal) {
+  return {
+    restrict: 'E',
+    scope: {
+      participantEmail: '@?'
+    },
+    template: "<button data-ng-click='openModal()' class='btn btn-default btn-xs'><i class='fa fa-lg fa-pencil'></i></button>",
+    link: function (scope, element, attrs) {
+      scope.openModal = function(){
+        $uibModal.open({
+        templateUrl: '/static/template/edit-gravatar-modal.html',
+        scope: scope
+        });
+      };
+    }
+  }
+});
 
 
 angular.module('ws.widgets', [])
@@ -47,7 +67,7 @@ angular.module('ws.widgets', [])
       }
     }
   }
-})
+});
 
 angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
 // Taken from the AngularUI Select docs - filter by searched property
@@ -81,7 +101,6 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
     return out;
   };
 })
-
 .controller('leaderRating', function($scope, $http, djangoUrl) {
   $scope.$watchGroup(['participant', 'activity'], function(){
     if ($scope.participant && $scope.activity) {
@@ -94,7 +113,6 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
     }
   })
 })
-
 .directive('editableSignupList', function() {
   return {
     restrict: 'E',
@@ -107,7 +125,6 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
     templateUrl: '/static/template/editable-signup-list.html',
   }
 })
-
 .directive('emailTripMembers', function(){
   return {
     restrict: 'E',
@@ -229,9 +246,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
       }
     }
   }
-
 })
-
 .directive('deleteTrip', function($http, $window, $uibModal) {
   return {
     restrict: 'E',
