@@ -119,3 +119,20 @@ edit-profile-photo {
   bottom: 10px;
   right: 10px;
 }
+
+/* Size the profile image down with decreasing screen size */
+@media screen and (max-width:991px) {
+  .profile-photo img {
+    max-width: 150px;
+    max-height: 150px;
+  }
+}
+@media screen and (max-width:767px) {
+  .profile-photo img {
+    max-width: 100px;
+    max-height: 100px;
+  }
+  .leader-titles h4 {
+    font-size: 14px;
+  }
+}

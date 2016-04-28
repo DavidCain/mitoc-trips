@@ -21,29 +21,33 @@
                   <edit-profile-photo data-participant-email="{{ participant.email }}">
                   </edit-profile-photo>
                 {% endif %}
-            </div>
-              <ul class="list-unstyled">
-                <li><i class="fa fa-fw fa-envelope"></i><a href="mailto:{{ participant.email }}">{{ participant.email }}</a></li>
-                {% if participant.cell_phone %}
-                  <li><i class="fa fa-fw fa-mobile"></i>{{ participant.cell_phone }}</li>
-                {% endif %}
-              </ul>
+              </div>
             </div>
           </div>
 
           <div class="media-body">
             <h1 class="media-heading">{{ participant.name }}</h1>
 
-            {% for activity in chair_activities %}
-              <h4>{{ activity }} Chair</h4>
-            {% endfor %}
-            {% for rating in ratings %}
-              <h4>{{ rating.get_activity_display }} Leader ({{ rating.rating }})</h4>
-            {% endfor %}
+            <div class="leader-titles">
+              {% for activity in chair_activities %}
+                <h4>{{ activity }} Chair</h4>
+              {% endfor %}
+              {% for rating in ratings %}
+                <h4>{{ rating.get_activity_display }} Leader ({{ rating.rating }})</h4>
+              {% endfor %}
+            </div>
 
           </div>
         </div>
 
+      </div>
+      <div class="col-md-12">
+        <ul class="list-unstyled">
+          <li><i class="fa fa-fw fa-envelope"></i><a href="mailto:{{ participant.email }}">{{ participant.email }}</a></li>
+          {% if participant.cell_phone %}
+            <li><i class="fa fa-fw fa-mobile"></i>{{ participant.cell_phone }}</li>
+          {% endif %}
+        </ul>
       </div>
     </div>
 
