@@ -13,7 +13,7 @@
         <tr>
             <th>Name</th>
             {% for activity, label in activities %}
-              <th>{{ label }}</th>
+              <th data-hide="phone">{{ label }}</th>
             {% endfor %}
             <th data-sort-ignore="true">Cell</th>
         </tr>
@@ -21,7 +21,7 @@
     <tbody>
         {% for leader in leaders %}
         <tr>
-            <td><a href="mailto:{{ leader.email }}">{{ leader.name }}</a></td>
+            <td><a href="{% url 'view_participant' leader.id %}">{{ leader.name }}</a></td>
             {% for activity, label in activities %}
               <td> {{ leader|activity_rating:activity }}</td>
             {% endfor %}
