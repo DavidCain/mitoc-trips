@@ -7,6 +7,16 @@
 {% block content %}
 
 
+{% if lookup_form and not user_viewing %}
+  <form action="" method="post">
+    <label>View participant:</label>
+    {% csrf_token %}
+    {{ lookup_form }}
+  </form>
+<hr>
+{% endif %}
+
+{% if participant %}
 <div class="row">
   <div class="col-md-8">
     <div class="row">
@@ -215,6 +225,7 @@
       {% endif %}
     </div>
   </div>
+{% endif %}
 {% endif %}
 
 

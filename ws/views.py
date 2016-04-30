@@ -178,10 +178,28 @@ class UpdateParticipantView(TemplateView):
         return super(UpdateParticipantView, self).dispatch(request, *args, **kwargs)
 
 
-class ParticipantView(TemplateView, SingleObjectMixin):
+class ParticipantLookupView(TemplateView, FormView):
+    template_name = 'participant_detail.html'
+    form_class = forms.ParticipantLookupForm
+
+    def get_context_data(self, **kwargs):
+        context = super(ParticipantLookupView, self).get_context_data()
+        context['user_viewing'] = False
+        context['lookup_form'] = self.get_form(self.form_class)
+        return context
+
+    def form_valid(self, lookup_form):
+        participant = lookup_form.cleaned_data['participant']
+        return redirect(reverse('view_participant', args=(participant.id,)))
+
+    @method_decorator(group_required('leaders'))
+    def dispatch(self, request, *args, **kwargs):
+        return super(ParticipantLookupView, self).dispatch(request, *args, **kwargs)
+
+
+class ParticipantView(ParticipantLookupView, SingleObjectMixin):
     model = models.Participant
     context_object_name = 'participant'
-    template_name = 'participant_detail.html'
 
     def get_trips(self):
         participant = self.object or self.get_object()
@@ -247,7 +265,8 @@ class ParticipantView(TemplateView, SingleObjectMixin):
         return super(ParticipantView, self).dispatch(request, *args, **kwargs)
 
 
-class ParticipantDetailView(ParticipantView, DetailView):
+class ParticipantDetailView(ParticipantView, FormView, DetailView):
+
     def get_queryset(self):
         participant = super(ParticipantDetailView, self).get_queryset()
         return participant.select_related('emergency_info__emergency_contact')
