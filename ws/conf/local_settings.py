@@ -8,30 +8,11 @@ feature testing.
   - Send emails to console
 """
 
-import os
-
-SECRET_KEY = '-6xhhnvt=i%tkmiy2#nm@mu^-=%bk-wbe5pu1vrd_gm^6&%v*s'
-
 DEBUG = True
 TEMPLATE_DEBUG = True
 ALLOWED_HOSTS = []
 
-# auth and allauth settings
-LOGIN_REDIRECT_URL = '/'
-ACCOUNT_LOGOUT_REDIRECT_URL = '/'
-
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'ws_dev',
-        'USER': 'david',
-        'PASSWORD': 'password',
-        'HOST': 'localhost',
-        #'PORT': '',
-    }
-}
 
 # Don't send emails to verify email addresses (rapid account creation)
 ACCOUNT_EMAIL_VERIFICATION = 'none'

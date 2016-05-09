@@ -11,18 +11,35 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
 
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY',
+                       '*this-is-obviously-not-secure-only-use-it-locally*')
+
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 PROJECT_ROOT = os.path.normpath(os.path.dirname(os.path.abspath(__file__)))
 
 # Settings may override these defaults (easily defined here due to BASE_DIR)
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_ROOT = os.getenv('STATIC_ROOT', os.path.join(BASE_DIR, 'static'))
+
+# auth and allauth settings
+LOGIN_REDIRECT_URL = '/'
+ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 
 if os.environ.get('WS_DJANGO_LOCAL'):
     from conf.local_settings import *
 else:
     from conf.production_settings import *
 
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': os.getenv('DATABASE_NAME', 'ws'),
+        'USER': os.getenv('DATABASE_USER', 'ws'),
+        'PASSWORD': os.getenv('DATABASE_PASSWORD', 'password'),
+        'HOST': os.getenv('DATABASE_HOST', 'localhost'),
+        'PORT': os.getenv('DATABASE_PORT', '5432'),
+    }
+}
 
 INSTALLED_APPS = (
     'django.contrib.admin',
