@@ -263,8 +263,8 @@ class SignUp(models.Model):
         on_trips = self.__class__.objects.filter(on_trip=True,
                                                  participant=self.participant)
         others = on_trips.exclude(trip=self.trip)
-        within_three_days = (self.trip.trip_date - timedelta(3),
-                             self.trip.trip_date + timedelta(3))
+        within_three_days = (self.trip.trip_date - timedelta(days=3),
+                             self.trip.trip_date + timedelta(days=3))
         return others.filter(trip__trip_date__range=within_three_days)
 
     def save(self, **kwargs):
@@ -346,7 +346,7 @@ class Trip(models.Model):
         """ True if it's after the lottery, but takes place before the next one. """
         # Assumes lotteries take place at same time. Should be 'good enough'
         next_lottery = dateutils.next_lottery()
-        past_lottery = dateutils.lottery_time(next_lottery - timedelta(7))
+        past_lottery = dateutils.lottery_time(next_lottery - timedelta(days=7))
 
         return (dateutils.local_now() > past_lottery and
                 self.midnight_before < next_lottery)
@@ -424,8 +424,19 @@ class Trip(models.Model):
         ordering = ["-trip_date", "-time_created"]
 
 
+class BygonesManager(models.Manager):
+    def get_queryset(self):
+        feedback = super(BygonesManager, self).get_queryset()
+        fuggedaboutit = dateutils.local_now() - timedelta(days=390)
+
+        return feedback.exclude(trip__trip_date__lt=fuggedaboutit)
+
+
 class Feedback(models.Model):
     """ Feedback given for a participant on one trip. """
+    objects = BygonesManager()  # By default, ignore feedback older than ~13 months
+    everything = models.Manager()  # But give the option to look at older feedback
+
     participant = models.ForeignKey(Participant)
     leader = models.ForeignKey(Participant, related_name="authored_feedback")
     showed_up = models.BooleanField(default=True)
