@@ -1157,7 +1157,8 @@ class LotteryPreferencesView(TemplateView):
         return forms.LotteryInfoForm(self.post_data, instance=lottery_info)
 
     def get_context_data(self):
-        return {'ranked_signups': json.dumps(self.ranked_signups_dict),
+        return {'is_winter_school': dateutils.is_winter_school(),
+                'ranked_signups': json.dumps(self.ranked_signups_dict),
                 'car_form': self.get_car_form(use_post=True),
                 'lottery_form': self.get_lottery_form(),
                 'paired': self.paired}

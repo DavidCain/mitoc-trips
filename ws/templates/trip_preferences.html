@@ -11,42 +11,39 @@
 {{ block.super }}
 
 <h2> Lottery Preferences </h2>
-<h3>Winter School Lottery</h3>
-<p>Due to the large number of Winter School participants and a limited number
-of trips, placement for each weekend's trips will be done by lottery.
-For more information, see the <a href="{% url 'help-lottery' %}">help pages</a>.</p>
-
-{% if "leaders" in groups %}
-<h3> Leaders </h3>
-<p> If you're able to drive for your trip (or any of the trips you've signed up
-for as a participant), please indicate here. It will help participants get
-placed on trips they're interested in.
-</p>
+{% if is_winter_school %}
+  <h3>Winter School Lottery</h3>
+  <p>Due to the large number of Winter School participants and a limited number
+  of trips, placement for each weekend's trips will be done by lottery.
+  For more information, see the <a href="{% url 'help-lottery' %}">help pages</a>.</p>
+  
+  {% if "leaders" in groups %}
+    <h3> Leaders </h3>
+    <p> If you're able to drive for your trip (or any of the trips you've signed up
+    for as a participant), please indicate here. It will help participants get
+    placed on trips they're interested in.
+    </p>
+  {% endif %}
 {% endif %}
 
-<h3>About ranking trips</h3>
-
-{% if not formset.total_form_count %}
-<p>Begin by signing up for any trips you're interested in. You can always
-<a href="{% url 'view_trips' %}">browse all available trips</a>.</p>
-<p>If you'd like to go on a trip, sign up for it. Once you've signed up for
-trips you'd like to go on, they will appear here.</p>
-{% else %}
-<p>Please rank your trips in the order of preference. Trips with lower
-numbers (negatives are valid) are given higher priority over other trips.
-For example, you could give your top-choice trip an order value of "1,"
-and your second choice a value of "2."</p>
-<p>If you do not rank your trips, they will be considered in the order of
-signup.</p>
+{% if not ranked_signups %}
+  <h3>About ranking trips</h3>
+  <p>Begin by signing up for any trips you're interested in. You can always
+  <a href="{% url 'view_trips' %}">browse all available trips</a>.</p>
+  <p>If you'd like to go on a trip, sign up for it. Any upcoming lottery-based
+  trips you've signed up for will appear here.</p>
 {% endif %}
 
-<hr>  {# Until better styling done with CSS #}
+{% if is_winter_schoor or not ranked_signups %}
+  <hr>
+{% endif %}
 
 
 <h4> Car info </h4>
 
-<p> Drivers are given priority on trips that would not otherwise be able
-to transport lottery-winning participants. </p>
+<p> Drivers are {% if not is_winter_school %} occasionally {% endif %} given
+priority on trips that would not otherwise be able to transport lottery-winning
+participants. </p>
 
 {# The lottery form doesn't need validation, so just consider this whole form the car form #}
 <form name="{{ car_form.form_name }}" action="" method="post" data-ng-controller="lotteryController" novalidate>
