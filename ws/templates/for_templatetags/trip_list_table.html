@@ -20,7 +20,7 @@
             {% if trip.in_past %}
                 {{ trip.trip_date|date:"Y-m-d" }}
             {% else %}
-                {{ trip.trip_date|date:"D" }}
+                {{ trip.trip_date|date:"D, M j" }}
             {% endif %}
         </td>
         <td><strong>{{ trip.difficulty_rating }}</strong> {{ trip.description|truncatechars:50 }}</td>
