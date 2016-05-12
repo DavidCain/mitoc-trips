@@ -2,13 +2,12 @@ from itertools import chain
 import json
 
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Case, Count, IntegerField, Sum, Q, When
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.urlresolvers import reverse, reverse_lazy
-from django.db.models import Count, Sum
 from django.forms.models import modelformset_factory
 from django.forms import HiddenInput
 from django.forms.utils import ErrorList
@@ -954,7 +953,9 @@ class TripListView(ListView):
         trips = trips.prefetch_related('leaders')
         trips = trips.annotate(num_signups=Count('signup'))
         trips = trips
-        return trips.annotate(signups_on_trip=Sum('signup__on_trip'))
+        return trips.annotate(signups_on_trip=Sum(Case(
+                When(signup__on_trip=True, then=1),
+                output_field=IntegerField())))
 
     def get_context_data(self, **kwargs):
         """ Sort trips into past and present trips. """
