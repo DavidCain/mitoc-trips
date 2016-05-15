@@ -549,10 +549,31 @@ class AdminTripSignupsView(SingleObjectMixin, LeadersOnlyView, TripInfoEditable)
         return JsonResponse({'signups': ret})
 
 
-class AdminTripView(TripDetailView, LeadersOnlyView, TripInfoEditable):
+class AdminTripView(TripDetailView, TripInfoEditable):
     template_name = 'admin_trip.html'
     par_prefix = "ontrip"
     wl_prefix = "waitlist"
+
+    @method_decorator(user_info_required)
+    def dispatch(self, request, *args, **kwargs):
+        """ If requester is a participant, just redirect to view the trip.
+
+        If the requesting user is a leader, give a warning that it's not your
+        trip (with a link to view the trip). This method exists because leaders
+        will often post the admin link to the trip, and participants get an
+        "access denied" page when they try to click it.
+        """
+        trip = self.get_object()
+
+        if not request.user.participant.is_leader:
+            cant = ("Redirected - only MITOC leaders can administrate trips.")
+            messages.add_message(request, messages.INFO, cant)
+            return redirect(reverse('view_trip', args=(trip.id,)))
+
+        chair = perm_utils.is_chair(request.user, trip.activity)
+        if not (leader_on_trip(request, trip, creator_allowed=True) or chair):
+            return render(request, 'not_your_trip.html', {'trip': trip})
+        return super(AdminTripView, self).dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         trip = self.object = self.get_object()
