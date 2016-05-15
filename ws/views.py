@@ -292,6 +292,10 @@ class ProfileView(ParticipantView):
     def get_object(self):
         return self.request.user.participant
 
+    @method_decorator(user_info_required)
+    def dispatch(self, request, *args, **kwargs):
+        return View.dispatch(self, request, *args, **kwargs)
+
 
 class SignUpView(CreateView):
     """ Special view designed to be accessed only on invalid signup form
