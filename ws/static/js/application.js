@@ -280,7 +280,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
 
   /* Return if the activity is open to all leaders */
   activityService.isOpen = function(activity){
-    return _(open_activities).contains(activity);
+    return _.includes(open_activities, activity);
   }
 
   /* Give a string representation of the leader's applicable rating.
@@ -292,7 +292,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
     if (!activity || activityService.isOpen(activity)){
       return "";
     }
-    var leader_rating = _(leader.ratings).findWhere({activity: activity});
+    var leader_rating = _.find(leader.ratings, {activity: activity});
     return leader_rating && leader_rating.rating;
   }
 
@@ -302,7 +302,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
       return !!leader.ratings.length;
     }
 
-    var rating = _(leader.ratings).findWhere({activity: activity});
+    var rating = _.find(leader.ratings, {activity: activity});
     return !!rating;
   }
 })
@@ -327,8 +327,8 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
 
           // Match IDs of leaders (supplied in directive attr) to leaders
           if (scope.leaderIds && scope.leaderIds.length){
-            scope.selected.leaders = _(scope.allLeaders).filter(function(leader){
-              return _(scope.leaderIds).contains(leader.id);
+            scope.selected.leaders = _.filter(scope.allLeaders, function(leader){
+              return _.includes(scope.leaderIds, leader.id);
             });
             delete scope.leaderIds;  // Not used elsewhere, prevent doing this again
           }
@@ -357,7 +357,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
 
         // Add a single 'rating' attribute that corresponds to the activity
         // (for easy searching of leaders by rating)
-        _(scope.filteredLeaders).each(function(leader){
+        _.each(scope.filteredLeaders, function(leader){
           leader.rating = activityService.formatRating(scope.activity, leader)
         });
       }
@@ -368,12 +368,12 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
       }
 
       ngModelCtrl.$validators.leadersOkay = function(modelValue, viewValue){
-        return _.every(_(viewValue).pluck('canLead'));
+        return _.every(_.map(viewValue, 'canLead'));
       }
 
       ngModelCtrl.$formatters.push(function(modelValue) {
-        return _(scope.allLeaders).filter(function(leader){
-          return _(modelValue).contains(leader.id);
+        return _.filter(scope.allLeaders, function(leader){
+          return _.contains(modelValue, leader.id);
         });
       });
 
@@ -385,8 +385,8 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
        * or not they can lead the trip.
        */
       var checkSelectedLeaders = function(){
-        var checkLeader = _(activityService.leaderRated).partial(scope.activity);
-        _(scope.selected.leaders).each(function(leader){
+        var checkLeader = _.partial(activityService.leaderRated, scope.activity);
+        _.each(scope.selected.leaders, function(leader){
           leader.canLead = checkLeader(leader);
         });
       }
@@ -401,7 +401,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
       });
 
       ngModelCtrl.$parsers.push(function(viewValue) {
-        return _(viewValue).pluck('id');
+        return _.map(viewValue, 'id');
       });
     }
   };
