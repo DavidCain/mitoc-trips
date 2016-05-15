@@ -3,9 +3,9 @@ from django.contrib.auth.models import Group
 from django.db.utils import OperationalError, ProgrammingError
 
 
-class WinterSchoolConfig(AppConfig):
+class TripsConfig(AppConfig):
     name = 'ws'
-    verbose_name = "Winter School Signup"
+    verbose_name = "MITOC Trips"
 
     def load_signals(self):
         try:
