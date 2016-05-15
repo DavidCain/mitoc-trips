@@ -17,32 +17,22 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY',
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 PROJECT_ROOT = os.path.normpath(os.path.dirname(os.path.abspath(__file__)))
 
+BOWER_COMPONENTS = os.path.join(BASE_DIR, 'bower_components')
+
 # Settings may override these defaults (easily defined here due to BASE_DIR)
 STATIC_URL = '/static/'
 STATIC_ROOT = os.getenv('STATIC_ROOT', os.path.join(BASE_DIR, 'static'))
 STATICFILES_FINDERS = [
     "django.contrib.staticfiles.finders.FileSystemFinder",
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
-    "djangobower.finders.BowerFinder",
+]
+STATICFILES_DIRS = [
+    BOWER_COMPONENTS
 ]
 
 # auth and allauth settings
 LOGIN_REDIRECT_URL = '/'
 ACCOUNT_LOGOUT_REDIRECT_URL = '/'
-
-BOWER_INSTALLED_APPS = (
-    'angular#1.4.8',
-    'angular-sanitize#1.4.3',
-    'angular-ui-sortable#0.13.4',
-    'angular-ui/ui-select#0.16.1',
-    'bootstrap#3',
-    'font-awesome#4',
-    'footable#2.0.1.5',
-    'jquery#2.1.4',
-    'jqueryui-touch-punch',
-    'ui-bootstrap',
-    'underscore',
-)
 
 if os.environ.get('WS_DJANGO_LOCAL'):
     from conf.local_settings import *
@@ -72,7 +62,6 @@ INSTALLED_APPS = (
     'allauth',
     'allauth.account',
     'djng',
-    'djangobower',
     'ws',
 )
 

@@ -4,5 +4,4 @@ django-allauth
 django-localflavor
 six
 django-angular>=0.8.1
-django-bower
 psycopg2
