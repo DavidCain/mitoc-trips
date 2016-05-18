@@ -135,8 +135,7 @@ class UpdateParticipantView(TemplateView):
         if all(form.is_valid() for form in required_dict.values()):
             self._save_forms(request.user, required_dict)
             messages.add_message(request, messages.SUCCESS, self.update_msg)
-            next_url = request.GET['next'] if 'next' in request.GET else 'home'
-            return redirect(next_url)
+            return redirect(request.GET.get('next', 'profile'))
         else:
             return render(request, self.template_name, context)
 
