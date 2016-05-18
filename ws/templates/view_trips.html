@@ -4,7 +4,10 @@
 {% block content %}
 {{ block.super }}
 
-<h3> Current trips </h3>
+<h3>Upcoming trips </h3>
+{% if not past_trips %}
+<p><a href="{% url 'view_all_trips' %}">View past trips</a></p>
+{% endif %}
 {% if current_trips %}
     {% trip_list_table current_trips %}
 {% else %}
