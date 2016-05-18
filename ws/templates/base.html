@@ -74,9 +74,7 @@
             <div id="navbar" class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
 
-                    {% if user.is_authenticated %}
-                        <li><a href="{% url 'view_trips' %}">Trips</a></li>
-                    {% endif %}
+                    <li><a href="{% url 'view_trips' %}">Trips</a></li>
 
                     {% if "leaders" in groups %}
                         <li class="dropdown">

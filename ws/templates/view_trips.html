@@ -6,7 +6,11 @@
 
 <h3>Upcoming trips </h3>
 {% if not past_trips %}
-<p><a href="{% url 'view_all_trips' %}">View past trips</a></p>
+  {% if user.is_authenticated %}
+    <p><a href="{% url 'view_all_trips' %}">View past trips</a></p>
+  {% else %}
+    <p><a href="{% url 'account_login' %}">Log in</a> to join a trip or view past trips.</a></p>
+  {% endif %}
 {% endif %}
 {% if current_trips %}
     {% trip_list_table current_trips %}

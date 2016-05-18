@@ -1037,7 +1037,7 @@ class TripListView(ListView):
 
 
 class UpcomingTripsView(TripListView):
-    """ View current trips. """
+    """ View current trips. Note: currently open to the world!"""
     context_object_name = 'current_trips'
 
     def get_queryset(self):
@@ -1047,11 +1047,6 @@ class UpcomingTripsView(TripListView):
     def get_context_data(self, **kwargs):
         # No point sorting into current, past (queryset already handles)
         return super(TripListView, self).get_context_data(**kwargs)
-
-    @method_decorator(login_required)
-    def dispatch(self, request, *args, **kwargs):
-        return super(TripListView, self).dispatch(request, *args, **kwargs)
-
 
 class AllTripsView(TripListView):
     """ View all trips, past and present. """
