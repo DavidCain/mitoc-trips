@@ -21,7 +21,7 @@
         {% if trip.algorithm == 'fcfs' and not participant_signup.on_trip and not participant_signup.waitlistsignup %}
             <p>You've already signed up for this trip, but are neither a participant
             nor on the waitlist. Most likely, this is because you were
-            <a href="{% url 'view_my_trips' %}">placed on another trip</a>.
+            <a href="{% url 'profile' %}">placed on another trip</a>.
             If you can attend this trip and it does not conflict with any of your
             other trips (<strong>confirm this with your leaders</strong>), you're
             free to join this trip.</p>

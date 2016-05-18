@@ -973,7 +973,7 @@ class AddTripView(CreateView, UserParticipantMixin):
 
 class DeleteTripView(DeleteView, LeadersOnlyView):
     model = models.Trip
-    success_url = reverse_lazy('view_leader_trips')
+    success_url = reverse_lazy('view_trips')
 
 
 class EditTripView(UpdateView, LeadersOnlyView):
@@ -1036,21 +1036,18 @@ class TripListView(ListView):
         return context_data
 
 
-class CurrentTripListView(TripListView):
-    """ Superclass for any view that displays only current/upcoming trips. """
+class UpcomingTripsView(TripListView):
+    """ View current trips. """
     context_object_name = 'current_trips'
 
     def get_queryset(self):
-        queryset = super(CurrentTripListView, self).get_queryset()
+        queryset = super(UpcomingTripsView, self).get_queryset()
         return queryset.filter(trip_date__gte=local_now().date())
 
     def get_context_data(self, **kwargs):
         # No point sorting into current, past (queryset already handles)
         return super(TripListView, self).get_context_data(**kwargs)
 
-
-class CurrentTripsView(CurrentTripListView):
-    """ View current trips. """
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         return super(TripListView, self).dispatch(request, *args, **kwargs)
