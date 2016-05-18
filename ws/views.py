@@ -1157,10 +1157,10 @@ class LotteryPreferencesView(TemplateView):
 
     @property
     def ranked_signups(self):
-        par = self.participant
         today = local_now().date()
-        future_signups = models.SignUp.objects.filter(participant=par,
-                                                      trip__trip_date__gt=today)
+        lotto_signups = Q(participant=self.participant,
+                          trip__algorithm='lottery', trip__trip_date__gt=today)
+        future_signups = models.SignUp.objects.filter(lotto_signups)
         ranked = future_signups.order_by('order', 'time_created')
         return ranked.select_related('trip')
 
