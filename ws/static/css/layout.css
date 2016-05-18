@@ -135,4 +135,15 @@ edit-profile-photo {
   .leader-titles h4 {
     font-size: 14px;
   }
+
+  .account-dropdown img {
+    display: none;
+  }
+  .account-dropdown:before {
+    content: 'Account';
+  }
+}
+.navbar-nav li img {
+  margin-bottom: -5px;
+  margin-top: -5px;
 }
