@@ -196,7 +196,47 @@ class ParticipantLookupView(TemplateView, FormView):
         return super(ParticipantLookupView, self).dispatch(request, *args, **kwargs)
 
 
-class ParticipantView(ParticipantLookupView, SingleObjectMixin):
+class UserParticipantMixin(object):
+    """ Adds `participant` as an attribute within the view.
+
+    Only to be used in views where userinfo is required (and thus,
+    a participant will always be present).
+    """
+    @property
+    def participant(self):
+        return self.request.user.participant
+
+
+class LotteryPairingMixin(object):
+    """ Gives information about lottery pairing.
+
+    Requires a `participant` attribute.
+    """
+    @property
+    def pair_requests(self):
+        requested = Q(lotteryinfo__paired_with=self.participant)
+        return models.Participant.objects.filter(requested)
+
+    @property
+    def paired_par(self):
+        try:
+            return self.participant.lotteryinfo.paired_with
+        except ObjectDoesNotExist:  # No lottery info for paired participant
+            return None
+
+    @property
+    def paired(self):
+        """ Return if the participant is reciprocally paired with another. """
+        paired_par = self.paired_par
+        if paired_par:
+            try:
+                return paired_par.lotteryinfo.paired_with == self.participant
+            except ObjectDoesNotExist:
+                return False
+        return False
+
+
+class ParticipantView(ParticipantLookupView, SingleObjectMixin, LotteryPairingMixin):
     model = models.Participant
     context_object_name = 'participant'
 
@@ -232,6 +272,13 @@ class ParticipantView(ParticipantLookupView, SingleObjectMixin):
                  "Led {} trip".format(num_led) + ('' if num_led == 1 else 's')]
         return stats
 
+    def include_pairing(self, context):
+        self.participant = self.object
+        context['paired_par'] = self.paired_par
+        paired_id = {'pk': self.paired_par.pk} if self.paired_par else {}
+        context['pair_requests'] = self.pair_requests.exclude(**paired_id)
+
+
     def get_context_data(self, **kwargs):
         participant = self.object = self.get_object()
         context = super(ParticipantView, self).get_context_data(**kwargs)
@@ -241,6 +288,7 @@ class ParticipantView(ParticipantLookupView, SingleObjectMixin):
 
         context['trips'] = trips = self.get_trips()
         context['stats'] = self.get_stats(trips)
+        self.include_pairing(context)
 
         e_info = participant.emergency_info
         e_contact = e_info.emergency_contact
@@ -265,7 +313,6 @@ class ParticipantView(ParticipantLookupView, SingleObjectMixin):
 
 
 class ParticipantDetailView(ParticipantView, FormView, DetailView):
-
     def get_queryset(self):
         participant = super(ParticipantDetailView, self).get_queryset()
         return participant.select_related('emergency_info__emergency_contact')
@@ -891,14 +938,10 @@ def admin_manage_trips(request):
     return _manage_trips(request, TripFormSet)
 
 
-class AddTripView(CreateView):
+class AddTripView(CreateView, UserParticipantMixin):
     model = models.Trip
     form_class = forms.TripForm
     template_name = 'add_trip.html'
-
-    @property
-    def participant(self):
-        return self.request.user.participant
 
     def get_form_kwargs(self):
         kwargs = super(AddTripView, self).get_form_kwargs()
@@ -1020,48 +1063,7 @@ class AllTripsView(TripListView):
         return super(TripListView, self).dispatch(request, *args, **kwargs)
 
 
-class ParticipantTripsView(TripListView):
-    """ View trips the user is a participant on. """
-    template_name = 'view_my_trips.html'
-
-    def get_queryset(self):
-        participant = self.request.user.participant
-        accepted_signups = participant.signup_set.filter(on_trip=True)
-
-        trips = super(ParticipantTripsView, self).get_queryset()
-        return trips.filter(signup__in=accepted_signups)
-
-    @method_decorator(user_info_required)
-    def dispatch(self, request, *args, **kwargs):
-        return super(TripListView, self).dispatch(request, *args, **kwargs)
-
-
-class WaitlistTripsView(TripListView):
-    """ View trips the user is currently waitlisted on. """
-    def get_queryset(self):
-        signups = self.request.user.participant.signup_set
-        waitlisted_signups = signups.filter(waitlistsignup__isnull=False)
-
-        trips = super(WaitlistTripsView, self).get_queryset()
-        return trips.filter(signup__in=waitlisted_signups)
-
-    @method_decorator(user_info_required)
-    def dispatch(self, request, *args, **kwargs):
-        return super(TripListView, self).dispatch(request, *args, **kwargs)
-
-
-class LeaderTripsView(TripListView):
-    """ View trips the user is leading. """
-    def get(self, request, *args, **kwargs):
-        self.queryset = request.user.participant.trips_led.all()
-        return super(LeaderTripsView, self).get(request, *args, **kwargs)
-
-    @method_decorator(group_required('leaders'))
-    def dispatch(self, request, *args, **kwargs):
-        return super(LeaderTripsView, self).dispatch(request, *args, **kwargs)
-
-
-class LotteryPairView(CreateView):
+class LotteryPairView(CreateView, UserParticipantMixin, LotteryPairingMixin):
     model = models.LotteryInfo
     template_name = 'lottery_pair.html'
     form_class = forms.LotteryPairForm
@@ -1070,8 +1072,7 @@ class LotteryPairView(CreateView):
     def get_context_data(self, **kwargs):
         """ Get a list of all other participants who've requested pairing. """
         context = super(LotteryPairView, self).get_context_data(**kwargs)
-        requested = Q(lotteryinfo__paired_with=self.request.user.participant)
-        context['pair_requests'] = models.Participant.objects.filter(requested)
+        context['pair_requests'] = self.pair_requests
         return context
 
     def get_form_kwargs(self):
@@ -1122,7 +1123,7 @@ class LotteryPairView(CreateView):
         return super(LotteryPairView, self).dispatch(request, *args, **kwargs)
 
 
-class LotteryPreferencesView(TemplateView):
+class LotteryPreferencesView(TemplateView, UserParticipantMixin, LotteryPairingMixin):
     template_name = 'trip_preferences.html'
     update_msg = 'Lottery preferences updated'
     car_prefix = 'car'
@@ -1130,30 +1131,6 @@ class LotteryPreferencesView(TemplateView):
     @property
     def post_data(self):
         return json.loads(self.request.body) if self.request.method == "POST" else None
-
-    @property
-    def paired_par(self):
-        participant = self.request.user.participant
-        try:
-            return participant.lotteryinfo.paired_with
-        except ObjectDoesNotExist:  # No lottery info for paired participant
-            return None
-
-    @property
-    def paired(self):
-        """ Return if the participant is reciprocally paired with another. """
-        participant = self.request.user.participant
-        paired_par = self.paired_par
-        if paired_par:
-            try:
-                return paired_par.lotteryinfo.paired_with == participant
-            except ObjectDoesNotExist:
-                return False
-        return False
-
-    @property
-    def participant(self):
-        return self.request.user.participant
 
     @property
     def ranked_signups(self):

@@ -194,6 +194,30 @@
       </div>
     </div>
 
+    {% if paired_par or pair_requests %}
+      <div class="row">
+        <div class="col-md-12">
+            <h3>Lottery pairing</h3>
+          {% if paired_par %}
+            <p class="text-center">Paired with {{ paired_par.name }}</p>
+            <p>
+              When lotteries run, either both of you will be placed on a trip
+              or neither will. <a href="{% url 'trip_preferences' %}">Read more</a>.
+            </p>
+          {% endif %}
+
+          <ul>
+            {% for participant in pair_requests %}
+              <li>{{ participant.name }} has requested to be paired with you</li>
+            {% endfor %}
+          </ul>
+          <p class="text-center">
+            <a href="{% url 'lottery_pair' %}">Change your pairing preferences</a>
+          </p>
+        </div>
+      </div>
+    {% endif %}
+
     <div class="row">
       <div class="col-md-12">
         <h3>Stats</h3>
