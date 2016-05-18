@@ -61,6 +61,11 @@ leader-select .ui-select-container {
 }
 
 
+/* Wrap participant emails for easy copying */
+pre.participant-emails {
+  white-space: pre-line;
+}
+
 /* Styles lifted from Djangular for rendering errors nicely */
 [ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
     display: none !important;
