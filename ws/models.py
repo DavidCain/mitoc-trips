@@ -107,16 +107,6 @@ class Participant(models.Model):
             return ratings.first().rating
 
     @property
-    def rating(self):
-        # TODO: Interim method to transition over
-        ratings = self.leaderrating_set
-        ws_ratings = ratings.filter(activity=LeaderRating.WINTER_SCHOOL)
-        if not ws_ratings:
-            return None
-        else:
-            return ws_ratings.first().rating
-
-    @property
     def allowed_activities(self):
         rated = [rating.activity for rating in self.leaderrating_set.all()]
         if rated:
