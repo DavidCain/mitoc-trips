@@ -239,9 +239,13 @@ class ParticipantView(ParticipantLookupView, SingleObjectMixin, LotteryPairingMi
     model = models.Participant
     context_object_name = 'participant'
 
+    def get_queryset(self):
+        participant = super(ParticipantView, self).get_queryset()
+        return participant.select_related('user', 'emergency_info__emergency_contact')
+
     def get_trips(self):
         participant = self.object or self.get_object()
-        signups = participant.signup_set
+        signups = participant.signup_set.select_related('trip').prefetch_related('trip__leaders__leaderrating_set')
 
         today = local_now().date()
 
@@ -312,10 +316,6 @@ class ParticipantView(ParticipantLookupView, SingleObjectMixin, LotteryPairingMi
 
 
 class ParticipantDetailView(ParticipantView, FormView, DetailView):
-    def get_queryset(self):
-        participant = super(ParticipantDetailView, self).get_queryset()
-        return participant.select_related('emergency_info__emergency_contact')
-
     def get(self, request, *args, **kwargs):
         if request.user.participant == self.get_object():
             return redirect(reverse('profile'))
@@ -336,7 +336,8 @@ class ProfileView(ParticipantView):
         return super(ProfileView, self).get(request, *args, **kwargs)
 
     def get_object(self):
-        return self.request.user.participant
+        self.kwargs['pk'] = self.request.user.participant.id
+        return super(ProfileView, self).get_object()
 
     @method_decorator(user_info_required)
     def dispatch(self, request, *args, **kwargs):
