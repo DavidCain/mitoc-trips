@@ -69,8 +69,9 @@ class EmergencyInfo(models.Model):
 
 class LeaderManager(models.Manager):
     def get_queryset(self):
-        participants = super(LeaderManager, self).get_queryset()
-        return participants.exclude(leaderrating=None)
+        all_participants = super(LeaderManager, self).get_queryset()
+        leaders = all_participants.exclude(leaderrating=None)
+        return leaders.prefetch_related('leaderrating_set')
 
 
 class Participant(models.Model):
@@ -100,11 +101,13 @@ class Participant(models.Model):
         return "{} ({})".format(self.name, rating) if rating else self.name
 
     def activity_rating(self, activity):
-        ratings = self.leaderrating_set.filter(activity=activity)
-        if not ratings:
-            return None
-        else:
-            return ratings.first().rating
+        """ Return leader's rating for the given activity (if one exists)."""
+        # (We do this in raw Python instead of `filter()` to avoid n+1 queries
+        # This method should be called when leaderrating_set was prefetched
+        for rating in self.leaderrating_set.all():
+            if rating.activity == activity:
+                return rating.rating
+        return None
 
     @property
     def allowed_activities(self):
