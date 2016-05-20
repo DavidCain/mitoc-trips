@@ -47,8 +47,17 @@ DATABASES = {
         'PASSWORD': os.getenv('DATABASE_PASSWORD', 'password'),
         'HOST': os.getenv('DATABASE_HOST', 'localhost'),
         'PORT': os.getenv('DATABASE_PORT', '5432'),
+    },
+    'auth_db': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': os.getenv('AUTH_DATABASE_NAME', 'auth_db'),
+        'USER': os.getenv('DATABASE_USER', 'ws'),
+        'PASSWORD': os.getenv('DATABASE_PASSWORD', 'password'),
+        'HOST': os.getenv('DATABASE_HOST', 'localhost'),
+        'PORT': os.getenv('DATABASE_PORT', '5432'),
     }
 }
+DATABASE_ROUTERS = ['ws.routers.AuthRouter']
 
 INSTALLED_APPS = (
     'django.contrib.admin',
