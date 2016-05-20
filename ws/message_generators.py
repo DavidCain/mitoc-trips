@@ -7,7 +7,6 @@ from datetime import timedelta
 
 from django.contrib import messages
 from django.contrib.messages import INFO, WARNING
-from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.utils import timezone
 
@@ -23,21 +22,11 @@ class LotteryMessages(object):
         self.request = request
 
     @property
-    def participant(self):
-        try:
-            return self.request.user.participant
-        except (ObjectDoesNotExist, AttributeError):
-            return None  # Not authenticated, or no Participant
-
-    @property
     def lotteryinfo(self):
-        try:
-            return self.participant and self.participant.lotteryinfo
-        except ObjectDoesNotExist:
-            return None
+        return self.request.participant and self.participant.lotteryinfo
 
     def supply_all_messages(self):
-        if not self.participant or not is_winter_school():
+        if not self.request.participant or not is_winter_school():
             return
         self.warn_if_missing_lottery()
 
@@ -63,7 +52,7 @@ class LotteryMessages(object):
         """ Warn the user if there are future signups, and none are ranked. """
         today = local_now().date()
         manager = models.SignUp.objects
-        future_signups = manager.filter(participant=self.participant,
+        future_signups = manager.filter(participant=self.request.participant,
                                         trip__trip_date__gte=today)
         some_trips_ranked = future_signups.filter(order__isnull=False).count()
         if future_signups.count() > 1 and not some_trips_ranked:
@@ -90,9 +79,8 @@ def warn_if_needs_update(request):
     if not request.user.is_authenticated():
         return
 
-    try:
-        participant = request.user.participant
-    except ObjectDoesNotExist:  # Authenticated, but no info yet
+    participant = request.participant
+    if not participant:  # Authenticated, but no info yet
         msg = 'Personal information missing.'
     else:
         if participant.info_current:  # Record exists, is up to date
@@ -114,15 +102,11 @@ def _feedback_eligible_trips(participant):
 
 def complain_if_missing_feedback(request):
     """ Create message if a Leader should supply feedback. """
+    participant = request.participant
     if not request.user.is_authenticated():
         return
 
-    try:
-        participant = request.user.participant
-    except ObjectDoesNotExist:  # Authenticated, but no info yet
-        return
-
-    if not participant.is_leader:
+    if not (participant and participant.is_leader):
         return
 
     # TODO: Could be made more efficient- O(n) queries, where n= number of trips

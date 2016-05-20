@@ -50,13 +50,11 @@ login_after_password_change = login_required(LoginAfterPasswordChangeView.as_vie
 
 
 def leader_on_trip(request, trip, creator_allowed=False):
-    try:
-        leader = request.user.participant
-    except ObjectDoesNotExist:
+    leader = request.participant
+    if not leader:
         return False
-    else:
-        return (leader in trip.leaders.all() or
-                creator_allowed and leader == trip.creator)
+    return (leader in trip.leaders.all() or
+            creator_allowed and leader == trip.creator)
 
 
 class UpdateParticipantView(TemplateView):
@@ -66,13 +64,6 @@ class UpdateParticipantView(TemplateView):
     @property
     def has_car(self):
         return 'has_car' in self.request.POST
-
-    @property
-    def participant(self):
-        try:
-            return self.request.user.participant
-        except ObjectDoesNotExist:
-            return None
 
     def prefix(self, base, **kwargs):
         return dict(prefix=base, scope_prefix=base + '_scope', **kwargs)
@@ -89,7 +80,7 @@ class UpdateParticipantView(TemplateView):
         Forms are bound to model instances for UPDATE if such instances exist.
         """
         post = self.request.POST if self.request.method == "POST" else None
-        participant = self.participant
+        participant = self.request.participant
 
         # Access other models within participant
         car = participant and participant.car
@@ -195,17 +186,6 @@ class ParticipantLookupView(TemplateView, FormView):
         return super(ParticipantLookupView, self).dispatch(request, *args, **kwargs)
 
 
-class UserParticipantMixin(object):
-    """ Adds `participant` as an attribute within the view.
-
-    Only to be used in views where userinfo is required (and thus,
-    a participant will always be present).
-    """
-    @property
-    def participant(self):
-        return self.request.user.participant
-
-
 class LotteryPairingMixin(object):
     """ Gives information about lottery pairing.
 
@@ -213,13 +193,13 @@ class LotteryPairingMixin(object):
     """
     @property
     def pair_requests(self):
-        requested = Q(lotteryinfo__paired_with=self.participant)
+        requested = Q(lotteryinfo__paired_with=self.request.participant)
         return models.Participant.objects.filter(requested)
 
     @property
     def paired_par(self):
         try:
-            return self.participant.lotteryinfo.paired_with
+            return self.request.participant.lotteryinfo.paired_with
         except ObjectDoesNotExist:  # No lottery info for paired participant
             return None
 
@@ -229,7 +209,7 @@ class LotteryPairingMixin(object):
         paired_par = self.paired_par
         if paired_par:
             try:
-                return paired_par.lotteryinfo.paired_with == self.participant
+                return paired_par.lotteryinfo.paired_with == self.request.participant
             except ObjectDoesNotExist:
                 return False
         return False
@@ -286,7 +266,7 @@ class ParticipantView(ParticipantLookupView, SingleObjectMixin, LotteryPairingMi
         participant = self.object = self.get_object()
         context = super(ParticipantView, self).get_context_data(**kwargs)
 
-        user_viewing = self.request.user.participant == participant
+        user_viewing = self.request.participant == participant
         context['user_viewing'] = user_viewing
 
         context['trips'] = trips = self.get_trips()
@@ -317,7 +297,7 @@ class ParticipantView(ParticipantLookupView, SingleObjectMixin, LotteryPairingMi
 
 class ParticipantDetailView(ParticipantView, FormView, DetailView):
     def get(self, request, *args, **kwargs):
-        if request.user.participant == self.get_object():
+        if request.participant == self.get_object():
             return redirect(reverse('profile'))
         return super(ParticipantDetailView, self).get(request, *args, **kwargs)
 
@@ -336,7 +316,7 @@ class ProfileView(ParticipantView):
         return super(ProfileView, self).get(request, *args, **kwargs)
 
     def get_object(self):
-        self.kwargs['pk'] = self.request.user.participant.id
+        self.kwargs['pk'] = self.request.participant.id
         return super(ProfileView, self).get_object()
 
     @method_decorator(user_info_required)
@@ -369,7 +349,7 @@ class SignUpView(CreateView):
         prevent the form from being displayed in the first place).
         """
         signup = form.save(commit=False)
-        signup.participant = self.request.user.participant
+        signup.participant = self.request.participant
         if signup.trip in signup.participant.trip_set.all():
             form.errors['__all__'] = ErrorList(["Already signed up!"])
             return self.form_invalid(form)
@@ -426,7 +406,7 @@ class TripView(TripDetailView):
     def get_participant_signup(self, trip=None):
         """ Return viewer's signup for this trip (if one exists, else None) """
         try:
-            participant = self.request.user.participant
+            participant = self.request.participant
         except ObjectDoesNotExist:  # Logged in, no participant info
             return None
         trip = trip or self.get_object()
@@ -612,7 +592,7 @@ class AdminTripView(TripDetailView, TripInfoEditable):
         """
         trip = self.get_object()
 
-        if not request.user.participant.is_leader:
+        if not request.participant.is_leader:
             cant = ("Redirected - only MITOC leaders can administrate trips.")
             messages.add_message(request, messages.INFO, cant)
             return redirect(reverse('view_trip', args=(trip.id,)))
@@ -655,7 +635,7 @@ class ReviewTripView(DetailView):
 
         if (all(form.is_valid() for participant, form in feedback_list) and
                 flake_form.is_valid()):
-            leader = request.user.participant
+            leader = request.participant
 
             for participant, form in feedback_list:
                 feedback = form.save(commit=False)
@@ -700,7 +680,7 @@ class ReviewTripView(DetailView):
     @property
     def feedback_list(self):
         post = self.request.POST if self.request.method == 'POST' else None
-        leader = self.request.user.participant
+        leader = self.request.participant
         feedback_list = []
 
         for participant in self.trip_participants:
@@ -788,7 +768,7 @@ class BecomeLeaderView(CreateView):
     def form_valid(self, form):
         """ Link the application to the submitting participant. """
         application = form.save(commit=False)
-        application.participant = self.request.user.participant
+        application.participant = self.request.participant
         received = "Leader application received!"
         messages.add_message(self.request, messages.SUCCESS, received)
         return super(BecomeLeaderView, self).form_valid(form)
@@ -938,14 +918,14 @@ def admin_manage_trips(request):
     return _manage_trips(request, TripFormSet)
 
 
-class AddTripView(CreateView, UserParticipantMixin):
+class AddTripView(CreateView):
     model = models.Trip
     form_class = forms.TripForm
     template_name = 'add_trip.html'
 
     def get_form_kwargs(self):
         kwargs = super(AddTripView, self).get_form_kwargs()
-        kwargs['allowed_activities'] = self.participant.allowed_activities
+        kwargs['allowed_activities'] = self.request.participant.allowed_activities
         return kwargs
 
     def get_success_url(self):
@@ -955,13 +935,13 @@ class AddTripView(CreateView, UserParticipantMixin):
         """ Default with trip creator among leaders. """
         initial = super(AddTripView, self).get_initial().copy()
         # It's possible for WSC to create trips while not being a leader
-        if self.participant.is_leader:
-            initial['leaders'] = [self.participant]
+        if self.request.participant.is_leader:
+            initial['leaders'] = [self.request.participant]
         return initial
 
     def form_valid(self, form):
         """ After is_valid(), assign creator from User, add empty waitlist. """
-        creator = self.participant
+        creator = self.request.participant
         trip = form.save(commit=False)
         trip.creator = creator
         return super(AddTripView, self).form_valid(form)
@@ -1055,7 +1035,7 @@ class AllTripsView(TripListView):
         return super(TripListView, self).dispatch(request, *args, **kwargs)
 
 
-class LotteryPairView(CreateView, UserParticipantMixin, LotteryPairingMixin):
+class LotteryPairView(CreateView, LotteryPairingMixin):
     model = models.LotteryInfo
     template_name = 'lottery_pair.html'
     form_class = forms.LotteryPairForm
@@ -1072,13 +1052,13 @@ class LotteryPairView(CreateView, UserParticipantMixin, LotteryPairingMixin):
         kwargs = super(LotteryPairView, self).get_form_kwargs()
         kwargs['participant'] = self.request.participant
         try:
-            kwargs['instance'] = self.request.user.participant.lotteryinfo
+            kwargs['instance'] = self.request.participant.lotteryinfo
         except ObjectDoesNotExist:
             pass
         return kwargs
 
     def form_valid(self, form):
-        participant = self.request.user.participant
+        participant = self.request.participant
         lottery_info = form.save(commit=False)
         lottery_info.participant = participant
         paired_par = form.instance.paired_with
@@ -1091,7 +1071,7 @@ class LotteryPairView(CreateView, UserParticipantMixin, LotteryPairingMixin):
 
     def add_pairing_messages(self, paired_par):
         """ Add messages that explain next steps for lottery pairing. """
-        participant = self.request.user.participant
+        participant = self.request.participant
         try:
             reciprocal = paired_par.lotteryinfo.paired_with == participant
         except ObjectDoesNotExist:  # No lottery info for paired participant
@@ -1115,7 +1095,7 @@ class LotteryPairView(CreateView, UserParticipantMixin, LotteryPairingMixin):
         return super(LotteryPairView, self).dispatch(request, *args, **kwargs)
 
 
-class LotteryPreferencesView(TemplateView, UserParticipantMixin, LotteryPairingMixin):
+class LotteryPreferencesView(TemplateView, LotteryPairingMixin):
     template_name = 'trip_preferences.html'
     update_msg = 'Lottery preferences updated'
     car_prefix = 'car'
@@ -1127,7 +1107,7 @@ class LotteryPreferencesView(TemplateView, UserParticipantMixin, LotteryPairingM
     @property
     def ranked_signups(self):
         today = local_now().date()
-        lotto_signups = Q(participant=self.participant,
+        lotto_signups = Q(participant=self.request.participant,
                           trip__algorithm='lottery', trip__trip_date__gt=today)
         future_signups = models.SignUp.objects.filter(lotto_signups)
         ranked = future_signups.order_by('order', 'time_created')
@@ -1140,13 +1120,13 @@ class LotteryPreferencesView(TemplateView, UserParticipantMixin, LotteryPairingM
                 for s in self.ranked_signups]
 
     def get_car_form(self, use_post=True):
-        car = self.request.user.participant.car
+        car = self.request.participant.car
         post = self.post_data if use_post else None
         return forms.CarForm(post, instance=car, scope_prefix=self.car_prefix)
 
     def get_lottery_form(self):
         try:
-            lottery_info = self.request.user.participant.lotteryinfo
+            lottery_info = self.request.participant.lotteryinfo
         except ObjectDoesNotExist:
             lottery_info = None
         return forms.LotteryInfoForm(self.post_data, instance=lottery_info)
@@ -1169,10 +1149,10 @@ class LotteryPreferencesView(TemplateView, UserParticipantMixin, LotteryPairingM
                 # (Only needed when doing a Django response)
                 context['car_form'] = self.get_car_form(use_post=False)
             else:
-                self.participant.car = car_form.save()
-                self.participant.save()
+                self.request.participant.car = car_form.save()
+                self.request.participant.save()
             lottery_info = lottery_form.save(commit=False)
-            lottery_info.participant = self.participant
+            lottery_info.participant = self.request.participant
             if lottery_info.car_status == 'none':
                 lottery_info.number_of_passengers = None
             lottery_info.save()
@@ -1185,7 +1165,7 @@ class LotteryPreferencesView(TemplateView, UserParticipantMixin, LotteryPairingM
         return JsonResponse(resp, status=status)
 
     def save_signups(self):
-        par = self.participant
+        par = self.request.participant
         par_signups = models.SignUp.objects.filter(participant=par)
         posted_signups = self.post_data['signups']
 

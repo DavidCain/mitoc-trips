@@ -108,7 +108,7 @@ TEMPLATES = [
                 "django.template.context_processors.static",
                 "django.template.context_processors.request",
                 "django.contrib.messages.context_processors.messages",
-                "ws.context_processors.get_groups",
+                "ws.context_processors.participant_and_groups",
             ],
         },
     },
