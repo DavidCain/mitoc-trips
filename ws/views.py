@@ -152,7 +152,7 @@ class UpdateParticipantView(TemplateView):
         e_info = post_forms['emergency_info_form'].save()
 
         participant = post_forms['participant_form'].save(commit=False)
-        participant.user = user
+        participant.user_id = user.id
         participant.emergency_info = e_info
 
         del_car = False
@@ -241,7 +241,7 @@ class ParticipantView(ParticipantLookupView, SingleObjectMixin, LotteryPairingMi
 
     def get_queryset(self):
         participant = super(ParticipantView, self).get_queryset()
-        return participant.select_related('user', 'emergency_info__emergency_contact')
+        return participant.select_related('emergency_info__emergency_contact')
 
     def get_trips(self):
         participant = self.object or self.get_object()
@@ -1070,7 +1070,7 @@ class LotteryPairView(CreateView, UserParticipantMixin, LotteryPairingMixin):
     def get_form_kwargs(self):
         """ Edit existing instance, prevent user from pairing with self. """
         kwargs = super(LotteryPairView, self).get_form_kwargs()
-        kwargs['user'] = self.request.user
+        kwargs['participant'] = self.request.participant
         try:
             kwargs['instance'] = self.request.user.participant.lotteryinfo
         except ObjectDoesNotExist:
@@ -1357,13 +1357,14 @@ class LectureAttendanceView(FormView):
 
     def record_attendance(self, user):
         try:
-            user.participant.attended_lectures = True
+            participant = models.Participant.objects.get(user_id=user.id)
         except ObjectDoesNotExist:
             msg = ("Personal info required to sign in to lectures. "
                    "Log in to your personal account, then visit this page.")
             messages.add_message(self.request, messages.ERROR, msg)
         else:
-            user.participant.save()
+            participant.attended_lectures = True
+            participant.save()
             success_msg = 'Lecture attendance recorded for {}'.format(user.email)
             messages.add_message(self.request, messages.SUCCESS, success_msg)
 

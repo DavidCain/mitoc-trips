@@ -135,7 +135,7 @@ class Migration(migrations.Migration):
                 ('attended_lectures', models.BooleanField(default=False)),
                 ('car', ws.fields.OptionalOneToOneField(null=True, blank=True, to='ws.Car')),
                 ('emergency_info', models.OneToOneField(to='ws.EmergencyInfo')),
-                ('user', models.OneToOneField(to=settings.AUTH_USER_MODEL)),
+                ('user_id', models.IntegerField()),
             ],
             options={
                 'ordering': ['name', 'email'],

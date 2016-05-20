@@ -79,12 +79,13 @@ class Participant(models.Model):
 
     Even leaders will have a Participant record (see docstring of LeaderRating).
     """
+    user_id = models.IntegerField()  # Technically a FK, but to another DB
+
     objects = models.Manager()
     leaders = LeaderManager()
     name = models.CharField(max_length=255)
     cell_phone = PhoneNumberField(null=True, blank=True)  # Hi, Sheep.
     last_updated = models.DateTimeField(auto_now=True)
-    user = models.OneToOneField(User)
     emergency_info = models.OneToOneField(EmergencyInfo)
     email = models.EmailField(unique=True, help_text=string_concat("This will be shared with leaders & other participants. <a href='",
                                                                    reverse_lazy('account_email'),
@@ -95,6 +96,10 @@ class Participant(models.Model):
                                             ('M', "MIT affiliate"),
                                             ('N', "Non-affiliate")])
     attended_lectures = models.BooleanField(default=False)
+
+    @property
+    def user(self):
+        return User.objects.get(pk=self.user_id)
 
     def name_with_rating(self, activity):
         rating = self.activity_rating(activity)

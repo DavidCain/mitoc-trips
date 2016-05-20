@@ -1,7 +1,7 @@
 from django import forms
 from django.core.exceptions import ValidationError
 
-from djng.forms import NgFormValidationMixin, NgForm
+from djng.forms import NgFormValidationMixin
 from djng.forms import NgModelFormMixin, NgModelForm
 from djng.styling.bootstrap3.forms import Bootstrap3Form, Bootstrap3FormMixin
 
@@ -9,7 +9,6 @@ from localflavor.us.us_states import US_STATES
 
 from ws import models
 from ws import signup_utils
-from ws import perm_utils
 from ws import widgets
 
 
@@ -24,6 +23,7 @@ class RequiredModelForm(forms.ModelForm):
 
 class ParticipantForm(DjangularRequiredModelForm):
     required_css_class = 'required'
+
     class Meta:
         model = models.Participant
         fields = ['name', 'email', 'cell_phone', 'affiliation']
@@ -59,6 +59,7 @@ class CarForm(DjangularRequiredModelForm):
 
 class EmergencyContactForm(DjangularRequiredModelForm):
     required_css_class = 'required'
+
     class Meta:
         model = models.EmergencyContact
         fields = ['name', 'email', 'cell_phone', 'relationship']
@@ -66,6 +67,7 @@ class EmergencyContactForm(DjangularRequiredModelForm):
 
 class EmergencyInfoForm(DjangularRequiredModelForm):
     required_css_class = 'required'
+
     class Meta:
         model = models.EmergencyInfo
         fields = ['allergies', 'medications', 'medical_history']
@@ -215,10 +217,10 @@ class LotteryInfoForm(DjangularRequiredModelForm):
 
 class LotteryPairForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
-        user = kwargs.pop('user')
+        participant = kwargs.pop('participant')
         super(LotteryPairForm, self).__init__(*args, **kwargs)
         participants = models.Participant.objects.all()
-        all_but_user = participants.exclude(pk=user.participant.pk)
+        all_but_user = participants.exclude(pk=participant.pk)
         self.fields['paired_with'].queryset = all_but_user
         self.fields['paired_with'].empty_label = 'Nobody'
 
