@@ -599,7 +599,7 @@ class AdminTripView(TripDetailView, TripInfoEditable):
         """
         trip = self.get_object()
 
-        if not request.participant.is_leader:
+        if not perm_utils.is_leader(request.user):
             cant = ("Redirected - only MITOC leaders can administrate trips.")
             messages.add_message(request, messages.INFO, cant)
             return redirect(reverse('view_trip', args=(trip.id,)))
@@ -942,7 +942,7 @@ class AddTripView(CreateView):
         """ Default with trip creator among leaders. """
         initial = super(AddTripView, self).get_initial().copy()
         # It's possible for WSC to create trips while not being a leader
-        if self.request.participant.is_leader:
+        if perm_utils.is_leader(self.request.user):
             initial['leaders'] = [self.request.participant]
         return initial
 

@@ -129,6 +129,10 @@ class Participant(models.Model):
 
     @property
     def is_leader(self):
+        """ Query ratings to determine if this participant is a leader.
+
+        Wnen dealing with Users, it's faster to use perm_utils.is_leader
+        """
         return self.leaderrating_set.exists()
 
     @property

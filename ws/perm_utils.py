@@ -1,6 +1,14 @@
 from ws import models
 
 
+def is_leader(user):
+    """ Return if the user is a trip leader.
+
+    Take advantage of the prefetched 'leaders' group for more efficient
+    querying of a user's leader status.
+    """
+    return in_any_group(user, ['leaders'], allow_superusers=False)
+
 def chair_group(activity):
     if activity == 'winter_school':
         return 'WSC'
