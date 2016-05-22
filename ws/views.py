@@ -268,6 +268,10 @@ class ParticipantView(ParticipantLookupView, SingleObjectMixin, LotteryPairingMi
 
         user_viewing = self.request.participant == participant
         context['user_viewing'] = user_viewing
+        if user_viewing:
+            user = self.request.user
+        else:
+            user = participant.user
 
         context['trips'] = trips = self.get_trips()
         context['stats'] = self.get_stats(trips)
@@ -282,7 +286,7 @@ class ParticipantView(ParticipantLookupView, SingleObjectMixin, LotteryPairingMi
             feedback = participant.feedback_set.select_related('trip', 'leader')
             context['all_feedback'] = feedback
         context['ratings'] = participant.leaderrating_set.all()
-        chair_activities = set(perm_utils.chair_activities(participant.user))
+        chair_activities = set(perm_utils.chair_activities(user))
         context['chair_activities'] = [label for (activity, label) in models.LeaderRating.ACTIVITY_CHOICES
                                        if activity in chair_activities]
 

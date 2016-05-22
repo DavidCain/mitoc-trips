@@ -99,7 +99,7 @@ class Participant(models.Model):
 
     @property
     def user(self):
-        return User.objects.get(pk=self.user_id)
+        return User.objects.prefetch_related('groups').get(pk=self.user_id)
 
     def name_with_rating(self, activity):
         rating = self.activity_rating(activity)
