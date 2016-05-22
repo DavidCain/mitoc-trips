@@ -8,9 +8,10 @@ def chair_group(activity):
 
 def in_any_group(user, group_names, allow_superusers=True):
     if user.is_authenticated():
-        sudo = allow_superusers and user.is_superuser
-        if bool(user.groups.filter(name__in=group_names)) or sudo:
+        if allow_superusers and user.is_superuser:
             return True
+        return any(g.name in group_names for g in user.groups.all())
+
 
 def is_chair(user, activity_type, allow_superusers=True):
     return in_any_group(user, [chair_group(activity_type)], allow_superusers)
