@@ -225,26 +225,29 @@ class ParticipantView(ParticipantLookupView, SingleObjectMixin, LotteryPairingMi
 
     def get_trips(self):
         participant = self.object or self.get_object()
-        signups = participant.signup_set.select_related('trip').prefetch_related('trip__leaders__leaderrating_set')
 
         today = local_now().date()
 
-        # Signups
-        in_future = Q(trip__trip_date__gte=today)
-        in_past = Q(trip__trip_date__lt=today)
-        accepted_signups = signups.filter(on_trip=True)
-        waitlisted = signups.filter(in_future, waitlistsignup__isnull=False)
+        trips = models.Trip.objects.filter(signup__participant=participant)
+        trips = trips.prefetch_related('leaders__leaderrating_set')
+        accepted = trips.filter(signup__participant=participant,
+                                signup__on_trip=True)
 
-        trips_led = participant.trips_led.all()
+        in_future = Q(trip_date__gte=today)
+        in_past = Q(trip_date__lt=today)
+
+        waitlisted = trips.filter(signup__waitlistsignup__isnull=False)
+
+        trips_led = participant.trips_led.prefetch_related('leaders__leaderrating_set')
 
         return {'current': {
-                    'on_trip': [signup.trip for signup in accepted_signups.filter(in_future)],
-                    'waitlisted': [signup.trip for signup in waitlisted],
-                    'leader': trips_led.filter(trip_date__gte=today),
+                    'on_trip': accepted.filter(in_future),
+                    'waitlisted': waitlisted.filter(in_future),
+                    'leader': trips_led.filter(in_future),
                     },
                 'past': {
-                    'on_trip': [signup.trip for signup in accepted_signups.filter(in_past)],
-                    'leader': trips_led.filter(trip_date__lt=today),
+                    'on_trip': accepted.filter(in_past),
+                    'leader': trips_led.filter(in_past),
                     },
                 }
 
