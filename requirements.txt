@@ -2,6 +2,7 @@ Django==1.8
 pytz
 django-allauth
 django-localflavor
+django-debug-toolbar
 django-pipeline
 six
 django-angular>=0.8.1

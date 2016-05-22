@@ -77,6 +77,7 @@ INSTALLED_APPS = (
     'allauth.account',
     'djng',
     'pipeline',
+    'debug_toolbar',
     'ws',
 )
 
