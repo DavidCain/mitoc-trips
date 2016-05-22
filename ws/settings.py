@@ -22,13 +22,18 @@ BOWER_COMPONENTS = os.path.join(BASE_DIR, 'bower_components')
 # Settings may override these defaults (easily defined here due to BASE_DIR)
 STATIC_URL = '/static/'
 STATIC_ROOT = os.getenv('STATIC_ROOT', os.path.join(BASE_DIR, 'static'))
-STATICFILES_FINDERS = [
-    "django.contrib.staticfiles.finders.FileSystemFinder",
-    "django.contrib.staticfiles.finders.AppDirectoriesFinder",
-]
+
+STATICFILES_STORAGE = 'pipeline.storage.PipelineCachedStorage'
+
 STATICFILES_DIRS = [
     BOWER_COMPONENTS
 ]
+
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'pipeline.finders.PipelineFinder',
+)
 
 # auth and allauth settings
 LOGIN_REDIRECT_URL = '/'
@@ -71,6 +76,7 @@ INSTALLED_APPS = (
     'allauth',
     'allauth.account',
     'djng',
+    'pipeline',
     'ws',
 )
 
@@ -153,3 +159,45 @@ USE_TZ = True
 MUST_UPDATE_AFTER_DAYS = 180
 SIGNUPS_OPEN = True
 ACCOUNT_ADAPTER = 'ws.users.adapter.AllowSignupAdapter'
+
+PIPELINE = {
+    'JAVASCRIPT': {
+        'app': {
+            'source_filenames': (
+                'lodash/dist/lodash.js',
+                'jquery/dist/jquery.js',
+                'angular/angular.js',
+                'footable/js/footable.js',
+                'footable/js/footable.sort.js',
+                'js/ui-bootstrap-tpls-0.14.3.js',
+                'jquery-ui/ui/core.js',
+                'jquery-ui/ui/widget.js',
+                'jquery-ui/ui/mouse.js',
+                'jquery-ui/ui/sortable.js',
+                'jquery-ui/jquery-ui.js',
+                'djng/js/django-angular.js',
+                'angular-ui-select/dist/select.js',
+                'angular-sanitize/angular-sanitize.js',
+                'angular-ui-sortable/sortable.js',
+
+                'bootstrap/dist/js/bootstrap.min.js',  # Can go after footer
+
+                'js/application.js',
+            ),
+            'output_filename': 'js/app.js',
+        }
+    },
+    'STYLESHEETS': {
+        'app': {
+            'source_filenames': (
+                'css/layout.css',
+                'css/footable.core.css',  # Forked... =(
+                'css/footable.standalone.css',
+                'bootstrap/dist/css/bootstrap.min.css',
+                'angular-ui-select/dist/select.min.css',
+                'font-awesome/css/font-awesome.min.css',
+            ),
+            'output_filename': 'css/app.css',
+        }
+    },
+}

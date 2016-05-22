@@ -1,4 +1,4 @@
-{% load staticfiles %}
+{% load pipeline%}
 {% load gravatar %}
 {% load perm_tags %}
 <!DOCTYPE html>
@@ -12,25 +12,12 @@
     {% endblock meta %}
     <title>{% block title %}MITOC Trips{% endblock title %}</title>
     {% block css %}
-    <link rel="stylesheet" href="{% static 'css/layout.css' %}" />
-
-    {# I stupidly forked these for some custom styles. #}
-    {# I want to get off of Footable eventually anyway, so just keep custom CSS for now. #}
-    <link href="{% static 'css/footable.core.css' %}" rel="stylesheet" type="text/css" />
-    <link href="{% static 'css/footable.standalone.css' %}" rel="stylesheet" type="text/css" />
-
-    <link href="{% static 'bootstrap/dist/css/bootstrap.min.css' %}" rel="stylesheet" type="text/css" />
-    <link href="{% static 'angular-ui-select/dist/select.min.css' %}" rel="stylesheet" type="text/css" />
-    <link href="{% static 'font-awesome/css/font-awesome.min.css' %}" rel="stylesheet" type="text/css" />
+    {% stylesheet 'app' %}
     {% endblock css %}
 
     {% block js %}
+    {% javascript 'app' %}
 
-    <script type="text/javascript" src='{% static 'lodash/dist/lodash.min.js' %}'></script>
-    <script type="text/javascript" src='{% static 'jquery/dist/jquery.min.js' %}'></script>
-    <script type="text/javascript" src='{% static 'angular/angular.min.js' %}'></script>
-    <script type="text/javascript" src='{% static 'footable/js/footable.js' %}'></script>
-    <script type="text/javascript" src='{% static 'footable/js/footable.sort.js' %}'></script>
     <script type="text/javascript">
         $(function () {
             $('.footable').footable({
@@ -41,21 +28,6 @@
             });
         });
     </script>
-    {# These need to be replaced more intellegently by Bower #}
-    <script src="{% static 'js/ui-bootstrap-tpls-0.14.3.js' %}"></script>
-
-    <script src="{% static 'jquery-ui/ui/minified/core.min.js' %}"></script>
-    <script src="{% static 'jquery-ui/ui/minified/widget.min.js' %}"></script>
-    <script src="{% static 'jquery-ui/ui/minified/mouse.min.js' %}"></script>
-    <script src="{% static 'jquery-ui/ui/minified/sortable.min.js' %}"></script>
-
-    <script src="{% static 'djng/js/django-angular.min.js' %}"></script>
-    <script src="{% static 'angular-ui-select/dist/select.min.js' %}"></script>
-    <script src="{% static 'angular-sanitize/angular-sanitize.min.js' %}"></script>
-    <script src="{% static 'angular-ui-sortable/sortable.min.js' %}"></script>
-    <script src="{% static 'jquery-ui/jquery-ui.min.js' %}"></script>
-
-    <script src="{% static 'js/application.js' %}"></script>
     {% endblock js %}
 {% endblock head %}
 </head>
@@ -175,7 +147,5 @@
             </div>
         </div>
     </footer>
-
-    <script src="{% static 'bootstrap/dist/js/bootstrap.min.js' %}"></script>
 </body>
 </html>
