@@ -1,15 +1,15 @@
 """ Production settings """
 
-DEBUG = True  # False
-TEMPLATE_DEBUG = True  # False
-ALLOWED_HOSTS = []  # ['trips.mitoc.edu']
+DEBUG = False
+TEMPLATE_DEBUG = False
+ALLOWED_HOSTS = ['trips.mitoc.edu', 'mitoc-trips.mit.edu']
 
 ADMINS = (('David Cain', 'davidjosephcain@gmail.com'),)
 
 SERVER_EMAIL = 'no-reply@mitoc.org'
 DEFAULT_EMAIL_FROM = 'trips@mitoc.org'
 
-ACCOUNT_EMAIL_VERIFICATION = 'none'  # 'mandatory'
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 
 # While we configure actual email, this is a useful interim
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
