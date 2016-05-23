@@ -23,7 +23,7 @@ BOWER_COMPONENTS = os.path.join(BASE_DIR, 'bower_components')
 STATIC_URL = '/static/'
 STATIC_ROOT = os.getenv('STATIC_ROOT', os.path.join(BASE_DIR, 'static'))
 
-STATICFILES_STORAGE = 'pipeline.storage.PipelineCachedStorage'
+STATICFILES_STORAGE = 'ws.storage.CachedStorage'
 
 STATICFILES_DIRS = [
     BOWER_COMPONENTS
