@@ -199,21 +199,34 @@
         <div class="col-md-12">
             <h3>Lottery pairing</h3>
           {% if paired_par %}
-            <p class="text-center">Paired with {{ paired_par.name }}</p>
-            <p>
-              When lotteries run, either both of you will be placed on a trip
-              or neither will. <a href="{% url 'trip_preferences' %}">Read more</a>.
-            </p>
+            {% if reciprocally_paired %}
+              <p class="text-center">Paired with {{ paired_par.name }}</p>
+              {% if user_viewing %}
+                <p>
+                  When lotteries run, either both of you will be placed on a trip
+                  or neither will.
+                </p>
+              {% endif %}
+            {% else %}
+              <p class="text-center">Requested to be paired with {{ paired_par.name }}.
+                {% if user_viewing %}
+                  Until {{ paired_par.name }} does the same, no effort will be made to place you both
+                  on the same trip.
+                {% endif %}
+              </p>
+            {% endif %}
           {% endif %}
 
           <ul>
             {% for participant in pair_requests %}
-              <li>{{ participant.name }} has requested to be paired with you</li>
+            <li>{{ participant.name }} has requested to be paired with {% if user_viewing %}you{% else %}{{ participant.name }}{% endif %}.</li>
             {% endfor %}
           </ul>
-          <p class="text-center">
-            <a href="{% url 'lottery_pair' %}">Change your pairing preferences</a>
-          </p>
+          {% if user_viewing %}
+            <p class="text-center">
+              <a href="{% url 'lottery_pair' %}">Change your pairing preferences</a>
+            </p>
+          {% endif %}
         </div>
       </div>
     {% endif %}

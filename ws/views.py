@@ -193,23 +193,23 @@ class LotteryPairingMixin(object):
     """
     @property
     def pair_requests(self):
-        requested = Q(lotteryinfo__paired_with=self.request.participant)
+        requested = Q(lotteryinfo__paired_with=self.participant)
         return models.Participant.objects.filter(requested)
 
     @property
     def paired_par(self):
         try:
-            return self.request.participant.lotteryinfo.paired_with
+            return self.participant.lotteryinfo.paired_with
         except ObjectDoesNotExist:  # No lottery info for paired participant
             return None
 
     @property
-    def paired(self):
+    def reciprocally_paired(self):
         """ Return if the participant is reciprocally paired with another. """
         paired_par = self.paired_par
         if paired_par:
             try:
-                return paired_par.lotteryinfo.paired_with == self.request.participant
+                return paired_par.lotteryinfo.paired_with == self.participant
             except ObjectDoesNotExist:
                 return False
         return False
@@ -260,6 +260,7 @@ class ParticipantView(ParticipantLookupView, SingleObjectMixin, LotteryPairingMi
 
     def include_pairing(self, context):
         self.participant = self.object
+        context['reciprocally_paired'] = self.reciprocally_paired
         context['paired_par'] = self.paired_par
         paired_id = {'pk': self.paired_par.pk} if self.paired_par else {}
         context['pair_requests'] = self.pair_requests.exclude(**paired_id)
@@ -1051,6 +1052,7 @@ class LotteryPairView(CreateView, LotteryPairingMixin):
     def get_context_data(self, **kwargs):
         """ Get a list of all other participants who've requested pairing. """
         context = super(LotteryPairView, self).get_context_data(**kwargs)
+        self.participant = self.request.participant
         context['pair_requests'] = self.pair_requests
         return context
 
@@ -1068,21 +1070,20 @@ class LotteryPairView(CreateView, LotteryPairingMixin):
         participant = self.request.participant
         lottery_info = form.save(commit=False)
         lottery_info.participant = participant
-        paired_par = form.instance.paired_with
+        self.add_pairing_messages()
+        return super(LotteryPairView, self).form_valid(form)
+
+    def add_pairing_messages(self):
+        """ Add messages that explain next steps for lottery pairing. """
+        self.participant = self.request.participant
+        paired_par = self.paired_par
+
         if not paired_par:
             no_pair_msg = "Requested normal behavior (no pairing) in lottery"
             messages.add_message(self.request, messages.SUCCESS, no_pair_msg)
-        else:
-            self.add_pairing_messages(paired_par)
-        return super(LotteryPairView, self).form_valid(form)
+            return
 
-    def add_pairing_messages(self, paired_par):
-        """ Add messages that explain next steps for lottery pairing. """
-        participant = self.request.participant
-        try:
-            reciprocal = paired_par.lotteryinfo.paired_with == participant
-        except ObjectDoesNotExist:  # No lottery info for paired participant
-            reciprocal = False
+        reciprocal = self.reciprocally_paired
 
         pre = "Successfully paired" if reciprocal else "Requested pairing"
         paired_msg = pre + " with {}".format(paired_par)
@@ -1139,11 +1140,13 @@ class LotteryPreferencesView(TemplateView, LotteryPairingMixin):
         return forms.LotteryInfoForm(self.post_data, instance=lottery_info)
 
     def get_context_data(self):
+        self.participant = self.request.participant
         return {'is_winter_school': dateutils.is_winter_school(),
                 'ranked_signups': json.dumps(self.ranked_signups_dict),
                 'car_form': self.get_car_form(use_post=True),
                 'lottery_form': self.get_lottery_form(),
-                'paired': self.paired}
+                'reciprocally_paired': self.reciprocally_paired,
+                'paired_par': self.paired_par}
 
     def post(self, request, *args, **kwargs):
         context = self.get_context_data()
@@ -1186,7 +1189,7 @@ class LotteryPreferencesView(TemplateView, LotteryPairingMixin):
 
 
     def handle_paired_signups(self):
-        if not self.paired:
+        if not self.reciprocally_paired:
             return
         paired_par = self.paired_par
         # Don't just iterate through saved forms. This could miss signups

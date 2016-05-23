@@ -79,8 +79,8 @@ participants. </p>
 
   <h4 id="ranked_trips"> Ranked trips </h4>
 
-  {% if paired %}
-    <p>You are <a href="{% url 'lottery_pair' %}">paired with {{ participant.lotteryinfo.paired_with }}</a>.
+  {% if reciprocally_paired %}
+    <p>You are <a href="{% url 'lottery_pair' %}">paired with {{ paired_par }}</a>.
     You will only be placed on a trip if there is room for both of you.
     You must <em>both</em> sign up for a trip in order to be considered for it
     (if only one of you signs up for a trip, that signup will be ignored).</p>
