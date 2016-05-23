@@ -161,6 +161,10 @@ SIGNUPS_OPEN = True
 ACCOUNT_ADAPTER = 'ws.users.adapter.AllowSignupAdapter'
 
 PIPELINE = {
+    # Yuglify isn't installing properly in playbook, so just disable for now
+    'JS_COMPRESSOR': None,
+    'CSS_COMPRESSOR': None,
+
     'JAVASCRIPT': {
         'app': {
             'source_filenames': (
