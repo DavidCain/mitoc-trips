@@ -1,16 +1,4 @@
 {% extends "messages_page.html" %}
-{% load staticfiles %}
-
-{% block head %}
-{{ block.super }}
-{{ form.media }}
-
-<style>  {# Simple, doesn't need its own stylesheet. #}
-.select2-container {
-    width: 18em;
-}
-</style>
-{% endblock head %}
 
 {% block content %}
 {{ block.super }}
