@@ -158,8 +158,6 @@ USE_TZ = True
 
 # Project-specific settings
 MUST_UPDATE_AFTER_DAYS = 180
-SIGNUPS_OPEN = True
-ACCOUNT_ADAPTER = 'ws.users.adapter.AllowSignupAdapter'
 
 PIPELINE = {
     # Yuglify isn't installing properly in playbook, so just disable for now
