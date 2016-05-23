@@ -19,40 +19,38 @@ urlpatterns = patterns('',
     url(r'^admin/trips/$', views.admin_manage_trips, name='admin_manage_trips'),
 
     # Activity Chair views
-    url(r'^chair/leaders/add/$', views.add_leader, name='add_leader'),
+    url(r'^chair/leaders/$', views.manage_leaders, name='manage_leaders'),
     url(r'^chair/applications/$', views.AllLeaderApplicationsView.as_view(), name='manage_applications'),
     url(r'^chair/applications/(?P<pk>\d+)/$', views.LeaderApplicationView.as_view(), name='view_application'),
     url(r'^chair/trips/$', views.manage_trips, name='manage_trips'),
     url(r'^chair/participants/lecture_attendance/$', views.LectureAttendanceView.as_view(), name='lecture_attendance'),
 
     # Activity Chairs or WIMP views
-    url(r'^trips/medical/$', views.WIMPView.as_view(), name='wimp'),
+    url(r'^trips/medical/$', views.AllTripsMedicalView.as_view(), name='all_trips_medical'),
 
     # Leader views
-    url(r'^trips/create/$', views.AddTripView.as_view(), name='add_trip'),
+    url(r'^leaders/$', views.AllLeadersView.as_view(), name='leaders'),
+    url(r'^trips/create/$', views.CreateTripView.as_view(), name='create_trip'),
     url(r'^trips/(?P<pk>\d+)/delete/$', views.DeleteTripView.as_view(), name='delete_trip'),
     url(r'^trips/(?P<pk>\d+)/edit/$', views.EditTripView.as_view(), name='edit_trip'),
-    url(r'^leaders/$', views.LeaderView.as_view(), name='leaders'),
-    url(r'^leaders.json/(?:(?P<activity>.+)/)?$', views.JsonLeaderView.as_view(), name='json-leaders'),
     url(r'^trips/(?P<pk>\d+)/admin/$', views.AdminTripView.as_view(), name='admin_trip'),
     url(r'^trips/(?P<pk>\d+)/admin/signups/$', views.AdminTripSignupsView.as_view(), name='admin_trip_signups'),
-    url(r'^trips/(?P<pk>\d+)/itinerary/$', views.TripInfoView.as_view(), name='trip_itinerary'),
+    url(r'^trips/(?P<pk>\d+)/itinerary/$', views.TripItineraryView.as_view(), name='trip_itinerary'),
+    url(r'^trips/(?P<pk>\d+)/medical/$', views.TripMedicalView.as_view(), name='trip_medical'),
     url(r'^trips/(?P<pk>\d+)/review/$', views.ReviewTripView.as_view(), name='review_trip'),
     url(r'^participants/(?P<pk>\d+)/$', views.ParticipantDetailView.as_view(), name='view_participant'),
     url(r'^participants/find/$', views.ParticipantLookupView.as_view(), name='participant_lookup'),
-    url(r'^trips/(?P<pk>\d+)/medical/$', views.TripMedicalView.as_view(), name='trip_medical'),
 
     # General views (anyone can view or only participants with info)
     url(r'^profile/$', views.ProfileView.as_view(), name='profile'),
-    url(r'^leaders/(?P<pk>\d+)/ratings/(?P<activity>.+).json', views.get_rating, name='get_rating'),
-    url(r'^personal_info/$', views.UpdateParticipantView.as_view(), name='update_info'),
-    url(r'^leaders/apply/$', views.BecomeLeaderView.as_view(), name='become_leader'),
+    url(r'^profile/edit/$', views.EditProfileView.as_view(), name='edit_profile'),
+    url(r'^leaders/apply/$', views.LeaderApplyView.as_view(), name='become_leader'),
     url(r'^trips/(?P<pk>\d+)/$', views.TripView.as_view(), name='view_trip'),
-    url(r'^trips/$', views.UpcomingTripsView.as_view(), name='view_trips'),
-    url(r'^trips/all/$', views.AllTripsView.as_view(), name='view_all_trips'),
+    url(r'^trips/$', views.UpcomingTripsView.as_view(), name='upcoming_trips'),
+    url(r'^trips/all/$', views.AllTripsView.as_view(), name='all_trips'),
     url(r'^trips/signup/$', views.SignUpView.as_view(), name='trip_signup'),
-    url(r'^preferences/lottery/$', views.LotteryPreferencesView.as_view(), name='trip_preferences'),
-    url(r'^preferences/lottery/pairing/$', views.LotteryPairView.as_view(), name='lottery_pair'),
+    url(r'^preferences/lottery/$', views.LotteryPreferencesView.as_view(), name='lottery_preferences'),
+    url(r'^preferences/lottery/pairing/$', views.LotteryPairingView.as_view(), name='lottery_pairing'),
 
     # Help views (most pages available to anyone, some require groups)
     url(r'^contact/$', TemplateView.as_view(template_name='contact.html'), name='contact'),
@@ -68,4 +66,6 @@ urlpatterns = patterns('',
 
     # API (must have account in system)
     url(r'^trips/(?P<pk>\d+)/overflow.json$', views.CheckTripOverflowView.as_view(), name='check_trip_overflow'),
+    url(r'^leaders.json/(?:(?P<activity>.+)/)?$', views.JsonAllLeadersView.as_view(), name='json-leaders'),
+    url(r'^leaders/(?P<pk>\d+)/ratings/(?P<activity>.+).json', views.get_rating, name='get_rating'),
 ) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

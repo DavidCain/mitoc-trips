@@ -37,7 +37,7 @@ class LotteryMessages(object):
 
     def prefs_link(self, text='lottery preferences'):
         # Remember to set extra_tags='safe' to avoid escaping HTML
-        return '<a href="{}">{}</a>'.format(reverse('trip_preferences'), text)
+        return '<a href="{}">{}</a>'.format(reverse('lottery_preferences'), text)
 
     def warn_if_missing_lottery(self):
         """ Warn if lottery information isn't found for the participant.
@@ -88,7 +88,8 @@ def warn_if_needs_update(request):
             return
         msg = 'Personal information is out of date.'
 
-    msg += ' <a href="{}">Update</a> to sign up for trips'.format(reverse('update_info'))
+    edit_url = reverse('edit_profile')
+    msg += ' <a href="{}">Update</a> to sign up for trips'.format(edit_url)
     messages.add_message(request, WARNING, msg, extra_tags='safe')
 
 

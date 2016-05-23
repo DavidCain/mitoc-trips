@@ -7,7 +7,7 @@
 <h3>Upcoming trips </h3>
 {% if not past_trips %}
   {% if user.is_authenticated %}
-    <p><a href="{% url 'view_all_trips' %}">View past trips</a></p>
+    <p><a href="{% url 'all_trips' %}">View past trips</a></p>
   {% else %}
     <p><a href="{% url 'account_login' %}">Log in</a> to join a trip or view past trips.</a></p>
   {% endif %}
@@ -17,7 +17,7 @@
 {% else %}
     <p> No current or upcoming trips!
     {% if "leaders" in groups %}
-    <a href="{% url 'add_trip' %}">Create one?</a>
+    <a href="{% url 'create_trip' %}">Create one?</a>
     {% endif %}
     </p>
 {% endif %}

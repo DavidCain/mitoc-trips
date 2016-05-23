@@ -160,7 +160,7 @@ class TripForm(DjangularRequiredModelForm):
 
 
 class SummaryTripForm(forms.ModelForm):
-    """ Intended to be read-only, cover key elements. Seen on view_trips. """
+    """ Intended to be read-only, summarize key elements about a trip."""
     class Meta:
         model = models.Trip
         fields = ['name', 'trip_date', 'description', 'maximum_participants',

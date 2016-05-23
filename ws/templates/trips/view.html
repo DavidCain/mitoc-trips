@@ -42,7 +42,7 @@
         <p>Signups are open!</p>
 
         {% if not viewing_participant.info_current %}
-            <p> You cannot sign up for trips until you <a href="{% url 'update_info' %}">submit personal information.</a></p>
+            <p> You cannot sign up for trips until you <a href="{% url 'edit_profile' %}">submit personal information.</a></p>
         {% else %}
             <form name="{{ signup_form.form_name }}" action="{% url 'trip_signup' %}" method="post" novalidate>
                 {% csrf_token %}

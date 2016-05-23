@@ -14,7 +14,7 @@
   <button type="submit" data-ng-disabled="{{ participant_form.form_name }}.$invalid" class="btn btn-primary">Sign Up</button>
 </form>
 {% else %}
-  <p>Not signing up for any given trip. <a href="{% url 'view_trips' %}">Browse available trips?</a></p>
+  <p>Not signing up for any given trip. <a href="{% url 'upcoming_trips' %}">Browse available trips?</a></p>
 {% endif %}
 {% endwith %}
 

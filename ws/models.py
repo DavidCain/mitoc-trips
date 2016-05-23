@@ -292,7 +292,7 @@ class SignUp(models.Model):
 class TripInfo(models.Model):
     drivers = models.ManyToManyField(Participant, blank=True,
                                      help_text=string_concat("If a trip participant is driving, but is not on this list, they must first submit <a href='",
-                                                             reverse_lazy('update_info'),
+                                                             reverse_lazy('edit_profile'),
                                                              "#car'>information about their car</a>. They should then be added here."))
     start_location = models.CharField(max_length=127)
     start_time = models.CharField(max_length=63)

@@ -46,13 +46,13 @@
             <div id="navbar" class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
 
-                    <li><a href="{% url 'view_trips' %}">Trips</a></li>
+                    <li><a href="{% url 'upcoming_trips' %}">Trips</a></li>
 
                     {% if "leaders" in groups %}
                         <li class="dropdown">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Leaders <span class="caret"></span></a>
                             <ul class="dropdown-menu">
-                                <li> <a href="{% url 'add_trip' %}"> New trip </a> </li>
+                                <li> <a href="{% url 'create_trip' %}"> New trip </a> </li>
                                 <li> <a href="{% url 'leaders' %}">All leaders</a> </li>
                                 <li> <a href="{% url 'participant_lookup' %}">Participant lookup</a> </li>
                             </ul>
@@ -63,10 +63,10 @@
                         <li class="dropdown">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">WSC <span class="caret"></span></a>
                             <ul class="dropdown-menu">
-                                <li> <a href="{% url 'add_leader' %}">Leader ratings</a> </li>
+                                <li> <a href="{% url 'manage_leaders' %}">Leader ratings</a> </li>
                                 <li> <a href="{% url 'manage_applications' %}"> Manage leader applications </a> </li>
                                 <li> <a href="{% url 'manage_trips' %}"> Manage trips </a> </li>
-                                <li> <a href="{% url 'wimp' %}"> WIMP </a> </li>
+                                <li> <a href="{% url 'all_trips_medical' %}"> WIMP </a> </li>
                             </ul>
                         </li>
                     {% endif %}
@@ -75,7 +75,7 @@
                         <li class="dropdown">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Chair <span class="caret"></span></a>
                             <ul class="dropdown-menu">
-                                <li> <a href="{% url 'add_leader' %}">Leader ratings</a> </li>
+                                <li> <a href="{% url 'manage_leaders' %}">Leader ratings</a> </li>
                             </ul>
                         </li>
                     {% endif %}
@@ -86,9 +86,9 @@
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Admin <span class="caret"></span></a>
                             <ul class="dropdown-menu">
                                 <li> <a href="{% url 'admin:index' %}"> Site administration </a> </li>
-                                <li> <a href="{% url 'add_leader' %}">Leader ratings</a> </li>
+                                <li> <a href="{% url 'manage_leaders' %}">Leader ratings</a> </li>
                                 <li> <a href="{% url 'admin_manage_trips' %}"> Manage trips </a> </li>
-                                <li> <a href="{% url 'wimp' %}"> WIMP </a> </li>
+                                <li> <a href="{% url 'all_trips_medical' %}"> WIMP </a> </li>
                             </ul>
                         </li>
                     {% endif %}
@@ -109,8 +109,8 @@
                         <ul class="dropdown-menu" data-ng-controller="authController">
                             {% if user.is_authenticated %}
                                 <li> <a href="{% url 'profile' %}">Profile</a> </li>
-                                <li> <a href="{% url 'update_info' %}">Edit</a> </li>
-                                <li> <a href="{% url 'trip_preferences' %}">Lottery preferences</a> </li>
+                                <li> <a href="{% url 'edit_profile' %}">Edit</a> </li>
+                                <li> <a href="{% url 'lottery_preferences' %}">Lottery preferences</a> </li>
                                 <li role="separator" class="divider"></li>
                                 <li> <a href="{% url 'account_change_password' %}">Change password</a> </li>
                                 <li> <a href="{% url 'account_email' %}">Manage email(s)</a> </li>

@@ -98,7 +98,7 @@
         {% elif user_viewing %}
           <div class="well">
             <p>You indicated you don't own a car, and that's cool.</p>
-            <p>If you do have a car, please <a href="{% url 'update_info' %}">add its information</a>.
+            <p>If you do have a car, please <a href="{% url 'edit_profile' %}">add its information</a>.
                You'll be under no obligation to drive!
             </p>
           </div>
@@ -224,7 +224,7 @@
           </ul>
           {% if user_viewing %}
             <p class="text-center">
-              <a href="{% url 'lottery_pair' %}">Change your pairing preferences</a>
+              <a href="{% url 'lottery_pairing' %}">Change your pairing preferences</a>
             </p>
           {% endif %}
         </div>

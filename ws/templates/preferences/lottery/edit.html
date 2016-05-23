@@ -29,7 +29,7 @@
 {% if not ranked_signups %}
   <h3>About ranking trips</h3>
   <p>Begin by signing up for any trips you're interested in. You can always
-  <a href="{% url 'view_trips' %}">browse all available trips</a>.</p>
+  browse <a href="{% url 'upcoming_trips' %}">upcoming trips</a>.</p>
   <p>If you'd like to go on a trip, sign up for it. Any upcoming lottery-based
   trips you've signed up for will appear here.</p>
 {% endif %}
@@ -59,7 +59,7 @@ participants. </p>
 
   <p data-ng-show="car_status == 'none' || car_status == 'rent'" data-ng-cloak>
   If you end up renting a car, please
-  <a href="{% url 'update_info' %}#car">supply identifying information about the vehicle</a>
+  <a href="{% url 'edit_profile' %}#car">supply identifying information about the vehicle</a>
   before you leave on your trip.
   </p>
 
@@ -80,7 +80,7 @@ participants. </p>
   <h4 id="ranked_trips"> Ranked trips </h4>
 
   {% if reciprocally_paired %}
-    <p>You are <a href="{% url 'lottery_pair' %}">paired with {{ paired_par }}</a>.
+    <p>You are <a href="{% url 'lottery_pairing' %}">paired with {{ paired_par }}</a>.
     You will only be placed on a trip if there is room for both of you.
     You must <em>both</em> sign up for a trip in order to be considered for it
     (if only one of you signs up for a trip, that signup will be ignored).</p>
@@ -88,7 +88,7 @@ participants. </p>
     up for the same trips, the rankings will apply for both of you.
     </p>
   {% else %}
-    <p><a href="{% url 'lottery_pair' %}">Sign up for trips as a pair</a></p>
+    <p><a href="{% url 'lottery_pairing' %}">Sign up for trips as a pair</a></p>
   {% endif %}
 
   <trip-rank signups="ranked.signups"></trip-rank>
