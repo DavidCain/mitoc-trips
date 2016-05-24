@@ -24,7 +24,7 @@
             {% endif %}
         </td>
         <td><strong>{{ trip.difficulty_rating }}</strong> {{ trip.description|truncatechars:50 }}</td>
-        {% with signups_on_trip=trip.signups_on_trip|default_if_none:0 %}
+        {% with signups_on_trip=trip.signups_on_trip %}
         <td data-value="{{ trip.num_signups }}"> {{ trip.num_signups }} / {{ trip.maximum_participants }}</td>
         <td> {{ trip.maximum_participants|subtract:signups_on_trip }} </td>
         {% endwith %}

@@ -1007,11 +1007,14 @@ class TripListView(ListView):
         # Each trip will need information about its leaders, so prefetch models
         trips = super(TripListView, self).get_queryset()
         trips = trips.prefetch_related('leaders', 'leaders__leaderrating_set')
-        trips = trips.annotate(num_signups=Count('signup'))
-        trips = trips
-        return trips.annotate(signups_on_trip=Sum(Case(
-                When(signup__on_trip=True, then=1),
-                output_field=IntegerField())))
+
+        signup_on_trip = Case(
+            When(signup__on_trip=True, then=1),
+            default=0,
+            output_field=IntegerField()
+        )
+        return trips.annotate(num_signups=Count('signup'),
+                              signups_on_trip=Sum(signup_on_trip))
 
     def get_context_data(self, **kwargs):
         """ Sort trips into past and present trips. """
