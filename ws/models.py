@@ -15,7 +15,7 @@ from django.utils.translation import string_concat
 from localflavor.us.models import PhoneNumberField
 from localflavor.us.models import USStateField
 from ws.fields import OptionalOneToOneField
-from ws import dateutils
+import ws.utils.dates as dateutils
 
 
 pytz_timezone = timezone.get_default_timezone()
@@ -131,7 +131,7 @@ class Participant(models.Model):
     def is_leader(self):
         """ Query ratings to determine if this participant is a leader.
 
-        Wnen dealing with Users, it's faster to use perm_utils.is_leader
+        Wnen dealing with Users, it's faster to use utils.perms.is_leader
         """
         return self.leaderrating_set.exists()
 

@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from django.db import models, migrations
 import ws.fields
 import localflavor.us.models
-import ws.dateutils
+import ws.utils.dates
 from django.conf import settings
 import django.utils.timezone
 import ws.models
@@ -161,9 +161,9 @@ class Migration(migrations.Migration):
                 ('notes', models.TextField(max_length=2000, blank=True)),
                 ('time_created', models.DateTimeField(auto_now_add=True)),
                 ('last_edited', models.DateTimeField(auto_now=True)),
-                ('trip_date', models.DateField(default=ws.dateutils.nearest_sat)),
+                ('trip_date', models.DateField(default=ws.utils.dates.nearest_sat)),
                 ('signups_open_at', models.DateTimeField(default=django.utils.timezone.now)),
-                ('signups_close_at', models.DateTimeField(default=ws.dateutils.closest_wed_at_noon, null=True, blank=True)),
+                ('signups_close_at', models.DateTimeField(default=ws.utils.dates.closest_wed_at_noon, null=True, blank=True)),
                 ('algorithm', models.CharField(default='lottery', max_length='31', choices=[('lottery', 'lottery'), ('fcfs', 'first-come, first-serve')])),
                 ('creator', models.ForeignKey(related_name='created_trips', to='ws.Leader')),
                 ('leaders', models.ManyToManyField(to='ws.Leader')),

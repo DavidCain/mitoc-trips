@@ -8,8 +8,8 @@ from djng.styling.bootstrap3.forms import Bootstrap3Form, Bootstrap3FormMixin
 from localflavor.us.us_states import US_STATES
 
 from ws import models
-from ws import signup_utils
 from ws import widgets
+from ws.utils.signups import non_trip_participants
 
 
 class DjangularRequiredModelForm(NgFormValidationMixin, NgModelFormMixin, Bootstrap3FormMixin, NgModelForm):
@@ -203,7 +203,7 @@ class LeaderSignUpForm(RequiredModelForm):
 
     def __init__(self, trip, *args, **kwargs):
         super(LeaderSignUpForm, self).__init__(*args, **kwargs)
-        non_trip = signup_utils.non_trip_participants(trip)
+        non_trip = non_trip_participants(trip)
         self.fields['participant'].queryset = non_trip
         self.fields['participant'].help_text = None  # Disable "Hold command..."
 
@@ -240,7 +240,7 @@ class FlakeForm(forms.Form):
 
     def __init__(self, trip, *args, **kwargs):
         super(FlakeForm, self).__init__(*args, **kwargs)
-        self.fields['flakers'].queryset = signup_utils.non_trip_participants(trip)
+        self.fields['flakers'].queryset = non_trip_participants(trip)
         self.fields['flakers'].help_text = None  # Disable "Hold command..."
 
 

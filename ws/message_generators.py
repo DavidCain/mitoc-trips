@@ -10,9 +10,9 @@ from django.contrib.messages import INFO, WARNING
 from django.core.urlresolvers import reverse
 from django.utils import timezone
 
-from ws.dateutils import local_now, is_winter_school
 from ws import models
-from ws import perm_utils
+from ws.utils.dates import local_now, is_winter_school
+import ws.utils.perms
 
 
 class LotteryMessages(object):
@@ -104,7 +104,7 @@ def _feedback_eligible_trips(participant):
 
 def complain_if_missing_feedback(request):
     """ Create message if a Leader should supply feedback. """
-    if not perm_utils.is_leader(request.user):
+    if not ws.utils.perms.is_leader(request.user):
         return
 
     participant = request.participant

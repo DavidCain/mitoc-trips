@@ -22,12 +22,12 @@ from allauth.account.views import PasswordChangeView
 
 from ws import forms
 from ws import models
-from ws.dateutils import local_now
 from ws.decorators import group_required, user_info_required, admin_only, chairs_only
-from ws import dateutils
 from ws import message_generators
-from ws import signup_utils
-from ws import perm_utils
+
+from ws.utils.dates import local_now, friday_before, is_winter_school
+import ws.utils.perms as perm_utils
+import ws.utils.signups as signup_utils
 
 
 class LeadersOnlyView(View):
@@ -457,7 +457,7 @@ class TripView(TripDetailView):
 
 class ItineraryEditableMixin(object):
     def friday_before(self, trip):
-        return dateutils.friday_before(trip.trip_date)
+        return friday_before(trip.trip_date)
 
     def info_form_available(self, trip):
         """ Trip itinerary should only be submitted Friday before or later. """
@@ -1144,7 +1144,7 @@ class LotteryPreferencesView(TemplateView, LotteryPairingMixin):
 
     def get_context_data(self):
         self.participant = self.request.participant
-        return {'is_winter_school': dateutils.is_winter_school(),
+        return {'is_winter_school': is_winter_school(),
                 'ranked_signups': json.dumps(self.ranked_signups_dict),
                 'car_form': self.get_car_form(use_post=True),
                 'lottery_form': self.get_lottery_form(),

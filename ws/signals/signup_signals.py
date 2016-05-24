@@ -10,10 +10,9 @@ from django.db.models.signals import pre_delete, post_delete
 from django.db.models.signals import m2m_changed
 from django.dispatch import receiver
 
-from ws.dateutils import local_now
 from ws.models import SignUp, WaitList, WaitListSignup, Trip
-from ws import signup_utils
-
+from ws.utils.dates import local_now
+from ws.utils.signups import trip_or_wait, update_queues_if_trip_open
 
 @receiver(post_save, sender=SignUp)
 def new_fcfs_signup(sender, instance, created, raw, using, update_fields, **kwargs):
@@ -22,7 +21,7 @@ def new_fcfs_signup(sender, instance, created, raw, using, update_fields, **kwar
         When a participant tries to sign up, put them on the trip, or its waiting list.
     """
     if created and not getattr(instance, 'skip_signals', False):
-        signup_utils.trip_or_wait(instance)
+        trip_or_wait(instance)
 
 
 @receiver(pre_delete, sender=Trip)
@@ -45,7 +44,7 @@ def empty_waitlist(sender, instance, using, **kwargs):
 def free_spot_on_trip(sender, instance, using, **kwargs):
     """ When a participant deletes a signup, update queues if applicable. """
     if not getattr(instance, 'skip_signals', False):
-        signup_utils.update_queues_if_trip_open(instance.trip)
+        update_queues_if_trip_open(instance.trip)
 
 
 @receiver(post_save, sender=SignUp)
@@ -58,7 +57,7 @@ def on_trip_bump(sender, instance, created, raw, using, update_fields, **kwargs)
     room for future signups, as FCFS signups close at midnight before.
     """
     if not instance.on_trip:
-        signup_utils.update_queues_if_trip_open(instance.trip)
+        update_queues_if_trip_open(instance.trip)
 
 
 @receiver(post_delete, sender=WaitListSignup)

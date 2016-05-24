@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 from django.db import models, migrations
-import ws.dateutils
+import ws.utils.dates
 
 
 class Migration(migrations.Migration):
@@ -21,6 +21,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='trip',
             name='signups_close_at',
-            field=models.DateTimeField(default=ws.dateutils.wed_morning, null=True, blank=True),
+            field=models.DateTimeField(default=ws.utils.dates.wed_morning, null=True, blank=True),
         ),
     ]

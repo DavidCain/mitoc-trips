@@ -7,13 +7,12 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.utils import timezone
 
-from ws import dateutils
-from ws.signup_utils import add_to_waitlist
+from ws.utils.dates import local_now, closest_wed_at_noon
+from ws.utils.signups import add_to_waitlist
 from ws import models
-from datetime import date, timedelta
 
 
-today = dateutils.local_now().date()
+today = local_now().date()
 pytz_timezone = timezone.get_default_timezone()
 jan_1st = timezone.datetime(today.year, 1, 1)
 jan_1st = pytz_timezone.localize(jan_1st)
@@ -100,7 +99,7 @@ def free_for_all():
     """
     print "Making all lottery trips first-come, first-serve"
     lottery_trips = models.Trip.objects.filter(algorithm='lottery')
-    noon = dateutils.closest_wed_at_noon()
+    noon = closest_wed_at_noon()
     for trip in lottery_trips:
         trip.make_fcfs(signups_open_at=noon)
         trip.save()

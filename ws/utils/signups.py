@@ -2,7 +2,7 @@ from django.contrib.messages import add_message, ERROR, SUCCESS
 from django.db.models import Q
 
 from ws import models
-from ws.dateutils import local_now
+from ws.utils.dates import local_now
 
 
 def next_in_order(signup, manual_order=None):
