@@ -1,4 +1,3 @@
-/ws/conf/production_settings.py
-/ws/conf/dev_settings.py
 /bower_components
 /static
+*.py[cod]
