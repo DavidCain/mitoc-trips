@@ -17,6 +17,8 @@ urlpatterns = patterns('',
     # Administrator views
     url(r'^admin/', include(admin.site.urls)),
     url(r'^admin/trips/$', views.admin_manage_trips, name='admin_manage_trips'),
+    url(r'^participants/(?P<pk>\d+)/edit/$', views.EditParticipantView.as_view(), name='edit_participant'),
+    url(r'^participants/(?P<pk>\d+)/delete/$', views.DeleteParticipantView.as_view(), name='delete_participant'),
 
     # Activity Chair views
     url(r'^chair/leaders/$', views.manage_leaders, name='manage_leaders'),

@@ -7,13 +7,25 @@
 {% block content %}
 
 
-{% if lookup_form and not user_viewing %}
-  <form action="" method="post">
-    <label>View participant:</label>
-    {% csrf_token %}
-    {{ lookup_form }}
-  </form>
-<hr>
+{% if not user_viewing %}
+  <div class="row">
+    {% if lookup_form %}
+      <div class="col-md-8">
+        <form action="" method="post">
+          <label>View participant:</label>
+          {% csrf_token %}
+          {{ lookup_form }}
+        </form>
+      </div>
+    {% endif %}
+    {% if user.is_superuser and participant %}
+      <div class="col-md-4">
+        <delete api-slug="participants" obj-id="{{ participant.id }}"></delete>
+        <a type="button" class="btn btn-default pull-right" href="{% url 'edit_participant' participant.id %}"><i class="fa fa-edit"></i>&nbsp;Edit</a>
+      </div>
+    {% endif %}
+  </div>
+  <hr>
 {% endif %}
 
 {% if participant %}

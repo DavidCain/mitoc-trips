@@ -1,20 +1,15 @@
 {% extends "base.html" %}
 
-{% block js %}
-{{ block.super }}
-{% endblock js %}
-
 {% block content %}
 
 <div id="last_updated">
 {% if not viewing_participant.info_current %}
 <p> Please complete the below fields. <strong>You will not be able to attend a trip until this form is completed.</strong></p>
 {% else %}
-<p>You last updated your information on {{ viewing_participant.last_updated }}</p>
+<p>Last updated on {{ viewing_participant.last_updated }}</p>
 {% endif %}
 </div>
 
-{# TODO: How does more than one form work? #}
 <form name="{{ participant_form.form_name }}" action="" method="post" novalidate>
     {% csrf_token %}
     <div class="row">

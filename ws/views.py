@@ -57,7 +57,34 @@ def leader_on_trip(request, trip, creator_allowed=False):
             creator_allowed and leader == trip.creator)
 
 
-class EditProfileView(TemplateView):
+class OtherParticipantView(SingleObjectMixin):
+    @property
+    def user(self):
+        return self.participant.user
+
+    @property
+    def participant(self):
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return self.object
+
+
+class DeleteParticipantView(OtherParticipantView, DeleteView):
+    model = models.Participant
+    success_url = reverse_lazy('participant_lookup')
+
+    def delete(self, request, *args, **kwargs):
+        redir = super(DeleteParticipantView, self).delete(request, *args, **kwargs)
+        self.user.delete()
+        return redir
+
+    @method_decorator(admin_only)
+    def dispatch(self, request, *args, **kwargs):
+        return super(DeleteParticipantView, self).dispatch(request, *args, **kwargs)
+
+
+class ParticipantEditMixin(TemplateView):
+    """ Updates a participant. Requires self.participant and self.user. """
     template_name = 'profile/edit.html'
     update_msg = 'Personal information updated successfully'
 
@@ -68,7 +95,7 @@ class EditProfileView(TemplateView):
     def prefix(self, base, **kwargs):
         return dict(prefix=base, scope_prefix=base + '_scope', **kwargs)
 
-    def get_context_data(self):
+    def get_context_data(self, *args, **kwargs):
         """ Return a dictionary primarily of forms to for template rendering.
         Also includes a value for the "I have a car" checkbox.
 
@@ -80,7 +107,7 @@ class EditProfileView(TemplateView):
         Forms are bound to model instances for UPDATE if such instances exist.
         """
         post = self.request.POST if self.request.method == "POST" else None
-        participant = self.request.participant
+        participant = self.participant
 
         # Access other models within participant
         car = participant and participant.car
@@ -90,7 +117,7 @@ class EditProfileView(TemplateView):
         # If no Participant object, fill at least with User email
         par_kwargs = self.prefix("participant", instance=participant)
         if not participant:
-            par_kwargs["initial"] = {'email': self.request.user.email}
+            par_kwargs["initial"] = {'email': self.user.email}
 
         context = {
             'participant_form': forms.ParticipantForm(post, **par_kwargs),
@@ -124,9 +151,10 @@ class EditProfileView(TemplateView):
             context['car_form'] = forms.CarForm()  # Avoid validation errors
 
         if all(form.is_valid() for form in required_dict.values()):
-            self._save_forms(request.user, required_dict)
-            messages.add_message(request, messages.SUCCESS, self.update_msg)
-            return redirect(request.GET.get('next', 'profile'))
+            self._save_forms(self.user, required_dict)
+            if self.participant == self.request.participant:
+                messages.add_message(request, messages.SUCCESS, self.update_msg)
+            return self.success_redirect()
         else:
             return render(request, self.template_name, context)
 
@@ -164,7 +192,31 @@ class EditProfileView(TemplateView):
 
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
-        return super(EditProfileView, self).dispatch(request, *args, **kwargs)
+        return super(ParticipantEditMixin, self).dispatch(request, *args, **kwargs)
+
+    def success_redirect(self):
+        return redirect(self.request.GET.get('next', 'profile'))
+
+
+class EditParticipantView(ParticipantEditMixin, OtherParticipantView):
+    model = models.Participant
+
+    def success_redirect(self):
+        return redirect(reverse('view_participant', args=(self.participant.id,)))
+
+    @method_decorator(admin_only)
+    def dispatch(self, request, *args, **kwargs):
+        return super(ParticipantEditMixin, self).dispatch(request, *args, **kwargs)
+
+
+class EditProfileView(ParticipantEditMixin):
+    @property
+    def user(self):
+        return self.request.user
+
+    @property
+    def participant(self):
+        return self.request.participant
 
 
 class ParticipantLookupView(TemplateView, FormView):
