@@ -230,8 +230,8 @@
           {% endif %}
 
           <ul>
-            {% for participant in pair_requests %}
-            <li>{{ participant.name }} has requested to be paired with {% if user_viewing %}you{% else %}{{ participant.name }}{% endif %}.</li>
+            {% for other_participant in pair_requests %}
+            <li>{{ other_participant.name }} has requested to be paired with {% if user_viewing %}you{% else %}{{ participant.name }}{% endif %}.</li>
             {% endfor %}
           </ul>
           {% if user_viewing %}
