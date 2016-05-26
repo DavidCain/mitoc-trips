@@ -18,7 +18,7 @@
     <a type="button" class="btn btn-default" href="{% url 'review_trip' trip.id %}"><i class="fa fa-comments"></i>&nbsp;Feedback</a>
 </div>
 
-<delete-trip data-trip-id="{{ trip.id }}"></delete-trip>
+<delete api-slug="trips" obj-id="{{ trip.id }}"></delete>
 
 {% trip_summary trip %}
 

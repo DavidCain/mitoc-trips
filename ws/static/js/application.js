@@ -247,25 +247,29 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
     }
   }
 })
-.directive('deleteTrip', function($http, $window, $uibModal) {
+.directive('delete', function($http, $window, $uibModal) {
   return {
     restrict: 'E',
     scope: {
-      tripId: '=',
+      objId: '=',
+      apiSlug: '@'
     },
-    templateUrl: '/static/template/delete-trip.html',
+    templateUrl: '/static/template/delete.html',
     link: function (scope, element, attrs) {
-      scope.deleteTrip = function(){
-        $http.post('/trips/' + scope.tripId + '/delete/').then(function(){
+      scope.deleteObject = function(){
+        if (!scope.apiSlug || !scope.objId){
+          scope.error = "Object unknown; unable to delete";
+        }
+        $http.post('/' + scope.apiSlug + '/' + scope.objId + '/delete/').then(function(){
           $window.location.href = '/';
         },
         function(){
-          scope.error = "An error occurred deleting the trip.";
+          scope.error = "An error occurred deleting the object.";
         });
       }
-      scope.confirmDeleteTrip = function(){
+      scope.confirmDelete = function(){
         $uibModal.open({
-          templateUrl: '/static/template/delete-trip-modal.html',
+          templateUrl: '/static/template/delete-modal.html',
           scope: scope
         })
       }
