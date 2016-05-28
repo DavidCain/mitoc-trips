@@ -179,6 +179,7 @@ other_libs = ['lodash/dist/lodash.js',
 local_js = ['js/application.js', 'js/footable_breakpoints.js']
 
 PIPELINE = {
+    'JS_COMPRESSOR': 'pipeline.compressors.uglifyjs.UglifyJSCompressor',
     'JAVASCRIPT': {
         # With jQuery and Angular served via CDN, this is everything
         'app': {
