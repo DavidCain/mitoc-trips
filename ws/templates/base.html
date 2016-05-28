@@ -11,8 +11,9 @@
     <meta name="author" content="David Cain">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     {% endblock meta %}
-    <title>{% block title %}MITOC Trips{% endblock title %}</title>
+    <title>{% block head_title %}{% endblock head_title %} | MITOC Trips</title>
     <link rel="shortcut icon" type="image/png" href="{% static 'favicon.ico' %}"/>
+
 
     {% block css %}
     {% stylesheet 'app' %}

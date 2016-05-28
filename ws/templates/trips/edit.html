@@ -1,4 +1,5 @@
 {% extends "trips/__create_or_edit.html" %}
+{% block head_title %}Edit {{ trip.name }}{% endblock head_title %}
 
 {% block content %}
   {% if form.instance.wsc_approved and not "WSC" in groups and not user.is_superuser %}

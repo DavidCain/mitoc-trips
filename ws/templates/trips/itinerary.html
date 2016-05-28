@@ -1,9 +1,6 @@
 {% extends "base.html" %}
 
-{% block head %}
-{{ block.super }}
-{{ form.media }}
-{% endblock head %}
+{% block head_title %}Submit itinerary - {{ trip.name }}{% endblock head_title %}
 
 {% block content %}
 

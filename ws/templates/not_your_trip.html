@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% block head_title %}Must be a leader on {{ trip.name }}{% endblock head_title %}
 {% block content %}
 <h2>Must be a leader to administrate trip</h2>
 <p>You are not a leader on <a href="{% url 'view_trip' trip.id %}">{{ trip.name }}</a>.</p>

@@ -1,6 +1,8 @@
 {% extends "messages_page.html" %}
 {% load signup_tags %}
 
+{% block head_title %}{{ trip.name }}{% endblock head_title %}
+
 {% block content %}
 {{ block.super }}
 

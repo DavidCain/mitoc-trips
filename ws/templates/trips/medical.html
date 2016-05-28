@@ -2,6 +2,8 @@
 {% load signup_tags %}
 {% load readonly_form %}
 
+{% block head_title %}Itinerary - {{ trip.name }}{% endblock head_title %}
+
 {% block content %}
 {{ block.super }}
 

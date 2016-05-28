@@ -4,8 +4,15 @@
 {% load trip_tags %}
 {% load messages_tags %}
 
-{% block content %}
+{% block head_title %}
+{% if not user_viewing and lookup_form %}
+Lookup participant
+{% else %}
+{{ participant.name }}
+{% endif %}
+{% endblock head_title %}
 
+{% block content %}
 
 {% if not user_viewing %}
   <div class="row">

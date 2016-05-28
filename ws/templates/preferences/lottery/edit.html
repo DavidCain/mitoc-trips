@@ -1,4 +1,5 @@
 {% extends "messages_page.html" %}
+{% block head_title %}Lottery preferences {% endblock head_title %}
 
 {% block js %}
 {{ block.super }}
@@ -10,7 +11,7 @@
 {% block content %}
 {{ block.super }}
 
-<h2> Lottery Preferences </h2>
+<h2>Lottery Preferences</h2>
 {% if is_winter_school %}
   <h3>Winter School Lottery</h3>
   <p>Due to the large number of Winter School participants and a limited number
