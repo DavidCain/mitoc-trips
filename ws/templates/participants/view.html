@@ -243,16 +243,18 @@
       </div>
     {% endif %}
 
-    <div class="row">
-      <div class="col-md-12">
-        <h3>Stats</h3>
-        <ul>
-          {% for line in stats %}
-            <li>{{ line }}</li>
-          {% endfor %}
-        </ul>
+    {% if stats %}
+      <div class="row">
+        <div class="col-md-12">
+          <h3>Stats</h3>
+          <ul>
+            {% for line in stats %}
+              <li>{{ line }}</li>
+            {% endfor %}
+          </ul>
+        </div>
       </div>
-    </div>
+    {% endif %}
 
   </div>
 

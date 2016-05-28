@@ -305,6 +305,8 @@ class ParticipantView(ParticipantLookupView, SingleObjectMixin, LotteryPairingMi
     def get_stats(self, trips):
         num_attended = len(trips['past']['on_trip'])
         num_led = len(trips['past']['leader'])
+        if not (num_attended or num_led):
+            return []
         stats = ["Attended {} trip".format(num_attended) + ('' if num_attended == 1 else 's'),
                  "Led {} trip".format(num_led) + ('' if num_led == 1 else 's')]
         return stats
