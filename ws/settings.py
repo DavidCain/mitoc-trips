@@ -177,6 +177,8 @@ other_libs = ['lodash/dist/lodash.js',
               'js/ui-bootstrap-tpls-0.14.3.js',
               ]
 local_js = ['js/application.js', 'js/footable_breakpoints.js']
+if not DEBUG:
+    local_js.append('js/ga.js')  # Google Analytics
 
 PIPELINE = {
     'JS_COMPRESSOR': 'pipeline.compressors.uglifyjs.UglifyJSCompressor',
