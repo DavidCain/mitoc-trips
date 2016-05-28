@@ -1,4 +1,5 @@
-{% load pipeline%}
+{% load pipeline %}
+{% load staticfiles %}
 {% load gravatar %}
 {% load perm_tags %}
 <!DOCTYPE html>
@@ -16,18 +17,12 @@
     {% endblock css %}
 
     {% block js %}
-    {% javascript 'app' %}
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+    <script>window.jQuery || document.write("<script src='{% static "jquery/dist/jquery.min.js" %}'><\/script>")</script>
 
-    <script type="text/javascript">
-        $(function () {
-            $('.footable').footable({
-                breakpoints: {
-                    phone: 480,
-                    tablet: 900, {# Content column is 940 before resizing #}
-                }
-            });
-        });
-    </script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.10/angular.min.js"></script>
+    <script>window.angular || document.write("<script src='{% static "angular/angular.min.js" %}'><\/script>")</script>
+    {% javascript 'app' %}
     {% endblock js %}
 {% endblock head %}
 </head>

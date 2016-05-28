@@ -159,36 +159,32 @@ USE_TZ = True
 # Project-specific settings
 MUST_UPDATE_AFTER_DAYS = 180
 
+# Break packages up based on how they'll be served
+cdn_libs = ['jquery/dist/jquery.min.js', 'angular/angular.js']
+other_libs = ['lodash/dist/lodash.js',
+              'bootstrap/dist/js/bootstrap.min.js',
+              'footable/js/footable.js',
+              'footable/js/footable.sort.js',
+              'jquery-ui/ui/core.js',
+              'jquery-ui/ui/widget.js',
+              'jquery-ui/ui/mouse.js',
+              'jquery-ui/ui/sortable.js',
+              'jquery-ui/jquery-ui.js',
+              'djng/js/django-angular.js',
+              'angular-ui-select/dist/select.js',
+              'angular-sanitize/angular-sanitize.js',
+              'angular-ui-sortable/sortable.js',
+              'js/ui-bootstrap-tpls-0.14.3.js',
+              ]
+local_js = ['js/application.js', 'js/footable_breakpoints.js']
+
 PIPELINE = {
-    # Yuglify isn't installing properly in playbook, so just disable for now
-    'JS_COMPRESSOR': None,
-    'CSS_COMPRESSOR': None,
-
     'JAVASCRIPT': {
+        # With jQuery and Angular served via CDN, this is everything
         'app': {
-            'source_filenames': (
-                'lodash/dist/lodash.js',
-                'jquery/dist/jquery.js',
-                'angular/angular.js',
-                'footable/js/footable.js',
-                'footable/js/footable.sort.js',
-                'js/ui-bootstrap-tpls-0.14.3.js',
-                'jquery-ui/ui/core.js',
-                'jquery-ui/ui/widget.js',
-                'jquery-ui/ui/mouse.js',
-                'jquery-ui/ui/sortable.js',
-                'jquery-ui/jquery-ui.js',
-                'djng/js/django-angular.js',
-                'angular-ui-select/dist/select.js',
-                'angular-sanitize/angular-sanitize.js',
-                'angular-ui-sortable/sortable.js',
-
-                'bootstrap/dist/js/bootstrap.min.js',  # Can go after footer
-
-                'js/application.js',
-            ),
+            'source_filenames': other_libs + local_js,
             'output_filename': 'js/app.js',
-        }
+        },
     },
     'STYLESHEETS': {
         'app': {
