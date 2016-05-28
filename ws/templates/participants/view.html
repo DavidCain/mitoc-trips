@@ -155,16 +155,10 @@
   </div>
 
   <div class="col-md-4">
-    {% if user_viewing %}
+    {% if user_viewing and messages %}
       <div class="row">
         <div class="col-md-12">
           <h3>Notifications</h3>
-          <div class="alert alert-info">
-            <p>Welcome to the new profile page!</p>
-            <p>We'll continue to add features here. Soon, you'll be able to see
-            which items you've rented from the MITOC office, check your
-            membership status, and more.</p>
-          </div>
           {% messages_alerts %}
         </div>
       </div>
