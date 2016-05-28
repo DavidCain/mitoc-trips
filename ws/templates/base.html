@@ -103,7 +103,7 @@
                         </a>
                         <ul class="dropdown-menu" data-ng-controller="authController">
                             {% if user.is_authenticated %}
-                                <li> <a href="{% url 'profile' %}">Profile</a> </li>
+                                <li> <a href="{% url 'home' %}">Profile</a> </li>
                                 <li> <a href="{% url 'edit_profile' %}">Edit</a> </li>
                                 <li> <a href="{% url 'lottery_preferences' %}">Lottery preferences</a> </li>
                                 <li role="separator" class="divider"></li>

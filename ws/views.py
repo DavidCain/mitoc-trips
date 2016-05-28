@@ -195,7 +195,7 @@ class ParticipantEditMixin(TemplateView):
         return super(ParticipantEditMixin, self).dispatch(request, *args, **kwargs)
 
     def success_redirect(self):
-        return redirect(self.request.GET.get('next', 'profile'))
+        return redirect(self.request.GET.get('next', 'home'))
 
 
 class EditParticipantView(ParticipantEditMixin, OtherParticipantView):
@@ -359,7 +359,7 @@ class ParticipantView(ParticipantLookupView, SingleObjectMixin, LotteryPairingMi
 class ParticipantDetailView(ParticipantView, FormView, DetailView):
     def get(self, request, *args, **kwargs):
         if request.participant == self.get_object():
-            return redirect(reverse('profile'))
+            return redirect(reverse('home'))
         return super(ParticipantDetailView, self).get(request, *args, **kwargs)
 
     @method_decorator(group_required('leaders'))
@@ -369,6 +369,8 @@ class ParticipantDetailView(ParticipantView, FormView, DetailView):
 
 class ProfileView(ParticipantView):
     def get(self, request, *args, **kwargs):
+        if not request.participant:
+            return render(request, 'home.html')
         message_generators.warn_if_needs_update(request)
         message_generators.complain_if_missing_feedback(request)
 
@@ -380,7 +382,7 @@ class ProfileView(ParticipantView):
         self.kwargs['pk'] = self.request.participant.id
         return super(ProfileView, self).get_object()
 
-    @method_decorator(user_info_required)
+    # Login is not required - we'll handle that in `get()`
     def dispatch(self, request, *args, **kwargs):
         return View.dispatch(self, request, *args, **kwargs)
 
@@ -770,15 +772,6 @@ class ReviewTripView(DetailView):
         if not leader_on_trip(request, trip):
             return render(request, 'not_your_trip.html', {'trip': trip})
         return super(ReviewTripView, self).dispatch(request, *args, **kwargs)
-
-
-def home(request):
-    message_generators.warn_if_needs_update(request)
-    message_generators.complain_if_missing_feedback(request)
-
-    lottery_messages = message_generators.LotteryMessages(request)
-    lottery_messages.supply_all_messages()
-    return render(request, 'home.html')
 
 
 class AllLeadersView(ListView):

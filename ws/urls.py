@@ -1,7 +1,8 @@
 from django.conf.urls import patterns, include, url
 from django.contrib import admin
 from django.conf.urls.static import static
-from django.views.generic import TemplateView
+from django.core.urlresolvers import reverse_lazy
+from django.views.generic import RedirectView, TemplateView
 
 from ws import views
 from ws import settings
@@ -9,7 +10,9 @@ from ws.decorators import group_required
 
 # Access is controlled in views, but URLs are roughly grouped by access
 urlpatterns = patterns('',
-    url(r'^$', views.home, name='home'),
+    url(r'^$', views.ProfileView.as_view(), name='home'),
+    url(r'^profile/*$', RedirectView.as_view(url=reverse_lazy('home'), permanent=True), name='profile'),
+
     # Redirect to home page after changing password (default is annoying loop)
     url(r'^accounts/password/change/$', views.login_after_password_change, name='account_change_password'),
     url(r'^accounts/', include('allauth.urls')),
@@ -44,7 +47,6 @@ urlpatterns = patterns('',
     url(r'^participants/find/$', views.ParticipantLookupView.as_view(), name='participant_lookup'),
 
     # General views (anyone can view or only participants with info)
-    url(r'^profile/$', views.ProfileView.as_view(), name='profile'),
     url(r'^profile/edit/$', views.EditProfileView.as_view(), name='edit_profile'),
     url(r'^leaders/apply/$', views.LeaderApplyView.as_view(), name='become_leader'),
     url(r'^trips/(?P<pk>\d+)/$', views.TripView.as_view(), name='view_trip'),
