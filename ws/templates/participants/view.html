@@ -82,7 +82,7 @@
         {% endif %}
         {% if trips.current.waitlisted %}
           <h4 class="text-center">Waitlisted</h4>
-          {% simple_trip_list trips.current.on_trip %}
+          {% simple_trip_list trips.current.waitlisted %}
         {% endif %}
         {% if trips.current.leader %}
           <h4 class="text-center">As a Leader</h4>

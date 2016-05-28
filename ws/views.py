@@ -280,15 +280,14 @@ class ParticipantView(ParticipantLookupView, SingleObjectMixin, LotteryPairingMi
 
         today = local_now().date()
 
-        trips = models.Trip.objects.filter(signup__participant=participant)
+        is_par = Q(signup__participant=participant)
+        trips = models.Trip.objects.filter(is_par)
         trips = trips.prefetch_related('leaders__leaderrating_set')
-        accepted = trips.filter(signup__participant=participant,
-                                signup__on_trip=True)
+        accepted = trips.filter(is_par, signup__on_trip=True)
+        waitlisted = trips.filter(is_par, signup__waitlistsignup__isnull=False)
 
         in_future = Q(trip_date__gte=today)
         in_past = Q(trip_date__lt=today)
-
-        waitlisted = trips.filter(signup__waitlistsignup__isnull=False)
 
         trips_led = participant.trips_led.prefetch_related('leaders__leaderrating_set')
 
