@@ -2,8 +2,38 @@
 {% block head_title %}About{% endblock head_title %}
 
 {% block faq %}
-<h3 id="about">About this project</h3>
-<p>This system is powered by Django 1.8.
-   It runs on SIPB's <a href="https://scripts.mit.edu/">Scripts</a> services.<p>
+<h2 id="about">About this project</h2>
+<p>This site was created in 2014 to improve MITOC's Winter School program.
+It has since evolved into the central portal for all MITOC trips.</p>
+
+<h3>History</h3>
+<p>
+Once upon a time, Winter School trips operated on a first-come, first-serve
+basis. Signups opened at noon, and filled up extremely quickly. Many
+participants found themselves unable to attend any trips in a given weekend,
+and others struggled to gain exposure to new activities.
+</p>
+
+<p>
+We introduced a lottery system to combat the &quot;fastest gun in the
+West&quot; problem. Instead of rewarding trip slots to whomever could sign up
+the fastest, we used an equitable algorithm to distribute trip slots. As a
+result of this new algorithm, we saw unprecedented levels of participation.
+Everyone who expressed interest in attending weekend trips was placed on a
+trip, and popular activities like ice climbing were more accessible.
+</p>
+
+<h3>Present</h3>
+<p>
+Today, all MITOC trips are organized through this portal. Many trips are
+first-come, first-serve, but we use lottery-based signups for other popular
+trip formats once subject to same problems as Winter School.
+</p>
+
+<h3>Technology</h3>
+<p>The site is powered by PostgreSQL, Django, and Angular. It formerly ran on SIPB's
+<a href="https://scripts.mit.edu/">Scripts</a> service, but has since been
+migrated to Amazon Web Services.<p>
+
 <p>The code that drives this service is <a href="https://github.com/DavidCain/mitoc-trips">open source</a>. Feature requests, comments, and pull requests are welcome!</p>
 {% endblock faq %}
