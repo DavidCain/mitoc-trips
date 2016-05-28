@@ -11,7 +11,13 @@
     <dd>{{ trip.level }}</dd>
 
     <dt>Trip date</dt>
-    <dd>{{ trip.trip_date|date:"l, F jS" }}</dd>
+    <dd>
+      {% if trip.in_past %}
+        {{ trip.trip_date|date:"l, F jS, Y" }}
+      {% else %}
+        {{ trip.trip_date|date:"l, F jS" }}
+      {% endif %}
+    </dd>
 
     <dt>Difficulty rating</dt>
     <dd>{{ trip.difficulty_rating }}</dd>
@@ -33,7 +39,7 @@
     <dt>Maximum participants</dt>
     <dd>{{ trip.maximum_participants }}</dd>
 
-    <dt>Signups {{ trip.signups_open|yesno:"opened,open" }} at</dt>
+    <dt>Signups open{% if trip.in_past or trip.signups_open%}ed{% endif %} at</dt>
     <dd>{{ trip.signups_open_at }}</dd>
 
     {% if trip.signups_close_at %}  {# Not all trips have a close time #}
