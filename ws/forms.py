@@ -113,7 +113,7 @@ class TripForm(DjangularRequiredModelForm):
         model = models.Trip
         fields = ['activity', 'name', 'leaders', 'description', 'trip_date',
                   'algorithm', 'signups_open_at', 'signups_close_at',
-                  'maximum_participants', 'difficulty_rating', 'level',
+                  'maximum_participants', 'difficulty_rating',  # 'level',
                   'prereqs', 'notes']
         widgets = {'leaders': widgets.LeaderSelect,
                    'description': forms.Textarea(attrs={'rows': 4}),
@@ -147,6 +147,13 @@ class TripForm(DjangularRequiredModelForm):
             names = ', '.join(leader.name for leader in lacking_privs)
             msg = "{} can't lead {} trips".format(names, activity)
             self.add_error('leaders', msg)
+
+    def clean_level(self):
+        activity = self.cleaned_data['activity']
+        level = self.cleaned_data['level'].strip()
+        if (not level) and activity == models.LeaderRating.WINTER_SCHOOL:
+            raise ValidationError("Please specify this trip's level")
+        return level
 
     def __init__(self, *args, **kwargs):
         allowed_activities = kwargs.pop("allowed_activities", None)

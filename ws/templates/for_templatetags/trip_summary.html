@@ -7,8 +7,10 @@
     <a href="mailto:{{ leader.email }}">{{ leader|name_with_activity:trip.activity }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}
     </dd>
 
-    <dt>Trip level</dt>
-    <dd>{{ trip.level }}</dd>
+    {% if trip.level %}
+      <dt>Trip level</dt>
+      <dd>{{ trip.level }}</dd>
+    {% endif %}
 
     <dt>Trip date</dt>
     <dd>
