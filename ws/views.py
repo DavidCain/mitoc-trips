@@ -505,7 +505,7 @@ class TripView(TripDetailView):
         signup_utils.trip_or_wait(signup, self.request, trip_must_be_open=True)
         return self.get(request)
 
-    @method_decorator(login_required)
+    @method_decorator(user_info_required)
     def dispatch(self, request, *args, **kwargs):
         return super(TripView, self).dispatch(request, *args, **kwargs)
 
