@@ -83,6 +83,7 @@ def bumped_from_waitlist(sender, instance, using, **kwargs):
     if trip.trip_date < local_now().date():
         return  # Trip was yesterday or earlier, no point notifying
     trip_link = get_trip_link(trip)
+    return  # TODO: There are issues with this going out incorrectly
     send_mail("You're signed up for {}".format(trip),
               "You're on {}! If you can't make it, please remove yourself "
               "from the trip so others can join.".format(trip_link),
