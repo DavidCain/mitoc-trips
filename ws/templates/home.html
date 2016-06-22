@@ -4,21 +4,17 @@
 
 {% block content %}
 <h3>Welcome!</h3>
-<p> This site is the official portal for all MITOC trips.</p>
-
-{% if "WIMP" in groups %}
-View the <a href="{% url 'all_trips_medical' %}">WIMP sheet</a>.
-{% endif %}
+<p>This site is the official portal for all MITOC trips.</p>
 
 {{ block.super }}
 
-{% if user.is_authenticated %}
-{% else %} {# Anonymous user #}
-<div class="alert alert-info">
+{% if user.is_anonymous %}
+  <div class="alert alert-info">
     <p>This portal is only available to authenticated users.</p>
     <strong><a href="{% url 'account_login' %}"><i class="fa fa-sign-in"></i>&nbsp;Log in</a></strong> or <strong><a href="{% url 'account_signup' %}">sign up!</a></strong>
-</div>
+  </div>
 
 <p>If you already have an account, but <a href="{% url 'account_reset_password' %}">forgot your password</a>, you can reset your password via email.</p>
 {% endif %}
+
 {% endblock content %}
