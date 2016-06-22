@@ -23,6 +23,8 @@ class RequiredModelForm(forms.ModelForm):
 
 class ParticipantForm(DjangularRequiredModelForm):
     required_css_class = 'required'
+    name = forms.RegexField(regex=r'^.* ',
+                            error_messages={"invalid": "Please use your full name"})
 
     class Meta:
         model = models.Participant
