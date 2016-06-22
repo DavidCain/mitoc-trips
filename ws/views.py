@@ -369,8 +369,10 @@ class ParticipantDetailView(ParticipantView, FormView, DetailView):
 
 class ProfileView(ParticipantView):
     def get(self, request, *args, **kwargs):
-        if not request.participant:
+        if request.user.is_anonymous():
             return render(request, 'home.html')
+        elif not request.participant:
+            return redirect(reverse('edit_profile'))
         message_generators.warn_if_needs_update(request)
         message_generators.complain_if_missing_feedback(request)
 

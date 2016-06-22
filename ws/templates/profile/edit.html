@@ -6,13 +6,16 @@ Edit profile
 
 {% block content %}
 
-<div id="last_updated">
-{% if not viewing_participant.info_current %}
-<p> Please complete the below fields. <strong>You will not be able to attend a trip until this form is completed.</strong></p>
-{% else %}
-<p>Last updated on {{ viewing_participant.last_updated }}</p>
+{% if not viewing_participant or not viewing_participant.info_current %}
+  <div class="alert alert-info">
+    {% if not viewing_participant %}
+      Please complete this important safety information to finish the signup process.
+    {% else %}
+      You haven't updated your personal information in a while.
+      Please ensure that everything below is accurate, and click "Submit" to update!
+    {% endif %}
+  </div>
 {% endif %}
-</div>
 
 <form name="{{ participant_form.form_name }}" action="" method="post" novalidate>
     {% csrf_token %}
@@ -61,4 +64,11 @@ Edit profile
 
     <button type="submit" data-ng-disabled="{{ participant_form.form_name }}.$invalid || !car.hasOwnProperty('owner')" class="btn btn-primary">Submit</button>
 </form>
+
+{% if viewing_participant.last_updated %}
+  <div id="last_updated" class="text-center">
+    <small>Last updated on {{ viewing_participant.last_updated }}</small>
+  </div>
+{% endif %}
+
 {% endblock content %}
