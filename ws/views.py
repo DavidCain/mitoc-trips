@@ -153,7 +153,7 @@ class ParticipantEditMixin(TemplateView):
         if all(form.is_valid() for form in required_dict.values()):
             self._save_forms(self.user, required_dict)
             if self.participant == self.request.participant:
-                messages.add_message(request, messages.SUCCESS, self.update_msg)
+                messages.success(request, self.update_msg)
             return self.success_redirect()
         else:
             return render(request, self.template_name, context)
@@ -422,7 +422,7 @@ class SignUpView(CreateView):
         return super(SignUpView, self).form_valid(form)
 
     def get_success_url(self):
-        messages.add_message(self.request, messages.SUCCESS, "Signed up!")
+        messages.success(self.request, "Signed up!")
         return reverse('view_trip', args=(self.object.trip.id,))
 
     @method_decorator(user_info_required)
@@ -657,7 +657,7 @@ class AdminTripView(TripDetailView, ItineraryEditableMixin):
 
         if not perm_utils.is_leader(request.user):
             cant = ("Redirected - only MITOC leaders can administrate trips.")
-            messages.add_message(request, messages.INFO, cant)
+            messages.info(request, cant)
             return redirect(reverse('view_trip', args=(trip.id,)))
 
         chair = perm_utils.is_chair(request.user, trip.activity)
@@ -710,9 +710,9 @@ class ReviewTripView(DetailView):
             flake_participants = flake_form.cleaned_data['flakers']
             self.create_flake_feedback(trip, leader, flake_participants)
 
-            messages.add_message(request, messages.SUCCESS, self.success_msg)
+            messages.success(request, self.success_msg)
             if flake_participants:
-                messages.add_message(request, messages.SUCCESS, self.flake_msg)
+                messages.success(request, self.flake_msg)
                 return redirect(reverse('review_trip', args=(trip.id,)))
             else:
                 return redirect(reverse('home'))
@@ -823,8 +823,7 @@ class LeaderApplyView(CreateView):
         """ Link the application to the submitting participant. """
         application = form.save(commit=False)
         application.participant = self.request.participant
-        received = "Leader application received!"
-        messages.add_message(self.request, messages.SUCCESS, received)
+        messages.success(self.request, "Leader application received!")
         return super(LeaderApplyView, self).form_valid(form)
 
     def get_context_data(self, **kwargs):
@@ -896,7 +895,7 @@ class LeaderApplicationView(DetailView):
             leader = leader_form.instance
             update_msg = "{} given {} rating".format(leader.participant.name,
                                                      leader.rating)
-            messages.add_message(request, messages.SUCCESS, update_msg)
+            messages.success(request, update_msg)
             return redirect(reverse('manage_applications'))
         else:  # Any miscellaneous error form could possibly produce
             return render(request, 'chair/leaders.html', {'leader_form': leader_form})
@@ -933,7 +932,7 @@ def manage_leaders(request):
                 form.add_error("activity", not_chair)
             else:
                 form.save()
-                messages.add_message(request, messages.SUCCESS, 'Added rating')
+                messages.success(request, 'Added rating')
     else:
         # Regardless of success, empty form for quick addition of another
         allowed_activities = perm_utils.chair_activities(request.user, sudo_ok)
@@ -949,7 +948,7 @@ def _manage_trips(request, TripFormSet):
         formset = TripFormSet(request.POST)
         if formset.is_valid():
             formset.save()
-            messages.add_message(request, messages.SUCCESS, 'Updated trips')
+            messages.success(request, 'Updated trips')
             formset = TripFormSet()
     else:
         all_trips = models.Trip.objects.all()
@@ -1129,23 +1128,23 @@ class LotteryPairingView(CreateView, LotteryPairingMixin):
 
         if not paired_par:
             no_pair_msg = "Requested normal behavior (no pairing) in lottery"
-            messages.add_message(self.request, messages.SUCCESS, no_pair_msg)
+            messages.success(self.request, no_pair_msg)
             return
 
         reciprocal = self.reciprocally_paired
 
         pre = "Successfully paired" if reciprocal else "Requested pairing"
         paired_msg = pre + " with {}".format(paired_par)
-        messages.add_message(self.request, messages.SUCCESS, paired_msg)
+        messages.success(self.request, paired_msg)
 
         if reciprocal:
             msg = ("You must both sign up for trips you're interested in: "
                    "you'll only be placed on a trip if you both signed up. "
                    "Either one of you can rank the trips.")
-            messages.add_message(self.request, messages.INFO, msg)
+            messages.info(self.request, msg)
         else:
             msg = "{} must also select to be paired with you".format(paired_par)
-            messages.add_message(self.request, messages.INFO, msg)
+            messages.info(self.request, msg)
 
     @method_decorator(user_info_required)
     def dispatch(self, request, *args, **kwargs):
@@ -1250,7 +1249,7 @@ class LotteryPreferencesView(TemplateView, LotteryPairingMixin):
                                                         trip=trip)
             except ObjectDoesNotExist:
                 msg = "{} hasn't signed up for {}.".format(paired_par, trip)
-                messages.add_message(self.request, messages.WARNING, msg)
+                messages.warning(self.request, msg)
             else:
                 pair_signup.order = signup.order
                 pair_signup.save()
@@ -1390,8 +1389,7 @@ class LectureAttendanceView(FormView):
             self.record_attendance(user)
             return super(LectureAttendanceView, self).form_valid(form)
         else:
-            failure_msg = 'Incorrect email + password'
-            messages.add_message(self.request, messages.ERROR, failure_msg)
+            messages.error(self.request, 'Incorrect email + password')
             return self.form_invalid(form)
 
     def record_attendance(self, user):
@@ -1400,12 +1398,12 @@ class LectureAttendanceView(FormView):
         except ObjectDoesNotExist:
             msg = ("Personal info required to sign in to lectures. "
                    "Log in to your personal account, then visit this page.")
-            messages.add_message(self.request, messages.ERROR, msg)
+            messages.error(self.request, msg)
         else:
             participant.attended_lectures = True
             participant.save()
             success_msg = 'Lecture attendance recorded for {}'.format(user.email)
-            messages.add_message(self.request, messages.SUCCESS, success_msg)
+            messages.success(self.request, success_msg)
 
 
 class CheckTripOverflowView(View, SingleObjectMixin):

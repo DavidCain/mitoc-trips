@@ -1,4 +1,4 @@
-from django.contrib.messages import add_message, ERROR, SUCCESS
+from django.contrib import messages
 from django.db.models import Q
 
 from ws import models
@@ -42,7 +42,7 @@ def add_to_waitlist(signup, request=None, prioritize=False, top_spot=False):
     except models.WaitListSignup.DoesNotExist:
         wl_signup = models.WaitListSignup.objects.create(signup=signup,
                                                          waitlist=signup.trip.waitlist)
-        request and add_message(request, SUCCESS, "Added to waitlist.")
+        request and messages.success(request, "Added to waitlist.")
 
     if prioritize:
         prioritize_wl_signup(wl_signup, top_spot)
@@ -72,13 +72,13 @@ def trip_or_wait(signup, request=None, prioritize=False, top_spot=False,
         if trip.open_slots > 0:  # There's room, sign them up!
             signup.on_trip = True
             signup.save()
-            request and add_message(request, SUCCESS, "Signed up!")
+            request and messages.success(request, "Signed up!")
             wl_signup and wl_signup.delete()  # Remove (if applicable)
         else:  # If no room, add them to the waiting list
             add_to_waitlist(signup, request, prioritize, top_spot)
     elif request:
         trip_not_eligible = "Trip is not an open first-come, first-serve trip"
-        request and add_message(request, ERROR, trip_not_eligible)
+        request and messages.error(request, trip_not_eligible)
 
 
 def update_queues_if_trip_open(trip):

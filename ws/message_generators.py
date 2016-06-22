@@ -6,7 +6,6 @@ Functions that take a request, create messages if applicable.
 from datetime import timedelta
 
 from django.contrib import messages
-from django.contrib.messages import INFO, WARNING
 from django.core.urlresolvers import reverse
 from django.utils import timezone
 
@@ -47,7 +46,7 @@ class LotteryMessages(object):
         """
         if not self.lotteryinfo:
             msg = "You haven't set your {}.".format(self.prefs_link())
-            messages.add_message(self.request, WARNING, msg, extra_tags='safe')
+            messages.warning(self.request, msg, extra_tags='safe')
 
     def warn_if_no_ranked_trips(self):
         """ Warn the user if there are future signups, and none are ranked. """
@@ -58,7 +57,7 @@ class LotteryMessages(object):
         some_trips_ranked = future_signups.filter(order__isnull=False).count()
         if future_signups.count() > 1 and not some_trips_ranked:
             msg = "You haven't " + self.prefs_link("ranked upcoming trips.")
-            messages.add_message(self.request, WARNING, msg, extra_tags='safe')
+            messages.warning(self.request, msg, extra_tags='safe')
 
     def warn_if_dated_info(self):
         """ If the participant hasn't updated information in a while, remind
@@ -72,7 +71,7 @@ class LotteryMessages(object):
                        "You will be counted as a {}driver in the next lottery.")
                 driver_prefix = "" if self.lotteryinfo.is_driver else "non-"
                 msg = msg.format(self.prefs_link(), days_old, driver_prefix)
-                messages.add_message(self.request, INFO, msg, extra_tags='safe')
+                messages.info(self.request, msg, extra_tags='safe')
 
 
 def warn_if_needs_update(request):
@@ -89,8 +88,8 @@ def warn_if_needs_update(request):
         msg = 'Personal information is out of date.'
 
     edit_url = reverse('edit_profile')
-    msg += ' <a href="{}">Update</a> to sign up for trips'.format(edit_url)
-    messages.add_message(request, WARNING, msg, extra_tags='safe')
+    msg += ' <a href="{}">Update</a> to sign up for trips.'.format(edit_url)
+    messages.warning(request, msg, extra_tags='safe')
 
 
 def _feedback_eligible_trips(participant):
@@ -116,4 +115,4 @@ def complain_if_missing_feedback(request):
             trip_url = reverse('review_trip', args=(trip.id,))
             msg = ('Please supply feedback for '
                    '<a href="{}">{}</a>'.format(trip_url, trip))
-            messages.add_message(request, WARNING, msg, extra_tags='safe')
+            messages.warning(request, msg, extra_tags='safe')
