@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% load messages_tags %}
+
 {% block head_title %}
 Edit profile
 {% if viewing_participant %} - {{ viewing_participant.name }} {%endif %}
@@ -6,6 +8,7 @@ Edit profile
 
 {% block content %}
 
+{% messages_alerts %}
 {% if not viewing_participant or not viewing_participant.info_current %}
   <div class="alert alert-info">
     {% if not viewing_participant %}

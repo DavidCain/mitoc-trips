@@ -1,10 +1,11 @@
 from functools import wraps
 
 from django.core.exceptions import PermissionDenied
+from django.contrib import messages
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.views import redirect_to_login
-from django.core.urlresolvers import reverse_lazy
+from django.core.urlresolvers import reverse, reverse_lazy
 from django.shortcuts import resolve_url
 from django.utils.decorators import available_attrs
 
@@ -43,7 +44,12 @@ def group_required(*group_names, **kwargs):
         @wraps(view_func, assigned=available_attrs(view_func))
         def _wrapped_view(request, *args, **kwargs):
             logged_in = request.user.is_authenticated()
-            if logged_in and in_groups(request.user):
+
+            # Temporary hack to ensure all users have full names
+            if request.participant and ' ' not in request.participant.name:
+                messages.info(request, "Please enter your full legal name!")
+                redir_url = reverse('edit_profile')
+            elif logged_in and in_groups(request.user):
                 return view_func(request, *args, **kwargs)
 
             path = request.get_full_path()  # All requests share scheme & netloc
