@@ -19,6 +19,37 @@ def chairs_only(*activity_types, **kwargs):
     groups = {ws.utils.perms.chair_group(activity) for activity in activity_types}
     return group_required(*groups, **kwargs)
 
+
+def profile_needs_correction(request):
+    """ Return if the user's profile is in need of correction.
+
+    Create messages indicating the required changes so that the user may
+    correct them.
+    """
+    par = request.participant
+    if not par:
+        return False
+
+    has_problems = False
+
+    # Non-exhaustive, but captures numbers in database
+    fake_nums = ['000-000-0000', '111-111-1111', '999-999-9999',
+                 '123-456-7890']
+
+    ec_phone = par.emergency_info.emergency_contact.cell_phone
+    if ec_phone in fake_nums or ec_phone.startswith('0'):
+        messages.info(request,
+                      "Please supply a valid North American number for your emergency contact. "
+                      "We intentionally request non-international numbers "
+                      "so that your contact can be easily reached.")
+        has_problems = True
+    if ' ' not in par.name:
+        messages.info(request, "Please supply your full legal name.")
+        has_problems = True
+
+    return has_problems
+
+
 def group_required(*group_names, **kwargs):
     """ Requires user membership in at least one of the groups passed in.
 
@@ -45,9 +76,7 @@ def group_required(*group_names, **kwargs):
         def _wrapped_view(request, *args, **kwargs):
             logged_in = request.user.is_authenticated()
 
-            # Temporary hack to ensure all users have full names
-            if request.participant and ' ' not in request.participant.name:
-                messages.info(request, "Please enter your full legal name!")
+            if profile_needs_correction(request):
                 redir_url = reverse('edit_profile')
             elif logged_in and in_groups(request.user):
                 return view_func(request, *args, **kwargs)
