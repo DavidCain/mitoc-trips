@@ -44,7 +44,7 @@
         <p>Signups are open!</p>
 
         {% if not viewing_participant.info_current %}
-            <p> You cannot sign up for trips until you <a href="{% url 'edit_profile' %}">submit personal information.</a></p>
+            <p> You cannot sign up for trips without current <a href="{% url 'edit_profile' %}">personal information.</a></p>
         {% else %}
             <form name="{{ signup_form.form_name }}" action="{% url 'trip_signup' %}" method="post" novalidate>
                 {% csrf_token %}
@@ -59,7 +59,19 @@
     <p>Signups for this trip are closed.</p>
 {% elif trip.signups_not_yet_open %}
     <p>Signups for this trip are not yet open.</p>
-{% endif %} {# No else - the three states should cover all cases #}
+    {% if leader_signup_allowed %}
+        <p>However, you can sign up early as a leader.</p>
+        {% if not viewing_participant.info_current %}
+            <p> You cannot sign up for trips without current <a href="{% url 'edit_profile' %}">personal information.</a></p>
+        {% else %}
+            <form name="{{ signup_form.form_name }}" action="{% url 'leader_trip_signup' %}" method="post" novalidate>
+                {% csrf_token %}
+                {{ signup_form.as_div }}
+                <button type="submit" data-ng-disabled="{{ signup_form.form_name }}.$invalid" class="btn btn-success">Leader Sign Up</button>
+            </form>
+        {% endif %}
+    {% endif %}
+{% endif %} {# No else - these states should cover all cases #}
 
 {% if 'leader' in groups %}
     <h3>Leaders</h3>

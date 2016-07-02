@@ -33,7 +33,7 @@ import ws.utils.signups as signup_utils
 class LeadersOnlyView(View):
     @method_decorator(group_required('leaders', *perm_utils.all_chair_groups))
     def dispatch(self, request, *args, **kwargs):
-        """ Only allow creator, leaders of the trip, and chairs to edit. """
+        """ Only allow creator, leaders of the trip, and chairs. """
         trip = self.get_object()
         chair = perm_utils.is_chair(request.user, trip.activity)
         if not (leader_on_trip(request, trip, creator_allowed=True) or chair):
@@ -390,7 +390,49 @@ class ProfileView(ParticipantView):
         return View.dispatch(self, request, *args, **kwargs)
 
 
-class SignUpView(CreateView):
+class BaseSignUpView(CreateView):
+    model = None
+    form_class = None
+    template_name = 'trips/signup.html'
+
+    def get_form(self, form_class):
+        signup_form = super(BaseSignUpView, self).get_form(form_class)
+        signup_form.fields['trip'].widget = HiddenInput()
+        return signup_form
+
+    def get_success_url(self):
+        messages.success(self.request, "Signed up!")
+        return reverse('view_trip', args=(self.object.trip.id,))
+
+
+class LeaderSignUpView(BaseSignUpView):
+    model = models.LeaderSignUp
+    form_class = forms.LeaderSignUpForm
+
+    def form_valid(self, form):
+        """ After is_valid() and some checks, assign participant. """
+        signup = form.save(commit=False)
+        signup.participant = self.request.participant
+
+        errors = []
+        if not signup.participant.can_lead(signup.trip.activity):
+            errors.append("Can't lead {} trips!".format(signup.trip.activity))
+        if signup.trip in signup.participant.trip_set.all():
+            errors.append("Already a participant on this trip!")
+        if signup.participant in signup.trip.leaders.all():
+            errors.append("Already a leader on this trip!")
+
+        if errors:
+            form.errors['__all__'] = ErrorList(errors)
+            return self.form_invalid(form)
+        return super(LeaderSignUpView, self).form_valid(form)
+
+    @method_decorator(group_required('leaders'))
+    def dispatch(self, request, *args, **kwargs):
+        return super(LeaderSignUpView, self).dispatch(request, *args, **kwargs)
+
+
+class SignUpView(BaseSignUpView):
     """ Special view designed to be accessed only on invalid signup form
 
     The "select trip" field is hidden, as this page is meant to be accessed
@@ -400,12 +442,6 @@ class SignUpView(CreateView):
     """
     model = models.SignUp
     form_class = forms.SignUpForm
-    template_name = 'trips/signup.html'
-
-    def get_form(self, form_class):
-        signup_form = super(SignUpView, self).get_form(form_class)
-        signup_form.fields['trip'].widget = HiddenInput()
-        return signup_form
 
     def form_valid(self, form):
         """ After is_valid() and some checks, assign participant from User.
@@ -423,10 +459,6 @@ class SignUpView(CreateView):
             form.errors['__all__'] = ErrorList(["Signups aren't open!"])
             return self.form_invalid(form)
         return super(SignUpView, self).form_valid(form)
-
-    def get_success_url(self):
-        messages.success(self.request, "Signed up!")
-        return reverse('view_trip', args=(self.object.trip.id,))
 
     @method_decorator(user_info_required)
     def dispatch(self, request, *args, **kwargs):
@@ -457,12 +489,25 @@ class TripDetailView(DetailView):
         return trip.waitlist.signups.select_related('participant',
                                                     'participant__lotteryinfo')
 
+    @property
+    def leader_signup_allowed(self):
+        """ If a viewing leader can make themselves a leader on this trip """
+        par = self.request.participant
+        if not par and par.is_leader:
+            return False
+
+        trip = self.object
+        trip_upcoming = local_now().date() <= trip.trip_date
+
+        return (trip_upcoming and trip.allow_leader_signups
+                and par.can_lead(trip.activity))
+
     def get_context_data(self, **kwargs):
-        """ Create form for signup (only if signups open). """
         context = super(TripDetailView, self).get_context_data()
         context['leaders'] = self.get_leaders()
         context['signups'] = self.get_signups()
         context['waitlist_signups'] = self.wl_signups
+        context['leader_signup_allowed'] = self.leader_signup_allowed
         return context
 
 
@@ -484,7 +529,7 @@ class TripView(TripDetailView):
         signups = context['signups']
         trip = self.object
         context['is_chair'] = perm_utils.is_chair(self.request.user, trip.activity)
-        if trip.signups_open:
+        if trip.signups_open or self.leader_signup_allowed:
             signup_form = forms.SignUpForm(initial={'trip': trip})
             signup_form.fields['trip'].widget = HiddenInput()
             context['signup_form'] = signup_form

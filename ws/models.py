@@ -241,16 +241,28 @@ class LeaderApplication(models.Model):
         ordering = ["id"]
 
 
-class SignUp(models.Model):
-    """ An editable record relating a Participant to a Trip.
-
-    The time of creation determines ordering in first-come, first-serve.
-    """
+class BaseSignUp(models.Model):
     participant = models.ForeignKey(Participant)
     trip = models.ForeignKey("Trip")
     time_created = models.DateTimeField(auto_now_add=True)
     last_updated = models.DateTimeField(auto_now=True)
     notes = models.TextField(blank=True, max_length=1000)  # e.g. Answers to questions
+
+    class Meta:
+        abstract = True
+
+
+class LeaderSignUp(BaseSignUp):
+    """ Represents a leader who has signed up to join a trip. """
+    class Meta:
+        ordering = ["time_created"]
+
+
+class SignUp(BaseSignUp):
+    """ An editable record relating a Participant to a Trip.
+
+    The time of creation determines ordering in first-come, first-serve.
+    """
     order = models.IntegerField(null=True, blank=True)  # As ranked by participant
     manual_order = models.IntegerField(null=True, blank=True)  # Order on trip
 
@@ -312,6 +324,8 @@ class Trip(models.Model):
     # Leaders should be privileged at time of trip creation, but may no longer
     # be leaders later (and we don't want to break the relation)
     leaders = models.ManyToManyField(Participant, related_name='trips_led')
+    allow_leader_signups = models.BooleanField(default=False,
+                                               help_text="Allow leaders (with ratings for this activity) to sign themselves up for the trip any time before its date. Recommended for Circuses!")
     name = models.CharField(max_length=127)
     description = models.TextField()
     maximum_participants = models.PositiveIntegerField(default=8)

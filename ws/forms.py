@@ -113,7 +113,8 @@ class TripForm(DjangularRequiredModelForm):
 
     class Meta:
         model = models.Trip
-        fields = ['activity', 'name', 'leaders', 'description', 'trip_date',
+        fields = ['activity', 'name', 'leaders', 'allow_leader_signups',
+                  'description', 'trip_date',
                   'algorithm', 'signups_open_at', 'signups_close_at',
                   'maximum_participants', 'difficulty_rating',  # 'level',
                   'prereqs', 'notes']
@@ -200,7 +201,13 @@ class SignUpForm(DjangularRequiredModelForm):
             self.fields['notes'].required = True
 
 
-class LeaderSignUpForm(RequiredModelForm):
+class LeaderSignUpForm(SignUpForm):
+    class Meta:
+        model = models.LeaderSignUp
+        fields = ['trip', 'notes']
+
+
+class LeaderParticipantSignUpForm(RequiredModelForm):
     """ For leaders to sign up participants. Notes aren't required. """
     top_spot = forms.BooleanField(required=False, label='Move to top spot',
                                   help_text='Move the participant above other prioritized waitlist spots (e.g. participants previously added with this form, or those who were bumped off to allow a driver on)')
@@ -211,7 +218,7 @@ class LeaderSignUpForm(RequiredModelForm):
         widgets = {'notes': forms.Textarea(attrs={'rows': 4})}
 
     def __init__(self, trip, *args, **kwargs):
-        super(LeaderSignUpForm, self).__init__(*args, **kwargs)
+        super(LeaderParticipantSignUpForm, self).__init__(*args, **kwargs)
         non_trip = non_trip_participants(trip)
         self.fields['participant'].queryset = non_trip
         self.fields['participant'].help_text = None  # Disable "Hold command..."

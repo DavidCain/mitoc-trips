@@ -53,6 +53,7 @@ urlpatterns = patterns('',
     url(r'^trips/$', views.UpcomingTripsView.as_view(), name='upcoming_trips'),
     url(r'^trips/all/$', views.AllTripsView.as_view(), name='all_trips'),
     url(r'^trips/signup/$', views.SignUpView.as_view(), name='trip_signup'),
+    url(r'^trips/signup/leader$', views.LeaderSignUpView.as_view(), name='leader_trip_signup'),
     url(r'^preferences/lottery/$', views.LotteryPreferencesView.as_view(), name='lottery_preferences'),
     url(r'^preferences/lottery/pairing/$', views.LotteryPairingView.as_view(), name='lottery_pairing'),
 

@@ -10,7 +10,7 @@ from django.db.models.signals import pre_delete, post_delete
 from django.db.models.signals import m2m_changed
 from django.dispatch import receiver
 
-from ws.models import SignUp, WaitList, WaitListSignup, Trip
+from ws.models import LeaderSignUp, SignUp, WaitList, WaitListSignup, Trip
 from ws.utils.dates import local_now
 from ws.utils.signups import trip_or_wait, update_queues_if_trip_open
 
@@ -47,17 +47,15 @@ def free_spot_on_trip(sender, instance, using, **kwargs):
         update_queues_if_trip_open(instance.trip)
 
 
-@receiver(post_save, sender=SignUp)
-def on_trip_bump(sender, instance, created, raw, using, update_fields, **kwargs):
-    """ When a signup is no longer on the trip, bump up any waitlist spots.
-
-    Only performs bumping if the trip date hasn't arrived (if a leader is
-    making changes the day of a trip, it's safe to assume the waitlisted
-    spot won't be pulled in in time). Similarly, this would not make
-    room for future signups, as FCFS signups close at midnight before.
+@receiver(post_save, sender=LeaderSignUp)
+def leader_signup(sender, instance, created, raw, using, update_fields, **kwargs):
+    """ Add the leader to the trip's list of leaders, decrement available spots.
     """
-    if not instance.on_trip:
-        update_queues_if_trip_open(instance.trip)
+    trip = instance.trip
+    if created and trip.maximum_participants > 0 and trip.signups_not_yet_open:
+        trip.maximum_participants -= 1
+        trip.save()
+    trip.leaders.add(instance.participant)
 
 
 @receiver(post_delete, sender=WaitListSignup)
@@ -116,7 +114,7 @@ def inform_leaders(sender, instance, action, reverse, model, pk_set, using,
 
     Nothing happens if former leaders are removed.
     """
-    if action == 'post_add':
+    if action == 'post_add' and not instance.allow_leader_signups:
         for leader in instance.leaders.all():
             send_coleader_email(instance, leader)
 
