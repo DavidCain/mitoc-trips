@@ -2,53 +2,37 @@
 This is a Django-based trip management system for the [MIT Outing Club][mitoc].
 
 MITOC's volunteer leaders craft trips to take participants climbing, hiking,
-biking, skiing, mountaineering, paddling, surfing. All trips are open to MITOC
-members - a community of thousands.
+biking, skiing, mountaineering, rafting, canoeing, and surfing. All trips are
+open to MITOC members - a community of thousands.
+
+Since its creation, the site has had over 4,000 users and 170,000 page views.
 
 # Deployment
-## Deploying locally
+It takes a single command and a few minutes to deploy this software.
+Clone the [mitoc-ansible][mitoc-ansible] repository and follow the instructions
+there to easily launch an instance.
 
-This project is designed to be rapidly deployed on a local system for testing.
-For instance, using Django's console-based email backend removes the need for
-an SMTP server.
+# [History][about]
+This site was created in 2014 to improve MITOC's Winter School program. It has
+since evolved into the central portal for all MITOC trips.
 
-The default settings (`conf/local_settings.py`) contain everything you need to
-get up and running on your own machine.
+Once upon a time, Winter School trips operated on a first-come, first-serve
+basis. Signups opened at noon, and filled up extremely quickly. Many
+participants found themselves unable to attend any trips in a given weekend,
+and others struggled to gain exposure to new activities.
 
+We introduced a lottery system to combat the "fastest gun in the West" problem.
+Instead of rewarding trip slots to whomever could sign up the fastest, we used
+an equitable algorithm to distribute trip slots. As a result of this new
+algorithm, we saw unprecedented levels of participation. Everyone who expressed
+interest in attending weekend trips was placed on a trip, and popular
+activities like ice climbing were more accessible.
 
-### Database configuration
-
-This project uses Postgres in both development and production, but the system
-is database-agnostic. The default `local_settings.py` expects databases named
-`ws` and `auth_db`. Modify this file to match your credentials or alternate
-backend.
-
-After creating the `ws` and `auth_db` databases, run the migrations:
-
-    ./manage.py migrate
-
-### Installation
-
-Create a virtual environment in which to install all Python dependencies:
-
-    virtualenv venv
-    source venv/bin/activate
-    pip install -r requirements.txt
-
-Run Bower to download JavaScript libraries.
-
-    npm install bower
-    bower install
-
-
-### Running the server
-
-    ./manage.py migrate
-    WS_DJANGO_LOCAL=1 ./manage.py runserver
-
-
-The app should now be running at [http://localhost:8000](http://localhost:8000).
+Today, all MITOC trips are organized through this portal. Many trips are
+first-come, first-serve, but we use lottery-based signups for other popular
+trip formats once subject to same problems as Winter School.
 
 
   [mitoc]: mitoc.org
-  [trips]: mitoc-trips.mit.edu
+  [about]: https://mitoc-trips.mit.edu/help/about/
+  [mitoc-ansible]: https://github.com/DavidCain/mitoc-ansible
