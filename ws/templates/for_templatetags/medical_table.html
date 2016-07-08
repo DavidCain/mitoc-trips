@@ -6,7 +6,8 @@
         <th data-hide="phone">Allergies</th>
         <th data-hide="phone">Medications</th>
         <th data-hide="phone,tablet">History</th>
-        <th data-hide="phone,tablet">Attended lectures</th>
+        <th data-hide="phone,tablet">ICE Contact</th>
+        <th data-hide="phone,tablet" class="nowrap">ICE Cell</th>
     </tr>
 </thead>
 <tbody>
@@ -17,7 +18,10 @@
         <td>{{ participant.emergency_info.allergies }}</td>
         <td>{{ participant.emergency_info.medications }}</td>
         <td>{{ participant.emergency_info.medical_history }}</td>
-        <td>{{ participant.attended_lectures|yesno:'Yes,<strong>No</strong>'|safe }}</td>
+        {% with ec=participant.emergency_info.emergency_contact %}
+        <td><a href="mailto:{{ ec.email }}" class="nowrap">{{ ec.name }}</a> ({{ ec.relationship }})</td>
+        <td class="nowrap">{{ ec.cell_phone }}</td>
+        {% endwith %}
     </tr>
 </tbody>
 {% endfor %}
