@@ -20,15 +20,18 @@ def chairs_only(*activity_types, **kwargs):
     return group_required(*groups, **kwargs)
 
 
-def profile_needs_correction(request):
-    """ Return if the user's profile is in need of correction.
+def profile_needs_update(request):
+    """ Return if the user's profile is missing or in need of correction.
 
     Create messages indicating the required changes so that the user may
     correct them.
     """
+    if request.user.is_anonymous():
+        return False  # We can't be sure until the user logs in
+
     par = request.participant
     if not par:
-        return False
+        return True
 
     has_problems = False
 
@@ -76,13 +79,14 @@ def group_required(*group_names, **kwargs):
         def _wrapped_view(request, *args, **kwargs):
             logged_in = request.user.is_authenticated()
 
-            if profile_needs_correction(request):
-                redir_url = reverse('edit_profile')
+            if profile_needs_update(request):
+                next_url = resolve_url(reverse('edit_profile'))
             elif logged_in and in_groups(request.user):
                 return view_func(request, *args, **kwargs)
+            else:  # Either logged in & missing groups, or not logged in
+                next_url = None
 
             path = request.get_full_path()  # All requests share scheme & netloc
-            next_url = resolve_url(redir_url) if logged_in else None
             return redirect_to_login(path, next_url, REDIRECT_FIELD_NAME)
         return _wrapped_view
     return decorator
