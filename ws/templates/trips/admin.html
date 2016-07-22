@@ -36,10 +36,9 @@
   <admin-trip-signups data-trip-id="{{ trip.id }}" data-maximum_participants = "{{ trip.maximum_participants }}"></admin-trip-signups>
 {% endif %}
 
-{% if 'leaders' in groups %}
-    <h3>Leaders</h3>
-    {% participant_table leaders True %}
-{% endif %}
+<h3>Leaders ({{ trip.leaders.count }})</h3>
+{% signup_table leader_signups has_notes show_drivers=True all_participants=trip.leaders%}
+
 
 {% if ontrip_formset|length %}
 {% if trip.notes %}<label>Notes:</label> {{ trip.notes }}{% endif %}
@@ -47,10 +46,10 @@
 
 {% if signups %}
     <hr>
-    <h3>All Signups</h3>
+    <h3>All Participant Signups</h3>
     <small>Note: this is not the waiting list. Instead, these are all signups - including those of
         participants who may have been placed on other trips.</small>
-    {% signup_table signups has_notes=True %}
+    {% signup_table signups has_notes %}
 {% endif %}
 
 {% endblock content %}

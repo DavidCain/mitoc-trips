@@ -473,9 +473,9 @@ class TripDetailView(DetailView):
         trips = super(TripDetailView, self).get_queryset()
         return trips.select_related('info')
 
-    def get_signups(self):
+    def get_signups(self, model=models.SignUp):
         """ Signups, with related fields used in templates preselected. """
-        signups = models.SignUp.objects.filter(trip=self.object)
+        signups = model.objects.filter(trip=self.object)
         signups = signups.select_related('participant', 'trip')
         return signups.select_related('participant__lotteryinfo')
 
@@ -505,9 +505,13 @@ class TripDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super(TripDetailView, self).get_context_data()
         context['leaders'] = self.get_leaders()
-        context['signups'] = self.get_signups()
+        context['signups'] = self.get_signups(models.SignUp)
+        context['leader_signups'] = self.get_signups(models.LeaderSignUp)
         context['waitlist_signups'] = self.wl_signups
         context['leader_signup_allowed'] = self.leader_signup_allowed
+        context['has_notes'] = (self.object.notes or
+                                any(s.notes for s in context['signups']) or
+                                any(s.notes for s in context['leader_signups']))
         return context
 
 
@@ -524,7 +528,6 @@ class TripView(TripDetailView):
         return participant.signup_set.filter(trip=trip).first()
 
     def get_context_data(self, **kwargs):
-        """ Create form for signup (only if signups open). """
         context = super(TripView, self).get_context_data()
         signups = context['signups']
         trip = self.object
@@ -534,7 +537,6 @@ class TripView(TripDetailView):
             signup_form.fields['trip'].widget = HiddenInput()
             context['signup_form'] = signup_form
         context['participant_signup'] = self.get_participant_signup(trip)
-        context['has_notes'] = trip.notes or any(s.notes for s in signups)
         context['signups_on_trip'] = signups.filter(on_trip=True)
         return context
 

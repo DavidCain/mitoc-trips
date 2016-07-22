@@ -73,9 +73,9 @@
     {% endif %}
 {% endif %} {# No else - these states should cover all cases #}
 
-{% if 'leader' in groups %}
-    <h3>Leaders</h3>
-    {% participant_table leaders show_drivers=True %}
+{% if has_notes or participant.is_leader %} {# Table is only for drivers/notes (can hide without) #}
+    <h3>Leaders ({{ trip.leaders.count }})</h3>
+    {% signup_table leader_signups has_notes show_drivers=participant.is_leader all_participants=trip.leaders%}
 {% endif %}
 
 {% if signups_on_trip %}
@@ -92,7 +92,8 @@
 {% endif %}
 
 {% if signups %}
-    <h3>All Signups</h3>
+    <hr>
+    <h3>All Participant Signups</h3>
     {% signup_table signups has_notes show_drivers=False %}
 {% endif %}
 
