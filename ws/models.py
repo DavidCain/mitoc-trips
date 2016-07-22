@@ -433,8 +433,8 @@ class Trip(models.Model):
             raise ValidationError("Trips cannot open after they close.")
 
     def leaders_with_rating(self):
-        for leader in self.leaders.all():
-            yield leader.name_with_rating(self.activity)
+        return [leader.name_with_rating(self.activity)
+                for leader in self.leaders.all()]
 
     class Meta:
         ordering = ["-trip_date", "-time_created"]

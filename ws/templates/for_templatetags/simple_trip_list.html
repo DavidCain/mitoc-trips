@@ -22,9 +22,14 @@
           {% endif %}
         </td>
         <td>
-          {% for leader in trip.leaders_with_rating %}
+          {% for leader in trip.leaders_with_rating|slice:":5" %}
             <div class="nowrap">{{ leader }}</div>
           {% endfor %}
+
+          {% if trip.leaders.count > 5 %}
+            ...<br>
+            <em>({{ trip.leaders.count }} in total)</em>
+          {% endif %}
         </td>
       </tr>
 
