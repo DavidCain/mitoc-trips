@@ -251,6 +251,9 @@ class BaseSignUp(models.Model):
     class Meta:
         abstract = True
 
+    def __unicode__(self):
+        return "{} on {}".format(self.participant.name, self.trip)
+
 
 class LeaderSignUp(BaseSignUp):
     """ Represents a leader who has signed up to join a trip. """
@@ -291,9 +294,6 @@ class SignUp(BaseSignUp):
         if not kwargs.pop('commit', True):
             assert self.trip not in self.participant.trip_set.all()
         super(SignUp, self).save(**kwargs)
-
-    def __unicode__(self):
-        return "{} on {}".format(self.participant.name, self.trip)
 
     class Meta:
         # When ordering for an individual, should order by priority (i.e. 'order')
