@@ -181,6 +181,7 @@ class SignUpForm(DjangularRequiredModelForm):
     class Meta:
         model = models.SignUp
         fields = ['trip', 'notes']
+        widgets = {'notes': forms.Textarea(attrs={'rows': 4})}
 
     def clean_notes(self):
         trip = self.cleaned_data['trip']
@@ -198,7 +199,9 @@ class SignUpForm(DjangularRequiredModelForm):
         super(SignUpForm, self).__init__(*args, **kwargs)
         trip = self.initial.get('trip')
         if trip and trip.notes:
-            self.fields['notes'].required = True
+            notes = self.fields['notes']
+            notes.required = True
+            notes.widget.attrs['placeholder'] = trip.notes
 
 
 class LeaderSignUpForm(SignUpForm):
