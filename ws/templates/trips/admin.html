@@ -32,7 +32,7 @@
     <p>Signups for this trip are not yet open.</p>
 {% endif %}
 
-{% if trip.algorithm == 'fcfs' %}
+{% if trip.algorithm == 'fcfs' and signups_on_trip %}
   <admin-trip-signups data-trip-id="{{ trip.id }}" data-maximum_participants = "{{ trip.maximum_participants }}"></admin-trip-signups>
 {% endif %}
 
