@@ -123,7 +123,8 @@ class Participant(models.Model):
             return []
 
     def can_lead(self, activity):
-        if activity in LeaderRating.OPEN_ACTIVITIES:
+        """ Can participant lead trips of the given activity type. """
+        if activity in LeaderRating.OPEN_ACTIVITIES and self.is_leader:
             return True
         return self.leaderrating_set.filter(activity=activity).exists()
 
