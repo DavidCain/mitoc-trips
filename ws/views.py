@@ -506,6 +506,7 @@ class TripDetailView(DetailView):
         context = super(TripDetailView, self).get_context_data()
         context['leaders'] = self.get_leaders()
         context['signups'] = self.get_signups(models.SignUp)
+        context['signups_on_trip'] = context['signups'].filter(on_trip=True)
         context['leader_signups'] = self.get_signups(models.LeaderSignUp)
         context['waitlist_signups'] = self.wl_signups
         context['leader_signup_allowed'] = self.leader_signup_allowed
@@ -529,7 +530,6 @@ class TripView(TripDetailView):
 
     def get_context_data(self, **kwargs):
         context = super(TripView, self).get_context_data()
-        signups = context['signups']
         trip = self.object
         context['is_chair'] = perm_utils.is_chair(self.request.user, trip.activity)
         if trip.signups_open or self.leader_signup_allowed:
@@ -537,7 +537,6 @@ class TripView(TripDetailView):
             signup_form.fields['trip'].widget = HiddenInput()
             context['signup_form'] = signup_form
         context['participant_signup'] = self.get_participant_signup(trip)
-        context['signups_on_trip'] = signups.filter(on_trip=True)
         return context
 
     def get(self, request, *args, **kwargs):
