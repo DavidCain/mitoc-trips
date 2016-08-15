@@ -1028,6 +1028,10 @@ class CreateTripView(CreateView):
     def get_form_kwargs(self):
         kwargs = super(CreateTripView, self).get_form_kwargs()
         kwargs['allowed_activities'] = self.request.participant.allowed_activities
+        kwargs['initial'] = kwargs.get('initial', {})
+        # The first activity may not be open to the leader.
+        # Since we'll restrict choices, make sure the leader can lead this activity.
+        kwargs['initial']['activity'] = kwargs['allowed_activities'][0]
         return kwargs
 
     def get_success_url(self):
