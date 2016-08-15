@@ -190,6 +190,7 @@ if not DEBUG:
 
 PIPELINE = {
     'JS_COMPRESSOR': 'pipeline.compressors.uglifyjs.UglifyJSCompressor',
+    'CSS_COMPRESSOR': 'pipeline.compressors.yuglify.YuglifyCompressor',
     'JAVASCRIPT': {
         # With jQuery and Angular served via CDN, this is everything
         'app': {
