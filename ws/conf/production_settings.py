@@ -18,23 +18,3 @@ EMAIL_HOST = 'email-smtp.us-east-1.amazonaws.com'
 EMAIL_PORT = 465
 EMAIL_HOST_USER = os.getenv('SES_USER')
 EMAIL_HOST_PASSWORD = os.getenv('SES_PASSWORD')
-
-
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'file': {
-            'level': 'ERROR',
-            'class': 'logging.FileHandler',
-            'filename': os.getenv('DJANGO_ERROR_FILE', '/tmp/django_errors.log'),
-        },
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['file'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-    },
-}
