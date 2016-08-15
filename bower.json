@@ -23,6 +23,7 @@
     "font-awesome": "~4.6.3",
     "footable": "#2.0.1.5",
     "jqueryui-touch-punch": "*",
+    "jquery-ui": "~1.11",
     "lodash": "~4.12",
     "ui-bootstrap": "~1.3.2"
   }
