@@ -100,7 +100,7 @@ ul.djng-field-errors li.invalid:before {
 }
 
 /* Built-in Django 'required content' */
-.required label:after {
+.required > label:after {
     content: ' *';
 }
 
@@ -123,6 +123,11 @@ edit-profile-photo {
   position:absolute;
   bottom: 10px;
   right: 10px;
+}
+
+h4#car label {
+  /* "Do you have a car?" is semantically a label, but don't want boldness. */
+  font-weight: inherit;
 }
 
 /* Size the profile image down with decreasing screen size */

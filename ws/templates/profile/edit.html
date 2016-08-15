@@ -28,8 +28,8 @@ Edit profile
             {{ participant_form.as_div }}
         </div>
         <div class="col-sm-6">
-            <h4 id="car">Do you have a car?
-                <div class="btn-group" role="group" data-ng-init="{{ has_car_checked|yesno:"car.owner=true,car.owner=false," }}" data-ng-required>
+            <h4 id="car" class="required"><label for="car_ownership">Do you have a car?</label>
+                <div id="car_ownership" class="btn-group" role="group" data-ng-init="{{ has_car_checked|yesno:"car.owner=true,car.owner=false," }}" data-ng-required>
                     <label class="btn" data-ng-model="car.owner" data-ng-class="car.owner ? 'btn-primary' : 'btn-default'" data-uib-btn-radio="true">Yes</label>
                     <label class="btn" data-ng-model="car.owner" data-ng-class="car.owner === false ? 'btn-primary' : 'btn-default'" data-uib-btn-radio="false">No</label>
                 </div>
