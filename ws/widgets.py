@@ -6,6 +6,20 @@ from django.forms.utils import flatatt
 from django.utils.safestring import mark_safe
 
 
+class MarkdownTextarea(dj_widgets.Textarea):
+    """ Supply a textbox with some example Markdown in it.
+
+    The box will be at least as large as is necessary to display the Markdown.
+    """
+    def __init__(self, example_text=None):
+        attrs = {'rows': 4}
+        if example_text:
+            attrs.update({'rows': max(4, example_text.count('\n') + 1),
+                          'placeholder': example_text})
+
+        super(dj_widgets.Textarea, self).__init__(attrs)
+
+
 class BootstrapDateInput(dj_widgets.DateInput):
     """ Use the AngularUI datepicker element.
 

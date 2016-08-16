@@ -9,3 +9,4 @@ django-smtp-ssl
 six
 django-angular>=0.8.1
 psycopg2
+markdown2

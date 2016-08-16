@@ -118,9 +118,26 @@ class TripForm(DjangularRequiredModelForm):
                   'algorithm', 'signups_open_at', 'signups_close_at',
                   'maximum_participants', 'difficulty_rating',  # 'level',
                   'prereqs', 'notes']
+        ex_notes = (" 1. Do you have any dietary restrictions?\n"
+                    " 2. What's your experience level?\n"
+                    " 3. What are you most excited about?\n")
+        ex_descr = '\n'.join(["We'll be heading up into the [Whites][whites] "
+                              "for a ~~day~~ weekend of exploring!",
+                              "",
+                              "### Why?",
+                              "Because it's _fun_!",
+                              "",
+                              "Prerequisites:",
+                              " - Enthusiastic attitude",
+                              " - Prior experience",
+                              " - **Proper clothing**",
+                              "",
+                              "[whites]: https://wikipedia.org/wiki/White_Mountains_(New_Hampshire)",
+                              ])
+
         widgets = {'leaders': widgets.LeaderSelect,
-                   'description': forms.Textarea(attrs={'rows': 4}),
-                   'notes': forms.Textarea(attrs={'rows': 4}),
+                   'description': widgets.MarkdownTextarea(ex_descr),
+                   'notes': widgets.MarkdownTextarea(ex_notes),
                    'trip_date': widgets.BootstrapDateInput()}
 
     def clean_maximum_participants(self):
