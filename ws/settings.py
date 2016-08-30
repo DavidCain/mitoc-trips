@@ -60,7 +60,15 @@ DATABASES = {
         'PASSWORD': os.getenv('DATABASE_PASSWORD', 'password'),
         'HOST': os.getenv('DATABASE_HOST', 'localhost'),
         'PORT': os.getenv('DATABASE_PORT', '5432'),
-    }
+    },
+    'geardb': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.getenv('GEAR_DATABASE_NAME', 'geardb'),
+        'USER': os.getenv('GEAR_DATABASE_USER', 'ws'),
+        'PASSWORD': os.getenv('GEAR_DATABASE_PASSWORD', 'password'),
+        'HOST': os.getenv('GEAR_DATABASE_HOST', 'localhost'),
+        'PORT': os.getenv('GEAR_DATABASE_PORT', '3306'),
+    },
 }
 DATABASE_ROUTERS = ['ws.routers.AuthRouter']
 
