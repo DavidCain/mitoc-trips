@@ -1,0 +1,57 @@
+<div>
+  <h3>Membership Status
+    <span
+      class="label"
+      ng-class="{'label-success': status === 'Active',
+                 'label-warning': status === 'Expired',
+                 'label-danger':  status === 'Missing'}"
+      ng-show="status"
+      ng-bind="status">
+    </span>
+  </h3>
+
+  <div ng-switch="status" ng-if="personal">
+    <p ng-switch-when="Active">
+      Your membership is active, and expires on {{ expirationDate }}.
+    </p>
+    <div ng-switch-when="Missing">
+      <p>
+        We have no membership information on file for any of your
+        <a href="/accounts/email/">verified email addresses.</a>
+      </p>
+
+      <p>
+        You must <a href="http://web.mit.edu/mitoc/www/#jointrip/becomemember.html">become a member</a>
+        in order to participate on trips, rent gear, or use cabins.
+      </p>
+    </div>
+    <div ng-switch-when="Expired">
+      <p>
+        Your membership expired on {{ expirationDate }}.
+      </p>
+      <p>
+        Please <a href="http://web.mit.edu/mitoc/www/#jointrip/becomemember.html">renew your membership</a>
+        under any of your <a href="/accounts/email/">verified email addresses</a>.
+      </p>
+    </div>
+    <p ng-switch-default>
+      Querying MITOC servers for membership status...
+    </p>
+  </div>
+
+  <p ng-switch="status" ng-if="!personal" class="text-muted">
+    <span ng-switch-when="Active">
+      Active, expires on {{ expirationDate }}
+    </span>
+    <span ng-switch-when="Missing">
+      No membership information on file
+    </span>
+    <span ng-switch-when="Expired">
+      Membership (for {{ email }}) expired on {{ expirationDate }}
+    </span>
+    <span ng-switch-default>
+      Querying MITOC servers for membership status...
+    </span>
+  </p>
+
+</div>

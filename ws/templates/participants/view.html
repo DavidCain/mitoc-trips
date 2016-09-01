@@ -173,6 +173,12 @@ Lookup participant
 
     <div class="row">
       <div class="col-md-12">
+        <membership-status personal="{{ user_viewing|yesno:"true,false" }}" user-id="{{ participant.user.id }}">
+        </membership-status>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12">
         <h3>Rented gear</h3>
         {% if user_viewing %}
           <p>Rented gear can be returned during <a href="http://web.mit.edu/mitoc/www/#jointrip/calendar.html">office hours</a>.</p>

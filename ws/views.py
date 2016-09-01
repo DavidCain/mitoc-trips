@@ -28,6 +28,7 @@ from ws import message_generators
 from ws.utils.dates import local_now, friday_before, is_winter_school
 import ws.utils.perms as perm_utils
 import ws.utils.signups as signup_utils
+from ws.utils.geardb import user_membership_expiration
 
 
 class LeadersOnlyView(View):
@@ -960,6 +961,20 @@ def get_rating(request, pk, activity):
     lr = models.LeaderRating.objects.filter(query).first()
     resp = {'rating': lr.rating, 'notes': lr.notes} if lr else {}
     return JsonResponse(resp)
+
+
+@login_required
+def membership_status(request, user_id):
+    # Leaders can view other users. Normal users can only view themselves
+    if (request.user.id != user_id) and not perm_utils.is_leader(request.user):
+        return JsonResponse({'message': "Not authorized"}, status=401)
+
+    try:
+        user = User.objects.get(pk=user_id)
+    except ObjectDoesNotExist:
+        return JsonResponse({'message': "Not found"}, status=404)
+
+    return JsonResponse(user_membership_expiration(user))
 
 
 # TODO: Convert to CreateView

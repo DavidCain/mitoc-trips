@@ -73,4 +73,5 @@ urlpatterns = patterns('',
     url(r'^trips/(?P<pk>\d+)/overflow.json$', views.CheckTripOverflowView.as_view(), name='check_trip_overflow'),
     url(r'^leaders.json/(?:(?P<activity>.+)/)?$', views.JsonAllLeadersView.as_view(), name='json-leaders'),
     url(r'^leaders/(?P<pk>\d+)/ratings/(?P<activity>.+).json', views.get_rating, name='get_rating'),
+    url(r'^users/(?P<user_id>\d+)/membership.json', views.membership_status, name='membership_status'),
 ) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

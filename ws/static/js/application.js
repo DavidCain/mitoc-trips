@@ -43,6 +43,32 @@ angular.module('ws.profile', [])
       };
     }
   };
+})
+.directive('membershipStatus', function($http, $filter){
+  return {
+    restrict: 'E',
+    scope: {
+      userId: '=',
+      personal: '=?', // Give helpful messages, intended for when viewing own status
+    },
+    templateUrl: '/static/template/membership-status.html',
+    link: function (scope, element, attrs) {
+      $http.get('/users/' + scope.userId + '/membership.json')
+        .then(function(resp){
+          var membership = resp.data;
+          scope.email = membership.email;
+          if (membership.expires) {
+            scope.expirationDate = $filter('date')(membership.expires);
+          }
+
+          if (!scope.email){
+            scope.status = "Missing";
+          } else {
+            scope.status = membership.active ? 'Active' : 'Expired';
+          }
+        });
+    },
+  };
 });
 
 
