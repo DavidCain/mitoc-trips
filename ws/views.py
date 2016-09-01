@@ -28,7 +28,7 @@ from ws import message_generators
 from ws.utils.dates import local_now, friday_before, is_winter_school
 import ws.utils.perms as perm_utils
 import ws.utils.signups as signup_utils
-from ws.utils.geardb import user_membership_expiration
+import ws.utils.geardb as geardb_utils
 
 
 class LeadersOnlyView(View):
@@ -964,7 +964,8 @@ def get_rating(request, pk, activity):
 
 
 @login_required
-def membership_status(request, user_id):
+def rentals(request, user_id):
+    """ Query the gear database for the user's current rented items. """
     # Leaders can view other users. Normal users can only view themselves
     if (request.user.id != user_id) and not perm_utils.is_leader(request.user):
         return JsonResponse({'message': "Not authorized"}, status=401)
@@ -974,7 +975,24 @@ def membership_status(request, user_id):
     except ObjectDoesNotExist:
         return JsonResponse({'message': "Not found"}, status=404)
 
-    return JsonResponse(user_membership_expiration(user))
+    return JsonResponse({'rentals': geardb_utils.user_rentals(user)})
+
+# NOTE: These (^-v) two functions share the same boilerplate.
+# Make a user-validating decorator, or use class-based views
+
+@login_required
+def membership_status(request, user_id):
+    """ Query the gear database for the user's membership status. """
+    # Leaders can view other users. Normal users can only view themselves
+    if (request.user.id != user_id) and not perm_utils.is_leader(request.user):
+        return JsonResponse({'message': "Not authorized"}, status=401)
+
+    try:
+        user = User.objects.get(pk=user_id)
+    except ObjectDoesNotExist:
+        return JsonResponse({'message': "Not found"}, status=404)
+
+    return JsonResponse(geardb_utils.user_membership_expiration(user))
 
 
 # TODO: Convert to CreateView

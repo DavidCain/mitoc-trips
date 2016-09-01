@@ -69,7 +69,26 @@ angular.module('ws.profile', [])
         });
     },
   };
-});
+})
+.directive('outstandingRentals', function($http, $filter){
+  return {
+    restrict: 'E',
+    scope: {
+      userId: '=',
+    },
+    templateUrl: '/static/template/outstanding-rentals.html',
+    link: function (scope, element, attrs) {
+      scope.rentalMsg = '<p>All MITOC members are able to rent club gear at low prices.</p>' +
+                        '<p>Want to learn more? Stop by during office hours or ' +
+                        '<a href="http://web.mit.edu/mitoc/www/#rentals/gear.html">read about renting gear</a>.</p>';
+      $http.get('/users/' + scope.userId + '/rentals.json')
+        .then(function(resp){
+          scope.rentals = resp.data.rentals;
+        });
+    },
+  };
+})
+;
 
 
 angular.module('ws.widgets', [])

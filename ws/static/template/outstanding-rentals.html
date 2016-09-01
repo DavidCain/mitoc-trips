@@ -1,0 +1,53 @@
+<div>
+  <h3>Rented Items
+    <a
+      role="button"
+      data-ng-show="rentals && !rentals.length"
+      data-uib-popover-html="rentalMsg"
+      data-popover-placement="bottom"
+      data-popover-title="Renting from MITOC">
+      <i class="fa fa-question-circle-o"></i>
+    </a>
+    <span class="badge" ></span>
+    <span class="badge" data-ng-show="rentals.length" data-ng-bind="rentals.length"></span>
+  </h3>
+
+  <p data-ng-show="rentals && !rentals.length">No items checked out.</p>
+
+  <div data-ng-show="rentals.length">
+    <p>Gear can be returned during <a href="http://web.mit.edu/mitoc/www/#jointrip/calendar.html">office hours</a>.</p>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Daily Cost
+            <a role="button"
+              data-uib-popover="You'll be charged a minimum of one day per week an item is checked out."
+              data-popover-title="Charge per day of use">
+              <i class="fa fa-question-circle-o"></i>
+            </a>
+          </th>
+          <th>Checked out</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr data-ng-repeat="item in rentals track by item.id">
+          <td>
+            <a role="button"
+              ng-if="item.overdue"
+              data-uib-popover="Please return this item."
+              data-popover-title="Overdue!">
+              <i class="fa fa-exclamation-triangle" data-ng-class="{'text-danger': item.overdue}"></i>
+            </a>
+            <span data-ng-bind="item.name"></span>
+          </td>
+          <td data-ng-bind="item.cost | currency : '$' : 0"></td>
+          <td>
+            <span data-ng-bind="item.checkedout | date"></span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="text-center">Questions? See the <a href="http://web.mit.edu/mitoc/www/#rentals/gear.html">gear page</a>.</p>
+  </div>
+</div>

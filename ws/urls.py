@@ -74,4 +74,5 @@ urlpatterns = patterns('',
     url(r'^leaders.json/(?:(?P<activity>.+)/)?$', views.JsonAllLeadersView.as_view(), name='json-leaders'),
     url(r'^leaders/(?P<pk>\d+)/ratings/(?P<activity>.+).json', views.get_rating, name='get_rating'),
     url(r'^users/(?P<user_id>\d+)/membership.json', views.membership_status, name='membership_status'),
+    url(r'^users/(?P<user_id>\d+)/rentals.json', views.rentals, name='rentals'),
 ) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

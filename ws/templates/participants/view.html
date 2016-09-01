@@ -172,44 +172,13 @@ Lookup participant
     {% endif %}
 
     <div class="row">
-      <div class="col-md-12">
-        <membership-status personal="{{ user_viewing|yesno:"true,false" }}" user-id="{{ participant.user.id }}">
+      <div class="col-md-12 col-sm-6">
+        <membership-status data-personal="{{ user_viewing|yesno:"true,false" }}" data-user-id="{{ participant.user.id }}">
         </membership-status>
       </div>
-    </div>
-    <div class="row">
-      <div class="col-md-12">
-        <h3>Rented gear</h3>
-        {% if user_viewing %}
-          <p>Rented gear can be returned during <a href="http://web.mit.edu/mitoc/www/#jointrip/calendar.html">office hours</a>.</p>
-        {% endif %}
-        {% if rented_items %} {# TODO: Get this data from the geardb #}
-          <table class="footable">
-            <thead>
-              <tr>
-                <th>Item</th>
-                <th>Daily Cost</th>
-                <th>Checked out</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Tent</td>
-                <td>$7</td>
-                <td>Apr 16, 2016</td>
-              </tr>
-              <tr>
-                <td>Foam pad</td>
-                <td>$2</td>
-                <td>Apr 16, 2016</td>
-              </tr>
-            </tbody>
-          </table>
-        {% else %}
-          <div class="alert">
-            You'll soon be able to see all rented gear here!
-          </div>
-        {% endif %}
+      <div class="col-md-12 col-sm-6">
+        <outstanding-rentals data-user-id="{{ participant.user.id }}">
+        </outstanding-rentals>
       </div>
     </div>
 
