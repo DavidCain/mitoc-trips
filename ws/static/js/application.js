@@ -16,13 +16,13 @@ angular.module('ws.auth', ['djng.urls'])
   $scope.logout = function(){
     var logoutUrl = djangoUrl.reverse('account_logout');
     $http.post(logoutUrl).then(function(){
-      $window.location.href = '/'
+      $window.location.href = '/';
     },
     function(){
       // Something probably went wrong with CSRF. Redirect to "you sure?" page
       $window.location.href = logoutUrl;
     });
-  }
+  };
 });
 
 
@@ -42,7 +42,7 @@ angular.module('ws.profile', [])
         });
       };
     }
-  }
+  };
 });
 
 
@@ -65,8 +65,8 @@ angular.module('ws.widgets', [])
       if (scope.msg && scope.numberOfPassengers){
         scope.msg += (', able to drive ' + scope.numberOfPassengers + ' passengers');
       }
-    }
-  }
+    },
+  };
 });
 
 angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
@@ -111,7 +111,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
         $scope.notes = response.data.notes;
       });
     }
-  })
+  });
 })
 .directive('editableSignupList', function() {
   return {
@@ -123,7 +123,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
       deleteSignup: '='
     },
     templateUrl: '/static/template/editable-signup-list.html',
-  }
+  };
 })
 .directive('emailTripMembers', function(){
   return {
@@ -165,7 +165,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
       scope.$watch('signups', updateEmailText, true);
       scope.$watch('showEmails',  updateEmailText, true);
     }
-  }
+  };
 })
 .directive('adminTripSignups', function($http, filterFilter, $window, $uibModal) {
   return {
@@ -187,7 +187,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
       scope.deleteSignup = function(signup){
         signup.deleted = !signup.deleted;
         updateSignups();
-      }
+      };
 
       var updateSignups = function(removeDeleted){
         /* Break all signups into "on trip" and waitlisted signups */
@@ -217,7 +217,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
       // So we can use 'updateSignups' as a callback even with truthy first arg
       var updateKeepDeleted = function(){
         updateSignups(false);
-      }
+      };
       scope.sortableOptions = {stop: updateKeepDeleted,
                                connectWith: '.signup-list'};
       scope.$watch('maximumParticipants', updateKeepDeleted);
@@ -226,8 +226,8 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
         scope.modal = $uibModal.open({
           templateUrl: '/static/template/admin-trip-signups-modal.html',
           scope: scope
-        })
-      }
+        });
+      };
 
       scope.submit = function(){
         var signups = scope.allSignups.map(function(signup){
@@ -236,16 +236,16 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
                   participant: signup.participant};
         });
         var payload = {signups: signups,
-                       maximum_participants: scope.maximumParticipants}
+                       maximum_participants: scope.maximumParticipants};
         $http.post(url, payload).then(function(){
           scope.modal.dismiss('success');
           updateSignups(true);  // Remove the deleted signups
         }, function(response){
           scope.error = "A server error occurred. Please contact the administrator";
         });
-      }
+      };
     }
-  }
+  };
 })
 .directive('delete', function($http, $window, $uibModal) {
   return {
@@ -266,15 +266,15 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
         function(){
           scope.error = "An error occurred deleting the object.";
         });
-      }
+      };
       scope.confirmDelete = function(){
         $uibModal.open({
           templateUrl: '/static/template/delete-modal.html',
           scope: scope
-        })
-      }
+        });
+      };
     }
-  }
+  };
 })
 /* Expects leaders represented as in json-leaders. */
 .service('activityService', function(){
@@ -285,7 +285,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
   /* Return if the activity is open to all leaders */
   activityService.isOpen = function(activity){
     return _.includes(open_activities, activity);
-  }
+  };
 
   /* Give a string representation of the leader's applicable rating.
    *
@@ -298,7 +298,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
     }
     var leader_rating = _.find(leader.ratings, {activity: activity});
     return leader_rating && leader_rating.rating;
-  }
+  };
 
   /* Return if the person is rated to lead the activity. */
   activityService.leaderRated = function(activity, leader){
@@ -308,7 +308,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
 
     var rating = _.find(leader.ratings, {activity: activity});
     return !!rating;
-  }
+  };
 })
 .directive('leaderSelect', function($http, djangoUrl, filterFilter, activityService) {
   return {
@@ -362,18 +362,18 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
         // Add a single 'rating' attribute that corresponds to the activity
         // (for easy searching of leaders by rating)
         _.each(scope.filteredLeaders, function(leader){
-          leader.rating = activityService.formatRating(scope.activity, leader)
+          leader.rating = activityService.formatRating(scope.activity, leader);
         });
       }
 
       // (Enable Djangular to display errors on the required validator)
       ngModelCtrl.$isEmpty = function(leaders){
         return !(leaders && leaders.length);
-      }
+      };
 
       ngModelCtrl.$validators.leadersOkay = function(modelValue, viewValue){
         return _.every(_.map(viewValue, 'canLead'));
-      }
+      };
 
       ngModelCtrl.$formatters.push(function(modelValue) {
         return _.filter(scope.allLeaders, function(leader){
@@ -393,7 +393,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
         _.each(scope.selected.leaders, function(leader){
           leader.canLead = checkLeader(leader);
         });
-      }
+      };
 
       scope.$watch('activity', filterForActivity);
       scope.$watch('activity', checkSelectedLeaders);
@@ -427,7 +427,7 @@ angular.module('ws.lottery', ['ui.select', 'ui.sortable'])
         $scope.submitError = true;
       }
     );
-  }
+  };
 })
 .directive('tripRank', function(djangoUrl) {
   return {
@@ -438,7 +438,7 @@ angular.module('ws.lottery', ['ui.select', 'ui.sortable'])
     templateUrl: '/static/template/trip-rank.html',
     link: function (scope, element, attrs) {
       scope.signups.forEach(function(signup){
-        signup.deleted = false
+        signup.deleted = false;
       });
 
       // Assign trip signups the ranking given by the server
@@ -447,7 +447,7 @@ angular.module('ws.lottery', ['ui.select', 'ui.sortable'])
         scope.activeSignups.forEach(function(signup, index){
           signup.order = index + 1;
         });
-      }
+      };
       setOrder();
 
       // Whenever the ordering is changed, update the 'order' attributes
@@ -456,7 +456,7 @@ angular.module('ws.lottery', ['ui.select', 'ui.sortable'])
       scope.deleteSignup = function (signup, index){
         signup.deleted = true;
         scope.activeSignups.splice(index, 1);
-      }
+      };
     }
-  }
+  };
 });
