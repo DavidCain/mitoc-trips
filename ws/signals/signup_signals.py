@@ -11,7 +11,7 @@ from django.db.models.signals import m2m_changed
 from django.dispatch import receiver
 
 from ws.models import LeaderSignUp, SignUp, WaitList, WaitListSignup, Trip
-from ws.utils.dates import local_now
+from ws.utils.dates import local_date
 from ws.utils.signups import trip_or_wait, update_queues_if_trip_open
 
 @receiver(post_save, sender=SignUp)
@@ -78,7 +78,7 @@ def bumped_from_waitlist(sender, instance, using, **kwargs):
     if not wl_signup.signup.on_trip:
         return  # Could just be deleted, don't want to falsely notify
     trip = signup.trip
-    if trip.trip_date < local_now().date():
+    if trip.trip_date < local_date():
         return  # Trip was yesterday or earlier, no point notifying
     trip_link = get_trip_link(trip)
     return  # TODO: There are issues with this going out incorrectly

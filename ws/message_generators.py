@@ -10,7 +10,7 @@ from django.core.urlresolvers import reverse
 from django.utils import timezone
 
 from ws import models
-from ws.utils.dates import local_now, is_winter_school
+from ws.utils.dates import local_date, is_winter_school
 import ws.utils.perms
 
 
@@ -50,10 +50,9 @@ class LotteryMessages(object):
 
     def warn_if_no_ranked_trips(self):
         """ Warn the user if there are future signups, and none are ranked. """
-        today = local_now().date()
         manager = models.SignUp.objects
         future_signups = manager.filter(participant=self.request.participant,
-                                        trip__trip_date__gte=today)
+                                        trip__trip_date__gte=local_date())
         some_trips_ranked = future_signups.filter(order__isnull=False).count()
         if future_signups.count() > 1 and not some_trips_ranked:
             msg = "You haven't " + self.prefs_link("ranked upcoming trips.")
@@ -94,7 +93,7 @@ def warn_if_needs_update(request):
 
 def _feedback_eligible_trips(participant):
     """ Recent completed trips where participants were not given feedback. """
-    today = local_now().date()
+    today = local_date()
     one_month_ago = today - timedelta(days=30)
     recent_trips = participant.trips_led.filter(trip_date__lt=today,
                                                 trip_date__gt=one_month_ago)

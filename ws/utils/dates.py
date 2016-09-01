@@ -23,6 +23,10 @@ def local_now():
     return timezone.localtime(timezone.now())
 
 
+def local_date():
+    return local_now().date()
+
+
 def nearest_sat():
     """ Give the date of the nearest Saturday (next week if today is Saturday)
 

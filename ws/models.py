@@ -356,7 +356,7 @@ class Trip(models.Model):
 
     @property
     def in_past(self):
-        return self.trip_date < dateutils.local_now().date()
+        return self.trip_date < dateutils.local_date()
 
     @property
     def after_lottery(self):
@@ -426,7 +426,7 @@ class Trip(models.Model):
             if self.signups_closed:
                 raise ValidationError("Signups can't be closed already!")
             # Careful here - don't want to disallow editing of past trips
-            if self.trip_date < dateutils.local_now().date():
+            if self.trip_date < dateutils.local_date():
                 raise ValidationError("Trips can't occur in the past!")
 
         close_time = self.signups_close_at

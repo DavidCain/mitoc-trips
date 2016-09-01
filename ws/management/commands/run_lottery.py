@@ -7,12 +7,12 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.utils import timezone
 
-from ws.utils.dates import local_now, closest_wed_at_noon
+from ws.utils.dates import local_date, closest_wed_at_noon
 from ws.utils.signups import add_to_waitlist
 from ws import models
 
 
-today = local_now().date()
+today = local_date()
 pytz_timezone = timezone.get_default_timezone()
 jan_1st = timezone.datetime(today.year, 1, 1)
 jan_1st = pytz_timezone.localize(jan_1st)

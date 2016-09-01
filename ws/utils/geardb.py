@@ -3,7 +3,7 @@ Functions for interacting with the gear database.
 """
 from django.db import connections
 
-from ws.utils.dates import local_now
+from ws.utils.dates import local_date
 
 
 def user_membership_expiration(user):
@@ -32,5 +32,5 @@ def membership_expiration(emails):
     membership = cursor.fetchone()
     if membership:
         ret['email'], ret['expires'] = membership
-        ret['active'] = ret['expires'] >= local_now().date()
+        ret['active'] = ret['expires'] >= local_date()
     return ret
