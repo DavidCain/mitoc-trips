@@ -1,18 +1,28 @@
 <div>
-  <h3>Membership Status
+  <h3>Membership
     <span
       class="label"
-      ng-class="{'label-success': status === 'Active',
-                 'label-warning': status === 'Expired',
-                 'label-danger':  status === 'Missing'}"
-      ng-show="status"
-      ng-bind="status">
+      data-ng-class="labelClass[status]"
+      data-ng-show="status"
+      data-ng-bind="status">
     </span>
   </h3>
 
   <div ng-switch="status" ng-if="personal">
+    <div ng-switch-when="Missing Waiver">
+      <p>
+        Please <a href="http://web.mit.edu/mitoc/www/#jointrip/becomemember.html">sign a waiver</a>
+        with your account email, <span ng-bind="membership.email"></span>.
+      </p>
+    </div>
+    <div ng-switch-when="Waiver Expired">
+      <p>
+        Please <a href="http://web.mit.edu/mitoc/www/#jointrip/becomemember.html">sign a new waiver</a>.
+      </p>
+    </div>
     <p ng-switch-when="Active">
-      Your membership is active, and expires on {{ expirationDate }}.
+      Your membership is active, and expires on {{ ::membership.expires | date }}.
+      Your waiver will expire on {{ ::waiver.expires | date }}.
     </p>
     <div ng-switch-when="Missing">
       <p>
@@ -21,16 +31,16 @@
       </p>
 
       <p>
-        You must <a href="http://web.mit.edu/mitoc/www/#jointrip/becomemember.html">become a member</a>
+        You must <a href="http://web.mit.edu/mitoc/www/#jointrip/becomemember.html">become a member and sign the waiver</a>
         in order to participate on trips, rent gear, or use cabins.
       </p>
     </div>
     <div ng-switch-when="Expired">
       <p>
-        Your membership expired on {{ expirationDate }}.
+        Your membership expired on {{ ::membership.expires | date }}.
       </p>
       <p>
-        Please <a href="http://web.mit.edu/mitoc/www/#jointrip/becomemember.html">renew your membership</a>
+        Please <a href="http://web.mit.edu/mitoc/www/#jointrip/becomemember.html">renew your membership and sign the waiver</a>
         under any of your <a href="/accounts/email/">verified email addresses</a>.
       </p>
     </div>
@@ -39,19 +49,26 @@
     </p>
   </div>
 
-  <p ng-switch="status" ng-if="!personal" class="text-muted">
-    <span ng-switch-when="Active">
-      Active, expires on {{ expirationDate }}
-    </span>
-    <span ng-switch-when="Missing">
-      No membership information on file
-    </span>
-    <span ng-switch-when="Expired">
-      Membership for {{ email }} expired on {{ expirationDate }}
-    </span>
-    <span ng-switch-default>
+  <div ng-switch="status" ng-if="!personal" class="text-muted">
+    <p ng-switch-when="Missing Waiver">
+      No waiver on file.
+    </p>
+    <p ng-switch-when="Waiver Expired">
+      Waiver expired on {{ ::waiver.expires | date }}.
+    </p>
+    <div ng-switch-when="Active">
+      <p>Membership expires on {{ ::membership.expires | date }}.</p>
+      <p>Waiver expires on {{ ::waiver.expires | date }}.</p>
+    </div>
+    <p ng-switch-when="Missing">
+      No membership information on file.
+    </p>
+    <p ng-switch-when="Expired">
+      Membership for {{ ::membership.email }} expired on {{ ::membership.expires | date }}.
+    </p>
+    <p ng-switch-default>
       Querying MITOC servers for membership status...
-    </span>
-  </p>
+    </p>
+  </div>
 
 </div>

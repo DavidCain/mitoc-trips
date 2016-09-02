@@ -963,36 +963,30 @@ def get_rating(request, pk, activity):
     return JsonResponse(resp)
 
 
-@login_required
-def rentals(request, user_id):
-    """ Query the gear database for the user's current rented items. """
-    # Leaders can view other users. Normal users can only view themselves
-    if (request.user.id != user_id) and not perm_utils.is_leader(request.user):
-        return JsonResponse({'message': "Not authorized"}, status=401)
+class UserView(DetailView):
+    model = models.User
 
-    try:
-        user = User.objects.get(pk=user_id)
-    except ObjectDoesNotExist:
-        return JsonResponse({'message': "Not found"}, status=404)
+    def get_queryset(self, *args, **kwargs):
+        queryset = super(UserView, self).get_queryset(*args, **kwargs)
+        if not perm_utils.is_leader(self.request.user):
+            return queryset.filter(pk=self.request.user.id)
+        return queryset
 
-    return JsonResponse({'rentals': geardb_utils.user_rentals(user)})
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super(UserView, self).dispatch(request, *args, **kwargs)
 
-# NOTE: These (^-v) two functions share the same boilerplate.
-# Make a user-validating decorator, or use class-based views
 
-@login_required
-def membership_status(request, user_id):
-    """ Query the gear database for the user's membership status. """
-    # Leaders can view other users. Normal users can only view themselves
-    if (request.user.id != user_id) and not perm_utils.is_leader(request.user):
-        return JsonResponse({'message': "Not authorized"}, status=401)
+class UserMembershipView(UserView):
+    def get(self, request, *args, **kwargs):
+        user = self.get_object()
+        return JsonResponse(geardb_utils.user_membership_expiration(user))
 
-    try:
-        user = User.objects.get(pk=user_id)
-    except ObjectDoesNotExist:
-        return JsonResponse({'message': "Not found"}, status=404)
 
-    return JsonResponse(geardb_utils.user_membership_expiration(user))
+class UserRentalsView(UserView):
+    def get(self, request, *args, **kwargs):
+        user = self.get_object()
+        return JsonResponse({'rentals': geardb_utils.user_rentals(user)})
 
 
 # TODO: Convert to CreateView
