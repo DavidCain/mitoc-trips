@@ -35,23 +35,17 @@ def membership_expiration(emails):
     """
     cursor = connections['geardb'].cursor()
 
-    membership= {'email': None,
-                 'expires': None,
-                 'active': False}
-    waiver = {'expires': None,
-              'active': False}
+    membership = {'expires': None, 'active': False, 'email': None}
+    waiver = {'expires': None, 'active': False}
     person = {'membership': membership, 'waiver': waiver, 'status': 'Missing'}
     if not emails:  # Passing an empty tuple will cause a SQL error
         return person
 
     # Get the most recent membership (and the email associated with that)
     # We'll encourage users to renew/resign waivers with the most recent email
-    # Return the most current waiver asssociated with that email address
     cursor.execute(
         """
-        select max(pm.expires) as membership_expires,
-               date(max(w.expires))  as waiver_expires,
-               p.email
+        select p.id, p.email, max(pm.expires) as membership_expires
         from people_memberships pm
                join people p on p.id = pm.person_id
           left join people_waivers w on p.id = w.person_id
@@ -63,15 +57,27 @@ def membership_expiration(emails):
     if not row:  # They've never had an account
         return person
 
-    membership['expires'] = row[0]
-    waiver['expires'] = row[1]
-    membership['email'] = row[2]
+    person_id, membership['email'], membership['expires'] = row
+
+    # Get waiver status for the most recent membership under any email
+    # (They may have a more recent waiver under a different email,
+    #  but we want the email associated with the most current membership)
+    cursor.execute(
+        """
+        select date(max(expires))  -- memberships expire on a date, be consistent
+        from people_waivers
+        where person_id = %s
+        """, [person_id]
+    )
+    waiver_expires = cursor.fetchone()
+    waiver['expires'] = waiver_expires and waiver_expires[0]
+
     for component in [membership, waiver]:
         expires = component['expires']
         component['active'] = expires and expires >= local_date()
 
-    # Generate a human-readable Status
-    if membership['active']: # Membership is active and up-to-date
+    # Generate a human-readable status
+    if membership['active']:  # Membership is active and up-to-date
         if not waiver['expires']:
             status = "Missing Waiver"
         elif not waiver['active']:
