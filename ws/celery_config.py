@@ -1,5 +1,3 @@
-from __future__ import absolute_import  # To resolve naming conflict
-
 import os
 
 from celery import Celery
