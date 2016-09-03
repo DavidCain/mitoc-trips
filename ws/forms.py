@@ -22,7 +22,6 @@ class RequiredModelForm(forms.ModelForm):
 
 
 class ParticipantForm(DjangularRequiredModelForm):
-    required_css_class = 'required'
     name = forms.RegexField(regex=r'^.* ',
                             error_messages={"invalid": "Please use your full name"})
 
@@ -48,7 +47,6 @@ class ParticipantLookupForm(forms.Form):
 
 
 class CarForm(DjangularRequiredModelForm):
-    required_css_class = 'required'
     form_name = 'car_form'
 
     class Meta:
@@ -60,7 +58,6 @@ class CarForm(DjangularRequiredModelForm):
 
 
 class EmergencyContactForm(DjangularRequiredModelForm):
-    required_css_class = 'required'
 
     class Meta:
         model = models.EmergencyContact
@@ -68,7 +65,6 @@ class EmergencyContactForm(DjangularRequiredModelForm):
 
 
 class EmergencyInfoForm(DjangularRequiredModelForm):
-    required_css_class = 'required'
 
     class Meta:
         model = models.EmergencyInfo
@@ -95,7 +91,6 @@ class LeaderForm(DjangularRequiredModelForm):
 
 
 class TripInfoForm(DjangularRequiredModelForm):
-    required_css_class = 'required'
     accurate = forms.BooleanField(required=True, label='I affirm that all participant and driver information is correct')
 
     class Meta:
@@ -109,7 +104,6 @@ class TripInfoForm(DjangularRequiredModelForm):
 
 
 class TripForm(DjangularRequiredModelForm):
-    required_css_class = 'required'
 
     class Meta:
         model = models.Trip
