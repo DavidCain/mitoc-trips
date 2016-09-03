@@ -11,3 +11,6 @@ django-angular>=0.8.1
 psycopg2
 mysql-python
 markdown2
+
+oauth2client
+gspread
