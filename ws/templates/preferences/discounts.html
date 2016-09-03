@@ -1,0 +1,63 @@
+{% extends "messages_page.html" %}
+{% load form_tags %}
+{% block head_title %}Discounts{% endblock head_title %}
+
+{% block content %}
+{{ block.super }}
+
+<div class="row">
+  <div class="col-md-7">
+    <h1>MITOC Discounts</h1>
+
+    <p>Various companies offer discounts and perks to MITOC members. At your request, we can share your membership information to make you eligible for these discounts.</p>
+
+    <small><em>MITOC will never share your information without your express consent.</em></small>
+  </div>
+  <div class="col-md-offset-1 col-md-4">
+    <membership-status data-personal="true" data-user-id="{{ user.id }}">
+    </membership-status>
+    <small>An active membership is required for these discounts.</small>
+  </div>
+</div>
+
+<hr>
+{% if not form.discounts %}
+  <div class="alert alert-warning">Sorry, there aren't any discounts currently available!</div>
+{% else %}
+  <div id="discounts">
+    <div class="alert alert-info">
+      <i class="fa fa-info-circle"></i>
+      By selecting discounts below, you're granting
+      us permission to share your name, email address, and membership status.
+    </div>
+    <form method="post" action=".">
+      {% csrf_token %}
+      {% for discount, checkbox in form.discounts|instances_and_widgets %}
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <div class="row">
+              <div class="col-md-4 col-xs-6">
+                <label ng-non-bindable>  {# Angular would bind ng-model, and make all these inputs share a model #}
+                  {{ checkbox.tag }} {{ checkbox.choice_label }}
+                </label>
+              </div>
+              <div class="col-md-4 col-md-push-4 col-xs-6 text-right">
+                <a href="{{ discount.url }}"><i class="fa fa-external-link"></i> Site</a>
+              </div>
+              <div class="col-md-4 col-md-pull-4 col-xs-12 text-center">
+                <small>{{ discount.summary }}</small>
+              </div>
+            </div>
+          </div>
+          <div class="panel-body">
+            <p>{{ discount.terms | safe }}</p>
+          </div>
+        </div>
+      {% endfor %}
+      <button class="btn btn-primary">Submit</button>
+    </form>
+  </div>
+
+{% endif %}
+
+{% endblock content %}

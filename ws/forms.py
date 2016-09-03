@@ -21,6 +21,13 @@ class RequiredModelForm(forms.ModelForm):
     error_css_class = 'warning'
 
 
+class DiscountForm(forms.ModelForm):
+    class Meta:
+        model = models.Participant
+        fields = ['discounts']
+        widgets = {'discounts': forms.CheckboxSelectMultiple}
+
+
 class ParticipantForm(DjangularRequiredModelForm):
     name = forms.RegexField(regex=r'^.* ',
                             error_messages={"invalid": "Please use your full name"})

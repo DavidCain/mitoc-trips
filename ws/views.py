@@ -1232,6 +1232,28 @@ class LotteryPairingView(CreateView, LotteryPairingMixin):
         return super(LotteryPairingView, self).dispatch(request, *args, **kwargs)
 
 
+class DiscountsView(FormView):
+    form_class = forms.DiscountForm
+    template_name = 'preferences/discounts.html'
+    success_url = reverse_lazy('discounts')
+
+    def get_form_kwargs(self):
+        kwargs = super(DiscountsView, self).get_form_kwargs()
+        kwargs['instance'] = self.request.participant
+        return kwargs
+
+    def form_valid(self, discount_form):
+        discount_form.save()
+        msg = ("Discounts updated! Ensure your membership "
+               "is active for continued access to discounts.")
+        messages.success(self.request, msg)
+        return super(DiscountsView, self).form_valid(discount_form)
+
+    @method_decorator(user_info_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super(DiscountsView, self).dispatch(request, *args, **kwargs)
+
+
 class LotteryPreferencesView(TemplateView, LotteryPairingMixin):
     template_name = 'preferences/lottery/edit.html'
     update_msg = 'Lottery preferences updated'
