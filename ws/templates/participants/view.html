@@ -102,7 +102,7 @@ Lookup participant
     <div class="row">
       {% if user_viewing %}
         <div class="col-sm-6">
-          <h3><i class="fa fa-medkit"></i> Medical info </h3>
+            <h3><i class="fa fa-medkit"></i> Medical </h3>
           {% readonly_form emergency_info_form %}
 
           <h4> Emergency Contact </h4>
@@ -125,13 +125,11 @@ Lookup participant
           <p>No car</p>
         {% endif %}
       </div>
-    </div>
 
 
-    {% if not user_viewing %}
-      <div class="row">
-        <div class="col-md-12">
-          <h3 id='feedback'><i class="fa fa-comments"></i> Past feedback </h3>
+      {% if not user_viewing %}
+      <div class="{{ all_feedback|yesno:'col-md-12, col-sm-6' }}">
+          <h3 id='feedback'><i class="fa fa-comments"></i> Feedback </h3>
           {% if not all_feedback %}
           <p>None available.</p>
           {% else %}
@@ -157,8 +155,9 @@ Lookup participant
           </table>
           {% endif %}
         </div>
-      </div>
-    {% endif %}
+      {% endif %}
+    </div>
+
   </div>
 
   <div class="col-md-4">
