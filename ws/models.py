@@ -74,6 +74,21 @@ class LeaderManager(models.Manager):
         return leaders.prefetch_related('leaderrating_set')
 
 
+class Discount(models.Model):
+    """ Discount at another company available to MITOC members. """
+    name = models.CharField(max_length=255)
+    summary = models.CharField(max_length=255)
+    terms = models.TextField(max_length=4095)
+    url = models.URLField(null=True, blank=True)
+    ga_key = models.CharField(max_length=63, help_text="key for Google spreadsheet with membership information (shared as read-only with the company)")
+
+    time_created = models.DateTimeField(auto_now_add=True)
+    last_updated = models.DateTimeField(auto_now=True)
+
+    def __unicode__(self):
+        return self.name
+
+
 class Participant(models.Model):
     """ Anyone going on a trip needs WIMP info, and info about their car.
 
@@ -96,6 +111,8 @@ class Participant(models.Model):
                                             ('M', "MIT affiliate"),
                                             ('N', "Non-affiliate")])
     attended_lectures = models.BooleanField(default=False)
+
+    discounts = models.ManyToManyField(Discount, blank=True)
 
     @property
     def user(self):
