@@ -46,11 +46,19 @@
         {% if not viewing_participant.info_current %}
             <p> You cannot sign up for trips without current <a href="{% url 'edit_profile' %}">personal information.</a></p>
         {% else %}
-            <form name="{{ signup_form.form_name }}" action="{% url 'trip_signup' %}" method="post" novalidate>
-                {% csrf_token %}
-                {{ signup_form.as_div }}
-                <button type="submit" data-ng-disabled="{{ signup_form.form_name }}.$invalid" class="btn btn-primary">Sign Up</button>
-            </form>
+            {% if leader_signup_allowed and trip.activity == 'circus' %}
+                <form name="{{ signup_form.form_name }}" action="{% url 'leader_trip_signup' %}" method="post" novalidate>
+                    {% csrf_token %}
+                    {{ signup_form.as_div }}
+                    <button type="submit" data-ng-disabled="{{ signup_form.form_name }}.$invalid" class="btn btn-success">Leader Sign Up</button>
+                </form>
+            {% else %}
+                <form name="{{ signup_form.form_name }}" action="{% url 'trip_signup' %}" method="post" novalidate>
+                    {% csrf_token %}
+                    {{ signup_form.as_div }}
+                    <button type="submit" data-ng-disabled="{{ signup_form.form_name }}.$invalid" class="btn btn-primary">Sign Up</button>
+                </form>
+            {% endif %}
         {% endif %}
 
     {% endif %}
