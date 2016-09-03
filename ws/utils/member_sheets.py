@@ -53,7 +53,7 @@ def update_participant(discount, participant):
     wks = gc.open_by_key(discount.ga_key).sheet1
 
     # Attempt to find existing row, update it if found
-    for cell in wks.findall(participant.email):
+    for cell in wks.findall(user.email):
         if cell.col == 2:  # (Participants _could_ name themselves an email...)
             start_cell = wks.get_addr_int(cell.row, 1)
             end_cell = wks.get_addr_int(cell.row, 3)

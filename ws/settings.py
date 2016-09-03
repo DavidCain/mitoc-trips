@@ -160,7 +160,7 @@ CELERY_ACCEPT_CONTENT = ['json']
 
 CELERYBEAT_SCHEDULE = {
     'refresh-all-discount-spreadsheets': {
-        'task': 'ws.update_discount_sheets',
+        'task': 'ws.tasks.update_all_discount_sheets',
         'schedule': crontab(minute=0, hour=3)
     },
 }

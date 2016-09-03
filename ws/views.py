@@ -24,6 +24,7 @@ from ws import forms
 from ws import models
 from ws.decorators import group_required, user_info_required, admin_only, chairs_only
 from ws import message_generators
+from ws import tasks
 
 from ws.utils.dates import local_now, friday_before, is_winter_school
 import ws.utils.perms as perm_utils
@@ -1244,6 +1245,9 @@ class DiscountsView(FormView):
 
     def form_valid(self, discount_form):
         discount_form.save()
+        participant = discount_form.save()
+        for discount in participant.discounts.all():
+            tasks.update_participant.delay(discount.pk, participant.pk)
         msg = ("Discounts updated! Ensure your membership "
                "is active for continued access to discounts.")
         messages.success(self.request, msg)
