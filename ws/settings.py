@@ -151,12 +151,21 @@ WSGI_APPLICATION = 'ws.wsgi.application'
 
 
 # Celery settings
-from datetime import timedelta
+from celery.schedules import crontab
 
 BROKER_URL = os.getenv('BROKER_URL', 'amqp://guest:guest@127.0.0.1//')
 CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'amqp')
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_ACCEPT_CONTENT = ['json']
+
+CELERYBEAT_SCHEDULE = {
+    'refresh-all-discount-spreadsheets': {
+        'task': 'ws.update_discount_sheets',
+        'schedule': crontab(minute=0, hour=3)
+    },
+}
+
+CELERY_TIMEZONE = 'UTC'
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
