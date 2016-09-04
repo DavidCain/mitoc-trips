@@ -46,8 +46,18 @@ def grouper(iterable, n, fillvalue=None):
 
 
 def get_row_values(participant, user):
+    """ Get user's name, verified primary email, and membership status. """
     # Status is one external query per user. Expensive! (We should refactor...)
-    status = geardb.user_membership_expiration(user)['status']
+    membership = geardb.user_membership_expiration(user)['membership']
+
+    # We report Active/Expired, since companies don't care about waiver status
+    if membership['active']:
+        status = 'Active'
+    elif membership['expires']:
+        status = 'Expired {}'.format(membership['expires'].isoformat())
+    else:
+        status = 'Missing'
+
     return [participant.name, user.email, status]
 
 
