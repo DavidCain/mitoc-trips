@@ -11,13 +11,14 @@
   <div ng-switch="status" ng-if="personal">
     <div ng-switch-when="Missing Waiver">
       <p>
-        Please <a href="http://web.mit.edu/mitoc/www/#jointrip/becomemember.html">sign a waiver</a>
+        Please <a href="https://rightsignature.com/forms/Liability-Waiver--97a3de/token/39c17d4086f">sign a waiver</a>
         with your account email, <span ng-bind="membership.email"></span>.
       </p>
     </div>
     <div ng-switch-when="Waiver Expired">
       <p>
-        Please <a href="http://web.mit.edu/mitoc/www/#jointrip/becomemember.html">sign a new waiver</a>.
+        Please <a href="https://rightsignature.com/forms/Liability-Waiver--97a3de/token/39c17d4086f">sign a new waiver</a>
+        with your account email, <span ng-bind="membership.email"></span>.
       </p>
     </div>
     <p ng-switch-when="Active">
@@ -31,7 +32,7 @@
       </p>
 
       <p>
-        You must <a href="http://web.mit.edu/mitoc/www/#jointrip/becomemember.html">become a member and sign the waiver</a>
+        You must <a href="http://mitoc.mit.edu/#join">become a member and sign the waiver</a>
         in order to participate on trips, rent gear, or use cabins.
       </p>
     </div>
@@ -40,7 +41,7 @@
         Your membership expired on {{ ::membership.expires | date }}.
       </p>
       <p>
-        Please <a href="http://web.mit.edu/mitoc/www/#jointrip/becomemember.html">renew your membership and sign the waiver</a>
+        Please <a href="http://mitoc.mit.edu/#join">renew your membership and sign the waiver</a>
         under any of your <a href="/accounts/email/">verified email addresses</a>.
       </p>
     </div>
