@@ -9,23 +9,35 @@ discount, so that they can verify membership status.
 """
 import bisect
 from itertools import izip_longest
+import httplib2
 import os
 
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
 from ws import models
+from ws import settings
 from ws.utils import geardb
 
 
 
 scope = ['https://spreadsheets.google.com/feeds']
 credfile = os.getenv('OAUTH_JSON_CREDENTIALS')
-if credfile:
+if settings.DEBUG and not credfile:  # Allow local environments to skip
+    credentials = None  # Exceptions will be raised if any methods are tried
+    gc = None
+else:
     credentials = ServiceAccountCredentials.from_json_keyfile_name(credfile, scope)
     gc = gspread.authorize(credentials)
-else:
-    gc = None  # Exceptions will be raised if any of the methods are tried
+
+
+def with_refreshed_token(func):
+    """ By default, tokens are limited to 60 minutes. Refresh if expired. """
+    def func_wrapper(*args, **kwargs):
+        if credentials.access_token_expired:
+            credentials.refresh(httplib2.Http())
+        func(*args, **kwargs)
+    return func_wrapper
 
 
 def grouper(iterable, n, fillvalue=None):
@@ -44,6 +56,7 @@ def assign(cells, values):
         cell.value = value
 
 
+@with_refreshed_token
 def update_participant(discount, participant):
     """ Add or update the participant.
 
@@ -67,6 +80,7 @@ def update_participant(discount, participant):
     wks.insert_row(get_row_values(participant, user), row_index + 1)
 
 
+@with_refreshed_token
 def update_discount_sheet(discount):
     """ Update the entire worksheet, updating all members' status.
 
