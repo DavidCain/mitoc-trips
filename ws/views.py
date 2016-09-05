@@ -26,7 +26,7 @@ from ws.decorators import group_required, user_info_required, admin_only, chairs
 from ws import message_generators
 from ws import tasks
 
-from ws.utils.dates import local_now, friday_before, is_winter_school
+from ws.utils.dates import local_date, friday_before, is_winter_school
 import ws.utils.perms as perm_utils
 import ws.utils.signups as signup_utils
 import ws.utils.geardb as geardb_utils
@@ -280,7 +280,7 @@ class ParticipantView(ParticipantLookupView, SingleObjectMixin, LotteryPairingMi
     def get_trips(self):
         participant = self.object or self.get_object()
 
-        today = local_now().date()
+        today = local_date()
 
         is_par = Q(signup__participant=participant)
         trips = models.Trip.objects.filter(is_par)
@@ -499,7 +499,7 @@ class TripDetailView(DetailView):
             return False
 
         trip = self.object
-        trip_upcoming = local_now().date() <= trip.trip_date
+        trip_upcoming = local_date() <= trip.trip_date
 
         return (trip_upcoming and trip.allow_leader_signups
                 and par.can_lead(trip.activity))
@@ -567,7 +567,7 @@ class ItineraryEditableMixin(object):
 
     def info_form_available(self, trip):
         """ Trip itinerary should only be submitted Friday before or later. """
-        today = local_now().date()
+        today = local_date()
         return today >= self.friday_before(trip)
 
     def info_form_context(self, trip):
@@ -811,7 +811,7 @@ class ReviewTripView(DetailView):
         return feedback_list
 
     def get_context_data(self, **kwargs):
-        today = local_now().date()
+        today = local_date()
         trip = self.object = self.get_object()
         return {"trip": trip, "trip_completed": today >= trip.trip_date,
                 "feedback_list": self.feedback_list,
@@ -880,7 +880,7 @@ class LeaderApplyView(CreateView):
     def get_context_data(self, **kwargs):
         """ Give next year's value in the context. """
         context_data = super(LeaderApplyView, self).get_context_data(**kwargs)
-        context_data['year'] = local_now().date().year + 1
+        context_data['year'] = local_date().year + 1
         return context_data
 
     def get_success_url(self):
@@ -1148,7 +1148,7 @@ class TripListView(ListView):
         context_data = super(TripListView, self).get_context_data(**kwargs)
         trips = context_data[self.context_object_name]
 
-        today = local_now().date()
+        today = local_date()
         context_data['current_trips'] = trips.filter(trip_date__gte=today)
         context_data['past_trips'] = trips.filter(trip_date__lt=today)
         return context_data
@@ -1160,7 +1160,7 @@ class UpcomingTripsView(TripListView):
 
     def get_queryset(self):
         queryset = super(UpcomingTripsView, self).get_queryset()
-        return queryset.filter(trip_date__gte=local_now().date())
+        return queryset.filter(trip_date__gte=local_date())
 
     def get_context_data(self, **kwargs):
         # No point sorting into current, past (queryset already handles)
@@ -1269,7 +1269,7 @@ class LotteryPreferencesView(TemplateView, LotteryPairingMixin):
 
     @property
     def ranked_signups(self):
-        today = local_now().date()
+        today = local_date()
         lotto_signups = Q(participant=self.request.participant,
                           trip__algorithm='lottery', trip__trip_date__gt=today)
         future_signups = models.SignUp.objects.filter(lotto_signups)
@@ -1400,7 +1400,7 @@ class AllTripsMedicalView(ListView, TripMedical, ItineraryEditableMixin):
 
     def get_queryset(self):
         trips = super(AllTripsMedicalView, self).get_queryset().order_by('trip_date')
-        today = local_now().date()
+        today = local_date()
         return trips.filter(trip_date__gte=today)
 
     def get_context_data(self, **kwargs):
