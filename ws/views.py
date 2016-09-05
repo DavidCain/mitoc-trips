@@ -1168,9 +1168,7 @@ class UpcomingTripsView(TripListView):
 
 class AllTripsView(TripListView):
     """ View all trips, past and present. """
-    @method_decorator(login_required)
-    def dispatch(self, request, *args, **kwargs):
-        return super(TripListView, self).dispatch(request, *args, **kwargs)
+    pass
 
 
 class LotteryPairingView(CreateView, LotteryPairingMixin):
