@@ -481,37 +481,18 @@ class TripDetailView(DetailView):
         signups = signups.select_related('participant', 'trip')
         return signups.select_related('participant__lotteryinfo')
 
-    def get_leaders(self):
-        leaders = self.object.leaders.all()
-        return leaders.select_related('lotteryinfo')
-
     @property
     def wl_signups(self):
         trip = self.object
         return trip.waitlist.signups.select_related('participant',
                                                     'participant__lotteryinfo')
 
-    @property
-    def leader_signup_allowed(self):
-        """ If a viewing leader can make themselves a leader on this trip """
-        par = self.request.participant
-        if not par and par.is_leader:
-            return False
-
-        trip = self.object
-        trip_upcoming = local_date() <= trip.trip_date
-
-        return (trip_upcoming and trip.allow_leader_signups
-                and par.can_lead(trip.activity))
-
     def get_context_data(self, **kwargs):
         context = super(TripDetailView, self).get_context_data()
-        context['leaders'] = self.get_leaders()
         context['signups'] = self.get_signups(models.SignUp)
         context['signups_on_trip'] = context['signups'].filter(on_trip=True)
         context['leader_signups'] = self.get_signups(models.LeaderSignUp)
         context['waitlist_signups'] = self.wl_signups
-        context['leader_signup_allowed'] = self.leader_signup_allowed
         context['has_notes'] = (self.object.notes or
                                 any(s.notes for s in context['signups']) or
                                 any(s.notes for s in context['leader_signups']))
@@ -519,25 +500,25 @@ class TripDetailView(DetailView):
 
 
 class TripView(TripDetailView):
+    """ Display the trip to both unregistered users and known participants.
+
+    For unregistered users, the page will have minimal information (a description,
+    and leader names). For other participants, the controls displayed to them
+    will vary depending on their permissions.
+    """
     template_name = 'trips/view.html'
 
     def get_participant_signup(self, trip=None):
         """ Return viewer's signup for this trip (if one exists, else None) """
-        try:
-            participant = self.request.participant
-        except ObjectDoesNotExist:  # Logged in, no participant info
+        if not self.request.participant:
             return None
         trip = trip or self.get_object()
-        return participant.signup_set.filter(trip=trip).first()
+        return self.request.participant.signup_set.filter(trip=trip).first()
 
     def get_context_data(self, **kwargs):
         context = super(TripView, self).get_context_data()
         trip = self.object
         context['is_chair'] = perm_utils.is_chair(self.request.user, trip.activity)
-        if trip.signups_open or self.leader_signup_allowed:
-            signup_form = forms.SignUpForm(initial={'trip': trip})
-            signup_form.fields['trip'].widget = HiddenInput()
-            context['signup_form'] = signup_form
         context['participant_signup'] = self.get_participant_signup(trip)
         return context
 
@@ -555,10 +536,6 @@ class TripView(TripDetailView):
         signup = self.get_participant_signup()
         signup_utils.trip_or_wait(signup, self.request, trip_must_be_open=True)
         return self.get(request)
-
-    @method_decorator(user_info_required)
-    def dispatch(self, request, *args, **kwargs):
-        return super(TripView, self).dispatch(request, *args, **kwargs)
 
 
 class ItineraryEditableMixin(object):

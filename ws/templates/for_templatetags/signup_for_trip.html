@@ -1,0 +1,107 @@
+{% if trip.signups_closed %} {# Can show this to anybody, authenticated or not. #}
+  <div class="alert alert-info">
+    Signups for this trip are closed.
+  </div>
+{% elif trip.signups_open %}
+  {% if existing_signup %}
+    {% if trip.algorithm == 'fcfs' and not existing_signup.on_trip and not existing_signup.waitlistsignup %}
+      <div class="panel panel-primary">
+        <div class="panel-heading">
+          You've already signed up for this trip, but are neither a participant
+          nor on the waitlist.
+        </div>
+        <div class="panel-body">
+          <p>
+            Most likely, this is because you were
+            <a href="{% url 'home' %}">placed on another trip</a>.
+          </p>
+          <p>
+            If you can attend this trip and it does not conflict with any of your
+            other trips (<strong>confirm this with your leaders</strong>), you're
+            free to join this trip.
+          </p>
+        </div>
+        <div class="panel-footer">
+          <form action="{% url 'view_trip' trip.id %}" method="post">
+            {% csrf_token %}
+            {% if trip.open_slots %}
+                This trip has empty slots. Do you want to be added to this trip?
+                <button type="submit" class="btn btn-primary">Join trip</button>
+            {% else %}
+                The trip is full. Do you want to be added to the waitlist?
+                <button type="submit" class="btn btn-primary">Join waitlist</button>
+            {% endif %}
+          </form>
+        </div>
+      </div>
+    {% else %}
+      <div class="alert alert-success">
+        You are signed up for this trip.
+      </div>
+    {% endif %}
+  {% else %}
+    <div class="alert alert-info">
+      Signups are open!
+    </div>
+
+    {% if not user.is_authenticated %}
+      <div class="panel panel-primary">
+        <div class="panel-heading">
+          Want to join this trip?
+        </div>
+        <div class="panel-body">
+          <p>It's easy!</p>
+          <ol>
+            <li><a href="{% url 'account_signup' %}">Make an account</a></li>
+            <li><a href="http://mitoc.mit.edu/#join">Become a member</a> (anyone can join)</li>
+            <li><a href="{% url 'view_trip' trip.id %}">Sign up!</a></li>
+          </ol>
+          <p>
+            Already have an account? <a href="{% url 'account_login' %}"><i class="fa fa-sign-in"></i> Sign in!</a>
+          </p>
+        </div>
+      </div>
+    {% elif not participant.info_current %}
+      <div class="alert alert-warning">
+        You cannot sign up for trips without current
+        <a href="{% url 'edit_profile' %}">personal information</a>.
+      </div>
+    {% else %}
+      {% if leader_signup_allowed and trip.activity == 'circus' %}
+        <form name="{{ signup_form.form_name }}" action="{% url 'leader_trip_signup' %}" method="post" novalidate>
+          {% csrf_token %}
+          {{ signup_form.as_div }}
+          <button type="submit" data-ng-disabled="{{ signup_form.form_name }}.$invalid" class="btn btn-success">Leader Sign Up</button>
+        </form>
+      {% else %}
+        <form name="{{ signup_form.form_name }}" action="{% url 'trip_signup' %}" method="post" novalidate>
+          {% csrf_token %}
+          {{ signup_form.as_div }}
+          <button type="submit" data-ng-disabled="{{ signup_form.form_name }}.$invalid" class="btn btn-primary">Sign Up</button>
+        </form>
+      {% endif %}
+    {% endif %}
+  {% endif %}
+
+{% elif trip.signups_not_yet_open %}
+  <div class="alert alert-info">
+    Signups for this trip are not yet open.
+  </div>
+  {% if leader_signup_allowed %}
+    <div class="alert alert-success">
+      However, you can sign up early as a leader!
+    </div>
+    {% if not participant.info_current %}
+      <div class="alert alert-warning">
+        You cannot sign up for trips without current
+        <a href="{% url 'edit_profile' %}">personal information</a>.
+      </div>
+    {% else %}
+      <form name="{{ signup_form.form_name }}" action="{% url 'leader_trip_signup' %}" method="post" novalidate>
+        {% csrf_token %}
+        {{ signup_form.as_div }}
+        <button type="submit" data-ng-disabled="{{ signup_form.form_name }}.$invalid" class="btn btn-success">Leader Sign Up</button>
+      </form>
+    {% endif %}
+  {% endif %}
+{% endif %} {# No else - these states should cover all cases #}

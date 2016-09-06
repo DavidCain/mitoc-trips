@@ -3,18 +3,29 @@
 {% block head_title %}Welcome{% endblock head_title %}
 
 {% block content %}
-<h3>Welcome!</h3>
+<h1>Welcome!</h1>
 <p>This site is the official portal for all MITOC trips.</p>
 
 {{ block.super }}
 
 {% if user.is_anonymous %}
-  <div class="alert alert-info">
-    <p>This portal is only available to authenticated users.</p>
-    <strong><a href="{% url 'account_login' %}"><i class="fa fa-sign-in"></i>&nbsp;Log in</a></strong> or <strong><a href="{% url 'account_signup' %}">sign up!</a></strong>
+  <br>
+  <div class="panel panel-primary">
+    <div class="panel-heading">
+      You're not signed in!
+    </div>
+    <div class="panel-body">
+      <p>
+        You can browse available trips as an anonymous user, but to join a trip you'll need to <a href="{% url 'account_signup' %}">create an account</a></strong>!
+      </p>
+      <p>
+       Already have an account? <strong><a href="{% url 'account_login' %}"><i class="fa fa-sign-in"></i>&nbsp;Sign in</a></strong>
+      </p>
+    </div>
+    <div class="panel-footer">
+      If you already have an account, but <a href="{% url 'account_reset_password' %}">forgot your password</a>, you can reset it via email.
+    </div>
   </div>
-
-<p>If you already have an account, but <a href="{% url 'account_reset_password' %}">forgot your password</a>, you can reset your password via email.</p>
 {% endif %}
 
 {% endblock content %}

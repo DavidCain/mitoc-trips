@@ -5,7 +5,8 @@
 <dl class="dl-horizontal">
     <dt>Leaders</dt>
     <dd>{% for leader in trip.leaders.all %}
-    <a href="mailto:{{ leader.email }}">{{ leader|name_with_activity:trip.activity }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}
+    {% if show_emails %}<a href="mailto:{{ leader.email }}">{% endif %}
+      {{ leader|name_with_activity:trip.activity }}{% if show_emails %}</a>{% endif %}{% if not forloop.last %}, {% endif %}{% endfor %}
     </dd>
 
     {% if trip.level %}

@@ -1,8 +1,51 @@
 from itertools import chain
 
 from django import template
+from django.forms import HiddenInput
+
+from ws.forms import SignUpForm
+from ws.utils.dates import local_date
 
 register = template.Library()
+
+
+def leader_signup_allowed(trip, participant):
+    """ Determine whether or not to display the leader signup form.
+
+    Note: This is not validation - the user's ultimate ability to sign
+    up by a leader is determined by the logic in the models and views.
+    """
+    if not (participant and participant.is_leader):
+        return False
+    trip_upcoming = local_date() <= trip.trip_date
+
+    return (trip_upcoming and trip.allow_leader_signups
+            and participant.can_lead(trip.activity))
+
+
+@register.inclusion_tag('for_templatetags/signup_for_trip.html', takes_context=True)
+def signup_for_trip(context, trip, participant, existing_signup=None):
+    """ Display the appropriate signup controls for a given trip.
+
+    Signups are forbidden in a number of cases (trip already happened, signups
+    aren't open yet, et cetera). There are a number of special cases where
+    signups might be allowed anyway (e.g. the participant is a MITOC leader).
+
+    This tag displays the appropriate controls to the viewing participant.
+    """
+    context = {
+        'user': context['user'],
+        'trip': trip,
+        'participant': participant,
+        'existing_signup': existing_signup,
+        'leader_signup_allowed': leader_signup_allowed(trip, participant),
+    }
+
+    if trip.signups_open or context['leader_signup_allowed']:
+        context['signup_form'] = SignUpForm(initial={'trip': trip})
+        context['signup_form'].fields['trip'].widget = HiddenInput()
+
+    return context
 
 
 @register.inclusion_tag('for_templatetags/signup_table.html')
@@ -29,9 +72,9 @@ def editable_signup_table(formset):
     return {'formset': formset}
 
 
-@register.inclusion_tag('for_templatetags/trip_summary.html')
-def trip_summary(trip):
-    return {'trip': trip}
+@register.inclusion_tag('for_templatetags/trip_summary.html', takes_context=True)
+def trip_summary(context, trip):
+    return {'show_emails': context['user'].is_authenticated(), 'trip': trip}
 
 
 @register.inclusion_tag('for_templatetags/medical_table.html')

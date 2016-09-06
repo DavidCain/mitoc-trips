@@ -7,102 +7,46 @@
 {{ block.super }}
 
 {% if is_chair %}
-    <h4>Activity chair functions</h4>
-    <div class="btn-group" role="group">
-        <a type="button" class="btn btn-default" href="{% url 'trip_medical' trip.id %}"><i class="fa fa-medkit"></i>&nbsp;WIMP info</a>
-        <a type="button" class="btn btn-default" href="{% url 'edit_trip' trip.id %}"><i class="fa fa-edit"></i>&nbsp;Edit</a>
-        <a type="button" class="btn btn-default" href="{% url 'admin_trip' trip.id %}"><i class="fa fa-wrench"></i>&nbsp;Admin</a>
-    </div>
-    <delete api-slug="trips" obj-id="{{ trip.id }}"></delete>
+  <h4>Activity chair functions</h4>
+  <div class="btn-group" role="group">
+    <a type="button" class="btn btn-default" href="{% url 'trip_medical' trip.id %}"><i class="fa fa-medkit"></i>&nbsp;WIMP info</a>
+    <a type="button" class="btn btn-default" href="{% url 'edit_trip' trip.id %}"   ><i class="fa fa-edit"  ></i>&nbsp;Edit</a>
+    <a type="button" class="btn btn-default" href="{% url 'admin_trip' trip.id %}"  ><i class="fa fa-wrench"></i>&nbsp;Admin</a>
+  </div>
+  <delete api-slug="trips" obj-id="{{ trip.id }}"></delete>
 {% endif %}
 
 {% trip_summary trip %}
 
-{% if trip.signups_open %}
-    {% if participant_signup %}
-        {% if trip.algorithm == 'fcfs' and not participant_signup.on_trip and not participant_signup.waitlistsignup %}
-            <p>You've already signed up for this trip, but are neither a participant
-            nor on the waitlist. Most likely, this is because you were
-            <a href="{% url 'home' %}">placed on another trip</a>.
-            If you can attend this trip and it does not conflict with any of your
-            other trips (<strong>confirm this with your leaders</strong>), you're
-            free to join this trip.</p>
-            <form action="" method="post">
-                {% csrf_token %}
-                {% if trip.open_slots %}
-                    <p>This trip has empty slots. Do you want to be added to this trip?</p>
-                    <button type="submit" class="btn btn-primary">Join trip</button>
-                {% else %}
-                    <p>The trip is full. Do you want to be added to the waitlist?</p>
-                    <button type="submit" class="btn btn-primary">Join waitlist</button>
-                {% endif %}
-            </form>
-        {% else %}
-            <p>You are signed up for this trip.</p>
-        {% endif %}
-    {% else %}
-        <p>Signups are open!</p>
+{% signup_for_trip trip viewing_participant participant_signup %}
 
-        {% if not viewing_participant.info_current %}
-            <p> You cannot sign up for trips without current <a href="{% url 'edit_profile' %}">personal information.</a></p>
-        {% else %}
-            {% if leader_signup_allowed and trip.activity == 'circus' %}
-                <form name="{{ signup_form.form_name }}" action="{% url 'leader_trip_signup' %}" method="post" novalidate>
-                    {% csrf_token %}
-                    {{ signup_form.as_div }}
-                    <button type="submit" data-ng-disabled="{{ signup_form.form_name }}.$invalid" class="btn btn-success">Leader Sign Up</button>
-                </form>
-            {% else %}
-                <form name="{{ signup_form.form_name }}" action="{% url 'trip_signup' %}" method="post" novalidate>
-                    {% csrf_token %}
-                    {{ signup_form.as_div }}
-                    <button type="submit" data-ng-disabled="{{ signup_form.form_name }}.$invalid" class="btn btn-primary">Sign Up</button>
-                </form>
-            {% endif %}
-        {% endif %}
 
-    {% endif %}
+{% if user.is_authenticated %}
+  <hr>
 
-{% elif trip.signups_closed %}
-    <p>Signups for this trip are closed.</p>
-{% elif trip.signups_not_yet_open %}
-    <p>Signups for this trip are not yet open.</p>
-    {% if leader_signup_allowed %}
-        <p>However, you can sign up early as a leader.</p>
-        {% if not viewing_participant.info_current %}
-            <p> You cannot sign up for trips without current <a href="{% url 'edit_profile' %}">personal information.</a></p>
-        {% else %}
-            <form name="{{ signup_form.form_name }}" action="{% url 'leader_trip_signup' %}" method="post" novalidate>
-                {% csrf_token %}
-                {{ signup_form.as_div }}
-                <button type="submit" data-ng-disabled="{{ signup_form.form_name }}.$invalid" class="btn btn-success">Leader Sign Up</button>
-            </form>
-        {% endif %}
-    {% endif %}
-{% endif %} {# No else - these states should cover all cases #}
-
-{% if has_notes or participant.is_leader %} {# Table is only for drivers/notes (can hide without) #}
+  {% if has_notes or participant.is_leader %} {# Table is only for drivers/notes (can hide without) #}
     <h3>Leaders ({{ trip.leaders.count }})</h3>
     {% signup_table leader_signups has_notes show_drivers=participant.is_leader all_participants=trip.leaders%}
-{% endif %}
+  {% endif %}
 
-{% if signups_on_trip %}
+  {% if signups_on_trip %}
     <h3>Participants ({{ signups_on_trip.count }} / {{ trip.maximum_participants }})</h3>
     {% signup_table signups_on_trip has_notes show_drivers=participant.is_leader %}
 
     <h5>Email all participants</h5>
     <pre class="participant-emails">{% for signup in signups_on_trip %}{{ signup.participant.email_addr }}{% if not forloop.last %}, {% endif %}{% endfor %}</pre>
-{% endif %}
+  {% endif %}
 
-{% if waitlist_signups %}
+  {% if waitlist_signups %}
     <h3>Waiting List ({{ waitlist_signups.count }}) </h3>
     {% signup_table waitlist_signups has_notes show_drivers=participant.is_leader %}
-{% endif %}
+  {% endif %}
 
-{% if signups %}
+  {% if signups %}
     <hr>
     <h3>All Participant Signups</h3>
     {% signup_table signups has_notes show_drivers=False %}
+  {% endif %}
 {% endif %}
 
 {% endblock content %}
