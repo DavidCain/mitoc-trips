@@ -20,7 +20,6 @@ from ws import settings
 from ws.utils import geardb
 
 
-
 scope = ['https://spreadsheets.google.com/feeds']
 credfile = os.getenv('OAUTH_JSON_CREDENTIALS')
 if settings.DEBUG and not credfile:  # Allow local environments to skip
@@ -36,6 +35,7 @@ def with_refreshed_token(func):
     def func_wrapper(*args, **kwargs):
         if credentials.access_token_expired:
             credentials.refresh(httplib2.Http())
+            gc.login()  # Client stored credentials, so log in again to refresh
         func(*args, **kwargs)
     return func_wrapper
 
