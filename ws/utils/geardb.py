@@ -41,37 +41,28 @@ def membership_expiration(emails):
     if not emails:  # Passing an empty tuple will cause a SQL error
         return person
 
-    # Get the most recent membership (and the email associated with that)
-    # We'll encourage users to renew/resign waivers with the most recent email
+    # Get the most recent membership and most recent waiver per email
+    # It's possible the user has a newer waiver under another email address,
+    # but this is what the gear database reports (and we want consistency)
     cursor.execute(
         """
-        select p.id, p.email, max(pm.expires) as membership_expires
+        select p.email,
+               max(pm.expires)  as membership_expires,
+          date(max(pw.expires)) as waiver_expires
         from people_memberships pm
-               join people p on p.id = pm.person_id
-          left join people_waivers w on p.id = w.person_id
-        where email in %s
-        group by p.id, p.email
+               join people p          on p.id = pm.person_id
+          left join people_waivers pw on p.id = pw.person_id
+        where p.email in %s
+        group by p.email
+        order by membership_expires desc
+        limit 1
         """, [tuple(emails)]
     )
     row = cursor.fetchone()
-    if not row:  # They've never had an account
+    if not row:  # No membership on file (might have signed a waiver, though)
         return person
 
-    person_id, membership['email'], membership['expires'] = row
-
-    # Get waiver status for the most recent membership under any email
-    # (They may have a more recent waiver under a different email,
-    #  but we want the email associated with the most current membership)
-    cursor.execute(
-        """
-        select date(max(expires))  -- memberships expire on a date, be consistent
-        from people_waivers
-        where person_id = %s
-        """, [person_id]
-    )
-    waiver_expires = cursor.fetchone()
-    waiver['expires'] = waiver_expires and waiver_expires[0]
-
+    membership['email'], membership['expires'], waiver['expires'] = row
     for component in [membership, waiver]:
         expires = component['expires']
         component['active'] = expires and expires >= local_date()
@@ -84,11 +75,7 @@ def membership_expiration(emails):
             status = "Waiver Expired"
         else:
             status = "Active"
-    elif not membership['email']:
-        status = "Missing"  # Might only have signed a waiver, but that's rare
     else:
-        # Consider the waiver expired
-        # (Most people sign both at the same time, and it's good to have emails agree)
         status = "Expired"
 
     person['status'] = status
