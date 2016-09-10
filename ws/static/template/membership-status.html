@@ -72,4 +72,18 @@
     </p>
   </div>
 
+  <div ng-if="status && status !== 'Active'">
+    <div class="alert alert-warning">
+      It may take up to 24 hours to update status.
+      <a
+        role="button"
+        data-uib-popover-html="delayNotice"
+        data-popover-append-to-body="true"
+        data-popover-placement="bottom"
+        data-popover-title="Status update delays">
+        <i class="fa fa-lg fa-question-circle-o"></i>
+      </a>
+    </div>
+  </div>
+
 </div>

@@ -53,6 +53,10 @@ angular.module('ws.profile', [])
     },
     templateUrl: '/static/template/membership-status.html',
     link: function (scope, element, attrs) {
+      scope.delayNotice = "<p>If you've already submitted membership dues and/or waiver, " +
+                          "our system may take up to 24 hours to mark your membership as active.</p>" +
+                          "<p>We're working on a fix for this delay.</p>" +
+                          "<p>In the meantime, please feel free to sign up for trips if you believe your membership is active.</p>";
       scope.labelClass = {
         'Active':         'label-success',
         'Waiver Expired': 'label-warning',
