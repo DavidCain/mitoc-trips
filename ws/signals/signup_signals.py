@@ -119,6 +119,24 @@ def inform_leaders(sender, instance, action, reverse, model, pk_set, using,
             send_coleader_email(instance, leader)
 
 
+@receiver(m2m_changed, sender=Trip.leaders.through)
+def delete_leader_signups(sender, instance, action, reverse, model, pk_set,
+                          using, **kwargs):
+    """ When removing leaders from the trip, delete their signups.
+
+    Ideally, we should be able to use the pre_remove signal to detect which
+    leaders in particular were removed. However, the pre_remove signal isn't
+    set at all (instead, the whole M2M is cleared and reset).
+    See this issue for more: https://code.djangoproject.com/ticket/6707
+
+    The issue was solved in Django 1.9, so this is a hack until we upgrade.
+    """
+    # Signal order: pre_clear, post_clear, pre_add, post_add, [completed]
+    if action == 'post_add':
+        leaders = instance.leaders.all()
+        instance.leadersignup_set.exclude(participant__in=leaders).delete()
+
+
 def send_coleader_email(trip, leader):
     trip_link = get_trip_link(trip)
     leaders = ', '.join(unicode(leader) for leader in trip.leaders.all())

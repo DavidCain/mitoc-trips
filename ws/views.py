@@ -1086,8 +1086,8 @@ class EditTripView(UpdateView, LeadersOnlyView):
         A compromise: Only send emails when the leader list is changed.
         See ticket 6707 for an eventual fix to this behavior
         """
-        old_pks = set(leader.pk for leader in self.object.leaders.all())
-        new_pks = set(leader.pk for leader in form.cleaned_data['leaders'])
+        old_pks = {leader.pk for leader in self.object.leaders.all()}
+        new_pks = {leader.pk for leader in form.cleaned_data['leaders']}
         if not old_pks.symmetric_difference(new_pks):
             form.cleaned_data.pop('leaders')
 
