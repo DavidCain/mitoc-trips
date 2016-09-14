@@ -396,8 +396,16 @@ class Trip(models.Model):
 
     @property
     def signups_open(self):
-        passed_signup_date = (timezone.now() > self.signups_open_at)
-        return passed_signup_date and not self.signups_closed
+        """ If signups are currently open. """
+        return self.signups_opened and not self.signups_closed
+
+    @property
+    def signups_opened(self):
+        """ If signups opened at some time in the past.
+
+        They may have since closed!
+        """
+        return timezone.now() > self.signups_open_at
 
     @property
     def signups_closed(self):

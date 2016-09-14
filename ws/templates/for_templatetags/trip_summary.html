@@ -44,7 +44,7 @@
     <dt>Maximum participants</dt>
     <dd>{{ trip.maximum_participants }}</dd>
 
-    <dt>Signups open{% if trip.in_past or trip.signups_open%}ed{% endif %} at</dt>
+    <dt>Signups open{% if trip.signups_opened %}ed{% endif %} at</dt>
     <dd>{{ trip.signups_open_at }}</dd>
 
     {% if trip.signups_close_at %}  {# Not all trips have a close time #}
