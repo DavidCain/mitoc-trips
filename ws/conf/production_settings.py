@@ -4,7 +4,7 @@ import os
 
 DEBUG = False
 TEMPLATE_DEBUG = False
-ALLOWED_HOSTS = ['trips.mitoc.edu', 'mitoc-trips.mit.edu']
+ALLOWED_HOSTS = ['trips.mitoc.org', 'mitoc-trips.mit.edu']
 
 ADMINS = (('David Cain', 'davidjosephcain@gmail.com'),)
 
