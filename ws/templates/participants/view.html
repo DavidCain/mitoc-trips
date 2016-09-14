@@ -187,7 +187,7 @@ Lookup participant
             <h3>Lottery pairing</h3>
           {% if paired_par %}
             {% if reciprocally_paired %}
-              <p class="text-center">Paired with {{ paired_par.name }}</p>
+              <p>Paired with {{ paired_par.name }}</p>
               {% if user_viewing %}
                 <p>
                   When lotteries run, either both of you will be placed on a trip
@@ -195,7 +195,7 @@ Lookup participant
                 </p>
               {% endif %}
             {% else %}
-              <p class="text-center">Requested to be paired with {{ paired_par.name }}.
+              <p>Requested to be paired with {{ paired_par.name }}.
                 {% if user_viewing %}
                   Until {{ paired_par.name }} does the same, no effort will be made to place you both
                   on the same trip.
@@ -206,7 +206,15 @@ Lookup participant
 
           <ul>
             {% for other_participant in pair_requests %}
-            <li>{{ other_participant.name }} has requested to be paired with {% if user_viewing %}you{% else %}{{ participant.name }}{% endif %}.</li>
+              <li>
+                {% if user_viewing %}
+                  {{ other_participant.name }}
+                  has requested to be paired with you.
+                {% else %}
+                  <a href="{% url 'view_participant' other_participant.pk %}">{{ other_participant.name }}</a>
+                  has requested to be paired with {{ participant.name }}.
+                {% endif %}
+              </li>
             {% endfor %}
           </ul>
           {% if user_viewing %}
