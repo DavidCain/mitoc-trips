@@ -42,23 +42,23 @@ leader-select.form-control {
   padding: 0px !important;
 }
 leader-select .ui-select-container {
-    padding-left: 12px !important;
-    padding-top: 5px !important;
-    padding-bottom: 5px !important;
+  padding-left: 12px !important;
+  padding-top: 5px !important;
+  padding-bottom: 5px !important;
 }
 
 @media screen and (max-width:480px) {
-    .table {
-        border-collapse: separate;
-        border-spacing: .5em .2em;
-    }
-    .table-cell {
-        display:table-row;
-    }
+  .table {
+    border-collapse: separate;
+    border-spacing: .5em .2em;
+  }
+  .table-cell {
+    display:table-row;
+  }
 
-    .table-heading:after {
-        content: "";
-    }
+  .table-heading:after {
+    content: "";
+  }
 }
 
 
@@ -69,14 +69,14 @@ pre.participant-emails {
 
 /* Styles lifted from Djangular for rendering errors nicely */
 [ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
-    display: none !important;
+  display: none !important;
 }
 
 form .ng-invalid-bound.ng-pristine,
 form .ng-invalid-bound.ng-pristine .ui-select-container,
 form .ng-invalid.ng-dirty,
 form .ng-invalid.ng-dirty .ui-select-container {
-    border-color: #e9322d;
+  border-color: #e9322d;
 }
 
 .ui-select-container .invalid-leader {
@@ -84,25 +84,25 @@ form .ng-invalid.ng-dirty .ui-select-container {
 }
 
 form .ng-invalid-bound.ng-pristine:focus, form .ng-invalid.ng-dirty:focus {
-    box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 6px #ce8483;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 6px #ce8483;
 }
 
 ul.djng-form-errors, ul.djng-field-errors {
-    list-style-type: none;
-    margin: 5px 0 0 0;
-    padding: 0;
+  list-style-type: none;
+  margin: 5px 0 0 0;
+  padding: 0;
 }
 ul.djng-form-errors li, ul.djng-field-errors li {
-    color: #e9322d;
+  color: #e9322d;
 }
 ul.djng-field-errors li.invalid:before {
-    content: "\2716";
-    margin-right: 10px;
+  content: "\2716";
+  margin-right: 10px;
 }
 
 /* Built-in Django 'required content' */
 .required > label:after {
-    content: ' *';
+  content: ' *';
 }
 
 /* UI-sortable */
