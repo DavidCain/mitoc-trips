@@ -37,8 +37,9 @@ footer a {
 
 /* Override Bootstrap styling for more consistent appearance */
 leader-select.form-control {
-    border: 0px !important;
-    padding: 0px !important;
+  display: inline-block; /* Stops leaders from wrapping beyond block bounds */
+  border: 0px;
+  padding: 0px !important;
 }
 leader-select .ui-select-container {
     padding-left: 12px !important;
