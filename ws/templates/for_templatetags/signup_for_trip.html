@@ -36,7 +36,13 @@
       </div>
     {% else %}
       <div class="alert alert-success">
-        You are signed up for this trip.
+        {% if trip.algorithm == 'lottery' %}
+          You're signed up for this trip's lottery.
+          You'll find out if you have a spot after
+          <a href="{% url 'help-lottery' %}">the lottery</a> runs.
+        {% else %}
+          You are signed up for this trip.
+        {% endif %}
       </div>
       {% if trip.upcoming %}
         {% if trip.let_participants_drop or trip.algorithm == 'lottery' %}
