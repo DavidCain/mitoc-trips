@@ -1,11 +1,59 @@
 {% extends "messages_page.html" %}
+{% load form_tags %}
 
 {% block content %}
 {{ block.super }}
 
 <form name="{{ form.form_name }}" method="post" action="." novalidate>
-    {% csrf_token %}
-    {{ form.as_div }}
-    <button type="submit" ng-disabled="{{ form.form_name }}.$invalid" class="btn btn-primary">Submit</button>
+  {% csrf_token %}
+  <div class="row">
+    <div class="col-md-6">
+      <h2>Basics</h2>
+
+      {% form_group form.name %}
+      <div class="row">
+        <div class="col-sm-4">
+          {% form_group form.activity %}
+        </div>
+        <div class="col-sm-4">
+          {% form_group form.maximum_participants %}
+        </div>
+        <div class="col-sm-4">
+          {% form_group form.difficulty_rating %}
+        </div>
+      </div>
+
+      {% form_group form.leaders %}
+
+      <hr>
+
+      <h2>Signup</h2>
+
+      {% form_group form.allow_leader_signups True %}
+      {% form_group form.trip_date %}
+
+      {% form_group form.algorithm %}
+      <div class="row">
+        <div class="col-sm-6">
+          {% form_group form.signups_open_at %}
+        </div>
+        <div class="col-sm-6">
+          {% form_group form.signups_close_at %}
+        </div>
+      </div>
+
+    </div>
+
+    <div class="col-md-6">
+      <h2>About</h2>
+      {% form_group form.description %}
+      {% form_group form.prereqs %}
+      {% form_group form.notes %}
+    </div>
+    <div class="col-md-6">
+    </div>
+  </div>
+  <button type="submit" ng-disabled="{{ form.form_name }}.$invalid" class="btn btn-primary">Submit</button>
 </form>
+
 {% endblock content %}

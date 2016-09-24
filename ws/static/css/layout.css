@@ -101,6 +101,7 @@ ul.djng-field-errors li.invalid:before {
 }
 
 /* Built-in Django 'required content' */
+label.required:after,
 .required > label:after {
   content: ' *';
 }

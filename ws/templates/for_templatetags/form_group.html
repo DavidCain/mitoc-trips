@@ -1,0 +1,16 @@
+{{ field.label_tag }}
+{{ field }}
+
+{% if use_help_icon %}
+  {% if field.help_text %}
+    <a role="button" data-uib-popover="{{ field.help_text }}">
+      <i class="fa fa-question-circle-o"></i>
+    </a>
+  {% endif %}
+{% endif %}
+
+{{ field.errors }}
+
+{% if not use_help_icon %}
+  <span class="help-block">{{ field.help_text }}</span>
+{% endif %}

@@ -3,11 +3,10 @@
 
 {% block content %}
   {% if form.instance.wsc_approved and not "WSC" in groups and not user.is_superuser %}
-  <div class="alert alert-warning">
-  <strong>WARNING:</strong> This trip has been approved by the Winter Safety Committee.
-  Making any changes will rescind this approval.
-  </div>
+    <div class="alert alert-warning">
+      <strong>WARNING:</strong> This trip has been approved by the Winter Safety Committee.
+      Making any changes will rescind this approval.
+    </div>
   {% endif %}
-  <h2>Edit "{{ trip.name }}"</h2>
-  {{ block.super }}
+    {{ block.super }}
 {% endblock content %}

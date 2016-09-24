@@ -345,15 +345,15 @@ class Trip(models.Model):
     allow_leader_signups = models.BooleanField(default=False,
                                                help_text="Allow leaders (with ratings for this activity) to sign themselves up for the trip any time before its date. Recommended for Circuses!")
     name = models.CharField(max_length=127)
-    description = models.TextField(help_text="Markdown accepted here!")
-    maximum_participants = models.PositiveIntegerField(default=8)
+    description = models.TextField()
+    maximum_participants = models.PositiveIntegerField(default=8, verbose_name="Max participants")
     difficulty_rating = models.CharField(max_length=63)
     level = models.CharField(max_length=255, help_text="This trip's A, B, or C designation (plus I/S rating if applicable).", null=True, blank=True)
-    prereqs = models.CharField(max_length=255, blank=True)
+    prereqs = models.CharField(max_length=255, blank=True, verbose_name="Prerequisites")
     wsc_approved = models.BooleanField(default=False)
     notes = models.TextField(blank=True, max_length=2000,
                              help_text="Participants must add notes to their signups if you complete this field. "
-                                       "This is a great place to ask important questions. (Markdown accepted here!)")
+                                       "This is a great place to ask important questions.")
 
     time_created = models.DateTimeField(auto_now_add=True)
     last_edited = models.DateTimeField(auto_now=True)

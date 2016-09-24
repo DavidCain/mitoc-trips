@@ -4,6 +4,11 @@ from copy import copy
 register = template.Library()
 
 
+@register.inclusion_tag('for_templatetags/form_group.html')
+def form_group(field, use_help_icon=False):
+    return {'field': field, 'use_help_icon': use_help_icon}
+
+
 @register.inclusion_tag('for_templatetags/readonly_form.html')
 def readonly_form(form):
     return {'form': form}
