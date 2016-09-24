@@ -149,6 +149,24 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
     return out;
   };
 })
+.controller('submitIfValid', function($scope, $http) {
+  $scope.submit = function($event, form){
+    form.$setSubmitted();
+    if (form.$valid) {
+      return;  // Form should have normal action, submits normally
+    }
+
+    // Manually mark fields as dirty to display Django-Angular errors
+    angular.forEach(form.$error, function (field) {
+      angular.forEach(field, function(errorField){
+        errorField.$setDirty();
+      })
+    });
+
+    // Stop form submission so client validation displays
+    $event.preventDefault();
+  };
+})
 .controller('leaderRating', function($scope, $http, djangoUrl) {
   $scope.$watchGroup(['participant', 'activity'], function(){
     if ($scope.participant && $scope.activity) {

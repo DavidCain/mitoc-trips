@@ -4,7 +4,9 @@
 {% block content %}
 {{ block.super }}
 
-<form name="{{ form.form_name }}" method="post" action="." novalidate>
+<form name="{{ form.form_name }}" method="post" action="." novalidate
+  data-ng-submit="submit($event, {{ form.form_name }})"
+  data-ng-controller="submitIfValid">
   {% csrf_token %}
   <div class="row">
     <div class="col-md-6">
@@ -53,7 +55,7 @@
     <div class="col-md-6">
     </div>
   </div>
-  <button type="submit" ng-disabled="{{ form.form_name }}.$invalid" class="btn btn-primary">Submit</button>
+  <button type="submit" class="btn btn-primary">Submit</button>
 </form>
 
 {% endblock content %}
