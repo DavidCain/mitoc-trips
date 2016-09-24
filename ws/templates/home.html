@@ -1,10 +1,17 @@
 {% extends "messages_page.html" %}
 
+{% block meta %}
+  <meta name="description" content="Come hiking, climbing, skiing, paddling, and more with the MIT Outing Club. Trips are open to all members, and anyone can join!"/>
+  {{ block.super }}
+{% endblock meta %}
+
 {% block head_title %}Welcome{% endblock head_title %}
 
 {% block content %}
 <h1>Welcome!</h1>
-<p>This site is the official portal for all MITOC trips.</p>
+<h5>This site is the official portal for all MITOC trips.</h5>
+<p>You'll find hiking, climbing, skiing, paddling, biking, and surfing trips - all open to members of the MIT Outing Club.</p>
+<p>The club is open to everyone, and it's easy to join. <strong>Not a member?</strong> <a href="http://mitoc.mit.edu/#join">Become one today</a>, then <a href="{% url 'account_signup' %}">create an account</a> to get started.</p>
 
 {{ block.super }}
 

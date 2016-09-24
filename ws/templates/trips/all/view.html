@@ -1,6 +1,11 @@
 {% extends "base.html" %}
 {% load trip_tags %}
 
+{% block meta %}
+  <meta name="description" content="Details about {{ past_trips|yesno:"past and upcoming,upcoming" }} trips, and information about how you can sign up. Trips are open to all MITOC members, and it's easy to join!"/>
+  {{ block.super }}
+{% endblock meta %}
+
 {% block head_title %}{{ past_trips|yesno:"All,Upcoming" }} trips{% endblock head_title %}
 
 {% block content %}
