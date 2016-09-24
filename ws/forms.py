@@ -222,6 +222,7 @@ class SignUpForm(DjangularRequiredModelForm):
             notes = self.fields['notes']
             notes.required = True
             notes.widget.attrs['placeholder'] = trip.notes
+            notes.widget.attrs['rows'] = max(4, trip.notes.count('\n') + 1)
 
 
 class LeaderSignUpForm(SignUpForm):
