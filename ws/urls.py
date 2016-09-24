@@ -57,6 +57,7 @@ urlpatterns = patterns('',
     url(r'^preferences/discounts/$', views.DiscountsView.as_view(), name='discounts'),
     url(r'^preferences/lottery/$', views.LotteryPreferencesView.as_view(), name='lottery_preferences'),
     url(r'^preferences/lottery/pairing/$', views.LotteryPairingView.as_view(), name='lottery_pairing'),
+    url(r'^signups/(?P<pk>\d+)/delete/$', views.DeleteSignupView.as_view(), name='delete_signup'),
 
     # Help views (most pages available to anyone, some require groups)
     url(r'^contact/$', TemplateView.as_view(template_name='contact.html'), name='contact'),

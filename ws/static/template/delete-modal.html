@@ -6,6 +6,6 @@
   This cannot be undone.
 </div>
 <div class="modal-footer">
-  <button class="btn btn-danger"  ng-click="deleteObject()">Delete</button>
-  <button class="btn btn-default" ng-click="$dismiss()">Cancel</button>
+  <button class="btn btn-danger"  data-ng-click="deleteObject()" data-ng-bind="label || 'Delete'"></button>
+  <button class="btn btn-default" data-ng-click="$dismiss()">Cancel</button>
 </div>

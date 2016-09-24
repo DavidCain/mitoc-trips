@@ -1,8 +1,9 @@
 <button
-  class="btn btn-default pull-right"
+  class="btn btn-default"
   data-ng-class="{'btn-danger': hover}"
   data-ng-mouseover="hover = true"
   data-ng-mouseleave="hover = false"
   data-ng-click="confirmDelete()">
-  <i class="fa fa-fw" data-ng-class="hover ? 'fa-warning' : 'fa-remove'"></i>&nbsp;Delete
+  <i class="fa fa-fw" data-ng-class="hover ? 'fa-warning' : 'fa-remove'"></i>&nbsp;
+  <span data-ng-bind="label || 'Delete'">Delete</span>
 </button>

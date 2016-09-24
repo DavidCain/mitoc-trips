@@ -38,6 +38,13 @@
       <div class="alert alert-success">
         You are signed up for this trip.
       </div>
+      {% if trip.upcoming %}
+        {% if trip.let_participants_drop or trip.algorithm == 'lottery' %}
+          <delete data-label="Drop off trip" data-api-slug="signups" data-obj-id="{{ existing_signup.id }}"></delete>
+        {% else %}
+          <p>If you can no longer attend this trip, let your leaders know.</p>
+        {% endif %}
+      {% endif %}
     {% endif %}
   {% else %}
     <div class="alert alert-info">

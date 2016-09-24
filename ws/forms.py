@@ -114,9 +114,11 @@ class TripForm(DjangularRequiredModelForm):
 
     class Meta:
         model = models.Trip
-        fields = ['activity', 'name', 'leaders', 'allow_leader_signups',
+        fields = ['activity', 'name', 'leaders',
+                  'allow_leader_signups',
                   'description', 'trip_date',
                   'algorithm', 'signups_open_at', 'signups_close_at',
+                  'let_participants_drop',
                   'maximum_participants', 'difficulty_rating',  # 'level',
                   'prereqs', 'notes']
         ex_notes = (" 1. Do you have any dietary restrictions?\n"

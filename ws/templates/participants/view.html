@@ -27,9 +27,10 @@ Lookup participant
     {% endif %}
     {% if user.is_superuser and participant %}
       <div class="col-md-4">
-        <delete api-slug="participants" obj-id="{{ participant.id }}"></delete>
-        <a type="button" class="btn btn-default pull-right" href="{% url 'edit_participant' participant.id %}"><i class="fa fa-edit"></i>&nbsp;Edit</a>
-      </div>
+        <div class="pull-right">
+          <a type="button" class="btn btn-default" href="{% url 'edit_participant' participant.id %}"><i class="fa fa-edit"></i>&nbsp;Edit</a>
+          <delete data-api-slug="participants" data-obj-id="{{ participant.id }}"></delete>
+        </div>
     {% endif %}
   </div>
   <hr>

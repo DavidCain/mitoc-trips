@@ -13,7 +13,7 @@
     <a type="button" class="btn btn-default" href="{% url 'edit_trip' trip.id %}"   ><i class="fa fa-edit"  ></i>&nbsp;Edit</a>
     <a type="button" class="btn btn-default" href="{% url 'admin_trip' trip.id %}"  ><i class="fa fa-wrench"></i>&nbsp;Admin</a>
   </div>
-  <delete api-slug="trips" obj-id="{{ trip.id }}"></delete>
+  <delete class="pull-right" data-api-slug="trips" data-obj-id="{{ trip.id }}"></delete>
 {% endif %}
 
 {% trip_summary trip %}

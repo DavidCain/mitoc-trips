@@ -318,7 +318,8 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
     restrict: 'E',
     scope: {
       objId: '=',
-      apiSlug: '@'
+      apiSlug: '@',
+      label: '@?',
     },
     templateUrl: '/static/template/delete.html',
     link: function (scope, element, attrs) {
@@ -333,6 +334,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
           scope.error = "An error occurred deleting the object.";
         });
       };
+
       scope.confirmDelete = function(){
         $uibModal.open({
           templateUrl: '/static/template/delete-modal.html',

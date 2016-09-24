@@ -6,7 +6,8 @@ from django.db.models import Case, Count, IntegerField, Sum, Q, When
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import (PermissionDenied, ObjectDoesNotExist,
+                                    ValidationError)
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.forms.models import modelformset_factory
 from django.forms import HiddenInput
@@ -1066,6 +1067,20 @@ class CreateTripView(CreateView):
 class DeleteTripView(DeleteView, LeadersOnlyView):
     model = models.Trip
     success_url = reverse_lazy('upcoming_trips')
+
+
+class DeleteSignupView(DeleteView):
+    model = models.SignUp
+    success_url = reverse_lazy('upcoming_trips')
+
+    @method_decorator(user_info_required)
+    def dispatch(self, request, *args, **kwargs):
+        signup = self.get_object()
+        if not signup.participant == request.participant:
+            raise PermissionDenied
+        if not (signup.trip.upcoming or signup.trip.algorithm == 'lottery'):
+            raise PermissionDenied
+        return super(DeleteSignupView, self).dispatch(request, *args, **kwargs)
 
 
 class EditTripView(UpdateView, LeadersOnlyView):

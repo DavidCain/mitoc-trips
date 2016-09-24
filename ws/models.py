@@ -361,6 +361,9 @@ class Trip(models.Model):
     signups_open_at = models.DateTimeField(default=timezone.now)
     signups_close_at = models.DateTimeField(default=dateutils.wed_morning, null=True, blank=True)
 
+    let_participants_drop = models.BooleanField(default=False,
+                                                  help_text="Allow participants to remove themselves from the trip any time before its start date.")
+
     info = OptionalOneToOneField(TripInfo)
 
     signed_up_participants = models.ManyToManyField(Participant, through=SignUp)
@@ -374,6 +377,10 @@ class Trip(models.Model):
     @property
     def in_past(self):
         return self.trip_date < dateutils.local_date()
+
+    @property
+    def upcoming(self):
+        return self.trip_date > dateutils.local_date()
 
     @property
     def after_lottery(self):
