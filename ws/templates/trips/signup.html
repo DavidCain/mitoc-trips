@@ -10,10 +10,10 @@
   <h3>Signup for <a href="{% url 'view_trip' trip.pk %}">{{ trip }}</a></h3>
 
   <label>Notes:</label> {{ trip.notes }}
-<form name="{{ form.form_name }}" action="" method="post" novalidate>
+<form name="{{ form.form_name }}" action="" method="post" novalidate data-submit-if-valid>
   {% csrf_token %}
   {{ form.as_div }}
-  <button type="submit" data-ng-disabled="{{ participant_form.form_name }}.$invalid" class="btn btn-primary">Sign Up</button>
+  <button type="submit" class="btn btn-primary">Sign Up</button>
 </form>
 {% else %}
   <p>Not signing up for any given trip. <a href="{% url 'upcoming_trips' %}">Browse available trips?</a></p>

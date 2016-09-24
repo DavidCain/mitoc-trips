@@ -149,22 +149,34 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
     return out;
   };
 })
-.controller('submitIfValid', function($scope, $http) {
-  $scope.submit = function($event, form){
-    form.$setSubmitted();
-    if (form.$valid) {
-      return;  // Form should have normal action, submits normally
+.directive('submitIfValid', function($compile) {
+  return {
+    restrict: 'A',
+    require: 'form',
+    link: function (scope, element, attrs, formCtrl) {
+      if (!element.attr('data-ng-submit')){
+        element.attr('data-ng-submit', 'submit($event)');
+        return $compile(element)(scope);
+      }
+
+      scope.submit = function($event){
+        formCtrl.$setSubmitted();
+        if (formCtrl.$valid) {
+          return;  // Form should have normal action, submits normally
+        }
+
+        // Manually mark fields as dirty to display Django-Angular errors
+        angular.forEach(formCtrl.$error, function (field) {
+          angular.forEach(field, function(errorField){
+            errorField.$setDirty();
+          })
+        });
+
+        // Stop form submission so client validation displays
+        $event.preventDefault();
+      };
+
     }
-
-    // Manually mark fields as dirty to display Django-Angular errors
-    angular.forEach(form.$error, function (field) {
-      angular.forEach(field, function(errorField){
-        errorField.$setDirty();
-      })
-    });
-
-    // Stop form submission so client validation displays
-    $event.preventDefault();
   };
 })
 .controller('leaderRating', function($scope, $http, djangoUrl) {

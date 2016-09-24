@@ -22,10 +22,15 @@ that the WIMP has the most up-to-date information regarding your trip.</p>
 
 <h2>WIMP information submission</h2>
 {% if info_form_available %}
-  <form name="{{ form.form_name }}" action="" method="post" novalidate>
+  <form name="{{ form.form_name }}" action="" method="post" novalidate data-submit-if-valid>
     {% csrf_token %}
     {{ form.as_div }}
-    <button type="submit" data-ng-disabled="{{ form.form_name }}.$invalid" class="btn btn-primary">Submit</button>
+    <div class="alert alert-danger"
+         data-ng-cloak
+         data-ng-show="{{ info_form.form_name }}.$submitted && {{ info_form.form_name }}.$invalid">
+      Please correct the above errors.
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
   </form>
 {% else %}
   <p>This form will be available on {{ friday_before }}.</p>

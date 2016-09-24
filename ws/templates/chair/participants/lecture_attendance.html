@@ -6,10 +6,10 @@
 
 
 <h3>Winter School Lecture Sign-in</h3>
-<form name="{{ form.form_name }}" method="post" action="." novalidate>
+<form name="{{ form.form_name }}" method="post" action="." novalidate data-submit-if-valid>
     {% csrf_token %}
     {{ form.as_div }}
-    <button type="submit" ng-disabled="{{ form.form_name }}.$invalid" class="btn btn-primary">Submit</button>
+    <button type="submit" class="btn btn-primary">Submit</button>
 
 </form>
 

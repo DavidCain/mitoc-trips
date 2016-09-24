@@ -20,7 +20,11 @@ Edit profile
   </div>
 {% endif %}
 
-<form name="{{ participant_form.form_name }}" action="" method="post" novalidate>
+<form name="{{ participant_form.form_name }}"
+      action=""
+      method="post"
+      novalidate
+      data-submit-if-valid>
     {% csrf_token %}
     <div class="row">
         <div class="col-sm-6">
@@ -65,7 +69,10 @@ Edit profile
         </div>
     </div>
 
-    <button type="submit" data-ng-disabled="{{ participant_form.form_name }}.$invalid || !car.hasOwnProperty('owner')" class="btn btn-primary">Submit</button>
+    <div class="alert alert-danger" data-ng-cloak data-ng-show="{{ participant_form.form_name }}.$submitted && {{ participant_form.form_name }}.$invalid">
+      Please correct the above errors.
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
 </form>
 
 {% if viewing_participant.last_updated %}
