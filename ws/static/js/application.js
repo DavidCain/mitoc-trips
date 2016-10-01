@@ -457,7 +457,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
 
       ngModelCtrl.$formatters.push(function(modelValue) {
         return _.filter(scope.allLeaders, function(leader){
-          return _.contains(modelValue, leader.id);
+          return _.includes(modelValue, leader.id);
         });
       });
 
