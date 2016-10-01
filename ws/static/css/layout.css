@@ -159,3 +159,20 @@ h4#car label {
   margin-bottom: -5px;
   margin-top: -5px;
 }
+
+
+
+
+.chart .legend {
+  fill: black;
+  font: 14px sans-serif;
+  text-anchor: start;
+  font-size: 12px;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}

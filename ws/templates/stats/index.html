@@ -1,0 +1,19 @@
+{% extends "messages_page.html" %}
+{% block head_title %}Leaderboard{% endblock head_title %}
+
+
+{% block content %}
+{{ block.super }}
+
+<h1>Leaderboard</h1>
+<div class="alert alert-info">
+  This page is currently in beta!
+  {% if user.is_authenticated %}
+    More features are on the way. In the meantime, I'd welcome any <a href="mailto:davidjosephcain@gmail.com">feedback</a>.<br>
+  {% endif %}
+</div>
+
+<trips-by-leader>
+</trips-by-leader>
+
+{% endblock content %}

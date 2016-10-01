@@ -20,6 +20,7 @@
     "angular-ui-sortable": "~0.13",
     "angular-ui-select": "~0.16",
     "bootstrap": "~3.3.5",
+    "d3": "~3.5",
     "font-awesome": "~4.6.3",
     "footable": "#2.0.1.5",
     "jqueryui-touch-punch": "*",

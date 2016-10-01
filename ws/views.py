@@ -1542,3 +1542,29 @@ class CheckTripOverflowView(View, SingleObjectMixin):
         else:
             resp = self.response_dict(trip, maximum_participants)
         return JsonResponse(resp)
+
+
+class TripsByLeaderView(View):
+    def get(self, request, *args, **kwargs):
+        by_leader = models.Participant.leaders.prefetch_related('trips_led')
+
+        ret = [{
+            'pk': leader.pk,
+            'name': leader.name,
+            'trips': [
+                {'trip_date': trip.trip_date,
+                 'activity': trip.get_activity_display(),
+                 'name': trip.name,
+                 } for trip in leader.trips_led.all()
+            ],
+        } for leader in by_leader]
+
+        def leader_sort(leader):
+            return (len(leader['trips']), leader['name'])
+        most_trips_first = sorted(ret, key=leader_sort, reverse=True)
+
+        return JsonResponse({'leaders': most_trips_first})
+
+
+class StatsView(TemplateView, FormView):
+    template_name = 'stats/index.html'

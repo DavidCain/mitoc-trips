@@ -188,6 +188,7 @@ MUST_UPDATE_AFTER_DAYS = 180
 cdn_libs = ['jquery/dist/jquery.min.js', 'angular/angular.js']
 other_libs = ['lodash/dist/lodash.js',
               'bootstrap/dist/js/bootstrap.min.js',
+              'd3/d3.min.js',
               'footable/js/footable.js',
               'footable/js/footable.sort.js',
               'jquery-ui/ui/core.js',
