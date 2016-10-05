@@ -25,6 +25,12 @@ def user_membership_expiration(user):
     return membership_expiration(verified_emails(user))
 
 
+def repr_blank_membership():
+    return  {'membership': {'expires': None, 'active': False, 'email': None},
+             'waiver': {'expires': None, 'active': False},
+             'status': 'Missing'}
+
+
 def membership_expiration(emails):
     """ Return the most recent expiration date for the given emails.
 
@@ -33,13 +39,45 @@ def membership_expiration(emails):
 
     It also calculates whether or not the membership has expired.
     """
+    # First membership matching will be the most current
+    matches = matching_memberships(emails)
+    return matches[0] if matches else repr_blank_membership()
+
+
+def format_membership(email, membership_expires, waiver_expires):
+    person = repr_blank_membership()
+    membership, waiver = person['membership'],  person['waiver']
+
+    for component, expires in [(membership, membership_expires),
+                               (waiver, waiver_expires)]:
+        component['expires'] = expires
+        component['active'] = expires and expires >= local_date()
+
+    # Generate a human-readable status
+    if membership['active']:  # Membership is active and up-to-date
+        if not waiver['expires']:
+            status = "Missing Waiver"
+        elif not waiver['active']:
+            status = "Waiver Expired"
+        else:
+            status = "Active"
+    else:
+        status = "Expired"
+
+    person['status'] = status
+
+    return person
+
+
+def matching_memberships(emails):
+    """ Return the most current membership found for each email in the list.
+
+    Newer memberships will appear earlier in the results.
+    """
     cursor = connections['geardb'].cursor()
 
-    membership = {'expires': None, 'active': False, 'email': None}
-    waiver = {'expires': None, 'active': False}
-    person = {'membership': membership, 'waiver': waiver, 'status': 'Missing'}
     if not emails:  # Passing an empty tuple will cause a SQL error
-        return person
+        return []
 
     # Get the most recent membership and most recent waiver per email
     # It's possible the user has a newer waiver under another email address,
@@ -55,31 +93,10 @@ def membership_expiration(emails):
         where p.email in %s
         group by p.email
         order by membership_expires desc
-        limit 1
         """, [tuple(emails)]
     )
-    row = cursor.fetchone()
-    if not row:  # No membership on file (might have signed a waiver, though)
-        return person
 
-    membership['email'], membership['expires'], waiver['expires'] = row
-    for component in [membership, waiver]:
-        expires = component['expires']
-        component['active'] = expires and expires >= local_date()
-
-    # Generate a human-readable status
-    if membership['active']:  # Membership is active and up-to-date
-        if not waiver['expires']:
-            status = "Missing Waiver"
-        elif not waiver['active']:
-            status = "Waiver Expired"
-        else:
-            status = "Active"
-    else:
-        status = "Expired"
-
-    person['status'] = status
-    return person
+    return [format_membership(*row) for row in cursor.fetchall()]
 
 
 def outstanding_items(emails):
