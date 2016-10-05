@@ -2,6 +2,7 @@
 {% load staticfiles %}
 {% load gravatar %}
 {% load perm_tags %}
+{% load content_tags %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -20,13 +21,10 @@
     {% endblock css %}
 
     {% block js %}
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
-    <script>window.jQuery || document.write("<script src='{% static "jquery/dist/jquery.min.js" %}'><\/script>")</script>
-
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.10/angular.min.js"></script>
-    <script>window.angular || document.write("<script src='{% static "angular/angular.min.js" %}'><\/script>")</script>
-    {% javascript 'app' %}
-    <script async src='https://www.google-analytics.com/analytics.js'></script>
+      {% cdn_fallback "jQuery"  "https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"      "jquery/dist/jquery.min.js" %}
+      {% cdn_fallback "angular" "https://ajax.googleapis.com/ajax/libs/angularjs/1.4.10/angular.min.js" "angular/angular.min.js"    %}
+      {% javascript 'app' %}
+      <script async src='https://www.google-analytics.com/analytics.js'></script>
     {% endblock js %}
 {% endblock head %}
 </head>
