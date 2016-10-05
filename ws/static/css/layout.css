@@ -63,8 +63,9 @@ leader-select .ui-select-container {
 
 
 /* Wrap participant emails for easy copying */
-pre.participant-emails {
+pre.wrapped-emails {
   white-space: pre-line;
+  word-break: break-word;
 }
 
 /* Styles lifted from Djangular for rendering errors nicely */

@@ -34,7 +34,7 @@
     {% signup_table signups_on_trip has_notes show_drivers=participant.is_leader %}
 
     <h5>Email all participants</h5>
-    <pre class="participant-emails">{% for signup in signups_on_trip %}{{ signup.participant.email_addr }}{% if not forloop.last %}, {% endif %}{% endfor %}</pre>
+    <pre class="wrapped-emails">{% for signup in signups_on_trip %}{{ signup.participant.email_addr }}{% if not forloop.last %}, {% endif %}{% endfor %}</pre>
   {% endif %}
 
   {% if waitlist_signups %}
