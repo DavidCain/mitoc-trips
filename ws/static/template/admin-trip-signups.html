@@ -14,12 +14,24 @@
   </div>
   <div class="col-sm-6 col-sm-pull-6">
     <h3>Participants <span data-ng-bind="onTripCount + ' / ' + maximumParticipants"></span>
-    <button class="btn btn-sm btn-default"
-            data-ng-if="signups.onTrip.length || signups.waitlist.length"
-            data-ng-click="signups.feedbackHidden = !signups.feedbackHidden">
-      <i class="fa" data-ng-class="signups.feedbackHidden? 'fa-comments-o' : 'fa-comments'"></i>
-      {{ signups.feedbackHidden ? 'Show' : 'Hide'}} Feedback
-    </button></h3>
+      <span data-ng-if="signups.onTrip.length || signups.waitlist.length">
+        <button class="btn btn-sm btn-default"
+                data-ng-click="signups.feedbackHidden = !signups.feedbackHidden">
+          <i class="fa" data-ng-class="signups.feedbackHidden? 'fa-comments-o' : 'fa-comments'"></i>
+          {{ signups.feedbackHidden ? 'Show' : 'Hide'}} Feedback
+        </button>
+        <button class="btn btn-sm btn-default"
+                data-ng-if="lapsedMembers.length"
+                data-ng-click="signups.showLapsedMembers = !signups.showLapsedMembers">
+          <i class="fa" data-ng-class="signups.showLapsedMembers? 'fa-user-times' : 'fa-user'"></i>
+          {{ signups.showLapsedMembers ? 'Hide' : 'Show'}} Lapsed Members
+        </button>
+      </span>
+    </h3>
+  </div>
+  <div class="col-md-12" data-ng-if="lapsedMembers.length && signups.showLapsedMembers">
+    <pre class="wrapped-emails" data-ng-bind="lapsedMembers.join(', ')"></pre>
+    </pre>
   </div>
 </div>
 <editable-signup-list signups="signups.onTrip" delete-signup="deleteSignup" hide-feedback="signups.feedbackHidden" sortable-options="sortableOptions"></editable-signup-list>

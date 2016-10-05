@@ -279,6 +279,13 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
         scope.allSignups.forEach(function(signup){
           signup.participant.membership = memberships[signup.participant.id];
         });
+
+        var lapsedSignups = _.filter(scope.allSignups, function(signup) {
+          return signup.participant.membership.status !== 'Active';
+        });
+        scope.lapsedMembers = _.map(lapsedSignups, function(signup) {
+          return '<' + signup.participant.name + '> ' + signup.participant.email;
+        });
       });
 
 
