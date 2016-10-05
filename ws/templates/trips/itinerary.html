@@ -27,7 +27,7 @@ that the WIMP has the most up-to-date information regarding your trip.</p>
     {{ form.as_div }}
     <div class="alert alert-danger"
          data-ng-cloak
-         data-ng-show="{{ info_form.form_name }}.$submitted && {{ info_form.form_name }}.$invalid">
+         data-ng-show="{{ form.form_name }}.$submitted && {{ form.form_name }}.$invalid">
       Please correct the above errors.
     </div>
     <button type="submit" class="btn btn-primary">Submit</button>
