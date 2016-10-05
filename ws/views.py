@@ -20,6 +20,7 @@ from django.views.generic import (CreateView, DetailView, DeleteView, FormView,
 from django.views.generic.detail import SingleObjectMixin
 
 from allauth.account.views import PasswordChangeView
+from allauth.account.models import EmailAddress
 
 from ws import forms
 from ws import models
@@ -966,6 +967,42 @@ class UserRentalsView(UserView):
     def get(self, request, *args, **kwargs):
         user = self.get_object()
         return JsonResponse({'rentals': geardb_utils.user_rentals(user)})
+
+
+class MembershipStatusesView(View):
+    def post(self, request, *args, **kwargs):
+        """ Return a mapping of participant IDs to membership statuses. """
+        postdata = json.loads(self.request.body)
+        par_pks = postdata.get('participant_ids')
+        if not isinstance(par_pks, list):
+            return JsonResponse({'message': 'Bad request'}, status=400)
+
+        # Span databases to map from participants -> users -> email addresses
+        participants = models.Participant.objects.filter(pk__in=par_pks)
+        user_to_par = dict(participants.values_list('user_id', 'pk'))
+        email_addresses = EmailAddress.objects.filter(user_id__in=user_to_par)
+        email_to_user = dict(email_addresses.values_list('email', 'user_id'))
+
+        # Gives email -> membership info for all matches
+        matches = geardb_utils.matching_memberships(email_to_user)
+
+        # Default to blank memberships in case not found
+        no_membership = geardb_utils.repr_blank_membership()
+        participant_memberships = {pk: no_membership for pk in par_pks}
+
+        # Update participants where matching membership information was found
+        for email, membership in matches.iteritems():
+            par_pk = user_to_par[email_to_user[email]]
+            # We might overwrite a previous membership record, but that will
+            # only happen if the user has memberships under 2+ emails
+            # (Older memberships come first, so this will safely yield the newest)
+            participant_memberships[par_pk] = membership
+
+        return JsonResponse({'memberships': participant_memberships})
+
+    @method_decorator(group_required('leaders'))
+    def dispatch(self, request, *args, **kwargs):
+        return super(MembershipStatusesView, self).dispatch(request, *args, **kwargs)
 
 
 # TODO: Convert to CreateView

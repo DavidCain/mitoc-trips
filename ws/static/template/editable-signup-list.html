@@ -18,7 +18,14 @@
       </div>
       <div class="col-md-9">
         <button type="button" class="btn btn-sm btn-default pull-right" data-ng-click="deleteSignup(signup)" data-ng-bind="signup.deleted ? 'Restore' : 'Delete'"></button>
-        <p data-ng-bind="signup.notes"></p>
+        <p>
+          <span class="label"
+                data-ng-if="signup.participant.membership.status"
+                data-ng-bind="signup.participant.membership.status"
+                data-ng-class="labelClass[signup.participant.membership.status]">
+          </span>
+          <span data-ng-bind="signup.notes"></span>
+        </p>
         <div data-ng-if="signup.feedback.length && !hideFeedback">
           <label>Feedback <i class="fa"></i></label>
           <ul class="list-unstyled" data-ng-repeat="feedback in signup.feedback">

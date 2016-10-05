@@ -45,6 +45,7 @@ urlpatterns = patterns('',
     url(r'^trips/(?P<pk>\d+)/review/$', views.ReviewTripView.as_view(), name='review_trip'),
     url(r'^participants/(?P<pk>\d+)/$', views.ParticipantDetailView.as_view(), name='view_participant'),
     url(r'^participants/find/$', views.ParticipantLookupView.as_view(), name='participant_lookup'),
+    url(r'^participants/membership_statuses/$', views.MembershipStatusesView.as_view(), name='membership_statuses'),
 
     # General views (anyone can view or only participants with info)
     url(r'^profile/edit/$', views.EditProfileView.as_view(), name='edit_profile'),

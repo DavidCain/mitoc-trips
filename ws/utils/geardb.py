@@ -5,6 +5,7 @@ The gear database is itself a Django application (which we will eventually
 integrate with this one). In the meantime, communicate with an
 externally-hosted MySQL database instead of using Django models.
 """
+from collections import OrderedDict
 from datetime import timedelta
 
 from django.db import connections
@@ -41,7 +42,7 @@ def membership_expiration(emails):
     """
     # First membership matching will be the most current
     matches = matching_memberships(emails)
-    return matches[0] if matches else repr_blank_membership()
+    return matches.values()[-1] if matches else repr_blank_membership()
 
 
 def format_membership(email, membership_expires, waiver_expires):
@@ -92,11 +93,15 @@ def matching_memberships(emails):
           left join people_waivers pw on p.id = pw.person_id
         where p.email in %s
         group by p.email
-        order by membership_expires desc
+        -- importantly, we put most current memberships last in the query
+        -- (other areas of the app will assume this)
+        order by membership_expires
         """, [tuple(emails)]
     )
 
-    return [format_membership(*row) for row in cursor.fetchall()]
+    memberships = ((email, format_membership(email, m_expires, w_expires))
+                   for (email, m_expires, w_expires) in cursor.fetchall())
+    return OrderedDict(memberships)
 
 
 def outstanding_items(emails):

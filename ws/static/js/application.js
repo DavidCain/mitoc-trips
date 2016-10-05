@@ -201,6 +201,16 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
       deleteSignup: '='
     },
     templateUrl: '/static/template/editable-signup-list.html',
+    link: function (scope, element, attrs) {
+      // TODO: Copy-pasted. Make this common to two places it's used
+      scope.labelClass = {
+        'Active':         'label-success',
+        'Waiver Expired': 'label-warning',
+        'Missing Waiver': 'label-warning',
+        'Expired':        'label-danger',
+        'Missing':        'label-danger',
+      };
+    },
   };
 })
 .directive('emailTripMembers', function(){
@@ -245,7 +255,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
     }
   };
 })
-.directive('adminTripSignups', function($http, filterFilter, $window, $uibModal) {
+.directive('adminTripSignups', function($http, filterFilter, $window, $uibModal, djangoUrl) {
   return {
     restrict: 'E',
     scope: {
@@ -260,7 +270,17 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
       $http.get(url).then(function(response){
         scope.allSignups = response.data.signups;
         updateSignups();
+        return _.map(scope.allSignups, 'participant.id');
+      }).then(function(participant_ids) {
+        var url = djangoUrl.reverse("membership_statuses");
+        return $http.post(url, {participant_ids: participant_ids});
+      }).then(function(response){
+        var memberships = response.data.memberships;
+        scope.allSignups.forEach(function(signup){
+          signup.participant.membership = memberships[signup.participant.id];
+        });
       });
+
 
       scope.deleteSignup = function(signup){
         signup.deleted = !signup.deleted;
