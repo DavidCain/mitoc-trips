@@ -21,22 +21,35 @@
           {{ signups.feedbackHidden ? 'Show' : 'Hide'}} Feedback
         </button>
         <button class="btn btn-sm btn-default"
-                data-ng-if="lapsedMembers.length"
-                data-ng-click="signups.showLapsedMembers = !signups.showLapsedMembers">
-          <i class="fa" data-ng-class="signups.showLapsedMembers? 'fa-user-times' : 'fa-user'"></i>
-          {{ signups.showLapsedMembers ? 'Hide' : 'Show'}} Lapsed Members
+                data-ng-if="lapsedMembers.onTrip.length"
+                data-ng-click="signups.showLapsedMembersOnTrip = !signups.showLapsedMembersOnTrip">
+          <i class="fa" data-ng-class="signups.showLapsedMembersOnTrip? 'fa-user-times' : 'fa-user'"></i>
+          {{ signups.showLapsedMembersOnTrip ? 'Hide' : 'Show'}} Lapsed Members
         </button>
       </span>
     </h3>
   </div>
-  <div class="col-md-12" data-ng-if="lapsedMembers.length && signups.showLapsedMembers">
-    <pre class="wrapped-emails" data-ng-bind="lapsedMembers.join(', ')"></pre>
-    </pre>
+  <div class="col-md-12" data-ng-if="lapsedMembers.onTrip.length && signups.showLapsedMembersOnTrip">
+    <pre class="wrapped-emails" data-ng-bind="lapsedMembers.onTrip.join(', ')"></pre>
   </div>
 </div>
 <editable-signup-list signups="signups.onTrip" delete-signup="deleteSignup" hide-feedback="signups.feedbackHidden" sortable-options="sortableOptions"></editable-signup-list>
 
-<h3 data-ng-if="signups.waitlist.length">Waiting list</h3>
+<div class="row" data-ng-if="signups.waitlist.length">
+  <div class="col-md-12">
+    <h3>Waiting list
+      <button class="btn btn-sm btn-default"
+              data-ng-if="lapsedMembers.waitlist.length"
+              data-ng-click="signups.showLapsedMembersOnWaitlist = !signups.showLapsedMembersOnWaitlist">
+        <i class="fa" data-ng-class="signups.showLapsedMembersOnWaitlist? 'fa-user-times' : 'fa-user'"></i>
+        {{ signups.showLapsedMembersOnWaitlist ? 'Hide' : 'Show'}} Lapsed Members
+      </button>
+    </h3>
+  </div>
+  <div class="col-md-12" data-ng-if="lapsedMembers.waitlist.length && signups.showLapsedMembersOnWaitlist">
+    <pre class="wrapped-emails" data-ng-bind="lapsedMembers.waitlist.join(', ')"></pre>
+  </div>
+</div>
 <editable-signup-list signups="signups.waitlist" delete-signup="deleteSignup" hide-feedback="signups.feedbackHidden" sortable-options="sortableOptions"></editable-signup-list>
 
 <button data-ng-click="verifyChanges()" class="btn btn-primary">Submit</button>

@@ -265,6 +265,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
     templateUrl: '/static/template/admin-trip-signups.html',
     link: function (scope, element, attrs) {
       scope.signups = {};  // Signups, broken into normal + waiting list
+      scope.lapsedMembers = {};  // Also broken into normal + waiting list
 
       var url = '/trips/' + scope.tripId + '/admin/signups/';
       $http.get(url).then(function(response){
@@ -275,23 +276,32 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
         var url = djangoUrl.reverse("membership_statuses");
         return $http.post(url, {participant_ids: participant_ids});
       }).then(function(response){
+        /* Query the geardb server for membership status.
+         *
+         * It's possible this query will hang or otherwise not complete
+         * (due to SIPB Scripts' lousy SQL uptime).
+         */
         var memberships = response.data.memberships;
         scope.allSignups.forEach(function(signup){
-          signup.participant.membership = memberships[signup.participant.id];
+          var participant = signup.participant;
+          participant.membership = memberships[participant.id];
+          var email = '<' + participant.name + '> ' + participant.email;
+          participant.formattedEmail = email;
         });
-
-        var lapsedSignups = _.filter(scope.allSignups, function(signup) {
-          return signup.participant.membership.status !== 'Active';
-        });
-        scope.lapsedMembers = _.map(lapsedSignups, function(signup) {
-          return '<' + signup.participant.name + '> ' + signup.participant.email;
-        });
+        updateLapsedMembers();
       });
-
 
       scope.deleteSignup = function(signup){
         signup.deleted = !signup.deleted;
         updateSignups();
+      };
+
+      var membershipLapsed = {participant: {membership: {status: "!Active"}}};
+      var updateLapsedMembers = function() {
+        ['onTrip', 'waitlist'].forEach(function(subList) {
+          var lapsedSignups = filterFilter(scope.signups[subList], membershipLapsed);
+          scope.lapsedMembers[subList] = _.map(lapsedSignups, 'participant.formattedEmail');
+        });
       };
 
       var updateSignups = function(removeDeleted){
@@ -317,6 +327,9 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
             scope.signups.waitlist.push(signup);
           }
         });
+
+        // Will be a no-op if signups lack membership status
+        updateLapsedMembers();
       };
 
       // So we can use 'updateSignups' as a callback even with truthy first arg
