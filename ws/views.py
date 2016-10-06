@@ -567,6 +567,33 @@ class ItineraryEditableMixin(object):
         return info_form
 
 
+class SimpleSignupsView(DetailView):
+    """ Give the name and email of leaders and signed up participants. """
+    model = models.Trip
+
+    def get(self, request, *args, **kwargs):
+        trip = self.get_object()
+
+        on_trip = trip.signed_up_participants.filter(signup__on_trip=True)
+        signups = {
+            'onTrip': on_trip.values('name', 'email'),
+            'waitlist': [{'name': s.participant.name, 'email': s.participant.email}
+                         for s in trip.waitlist.signups],
+        }
+        participant_signups = {}
+        for key, participants in signups.items():
+            participant_signups[key] = [{'participant': par} for par in participants]
+
+        return JsonResponse({
+            'signups': participant_signups,
+            'leaders': list(trip.leaders.values('name', 'email')),
+        })
+
+    @method_decorator(user_info_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super(SimpleSignupsView, self).dispatch(request, *args, **kwargs)
+
+
 class AdminTripSignupsView(SingleObjectMixin, LeadersOnlyView, ItineraryEditableMixin):
     model = models.Trip
 
@@ -663,10 +690,14 @@ class AdminTripSignupsView(SingleObjectMixin, LeadersOnlyView, ItineraryEditable
         trip = self.get_object()
         signups = trip.signup_set.filter(on_trip=True)
 
-        ret = [self.describe_signup(signup)
-               for signup in chain(signups, trip.waitlist.signups)]
+        signups = [self.describe_signup(signup)
+                   for signup in chain(signups, trip.waitlist.signups)]
 
-        return JsonResponse({'signups': ret})
+        return JsonResponse({
+            'signups': signups,
+            'leaders': list(trip.leaders.values('name', 'email')),
+        })
+
 
 
 class AdminTripView(TripDetailView, ItineraryEditableMixin):

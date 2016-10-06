@@ -78,6 +78,7 @@ urlpatterns = patterns('',
     url(r'^leaders/(?P<pk>\d+)/ratings/(?P<activity>.+).json', views.get_rating, name='get_rating'),
     url(r'^users/(?P<pk>\d+)/membership.json', views.UserMembershipView.as_view(), name='membership'),
     url(r'^users/(?P<pk>\d+)/rentals.json', views.UserRentalsView.as_view(), name='rentals'),
+    url(r'^trips/(?P<pk>\d+)/signups/$', views.SimpleSignupsView.as_view(), name='json-signups'),
 
     # D3-based statistics views
     url(r'^data/trips_by_leader.json', views.TripsByLeaderView.as_view(), name='trips_by_leader'),

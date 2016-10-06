@@ -33,23 +33,21 @@
 {% endif %}
 
 {% if trip.algorithm == 'fcfs' and signups_on_trip %}
-  <admin-trip-signups data-trip-id="{{ trip.id }}" data-maximum_participants = "{{ trip.maximum_participants }}"></admin-trip-signups>
+  <admin-trip-signups data-trip-id="{{ trip.id }}" data-maximum_participants="{{ trip.maximum_participants }}"></admin-trip-signups>
+{% else %}
+  <email-trip-members data-trip-id="{{ trip.id }}"></email-trip-members>
 {% endif %}
 
 <h3>Leaders ({{ trip.leaders.count }})</h3>
 {% signup_table leader_signups has_notes show_drivers=True all_participants=trip.leaders%}
 
 
-{% if ontrip_formset|length %}
-{% if trip.notes %}<label>Notes:</label> {{ trip.notes }}{% endif %}
-{% endif %}
-
 {% if signups %}
-    <hr>
-    <h3>All Participant Signups</h3>
-    <small>Note: this is not the waiting list. Instead, these are all signups - including those of
-        participants who may have been placed on other trips.</small>
-    {% signup_table signups has_notes %}
+  <hr>
+  <h3>All Participant Signups</h3>
+  <small>Note: this is not the waiting list. Instead, these are all signups - including those of
+      participants who may have been placed on other trips.</small>
+  {% signup_table signups has_notes %}
 {% endif %}
 
 {% endblock content %}

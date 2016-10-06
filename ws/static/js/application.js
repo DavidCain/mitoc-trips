@@ -213,45 +213,65 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
     },
   };
 })
-.directive('emailTripMembers', function(){
+.directive('emailTripMembers', function($http, djangoUrl){
   return {
     restrict: 'E',
     scope: {
-      signups: '=',
+      signups: '=?',
+      leaders: '=?',
+      // If signups and leaders are present, we'll use those. Otherwise, fetch from trip.
+      tripId: '=?',
     },
     templateUrl: '/static/template/email-trip-members.html',
     link: function (scope, element, attrs) {
+      if (scope.tripId && !scope.signups) {
+        $http.get(djangoUrl.reverse('json-signups', [scope.tripId]))
+          .success(function(data){
+            scope.signups = data.signups;
+            scope.leaders = data.leaders;
+          });
+      }
 
       scope.showEmails = {
-        onTrip: true,
+        onTrip: false,
         waitlist: false,
+        leaders: false,
       };
 
       var updateEmailText = function(){
-        /* Update participant emails according to the selected buttons. */
-        var signups = [];
-        if (scope.signups.waitlist && scope.signups.waitlist.length){
-          for (var sublist in scope.showEmails) {
-            if (scope.showEmails[sublist]) {
-              if (scope.signups[sublist]){
-                signups = signups.concat(scope.signups[sublist]);
-              }
-            }
-          }
-        } else {
-          // If there's no waitlist, don't bother honoring the buttons
-          // (we'll be hiding the controls anyway)
-          signups = scope.signups.onTrip || [];
+        if (!scope.signups){
+          return;
         }
 
-        var emails = signups.map(function(signup){
-          return signup.participant.name + ' <' + signup.participant.email + '>';
+        // Disallow an empty selection by defaulting to some reasonable default
+        if (!_.some(_.values(scope.showEmails))) {
+          var defaultList = scope.signups.onTrip.length ? 'onTrip' : 'leaders';
+          scope.showEmails[defaultList] = true;
+        }
+
+        /* Update participant emails according to the selected buttons. */
+        var signups = [];
+        ['onTrip', 'waitlist'].forEach(function(subList) {
+          if (scope.showEmails[subList] && scope.signups[subList]){
+            signups = signups.concat(scope.signups[subList]);
+          }
         });
+
+        // TODO: Make a service out of this
+        var formatEmail = function(participant){
+          return participant.name + ' <' + participant.email + '>';
+        };
+
+        var emails = scope.showEmails.leaders ? scope.leaders.map(formatEmail) : [];
+        emails = emails.concat(signups.map(function(signup) {
+          return formatEmail(signup.participant);
+        }));
+
         scope.emailText = emails.join(', ');
       };
 
       scope.$watch('signups', updateEmailText, true);
-      scope.$watch('showEmails',  updateEmailText, true);
+      scope.$watch('showEmails', updateEmailText, true);
     }
   };
 })
@@ -270,6 +290,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
       var url = '/trips/' + scope.tripId + '/admin/signups/';
       $http.get(url).then(function(response){
         scope.allSignups = response.data.signups;
+        scope.leaders = response.data.leaders;
         updateSignups();
         return _.map(scope.allSignups, 'participant.id');
       }).then(function(participant_ids) {

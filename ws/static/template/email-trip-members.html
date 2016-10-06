@@ -1,9 +1,28 @@
-<h4>Email participants
-  <div class="btn-group" data-ng-show="signups.waitlist.length">
-    <label class="btn btn-default" ng-model="showEmails.onTrip" uib-btn-checkbox>On trip</label>
-    <label class="btn btn-default" ng-model="showEmails.waitlist" uib-btn-checkbox>Waitlisted</label>
-  </div>
-</h4>
+<div>
+  <h4>Email trip members
+    <div class="btn-group" data-ng-show="signups.onTrip.length">
+      <label class="btn btn-default"
+             uib-btn-checkbox
+             data-ng-model="showEmails.leaders">
+        Leader<span data-ng-if="leaders.length !== 1" data-ng-bind="s">
+      </label>
 
-<pre class="wrapped-emails" data-ng-bind="emailText">
-</pre>
+      <label class="btn btn-default"
+             uib-btn-checkbox
+             data-ng-model="showEmails.onTrip"
+             data-ng-show="signups.onTrip.length">
+        On trip
+      </label>
+
+      <label class="btn btn-default"
+             uib-btn-checkbox
+             data-ng-model="showEmails.waitlist"
+             data-ng-show="signups.waitlist.length">
+        Waitlisted
+      </label>
+    </div>
+  </h4>
+
+  <pre class="wrapped-emails" data-ng-bind="emailText">
+  </pre>
+</div>
