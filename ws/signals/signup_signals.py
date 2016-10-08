@@ -104,22 +104,6 @@ def add_waitlist(sender, instance, created, raw, using, update_fields, **kwargs)
 
 
 @receiver(m2m_changed, sender=Trip.leaders.through)
-def inform_leaders(sender, instance, action, reverse, model, pk_set, using,
-                   **kwargs):
-    """ Inform all leaders that they're on a given trip.
-
-    Emails will be sent any time a new leader is added to the ManyToMany
-    relation (that is, at trip creation, or if a new leader is added).
-    All messages come from the trip creator.
-
-    Nothing happens if former leaders are removed.
-    """
-    if action == 'post_add' and not instance.allow_leader_signups:
-        for leader in instance.leaders.all():
-            send_coleader_email(instance, leader)
-
-
-@receiver(m2m_changed, sender=Trip.leaders.through)
 def delete_leader_signups(sender, instance, action, reverse, model, pk_set,
                           using, **kwargs):
     """ When removing leaders from the trip, delete their signups.
@@ -135,15 +119,3 @@ def delete_leader_signups(sender, instance, action, reverse, model, pk_set,
     if action == 'post_add':
         leaders = instance.leaders.all()
         instance.leadersignup_set.exclude(participant__in=leaders).delete()
-
-
-def send_coleader_email(trip, leader):
-    trip_link = get_trip_link(trip)
-    leaders = ', '.join(unicode(leader) for leader in trip.leaders.all())
-    msg = "You're leading '{}' with {} on {}.".format(trip_link, leaders, trip.trip_date)
-    send_mail("You're a leader on {}".format(trip),
-              # TODO: What information should be contained in this message?
-              msg,
-              trip.creator.email,
-              [leader.email],
-              fail_silently=True)
