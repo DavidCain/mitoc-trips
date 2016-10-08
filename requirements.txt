@@ -12,6 +12,7 @@ django-angular>=0.8.1
 psycopg2
 mysql-python
 markdown2
+mock
 
 oauth2client
 gspread

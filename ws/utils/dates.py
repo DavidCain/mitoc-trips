@@ -2,7 +2,7 @@
 Some shortcuts to retrieve meaningful dates.
 """
 
-from datetime import timedelta
+from datetime import datetime, timedelta
 from django.utils import timezone
 from django.conf import settings
 
@@ -58,25 +58,27 @@ def next_lottery():
         return lottery_morning
 
 
-def wed_morning():
+def next_wednesday():
     now = local_now()
     days_til_wed = timedelta((9 - now.weekday()) % 7)
-    wed = (now + days_til_wed)
-    return lottery_time(wed)
+    return (now + days_til_wed)
+
+
+def wed_morning():
+    return lottery_time(next_wednesday())
 
 
 def closest_wednesday():
     now = local_now()
-    days_til_wed = timedelta((9 - now.weekday()) % 7)
-    next_wed = (now + days_til_wed)
+    next_wed = next_wednesday()
     last_wed = next_wed - timedelta(7)
-    return min([next_wed, last_wed], key=lambda dt: abs(now - dt))
+    return min([next_wed, last_wed], key=lambda dt: abs(now - dt)).date()
 
 
 def closest_wed_at_noon():
     """ Useful in case lottery is run slightly after noon on Wednesday. """
     closest_wed = closest_wednesday()
-    return closest_wed.replace(hour=12, minute=0, second=0, microsecond=0)
+    return datetime.combine(closest_wed, datetime.min.time().replace(hour=12))
 
 
 def participant_cutoff():
