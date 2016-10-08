@@ -48,6 +48,7 @@ def membership_expiration(emails):
 def format_membership(email, membership_expires, waiver_expires):
     person = repr_blank_membership()
     membership, waiver = person['membership'],  person['waiver']
+    membership['email'] = email
 
     for component, expires in [(membership, membership_expires),
                                (waiver, waiver_expires)]:
