@@ -19,3 +19,21 @@ EMAIL_HOST = 'email-smtp.us-east-1.amazonaws.com'
 EMAIL_PORT = 465
 EMAIL_HOST_USER = os.getenv('SES_USER')
 EMAIL_HOST_PASSWORD = os.getenv('SES_PASSWORD')
+
+# Includes production TripsConfig and omits debug toolbar
+INSTALLED_APPS = (
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'django.contrib.sites',
+    'localflavor',
+    'allauth',
+    'allauth.account',
+    'djng',
+    'pipeline',
+    'raven.contrib.django.raven_compat',
+    'ws.apps.TripsConfig',
+)

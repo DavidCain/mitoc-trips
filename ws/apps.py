@@ -3,6 +3,16 @@ from django.contrib.auth.models import Group
 from django.db.utils import OperationalError, ProgrammingError
 
 
+class TestConfig(AppConfig):
+    """ A simple configuration that doesn't load signals.
+
+    This facilitates saving data from fixtures after the app is ready (since we
+    don't want every post_save to trigger a signal).
+    """
+    name = 'ws'
+    verbose_name = "MITOC Trips"
+
+
 class TripsConfig(AppConfig):
     name = 'ws'
     verbose_name = "MITOC Trips"

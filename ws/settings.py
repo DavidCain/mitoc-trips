@@ -42,7 +42,9 @@ STATICFILES_FINDERS = (
 LOGIN_REDIRECT_URL = '/'
 ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 
-if os.environ.get('WS_DJANGO_LOCAL'):
+if os.environ.get('WS_TEST_CONFIG'):
+    from conf.test_settings import *
+elif os.environ.get('WS_DJANGO_LOCAL'):
     from conf.local_settings import *
 else:
     from conf.production_settings import *
@@ -75,25 +77,7 @@ DATABASES = {
 }
 DATABASE_ROUTERS = ['ws.routers.AuthRouter']
 
-INSTALLED_APPS = (
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'django.contrib.sites',
-    'localflavor',
-    'allauth',
-    'allauth.account',
-    'djng',
-    'pipeline',
-    'debug_toolbar',
-    'raven.contrib.django.raven_compat',
-    'ws',
-)
-
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE_CLASSES = [
     'djng.middleware.AngularUrlMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -104,8 +88,9 @@ MIDDLEWARE_CLASSES = (
     'ws.middleware.ParticipantMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-)
-
+]
+if 'debug_toolbar' in INSTALLED_APPS:
+    MIDDLEWARE_CLASSES.append('debug_toolbar.middleware.DebugToolbarMiddleware')
 
 AUTHENTICATION_BACKENDS = (
     # Needed to login by username in Django admin, regardless of `allauth`

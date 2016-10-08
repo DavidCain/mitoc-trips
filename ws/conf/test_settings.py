@@ -1,10 +1,5 @@
 """
-Local settings, intended for use on a local computer for basic
-feature testing.
-
-  - Exposed secret key
-  - DEBUG enabled
-  - Project root is just '/'
+Test settings!
   - Send emails to console
 """
 
@@ -14,10 +9,9 @@ ALLOWED_HOSTS = []
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Don't send emails to verify email addresses (rapid account creation)
-ACCOUNT_EMAIL_VERIFICATION = 'none'
+#ACCOUNT_EMAIL_VERIFICATION = 'none'
 
 
-# Includes Debug Toolbar
 INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.auth',
@@ -31,7 +25,6 @@ INSTALLED_APPS = (
     'allauth.account',
     'djng',
     'pipeline',
-    'debug_toolbar',
     'raven.contrib.django.raven_compat',
-    'ws.apps.TripsConfig',
+    'ws.apps.TestConfig',
 )
