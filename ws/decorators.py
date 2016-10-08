@@ -50,6 +50,15 @@ def profile_needs_update(request):
         messages.info(request, "Please supply your full legal name.")
         has_problems = True
 
+    emails = request.user.emailaddress_set
+    if not emails.filter(email=par.email, verified=True).exists():
+        messages.info(request,
+                      'Please <a href="{}">'.format(reverse('account_email')) +
+                      'verify that you own {}</a>, or set your system '
+                      'email address to one of your already verified email '
+                      'addresses.'.format(par.email), extra_tags='safe')
+        has_problems = True
+
     return has_problems
 
 

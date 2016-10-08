@@ -93,6 +93,10 @@ class ParticipantEditMixin(TemplateView):
     update_msg = 'Personal information updated successfully'
 
     @property
+    def user(self):
+        raise NotImplementedError
+
+    @property
     def has_car(self):
         return 'has_car' in self.request.POST
 
@@ -120,6 +124,7 @@ class ParticipantEditMixin(TemplateView):
 
         # If no Participant object, fill at least with User email
         par_kwargs = self.prefix("participant", instance=participant)
+        par_kwargs["user"] = self.user
         if not participant:
             par_kwargs["initial"] = {'email': self.user.email}
 

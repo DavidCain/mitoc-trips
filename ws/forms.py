@@ -35,6 +35,15 @@ class ParticipantForm(DjangularRequiredModelForm):
     class Meta:
         model = models.Participant
         fields = ['name', 'email', 'cell_phone', 'affiliation']
+        widgets = {'email': forms.Select()}
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user')
+        super(ParticipantForm, self).__init__(*args, **kwargs)
+
+        verified_emails = user.emailaddress_set.filter(verified=True)
+        choices = [email * 2 for email in verified_emails.values_list('email')]
+        self.fields['email'].widget.choices = choices
 
 
 class ParticipantLookupForm(forms.Form):
