@@ -53,7 +53,7 @@ def format_membership(email, membership_expires, waiver_expires):
     for component, expires in [(membership, membership_expires),
                                (waiver, waiver_expires)]:
         component['expires'] = expires
-        component['active'] = expires and expires >= local_date()
+        component['active'] = bool(expires and expires >= local_date())
 
     # Generate a human-readable status
     if membership['active']:  # Membership is active and up-to-date
@@ -79,7 +79,7 @@ def matching_memberships(emails):
     cursor = connections['geardb'].cursor()
 
     if not emails:  # Passing an empty tuple will cause a SQL error
-        return []
+        return OrderedDict()
 
     # Get the most recent membership and most recent waiver per email
     # It's possible the user has a newer waiver under another email address,
@@ -107,7 +107,7 @@ def matching_memberships(emails):
 
 def outstanding_items(emails):
     if not emails:
-        return None
+        return []
     cursor = connections['geardb'].cursor()
     cursor.execute(
         """
