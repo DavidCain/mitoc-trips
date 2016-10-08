@@ -6,6 +6,7 @@ django-localflavor
 django-debug-toolbar>=1.5
 django-pipeline
 django-smtp-ssl
+raven
 six
 django-angular>=0.8.1
 psycopg2

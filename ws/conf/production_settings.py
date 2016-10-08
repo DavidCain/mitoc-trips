@@ -2,6 +2,7 @@
 
 import os
 
+
 DEBUG = False
 TEMPLATE_DEBUG = False
 ALLOWED_HOSTS = ['trips.mitoc.org', 'mitoc-trips.mit.edu']

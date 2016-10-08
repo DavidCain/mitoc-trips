@@ -11,6 +11,9 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
 
+import raven
+
+
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY',
                        '*this-is-obviously-not-secure-only-use-it-locally*')
 
@@ -86,6 +89,7 @@ INSTALLED_APPS = (
     'djng',
     'pipeline',
     'debug_toolbar',
+    'raven.contrib.django.raven_compat',
     'ws',
 )
 
@@ -185,7 +189,14 @@ USE_TZ = True
 MUST_UPDATE_AFTER_DAYS = 180
 
 # Break packages up based on how they'll be served
+
+# CDN libraries are for basic, commonplace libraries (and are loaded first)
 cdn_libs = ['jquery/dist/jquery.min.js', 'angular/angular.js', 'd3/d3.min.js']
+
+# Raven & Google Analytics should be loaded first (but only in prod)
+raven_js = ['raven-js/dist/raven.min.js', 'js/raven_config.js', 'angular-raven/angular-raven.min.js']
+first_load_js = [] if DEBUG else raven_js + ['js/ga.js']
+
 other_libs = ['lodash/dist/lodash.js',
               'bootstrap/dist/js/bootstrap.min.js',
               'footable/js/footable.js',
@@ -201,9 +212,8 @@ other_libs = ['lodash/dist/lodash.js',
               'angular-ui-sortable/sortable.js',
               'js/ui-bootstrap-tpls-0.14.3.js',
               ]
+
 local_js = ['js/application.js', 'js/footable_breakpoints.js']
-if not DEBUG:
-    local_js.append('js/ga.js')  # Google Analytics
 
 PIPELINE = {
     'JS_COMPRESSOR': 'pipeline.compressors.uglifyjs.UglifyJSCompressor',
@@ -211,7 +221,7 @@ PIPELINE = {
     'JAVASCRIPT': {
         # With jQuery and Angular served via CDN, this is everything
         'app': {
-            'source_filenames': other_libs + local_js,
+            'source_filenames': first_load_js + other_libs + local_js,
             'output_filename': 'js/app.js',
         },
     },
@@ -247,4 +257,10 @@ LOGGING = {
             'propagate': True,
         },
     },
+}
+
+
+RAVEN_CONFIG = {
+    'dsn': os.getenv('RAVEN_DSN'),  # If absent, nothing happens
+    'release': raven.fetch_git_sha(BASE_DIR),
 }
