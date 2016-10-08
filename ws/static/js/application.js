@@ -50,13 +50,10 @@ angular.module('ws.profile', [])
     scope: {
       userId: '=',
       personal: '=?', // Give helpful messages, intended for when viewing own status
+      showFullFaq: '=?',
     },
     templateUrl: '/static/template/membership-status.html',
     link: function (scope, element, attrs) {
-      scope.delayNotice = "<p>If you've already submitted membership dues and/or waiver, " +
-                          "our system may take up to 24 hours to mark your membership as active.</p>" +
-                          "<p>We're working on a fix for this delay.</p>" +
-                          "<p>In the meantime, please feel free to sign up for trips if you believe your membership is active.</p>";
       scope.labelClass = {
         'Active':         'label-success',
         'Waiver Expired': 'label-warning',
@@ -386,6 +383,33 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
     }
   };
 })
+.directive('dangerHover', function($compile) {
+  return {
+    restrict: 'A',
+    link: function (scope, element, attrs) {
+      // Identify the base Bootstrap button class to display when not hovering
+      var classes = attrs.class ? attrs.class.split(/\s+/) : [];
+      var baseBtnClass = attrs.class && _.find(classes, function (cls) {
+        return cls.lastIndexOf('btn-', 0) === 0;
+      });
+      if (!baseBtnClass) {
+        baseBtnClass = 'btn-default';
+        element.addClass('btn');
+        element.addClass(baseBtnClass);
+      }
+
+      // Show red when hovering
+      element.bind('mouseover', function(e) {
+        element.removeClass(baseBtnClass);
+        element.addClass('btn-danger');
+      });
+      element.bind('mouseleave', function(e) {
+        element.removeClass('btn-danger');
+        element.addClass(baseBtnClass);
+      });
+    },
+  };
+})
 .directive('delete', function($http, $window, $uibModal) {
   return {
     restrict: 'E',
@@ -394,6 +418,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
       apiSlug: '@',
       label: '@?',
     },
+    replace: true,  // So that .btn will be styled appropriately in btn-group
     templateUrl: '/static/template/delete.html',
     link: function (scope, element, attrs) {
       scope.deleteObject = function(){

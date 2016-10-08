@@ -1,0 +1,65 @@
+{% extends "messages_page.html" %}
+
+{% load i18n %}
+{% load url from future %}
+
+{% block head_title %}{% trans "Emails" %}{% endblock %}
+
+{% block content %}
+{{ block.super }}
+<div class="row" id = "account-emails">
+  <div class="col-md-6">
+  <h3>{% trans "E-mail Addresses" %}</h3>
+
+
+  <form action="{% url 'account_email' %}" class="well" method="post">
+    {% csrf_token %}
+
+    <label for="all_email_addresses">Email addresses associated with your account:</label>
+    <div id="all_email_addresses">
+      {% for emailaddress in user.emailaddress_set.all %}
+      <div class="radio">
+        <label for="email_radio_{{forloop.counter}}">
+
+          <input id="email_radio_{{forloop.counter}}" type="radio" name="email" {% if emailaddress.primary %}checked="checked"{%endif %} value="{{emailaddress.email}}"/>
+
+          {{ emailaddress.email }}
+          {% if not emailaddress.verified %}
+          <span class="label label-warning unverified">{% trans "Unverified" %}</span>
+          {% endif %}
+          {% if emailaddress.primary %}<span class="label label-primary">{% trans "Primary" %}</span>{% endif %}
+        </label>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="btn-group" role="group">
+      <button class="btn btn-default" type="submit" name="action_primary">{% trans 'Make Primary' %}</button>
+      <button class="btn btn-default" type="submit" name="action_send">{% trans 'Re-send Verification' %}</button>
+      <button class="btn btn-default"
+              data-danger-hover
+              type="submit"
+              name="action_remove">
+        {% trans 'Remove' %}
+      </button>
+    </div>
+
+  </form>
+
+
+  <h4>{% trans "Add E-mail Address" %}</h4>
+
+  <form method="post" action="{% url 'account_email' %}" class="well">
+    {% csrf_token %}
+    {{ form.as_p}}
+    <button class="btn btn-primary" name="action_add" type="submit">{% trans "Add E-mail" %}</button>
+  </form>
+  </div>
+
+  <div class="col-md-6">
+    <membership-status data-personal="true" data-show-full-faq="true" data-user-id="{{ user.id }}">
+    </membership-status>
+  </div>
+</div>
+
+{% endblock %}

@@ -183,42 +183,37 @@ Lookup participant
     </div>
 
     <div class="row">
-      <div class="col-md-12 col-sm-6">
-        <h3>Account emails
-          <a
-            role="button"
-            data-uib-popover-html="'
-              <p>
-                <a href=&quot;{% url 'account_email' %}&quot;>Verified emails</a>
-                are used to look up membership status.
-              </p>
-              {% if user_viewing %}
+      {% if not user_viewing %}
+        <div class="col-md-12 col-sm-6">
+          <h3>Account emails
+            <a
+              role="button"
+              data-uib-popover-html="'
                 <p>
-                  If you paid for your MITOC membership using another email address,
-                  <a href=&quot;{% url 'account_email' %}&quot;>verify that address</a>
-                  to reflect your most current membership status.
+                  <a href=&quot;{% url 'account_email' %}&quot;>Verified emails</a>
+                  are used to look up membership status.
                 </p>
-              {% endif %}
-            '"
-            data-popover-placement="bottom"
-            data-popover-title="Account emails">
-            <i class="fa fa-question-circle-o"></i>
-          </a>
-        </h3>
+              '"
+              data-popover-placement="bottom"
+              data-popover-title="Account emails">
+              <i class="fa fa-question-circle-o"></i>
+            </a>
+          </h3>
 
-        <ul class="list-unstyled">
-          {% for emailaddress in participant.user.emailaddress_set.all %}
-            <li>
-              {{ emailaddress.email }}
-              {% if not emailaddress.verified %}
-                <a href="{% url 'account_email' %}">
-                  <button class="btn btn-xs btn-warning">Unverified</button>
-                </a>
-              {% endif %}
-            </li>
-          {% endfor %}
-        </ul>
-      </div>
+          <ul class="list-unstyled">
+            {% for emailaddress in participant.user.emailaddress_set.all %}
+              <li>
+                {{ emailaddress.email }}
+                {% if not emailaddress.verified %}
+                  <a href="{% url 'account_email' %}">
+                    <button class="btn btn-xs btn-warning">Unverified</button>
+                  </a>
+                {% endif %}
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
       {% if stats %}
         <div class="col-md-12 col-sm-6">
           <h3>Stats</h3>

@@ -8,24 +8,24 @@
     </span>
   </h3>
 
-  <div ng-switch="status" ng-if="personal">
-    <div ng-switch-when="Missing Waiver">
+  <div data-ng-switch="status" data-ng-if="personal">
+    <div data-ng-switch-when="Missing Waiver">
       <p>
         Please <a href="https://rightsignature.com/forms/Liability-Waiver--97a3de/token/39c17d4086f">sign a waiver</a>
-        with your account email, <span ng-bind="membership.email"></span>.
+        with your account email, <span data-ng-bind="::membership.email"></span>.
       </p>
     </div>
-    <div ng-switch-when="Waiver Expired">
+    <div data-ng-switch-when="Waiver Expired">
       <p>
         Please <a href="https://rightsignature.com/forms/Liability-Waiver--97a3de/token/39c17d4086f">sign a new waiver</a>
-        with your account email, <span ng-bind="membership.email"></span>.
+        with your account email, <span data-ng-bind="::membership.email"></span>.
       </p>
     </div>
-    <p ng-switch-when="Active">
-      Your membership is active, and expires on {{ ::membership.expires | date }}.
-      Your waiver will expire on {{ ::waiver.expires | date }}.
-    </p>
-    <div ng-switch-when="Missing">
+    <div data-ng-switch-when="Active">
+      <p>Your membership is active, and expires on <span data-ng-bind="::membership.expires | date"></span>.</p>
+      <p>Your waiver will expire on <span data-ng-bind="::waiver.expires | date"></span>.</p>
+    </div>
+    <div data-ng-switch-when="Missing">
       <p>
         We have no membership information on file for any of your
         <a href="/accounts/email/">verified email addresses.</a>
@@ -36,53 +36,84 @@
         in order to participate on trips, rent gear, or use cabins.
       </p>
     </div>
-    <div ng-switch-when="Expired">
+    <div data-ng-switch-when="Expired">
       <p>
-        Your membership expired on {{ ::membership.expires | date }}.
+        Your membership expired on <span data-ng-bind="::membership.expires | date"></span>.
       </p>
       <p>
         Please <a href="http://mitoc.mit.edu/#join">renew your membership and sign the waiver</a>
         under any of your <a href="/accounts/email/">verified email addresses</a>.
       </p>
     </div>
-    <p ng-switch-default>
+    <p data-ng-switch-default>
       Querying MITOC servers for membership status...
     </p>
   </div>
 
-  <div ng-switch="status" ng-if="!personal" class="text-muted">
-    <p ng-switch-when="Missing Waiver">
+  <div data-ng-switch="status" data-ng-if="!personal" class="text-muted">
+    <p data-ng-switch-when="Missing Waiver">
       No waiver on file.
     </p>
-    <p ng-switch-when="Waiver Expired">
-      Waiver expired on {{ ::waiver.expires | date }}.
+    <p data-ng-switch-when="Waiver Expired">
+      Waiver expired on <span data-ng-bind="::waiver.expires | date"></span>.
     </p>
-    <div ng-switch-when="Active">
-      <p>Membership expires on {{ ::membership.expires | date }}.</p>
-      <p>Waiver expires on {{ ::waiver.expires | date }}.</p>
+    <div data-ng-switch-when="Active">
+      <p>Membership expires on <span data-ng-bind="::membership.expires | date"></span>.</p>
+      <p>Waiver expires on <span data-ng-bind="::waiver.expires | date"></span>.</p>
     </div>
-    <p ng-switch-when="Missing">
+    <p data-ng-switch-when="Missing">
       No membership information on file.
     </p>
-    <p ng-switch-when="Expired">
-      Membership for {{ ::membership.email }} expired on {{ ::membership.expires | date }}.
+    <p data-ng-switch-when="Expired">
+      Membership for <span data-ng-bind="::membership.email"></span>  expired on <span data-ng-bind="::membership.expires | date"></span>.
     </p>
-    <p ng-switch-default>
+    <p data-ng-switch-default>
       Querying MITOC servers for membership status...
     </p>
   </div>
 
-  <div ng-if="status && status !== 'Active'">
-    <div class="alert alert-warning">
-      It may take up to 24 hours to update status.
-      <a
-        role="button"
-        data-uib-popover-html="delayNotice"
-        data-popover-append-to-body="true"
-        data-popover-placement="bottom"
-        data-popover-title="Status update delays">
-        <i class="fa fa-lg fa-question-circle-o"></i>
-      </a>
+  <div data-ng-if="status && status !== 'Active'">
+    <div data-ng-show="personal && !showFullFaq">
+      <div class="alert alert-warning">
+        <a href="/accounts/email/">Problems or questions</a> about your membership?
+      </div>
+    </div>
+
+    <div data-ng-show="showFullFaq">
+      <div data-ng-show="status === 'Expired' || status === 'Missing'" class="well">
+        <h5>Why isn't my membership showing up?</h5>
+        <p>
+          We search for a current MITOC membership under any of your verified
+          email addresses. If we find a matching membership, we tie that to your
+          account.
+        </p>
+
+        <p>
+          If you think you're a current member, but don't see yourself as
+          active here, you've most likely signed up for a membership under
+          another email address. Make sure that you add and verify any email
+          address that you may have signed up with.
+        </p>
+      </div>
+
+      <div data-ng-show="status === 'Missing Waiver' || status === 'Waiver Expired'" class="well">
+        <h5>Why isn't my waiver showing up?</h5>
+        <p>
+          First, ensure you <a href="https://rightsignature.com/forms/Liability-Waiver--97a3de/token/39c17d4086f">signed the waiver</a>
+          under the same email address as your membership:
+          <span data-ng-bind="::membership.email"></span>.
+        </p>
+      </div>
+
+      <div class="well">
+        <h5>But I'm positive that my account is under one of these email addresses!</h5>
+        <p>
+          Sometimes our system can be a little slow to update. If it's been at least 24
+          hours since you paid your membership dues and/or signed a waiver,
+          please <a href="/contact">contact us</a>.
+        </p>
+      </div>
+
     </div>
   </div>
 
