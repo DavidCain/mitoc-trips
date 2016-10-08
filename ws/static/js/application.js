@@ -239,7 +239,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
       };
 
       var updateEmailText = function(){
-        if (!scope.signups){
+        if (_.isEmpty(scope.signups)) {
           return;
         }
 
