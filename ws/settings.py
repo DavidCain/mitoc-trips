@@ -193,9 +193,10 @@ MUST_UPDATE_AFTER_DAYS = 180
 # CDN libraries are for basic, commonplace libraries (and are loaded first)
 cdn_libs = ['jquery/dist/jquery.min.js', 'angular/angular.js', 'd3/d3.min.js']
 
-# Raven & Google Analytics should be loaded first (but only in prod)
-raven_js = ['raven-js/dist/raven.min.js', 'js/raven_config.js', 'angular-raven/angular-raven.min.js']
-first_load_js = [] if DEBUG else raven_js + ['js/ga.js']
+first_load_js = ['raven-js/dist/raven.min.js', 'angular-raven/angular-raven.min.js']
+
+if not DEBUG:  # Configure Raven & Google Analytics for use in production
+    first_load_js += ['js/raven_config.js', 'js/ga.js']
 
 other_libs = ['lodash/dist/lodash.js',
               'bootstrap/dist/js/bootstrap.min.js',
