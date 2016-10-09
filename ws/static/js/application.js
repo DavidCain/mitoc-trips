@@ -216,20 +216,29 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
     scope: {
       signups: '=?',
       leaders: '=?',
-      // If signups and leaders are present, we'll use those. Otherwise, fetch from trip.
+      creator: '=?',
+      // If the above values are present, we'll use those. Otherwise, fetch from trip.
       tripId: '=?',
     },
     templateUrl: '/static/template/email-trip-members.html',
     link: function (scope, element, attrs) {
-      if (scope.tripId && !scope.signups) {
+      if (scope.tripId && !_.every([scope.creator, scope.leaders, scope.signups])) {
         $http.get(djangoUrl.reverse('json-signups', [scope.tripId]))
           .success(function(data){
             scope.signups = data.signups;
             scope.leaders = data.leaders;
+            scope.creator = data.creator;
+            if (!scope.leaders.length) {
+              scope.showEmails.creator = true;
+            }
+            if (scope.signups.onTrip.length) {
+              scope.showEmails.onTrip = true;
+            }
           });
       }
 
       scope.showEmails = {
+        creator: false,
         onTrip: false,
         waitlist: false,
         leaders: false,
@@ -242,8 +251,13 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
 
         // Disallow an empty selection by defaulting to some reasonable default
         if (!_.some(_.values(scope.showEmails))) {
-          var defaultList = scope.signups.onTrip.length ? 'onTrip' : 'leaders';
-          scope.showEmails[defaultList] = true;
+          if (scope.signups.onTrip.length) {
+            scope.showEmails.onTrip = true;
+          } else if (scope.leaders.length) {
+            scope.showEmails.leaders = true;
+          } else {
+            scope.showEmails.creator = true;
+          }
         }
 
         /* Update participant emails according to the selected buttons. */
@@ -259,7 +273,19 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
           return participant.name + ' <' + participant.email + '>';
         };
 
-        var emails = scope.showEmails.leaders ? scope.leaders.map(formatEmail) : [];
+        var emails = [];
+        if (scope.showEmails.creator) {
+          emails.push(formatEmail(scope.creator));
+        }
+        if (scope.showEmails.leaders) {
+          // Avoid repeating the creator if they're also a leader
+          // But if both options (Creator & Leader) are selected, order creator first
+          var leaderEmails = scope.leaders.map(formatEmail);
+          if (scope.showEmails.creator) {
+            leaderEmails = _.difference(leaderEmails, emails);
+          }
+          emails = emails.concat(leaderEmails);
+        }
         emails = emails.concat(signups.map(function(signup) {
           return formatEmail(signup.participant);
         }));
@@ -288,6 +314,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
       $http.get(url).then(function(response){
         scope.allSignups = response.data.signups;
         scope.leaders = response.data.leaders;
+        scope.creator = response.data.creator;
         updateSignups();
         return _.map(scope.allSignups, 'participant.id');
       }).then(function(participant_ids) {

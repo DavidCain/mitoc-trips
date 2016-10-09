@@ -81,7 +81,7 @@ Lookup participant
       </div>
     </div>
 
-    {% if trips.current.on_trip or trips.current.waitlisted or trips.current.leader %}
+    {% if trips.current.on_trip or trips.current.waitlisted or trips.current.leader or trips.current.creator %}
     <div class="row">
       <div class="col-md-12">
         <h3><i class="fa fa-suitcase"></i> Upcoming Trips </h3>
@@ -93,8 +93,12 @@ Lookup participant
           {% simple_trip_list trips.current.waitlisted %}
         {% endif %}
         {% if trips.current.leader %}
-          <h4 class="text-center">As a Leader</h4>
+          <h4 class="text-center">Leading</h4>
           {% simple_trip_list trips.current.leader %}
+        {% endif %}
+        {% if trips.current.creator %}
+          <h4 class="text-center">Created</h4>
+          {% simple_trip_list trips.current.creator %}
         {% endif %}
       </div>
     </div>
@@ -274,7 +278,7 @@ Lookup participant
   </div>
 </div>
 
-{% if trips.past.on_trip or trips.past.leader %}
+{% if trips.past.on_trip or trips.past.leader or trips.past.creator %}
   <hr>
 
   <div class="row">
@@ -287,6 +291,10 @@ Lookup participant
       {% if trips.past.leader %}
         <h4 class="text-center">As a Leader</h4>
         {% simple_trip_list trips.past.leader 90 300 %}
+      {% endif %}
+      {% if trips.past.creator %}
+        <h4 class="text-center">Created</h4>
+        {% simple_trip_list trips.past.creator 90 300 %}
       {% endif %}
     </div>
   </div>

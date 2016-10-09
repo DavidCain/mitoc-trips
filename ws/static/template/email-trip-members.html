@@ -1,10 +1,18 @@
 <div>
   <h4>Email trip members
-    <div class="btn-group" data-ng-show="signups.onTrip.length">
+    <div class="btn-group" data-ng-if="signups.onTrip.length || leaders.length">
       <label class="btn btn-default"
              uib-btn-checkbox
-             data-ng-model="showEmails.leaders">
-        Leader<span data-ng-if="leaders.length !== 1" data-ng-bind="s">
+             data-ng-model="showEmails.creator"
+             data-ng-show="leaders.length !== 1">
+        Creator
+      </label>
+
+      <label class="btn btn-default"
+             uib-btn-checkbox
+             data-ng-model="showEmails.leaders"
+             data-ng-show="leaders.length">
+        Leader<span data-ng-if="leaders.length !== 1">s</span>
       </label>
 
       <label class="btn btn-default"

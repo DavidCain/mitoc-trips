@@ -299,25 +299,38 @@ class ParticipantView(ParticipantLookupView, SingleObjectMixin, LotteryPairingMi
         in_past = Q(trip_date__lt=today)
 
         trips_led = participant.trips_led.prefetch_related('leaders__leaderrating_set')
+        trips_created = models.Trip.objects.filter(creator=participant)
+        created_but_not_led = trips_created.exclude(leaders=participant)
 
-        return {'current': {
-                    'on_trip': accepted.filter(in_future),
-                    'waitlisted': waitlisted.filter(in_future),
-                    'leader': trips_led.filter(in_future),
-                    },
-                'past': {
-                    'on_trip': accepted.filter(in_past),
-                    'leader': trips_led.filter(in_past),
-                    },
-                }
+        return {
+            'current': {
+                'on_trip': accepted.filter(in_future),
+                'waitlisted': waitlisted.filter(in_future),
+                'leader': trips_led.filter(in_future),
+                'creator': created_but_not_led.filter(in_future),
+            },
+            'past': {
+                'on_trip': accepted.filter(in_past),
+                'leader': trips_led.filter(in_past),
+                'creator': created_but_not_led.filter(in_past),
+            },
+        }
 
     def get_stats(self, trips):
         num_attended = len(trips['past']['on_trip'])
         num_led = len(trips['past']['leader'])
+        num_created = len(trips['past']['creator'])
         if not (num_attended or num_led):
             return []
-        stats = ["Attended {} trip".format(num_attended) + ('' if num_attended == 1 else 's'),
-                 "Led {} trip".format(num_led) + ('' if num_led == 1 else 's')]
+
+        def pluralize(count):
+            return '' if count == 1 else 's'
+
+        stats = ["Attended {} trip".format(num_attended) + pluralize(num_attended),
+                 "Led {} trip".format(num_led) + pluralize(num_led)]
+        if num_created:
+            label = "Created (but didn't lead) {} trip".format(num_created)
+            stats.append(label + pluralize(num_created))
         return stats
 
     def include_pairing(self, context):
@@ -592,6 +605,10 @@ class SimpleSignupsView(DetailView):
         return JsonResponse({
             'signups': participant_signups,
             'leaders': list(trip.leaders.values('name', 'email')),
+            'creator': {
+                'name': trip.creator.name,
+                'email': trip.creator.email,
+            },
         })
 
     @method_decorator(user_info_required)
@@ -701,6 +718,10 @@ class AdminTripSignupsView(SingleObjectMixin, LeadersOnlyView, ItineraryEditable
         return JsonResponse({
             'signups': signups,
             'leaders': list(trip.leaders.values('name', 'email')),
+            'creator': {
+                'name': trip.creator.name,
+                'email': trip.creator.email,
+            },
         })
 
 

@@ -3,11 +3,22 @@
 <h2> {{ trip.name }} </h2>
 
 <dl class="dl-horizontal">
-    <dt>Leaders</dt>
-    <dd>{% for leader in trip.leaders.all %}
-    {% if show_emails %}<a href="mailto:{{ leader.email }}">{% endif %}
-      {{ leader|name_with_activity:trip.activity }}{% if show_emails %}</a>{% endif %}{% if not forloop.last %}, {% endif %}{% endfor %}
-    </dd>
+    {% if trip.leaders.all %}
+      <dt>Leaders</dt>
+      <dd>
+        {% for leader in trip.leaders.all %}
+          {% if show_emails %}<a href="mailto:{{ leader.email }}">{% endif %}
+          {{ leader|name_with_activity:trip.activity }}{% if show_emails %}</a>{% endif %}{% if not forloop.last %}, {% endif %}
+        {% endfor %}
+      </dd>
+    {% else %}
+      <dt>Creator</dt>
+      <dd>
+        {% if show_emails %}<a href="mailto:{{ trip.creator.email }}">{% endif %}
+        {{ trip.creator|name_with_activity:trip.activity }}
+        {% if show_emails %}</a>{% endif %}
+      </dd>
+    {% endif %}
 
     {% if trip.level %}
       <dt>Trip level</dt>
