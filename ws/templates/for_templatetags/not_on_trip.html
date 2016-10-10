@@ -1,0 +1,29 @@
+{% load signup_tags %}
+
+{% if display_table %}
+  <hr>
+  <h3>
+    {% if trip.algorithm == 'fcfs' %} Other {% else %} All {% endif %}
+    Participant Signups
+  </h3>
+
+  {% if trip.algorithm == 'fcfs' %}
+    {% if not signups_on_trip %}
+      <div class="alert alert-warning">
+        None of the interested participants were placed on this trip.
+      </div>
+    {% else %}
+      <div class="alert alert-info">
+        These participants were not placed on the trip.
+        (Most likely, they were assigned to other trips).
+      </div>
+    {% endif %}
+  {% elif trip.algorithm == 'lottery' %}
+    <div class="alert alert-info">
+      This trip is still in the lottery stage.
+      Once the lottery algorithm runs, you'll find out who was placed on the trip.
+    </div>
+  {% endif %}
+
+  {% signup_table signups_off_trip display_notes show_drivers=False %}
+{% endif %}

@@ -90,3 +90,23 @@ def driver_table(cars):
 @register.filter
 def subtract(value, arg):
     return value - arg
+
+
+@register.inclusion_tag('for_templatetags/not_on_trip.html')
+def not_on_trip(trip, signups_on_trip, signups_off_trip, display_notes):
+    """ Display a table of participants who're not on the given trip.
+
+    Handles displaying all participants who were:
+        1. Interested in a lottery trip
+        2. Not given a slot on a FCFS trip or its waiting list
+    """
+    display_table = signups_on_trip or signups_off_trip
+
+    # If all signups were placed on the trip, no sense displaying this table
+    if trip.algorithm == 'fcfs' and not signups_off_trip:
+        display_table = False
+
+    return {'trip': trip,
+            'signups_on_trip': signups_on_trip,
+            'signups_off_trip': signups_off_trip,
+            'display_table': display_table, 'display_notes': display_notes}

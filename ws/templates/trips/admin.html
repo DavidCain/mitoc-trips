@@ -8,29 +8,31 @@
 
 <h4>Leader Actions</h4>
 <div class="btn-group" role="group">
-    <a type="button" class="btn btn-default" href="{% url 'edit_trip' trip.id %}"><i class="fa fa-edit"></i>&nbsp;Edit</a>
-    <a type="button" class="btn btn-default" href="{% url 'trip_medical' trip.id %}"><i class="fa fa-medkit"></i>&nbsp;WIMP info</a>
-    <a type="button" class="btn btn-default
-    {% if info_form_available %}
-        {{ trip.info|yesno:",btn-danger" }}" uib-tooltip="Must be completed before departure!" href="{% url 'trip_itinerary' trip.id %}">
-    {% else %}
-        " uib-tooltip="Will become available {{ friday_before|date:"l, F jS" }}" href="#">
-    {% endif %}
-    <i class="fa fa-list-alt"></i>&nbsp;Itinerary</a>
-    <a type="button" class="btn btn-default" href="{% url 'review_trip' trip.id %}"><i class="fa fa-comments"></i>&nbsp;Feedback</a>
+  <a type="button" class="btn btn-default" href="{% url 'edit_trip' trip.id %}"><i class="fa fa-edit"></i>&nbsp;Edit</a>
+  <a type="button" class="btn btn-default" href="{% url 'trip_medical' trip.id %}"><i class="fa fa-medkit"></i>&nbsp;WIMP info</a>
+  <a type="button" class="btn btn-default
+  {% if info_form_available %}
+      {{ trip.info|yesno:",btn-danger" }}" uib-tooltip="Must be completed before departure!" href="{% url 'trip_itinerary' trip.id %}">
+  {% else %}
+      " uib-tooltip="Will become available {{ friday_before|date:"l, F jS" }}" href="#">
+  {% endif %}
+  <i class="fa fa-list-alt"></i>&nbsp;Itinerary</a>
+  <a type="button" class="btn btn-default" href="{% url 'review_trip' trip.id %}"><i class="fa fa-comments"></i>&nbsp;Feedback</a>
 </div>
 
-  <delete class="pull-right" data-api-slug="trips" data-obj-id="{{ trip.id }}"></delete>
+<delete class="pull-right" data-api-slug="trips" data-obj-id="{{ trip.id }}"></delete>
 
 {% trip_summary trip %}
 
-{% if trip.signups_open %}
-    <p>Signups are open!</p>
-{% elif trip.signups_closed %}
-    <p>Signups for this trip are closed.</p>
-{% elif trip.signups_not_yet_open %}
-    <p>Signups for this trip are not yet open.</p>
-{% endif %}
+<div class="alert alert-info">
+  {% if trip.signups_open %}
+    Signups are open!
+  {% elif trip.signups_closed %}
+    Signups for this trip are closed.
+  {% elif trip.signups_not_yet_open %}
+    Signups for this trip are not yet open.
+  {% endif %}
+</div>
 
 {% if trip.algorithm == 'fcfs' and signups_on_trip %}
   <admin-trip-signups data-trip-id="{{ trip.id }}" data-maximum_participants="{{ trip.maximum_participants }}"></admin-trip-signups>
@@ -45,11 +47,7 @@
 
 
 {% if signups %}
-  <hr>
-  <h3>All Participant Signups</h3>
-  <small>Note: this is not the waiting list. Instead, these are all signups - including those of
-      participants who may have been placed on other trips.</small>
-  {% signup_table signups has_notes %}
+  {% not_on_trip trip signups_on_trip signups_off_trip has_notes %}
 {% endif %}
 
 {% endblock content %}

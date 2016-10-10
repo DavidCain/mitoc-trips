@@ -509,11 +509,15 @@ class TripDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(TripDetailView, self).get_context_data()
-        context['signups'] = self.get_signups(models.SignUp)
-        context['signups_on_trip'] = context['signups'].filter(on_trip=True)
+        context['waitlist_signups'] = wl_signups = self.wl_signups
+        signups = self.get_signups(models.SignUp)
+        off_trip = signups.filter(on_trip=False).exclude(pk__in=wl_signups)
+        context['signups'] = signups
+        context['signups_on_trip'] = signups.filter(on_trip=True)
+        context['waitlist_signups'] = wl_signups
+        context['signups_off_trip'] = off_trip
         context['leader_signups'] = self.get_signups(models.LeaderSignUp)
-        context['waitlist_signups'] = self.wl_signups
-        context['has_notes'] = (self.object.notes or
+        context['has_notes'] = (bool(self.object.notes) or
                                 any(s.notes for s in context['signups']) or
                                 any(s.notes for s in context['leader_signups']))
         return context

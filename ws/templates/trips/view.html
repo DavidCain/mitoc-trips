@@ -9,8 +9,8 @@
 {% if is_chair %}
   <h4>Activity chair functions</h4>
   <div class="btn-group" role="group">
-    <a type="button" class="btn btn-default" href="{% url 'trip_medical' trip.id %}"><i class="fa fa-medkit"></i>&nbsp;WIMP info</a>
     <a type="button" class="btn btn-default" href="{% url 'edit_trip' trip.id %}"   ><i class="fa fa-edit"  ></i>&nbsp;Edit</a>
+    <a type="button" class="btn btn-default" href="{% url 'trip_medical' trip.id %}"><i class="fa fa-medkit"></i>&nbsp;WIMP info</a>
     <a type="button" class="btn btn-default" href="{% url 'admin_trip' trip.id %}"  ><i class="fa fa-wrench"></i>&nbsp;Admin</a>
   </div>
   <delete class="pull-right" data-api-slug="trips" data-obj-id="{{ trip.id }}"></delete>
@@ -44,11 +44,7 @@
     {% signup_table waitlist_signups has_notes show_drivers=viewing_participant.is_leader %}
   {% endif %}
 
-  {% if signups %}
-    <hr>
-    <h3>All Participant Signups</h3>
-    {% signup_table signups has_notes show_drivers=False %}
-  {% endif %}
+  {% not_on_trip trip signups_on_trip signups_off_trip has_notes %}
 {% endif %}
 
 {% endblock content %}
