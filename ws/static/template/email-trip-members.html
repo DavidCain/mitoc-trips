@@ -1,31 +1,31 @@
 <div>
   <h4>Email trip members
-    <div class="btn-group" data-ng-if="signups.onTrip.length || leaders.length">
+    <div class="btn-group" data-ng-if="signups.onTrip.length || leaders.length > 1">
       <label class="btn btn-default"
              uib-btn-checkbox
              data-ng-model="showEmails.creator"
-             data-ng-show="leaders.length !== 1">
+             data-ng-if="display.creator">
         Creator
       </label>
 
       <label class="btn btn-default"
              uib-btn-checkbox
              data-ng-model="showEmails.leaders"
-             data-ng-show="leaders.length">
+             data-ng-if="display.leaders">
         Leader<span data-ng-if="leaders.length !== 1">s</span>
       </label>
 
       <label class="btn btn-default"
              uib-btn-checkbox
              data-ng-model="showEmails.onTrip"
-             data-ng-show="signups.onTrip.length">
+             data-ng-if="display.onTrip">
         On trip
       </label>
 
       <label class="btn btn-default"
              uib-btn-checkbox
              data-ng-model="showEmails.waitlist"
-             data-ng-show="signups.waitlist.length">
+             data-ng-if="display.waitlist">
         Waitlisted
       </label>
     </div>

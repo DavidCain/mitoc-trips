@@ -1,60 +1,62 @@
-<div class="row">
-  <div class="col-sm-6 col-sm-push-6">
-    <div class="form-horizontal">
-      <div class="form-group">
-        <label class="control-label col-sm-9" for="id_maximum_participants">Maximum participants:</label>
-        <div class="col-sm-3">
-          <input required class="form-control" id="id_maximum_participants" type="number" min="1"
-                data-ng-model="maximumParticipants"
-                data-ng-model-options="{allowInvalid: false, updateOn: 'default blur', debounce:{'default': 500, 'blur': 0}}">
-          </input>
+<div data-ng-show="signups.onTrip.length">
+  <div class="row">
+    <div class="col-sm-6 col-sm-push-6">
+      <div class="form-horizontal">
+        <div class="form-group">
+          <label class="control-label col-sm-9" for="id_maximum_participants">Maximum participants:</label>
+          <div class="col-sm-3">
+            <input required class="form-control" id="id_maximum_participants" type="number" min="1"
+                  data-ng-model="maximumParticipants"
+                  data-ng-model-options="{allowInvalid: false, updateOn: 'default blur', debounce:{'default': 500, 'blur': 0}}">
+            </input>
+          </div>
         </div>
       </div>
     </div>
+    <div class="col-sm-6 col-sm-pull-6">
+      <h3>Participants <span data-ng-bind="onTripCount + ' / ' + maximumParticipants"></span>
+        <span data-ng-if="signups.onTrip.length || signups.waitlist.length">
+          <button class="btn btn-sm btn-default"
+                  data-ng-click="signups.feedbackHidden = !signups.feedbackHidden">
+            <i class="fa" data-ng-class="signups.feedbackHidden? 'fa-comments-o' : 'fa-comments'"></i>
+            {{ signups.feedbackHidden ? 'Show' : 'Hide'}} Feedback
+          </button>
+          <button class="btn btn-sm btn-default"
+                  data-ng-if="lapsedMembers.onTrip.length"
+                  data-ng-click="signups.showLapsedMembersOnTrip = !signups.showLapsedMembersOnTrip">
+            <i class="fa" data-ng-class="signups.showLapsedMembersOnTrip? 'fa-user-times' : 'fa-user'"></i>
+            {{ signups.showLapsedMembersOnTrip ? 'Hide' : 'Show'}} Lapsed Members
+          </button>
+        </span>
+      </h3>
+    </div>
+    <div class="col-md-12" data-ng-if="lapsedMembers.onTrip.length && signups.showLapsedMembersOnTrip">
+      <pre class="wrapped-emails" data-ng-bind="lapsedMembers.onTrip.join(', ')"></pre>
+    </div>
   </div>
-  <div class="col-sm-6 col-sm-pull-6">
-    <h3>Participants <span data-ng-bind="onTripCount + ' / ' + maximumParticipants"></span>
-      <span data-ng-if="signups.onTrip.length || signups.waitlist.length">
+  <editable-signup-list signups="signups.onTrip" delete-signup="deleteSignup" hide-feedback="signups.feedbackHidden" sortable-options="sortableOptions"></editable-signup-list>
+
+  <div class="row" data-ng-if="signups.waitlist.length">
+    <div class="col-md-12">
+      <h3>Waiting list
         <button class="btn btn-sm btn-default"
-                data-ng-click="signups.feedbackHidden = !signups.feedbackHidden">
-          <i class="fa" data-ng-class="signups.feedbackHidden? 'fa-comments-o' : 'fa-comments'"></i>
-          {{ signups.feedbackHidden ? 'Show' : 'Hide'}} Feedback
+                data-ng-if="lapsedMembers.waitlist.length"
+                data-ng-click="signups.showLapsedMembersOnWaitlist = !signups.showLapsedMembersOnWaitlist">
+          <i class="fa" data-ng-class="signups.showLapsedMembersOnWaitlist? 'fa-user-times' : 'fa-user'"></i>
+          {{ signups.showLapsedMembersOnWaitlist ? 'Hide' : 'Show'}} Lapsed Members
         </button>
-        <button class="btn btn-sm btn-default"
-                data-ng-if="lapsedMembers.onTrip.length"
-                data-ng-click="signups.showLapsedMembersOnTrip = !signups.showLapsedMembersOnTrip">
-          <i class="fa" data-ng-class="signups.showLapsedMembersOnTrip? 'fa-user-times' : 'fa-user'"></i>
-          {{ signups.showLapsedMembersOnTrip ? 'Hide' : 'Show'}} Lapsed Members
-        </button>
-      </span>
-    </h3>
+      </h3>
+    </div>
+    <div class="col-md-12" data-ng-if="lapsedMembers.waitlist.length && signups.showLapsedMembersOnWaitlist">
+      <pre class="wrapped-emails" data-ng-bind="lapsedMembers.waitlist.join(', ')"></pre>
+    </div>
   </div>
-  <div class="col-md-12" data-ng-if="lapsedMembers.onTrip.length && signups.showLapsedMembersOnTrip">
-    <pre class="wrapped-emails" data-ng-bind="lapsedMembers.onTrip.join(', ')"></pre>
-  </div>
+  <editable-signup-list signups="signups.waitlist" delete-signup="deleteSignup" hide-feedback="signups.feedbackHidden" sortable-options="sortableOptions"></editable-signup-list>
+
+  <button data-ng-click="verifyChanges()" class="btn btn-primary">Submit</button>
+
+  <hr>
 </div>
-<editable-signup-list signups="signups.onTrip" delete-signup="deleteSignup" hide-feedback="signups.feedbackHidden" sortable-options="sortableOptions"></editable-signup-list>
-
-<div class="row" data-ng-if="signups.waitlist.length">
-  <div class="col-md-12">
-    <h3>Waiting list
-      <button class="btn btn-sm btn-default"
-              data-ng-if="lapsedMembers.waitlist.length"
-              data-ng-click="signups.showLapsedMembersOnWaitlist = !signups.showLapsedMembersOnWaitlist">
-        <i class="fa" data-ng-class="signups.showLapsedMembersOnWaitlist? 'fa-user-times' : 'fa-user'"></i>
-        {{ signups.showLapsedMembersOnWaitlist ? 'Hide' : 'Show'}} Lapsed Members
-      </button>
-    </h3>
-  </div>
-  <div class="col-md-12" data-ng-if="lapsedMembers.waitlist.length && signups.showLapsedMembersOnWaitlist">
-    <pre class="wrapped-emails" data-ng-bind="lapsedMembers.waitlist.join(', ')"></pre>
-  </div>
-</div>
-<editable-signup-list signups="signups.waitlist" delete-signup="deleteSignup" hide-feedback="signups.feedbackHidden" sortable-options="sortableOptions"></editable-signup-list>
-
-<button data-ng-click="verifyChanges()" class="btn btn-primary">Submit</button>
-
-<hr>
 
 <email-trip-members data-signups="signups" data-leaders="leaders" data-creator="creator">
 </email-trip-members>

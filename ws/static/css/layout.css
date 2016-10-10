@@ -112,7 +112,7 @@ label.required:after,
   cursor: move;
 }
 
-admin-trip-signups button {
+admin-trip-signups button.btn-default {
   margin-left: 15px;
 }
 

@@ -121,11 +121,43 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
           });
       }
 
+      // Start out with defaults (may be modified depending on what's feasible)
       scope.showEmails = {
-        creator: false,
-        onTrip: false,
+        creator: true,
+        onTrip: true,
         waitlist: false,
         leaders: false,
+      };
+
+      // TODO: Make a service out of this
+      var formatEmail = function(participant){
+        return participant.name + ' <' + participant.email + '>';
+      };
+
+      /* Disallow an empty list of emails
+       * Set a default if signups change or the user tries to deselect all buttons
+       */
+      var ensureNonEmptySelection = function() {
+        // Determine which buttons would display a valid list of emails
+        var viability = {
+          creator: scope.leaders.length !== 1,  // We'll only use "leaders" in this case
+          onTrip: scope.signups.onTrip.length,
+          waitlist: scope.signups.waitlist.length,
+          leaders: scope.leaders.length,
+        };
+        var viableOptions = _.pickBy(scope.showEmails, function(value, key) {
+          return viability[key];
+        });
+
+        // If none of the selected options are viable, set the first one to true
+        if (!_.some(_.values(viableOptions))) {
+          scope.showEmails[_.keys(viableOptions)[0]] = true;
+        }
+
+        // Determine which selectors to display (invalid buttons should be hidden)
+        scope.display = _.mapValues(scope.showEmails, function(value, key){
+          return _.has(viableOptions, key);
+        });
       };
 
       var updateEmailText = function(){
@@ -133,46 +165,31 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
           return;
         }
 
-        // Disallow an empty selection by defaulting to some reasonable default
-        if (!_.some(_.values(scope.showEmails))) {
-          if (scope.signups.onTrip.length) {
-            scope.showEmails.onTrip = true;
-          } else if (scope.leaders.length) {
-            scope.showEmails.leaders = true;
-          } else {
-            scope.showEmails.creator = true;
-          }
+        ensureNonEmptySelection();
+
+        /* Update trip member emails according to the selected buttons. */
+        var emails = [];
+
+        if (scope.showEmails.leaders) {
+          emails = scope.leaders.map(formatEmail);
         }
 
-        /* Update participant emails according to the selected buttons. */
         var signups = [];
         ['onTrip', 'waitlist'].forEach(function(subList) {
           if (scope.showEmails[subList] && scope.signups[subList]){
             signups = signups.concat(scope.signups[subList]);
           }
         });
-
-        // TODO: Make a service out of this
-        var formatEmail = function(participant){
-          return participant.name + ' <' + participant.email + '>';
-        };
-
-        var emails = [];
-        if (scope.showEmails.creator) {
-          emails.push(formatEmail(scope.creator));
-        }
-        if (scope.showEmails.leaders) {
-          // Avoid repeating the creator if they're also a leader
-          // But if both options (Creator & Leader) are selected, order creator first
-          var leaderEmails = scope.leaders.map(formatEmail);
-          if (scope.showEmails.creator) {
-            leaderEmails = _.difference(leaderEmails, emails);
-          }
-          emails = emails.concat(leaderEmails);
-        }
         emails = emails.concat(signups.map(function(signup) {
           return formatEmail(signup.participant);
         }));
+
+        if (scope.showEmails.creator) {
+          var creatorEmail = formatEmail(scope.creator);
+          // Don't repeat creator if they're also a leader or participant
+          _.pull(emails, creatorEmail);
+          emails.unshift(creatorEmail);
+        }
 
         scope.emailText = emails.join(', ');
       };

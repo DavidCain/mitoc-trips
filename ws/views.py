@@ -289,30 +289,39 @@ class ParticipantView(ParticipantLookupView, SingleObjectMixin, LotteryPairingMi
 
         today = local_date()
 
+        # reusable Query objects
         is_par = Q(signup__participant=participant)
-        trips = models.Trip.objects.filter(is_par)
-        trips = trips.prefetch_related('leaders__leaderrating_set')
-        accepted = trips.filter(is_par, signup__on_trip=True)
-        waitlisted = trips.filter(is_par, signup__waitlistsignup__isnull=False)
-
+        par_on_trip = is_par & Q(signup__on_trip=True)
+        leader_on_trip = Q(leaders=participant)
         in_future = Q(trip_date__gte=today)
         in_past = Q(trip_date__lt=today)
 
-        trips_led = participant.trips_led.prefetch_related('leaders__leaderrating_set')
-        trips_created = models.Trip.objects.filter(creator=participant)
-        created_but_not_led = trips_created.exclude(leaders=participant)
+        # Prefetch data to avoid n+1 queries enumerating trips
+        prefetches = ['leaders__leaderrating_set']
+
+        # Trips where the user was participating
+        trips = models.Trip.objects.filter(is_par).prefetch_related(*prefetches)
+        accepted = trips.filter(par_on_trip)
+        waitlisted = trips.filter(is_par, signup__waitlistsignup__isnull=False)
+
+        trips_led = participant.trips_led.prefetch_related(*prefetches)
+        trips_created = (models.Trip.objects.filter(creator=participant)
+                         .prefetch_related(*prefetches))
+
+        # Avoid doubly-listing trips where they participated or led the trip
+        created_but_not_on = trips_created.exclude(leader_on_trip | par_on_trip)
 
         return {
             'current': {
                 'on_trip': accepted.filter(in_future),
                 'waitlisted': waitlisted.filter(in_future),
                 'leader': trips_led.filter(in_future),
-                'creator': created_but_not_led.filter(in_future),
+                'creator': created_but_not_on.filter(in_future),
             },
             'past': {
                 'on_trip': accepted.filter(in_past),
                 'leader': trips_led.filter(in_past),
-                'creator': created_but_not_led.filter(in_past),
+                'creator': created_but_not_on.filter(in_past),
             },
         }
 
@@ -329,7 +338,7 @@ class ParticipantView(ParticipantLookupView, SingleObjectMixin, LotteryPairingMi
         stats = ["Attended {} trip".format(num_attended) + pluralize(num_attended),
                  "Led {} trip".format(num_led) + pluralize(num_led)]
         if num_created:
-            label = "Created (but didn't lead) {} trip".format(num_created)
+            label = "Created (but wasn't on) {} trip".format(num_created)
             stats.append(label + pluralize(num_created))
         return stats
 
@@ -688,6 +697,11 @@ class AdminTripSignupsView(SingleObjectMixin, LeadersOnlyView, ItineraryEditable
         """ Yield everything used in the participant-selecting modal."""
         par = signup.participant
 
+        # In rare cases, a trip creator can be a participant on their own trip
+        # Be sure we hide feedback from them if this is the case
+        hide_feedback = signup.participant == self.request.participant
+        feedback = [] if hide_feedback else par.feedback_set.all()
+
         try:
             lotteryinfo = par.lotteryinfo
         except:
@@ -704,7 +718,7 @@ class AdminTripSignupsView(SingleObjectMixin, LeadersOnlyView, ItineraryEditable
                               'leader': f.leader.name,
                               'comments': f.comments,
                               'trip': {'id': f.trip.id, 'name': f.trip.name},
-                              } for f in par.feedback_set.all()],
+                              } for f in feedback],
                 'also_on': [{'id': s.trip.id, 'name': s.trip.name}
                             for s in signup.other_signups],
                 'car_status': car_status,
