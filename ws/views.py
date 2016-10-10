@@ -760,18 +760,9 @@ class AdminTripView(TripDetailView, ItineraryEditableMixin):
 
 
 class ReviewTripView(DetailView):
-    queryset = models.Trip.objects.all()
-    context_object_name = 'trip'
+    model = models.Trip
     template_name = 'trips/review.html'
     success_msg = "Thanks for your feedback!"
-
-    def create_flake_feedback(self, trip, leader, participants):
-        flaky = {'showed_up': False, 'comments': " ",
-                 'leader': leader, 'trip': trip}
-        for participant in participants:
-            if not models.Feedback.objects.filter(leader=leader, trip=trip,
-                                                  participant=participant):
-                models.Feedback.objects.create(participant=participant, **flaky)
 
     @property
     def posted_feedback(self):
@@ -833,7 +824,7 @@ class ReviewTripView(DetailView):
 
     def get_existing_feedback(self):
         leader = self.request.participant
-        return models.Feedback.objects.filter(trip=self.object, leader=leader)
+        return models.Feedback.everything.filter(trip=self.object, leader=leader)
 
     @property
     def feedback_list(self):
@@ -1267,6 +1258,7 @@ class UpcomingTripsView(TripListView):
     def get_context_data(self, **kwargs):
         # No point sorting into current, past (queryset already handles)
         return super(TripListView, self).get_context_data(**kwargs)
+
 
 class AllTripsView(TripListView):
     """ View all trips, past and present. """
