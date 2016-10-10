@@ -75,6 +75,7 @@ urlpatterns = patterns('',
     # API (must have account in system)
     url(r'^trips/(?P<pk>\d+)/overflow.json$', views.CheckTripOverflowView.as_view(), name='check_trip_overflow'),
     url(r'^leaders.json/(?:(?P<activity>.+)/)?$', views.JsonAllLeadersView.as_view(), name='json-leaders'),
+    url(r'^participants.json/$', views.JsonAllParticipantsView.as_view(), name='json-participants'),
     url(r'^leaders/(?P<pk>\d+)/ratings/(?P<activity>.+).json', views.get_rating, name='get_rating'),
     url(r'^users/(?P<pk>\d+)/membership.json', views.UserMembershipView.as_view(), name='membership'),
     url(r'^users/(?P<pk>\d+)/rentals.json', views.UserRentalsView.as_view(), name='rentals'),

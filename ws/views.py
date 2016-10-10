@@ -12,7 +12,7 @@ from django.core.urlresolvers import reverse, reverse_lazy
 from django.forms.models import modelformset_factory
 from django.forms import HiddenInput
 from django.forms.utils import ErrorList
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseBadRequest
 from django.shortcuts import render, redirect
 from django.utils.decorators import method_decorator
 from django.views.generic import (CreateView, DetailView, DeleteView, FormView,
@@ -763,12 +763,7 @@ class ReviewTripView(DetailView):
     queryset = models.Trip.objects.all()
     context_object_name = 'trip'
     template_name = 'trips/review.html'
-    success_msg = "Thanks for your feedback"
-    flake_msg = "Feel free to elaborate on why flaking participants didn't show"
-
-    @property
-    def feedback_formset(self):
-        return modelformset_factory(models.Feedback, extra=0)
+    success_msg = "Thanks for your feedback!"
 
     def create_flake_feedback(self, trip, leader, participants):
         flaky = {'showed_up': False, 'comments': " ",
@@ -778,32 +773,57 @@ class ReviewTripView(DetailView):
                                                   participant=participant):
                 models.Feedback.objects.create(participant=participant, **flaky)
 
+    @property
+    def posted_feedback(self):
+        """ Convert named fields of POST data to participant -> feedback mapping.
+
+        If the form data was garbled (intentionally or otherwise), this method
+        will raise ValueError or TypeError (on either 'split' or `int`)
+        """
+        for key, comments in self.request.POST.iteritems():
+            if not (key.startswith("par_") or key.startswith("flake_")):
+                continue
+
+            feedback_type, par_pk = key.split('_')
+            showed_up = feedback_type == 'par'
+
+            yield int(par_pk), comments.strip(), showed_up
+
     def post(self, request, *args, **kwargs):
+        """ Create or update all feedback passed along in form data. """
         trip = self.object = self.get_object()
-        flake_form = self.flake_form
-        feedback_list = self.feedback_list
+        leader = self.request.participant
 
-        if (all(form.is_valid() for participant, form in feedback_list) and
-                flake_form.is_valid()):
-            leader = request.participant
+        try:
+            posted_feedback = list(self.posted_feedback)
+        except (TypeError, ValueError):
+            # This should never happen, but look at doing this more nicely?
+            return HttpResponseBadRequest("Invalid form contents")
 
-            for participant, form in feedback_list:
-                feedback = form.save(commit=False)
-                feedback.leader = leader
-                feedback.participant = participant
-                feedback.trip = trip
-                form.save()
+        # Create or update feedback for all feedback passed in the form
+        existing_feedback = {feedback.participant.pk: feedback
+                             for feedback in self.get_existing_feedback()}
+        for pk, comments, showed_up in posted_feedback:
+            blank_feedback = showed_up and not comments
+            existing = feedback = existing_feedback.get(pk)
 
-            flake_participants = flake_form.cleaned_data['flakers']
-            self.create_flake_feedback(trip, leader, flake_participants)
+            if existing and blank_feedback:
+                existing.delete()
+                continue
 
-            messages.success(request, self.success_msg)
-            if flake_participants:
-                messages.success(request, self.flake_msg)
-                return redirect(reverse('review_trip', args=(trip.id,)))
-            else:
-                return redirect(reverse('home'))
-        return self.get(request, *args, **kwargs)
+            if not existing:
+                if blank_feedback:
+                    continue  # Don't create new feedback saying nothing useful
+                kwargs = {'leader': leader, 'trip': trip,
+                          'participant': models.Participant.objects.get(pk=pk)}
+                feedback = models.Feedback.objects.create(**kwargs)
+
+            feedback.comments = comments
+            feedback.showed_up = showed_up
+            feedback.save()
+
+        messages.success(self.request, self.success_msg)
+        return redirect(reverse('home'))
 
     @property
     def trip_participants(self):
@@ -811,47 +831,22 @@ class ReviewTripView(DetailView):
         accepted_signups = accepted_signups.select_related('participant')
         return [signup.participant for signup in accepted_signups]
 
-    def get_existing_feedback(self, participant, leader):
-        trip = self.object
-        feedback = models.Feedback.objects.filter(participant=participant,
-                                                  trip=trip, leader=leader)
-        return feedback.first() or None
-
-    @property
-    def flake_form(self):
-        post = self.request.POST if self.request.method == 'POST' else None
-        return forms.FlakeForm(self.object, post)
-
-    def all_flake_feedback(self, leader):
-        trip = self.object
-        feedback = models.Feedback.objects.filter(trip=trip, leader=leader)
-        return feedback.exclude(participant__in=self.trip_participants)
+    def get_existing_feedback(self):
+        leader = self.request.participant
+        return models.Feedback.objects.filter(trip=self.object, leader=leader)
 
     @property
     def feedback_list(self):
-        post = self.request.POST if self.request.method == 'POST' else None
-        leader = self.request.participant
-        feedback_list = []
-
-        for participant in self.trip_participants:
-            instance = self.get_existing_feedback(participant, leader)
-            initial = {'participant': participant}
-            form = forms.FeedbackForm(post, instance=instance, initial=initial,
-                                      prefix=participant.id)
-            feedback_list.append((participant, form))
-
-        for feedback in self.all_flake_feedback(leader):
-            form = forms.FeedbackForm(post, instance=feedback, initial=initial,
-                                      prefix=feedback.participant.id)
-            feedback_list.append((feedback.participant, form))
-        return feedback_list
+        feedback = self.get_existing_feedback()
+        par_comments = dict(feedback.values_list('participant__pk', 'comments'))
+        return [(par, par_comments.get(par.pk, '')) for par in self.trip_participants]
 
     def get_context_data(self, **kwargs):
         today = local_date()
         trip = self.object = self.get_object()
         return {"trip": trip, "trip_completed": today >= trip.trip_date,
-                "feedback_list": self.feedback_list,
-                "flake_form": self.flake_form}
+                "feedback_required": trip.activity == 'winter_school',
+                "feedback_list": self.feedback_list}
 
     @method_decorator(group_required('leaders'))
     def dispatch(self, request, *args, **kwargs):
@@ -881,6 +876,27 @@ class AllLeadersView(ListView):
     @method_decorator(group_required('leaders'))
     def dispatch(self, request, *args, **kwargs):
         return super(AllLeadersView, self).dispatch(request, *args, **kwargs)
+
+
+class JsonAllParticipantsView(ListView):
+    model = models.Participant
+
+    def render_to_response(self, context, **response_kwargs):
+        participants = self.get_queryset()
+        search = self.request.GET.get('search')
+        if search:
+            # This search is not indexed, or particularly advanced
+            # TODO: Use Postgres FTS, either in raw SQL or through ORM
+            # (Django 1.10 introduces support for full-text search)
+            match = (Q(name__icontains=search) |
+                     Q(email__icontains=search))
+            participants = participants.filter(match)
+        top_matches = participants[:20].values('name', 'email', 'id')
+        return JsonResponse({'participants': list(top_matches)})
+
+    @method_decorator(group_required('leaders'))
+    def dispatch(self, request, *args, **kwargs):
+        return super(JsonAllParticipantsView, self).dispatch(request, *args, **kwargs)
 
 
 class JsonAllLeadersView(AllLeadersView):

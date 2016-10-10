@@ -1,68 +1,92 @@
 {% extends "messages_page.html" %}
 {% load signup_tags %}
+{% load gravatar %}
 
 {% block head_title %}Review - {{ trip.name }}{% endblock head_title %}
 
-{% block head %}
-    {{ block.super }}
-    {{ flake_form.media }}
-{% endblock head %}
-
 {% block content %}
 {{ block.super }}
+<h2>
+  Trip Review - {{ trip.name }}
+</h2>
+
 {% if not trip_completed %}
-<div class="alert alert-info">
-    <strong>This trip has not yet completed.</strong> Please check back on {{ trip.trip_date|date:"F jS" }} or later!
-</div>
-{% endif %}
-{% trip_summary trip %}
-
-<h3>Post-trip tasks</h3>
-
-<p>After your trip has completed, plase complete reviews for each participant.
-For help on participant reviews, see the <a href="{% url 'help-feedback'%}">help pages</a>.</p>
-If a participant had extraordinary circumstances that prevented their attendance,
-and you don't wish to consider them as having "flaked" please remove their
-signup on your <a href="{% url 'admin_trip' trip.id %}">trip admin page.</a></p>
-
-
-{% if trip_completed %}
-<h3>Participants</h3>
-{% if not feedback_list %}
-<p>Nobody attended this trip.</p>
+  <div class="alert alert-info">
+    <strong>This trip has not yet completed.</strong>
+    Please check back on {{ trip.trip_date|date:"F jS" }} or later!
+  </div>
 {% else %}
-<p>There's <a href="{% url 'help-feedback' %}#signing_feedback">no need to sign any feedback</a>- comments are automatically linked to both this trip and your account.</p>
+<ol>
+  <li>
+    <strong>Everyone on this list should have attended the trip.</strong>
+    If there are participants here who didn't attend, <a href="{% url 'admin_trip' trip.pk %}">remove them</a>.
+  </li>
+  <li>
+    {% if feedback_required %}
+      Since reviews are critical to the safety process,
+      <strong>we ask that you review everyone</strong>.
+    {% else %}
+      You don't have to review every participant, but please give feedback for as many as you can.
+      <br>
+      Even basic feedback (e.g. "no problems, came prepared") is helpful.
+    {% endif %}
+  </li>
+  <li>
+    Not sure what to say? Other questions? See the <a href="{% url 'help-feedback'%}">help pages</a>.
+  </li>
+</ol>
 
-<form action="" method="post">
-{% csrf_token %}
-{{ form.non_field_errors }}
-<table class="footable">
-    <thead>
-        <tr>
-            <th> Participant </th>
-            <th data-hide="phone" data-sort-ignore="true"> Comments </th>
-            <th data-sort-ignore="true"> Showed up</th>
-        </tr>
-    </thead>
 
-    <tbody>
-        {% for participant, form in feedback_list %}
-        <tr>
-            <td> {{ participant }} </td>
-            <td> {{ form.comments.errors }}{{ form.comments }} </td>
-            <td> {{ form.showed_up }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-<p>Please note any participants that did not show for your trip below. Upon
-form submission, you'll have a chance to add any comments if you wish.</p>
+  {% if not feedback_list %}
+    <div class="alert alert-warning">
+      Nobody attended this trip.
+    </div>
+  {% else %}
+    <hr>
 
-{{ flake_form.as_p }}
+    <form action="" method="post">
+      {% csrf_token %}
 
-<input type="submit" value="Submit" />
-</form>
-{% endif %}
+      <h4>Flaking participants</h4>
+
+      <p>
+        Include any participants who were expected to attend the trip, but bailed
+        at the last minute.
+      </p>
+
+      <flaking-participants>
+      </flaking-participants>
+
+      <h4>Trip participants</h4>
+      <table class="table">
+        <tbody>
+          {% for participant, comments in feedback_list %}
+            <tr>
+              <td>
+                <div class="media">
+                  <div class="media-left">
+                    {{ participant.email|gravatar:100 }}
+                  </div>
+                  <div class="media-body">
+                    <h4 class="media-heading"> {{ participant }} </h4>
+                    <textarea data-ng-model="par_{{ participant.pk }}"
+                              {% if feedback_required %}
+                              required
+                              {% endif %}
+                              name="par_{{ participant.pk }}"
+                              class="form-control"
+                              rows="3">{{ comments }}</textarea>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <input class="btn btn-primary" type="submit" value="Submit feedback" />
+    </form>
+  {% endif %}
 {% endif %}
 
 {% endblock content %}

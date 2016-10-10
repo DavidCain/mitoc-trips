@@ -387,6 +387,63 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
     return !!rating;
   };
 })
+.directive('participantSelect', function($http, djangoUrl) {
+  return {
+    restrict: 'E',
+    require: '?ngModel',
+    scope: {
+      msg: '=?',
+    },
+    templateUrl: '/static/template/participant-select.html',
+    link: function (scope, element, attrs, ngModelCtrl) {
+      scope.msg = scope.msg || "Search participants...";
+      scope.participants = {};
+
+      if (ngModelCtrl) {
+        ngModelCtrl.$render = function() {
+          scope.participants.selected = ngModelCtrl.$viewValue;
+        };
+        scope.$watch('participants.selected', function(newval, oldval) {
+          if( newval !== oldval ) {
+            ngModelCtrl.$setViewValue(newval);
+          }
+        });
+      }
+
+      var url = djangoUrl.reverse("json-participants");
+      scope.getMatchingParticipants = function(search) {
+        $http.get(url, {params: {search: search}}).then(function (response) {
+          scope.participants.all = response.data.participants;
+        });
+      };
+
+      scope.getMatchingParticipants();
+    },
+  };
+})
+.directive('flakingParticipants', function($http){
+  return {
+    restrict: 'E',
+    templateUrl: '/static/template/flaking-participants.html',
+    link: function (scope, element, attrs, ngModelCtrl) {
+      scope.participants = {flakes: []};
+
+      scope.addFlake = function(participant) {
+        if (!_.find(scope.participants.flakes, {id: participant.id})){
+          scope.participants.flakes.push(participant);
+        }
+        scope.flake = null;
+      };
+
+      scope.removeFlake = function(participant) {
+        parIndex = _.findIndex(scope.participants.flakes, {id: participant.id});
+        if (parIndex !== -1){
+          scope.participants.flakes.splice(parIndex, 1);
+        }
+      };
+    },
+  };
+})
 .directive('leaderSelect', function($http, djangoUrl, filterFilter, activityService) {
   return {
     restrict: 'E',

@@ -284,15 +284,6 @@ class FeedbackForm(RequiredModelForm):
         fields = ['comments', 'showed_up']
 
 
-class FlakeForm(forms.Form):
-    flakers = forms.ModelMultipleChoiceField(required=False, queryset=None)
-
-    def __init__(self, trip, *args, **kwargs):
-        super(FlakeForm, self).__init__(*args, **kwargs)
-        self.fields['flakers'].queryset = non_trip_participants(trip)
-        self.fields['flakers'].help_text = None  # Disable "Hold command..."
-
-
 class AttendedLecturesForm(NgFormValidationMixin, Bootstrap3Form):
     email = forms.EmailField()
     password = forms.CharField(widget=forms.PasswordInput())
