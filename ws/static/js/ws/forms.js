@@ -402,7 +402,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
       scope.selected = {};
 
       /* Fetch all leaders and their ratings */
-      function fetchLeaderList(){
+      var fetchLeaderList = function() {
         $http.get(djangoUrl.reverse("json-leaders")).then(function (response){
           scope.allLeaders = response.data.leaders;
 
@@ -423,7 +423,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
        * Additionally, the `ratings` field present on all leaders will be replaced
        * with their activity-appropriate rating.
        */
-      function filterForActivity(){
+      var filterForActivity = function() {
         if (!scope.allLeaders){
           return;
         }
