@@ -1,22 +1,31 @@
 import os
 
-from celery import Celery
+import celery
+import raven
+from raven.contrib.celery import register_signal, register_logger_signal
 
 from django.apps import apps
-from django.conf import settings
 
-# set the default Django settings module for the 'celery' program.
+
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ws.settings')
+RAVEN_DSN = os.getenv('RAVEN_DSN')
+
+class Celery(celery.Celery):
+    def on_configure(self):
+        if not RAVEN_DSN:
+            return
+
+        client = raven.Client(RAVEN_DSN)
+
+        # register a custom filter to filter out duplicate logs
+        register_logger_signal(client)
+
+        # hook into the Celery error handler
+        register_signal(client)
 
 app = Celery('ws')
 
-# Using a string here means the worker will not have to
-# pickle the object when using Windows.
 app.config_from_object('django.conf:settings')
 
+# Workaround for extracting app names (can do more robustly in Celery 4)
 app.autodiscover_tasks(lambda: [n.name for n in apps.get_app_configs()])
-
-
-@app.task(bind=True)
-def debug_task(self):
-    print('Request: {0!r}'.format(self.request))
