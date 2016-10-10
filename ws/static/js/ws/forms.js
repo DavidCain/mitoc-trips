@@ -387,6 +387,17 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
     return !!rating;
   };
 })
+.directive('participantLookup', function($window) {
+  return {
+    restrict: 'E',
+    templateUrl: '/static/template/participant-lookup.html',
+    link: function (scope, element, attrs, ngModelCtrl) {
+      scope.viewParticipant = function(participant) {
+        $window.location.href = '/participants/' + participant.id;
+      };
+    },
+  };
+})
 .directive('participantSelect', function($http, djangoUrl) {
   return {
     restrict: 'E',

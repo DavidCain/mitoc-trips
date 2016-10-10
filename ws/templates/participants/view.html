@@ -16,21 +16,15 @@ Lookup participant
 
 {% if not user_viewing %}
   <div class="row">
-    {% if lookup_form %}
-      <div class="col-md-8">
-        <form action="" method="post">
-          <label>View participant:</label>
-          {% csrf_token %}
-          {{ lookup_form }}
-        </form>
-      </div>
-    {% endif %}
+    <div class="col-sm-8">
+      <participant-lookup>
+      </participant-lookup>
+    </div>
     {% if user.is_superuser and participant %}
-      <div class="col-md-4">
-        <div class="pull-right">
+      <div class="col-sm-4 text-right">
           <a type="button" class="btn btn-default" href="{% url 'edit_participant' participant.id %}"><i class="fa fa-edit"></i>&nbsp;Edit</a>
           <delete data-api-slug="participants" data-obj-id="{{ participant.id }}"></delete>
-        </div>
+      </div>
     {% endif %}
   </div>
   <hr>
