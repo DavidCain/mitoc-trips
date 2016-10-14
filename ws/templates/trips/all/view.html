@@ -11,10 +11,10 @@
 {% block content %}
 {{ block.super }}
 
-<h3>Upcoming trips </h3>
-{% if not past_trips %}
-  <p><a href="{% url 'all_trips' %}">View past trips</a></p>
-{% endif %}
+<h3>
+  Upcoming trips
+  <a role="button" class="btn btn-default pull-right" href="{% url 'rss-upcoming_trips' %}"><i class="fa fa-rss"></i> Subscribe</a>
+</h3>
 
 {% if current_trips %}
   {% trip_list_table current_trips %}
@@ -29,6 +29,9 @@
 {% if past_trips %}
   <h3> Past trips </h3>
   {% trip_list_table past_trips %}
+{% else %}
+  <hr>
+  <p><a href="{% url 'all_trips' %}"><i class="fa fa-history"></i> View past trips</a></p>
 {% endif %}
 
 {% endblock content %}

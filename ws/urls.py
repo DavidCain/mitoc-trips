@@ -4,6 +4,7 @@ from django.conf.urls.static import static
 from django.core.urlresolvers import reverse_lazy
 from django.views.generic import RedirectView, TemplateView
 
+from ws import feeds
 from ws import views
 from ws import settings
 from ws.decorators import group_required
@@ -51,6 +52,7 @@ urlpatterns = patterns('',
     url(r'^profile/edit/$', views.EditProfileView.as_view(), name='edit_profile'),
     url(r'^leaders/apply/$', views.LeaderApplyView.as_view(), name='become_leader'),
     url(r'^trips/(?P<pk>\d+)/$', views.TripView.as_view(), name='view_trip'),
+    url(r'^trips.rss$', feeds.UpcomingTripsFeed(), name='rss-upcoming_trips'),
     url(r'^trips/$', views.UpcomingTripsView.as_view(), name='upcoming_trips'),
     url(r'^trips/all/$', views.AllTripsView.as_view(), name='all_trips'),
     url(r'^trips/signup/$', views.SignUpView.as_view(), name='trip_signup'),
