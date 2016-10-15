@@ -145,8 +145,12 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
           waitlist: scope.signups.waitlist.length,
           leaders: scope.leaders.length,
         };
+
+        // Determine which selectors are viable, disable any that are not
         var viableOptions = _.pickBy(scope.showEmails, function(value, key) {
-          return viability[key];
+          var isViable = viability[key];
+          if (!isViable) { scope.showEmails[key] = false; }
+          return isViable;
         });
 
         // If none of the selected options are viable, set the first one to true
