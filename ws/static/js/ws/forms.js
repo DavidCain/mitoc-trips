@@ -1,4 +1,9 @@
 angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
+.factory('formatEmail', function () {
+  return function (participant) {
+    return participant.name + ' <' + participant.email + '>';
+  };
+})
 // Taken from the AngularUI Select docs - filter by searched property
 .filter('propsFilter', function() {
   return function(items, props) {
@@ -94,7 +99,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
     },
   };
 })
-.directive('emailTripMembers', function($http, djangoUrl) {
+.directive('emailTripMembers', function($http, djangoUrl, formatEmail) {
   return {
     restrict: 'E',
     scope: {
@@ -127,11 +132,6 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
         onTrip: true,
         waitlist: false,
         leaders: false,
-      };
-
-      // TODO: Make a service out of this
-      var formatEmail = function(participant) {
-        return participant.name + ' <' + participant.email + '>';
       };
 
       /* Disallow an empty list of emails
@@ -203,7 +203,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
     }
   };
 })
-.directive('adminTripSignups', function($http, filterFilter, $window, $uibModal, djangoUrl) {
+.directive('adminTripSignups', function($http, filterFilter, $window, $uibModal, djangoUrl, formatEmail) {
   return {
     restrict: 'E',
     scope: {
@@ -214,45 +214,6 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
     link: function (scope, element, attrs) {
       scope.signups = {};  // Signups, broken into normal + waiting list
       scope.lapsedMembers = {};  // Also broken into normal + waiting list
-
-      var url = djangoUrl.reverse('json-admin_trip_signups', [scope.tripId]);
-      $http.get(url).then(function(response) {
-        scope.allSignups = response.data.signups;
-        scope.leaders = response.data.leaders;
-        scope.creator = response.data.creator;
-        updateSignups();
-        return _.map(scope.allSignups, 'participant.id');
-      }).then(function(participant_ids) {
-        var url = djangoUrl.reverse("json-membership_statuses");
-        return $http.post(url, {participant_ids: participant_ids});
-      }).then(function(response) {
-        /* Query the geardb server for membership status.
-         *
-         * It's possible this query will hang or otherwise not complete
-         * (due to SIPB Scripts' lousy SQL uptime).
-         */
-        var memberships = response.data.memberships;
-        scope.allSignups.forEach(function(signup) {
-          var participant = signup.participant;
-          participant.membership = memberships[participant.id];
-          var email = '<' + participant.name + '> ' + participant.email;
-          participant.formattedEmail = email;
-        });
-        updateLapsedMembers();
-      });
-
-      scope.deleteSignup = function(signup) {
-        signup.deleted = !signup.deleted;
-        updateSignups();
-      };
-
-      var membershipLapsed = {participant: {membership: {status: "!Active"}}};
-      var updateLapsedMembers = function() {
-        ['onTrip', 'waitlist'].forEach(function(subList) {
-          var lapsedSignups = filterFilter(scope.signups[subList], membershipLapsed);
-          scope.lapsedMembers[subList] = _.map(lapsedSignups, 'participant.formattedEmail');
-        });
-      };
 
       var updateSignups = function(removeDeleted) {
         /* Break all signups into "on trip" and waitlisted signups */
@@ -280,6 +241,49 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
 
         // Will be a no-op if signups lack membership status
         updateLapsedMembers();
+      };
+
+      /* Query the geardb server for membership status.
+       *
+       * It's possible this query will hang or otherwise not complete
+       * (due to SIPB Scripts' lousy SQL uptime).
+       */
+      var updateSignupMemberships = function() {
+        var participantIds = _.map(scope.allSignups, 'participant.id');
+        var url = djangoUrl.reverse("json-membership_statuses");
+        $http.post(url, {participant_ids: participantIds}).then(function(response) {
+          var memberships = response.data.memberships;
+          scope.allSignups.forEach(function(signup) {
+            signup.participant.membership = memberships[signup.participant.id];
+          });
+          updateLapsedMembers();
+        });
+      };
+
+      var formatSignupEmail = function (signup) {
+        signup.participant.formattedEmail = formatEmail(signup.participant);
+      };
+
+      var url = djangoUrl.reverse('json-admin_trip_signups', [scope.tripId]);
+      $http.get(url).then(function(response) {
+        scope.allSignups = response.data.signups;
+        scope.allSignups.forEach(formatSignupEmail);
+        scope.leaders = response.data.leaders;
+        scope.creator = response.data.creator;
+        updateSignups();
+      }).then(updateSignupMemberships);
+
+      scope.deleteSignup = function(signup) {
+        signup.deleted = !signup.deleted;
+        updateSignups();
+      };
+
+      var membershipLapsed = {participant: {membership: {status: "!Active"}}};
+      var updateLapsedMembers = function() {
+        ['onTrip', 'waitlist'].forEach(function(subList) {
+          var lapsedSignups = filterFilter(scope.signups[subList], membershipLapsed);
+          scope.lapsedMembers[subList] = _.map(lapsedSignups, 'participant.formattedEmail');
+        });
       };
 
       // So we can use 'updateSignups' as a callback even with truthy first arg
