@@ -235,7 +235,7 @@ angular.module('ws.stats', [])
       };
 
       // Load chart with all leaders
-      $http.get(djangoUrl.reverse("trips_by_leader")).then(function (response){
+      $http.get(djangoUrl.reverse("json-trips_by_leader")).then(function (response){
         allLeaders = response.data.leaders;
         allActivities = getAllActivities(allLeaders);
         allLeadersByPk = _.keyBy(allLeaders, 'pk');

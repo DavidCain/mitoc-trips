@@ -6,8 +6,10 @@ from django.views.generic import RedirectView, TemplateView
 
 from ws import feeds
 from ws import views
+from ws import api_views
 from ws import settings
 from ws.decorators import group_required
+
 
 # Access is controlled in views, but URLs are roughly grouped by access
 urlpatterns = patterns('',
@@ -40,13 +42,13 @@ urlpatterns = patterns('',
     url(r'^trips/(?P<pk>\d+)/delete/$', views.DeleteTripView.as_view(), name='delete_trip'),
     url(r'^trips/(?P<pk>\d+)/edit/$', views.EditTripView.as_view(), name='edit_trip'),
     url(r'^trips/(?P<pk>\d+)/admin/$', views.AdminTripView.as_view(), name='admin_trip'),
-    url(r'^trips/(?P<pk>\d+)/admin/signups/$', views.AdminTripSignupsView.as_view(), name='admin_trip_signups'),
+    url(r'^trips/(?P<pk>\d+)/admin/signups/$', api_views.AdminTripSignupsView.as_view(), name='json-admin_trip_signups'),
     url(r'^trips/(?P<pk>\d+)/itinerary/$', views.TripItineraryView.as_view(), name='trip_itinerary'),
     url(r'^trips/(?P<pk>\d+)/medical/$', views.TripMedicalView.as_view(), name='trip_medical'),
     url(r'^trips/(?P<pk>\d+)/review/$', views.ReviewTripView.as_view(), name='review_trip'),
     url(r'^participants/(?P<pk>\d+)/$', views.ParticipantDetailView.as_view(), name='view_participant'),
     url(r'^participants/find/$', views.ParticipantLookupView.as_view(), name='participant_lookup'),
-    url(r'^participants/membership_statuses/$', views.MembershipStatusesView.as_view(), name='membership_statuses'),
+    url(r'^participants/membership_statuses/$', api_views.MembershipStatusesView.as_view(), name='json-membership_statuses'),
 
     # General views (anyone can view or only participants with info)
     url(r'^profile/edit/$', views.EditProfileView.as_view(), name='edit_profile'),
@@ -75,15 +77,15 @@ urlpatterns = patterns('',
     url(r'^help/wsc/wsc/$', group_required('WSC')(TemplateView.as_view(template_name='help/wsc/wsc.html')), name='help-wsc'),
 
     # API (must have account in system)
-    url(r'^trips/(?P<pk>\d+)/overflow.json$', views.CheckTripOverflowView.as_view(), name='check_trip_overflow'),
-    url(r'^leaders.json/(?:(?P<activity>.+)/)?$', views.JsonAllLeadersView.as_view(), name='json-leaders'),
-    url(r'^participants.json/$', views.JsonAllParticipantsView.as_view(), name='json-participants'),
-    url(r'^leaders/(?P<pk>\d+)/ratings/(?P<activity>.+).json', views.get_rating, name='get_rating'),
-    url(r'^users/(?P<pk>\d+)/membership.json', views.UserMembershipView.as_view(), name='membership'),
-    url(r'^users/(?P<pk>\d+)/rentals.json', views.UserRentalsView.as_view(), name='rentals'),
-    url(r'^trips/(?P<pk>\d+)/signups/$', views.SimpleSignupsView.as_view(), name='json-signups'),
+    url(r'^trips/(?P<pk>\d+)/overflow.json$', api_views.CheckTripOverflowView.as_view(), name='json-check_trip_overflow'),
+    url(r'^leaders.json/(?:(?P<activity>.+)/)?$', api_views.JsonAllLeadersView.as_view(), name='json-leaders'),
+    url(r'^participants.json/$', api_views.JsonAllParticipantsView.as_view(), name='json-participants'),
+    url(r'^leaders/(?P<pk>\d+)/ratings/(?P<activity>.+).json', api_views.get_rating, name='json-ratings'),
+    url(r'^users/(?P<pk>\d+)/membership.json', api_views.UserMembershipView.as_view(), name='json-membership'),
+    url(r'^users/(?P<pk>\d+)/rentals.json', api_views.UserRentalsView.as_view(), name='json-rentals'),
+    url(r'^trips/(?P<pk>\d+)/signups/$', api_views.SimpleSignupsView.as_view(), name='json-signups'),
 
     # D3-based statistics views
-    url(r'^data/trips_by_leader.json', views.TripsByLeaderView.as_view(), name='trips_by_leader'),
+    url(r'^data/trips_by_leader.json', api_views.TripsByLeaderView.as_view(), name='json-trips_by_leader'),
     url(r'^stats/*$', views.StatsView.as_view(), name='stats'),
 ) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

@@ -50,7 +50,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
         angular.forEach(formCtrl.$error, function (field) {
           angular.forEach(field, function(errorField){
             errorField.$setDirty();
-          })
+          });
         });
 
         // Stop form submission so client validation displays
@@ -63,8 +63,8 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
 .controller('leaderRating', function($scope, $http, djangoUrl) {
   $scope.$watchGroup(['participant', 'activity'], function(){
     if ($scope.participant && $scope.activity) {
-      var getRatingUrl = '/leaders/' + $scope.participant +
-                         '/ratings/' + $scope.activity + '.json';
+      var args = [$scope.participant, $scope.activity];
+      var getRatingUrl = djangoUrl.reverse('json-ratings', args);
       $http.get(getRatingUrl).then(function (response){
         $scope.rating = response.data.rating;
         $scope.notes = response.data.notes;
@@ -215,7 +215,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
       scope.signups = {};  // Signups, broken into normal + waiting list
       scope.lapsedMembers = {};  // Also broken into normal + waiting list
 
-      var url = '/trips/' + scope.tripId + '/admin/signups/';
+      var url = djangoUrl.reverse('json-admin_trip_signups', [scope.tripId]);
       $http.get(url).then(function(response){
         scope.allSignups = response.data.signups;
         scope.leaders = response.data.leaders;
@@ -223,7 +223,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
         updateSignups();
         return _.map(scope.allSignups, 'participant.id');
       }).then(function(participant_ids) {
-        var url = djangoUrl.reverse("membership_statuses");
+        var url = djangoUrl.reverse("json-membership_statuses");
         return $http.post(url, {participant_ids: participant_ids});
       }).then(function(response){
         /* Query the geardb server for membership status.
@@ -504,7 +504,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
           }
           filterForActivity();
         });
-      }
+      };
       fetchLeaderList();  // Only called here, but could feasibly want to refresh
 
       /* Filter the select options to only include leaders for the current activity
@@ -530,7 +530,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
         _.each(scope.filteredLeaders, function(leader){
           leader.rating = activityService.formatRating(scope.activity, leader);
         });
-      }
+      };
 
       // (Enable Djangular to display errors on the required validator)
       ngModelCtrl.$isEmpty = function(leaders){

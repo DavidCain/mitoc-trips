@@ -84,7 +84,7 @@ class AuthTests(TestCase):
                          'help-home', 'help-about', 'help-personal_info',
                          'help-lottery', 'help-signups', 'help-leading_trips',
                          'all_trips', 'upcoming_trips',
-                         'stats', 'trips_by_leader']:
+                         'stats', 'json-trips_by_leader']:
             response = self.client.get(reverse(open_url))
             self.assertEqual(response.status_code, 200)
 
@@ -98,7 +98,7 @@ class AuthTests(TestCase):
         for login_required in ['all_trips_medical', 'account_change_password',
                                'admin_manage_trips', 'manage_leaders',
                                'manage_applications', 'manage_trips',
-                               'participant_lookup', 'membership_statuses',
+                               'participant_lookup', 'json-membership_statuses',
                                'trip_signup', 'leader_trip_signup',
                                'discounts', 'lottery_preferences',
                                'lottery_pairing']:
