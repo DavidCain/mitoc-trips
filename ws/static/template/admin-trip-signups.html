@@ -32,6 +32,7 @@
             Add participant
           </button>
           <button class="btn btn-sm btn-default"
+                  data-ng-if="anyFeedbackPresent"
                   data-ng-click="signups.feedbackHidden = !signups.feedbackHidden">
             <i class="fa" data-ng-class="signups.feedbackHidden? 'fa-comments-o' : 'fa-comments'"></i>
             {{ signups.feedbackHidden ? 'Show' : 'Hide'}} Feedback

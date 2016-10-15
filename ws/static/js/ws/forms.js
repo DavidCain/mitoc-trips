@@ -222,13 +222,14 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
         } else if (scope.signups.waitlist) {
           scope.allSignups = scope.signups.onTrip.concat(scope.signups.waitlist);
         }
+        if (removeDeleted) {
+          _.remove(scope.allSignups, {deleted: true});
+        }
 
         scope.onTripCount = 0;
         scope.signups.onTrip = [];
         scope.signups.waitlist = [];
-        scope.allSignups.forEach(function(signup, index) {
-          if (removeDeleted && signup.deleted) { return; }
-
+        scope.allSignups.forEach(function(signup) {
           if (scope.onTripCount < scope.maximumParticipants) {
             scope.signups.onTrip.push(signup);
             if (!signup.deleted) {
@@ -284,6 +285,10 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
           scope: scope
         });
       };
+
+      scope.$watch('allSignups', function(allSignups) {
+        scope.anyFeedbackPresent = _.some(allSignups, 'feedback.length');
+      });
 
       scope.signUp = function(participant) {
         var payload = {participant_id: participant.id, notes: scope.notes};
