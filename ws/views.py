@@ -210,6 +210,10 @@ class ParticipantEditMixin(TemplateView):
 class EditParticipantView(ParticipantEditMixin, OtherParticipantView):
     model = models.Participant
 
+    @property
+    def user(self):
+        return self.participant.user
+
     def success_redirect(self):
         return redirect(reverse('view_participant', args=(self.participant.id,)))
 
