@@ -12,7 +12,7 @@ angular.module('ws.stats', [])
       var hiddenActivities = [];
 
       // Basic chart setup
-      var margin = {top: 20, right: 0, bottom: 0, left: 175};
+      var margin = {top: 20, right: 0, bottom: 0, left: 175},
           chartWidth       = 500,
           barHeight        = 20,
           spaceForLegend   = 150,
@@ -50,7 +50,7 @@ angular.module('ws.stats', [])
           .tickFormat(d3.format("d"));
       var yAxis = d3.svg.axis()
           .orient("left")
-          .tickFormat(function(pk) { return allLeadersByPk[pk].name; })
+          .tickFormat(function(pk) { return allLeadersByPk[pk].name; });
 
       var sizeRectange = function(layerBars) {
         return layerBars
@@ -79,8 +79,8 @@ angular.module('ws.stats', [])
         var hiddenTrips = _.pick(noTrips, hiddenActivities);
 
         // Count trips led per leader
-        var tripsLed = _.map(leaders, function(leader){
-          var groupedTrips = _.groupBy(leader.trips, function(trip){
+        var tripsLed = _.map(leaders, function(leader) {
+          var groupedTrips = _.groupBy(leader.trips, function(trip) {
             return trip.activity;
           });
           return _.extend({pk: leader.pk, name: leader.name}, noTrips, groupedTrips, hiddenTrips);
@@ -129,7 +129,7 @@ angular.module('ws.stats', [])
 
         // Compare leaders by total number of trips, then by name
         var moreTripsLed = function(leader1, leader2) {
-          var selectedActivities = function(leader){
+          var selectedActivities = function(leader) {
             return _.reject(leader.trips, function(trip) {
               return hiddenActivities.includes(trip.activity);
             }).length;
@@ -156,7 +156,7 @@ angular.module('ws.stats', [])
 
         // Adjust the domain to have new sorted leaders
         var leadersByPk = _.keyBy(filteredLeaders, 'pk');
-        y.domain(layers[0].map(getLeaderPk).sort(function(pk1, pk2){
+        y.domain(layers[0].map(getLeaderPk).sort(function(pk1, pk2) {
           return moreTripsLed(leadersByPk[pk1], leadersByPk[pk2]);
         }));
 
@@ -174,9 +174,9 @@ angular.module('ws.stats', [])
         svg.select('.axis--y')
           .selectAll(".tick")
             .attr("cursor", "pointer")
-            .on('click',function(pk){
+            .on('click',function(pk) {
               var viewParticipantUrl = djangoUrl.reverse("view_participant", [pk]);
-              return $window.location.href = viewParticipantUrl;
+              $window.location.href = viewParticipantUrl;
             });
 
         layer.exit().remove();
@@ -190,7 +190,7 @@ angular.module('ws.stats', [])
         d3.select(this).style("opacity", hidden ? 1.0 : 0.1);
 
         if (hidden) {
-          hiddenActivities = _.reject(hiddenActivities, function(activity){
+          hiddenActivities = _.reject(hiddenActivities, function(activity) {
             return activity === clickedActivity;
           });
         } else {
@@ -235,7 +235,7 @@ angular.module('ws.stats', [])
       };
 
       // Load chart with all leaders
-      $http.get(djangoUrl.reverse("json-trips_by_leader")).then(function (response){
+      $http.get(djangoUrl.reverse("json-trips_by_leader")).then(function (response) {
         allLeaders = response.data.leaders;
         allActivities = getAllActivities(allLeaders);
         allLeadersByPk = _.keyBy(allLeaders, 'pk');
@@ -250,14 +250,14 @@ angular.module('ws.stats', [])
       var filterByDate = function(leaders, afterDate) {
         return _.map(leaders, function(leader) {
           var newLeader = angular.copy(leader);
-          newLeader.trips = _.filter(leader.trips, function(trip){
+          newLeader.trips = _.filter(leader.trips, function(trip) {
             return new Date(trip.trip_date) > afterDate;
           });
           return newLeader;
         });
       };
 
-      scope.$watch('startDate', function(afterDate){
+      scope.$watch('startDate', function(afterDate) {
         if (afterDate === undefined) {
           return;
         }

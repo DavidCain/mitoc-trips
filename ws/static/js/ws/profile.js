@@ -7,7 +7,7 @@ angular.module('ws.profile', [])
     },
     template: "<button data-ng-click='openModal()' class='btn btn-default btn-xs'><i class='fa fa-lg fa-pencil'></i></button>",
     link: function (scope, element, attrs) {
-      scope.openModal = function(){
+      scope.openModal = function() {
         $uibModal.open({
         templateUrl: '/static/template/edit-gravatar-modal.html',
         scope: scope
@@ -16,7 +16,7 @@ angular.module('ws.profile', [])
     }
   };
 })
-.directive('membershipStatus', function($http, $filter){
+.directive('membershipStatus', function($http, $filter) {
   return {
     restrict: 'E',
     scope: {
@@ -34,7 +34,7 @@ angular.module('ws.profile', [])
         'Missing':        'label-danger',
       };
       $http.get('/users/' + scope.userId + '/membership.json')
-        .then(function(resp){
+        .then(function(resp) {
           scope.membership = resp.data.membership;
           scope.waiver = resp.data.waiver;
           scope.status = resp.data.status;
@@ -42,7 +42,7 @@ angular.module('ws.profile', [])
     },
   };
 })
-.directive('outstandingRentals', function($http, $filter){
+.directive('outstandingRentals', function($http, $filter) {
   return {
     restrict: 'E',
     scope: {
@@ -54,7 +54,7 @@ angular.module('ws.profile', [])
                         '<p>Want to learn more? Stop by during office hours or ' +
                         '<a href="http://mitoc.mit.edu/#rental">read about renting gear</a>.</p>';
       $http.get('/users/' + scope.userId + '/rentals.json')
-        .then(function(resp){
+        .then(function(resp) {
           scope.rentals = resp.data.rentals;
         });
     },
