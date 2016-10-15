@@ -29,7 +29,7 @@ import ws.utils.perms as perm_utils
 import ws.utils.signups as signup_utils
 
 
-class LeadersOnlyView(View):
+class TripLeadersOnlyView(View):
     @method_decorator(group_required('leaders', *perm_utils.all_chair_groups))
     def dispatch(self, request, *args, **kwargs):
         """ Only allow creator, leaders of the trip, and chairs. """
@@ -37,7 +37,7 @@ class LeadersOnlyView(View):
         chair = perm_utils.is_chair(request.user, trip.activity)
         if not (leader_on_trip(request, trip, creator_allowed=True) or chair):
             return render(request, 'not_your_trip.html', {'trip': trip})
-        return super(LeadersOnlyView, self).dispatch(request, *args, **kwargs)
+        return super(TripLeadersOnlyView, self).dispatch(request, *args, **kwargs)
 
 
 class LoginAfterPasswordChangeView(PasswordChangeView):
@@ -930,7 +930,7 @@ class CreateTripView(CreateView):
         return super(CreateTripView, self).dispatch(request, *args, **kwargs)
 
 
-class DeleteTripView(DeleteView, LeadersOnlyView):
+class DeleteTripView(DeleteView, TripLeadersOnlyView):
     model = models.Trip
     success_url = reverse_lazy('upcoming_trips')
 
@@ -949,7 +949,7 @@ class DeleteSignupView(DeleteView):
         return super(DeleteSignupView, self).dispatch(request, *args, **kwargs)
 
 
-class EditTripView(UpdateView, LeadersOnlyView):
+class EditTripView(UpdateView, TripLeadersOnlyView):
     model = models.Trip
     form_class = forms.TripForm
     template_name = 'trips/edit.html'
@@ -1272,7 +1272,7 @@ class AllTripsMedicalView(ListView, TripMedical, ItineraryEditableMixin):
         return super(AllTripsMedicalView, self).dispatch(request, *args, **kwargs)
 
 
-class TripMedicalView(DetailView, LeadersOnlyView, TripMedical,
+class TripMedicalView(DetailView, TripLeadersOnlyView, TripMedical,
                       ItineraryEditableMixin):
     queryset = models.Trip.objects.all()
     template_name = 'trips/medical.html'
@@ -1287,7 +1287,7 @@ class TripMedicalView(DetailView, LeadersOnlyView, TripMedical,
         return context_data
 
 
-class TripItineraryView(UpdateView, LeadersOnlyView, ItineraryEditableMixin):
+class TripItineraryView(UpdateView, TripLeadersOnlyView, ItineraryEditableMixin):
     """ A hybrid view for creating/editing trip info for a given trip. """
     model = models.Trip
     context_object_name = 'trip'

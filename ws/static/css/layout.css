@@ -116,6 +116,14 @@ admin-trip-signups button.btn-default {
   margin-left: 15px;
 }
 
+admin-trip-signups .signup-controls {
+  margin-bottom: 10px; /* To match h3 for visual alignment */
+}
+
+admin-trip-signups h3 {
+  margin-top: 0;
+}
+
 
 /* Profile page */
 .profile-photo {

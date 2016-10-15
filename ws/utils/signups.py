@@ -62,7 +62,7 @@ def trip_or_wait(signup, request=None, prioritize=False, top_spot=False,
     """
     trip = signup.trip
     if signup.on_trip:
-        return
+        return signup
     if trip.algorithm == 'fcfs' and (trip.signups_open or not trip_must_be_open):
         try:
             wl_signup = models.WaitListSignup.objects.get(signup=signup)
@@ -79,6 +79,7 @@ def trip_or_wait(signup, request=None, prioritize=False, top_spot=False,
     elif request:
         trip_not_eligible = "Trip is not an open first-come, first-serve trip"
         request and messages.error(request, trip_not_eligible)
+    return signup
 
 
 def update_queues_if_trip_open(trip):

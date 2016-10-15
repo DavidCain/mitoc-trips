@@ -278,6 +278,32 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
         updateSignups();
       };
 
+      scope.addParticipant = function() {
+        scope.modal = $uibModal.open({
+          templateUrl: '/static/template/signup-participant-modal.html',
+          scope: scope
+        });
+      };
+
+      scope.signUp = function(participant) {
+        var payload = {participant_id: participant.id, notes: scope.notes};
+        var tripSignup = djangoUrl.reverse('json-leader_participant_signup',
+                                           [scope.tripId]);
+        $http.post(tripSignup, payload).then(
+          function success(response) {
+            var signup = response.data.signup;
+            formatSignupEmail(signup);
+            var destList = response.data.on_trip ? 'onTrip' : 'waitlist';
+            scope.signups[destList].push(signup);
+            updateSignups();
+            updateSignupMemberships();  // Could check just this participant
+            scope.modal.dismiss('success');
+          },
+          function error(response) {
+            scope.error = response.data.message;
+          });
+      };
+
       var membershipLapsed = {participant: {membership: {status: "!Active"}}};
       var updateLapsedMembers = function() {
         ['onTrip', 'waitlist'].forEach(function(subList) {

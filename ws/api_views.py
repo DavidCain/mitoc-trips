@@ -13,7 +13,7 @@ from django.utils.decorators import method_decorator
 from allauth.account.models import EmailAddress
 
 from ws import models
-from ws.views import AllLeadersView, ItineraryEditableMixin, LeadersOnlyView
+from ws.views import AllLeadersView, ItineraryEditableMixin, TripLeadersOnlyView
 from ws.decorators import group_required, user_info_required
 
 import ws.utils.perms as perm_utils
@@ -52,7 +52,42 @@ class SimpleSignupsView(DetailView):
         return super(SimpleSignupsView, self).dispatch(request, *args, **kwargs)
 
 
-class AdminTripSignupsView(SingleObjectMixin, LeadersOnlyView, ItineraryEditableMixin):
+class FormatSignupMixin(object):
+    def describe_signup(self, signup):
+        """ Yield everything used in the participant-selecting modal."""
+        par = signup.participant
+
+        # In rare cases, a trip creator can be a participant on their own trip
+        # Be sure we hide feedback from them if this is the case
+        hide_feedback = signup.participant == self.request.participant
+        feedback = [] if hide_feedback else par.feedback_set.all()
+
+        try:
+            lotteryinfo = par.lotteryinfo
+        except:
+            car_status = num_passengers = None
+        else:
+            car_status = lotteryinfo.car_status
+            num_passengers = lotteryinfo.number_of_passengers
+
+        return {'id': signup.id,
+                'participant': {'id': par.id,
+                                'name': par.name,
+                                'email': par.email},
+                'feedback': [{'showed_up': f.showed_up,
+                              'leader': f.leader.name,
+                              'comments': f.comments,
+                              'trip': {'id': f.trip.id, 'name': f.trip.name},
+                              } for f in feedback],
+                'also_on': [{'id': s.trip.id, 'name': s.trip.name}
+                            for s in signup.other_signups],
+                'car_status': car_status,
+                'number_of_passengers': num_passengers,
+                'notes': signup.notes}
+
+
+class AdminTripSignupsView(SingleObjectMixin, FormatSignupMixin,
+                           TripLeadersOnlyView, ItineraryEditableMixin):
     model = models.Trip
 
     # TODO: Select related fields
@@ -115,38 +150,6 @@ class AdminTripSignupsView(SingleObjectMixin, LeadersOnlyView, ItineraryEditable
                 signup = models.SignUp(participant=par, trip=self.object)
             yield signup, remove
 
-    def describe_signup(self, signup):
-        """ Yield everything used in the participant-selecting modal."""
-        par = signup.participant
-
-        # In rare cases, a trip creator can be a participant on their own trip
-        # Be sure we hide feedback from them if this is the case
-        hide_feedback = signup.participant == self.request.participant
-        feedback = [] if hide_feedback else par.feedback_set.all()
-
-        try:
-            lotteryinfo = par.lotteryinfo
-        except:
-            car_status = num_passengers = None
-        else:
-            car_status = lotteryinfo.car_status
-            num_passengers = lotteryinfo.number_of_passengers
-
-        return {'id': signup.id,
-                'participant': {'id': par.id,
-                                'name': par.name,
-                                'email': par.email},
-                'feedback': [{'showed_up': f.showed_up,
-                              'leader': f.leader.name,
-                              'comments': f.comments,
-                              'trip': {'id': f.trip.id, 'name': f.trip.name},
-                              } for f in feedback],
-                'also_on': [{'id': s.trip.id, 'name': s.trip.name}
-                            for s in signup.other_signups],
-                'car_status': car_status,
-                'number_of_passengers': num_passengers,
-                'notes': signup.notes}
-
     def get(self, request, *args, **kwargs):
         """ Get information about a trip's signups. """
         trip = self.get_object()
@@ -163,6 +166,44 @@ class AdminTripSignupsView(SingleObjectMixin, LeadersOnlyView, ItineraryEditable
                 'email': trip.creator.email,
             },
         })
+
+
+class LeaderParticipantSignupView(SingleObjectMixin, FormatSignupMixin,
+                                  TripLeadersOnlyView):
+    model = models.Trip
+
+    def post(self, request, *args, **kwargs):
+        """ Process the participant & trip, create or update signup as neeeded.
+
+        This method handles two main cases:
+        - Participant has never signed up for the trip, will be placed
+        - Participant has signed up before, but is not on the trip
+        """
+
+        postdata = json.loads(self.request.body)
+        par_pk = postdata.get('participant_id')
+
+        try:
+            par = models.Participant.objects.get(pk=par_pk)
+        except ObjectDoesNotExist:
+            return JsonResponse({'message': "No participant found"}, status=404)
+
+        trip = self.get_object()
+        signup, created = models.SignUp.objects.get_or_create(trip=trip, participant=par)
+        if signup.on_trip and not created:
+            # Other cases: Exists but not on trip, or exists but on waitlist
+            # (trip_or_wait will handle both of those cases)
+            msg = "{} is already signed up".format(signup.participant.name)
+            return JsonResponse({'message': msg}, status=409)
+
+        signup.notes = postdata.get('notes', '')
+        signup = signup_utils.trip_or_wait(signup)
+
+        # signup: descriptor, agnostic of presence on the trip or waiting list
+        # on_trip: a boolean to place this signup in the right place
+        #          (either at the bottom of the trip list or waiting list)
+        return JsonResponse({'signup': self.describe_signup(signup),
+                             'on_trip': signup.on_trip}, status=201)
 
 
 class JsonAllParticipantsView(ListView):

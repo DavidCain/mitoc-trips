@@ -34,7 +34,7 @@
   {% endif %}
 </div>
 
-{% if trip.algorithm == 'fcfs' and signups_on_trip %}
+{% if trip.algorithm == 'fcfs' %}
   <admin-trip-signups data-trip-id="{{ trip.id }}" data-maximum_participants="{{ trip.maximum_participants }}"></admin-trip-signups>
 {% else %}
   <email-trip-members data-trip-id="{{ trip.id }}"></email-trip-members>

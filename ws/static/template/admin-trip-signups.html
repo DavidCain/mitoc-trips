@@ -1,21 +1,36 @@
-<div data-ng-show="signups.onTrip.length">
+<div data-ng-show="signups.onTrip">
   <div class="row">
-    <div class="col-sm-6 col-sm-push-6">
-      <div class="form-horizontal">
-        <div class="form-group">
-          <label class="control-label col-sm-9" for="id_maximum_participants">Maximum participants:</label>
-          <div class="col-sm-3">
-            <input required class="form-control" id="id_maximum_participants" type="number" min="1"
-                  data-ng-model="maximumParticipants"
-                  data-ng-model-options="{allowInvalid: false, updateOn: 'default blur', debounce:{'default': 500, 'blur': 0}}">
-            </input>
-          </div>
-        </div>
+
+    <div class="col-md-3 col-sm-12 col-xs-8">
+      <h3>Participants <span data-ng-bind="onTripCount + '/' + maximumParticipants"></span>
+        <button ng-hide="true" class="btn btn-sm btn-default pull-right"
+                data-ng-click="signups.feedbackHidden = !signups.feedbackHidden">
+          <i class="fa fa-plus"></i>
+          Add
+        </button>
+      </h3>
+    </div>
+
+    <div class="col-md-2 col-md-push-7 col-sm-4 col-sm-push-8 col-xs-4">
+      <div class="input-group input-group-sm signup-controls" data-ng-show="!maximumParticipants || signups.onTrip.length">
+        <span class="input-group-addon" title="Maximum participants"><i class="fa fa-users"></i></span>
+        <input class="form-control"
+               id="id_maximum_participants"
+               type="number"
+               min="1"
+               data-ng-model="maximumParticipants"
+               data-ng-model-options="{allowInvalid: false, updateOn: 'default blur', debounce:{'default': 500, 'blur': 0}}">
       </div>
     </div>
-    <div class="col-sm-6 col-sm-pull-6">
-      <h3>Participants <span data-ng-bind="onTripCount + ' / ' + maximumParticipants"></span>
-        <span data-ng-if="signups.onTrip.length || signups.waitlist.length">
+
+    <div class="col-md-pull-2 col-md-7 col-sm-pull-4 col-sm-8">
+      <div class="signup-controls">
+        <span class="btn-group">
+          <button class="btn btn-sm btn-primary"
+                  data-ng-click="addParticipant()">
+            <i class="fa fa-plus"></i>
+            Add participant
+          </button>
           <button class="btn btn-sm btn-default"
                   data-ng-click="signups.feedbackHidden = !signups.feedbackHidden">
             <i class="fa" data-ng-class="signups.feedbackHidden? 'fa-comments-o' : 'fa-comments'"></i>
@@ -28,8 +43,9 @@
             {{ signups.showLapsedMembersOnTrip ? 'Hide' : 'Show'}} Lapsed Members
           </button>
         </span>
-      </h3>
+      </div>
     </div>
+
     <div class="col-md-12" data-ng-if="lapsedMembers.onTrip.length && signups.showLapsedMembersOnTrip">
       <pre class="wrapped-emails" data-ng-bind="lapsedMembers.onTrip.join(', ')"></pre>
     </div>
@@ -53,7 +69,11 @@
   </div>
   <editable-signup-list signups="signups.waitlist" delete-signup="deleteSignup" hide-feedback="signups.feedbackHidden" sortable-options="sortableOptions"></editable-signup-list>
 
-  <button data-ng-click="verifyChanges()" class="btn btn-primary">Submit</button>
+  <button class="btn btn-primary"
+          data-ng-click="verifyChanges()"
+          data-ng-show="signups.onTrip.length">
+    Submit
+  </button>
 
   <hr>
 </div>
