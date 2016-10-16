@@ -27,9 +27,9 @@ def user_membership_expiration(user):
 
 
 def repr_blank_membership():
-    return  {'membership': {'expires': None, 'active': False, 'email': None},
-             'waiver': {'expires': None, 'active': False},
-             'status': 'Missing'}
+    return {'membership': {'expires': None, 'active': False, 'email': None},
+            'waiver': {'expires': None, 'active': False},
+            'status': 'Missing'}
 
 
 def membership_expiration(emails):
@@ -47,7 +47,7 @@ def membership_expiration(emails):
 
 def format_membership(email, membership_expires, waiver_expires):
     person = repr_blank_membership()
-    membership, waiver = person['membership'],  person['waiver']
+    membership, waiver = person['membership'], person['waiver']
     membership['email'] = email
 
     for component, expires in [(membership, membership_expires),
@@ -86,7 +86,7 @@ def matching_memberships(emails):
     # but this is what the gear database reports (and we want consistency)
     cursor.execute(
         """
-        select p.email,
+        select lower(p.email),
                max(pm.expires)  as membership_expires,
           date(max(pw.expires)) as waiver_expires
         from people_memberships pm
@@ -100,9 +100,14 @@ def matching_memberships(emails):
         """, [tuple(emails)]
     )
 
-    memberships = ((email, format_membership(email, m_expires, w_expires))
-                   for (email, m_expires, w_expires) in cursor.fetchall())
-    return OrderedDict(memberships)
+    # Email capitalization in the database may differ from what users report
+    # Map back to the case supplied in arguments for easier mapping
+    original_case = {email.lower(): email for email in emails}
+    matches = ((original_case[email], m_expires, w_expires)
+               for (email, m_expires, w_expires) in cursor.fetchall())
+
+    return OrderedDict((email, format_membership(email, m_expires, w_expires))
+                       for (email, m_expires, w_expires) in matches)
 
 
 def outstanding_items(emails):
