@@ -7,6 +7,7 @@ from django.core.cache import cache
 
 from ws import models
 from ws.utils import member_sheets
+from ws.utils.signups import add_to_waitlist
 
 
 def acquire_lock(discount, lock_expires_after=300):
@@ -68,3 +69,24 @@ def update_participant(self, discount_id, participant_id):
             release_lock(discount)
     else:
         self.retry(countdown=increasing_retry(self.request.retries))
+
+
+@shared_task
+def run_lottery(trip_id, lottery_config=None):
+    """ Run a lottery algorithm for the given trip (idempotent).
+
+    If running on a trip that isn't in lottery mode, this won't make
+    any changes (making this task idempotent).
+    """
+    trip = models.Trip.objects.get(pk=trip_id)
+    if trip.algorithm != 'lottery':
+        return
+
+    for signup in trip.signup_set.order_by('?'):
+        if trip.open_slots:
+            signup.on_trip = True
+            signup.save()
+        else:
+            add_to_waitlist(signup)
+    trip.algorithm = 'fcfs'
+    trip.save()

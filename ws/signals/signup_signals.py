@@ -4,15 +4,17 @@ Handle aspects of trip creation/modification when receiving signup changes.
 from __future__ import unicode_literals
 
 from django.core.mail import send_mail
-from django.core.urlresolvers import reverse
-from django.db.models.signals import post_save
+from django.db.models.signals import pre_save, post_save
 from django.db.models.signals import pre_delete, post_delete
 from django.db.models.signals import m2m_changed
 from django.dispatch import receiver
 
+from ws.celery_config import app
 from ws.models import LeaderSignUp, SignUp, WaitList, WaitListSignup, Trip
 from ws.utils.dates import local_date
 from ws.utils.signups import trip_or_wait, update_queues_if_trip_open
+from ws import tasks
+
 
 @receiver(post_save, sender=SignUp)
 def new_fcfs_signup(sender, instance, created, raw, using, update_fields, **kwargs):
@@ -91,7 +93,7 @@ def bumped_from_waitlist(sender, instance, using, **kwargs):
 
 
 def get_trip_link(trip):
-    trip_url = reverse('view_trip', args=(trip.id,))
+    #trip_url = reverse('view_trip', args=(trip.id,))
     #return '<a href="{}">"{}"</a>'.format(trip_url, trip)
     return trip  # TODO: The link above only does relative URL
 
@@ -119,3 +121,52 @@ def delete_leader_signups(sender, instance, action, reverse, model, pk_set,
     if action == 'post_add':
         leaders = instance.leaders.all()
         instance.leadersignup_set.exclude(participant__in=leaders).delete()
+
+
+@receiver(pre_save, sender=Trip)
+def revoke_existing_task(sender, instance, raw, using, update_fields, **kwargs):
+    """ If updating a trip, revoke any existing lottery task.
+
+    First-come, first-serve trips don't need a lottery task, and changing
+    the lottery time must result in a new scheduled lottery time.
+
+    If we're revoking the task due to changing lottery times,
+    `add_lottery_task` will ensure that new task is scheduled.
+    """
+    try:
+        trip = sender.objects.get(pk=instance.pk)
+    except sender.DoesNotExist:  # New trip, initiated with no task
+        return
+
+    new_close_time = instance.signups_close_at != trip.signups_close_at
+    needs_revoke = new_close_time or trip.algorithm != 'lottery'
+    if trip.lottery_task_id and needs_revoke:
+        app.control.revoke(trip.lottery_task_id)
+        instance.lottery_task_id = None
+
+
+@receiver(post_save, sender=Trip)
+def add_lottery_task(sender, instance, created, raw, using, update_fields, **kwargs):
+    """ Add a task to execute the lottery at the time the trip closes.
+
+    If the signups close at some point in the past, this will result in the
+    lottery being executed immediately.
+    """
+    trip = instance
+
+    if trip.activity == 'winter_school':
+        return  # Winter School lotteries are handled separately
+
+    if trip.algorithm == 'lottery' and trip.lottery_task_id is None:
+        task_id = tasks.run_lottery.apply_async((trip.pk, None),
+                                                eta=trip.signups_close_at)
+        trip.lottery_task_id = task_id
+        # Use update() to avoid repeated signal on post_save
+        sender.objects.filter(pk=trip.pk).update(lottery_task_id=task_id)
+
+
+@receiver(pre_delete, sender=Trip)
+def revoke_lottery_task(sender, instance, using, **kwargs):
+    """ Before deleting a Trip, de-schedule the lottery task. """
+    if instance.lottery_task_id:
+        app.control.revoke(instance.lottery_task_id)
