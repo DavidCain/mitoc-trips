@@ -23,6 +23,7 @@
     {% block js %}
       {% cdn_fallback "jQuery"  "https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"      "jquery/dist/jquery.min.js" %}
       {% cdn_fallback "angular" "https://ajax.googleapis.com/ajax/libs/angularjs/1.4.10/angular.min.js" "angular/angular.min.js"    %}
+      {% production_js user viewing_participant %}
       {% javascript 'app' %}
       <script async src='https://www.google-analytics.com/analytics.js'></script>
     {% endblock js %}

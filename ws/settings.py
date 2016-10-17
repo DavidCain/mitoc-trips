@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
 
+from celery.schedules import crontab
 import raven
 
 
@@ -140,7 +141,6 @@ WSGI_APPLICATION = 'ws.wsgi.application'
 
 
 # Celery settings
-from celery.schedules import crontab
 
 BROKER_URL = os.getenv('BROKER_URL', 'amqp://guest:guest@127.0.0.1//')
 CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'amqp')
@@ -178,10 +178,6 @@ MUST_UPDATE_AFTER_DAYS = 180
 # CDN libraries are for basic, commonplace libraries (and are loaded first)
 cdn_libs = ['jquery/dist/jquery.min.js', 'angular/angular.js', 'd3/d3.min.js']
 
-first_load_js = ['raven-js/dist/raven.min.js', 'angular-raven/angular-raven.min.js']
-
-if not DEBUG:  # Configure Raven & Google Analytics for use in production
-    first_load_js += ['js/raven_config.js', 'js/ga.js']
 
 other_libs = ['lodash/dist/lodash.js',
               'bootstrap/dist/js/bootstrap.min.js',
@@ -208,8 +204,16 @@ PIPELINE = {
     'JAVASCRIPT': {
         # With jQuery and Angular served via CDN, this is everything
         'app': {
-            'source_filenames': first_load_js + other_libs + local_js,
+            'source_filenames': other_libs + local_js,
             'output_filename': 'js/app.js',
+        },
+        # Must be served before the application (to catch any errors)
+        'raven': {
+            'source_filenames': [
+                'raven-js/dist/raven.min.js',
+                'angular-raven/angular-raven.min.js',
+            ],
+            'output_filename': 'js/raven.js',
         },
     },
     'STYLESHEETS': {

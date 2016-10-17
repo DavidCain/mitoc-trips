@@ -1,0 +1,46 @@
+{% load pipeline %}
+{% if not DEBUG %}
+  {% javascript 'raven' %}
+
+  <script>
+    {# Alternative async tracking snippet, optimized for modern browsers #}
+    {# Google Analytics must be loaded afterwards #}
+    window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+    ga('create', 'UA-55762204-2', 'auto');
+    ga('send', 'pageview');
+
+    Raven.config('https://8ca35907a538416cbfad696d187acdc0@sentry.io/104648', {
+      logger: 'javascript',
+      ignoreErrors: [
+        // Random plugins/extensions
+        'top.GLOBALS',
+        // See: http://blog.errorception.com/2012/03/tale-of-unfindable-js-error. html
+        'originalCreateNotification',
+        'canvas.contentDocument',
+        'http://tt.epicplay.com',
+        'Can\'t find variable: ZiteReader',
+        'jigsaw is not defined',
+        'ComboSearch is not defined',
+        'http://loading.retry.widdit.com/',
+        'atomicFindClose',
+        // ISP "optimizing" proxy - `Cache-Control: no-transform` seems to reduce this. (thanks @acdha)
+        // See http://stackoverflow.com/questions/4113268/how-to-stop-javascript-injection-from-vodafone-proxy
+        'bmi_SafeAddOnload',
+        'EBCallBackMessageReceived',
+        // See http://toolbar.conduit.com/Developer/HtmlAndGadget/Methods/JSInjection.aspx
+        'conduitPage'
+      ],
+      ignoreUrls: [
+        // Chrome extensions
+        /extensions\//i,
+        /^chrome:\/\//i,
+        // Other plugins
+        /127\.0\.0\.1:4001\/isrunning/i,  // Cacaoweb
+        /webappstoolbarba\.texthelp\.com\//i,
+        /metrics\.itunes\.apple\.com\.edgesuite\.net\//i
+      ]
+    }).install();
+
+    Raven.setUserContext({{ user_context|safe }});
+  </script>
+{% endif %}
