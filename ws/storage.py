@@ -1,7 +1,7 @@
-from pipeline.storage import PipelineCachedStorage
+from pipeline.storage import GZIPMixin, PipelineCachedStorage
 
 
-class CachedStorage(PipelineCachedStorage):
+class CachedStorage(GZIPMixin, PipelineCachedStorage):
     def post_process(self, paths, dry_run=False, **options):
         super_class = super(CachedStorage, self)
         for name, hashed_name, processed in super_class.post_process(paths.copy(), dry_run, **options):

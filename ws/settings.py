@@ -79,6 +79,8 @@ DATABASES = {
 DATABASE_ROUTERS = ['ws.routers.AuthRouter']
 
 MIDDLEWARE_CLASSES = [
+    'django.middleware.gzip.GZipMiddleware',
+    'pipeline.middleware.MinifyHTMLMiddleware',
     'djng.middleware.AngularUrlMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
