@@ -6,8 +6,8 @@
 {% block content %}
 {{ block.super }}
 
-{% if is_chair %}
-  <h4>Activity chair functions</h4>
+{% if trip.creator == viewing_participant or is_chair %}
+  <h4>{{ is_chair|yesno:"Activity chair,Creator" }} functions</h4>
   <div class="btn-group" role="group">
     <a type="button" class="btn btn-default" href="{% url 'edit_trip' trip.id %}"   ><i class="fa fa-edit"  ></i>&nbsp;Edit</a>
     <a type="button" class="btn btn-default" href="{% url 'trip_medical' trip.id %}"><i class="fa fa-medkit"></i>&nbsp;WIMP info</a>
