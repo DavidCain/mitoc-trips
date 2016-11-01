@@ -171,11 +171,11 @@ Lookup participant
 
     <div class="row">
       <div class="col-md-12 col-sm-6">
-        <membership-status data-personal="{{ user_viewing|yesno:"true,false" }}" data-user-id="{{ participant.user.id }}">
+        <membership-status data-personal="{{ user_viewing|yesno:"true,false" }}" data-user-id="{{ par_user.id }}">
         </membership-status>
       </div>
       <div class="col-md-12 col-sm-6">
-        <outstanding-rentals data-user-id="{{ participant.user.id }}">
+        <outstanding-rentals data-user-id="{{ par_user.id }}">
         </outstanding-rentals>
       </div>
     </div>
@@ -199,7 +199,7 @@ Lookup participant
           </h3>
 
           <ul class="list-unstyled">
-            {% for emailaddress in participant.user.emailaddress_set.all %}
+            {% for emailaddress in par_user.emailaddress_set.all %}
               <li>
                 {{ emailaddress.email }}
                 {% if not emailaddress.verified %}

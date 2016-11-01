@@ -358,6 +358,7 @@ class ParticipantView(ParticipantLookupView, SingleObjectMixin, LotteryPairingMi
             user = self.request.user
         else:
             user = participant.user
+        context['par_user'] = user
 
         context['trips'] = trips = self.get_trips()
         context['stats'] = self.get_stats(trips)
@@ -500,7 +501,8 @@ class TripDetailView(DetailView):
 
     def get_queryset(self):
         trips = super(TripDetailView, self).get_queryset()
-        return trips.select_related('info')
+        trips = trips.select_related('info')
+        return trips.prefetch_related('leaders', 'leaders__leaderrating_set')
 
     def get_signups(self, model=models.SignUp):
         """ Signups, with related fields used in templates preselected. """
