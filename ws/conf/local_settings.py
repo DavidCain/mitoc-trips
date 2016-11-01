@@ -35,3 +35,6 @@ INSTALLED_APPS = (
     'raven.contrib.django.raven_compat',
     'ws.apps.TripsConfig',
 )
+
+DEBUG_TOOLBAR_PATCH_SETTINGS = False
+INTERNAL_IPS = ['127.0.0.1', '192.168.33.15']

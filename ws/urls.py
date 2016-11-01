@@ -1,4 +1,4 @@
-from django.conf.urls import patterns, include, url
+from django.conf.urls import include, patterns, url
 from django.contrib import admin
 from django.conf.urls.static import static
 from django.core.urlresolvers import reverse_lazy
@@ -89,4 +89,12 @@ urlpatterns = patterns('',
     # D3-based statistics views
     url(r'^data/trips_by_leader.json', api_views.TripsByLeaderView.as_view(), name='json-trips_by_leader'),
     url(r'^stats/*$', views.StatsView.as_view(), name='stats'),
-) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+)
+
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
+if settings.DEBUG:
+    import debug_toolbar
+    urlpatterns += patterns('',
+        url(r'^__debug__/', include(debug_toolbar.urls)),
+    )
