@@ -93,3 +93,9 @@ def is_winter_school():
     Used to give warnings about lottery preferences and such.
     """
     return local_now().month == 1
+
+
+def ws_year():
+    """ Returns the year of the nearest Winter School. """
+    this_year = local_now().year
+    return this_year if local_now().month <= 6 else this_year + 1

@@ -24,7 +24,7 @@ from ws.decorators import group_required, user_info_required, admin_only, chairs
 from ws import message_generators
 from ws import tasks
 
-from ws.utils.dates import local_date, friday_before, is_winter_school
+from ws.utils.dates import local_date, friday_before, is_winter_school, ws_year
 import ws.utils.perms as perm_utils
 import ws.utils.signups as signup_utils
 
@@ -744,26 +744,44 @@ class LeaderApplyView(CreateView):
     template_name = "leaders/apply.html"
     model = models.LeaderApplication
     form_class = forms.LeaderApplicationForm
+    success_url = reverse_lazy('home')
 
     @method_decorator(user_info_required)
     def dispatch(self, request, *args, **kwargs):
         return super(LeaderApplyView, self).dispatch(request, *args, **kwargs)
 
+    @property
+    def par(self):
+        return self.request.participant
+
     def form_valid(self, form):
         """ Link the application to the submitting participant. """
         application = form.save(commit=False)
-        application.participant = self.request.participant
+        application.participant = self.par
+        rating = self.par.activity_rating('winter_school', rating_active=False)
+        application.previous_rating = rating or ''
         messages.success(self.request, "Leader application received!")
         return super(LeaderApplyView, self).form_valid(form)
 
-    def get_context_data(self, **kwargs):
-        """ Give next year's value in the context. """
-        context_data = super(LeaderApplyView, self).get_context_data(**kwargs)
-        context_data['year'] = local_date().year + 1
-        return context_data
+    def active_rating(self, after_time=None):
+        """ Return any WS rating created after this application.
 
-    def get_success_url(self):
-        return reverse('home')
+        If a rating was created after the application was submitted, then we'll
+        inform the participant that the WSC responded to their application.
+        """
+        return self.par.activity_rating('winter_school', rating_active=True,
+                                        after_time=after_time)
+
+    def get_context_data(self, **kwargs):
+        """ Get any existing WS application and rating. """
+        context = super(LeaderApplyView, self).get_context_data(**kwargs)
+        context['ws_year'] = year = ws_year()
+        existing = self.model.objects.filter(participant=self.par, year=year)
+        if existing:
+            app = existing.first()
+            context['application'] = app
+            context['rating'] = self.active_rating(after_time=app.time_created)
+        return context
 
 
 class AllLeaderApplicationsView(ListView):
@@ -772,7 +790,8 @@ class AllLeaderApplicationsView(ListView):
     template_name = 'chair/applications/all.html'
 
     def get_queryset(self):
-        applications = super(AllLeaderApplicationsView, self).get_queryset()
+        all_applications = super(AllLeaderApplicationsView, self).get_queryset()
+        applications = all_applications.filter(year=ws_year())
         return applications.select_related('participant')
 
     @method_decorator(group_required('WSC'))

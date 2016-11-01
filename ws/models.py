@@ -118,12 +118,13 @@ class Participant(models.Model):
     def user(self):
         return User.objects.prefetch_related('groups').get(pk=self.user_id)
 
-    def ratings(self, rating_active=True, at_time=None):
+    def ratings(self, rating_active=True, at_time=None, after_time=None):
         """ Return all ratings matching the supplied filters.
 
         rating_active: Only format a rating if it's still active
-        at_time: Only consider the current rating at this time
-                 useful to get past (but not necessarily current) rating
+        at_time:       Only return current ratings before the given time
+                       (useful to get a past, but not necessarily current, rating)
+        after_time:    Only return ratings created after this time
         """
         # (We do this in raw Python instead of `filter()` to avoid n+1 queries
         # This method should be called when leaderrating_set was prefetched
@@ -131,6 +132,8 @@ class Participant(models.Model):
                    if r.active or not rating_active)
         if at_time:
             ratings = (r for r in ratings if r.time_created <= at_time)
+        if after_time:
+            ratings = (r for r in ratings if r.time_created > after_time)
         return ratings
 
     def name_with_rating(self, activity, **kwargs):
@@ -245,12 +248,15 @@ class LeaderRating(models.Model):
 
 
 class LeaderApplication(models.Model):
-    # NOTE: Previous rating is needed during transition to new system
-    # Leave ratings long for miscellaneous comments
-    participant = models.OneToOneField(Participant)
+    """ Application to be a Winter School leader. """
+    participant = models.ForeignKey(Participant)
     time_created = models.DateTimeField(auto_now_add=True)
+    year = models.PositiveIntegerField(validators=[MinValueValidator(2014)],
+                                       default=dateutils.ws_year,
+                                       help_text="Winter School year this application pertains to.")
     previous_rating = models.CharField(max_length=255, blank=True,
                                        help_text="Previous rating (if any)")
+    # Leave ratings long for miscellaneous comments
     desired_rating = models.CharField(max_length=255)
 
     taking_wfa = models.CharField(max_length=10,
@@ -271,7 +277,7 @@ class LeaderApplication(models.Model):
                                          help_text="Any relevant details, such as any limitations on availability on Tue/Thurs nights or weekends during IAP.")
 
     def __unicode__(self):
-        return "{}'s application".format(self.participant)
+        return "{}'s {} application".format(self.participant, self.year)
 
     class Meta:
         ordering = ["id"]

@@ -291,5 +291,5 @@ class AttendedLecturesForm(NgFormValidationMixin, Bootstrap3Form):
 
 class LeaderApplicationForm(DjangularRequiredModelForm):
     class Meta:
-        exclude = ['participant']
+        exclude = ['year', 'participant', 'previous_rating']
         model = models.LeaderApplication
