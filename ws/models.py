@@ -188,13 +188,13 @@ class LeaderRating(models.Model):
     HIKING = 'hiking'
     WINTER_SCHOOL = 'winter_school'
     CLOSED_ACTIVITY_CHOICES = [
-            (BIKING, 'Biking'),
-            (BOATING, 'Boating'),
-            (CABIN, 'Cabin'),
-            (CLIMBING, 'Climbing'),
-            (HIKING, 'Hiking'),
-            (WINTER_SCHOOL, 'Winter School'),
-            ]
+        (BIKING, 'Biking'),
+        (BOATING, 'Boating'),
+        (CABIN, 'Cabin'),
+        (CLIMBING, 'Climbing'),
+        (HIKING, 'Hiking'),
+        (WINTER_SCHOOL, 'Winter School'),
+    ]
     CLOSED_ACTIVITIES = [val for (val, label) in CLOSED_ACTIVITY_CHOICES]
 
     # Activities for which a specific leader rating is not necessary
@@ -203,10 +203,10 @@ class LeaderRating(models.Model):
     OFFICIAL_EVENT = 'official_event'  # Training, films, etc.
     COURSE = 'course'
     OPEN_ACTIVITY_CHOICES = [
-            (CIRCUS, 'Circus'),
-            (OFFICIAL_EVENT, 'Official Event'),
-            (COURSE, 'Course'),
-            ]
+        (CIRCUS, 'Circus'),
+        (OFFICIAL_EVENT, 'Official Event'),
+        (COURSE, 'Course'),
+    ]
 
     OPEN_ACTIVITIES = [val for (val, label) in OPEN_ACTIVITY_CHOICES]
 
