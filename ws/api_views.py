@@ -229,10 +229,11 @@ class JsonAllParticipantsView(ListView):
 
 class JsonAllLeadersView(AllLeadersView):
     def render_to_response(self, context, **response_kwargs):
-        leaders = self.get_queryset()
+        leaders = self.get_queryset()  # Excludes inactive leaders
         activity = self.kwargs['activity']
         if activity:
-            leaders = leaders.filter(leaderrating__activity=activity).distinct()
+            leaders = leaders.filter(leaderrating__activity=activity,
+                                     leaderrating__active=True).distinct()
         ret = [{'name': leader.name, 'id': leader.id,
                 'ratings': list(leader.leaderrating_set.values("activity",
                                                                "rating"))}
@@ -243,10 +244,9 @@ class JsonAllLeadersView(AllLeadersView):
 
 @login_required
 def get_rating(request, pk, activity):
-    query = Q(participant__pk=pk, activity=activity)
-    lr = models.LeaderRating.objects.filter(query).first()
-    resp = {'rating': lr.rating, 'notes': lr.notes} if lr else {}
-    return JsonResponse(resp)
+    query = Q(participant__pk=pk, activity=activity, active=True)
+    lr = models.LeaderRating.objects.filter(query).values('rating', 'notes')
+    return JsonResponse(lr[0] if lr else {})
 
 
 class UserView(DetailView):

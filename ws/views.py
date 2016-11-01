@@ -371,7 +371,7 @@ class ParticipantView(ParticipantLookupView, SingleObjectMixin, LotteryPairingMi
         if not user_viewing:
             feedback = participant.feedback_set.select_related('trip', 'leader')
             context['all_feedback'] = feedback
-        context['ratings'] = participant.leaderrating_set.all()
+        context['ratings'] = participant.ratings(rating_active=True)
         chair_activities = set(perm_utils.chair_activities(user))
         context['chair_activities'] = [label for (activity, label) in models.LeaderRating.ACTIVITY_CHOICES
                                        if activity in chair_activities]
@@ -723,6 +723,7 @@ class AllLeadersView(ListView):
     template_name = 'leaders/all.html'
 
     def get_queryset(self):
+        """ Returns all leaders with active ratings. """
         return models.Participant.leaders.get_queryset()
 
     def get_context_data(self, **kwargs):
@@ -834,34 +835,62 @@ class LeaderApplicationView(DetailView):
         return super(LeaderApplicationView, self).dispatch(request, *args, **kwargs)
 
 
-# TODO: Convert to CreateView
-@chairs_only()
-def manage_leaders(request):
-    """ Create a leader rating for an existing Participant. """
-    sudo_ok = True
-    if request.method == "POST":
-        form = forms.LeaderForm(request.POST)
-        if form.is_valid():
-            activity = form.cleaned_data['activity']
-            participant = form.cleaned_data['participant']
-            find_rating = Q(participant__pk=participant.pk, activity=activity)
-            existing = models.LeaderRating.objects.filter(find_rating).first()
-            if existing:
-                form = forms.LeaderForm(request.POST, instance=existing)
-            if not perm_utils.is_chair(request.user, activity, sudo_ok):
-                not_chair = "You cannot assign {} ratings".format(activity)
-                form.add_error("activity", not_chair)
-            else:
-                form.save()
-                messages.success(request, 'Added rating')
-    else:
-        # Regardless of success, empty form for quick addition of another
-        allowed_activities = perm_utils.chair_activities(request.user, sudo_ok)
-        kwargs = {'allowed_activities': allowed_activities}
+class ManageLeadersView(CreateView):
+    form_class = forms.LeaderForm
+    template_name = 'chair/leaders.html'
+    success_url = reverse_lazy('manage_leaders')
+
+    @property
+    def allowed_activities(self):
+        return perm_utils.chair_activities(self.request.user, True)
+
+    def deactivate_ratings(participant, activity):
+        """ Mark any existing ratings for the activity as inactive. """
+        find_ratings = {'participant__pk': participant.pk,
+                        'activity': activity,
+                        'active': True}
+        for existing in models.LeaderRating.objects.filter(Q(**find_ratings)):
+            existing.active = False
+            existing.save()
+
+    def get_form_kwargs(self):
+        kwargs = super(ManageLeadersView, self).get_form_kwargs()
+        kwargs['allowed_activities'] = self.allowed_activities
+        return kwargs
+
+    def get_initial(self):
+        initial = super(ManageLeadersView, self).get_initial().copy()
+        allowed_activities = self.allowed_activities
         if len(allowed_activities) == 1:
-            kwargs['initial'] = {'activity': allowed_activities[0]}
-        form = forms.LeaderForm(**kwargs)
-    return render(request, 'chair/leaders.html', {'leader_form': form})
+            initial['activity'] = allowed_activities[0]
+        return initial
+
+    def form_valid(self, form):
+        """ Ensure the leader can assign ratings, then apply assigned rating.
+
+        Any existing ratings for this activity will be marked as inactive.
+        """
+        activity = form.cleaned_data['activity']
+        participant = form.cleaned_data['participant']
+
+        # Sanity check on ratings (form hides dissallowed activities)
+        if not perm_utils.is_chair(self.request.user, activity, True):
+            not_chair = "You cannot assign {} ratings".format(activity)
+            form.add_error("activity", not_chair)
+            return self.form_invalid(form)
+
+        self.deactivate_ratings(participant, activity)
+
+        rating = form.save(commit=False)
+        rating.creator = self.request.participant
+
+        msg = "Gave {} rating of '{}'".format(participant, rating.rating)
+        messages.success(self.request, msg)
+        return super(ManageLeadersView, self).form_valid(form)
+
+    @method_decorator(chairs_only())
+    def dispatch(self, request, *args, **kwargs):
+        return super(ManageLeadersView, self).dispatch(request, *args, **kwargs)
 
 
 def _manage_trips(request, TripFormSet):

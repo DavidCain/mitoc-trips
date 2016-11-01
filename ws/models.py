@@ -70,7 +70,7 @@ class EmergencyInfo(models.Model):
 class LeaderManager(models.Manager):
     def get_queryset(self):
         all_participants = super(LeaderManager, self).get_queryset()
-        leaders = all_participants.exclude(leaderrating=None)
+        leaders = all_participants.filter(leaderrating__active=True).distinct()
         return leaders.prefetch_related('leaderrating_set')
 
 
@@ -118,24 +118,38 @@ class Participant(models.Model):
     def user(self):
         return User.objects.prefetch_related('groups').get(pk=self.user_id)
 
-    def name_with_rating(self, activity):
-        rating = self.activity_rating(activity)
-        return "{} ({})".format(self.name, rating) if rating else self.name
+    def ratings(self, rating_active=True, at_time=None):
+        """ Return all ratings matching the supplied filters.
 
-    def activity_rating(self, activity):
-        """ Return leader's rating for the given activity (if one exists)."""
+        rating_active: Only format a rating if it's still active
+        at_time: Only consider the current rating at this time
+                 useful to get past (but not necessarily current) rating
+        """
         # (We do this in raw Python instead of `filter()` to avoid n+1 queries
         # This method should be called when leaderrating_set was prefetched
-        for rating in self.leaderrating_set.all():
-            if rating.activity == activity:
-                return rating.rating
-        return None
+        ratings = (r for r in self.leaderrating_set.all()
+                   if r.active or not rating_active)
+        if at_time:
+            ratings = (r for r in ratings if r.time_created <= at_time)
+        return ratings
+
+    def name_with_rating(self, activity, **kwargs):
+        rating = self.activity_rating(activity, **kwargs)
+        return "{} ({})".format(self.name, rating) if rating else self.name
+
+    def activity_rating(self, activity, **kwargs):
+        """ Return leader's rating for the given activity (if one exists). """
+        ratings = [r for r in self.ratings(**kwargs) if r.activity == activity]
+        if not ratings:
+            return None
+        return max(ratings, key=lambda rating: rating.time_created).rating
 
     @property
     def allowed_activities(self):
-        rated = [rating.activity for rating in self.leaderrating_set.all()]
-        if rated:
-            return rated + LeaderRating.OPEN_ACTIVITIES
+        active_ratings = self.leaderrating_set.filter(active=True)
+        activities = active_ratings.values_list('activity', flat=True)
+        if activities:
+            return list(activities) + LeaderRating.OPEN_ACTIVITIES
         else:  # Not a MITOC leader, can't lead anything
             return []
 
@@ -143,7 +157,7 @@ class Participant(models.Model):
         """ Can participant lead trips of the given activity type. """
         if activity in LeaderRating.OPEN_ACTIVITIES and self.is_leader:
             return True
-        return self.leaderrating_set.filter(activity=activity).exists()
+        return self.leaderrating_set.filter(activity=activity, active=True).exists()
 
     @property
     def is_leader(self):
@@ -151,7 +165,7 @@ class Participant(models.Model):
 
         Wnen dealing with Users, it's faster to use utils.perms.is_leader
         """
-        return self.leaderrating_set.exists()
+        return self.leaderrating_set.filter(active=True).exists()
 
     @property
     def email_addr(self):
@@ -213,6 +227,10 @@ class LeaderRating(models.Model):
     ACTIVITIES = CLOSED_ACTIVITIES + OPEN_ACTIVITIES
     ACTIVITY_CHOICES = CLOSED_ACTIVITY_CHOICES + OPEN_ACTIVITY_CHOICES
 
+    # Actual model definition
+    creator = models.ForeignKey(Participant, related_name='ratings_created')
+    time_created = models.DateTimeField(auto_now_add=True)
+    active = models.BooleanField(default=True)
     participant = models.ForeignKey(Participant)
     activity = models.CharField(max_length='31',
                                 choices=ACTIVITY_CHOICES)
@@ -467,7 +485,16 @@ class Trip(models.Model):
             raise ValidationError("Trips cannot open after they close.")
 
     def leaders_with_rating(self):
-        return [leader.name_with_rating(self.activity)
+        """ All leaders with the rating they had at the time of the trip.
+
+        Note: Some leaders from Winter School 2014 or 2015 may not have any
+        ratings. In those years, we deleted all Winter School ratings at the
+        end of the season (so leaders who did not return the next year lost
+        their ratings).
+        """
+        # Give all ratings at the time of the trip, including inactive ratings
+        kwargs = {'at_time': self.midnight_before, 'rating_active': False}
+        return [leader.name_with_rating(self.activity, **kwargs)
                 for leader in self.leaders.all()]
 
     class Meta:

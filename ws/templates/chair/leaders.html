@@ -2,16 +2,15 @@
 
 {% block head %}
 {{ block.super }}
-{{ leader_form.media }}
 {% endblock head %}
 
 {% block content %}
 {{ block.super }}
 
 <h2>Create or update leader ratings</h2>
-<form ng-controller="leaderRating" name="{{ leader_form.form_name }}" method="post" action="." novalidate data-submit-if-valid>
-    {% csrf_token %}
-    {{ leader_form.as_div }}
-    <button type="submit" class="btn btn-primary">Submit</button>
+<form ng-controller="leaderRating" name="{{ form.form_name }}" method="post" action="." novalidate data-submit-if-valid>
+  {% csrf_token %}
+  {{ form.as_div }}
+  <button type="submit" class="btn btn-primary">Submit</button>
 </form>
 {% endblock content %}
