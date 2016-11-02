@@ -820,17 +820,23 @@ class LeaderApplicationView(DetailView):
         """ Add on a form to assign/modify leader permissions. """
         context_data = super(LeaderApplicationView, self).get_context_data(**kwargs)
         application = self.get_object()
-        kwargs = {'initial': {'participant': application.participant}}
+        participant = application.participant
+        kwargs = {'initial': {'participant': participant}}
         chair_activities = perm_utils.chair_activities(self.request.user)
         if chair_activities:
             kwargs['allowed_activities'] = chair_activities
             if len(chair_activities) == 1:
-                self.pre_fill_form(kwargs, chair_activities[0], application.participant)
+                self.pre_fill_form(kwargs, chair_activities[0], participant)
 
         leader_form = forms.LeaderForm(**kwargs)
         # TODO: Ensure only one leader rating exists per activity type
         leader_form.fields['participant'].widget = HiddenInput()
         context_data['leader_form'] = leader_form
+
+        # WSC can see all feedback
+        feedback = models.Feedback.everything.filter(participant=participant)
+        context_data['all_feedback'] = feedback
+
         return context_data
 
     def post(self, request, *args, **kwargs):

@@ -1,44 +1,68 @@
 {% extends "messages_page.html" %}
+{% load gravatar %}
+{% load trip_tags %}
 
 {% block content %}
 {{ block.super }}
 
-<h2> Leader Application for <a href="{% url 'view_participant' application.participant.id %}">{{ application.participant.name }}</a></h2>
-<dl class="dl-horizontal">
-    <dt>Previous rating:</dt>
-    <dd>{{ application.previous_rating|default:None }}</dd>
-    <dt>Desired rating:</dt>
-    <dd>{{ application.desired_rating }}</dd>
-    <dt>Taking WFA:</dt>
-    <dd>{{ application.taking_wfa }}</dd>
-</dl>
+<div class="row">
+  <div class="col-md-6">
 
-<dl>
-{% if application.training %}
-<dt>Formal training and qualifications</dt>
-<dd>{{ application.training|linebreaks }}</dd>
-{% endif %}
+<div class="media">
+  <div class="media-left">
+    <div class="media-object">
+      <div class="profile-photo">
+        {{ application.participant.email|gravatar:100 }}
+      </div>
+    </div>
+  </div>
+  <div class="media-body">
+    <h2 class="media-heading">
+      <a href="{% url 'view_participant' application.participant.id %}">{{ application.participant.name }}</a>
+    </h2>
+    <dl class="dl-horizontal">
+      <dt>Previous rating:</dt>
+      <dd>{{ application.previous_rating|default:None }}</dd>
+      <dt>Desired rating:</dt>
+      <dd>{{ application.desired_rating }}</dd>
+      <dt>Taking WFA:</dt>
+      <dd>{{ application.taking_wfa }}</dd>
+    </dl>
+  </div>
+</div>
 
-{% if application.winter_experience %}
-<dt>Winter experience</dt>
-<dd>{{ application.winter_experience|linebreaks }}</dd>
-{% endif %}
+    <dl>
+      {% if application.training %}
+        <dt>Formal training and qualifications</dt>
+        <dd>{{ application.training|linebreaks }}</dd>
+      {% endif %}
 
-{% if application.other_experience %}
-<dt>Other outdoors/leadership experience</dt>
-<dd>{{ application.other_experience|linebreaks }}</dd>
-{% endif %}
+      {% if application.winter_experience %}
+        <dt>Winter experience</dt>
+        <dd>{{ application.winter_experience|linebreaks }}</dd>
+      {% endif %}
 
-{% if application.notes_or_comments %}
-<dt>Notes or comments</dt>
-<dd>{{ application.notes_or_comments|linebreaks }}</dd>
-{% endif %}
-<dl>
+      {% if application.other_experience %}
+        <dt>Other outdoors/leadership experience</dt>
+        <dd>{{ application.other_experience|linebreaks }}</dd>
+      {% endif %}
 
-<h2>Leader rating</h2>
-<form name="{{ leader_form.form_name }}" method="post" action="." novalidate data-ng-controller="leaderRating" data-submit-if-valid>
-    {% csrf_token %}
-    {{ leader_form.as_div }}
-    <button type="submit" class="btn btn-primary">Submit</button>
-</form>
+      {% if application.notes_or_comments %}
+        <dt>Notes or comments</dt>
+        <dd>{{ application.notes_or_comments|linebreaks }}</dd>
+      {% endif %}
+    <dl>
+
+    <h2>Leader rating</h2>
+    <form name="{{ leader_form.form_name }}" method="post" action="." novalidate data-ng-controller="leaderRating" data-submit-if-valid>
+      {% csrf_token %}
+      {{ leader_form.as_div }}
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+  </div>
+
+  <div class="col-md-6">
+    {% feedback_table all_feedback %}
+  </div>
+</div>
 {% endblock content %}
