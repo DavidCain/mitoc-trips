@@ -22,8 +22,8 @@ Lookup participant
     </div>
     {% if user.is_superuser and participant %}
       <div class="col-sm-4 text-right">
-          <a type="button" class="btn btn-default" href="{% url 'edit_participant' participant.id %}"><i class="fa fa-edit"></i>&nbsp;Edit</a>
-          <delete data-api-slug="participants" data-obj-id="{{ participant.id }}"></delete>
+        <a type="button" class="btn btn-default" href="{% url 'edit_participant' participant.id %}"><i class="fa fa-edit"></i>&nbsp;Edit</a>
+        <delete data-api-slug="participants" data-obj-id="{{ participant.id }}"></delete>
       </div>
     {% endif %}
   </div>
@@ -101,7 +101,7 @@ Lookup participant
     <div class="row">
       {% if user_viewing %}
         <div class="col-sm-6">
-            <h3><i class="fa fa-medkit"></i> Medical </h3>
+          <h3><i class="fa fa-medkit"></i> Medical </h3>
           {% readonly_form emergency_info_form %}
 
           <h4> Emergency Contact </h4>
@@ -126,32 +126,8 @@ Lookup participant
       </div>
 
       {% if not user_viewing %}
-      <div class="{{ all_feedback|yesno:'col-md-12, col-sm-6' }}">
-          <h3 id='feedback'><i class="fa fa-comments"></i> Feedback </h3>
-          {% if not all_feedback %}
-          <p>None available.</p>
-          {% else %}
-          <table class="footable">
-            <thead>
-              <tr>
-                <th data-sort-ignore="true">Comments</th>
-                <th data-hide="phone" class="nowrap">Leader</th>
-                <th data-hide="phone" class="nowrap">Showed</th>
-                <th>Trip</th>
-              </tr>
-            </thead>
-            {% for feedback in all_feedback %}
-            <tbody>
-              <tr>
-                <td>{{ feedback.comments }}</td>
-                <td><a href="{% url 'view_participant' feedback.leader.id %}">{{ feedback.leader|name_with_rating:feedback.trip }}</a></td>
-                <td>{{ feedback.showed_up|yesno }}</td>
-                <td>{% if feedback.trip %}<a href="{% url 'view_trip' feedback.trip.id %}">{{ feedback.trip|truncatechars:45 }}{% endif %}</a></td>
-              </tr>
-            </tbody>
-            {% endfor %}
-          </table>
-          {% endif %}
+        <div class="{{ all_feedback|yesno:'col-md-12, col-sm-6' }}">
+          {% feedback_table all_feedback %}
         </div>
       {% endif %}
     </div>

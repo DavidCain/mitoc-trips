@@ -15,6 +15,11 @@ def trip_list_table(trip_list):
     return {'trip_list': trip_list}
 
 
+@register.inclusion_tag('for_templatetags/feedback_table.html')
+def feedback_table(all_feedback):
+    return {'all_feedback': all_feedback}
+
+
 @register.filter
 def name_with_rating(leader, trip):
     """ Give the leader's name plus rating at the time of the trip. """

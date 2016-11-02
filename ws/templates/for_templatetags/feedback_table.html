@@ -1,0 +1,40 @@
+{% load trip_tags %}
+
+<h3 id='feedback'><i class="fa fa-comments"></i> Feedback </h3>
+{% if not all_feedback %}
+  <p>None available.</p>
+{% else %}
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Comments</th>
+        <th>Leader &amp; Trip</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for feedback in all_feedback %}
+      <tr {% if not feedback.showed_up %}class="danger"{% endif %}>
+        <td>
+          {% if not feedback.showed_up %}
+            <span class="label label-danger">Flaked!</span>
+          {% endif %}
+
+          {{ feedback.comments }}
+        </td>
+        <td>
+          <span class="nowrap">
+          <a href="{% url 'view_participant' feedback.leader.id %}">{{ feedback.leader|name_with_rating:feedback.trip }}</a>
+          </span>
+          {% if feedback.trip %}
+          <div class="text-right">
+            <small>
+              <em><a href="{% url 'view_trip' feedback.trip.id %}">{{ feedback.trip }}</a></em>
+            </small>
+          </div>
+          {% endif %}
+        </td>
+      </tr>
+    </tbody>
+    {% endfor %}
+  </table>
+{% endif %}
