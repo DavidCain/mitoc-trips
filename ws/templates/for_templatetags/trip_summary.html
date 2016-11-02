@@ -8,14 +8,14 @@
       <dd>
         {% for leader in trip.leaders.all %}
           {% if show_emails %}<a href="mailto:{{ leader.email }}">{% endif %}
-          {{ leader|name_with_activity:trip.activity }}{% if show_emails %}</a>{% endif %}{% if not forloop.last %}, {% endif %}
+          {{ leader|name_with_rating:trip }}{% if show_emails %}</a>{% endif %}{% if not forloop.last %}, {% endif %}
         {% endfor %}
       </dd>
     {% else %}
       <dt>Creator</dt>
       <dd>
         {% if show_emails %}<a href="mailto:{{ trip.creator.email }}">{% endif %}
-        {{ trip.creator|name_with_activity:trip.activity }}
+        {{ trip.creator|name_with_rating:trip }}
         {% if show_emails %}</a>{% endif %}
       </dd>
     {% endif %}

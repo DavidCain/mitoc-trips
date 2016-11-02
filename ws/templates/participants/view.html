@@ -125,7 +125,6 @@ Lookup participant
         {% endif %}
       </div>
 
-
       {% if not user_viewing %}
       <div class="{{ all_feedback|yesno:'col-md-12, col-sm-6' }}">
           <h3 id='feedback'><i class="fa fa-comments"></i> Feedback </h3>
@@ -145,7 +144,7 @@ Lookup participant
             <tbody>
               <tr>
                 <td>{{ feedback.comments }}</td>
-                <td><a href="{% url 'view_participant' feedback.leader.id %}">{{ feedback.leader|name_with_activity:feedback.trip.activity }}</a></td>
+                <td><a href="{% url 'view_participant' feedback.leader.id %}">{{ feedback.leader|name_with_rating:feedback.trip }}</a></td>
                 <td>{{ feedback.showed_up|yesno }}</td>
                 <td>{% if feedback.trip %}<a href="{% url 'view_trip' feedback.trip.id %}">{{ feedback.trip|truncatechars:45 }}{% endif %}</a></td>
               </tr>

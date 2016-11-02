@@ -136,8 +136,18 @@ class Participant(models.Model):
             ratings = (r for r in ratings if r.time_created > after_time)
         return ratings
 
-    def name_with_rating(self, activity, **kwargs):
-        rating = self.activity_rating(activity, **kwargs)
+    def name_with_rating(self, trip):
+        """ Give the leader's name plus rating at the time of the trip.
+
+        Note: Some leaders from Winter School 2014 or 2015 may not have any
+        ratings. In those years, we deleted all Winter School ratings at the
+        end of the season (so leaders who did not return the next year lost
+        their ratings).
+
+        If no rating is found, simply the name will be given.
+        """
+        kwargs = {'at_time': trip.midnight_before, 'rating_active': False}
+        rating = self.activity_rating(trip.activity, **kwargs)
         return "{} ({})".format(self.name, rating) if rating else self.name
 
     def activity_rating(self, activity, **kwargs):
@@ -491,17 +501,8 @@ class Trip(models.Model):
             raise ValidationError("Trips cannot open after they close.")
 
     def leaders_with_rating(self):
-        """ All leaders with the rating they had at the time of the trip.
-
-        Note: Some leaders from Winter School 2014 or 2015 may not have any
-        ratings. In those years, we deleted all Winter School ratings at the
-        end of the season (so leaders who did not return the next year lost
-        their ratings).
-        """
-        # Give all ratings at the time of the trip, including inactive ratings
-        kwargs = {'at_time': self.midnight_before, 'rating_active': False}
-        return [leader.name_with_rating(self.activity, **kwargs)
-                for leader in self.leaders.all()]
+        """ All leaders with the rating they had at the time of the trip. """
+        return [leader.name_with_rating(self) for leader in self.leaders.all()]
 
     class Meta:
         ordering = ["-trip_date", "-time_created"]
