@@ -6,6 +6,8 @@ import os
 DEBUG = False
 TEMPLATE_DEBUG = False
 ALLOWED_HOSTS = ['trips.mitoc.org', 'mitoc-trips.mit.edu']
+if os.getenv('EC2_IP'):
+    ALLOWED_HOSTS.append(os.environ['EC2_IP'])
 
 ADMINS = (('David Cain', 'davidjosephcain@gmail.com'),)
 
