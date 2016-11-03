@@ -760,6 +760,7 @@ class LeaderApplyView(CreateView):
         """ Link the application to the submitting participant. """
         application = form.save(commit=False)
         application.participant = self.par
+        application.activity = 'winter_school'  # Applications only WS for now
         rating = self.par.activity_rating('winter_school', rating_active=False)
         application.previous_rating = rating or ''
         messages.success(self.request, "Leader application received!")

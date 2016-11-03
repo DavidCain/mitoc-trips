@@ -260,6 +260,10 @@ class LeaderRating(models.Model):
 class LeaderApplication(models.Model):
     """ Application to be a Winter School leader. """
     participant = models.ForeignKey(Participant)
+    # We'll eventually use this application for all activities
+    activity = models.CharField(max_length='31',
+                                choices=LeaderRating.ACTIVITY_CHOICES,
+                                default=LeaderRating.WINTER_SCHOOL)
     time_created = models.DateTimeField(auto_now_add=True)
     year = models.PositiveIntegerField(validators=[MinValueValidator(2014)],
                                        default=dateutils.ws_year,
