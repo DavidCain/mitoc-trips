@@ -53,11 +53,37 @@
       {% endif %}
     <dl>
 
-    <h2>Leader rating</h2>
-    <form name="{{ leader_form.form_name }}" method="post" action="." novalidate data-ng-controller="leaderRating" data-submit-if-valid>
+    {% if recommendations %}
+      <h3>Recommendations</h3>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Leader</th>
+            <th>Rating</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for rec in recommendations %}
+            <tr>
+              <td>{{ rec.creator }}</td>
+              <td>{{ rec.rating }}</td>
+              <td>{{ rec.notes }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <hr>
+    {% endif %}
+
+    <h2>Create or Recommend Rating</h2>
+    <form name="{{ leader_form.form_name }}" method="post" action="." novalidate data-submit-if-valid>
       {% csrf_token %}
       {{ leader_form.as_div }}
-      <button type="submit" class="btn btn-primary">Submit</button>
+      <button type="submit" class="btn btn-primary"
+          data-ng-bind="'Create ' + (recommendation ? 'Recommendation' : 'Rating')">
+          Create Rating{# Hack to avoid the flicker without ng-cloak #}
+      </button>
     </form>
   </div>
 

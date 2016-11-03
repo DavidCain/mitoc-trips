@@ -8,6 +8,7 @@ from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.forms.models import modelformset_factory
 from django.forms import HiddenInput
+from django.forms.models import model_to_dict
 from django.forms.utils import ErrorList
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.shortcuts import render, redirect
@@ -15,6 +16,7 @@ from django.utils.decorators import method_decorator
 from django.views.generic import (CreateView, DetailView, DeleteView, FormView,
                                   ListView, TemplateView, UpdateView, View)
 from django.views.generic.detail import SingleObjectMixin
+from django.views.generic.edit import FormMixin
 
 from allauth.account.views import PasswordChangeView
 
@@ -26,6 +28,7 @@ from ws import tasks
 
 from ws.utils.dates import local_date, friday_before, is_winter_school, ws_year
 import ws.utils.perms as perm_utils
+from ws.utils.ratings import deactivate_ratings
 import ws.utils.signups as signup_utils
 
 
@@ -802,64 +805,97 @@ class AllLeaderApplicationsView(ListView):
         return super(AllLeaderApplicationsView, self).dispatch(request, *args, **kwargs)
 
 
-class LeaderApplicationView(DetailView):
+class LeaderApplicationView(FormMixin, DetailView):
+    """ Handle applications by participants to become leaders. """
     model = models.LeaderApplication
+    form_class = forms.ApplicationLeaderForm
+    success_url = reverse_lazy('manage_applications')
     context_object_name = 'application'
     template_name = 'chair/applications/view.html'
 
-    def existing_rating(self, activity, participant):
-        find_rating = Q(participant__pk=participant.pk, activity=activity)
+    def existing_rating(self):
+        find_rating = Q(participant=self.object.participant,
+                        activity=self.object.activity,
+                        active=True)
         return models.LeaderRating.objects.filter(find_rating).first()
 
-    def pre_fill_form(self, kwargs, activity, participant):
-        kwargs['initial']['activity'] = activity
-        existing = self.existing_rating(activity, participant)
+    def existing_rec(self):
+        """ Load an existing recommendation for the viewing participant. """
+        find_rec = Q(creator=self.request.participant,
+                     participant=self.object.participant,
+                     activity=self.object.activity)
+        return models.LeaderRecommendation.objects.filter(find_rec).first()
+
+    def get_initial(self):
+        """ Load an existing rating if one exists.
+
+        Because these applications are supposed to be done with leaders that
+        have no active rating in the activity, this should almost always be
+        blank.
+        """
+        existing = self.existing_rating()
         if existing:
-            kwargs['initial']['notes'] = existing.notes
+            return {'rating': existing.rating, 'notes': existing.notes}
+        return {}
+
+    def get_recommendations(self):
+        """ Get recommendations made by other leaders or chairs. """
+        this_app = Q(participant=self.object.participant,
+                     activity=self.object.activity)
+        return models.LeaderRecommendation.objects.filter(this_app)
+
+    def get_feedback(self):
+        """ Return all feedback (chairs can see everything). """
+        return models.Feedback.everything.filter(participant=self.object.participant)
 
     def get_context_data(self, **kwargs):
-        """ Add on a form to assign/modify leader permissions. """
-        context_data = super(LeaderApplicationView, self).get_context_data(**kwargs)
-        application = self.get_object()
-        participant = application.participant
-        kwargs = {'initial': {'participant': participant}}
-        chair_activities = perm_utils.chair_activities(self.request.user)
-        if chair_activities:
-            kwargs['allowed_activities'] = chair_activities
-            if len(chair_activities) == 1:
-                self.pre_fill_form(kwargs, chair_activities[0], participant)
+        # Super calls DetailView's `get_context_data` so we'll manually add form
+        context = super(LeaderApplicationView, self).get_context_data(**kwargs)
+        context['recommendations'] = self.get_recommendations()
+        context['leader_form'] = self.get_form()
+        context['all_feedback'] = self.get_feedback()
+        return context
 
-        leader_form = forms.LeaderForm(**kwargs)
-        # TODO: Ensure only one leader rating exists per activity type
-        leader_form.fields['participant'].widget = HiddenInput()
-        context_data['leader_form'] = leader_form
+    def form_valid(self, form):
+        """ Save the rating as a recommendation or a binding rating. """
+        rating = form.save(commit=False)
+        rating.creator = self.request.participant
+        rating.participant = self.object.participant
+        rating.activity = self.object.activity
 
-        # WSC can see all feedback
-        feedback = models.Feedback.everything.filter(participant=participant)
-        context_data['all_feedback'] = feedback
+        is_rec = form.cleaned_data['recommendation']
+        if is_rec:
+            # Hack to convert the (unsaved) rating to a recommendation
+            # (Both models have the exact same fields)
+            rec = forms.LeaderRecommendationForm(model_to_dict(rating),
+                                                 instance=self.existing_rec())
+            rec.save()
+        else:
+            deactivate_ratings(rating.participant, rating.activity)
+            rating.save()
 
-        return context_data
+        fmt = {'verb': "Recommended" if is_rec else "Created",
+               'rating': rating.rating, 'participant': rating.participant.name}
+        msg = "{verb} {rating} rating for {participant}".format(**fmt)
+        messages.success(self.request, msg)
+
+        return super(LeaderApplicationView, self).form_valid(form)
 
     def post(self, request, *args, **kwargs):
-        """ Save a rating for the leader. """
-        leader_form = forms.LeaderForm(request.POST)
+        """ Create the leader's rating, redirect to other applications. """
+        self.object = self.get_object()
+        form = self.get_form()
 
-        if leader_form.is_valid():
-            activity, participant = (leader_form.cleaned_data['activity'],
-                                     leader_form.cleaned_data['participant'])
-            existing = self.existing_rating(activity, participant)
-            leader_form = forms.LeaderForm(request.POST, instance=existing)
-            leader_form.save()
-            leader = leader_form.instance
-            update_msg = "{} given {} rating".format(leader.participant.name,
-                                                     leader.rating)
-            messages.success(request, update_msg)
-            return redirect(reverse('manage_applications'))
-        else:  # Any miscellaneous error form could possibly produce
-            return render(request, 'chair/leaders.html', {'leader_form': leader_form})
+        if form.is_valid():
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
 
-    @method_decorator(group_required('WSC'))
+    @method_decorator(chairs_only())
     def dispatch(self, request, *args, **kwargs):
+        """ Redirect if anonymous, but deny permission if not a chair. """
+        if not perm_utils.is_chair(request.user, self.get_object().activity):
+            raise PermissionDenied
         return super(LeaderApplicationView, self).dispatch(request, *args, **kwargs)
 
 
@@ -871,15 +907,6 @@ class ManageLeadersView(CreateView):
     @property
     def allowed_activities(self):
         return perm_utils.chair_activities(self.request.user, True)
-
-    def deactivate_ratings(participant, activity):
-        """ Mark any existing ratings for the activity as inactive. """
-        find_ratings = {'participant__pk': participant.pk,
-                        'activity': activity,
-                        'active': True}
-        for existing in models.LeaderRating.objects.filter(Q(**find_ratings)):
-            existing.active = False
-            existing.save()
 
     def get_form_kwargs(self):
         kwargs = super(ManageLeadersView, self).get_form_kwargs()
@@ -907,7 +934,7 @@ class ManageLeadersView(CreateView):
             form.add_error("activity", not_chair)
             return self.form_invalid(form)
 
-        self.deactivate_ratings(participant, activity)
+        deactivate_ratings(participant, activity)
 
         rating = form.save(commit=False)
         rating.creator = self.request.participant

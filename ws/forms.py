@@ -88,7 +88,28 @@ class EmergencyInfoForm(DjangularRequiredModelForm):
         widgets = {'medical_history': forms.Textarea(attrs={'rows': 5})}
 
 
+class LeaderRecommendationForm(forms.ModelForm):
+    class Meta:
+        model = models.LeaderRecommendation
+        exclude = []
+
+
+class ApplicationLeaderForm(DjangularRequiredModelForm):
+    """ Form for assigning a rating from a leader application.
+
+    Since the participant and activity are given by the application itself,
+    we need not include those an options in the form.
+    """
+    recommendation = forms.BooleanField(required=False, label="Mark as recommendation (non-binding)")
+
+    class Meta:
+        model = models.LeaderRating
+        fields = ['rating', 'notes']
+        widgets = {'notes': forms.Textarea(attrs={'rows': 4})}
+
+
 class LeaderForm(DjangularRequiredModelForm):
+    """ Allows assigning a rating to participants in any allowed activity. """
     def __init__(self, *args, **kwargs):
         allowed_activities = kwargs.pop("allowed_activities", None)
         super(LeaderForm, self).__init__(*args, **kwargs)

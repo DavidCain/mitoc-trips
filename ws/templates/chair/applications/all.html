@@ -1,4 +1,5 @@
 {% extends "messages_page.html" %}
+{% load trip_tags %}
 {% block head_title %}Leader applications {% endblock head_title %}
 
 {% block content %}
@@ -6,28 +7,29 @@
 
 <h2> Leader Applications </h2>
 {% if not leader_applications %}
-<p>No leader applications.</p>
+  <div class="alert alert-info">No leader applications.</div>
 {% else %}
-<table class="footable">
+  <table class="footable">
     <thead>
-        <tr>
-            <th>Name</th>
-            <th data-hide="phone">Past rating</th>
-            <th>Desired rating</th>
-            <th data-hide="phone">Assigned rating</th>
-        </tr>
+      <tr>
+        <th>Name</th>
+        <th data-hide="phone">Past rating</th>
+        <th>Desired rating</th>
+        <th data-hide="phone">Assigned rating</th>
+      </tr>
     </thead>
     <tbody>
-        {% for application in leader_applications %}
+      {% for application in leader_applications %}
         <tr>
-            <td>  <a href="{% url 'view_application' application.id %}">{{ application.participant.name }}</a></td>
-            <td>{{ application.previous_rating }}</td>
-            <td>{{ application.desired_rating }}</td>
-            <td>{{ application.participant.leader.rating }}</td>
+          <td><a href="{% url 'view_application' application.id %}">{{ application.participant.name }}</a></td>
+          <td>{{ application.previous_rating }}</td>
+          <td>{{ application.desired_rating }}</td>
+          <td>{{ application.participant|activity_rating:application.activity }}</td>
         </tr>
-        {% endfor %}
+      {% endfor %}
     </tbody>
 
-</table>
+  </table>
 {% endif %}
+
 {% endblock content %}

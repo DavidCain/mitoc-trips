@@ -196,17 +196,7 @@ class Participant(models.Model):
         ordering = ['name', 'email']
 
 
-class LeaderRating(models.Model):
-    """ A leader is just a participant with ratings for at least one activity type.
-
-    The same personal + emergency information is required of leaders, but
-    additional fields are present. So, we keep a Participant record for any
-    leader. This makes it easy to check if any participant is a leader (just
-    see `participant.ratings`) and easy to promote somebody to leader.
-
-    It also allows leaders to function as participants (e.g. if a "SC" leader
-    wants to go ice climbing).
-    """
+class BaseRating(models.Model):
     # Activities where you must be rated in order to create/lead a trip
     BIKING = 'biking'
     BOATING = 'boating'
@@ -240,21 +230,37 @@ class LeaderRating(models.Model):
     ACTIVITIES = CLOSED_ACTIVITIES + OPEN_ACTIVITIES
     ACTIVITY_CHOICES = CLOSED_ACTIVITY_CHOICES + OPEN_ACTIVITY_CHOICES
 
-    # Actual model definition
-    creator = models.ForeignKey(Participant, related_name='ratings_created')
     time_created = models.DateTimeField(auto_now_add=True)
-    active = models.BooleanField(default=True)
     participant = models.ForeignKey(Participant)
-    activity = models.CharField(max_length='31',
-                                choices=ACTIVITY_CHOICES)
+    activity = models.CharField(max_length='31', choices=ACTIVITY_CHOICES)
     rating = models.CharField(max_length=31)
     notes = models.TextField(max_length=500, blank=True)  # Contingencies, etc.
 
     def __unicode__(self):
-        return unicode(self.participant)
+        return "{} ({}, {})".format(self.participant, self.rating, self.activity)
 
     class Meta:
+        abstract = True
         ordering = ["participant"]
+
+
+class LeaderRating(BaseRating):
+    """ A leader is just a participant with ratings for at least one activity type.
+
+    The same personal + emergency information is required of leaders, but
+    additional fields are present. So, we keep a Participant record for any
+    leader. This makes it easy to check if any participant is a leader (just
+    see `participant.ratings`) and easy to promote somebody to leader.
+
+    It also allows leaders to function as participants (e.g. if a "SC" leader
+    wants to go ice climbing).
+    """
+    creator = models.ForeignKey(Participant, related_name='ratings_created')
+    active = models.BooleanField(default=True)
+
+
+class LeaderRecommendation(BaseRating):
+    creator = models.ForeignKey(Participant, related_name='recommendations_created')
 
 
 class LeaderApplication(models.Model):
