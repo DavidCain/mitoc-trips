@@ -4,6 +4,7 @@ from datetime import timedelta
 
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse_lazy
 from django.core.validators import MinValueValidator, MaxValueValidator
@@ -261,46 +262,6 @@ class LeaderRating(BaseRating):
 
 class LeaderRecommendation(BaseRating):
     creator = models.ForeignKey(Participant, related_name='recommendations_created')
-
-
-class LeaderApplication(models.Model):
-    """ Application to be a Winter School leader. """
-    participant = models.ForeignKey(Participant)
-    # We'll eventually use this application for all activities
-    activity = models.CharField(max_length='31',
-                                choices=LeaderRating.ACTIVITY_CHOICES,
-                                default=LeaderRating.WINTER_SCHOOL)
-    time_created = models.DateTimeField(auto_now_add=True)
-    year = models.PositiveIntegerField(validators=[MinValueValidator(2014)],
-                                       default=dateutils.ws_year,
-                                       help_text="Winter School year this application pertains to.")
-    previous_rating = models.CharField(max_length=255, blank=True,
-                                       help_text="Previous rating (if any)")
-    # Leave ratings long for miscellaneous comments
-    desired_rating = models.CharField(max_length=255)
-
-    taking_wfa = models.CharField(max_length=10,
-                                  choices=[("Yes", "Yes"),
-                                           ("No", "No"),
-                                           ("Maybe", "Maybe/don't know")],
-                                  verbose_name="Do you plan on taking the subsidized WFA at MIT?",
-                                  help_text="Save $110 on the course fee by leading two or more trips!")
-    training = models.TextField(blank=True, max_length=5000,
-                                verbose_name="Formal training and qualifications",
-                                help_text="Details of any medical, technical, or leadership training and qualifications relevant to the winter environment. State the approximate dates of these activities. Leave blank if not applicable.")
-    winter_experience = models.TextField(blank=True, max_length=5000,
-                                         help_text="Details of previous winter outdoors experience. Include the type of trip (x-country skiiing, above treeline, snowshoeing, ice climbing, etc), approximate dates and locations, numbers of participants, notable trail and weather conditions. Please also give details of whether you participated, lead, or co-lead these trips.")
-    other_experience = models.TextField(blank=True, max_length=5000,
-                                        verbose_name="Other outdoors/leadership experience",
-                                        help_text="Details about any relevant non-winter experience")
-    notes_or_comments = models.TextField(blank=True, max_length=5000,
-                                         help_text="Any relevant details, such as any limitations on availability on Tue/Thurs nights or weekends during IAP.")
-
-    def __unicode__(self):
-        return "{}'s {} application".format(self.participant, self.year)
-
-    class Meta:
-        ordering = ["id"]
 
 
 class BaseSignUp(models.Model):
@@ -614,3 +575,92 @@ class WaitList(models.Model):
         last_wl_signup = self.waitlistsignup_set.last()
         min_order = last_wl_signup.manual_order or 11  # Could be None
         return min_order - 1
+
+
+class LeaderApplication(models.Model):
+    """ Abstract parent class for all leader applications (doubles as a factory)
+
+    To create a new leader application, write the class:
+
+       <Activity>LeaderApplication (naming matters, see code comments)
+    """
+    participant = models.ForeignKey(Participant)
+    time_created = models.DateTimeField(auto_now_add=True)
+    previous_rating = models.CharField(max_length=255, blank=True,
+                                       help_text="Previous rating (if any)")
+    year = models.PositiveIntegerField(validators=[MinValueValidator(2014)],
+                                       default=dateutils.ws_year,
+                                       help_text="Year this application pertains to.")
+
+    @staticmethod
+    def can_apply(activity):
+        """ Return if an application exists for the activity. """
+        if activity not in LeaderRating.CLOSED_ACTIVITIES:
+            return False
+        return bool(LeaderApplication.model_from_activity(activity))
+
+    @property
+    def activity(self):
+        """ Extract the activity name from the class name/db_name.
+
+        Meant to be used by inheriting classes, for example:
+            WinterSchoolLeaderApplication -> 'winter_school'
+            ClimbingLeaderApplication -> 'climbing'
+
+        If any class wants to break the naming convention, they should
+        set db_name to be the activity without underscores.
+        """
+        model_name = ContentType.objects.get_for_model(self).model
+        activity = model_name[:model_name.rfind('leaderapplication')]
+        return 'winter_school' if activity == 'winterschool' else activity
+
+    @staticmethod
+    def model_from_activity(activity):
+        """ Get the specific inheriting child from the activity.
+
+        Inverse of activity().
+        """
+        model = ''.join(activity.split('_')).lower() + 'leaderapplication'
+        try:
+            content_type = ContentType.objects.get(app_label="ws", model=model)
+        except ContentType.DoesNotExist:
+            return None
+        else:
+            return content_type.model_class()
+
+    @classmethod
+    def from_activity(cls, activity):
+        """ Factory for returning appropriate application type. """
+        model = cls.model_from_activity(activity)
+        return super(LeaderApplication, cls).__new__(model) if model else None
+
+    def __unicode__(self):
+        return self.participant.name
+
+    class Meta:
+        # Important!!! Child classes must be named: <activity>LeaderApplication
+        abstract = True   # See model_from_activity for more
+        ordering = ["time_created"]
+
+
+class WinterSchoolLeaderApplication(LeaderApplication):
+    # Leave ratings long for miscellaneous comments
+    # (Omitted from base - some activities might not have users request ratings)
+    desired_rating = models.CharField(max_length=255)
+
+    taking_wfa = models.CharField(max_length=10,
+                                  choices=[("Yes", "Yes"),
+                                           ("No", "No"),
+                                           ("Maybe", "Maybe/don't know")],
+                                  verbose_name="Do you plan on taking the subsidized WFA at MIT?",
+                                  help_text="Save $110 on the course fee by leading two or more trips!")
+    training = models.TextField(blank=True, max_length=5000,
+                                verbose_name="Formal training and qualifications",
+                                help_text="Details of any medical, technical, or leadership training and qualifications relevant to the winter environment. State the approximate dates of these activities. Leave blank if not applicable.")
+    winter_experience = models.TextField(blank=True, max_length=5000,
+                                         help_text="Details of previous winter outdoors experience. Include the type of trip (x-country skiiing, above treeline, snowshoeing, ice climbing, etc), approximate dates and locations, numbers of participants, notable trail and weather conditions. Please also give details of whether you participated, lead, or co-lead these trips.")
+    other_experience = models.TextField(blank=True, max_length=5000,
+                                        verbose_name="Other outdoors/leadership experience",
+                                        help_text="Details about any relevant non-winter experience")
+    notes_or_comments = models.TextField(blank=True, max_length=5000,
+                                         help_text="Any relevant details, such as any limitations on availability on Tue/Thurs nights or weekends during IAP.")

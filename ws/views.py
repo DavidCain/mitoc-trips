@@ -1,6 +1,6 @@
 import json
 
-from django.db.models import Case, Count, IntegerField, Sum, Q, When
+from django.db.models import Case, Count, F, IntegerField, Sum, Q, When
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
@@ -10,7 +10,7 @@ from django.forms.models import modelformset_factory
 from django.forms import HiddenInput
 from django.forms.models import model_to_dict
 from django.forms.utils import ErrorList
-from django.http import JsonResponse, HttpResponseBadRequest
+from django.http import Http404, JsonResponse, HttpResponseBadRequest
 from django.shortcuts import render, redirect
 from django.utils.decorators import method_decorator
 from django.views.generic import (CreateView, DetailView, DeleteView, FormView,
@@ -374,6 +374,7 @@ class ParticipantView(ParticipantLookupView, SingleObjectMixin, LotteryPairingMi
         context['participant'] = participant
         if not user_viewing:
             feedback = participant.feedback_set.select_related('trip', 'leader')
+            feedback = feedback.prefetch_related('leader__leaderrating_set')
             context['all_feedback'] = feedback
         context['ratings'] = participant.ratings(rating_active=True)
         chair_activities = set(perm_utils.chair_activities(user))
@@ -745,15 +746,95 @@ class AllLeadersView(ListView):
         return super(AllLeadersView, self).dispatch(request, *args, **kwargs)
 
 
-class LeaderApplyView(CreateView):
-    template_name = "leaders/apply.html"
-    model = models.LeaderApplication
-    form_class = forms.LeaderApplicationForm
-    success_url = reverse_lazy('home')
+class LeaderApplicationMixin(object):
+    @property
+    def year(self):
+        return ws_year() if self.activity == 'winter_school' else local_date().year
 
-    @method_decorator(user_info_required)
-    def dispatch(self, request, *args, **kwargs):
-        return super(LeaderApplyView, self).dispatch(request, *args, **kwargs)
+    @property
+    def activity(self):
+        """ The activity, verified by the dispatch method. """
+        return self.kwargs['activity']
+
+    @property
+    def num_chairs(self):
+        chair_group = perm_utils.chair_group(self.activity)
+        return User.objects.filter(groups__name=chair_group).count()
+
+    @property
+    def model(self):
+        if hasattr(self, '_model'):
+            return self._model
+        self._model = models.LeaderApplication.model_from_activity(self.activity)
+        return self._model
+
+    def joined_queryset(self):
+        applications = self.model.objects.select_related('participant')
+        return applications.prefetch_related('participant__leaderrecommendation_set',
+                                             'participant__leaderrating_set')
+
+    def get_queryset(self):
+        return self.joined_queryset()
+
+    @property
+    def current_rating(self):
+        """ Had a rating created for the application after its creation. """
+        return Q(
+            participant__leaderrating__time_created__gte=F('time_created'),
+            participant__leaderrating__activity=self.activity,
+            participant__leaderrating__active=True,
+        )
+
+    @property
+    def recommended(self):
+        """ Had a recommendation by the viewing user. """
+        return Q(
+            participant__leaderrecommendation__time_created__gte=F('time_created'),
+            participant__leaderrecommendation__activity=self.activity,
+            participant__leaderrecommendation__creator=self.request.participant,
+        )
+
+    def sorted_applications(self, just_this_year=False):
+        """ Sort this year's applications by order of attention they need. """
+        applications = self.joined_queryset()
+        if just_this_year:
+            applications = applications.filter(year=self.year)
+
+        # Identify which have ratings and/or the leader's recommendation
+        applications = applications.annotate(
+            has_rating=Sum(Case(
+                When(self.current_rating, then=1),
+                default=0,
+                output_field=IntegerField(),
+            )),
+            has_rec=Sum(Case(
+                When(self.recommended, then=1),
+                default=0,
+                output_field=IntegerField(),
+            )),
+        )
+        return applications.distinct().order_by('has_rating', 'has_rec', 'time_created')
+
+    def get_context_data(self, **kwargs):
+        context = super(LeaderApplicationMixin, self).get_context_data(**kwargs)
+        context['activity'] = self.activity
+        return context
+
+
+class LeaderApplyView(LeaderApplicationMixin, CreateView):
+    template_name = "leaders/apply.html"
+    success_url = reverse_lazy('home')
+    form_class = forms.LeaderApplicationForm
+
+    def get_form_kwargs(self):
+        """ Pass the needed "activity" paramater for dynamic form construction. """
+        kwargs = super(LeaderApplyView, self).get_form_kwargs()
+        kwargs['activity'] = self.activity
+        return kwargs
+
+    def get_queryset(self):
+        """ For looking up if any recent applications have been completed. """
+        return self.model.objects
 
     @property
     def par(self):
@@ -762,9 +843,9 @@ class LeaderApplyView(CreateView):
     def form_valid(self, form):
         """ Link the application to the submitting participant. """
         application = form.save(commit=False)
+        application.year = self.year
         application.participant = self.par
-        application.activity = 'winter_school'  # Applications only WS for now
-        rating = self.par.activity_rating('winter_school', rating_active=False)
+        rating = self.par.activity_rating(self.activity, rating_active=False)
         application.previous_rating = rating or ''
         messages.success(self.request, "Leader application received!")
         return super(LeaderApplyView, self).form_valid(form)
@@ -779,43 +860,108 @@ class LeaderApplyView(CreateView):
                                         after_time=after_time)
 
     def get_context_data(self, **kwargs):
-        """ Get any existing WS application and rating. """
+        """ Get any existing application and rating. """
         context = super(LeaderApplyView, self).get_context_data(**kwargs)
-        context['ws_year'] = year = ws_year()
-        existing = self.model.objects.filter(participant=self.par, year=year)
+
+        context['year'] = self.year
+        existing = self.get_queryset().filter(participant=self.par,
+                                              year=context['year'])
         if existing:
             app = existing.first()
             context['application'] = app
             context['rating'] = self.active_rating(after_time=app.time_created)
         return context
 
+    @method_decorator(user_info_required)
+    def dispatch(self, request, *args, **kwargs):
+        if not models.LeaderApplication.can_apply(kwargs.get('activity')):
+            raise Http404
+        return super(LeaderApplyView, self).dispatch(request, *args, **kwargs)
 
-class AllLeaderApplicationsView(ListView):
-    model = models.LeaderApplication
+
+class AllLeaderApplicationsView(LeaderApplicationMixin, ListView):
     context_object_name = 'leader_applications'
     template_name = 'chair/applications/all.html'
 
     def get_queryset(self):
-        all_applications = super(AllLeaderApplicationsView, self).get_queryset()
-        applications = all_applications.filter(year=ws_year())
-        return applications.select_related('participant')
+        return self.sorted_applications(just_this_year=True)
 
-    @method_decorator(group_required('WSC'))
+    def get_context_data(self, **kwargs):
+        # Super calls DetailView's `get_context_data` so we'll manually add form
+        context = super(AllLeaderApplicationsView, self).get_context_data(**kwargs)
+
+        apps = context['leader_applications']
+        context['num_chairs'] = self.num_chairs
+
+        # For activities with one chair, we skip the recommendation process
+        if context['num_chairs'] > 1:
+            context['needs_rec'] = apps.filter(has_rating=False, has_rec=False)
+            context['needs_rating'] = apps.filter(has_rating=False, has_rec__gt=0)
+        else:
+            context['needs_rating'] = apps.filter(has_rating=False)
+
+        given_rating = apps.filter(has_rating=True)
+        context['given_rating'] = given_rating.order_by('participant__name')
+
+        return context
+
     def dispatch(self, request, *args, **kwargs):
+        """ 404 if activity doesn't exist, 403 if not the activity chair. """
+        activity = kwargs.get('activity')
+        if not models.LeaderApplication.can_apply(kwargs.get('activity')):
+            raise Http404
+        if not perm_utils.is_chair(request.user, activity):
+            raise PermissionDenied
         return super(AllLeaderApplicationsView, self).dispatch(request, *args, **kwargs)
 
 
-class LeaderApplicationView(FormMixin, DetailView):
+class LeaderApplicationView(LeaderApplicationMixin, FormMixin, DetailView):
     """ Handle applications by participants to become leaders. """
-    model = models.LeaderApplication
     form_class = forms.ApplicationLeaderForm
-    success_url = reverse_lazy('manage_applications')
     context_object_name = 'application'
     template_name = 'chair/applications/view.html'
 
+    def get_success_url(self):
+        """ Get the next application in this queue.
+
+        (i.e. if this was an application needing a recommendation,
+        move to the next application without a recommendation)
+        """
+        if self.next_app:  # Set before we saved this object
+            app_args = (self.activity, self.next_app.pk)
+            return reverse('view_application', args=app_args)
+        else:
+            return reverse('manage_applications', args=(self.activity,))
+
+    def get_other_apps(self):
+        """ Get the applications that come before and after this in the queue.
+
+        Each "queue" is of applications that need recommendations or ratings.
+        """
+        ordered_apps = iter(self.sorted_applications(just_this_year=True))
+        prev_app = None
+        for app in ordered_apps:
+            if app.pk == self.object.pk:
+                try:
+                    next_app = next(ordered_apps)
+                except StopIteration:
+                    next_app = None
+                break
+            prev_app = app
+        else:
+            return None, None  # Could be from another (past) year
+
+        def if_valid(other_app):
+            mismatch = (not other_app or
+                        bool(other_app.has_rec) != bool(app.has_rec) or
+                        bool(other_app.has_rating) != bool(app.has_rating))
+            return None if mismatch else other_app
+
+        return if_valid(prev_app), if_valid(next_app)
+
     def existing_rating(self):
         find_rating = Q(participant=self.object.participant,
-                        activity=self.object.activity,
+                        activity=self.activity,
                         active=True)
         return models.LeaderRating.objects.filter(find_rating).first()
 
@@ -823,8 +969,16 @@ class LeaderApplicationView(FormMixin, DetailView):
         """ Load an existing recommendation for the viewing participant. """
         find_rec = Q(creator=self.request.participant,
                      participant=self.object.participant,
-                     activity=self.object.activity)
+                     activity=self.activity)
         return models.LeaderRecommendation.objects.filter(find_rec).first()
+
+    def default_to_recommendation(self):
+        """ Whether to default the form to a recommendation or not. """
+        if self.num_chairs < 1:
+            return False
+        recs = self.object.participant.leaderrecommendation_set
+        return not recs.filter(creator=self.request.participant,
+                               participant=self.object.participant).exists()
 
     def get_initial(self):
         """ Load an existing rating if one exists.
@@ -833,20 +987,24 @@ class LeaderApplicationView(FormMixin, DetailView):
         have no active rating in the activity, this should almost always be
         blank.
         """
+        initial = {'recommendation': self.default_to_recommendation()}
         existing = self.existing_rating()
         if existing:
-            return {'rating': existing.rating, 'notes': existing.notes}
-        return {}
+            initial['rating'] = existing.rating
+            initial['notes'] = existing.notes
+        return initial
 
     def get_recommendations(self):
         """ Get recommendations made by other leaders or chairs. """
         this_app = Q(participant=self.object.participant,
-                     activity=self.object.activity)
+                     activity=self.activity)
         return models.LeaderRecommendation.objects.filter(this_app)
 
     def get_feedback(self):
         """ Return all feedback (chairs can see everything). """
-        return models.Feedback.everything.filter(participant=self.object.participant)
+        feedback = models.Feedback.everything.filter(participant=self.object.participant)
+        for_joining = feedback.select_related('leader', 'trip')
+        return for_joining.prefetch_related('leader__leaderrating_set')
 
     def get_context_data(self, **kwargs):
         # Super calls DetailView's `get_context_data` so we'll manually add form
@@ -854,10 +1012,14 @@ class LeaderApplicationView(FormMixin, DetailView):
         context['recommendations'] = self.get_recommendations()
         context['leader_form'] = self.get_form()
         context['all_feedback'] = self.get_feedback()
+        context['prev_app'], context['next_app'] = self.get_other_apps()
         return context
 
     def form_valid(self, form):
         """ Save the rating as a recommendation or a binding rating. """
+        # After saving, the order of applications changes
+        _, self.next_app = self.get_other_apps()  # Obtain next in current order
+
         rating = form.save(commit=False)
         rating.creator = self.request.participant
         rating.participant = self.object.participant
@@ -894,7 +1056,7 @@ class LeaderApplicationView(FormMixin, DetailView):
     @method_decorator(chairs_only())
     def dispatch(self, request, *args, **kwargs):
         """ Redirect if anonymous, but deny permission if not a chair. """
-        if not perm_utils.is_chair(request.user, self.get_object().activity):
+        if not perm_utils.is_chair(request.user, self.activity):
             raise PermissionDenied
         return super(LeaderApplicationView, self).dispatch(request, *args, **kwargs)
 

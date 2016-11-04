@@ -1,10 +1,13 @@
 from django import template
 
-register = template.Library()
-
+from ws import models
 import ws.utils.perms
 
 
+register = template.Library()
+
+
 @register.filter
-def chair_of_any_activity(user):
-    return ws.utils.perms.chair_of_any_activity(user)
+def labeled_chair_activities(user):
+    return [choice for choice in models.LeaderRating.CLOSED_ACTIVITY_CHOICES
+            if choice[0] in ws.utils.perms.chair_activities(user)]

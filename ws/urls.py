@@ -28,10 +28,11 @@ urlpatterns = patterns('',
 
     # Activity Chair views
     url(r'^chair/leaders/$', views.ManageLeadersView.as_view(), name='manage_leaders'),
-    url(r'^chair/applications/$', views.AllLeaderApplicationsView.as_view(), name='manage_applications'),
-    url(r'^chair/applications/(?P<pk>\d+)/$', views.LeaderApplicationView.as_view(), name='view_application'),
+    url(r'^(?P<activity>.+)/applications/$', views.AllLeaderApplicationsView.as_view(), name='manage_applications'),
+    url(r'^(?P<activity>.+)/applications/(?P<pk>\d+)/$', views.LeaderApplicationView.as_view(), name='view_application'),
+
     url(r'^chair/trips/$', views.manage_trips, name='manage_trips'),
-    url(r'^chair/participants/lecture_attendance/$', views.LectureAttendanceView.as_view(), name='lecture_attendance'),
+    url(r'^winter_school/participants/lecture_attendance/$', views.LectureAttendanceView.as_view(), name='lecture_attendance'),
 
     # Activity Chairs or WIMP views
     url(r'^trips/medical/$', views.AllTripsMedicalView.as_view(), name='all_trips_medical'),
@@ -53,7 +54,8 @@ urlpatterns = patterns('',
 
     # General views (anyone can view or only participants with info)
     url(r'^profile/edit/$', views.EditProfileView.as_view(), name='edit_profile'),
-    url(r'^leaders/apply/$', views.LeaderApplyView.as_view(), name='become_leader'),
+    url(r'^leaders/apply/$', RedirectView.as_view(url='/winter_school/leaders/apply', permanent=True), name='old_become_leader'),
+    url(r'^(?P<activity>.+)/leaders/apply/$', views.LeaderApplyView.as_view(), name='become_leader'),
     url(r'^trips/(?P<pk>\d+)/$', views.TripView.as_view(), name='view_trip'),
     url(r'^trips.rss$', feeds.UpcomingTripsFeed(), name='rss-upcoming_trips'),
     url(r'^trips/$', views.UpcomingTripsView.as_view(), name='upcoming_trips'),

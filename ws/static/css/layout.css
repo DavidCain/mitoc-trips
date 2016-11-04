@@ -195,3 +195,12 @@ h4#car label {
 participant-select .ui-select-container input.ui-select-search {
   width: 100% !important;
 }
+
+#application-controls .prev-next-app {
+  margin-top: 5px;
+  margin-bottom: 20px;
+}
+
+#application-controls .checkbox-inline {
+  margin-bottom: 5px;
+}

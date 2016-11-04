@@ -1,35 +1,92 @@
-{% extends "messages_page.html" %}
+{% extends "base.html" %}
+{% load messages_tags %}
 {% load gravatar %}
 {% load trip_tags %}
 
 {% block content %}
 {{ block.super }}
 
+<div id="application-controls" class="row">
+  <div class="col-md-2 col-xs-6">
+    <a role="button" class="btn btn-default prev-next-app"
+      {% if prev_app %}
+        href="{% url 'view_application' activity prev_app.pk %}"
+      {% else %}
+        disabled
+      {% endif %}
+      >
+      &laquo; Previous
+    </a>
+  </div>
+
+  <div class="col-md-2 col-md-push-8 col-xs-6 text-right">
+    <a role="button" class="btn btn-default prev-next-app"
+      {% if next_app %}
+        href="{% url 'view_application' activity next_app.pk %}"
+      {% else %}
+        disabled
+      {% endif %}
+      >
+      Next &raquo;
+    </a>
+  </div>
+
+  <div class="col-md-8 col-md-pull-2 col-xs-12">
+    <form name="{{ leader_form.form_name }}" method="post" action="." novalidate data-submit-if-valid>
+      {% csrf_token %}
+      <div class="row">
+        <div class="col-sm-3">
+          {{ leader_form.rating.label_tag }}
+          {{ leader_form.rating }}
+          {{ leader_form.rating.errors }}
+        </div>
+        <div class="col-sm-5">
+          {{ leader_form.notes.label_tag }}
+          {{ leader_form.notes }}
+          {{ leader_form.notes.errors }}
+        </div>
+        <div class="col-sm-4">
+          <div>{{ leader_form.recommendation }}</div>
+          <button type="submit"
+                  class="btn btn-primary"
+                  data-ng-bind="'Create ' + (recommendation ? 'Recommendation' : 'Rating' )">
+            Create Recommendation{# Hack to avoid the flicker without ng-cloak #}
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+</div>
+
+<hr>
+
+
 <div class="row">
   <div class="col-md-6">
 
-<div class="media">
-  <div class="media-left">
-    <div class="media-object">
-      <div class="profile-photo">
-        {{ application.participant.email|gravatar:100 }}
+    <div class="media">
+      <div class="media-left">
+        <div class="media-object">
+          <div class="profile-photo">
+            {{ application.participant.email|gravatar:100 }}
+          </div>
+        </div>
+      </div>
+      <div class="media-body">
+        <h2 class="media-heading">
+          <a href="{% url 'view_participant' application.participant.id %}">{{ application.participant.name }}</a>
+        </h2>
+        <dl class="dl-horizontal">
+          <dt>Previous rating:</dt>
+          <dd>{{ application.previous_rating|default:None }}</dd>
+          <dt>Desired rating:</dt>
+          <dd>{{ application.desired_rating }}</dd>
+          <dt>Taking WFA:</dt>
+          <dd>{{ application.taking_wfa }}</dd>
+        </dl>
       </div>
     </div>
-  </div>
-  <div class="media-body">
-    <h2 class="media-heading">
-      <a href="{% url 'view_participant' application.participant.id %}">{{ application.participant.name }}</a>
-    </h2>
-    <dl class="dl-horizontal">
-      <dt>Previous rating:</dt>
-      <dd>{{ application.previous_rating|default:None }}</dd>
-      <dt>Desired rating:</dt>
-      <dd>{{ application.desired_rating }}</dd>
-      <dt>Taking WFA:</dt>
-      <dd>{{ application.taking_wfa }}</dd>
-    </dl>
-  </div>
-</div>
 
     <dl>
       {% if application.training %}
@@ -52,9 +109,12 @@
         <dd>{{ application.notes_or_comments|linebreaks }}</dd>
       {% endif %}
     <dl>
+  </div>
 
+  <div class="col-md-6">
+    {% messages_alerts %}
     {% if recommendations %}
-      <h3>Recommendations</h3>
+    <h3><i class="fa fa-thumbs-up"></i> Recommendations</h3>
       <table class="table">
         <thead>
           <tr>
@@ -76,18 +136,6 @@
       <hr>
     {% endif %}
 
-    <h2>Create or Recommend Rating</h2>
-    <form name="{{ leader_form.form_name }}" method="post" action="." novalidate data-submit-if-valid>
-      {% csrf_token %}
-      {{ leader_form.as_div }}
-      <button type="submit" class="btn btn-primary"
-          data-ng-bind="'Create ' + (recommendation ? 'Recommendation' : 'Rating')">
-          Create Rating{# Hack to avoid the flicker without ng-cloak #}
-      </button>
-    </form>
-  </div>
-
-  <div class="col-md-6">
     {% feedback_table all_feedback %}
   </div>
 </div>

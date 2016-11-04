@@ -100,12 +100,12 @@ class ApplicationLeaderForm(DjangularRequiredModelForm):
     Since the participant and activity are given by the application itself,
     we need not include those an options in the form.
     """
-    recommendation = forms.BooleanField(required=False, label="Mark as recommendation (non-binding)")
+    recommendation = forms.BooleanField(required=False, label="Is a recommendation")
 
     class Meta:
         model = models.LeaderRating
         fields = ['rating', 'notes']
-        widgets = {'notes': forms.Textarea(attrs={'rows': 4})}
+        widgets = {'notes': forms.Textarea(attrs={'rows': 1})}
 
 
 class LeaderForm(DjangularRequiredModelForm):
@@ -310,8 +310,18 @@ class AttendedLecturesForm(NgFormValidationMixin, Bootstrap3Form):
     password = forms.CharField(widget=forms.PasswordInput())
 
 
-class LeaderApplicationForm(DjangularRequiredModelForm):
-    class Meta:
-        # For now, all applications are for Winter School
-        exclude = ['activity', 'year', 'participant', 'previous_rating']
-        model = models.LeaderApplication
+def LeaderApplicationForm(*args, **kwargs):
+    """ Factory form for applying to be a leader in any activity. """
+    activity = kwargs.pop('activity', 'winter_school')
+
+    class DynamicActivityForm(DjangularRequiredModelForm):
+        class Meta:
+            exclude = ['year', 'participant', 'previous_rating']
+            model = models.LeaderApplication.model_from_activity(activity)
+
+        def __init__(self):
+            # TODO: Errors on args, where args is a single tuple of the view
+            #super(DynamicActivityForm, self).__init__(*args, **kwargs)
+            super(DynamicActivityForm, self).__init__(**kwargs)
+
+    return DynamicActivityForm()
