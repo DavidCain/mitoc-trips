@@ -51,6 +51,17 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
           return;  // Form should have normal action, submits normally
         }
 
+        // Ugly hack to work around bug I can't identify.
+        // When the participant is present & valid, form validation still marks it
+        // as "required" with an undefined $modelValue
+        if (_.isEqual(_.keys(formCtrl.$error), ["required"])) {
+          var req = formCtrl.$error.required;
+          var justParticipant = req.length === 1 && req[0].$name === 'participant';
+          if (justParticipant && formCtrl.participant.$valid) {
+            return;
+          }
+        }
+
         // Manually mark fields as dirty to display Django-Angular errors
         angular.forEach(formCtrl.$error, function (field) {
           angular.forEach(field, function(errorField) {
@@ -448,8 +459,8 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
     restrict: 'E',
     templateUrl: '/static/template/participant-lookup.html',
     link: function (scope, element, attrs, ngModelCtrl) {
-      scope.viewParticipant = function(participant) {
-        $window.location.href = '/participants/' + participant.id;
+      scope.viewParticipant = function(participantId) {
+        $window.location.href = '/participants/' + participantId;
       };
     },
   };
@@ -460,11 +471,21 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
     require: '?ngModel',
     scope: {
       msg: '=?',
+      name: '@',
+      selectedId: '=?',
+      selectedName: '@?',
+      excludeSelf: '=?'
     },
     templateUrl: '/static/template/participant-select.html',
     link: function (scope, element, attrs, ngModelCtrl) {
       scope.msg = scope.msg || "Search participants...";
       scope.participants = {};
+
+      if (scope.selectedId) {
+        scope.participants.selected = {id: scope.selectedId,
+                                       name: scope.selectedName};
+        ngModelCtrl.$setViewValue(scope.participants.selected.id);
+      }
 
       if (ngModelCtrl) {
         ngModelCtrl.$render = function() {
@@ -472,14 +493,18 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
         };
         scope.$watch('participants.selected', function(newval, oldval) {
           if( newval !== oldval ) {
-            ngModelCtrl.$setViewValue(newval);
+            ngModelCtrl.$setViewValue(newval && newval.id);
           }
         });
       }
 
       var url = djangoUrl.reverse("json-participants");
       scope.getMatchingParticipants = function(search) {
-        $http.get(url, {params: {search: search}}).then(function (response) {
+        var queryArgs = {search: search};
+        if (scope.excludeSelf) {
+          queryArgs.exclude_self = 1;
+        }
+        $http.get(url, {params: queryArgs}).then(function (response) {
           scope.participants.all = response.data.participants;
         });
       };

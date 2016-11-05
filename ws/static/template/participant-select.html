@@ -1,5 +1,5 @@
-<ui-select data-ng-model="participants.selected" theme="bootstrap">
-  <ui-select-match placeholder="{{ msg }}">
+<ui-select data-ng-model="participants.selected" data-theme="bootstrap">
+  <ui-select-match placeholder="{{ msg }}" data-allow-clear="true">
     {{ $select.selected.name }}
   </ui-select-match>
   <ui-select-choices data-refresh="getMatchingParticipants($select.search)"
@@ -10,3 +10,8 @@
     <small data-ng-bind-html="participant.email | highlight: $select.search"></small>
   </ui-select-choices>
 </ui-select>
+
+<input type="hidden"
+       data-ng-attr-name="{{ name }}"
+       value="{{ participants.selected.id }}">
+</input>

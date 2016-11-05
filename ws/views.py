@@ -1339,6 +1339,7 @@ class LotteryPairingView(CreateView, LotteryPairingMixin):
         """ Edit existing instance, prevent user from pairing with self. """
         kwargs = super(LotteryPairingView, self).get_form_kwargs()
         kwargs['participant'] = self.request.participant
+        kwargs['exclude_self'] = True
         try:
             kwargs['instance'] = self.request.participant.lotteryinfo
         except ObjectDoesNotExist:
@@ -1374,7 +1375,7 @@ class LotteryPairingView(CreateView, LotteryPairingMixin):
                    "Either one of you can rank the trips.")
             messages.info(self.request, msg)
         else:
-            msg = "{} must also select to be paired with you".format(paired_par)
+            msg = "{} must also select to be paired with you.".format(paired_par)
             messages.info(self.request, msg)
 
     @method_decorator(user_info_required)

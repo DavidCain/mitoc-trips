@@ -15,13 +15,18 @@ will be treated as an individual participant (i.e. no effort will be made to pla
 on the same trip).</p>
 
 <ul>
-{% for requesting_participant in pair_requests %}
+  {% for requesting_participant in pair_requests %}
     <li> {{ requesting_participant }} has requested to be paired with you.</li>
-{% endfor %}
+  {% endfor %}
 </ul>
-<form action="" method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">Submit</button>
-</form>
+
+<div class="row">
+  <div class="col-md-5">
+    <form name="{{ form.form_name }}" action="" method="post" novalidate>
+      {% csrf_token %}
+      {{ form.as_div }}
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+    </div>
+</div>
 {% endblock content %}

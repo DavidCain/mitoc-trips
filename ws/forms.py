@@ -285,18 +285,30 @@ class LotteryInfoForm(DjangularRequiredModelForm):
         widgets = {'car_status': forms.RadioSelect(attrs={'onclick': 'handle_driver(this);'})}
 
 
-class LotteryPairForm(forms.ModelForm):
+class LotteryPairForm(DjangularRequiredModelForm):
     def __init__(self, *args, **kwargs):
         participant = kwargs.pop('participant')
+        exclude_self = kwargs.pop('exclude_self', False)
         super(LotteryPairForm, self).__init__(*args, **kwargs)
         participants = models.Participant.objects.all()
         all_but_user = participants.exclude(pk=participant.pk)
+
         self.fields['paired_with'].queryset = all_but_user
         self.fields['paired_with'].empty_label = 'Nobody'
+
+        # Set up arguments to be passed to Angular directive
+        pair = self.fields['paired_with'].widget
+        pair.attrs['msg'] = "'Nobody'"
+        pair.attrs['exclude_self'] = 'true' if exclude_self else 'false'
+
+        if self.instance.paired_with:
+            pair.attrs['selected-id'] = self.instance.paired_with.pk
+            pair.attrs['selected-name'] = self.instance.paired_with.name
 
     class Meta:
         model = models.LotteryInfo
         fields = ['paired_with']
+        widgets = {'paired_with': widgets.ParticipantSelect}
 
 
 class FeedbackForm(RequiredModelForm):

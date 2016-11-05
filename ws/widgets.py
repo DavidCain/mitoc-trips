@@ -64,3 +64,10 @@ class LeaderSelect(dj_widgets.SelectMultiple):
         final_attrs = self.build_attrs(attrs, name=name)
         output = [format_html('<leader-select {}></leader-select>', flatatt(final_attrs))]
         return mark_safe('\n'.join(output))
+
+
+class ParticipantSelect(dj_widgets.Select):
+    def render(self, name, value, attrs=None, choices=()):
+        final_attrs = self.build_attrs(attrs, name=name)
+        output = [format_html('<participant-select {}></participant-select>', flatatt(final_attrs))]
+        return mark_safe('\n'.join(output))

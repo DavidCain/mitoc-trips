@@ -36,6 +36,7 @@ footer a {
 }
 
 /* Override Bootstrap styling for more consistent appearance */
+participant-select.form-control,
 leader-select.form-control {
   display: inline-block; /* Stops leaders from wrapping beyond block bounds */
   border: 0px;
@@ -76,8 +77,12 @@ pre.wrapped-emails {
 form .ng-invalid-bound.ng-pristine,
 form .ng-invalid-bound.ng-pristine .ui-select-container,
 form .ng-invalid.ng-dirty,
-form .ng-invalid.ng-dirty .ui-select-container {
+form .ng-invalid.ng-dirty .ui-select-container.ui-select-multiple {
   border-color: #e9322d;
+}
+
+form .ng-invalid.ng-dirty .ui-select-container:not(.ui-select-multiple) .ui-select-toggle {
+  border-color: #e9322d !important;
 }
 
 .ui-select-container .invalid-leader {

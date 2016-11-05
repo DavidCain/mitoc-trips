@@ -219,6 +219,8 @@ class JsonAllParticipantsView(ListView):
             match = (Q(name__icontains=search) |
                      Q(email__icontains=search))
             participants = participants.filter(match)
+        if self.request.GET.get('exclude_self'):
+            participants = participants.exclude(pk=self.request.participant.pk)
         top_matches = participants[:20].values('name', 'email', 'id')
         return JsonResponse({'participants': list(top_matches)})
 
