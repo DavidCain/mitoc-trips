@@ -905,12 +905,12 @@ class AllLeaderApplicationsView(LeaderApplicationMixin, ListView):
         return context
 
     def dispatch(self, request, *args, **kwargs):
-        """ 404 if activity doesn't exist, 403 if not the activity chair. """
         activity = kwargs.get('activity')
-        if not models.LeaderApplication.can_apply(kwargs.get('activity')):
-            raise Http404
         if not perm_utils.is_chair(request.user, activity):
             raise PermissionDenied
+        if not models.LeaderApplication.can_apply(self.activity):
+            context = {'missing_form': True, 'activity': self.activity}
+            return render(request, self.template_name, context)
         return super(AllLeaderApplicationsView, self).dispatch(request, *args, **kwargs)
 
 

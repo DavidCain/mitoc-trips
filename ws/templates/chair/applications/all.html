@@ -10,14 +10,23 @@
   <p class="lead">
     This page lists all leader applications that are pending your review.
   </p>
-  <p>
-    Currently, there are no active leader applications.
-  </p>
-  <p>
-    Once participants complete
-    a <a href="{% url 'become_leader' activity %}">leader application</a>, you
-    will be able to assign them ratings based on their responses.
-  </p>
+  {% if missing_form %}
+    <div class="alert alert-warning">
+      <p>You don't have any application form defined for your activity!</p>
+
+      <p>
+        If you'd like to enable leader applications through the web site, prepare
+        your form questions then send an email to
+        <a href="mailto:davidjosephcain@gmail.com">David Cain</a>.
+      </p>
+    </div>
+  {% else %}
+    <p>
+      Once participants complete
+      a <a href="{% url 'become_leader' activity %}">leader application</a>, you
+      will be able to assign them ratings based on their responses.
+    </p>
+  {% endif  %}
 
 {% else %}
 
