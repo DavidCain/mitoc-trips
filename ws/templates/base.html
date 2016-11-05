@@ -71,7 +71,7 @@
                             <ul class="dropdown-menu">
                                 <li> <a href="{% url 'manage_leaders' %}">Leader ratings</a> </li>
                                 <li> <a href="{% url 'manage_applications' activity %}"> Leader applications </a> </li>
-                                <li> <a href="{% url 'manage_trips' %}"> Trips </a> </li>
+                                <li> <a href="{% url 'manage_trips' activity %}"> Trips </a> </li>
                                 {% if activity == 'winter_school' %}
                                     <li> <a href="{% url 'all_trips_medical' %}"> WIMP </a> </li>
                                 {% endif %}

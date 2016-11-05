@@ -30,8 +30,7 @@ urlpatterns = patterns('',
     url(r'^chair/leaders/$', views.ManageLeadersView.as_view(), name='manage_leaders'),
     url(r'^(?P<activity>.+)/applications/$', views.AllLeaderApplicationsView.as_view(), name='manage_applications'),
     url(r'^(?P<activity>.+)/applications/(?P<pk>\d+)/$', views.LeaderApplicationView.as_view(), name='view_application'),
-
-    url(r'^chair/trips/$', views.manage_trips, name='manage_trips'),
+    url(r'^(?P<activity>.+)/trips/$', views.manage_trips, name='manage_trips'),
     url(r'^winter_school/participants/lecture_attendance/$', views.LectureAttendanceView.as_view(), name='lecture_attendance'),
 
     # Activity Chairs or WIMP views

@@ -6,7 +6,6 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
 from django.core.urlresolvers import reverse, reverse_lazy
-from django.forms.models import modelformset_factory
 from django.forms import HiddenInput
 from django.forms.models import model_to_dict
 from django.forms.utils import ErrorList
@@ -1110,32 +1109,20 @@ class ManageLeadersView(CreateView):
         return super(ManageLeadersView, self).dispatch(request, *args, **kwargs)
 
 
-def _manage_trips(request, TripFormSet):
-    if request.method == 'POST':
-        formset = TripFormSet(request.POST)
-        if formset.is_valid():
-            formset.save()
-            messages.success(request, 'Updated trips')
-            formset = TripFormSet()
-    else:
-        all_trips = models.Trip.objects.all()
-        all_trips = all_trips
-        formset = TripFormSet(queryset=all_trips)
-    return render(request, 'trips/manage.html', {'formset': formset})
+def _manage_trips(request, activity=None):
+    return render(request, 'trips/manage.html')
 
 
-@group_required('WSC')
-def manage_trips(request):
-    TripFormSet = modelformset_factory(models.Trip, can_delete=False, extra=0,
-                                       fields=('wsc_approved',))
-    return _manage_trips(request, TripFormSet)
+@chairs_only()
+def manage_trips(request, activity=None):
+    # NOTE: decorator doesn't care which activity it is, but
+    # that's fine - we don't do anything right now
+    return _manage_trips(request)
 
 
 @admin_only
-def admin_manage_trips(request):
-    TripFormSet = modelformset_factory(models.Trip, can_delete=True, extra=0,
-                                       fields=('wsc_approved',))
-    return _manage_trips(request, TripFormSet)
+def admin_manage_trips(request, activity=None):
+    return _manage_trips(request)
 
 
 class CreateTripView(CreateView):
