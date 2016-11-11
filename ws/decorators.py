@@ -12,7 +12,6 @@ from django.utils.decorators import available_attrs
 import ws.utils.perms
 
 
-#NOTE: Currently excludes the WSC (only the WS chair can assign ratings)
 def chairs_only(*activity_types, **kwargs):
     if not activity_types:
         activity_types = ws.utils.perms.activity_types
