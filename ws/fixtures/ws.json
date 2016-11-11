@@ -3682,7 +3682,7 @@
             66
         ],
         "level": "C",
-        "wsc_approved": true,
+        "chair_approved": true,
         "signups_close_at": "2016-01-31T04:59:59Z",
         "name": "Onesies on Mt Pierce"
     },
@@ -3710,7 +3710,7 @@
             809
         ],
         "level": null,
-        "wsc_approved": false,
+        "chair_approved": false,
         "signups_close_at": "2016-06-29T03:59:59Z",
         "name": "self rescue TRS"
     },
@@ -3744,7 +3744,7 @@
             120
         ],
         "level": null,
-        "wsc_approved": false,
+        "chair_approved": false,
         "signups_close_at": "2016-09-05T11:00:01Z",
         "name": "[Leaders] GSC Hiking Trip Leaders"
     },
@@ -3771,7 +3771,7 @@
         "let_participants_drop": false,
         "leaders": [],
         "level": null,
-        "wsc_approved": false,
+        "chair_approved": false,
         "signups_close_at": "2016-08-19T21:00:00Z",
         "name": "Outer Boston Harbor Sea Kayak"
     },
@@ -3800,7 +3800,7 @@
             73
         ],
         "level": null,
-        "wsc_approved": false,
+        "chair_approved": false,
         "signups_close_at": "2016-09-13T03:59:00Z",
         "name": "Intro Circus"
     },

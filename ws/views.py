@@ -1252,12 +1252,26 @@ class EditTripView(UpdateView, TripLeadersOnlyView):
     form_class = forms.TripForm
     template_name = 'trips/edit.html'
 
+
     def get_form_kwargs(self):
         kwargs = super(EditTripView, self).get_form_kwargs()
         if not self.request.user.is_superuser:
             allowed_activities = self.request.participant.allowed_activities
             kwargs['allowed_activities'] = allowed_activities
         return kwargs
+
+    @property
+    def update_rescinds_approval(self):
+        trip = self.object
+        return (trip.chair_approved and
+                not perm_utils.is_chair(self.request.user, trip.activity) and
+                trip.trip_date >= local_date()  # Doesn't matter after trip
+                )
+
+    def get_context_data(self, **kwargs):
+        context = super(EditTripView, self).get_context_data(**kwargs)
+        context['update_rescinds_approval'] = self.update_rescinds_approval
+        return context
 
     def get_success_url(self):
         return reverse('view_trip', args=(self.object.id,))
@@ -1280,9 +1294,9 @@ class EditTripView(UpdateView, TripLeadersOnlyView):
     def form_valid(self, form):
         self._ignore_leaders_if_unchanged(form)
 
-        trip = form.save(commit=False)
-        if not perm_utils.is_chair(self.request.user, trip.activity):
-            trip.wsc_approved = False
+        if self.update_rescinds_approval:
+            trip = form.save(commit=False)
+            trip.chair_approved = False
         return super(EditTripView, self).form_valid(form)
 
 

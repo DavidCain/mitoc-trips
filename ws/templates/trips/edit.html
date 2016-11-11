@@ -2,9 +2,14 @@
 {% block head_title %}Edit {{ trip.name }}{% endblock head_title %}
 
 {% block content %}
-  {% if form.instance.wsc_approved and not "WSC" in groups and not user.is_superuser %}
+  {% if update_rescinds_approval %}
     <div class="alert alert-warning">
-      <strong>WARNING:</strong> This trip has been approved by the Winter Safety Committee.
+      This trip has been approved by
+      {% if trip.activity == 'winter_school' %}
+        the Winter Safety Committee.
+      {% else %}
+        the {{ trip.activity|title }} chair.
+      {% endif %}
       Making any changes will rescind this approval.
     </div>
   {% endif %}

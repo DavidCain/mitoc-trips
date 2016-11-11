@@ -400,7 +400,7 @@ class Trip(models.Model):
     difficulty_rating = models.CharField(max_length=63)
     level = models.CharField(max_length=255, help_text="This trip's A, B, or C designation (plus I/S rating if applicable).", null=True, blank=True)
     prereqs = models.CharField(max_length=255, blank=True, verbose_name="Prerequisites")
-    wsc_approved = models.BooleanField(default=False)
+    chair_approved = models.BooleanField(default=False)
     notes = models.TextField(blank=True, max_length=2000,
                              help_text="Participants must add notes to their signups if you complete this field. "
                                        "This is a great place to ask important questions.")
