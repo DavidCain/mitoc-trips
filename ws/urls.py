@@ -22,7 +22,6 @@ urlpatterns = patterns('',
 
     # Administrator views
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^admin/trips/$', views.admin_manage_trips, name='admin_manage_trips'),
     url(r'^participants/(?P<pk>\d+)/edit/$', views.EditParticipantView.as_view(), name='edit_participant'),
     url(r'^participants/(?P<pk>\d+)/delete/$', views.DeleteParticipantView.as_view(), name='delete_participant'),
 
@@ -32,6 +31,7 @@ urlpatterns = patterns('',
     url(r'^(?P<activity>.+)/applications/(?P<pk>\d+)/$', views.LeaderApplicationView.as_view(), name='view_application'),
     url(r'^(?P<activity>.+)/trips/$', views.manage_trips, name='manage_trips'),
     url(r'^winter_school/settings/$', views.WinterSchoolSettingsView.as_view(), name='ws_settings'),
+    url(r'^trips/(?P<pk>\d+)/approve$', api_views.ApproveTripView.as_view(), name='json-approve_trip'),
 
     # Activity Chairs or WIMP views
     url(r'^trips/medical/$', views.AllTripsMedicalView.as_view(), name='all_trips_medical'),

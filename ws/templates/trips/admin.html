@@ -18,6 +18,10 @@
   {% endif %}
   <i class="fa fa-list-alt"></i>&nbsp;Itinerary</a>
   <a type="button" class="btn btn-default" href="{% url 'review_trip' trip.id %}"><i class="fa fa-comments"></i>&nbsp;Feedback</a>
+  <data-approve-trip
+      data-trip-id="{{ trip.pk }}"
+      data-approved="{{ trip.chair_approved|yesno:'true,false' }}">
+  </data-approve-trip>
 </div>
 
 <delete class="pull-right" data-api-slug="trips" data-obj-id="{{ trip.id }}"></delete>

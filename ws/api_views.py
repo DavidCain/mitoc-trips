@@ -2,7 +2,7 @@ from itertools import chain
 import json
 
 from django.contrib.auth.decorators import login_required
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
 from django.db import transaction
 from django.db.models import Q
 from django.http import JsonResponse
@@ -14,7 +14,7 @@ from allauth.account.models import EmailAddress
 
 from ws import models
 from ws.views import AllLeadersView, ItineraryEditableMixin, TripLeadersOnlyView
-from ws.decorators import group_required, user_info_required
+from ws.decorators import chairs_only, group_required, user_info_required
 
 from ws.utils.model_dates import missed_lectures
 import ws.utils.perms as perm_utils
@@ -256,6 +256,24 @@ def get_rating(request, pk, activity):
     query = Q(participant__pk=pk, activity=activity, active=True)
     lr = models.LeaderRating.objects.filter(query).values('rating', 'notes')
     return JsonResponse(lr[0] if lr else {})
+
+
+class ApproveTripView(SingleObjectMixin, View):
+    model = models.Trip
+
+    def post(self, request, *args, **kwargs):
+        postdata = json.loads(self.request.body)
+        trip = self.get_object()
+        trip.chair_approved = bool(postdata.get('approved'))
+        trip.save()
+        return JsonResponse({'approved': trip.chair_approved})
+
+    @method_decorator(chairs_only())
+    def dispatch(self, request, *args, **kwargs):
+        trip = self.get_object()
+        if not perm_utils.is_chair(request.user, trip.activity, False):
+            raise PermissionDenied
+        return super(ApproveTripView, self).dispatch(request, *args, **kwargs)
 
 
 class UserView(DetailView):

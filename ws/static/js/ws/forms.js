@@ -388,6 +388,24 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
     },
   };
 })
+.directive('approveTrip', function($http, djangoUrl) {
+  return {
+    restrict: 'E',
+    replace: true,
+    scope: {
+      tripId: '=',
+      approved: '=',
+    },
+    templateUrl: '/static/template/approve-trip.html',
+    link: function (scope, element, attrs) {
+      var url = djangoUrl.reverse("json-approve_trip", [scope.tripId]);
+      scope.toggleApproval = function(){
+        scope.approved = !scope.approved;
+        $http.post(url, {approved: scope.approved});
+      };
+    }
+  };
+})
 .directive('delete', function($http, $window, $uibModal) {
   return {
     restrict: 'E',

@@ -694,6 +694,7 @@ class AdminTripView(TripDetailView, ItineraryEditableMixin):
         trip = self.object = self.get_object()
         context = super(AdminTripView, self).get_context_data()
         context.update(self.info_form_context(trip))
+        context['is_chair'] = perm_utils.is_chair(self.request.user, trip.activity)
         return context
 
 

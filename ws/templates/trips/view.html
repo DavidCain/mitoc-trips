@@ -12,8 +12,21 @@
     <a type="button" class="btn btn-default" href="{% url 'edit_trip' trip.id %}"   ><i class="fa fa-edit"  ></i>&nbsp;Edit</a>
     <a type="button" class="btn btn-default" href="{% url 'trip_medical' trip.id %}"><i class="fa fa-medkit"></i>&nbsp;WIMP info</a>
     <a type="button" class="btn btn-default" href="{% url 'admin_trip' trip.id %}"  ><i class="fa fa-wrench"></i>&nbsp;Admin</a>
+    {% if is_chair %}
+      <a type="button" class="btn btn-default {{ trip.info|yesno:",btn-danger" }}"
+          {% if trip.info %}
+            href="{% url 'trip_itinerary' trip.pk %}"
+          {% else %}
+            uib-tooltip="Not yet completed"
+          {% endif %}
+      ><i class="fa fa-list-alt"></i>&nbsp;Itinerary</a>
+      <data-approve-trip
+          data-trip-id="{{ trip.pk }}"
+          data-approved="{{ trip.chair_approved|yesno:'true,false' }}">
+      </data-approve-trip>
+    {% endif %}
   </div>
-  <delete class="pull-right" data-api-slug="trips" data-obj-id="{{ trip.id }}"></delete>
+  <data-delete class="pull-right" data-api-slug="trips" data-obj-id="{{ trip.id }}"></data-delete>
 {% endif %}
 
 {% trip_summary trip %}
