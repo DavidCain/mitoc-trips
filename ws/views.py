@@ -617,7 +617,6 @@ class TripView(TripDetailView):
     def get_context_data(self, **kwargs):
         context = super(TripView, self).get_context_data()
         trip = self.object
-        context['is_chair'] = perm_utils.is_chair(self.request.user, trip.activity)
         context['participant_signup'] = self.get_participant_signup(trip)
         return context
 
@@ -896,6 +895,38 @@ class LeaderApplyView(LeaderApplicationMixin, CreateView):
         return super(LeaderApplyView, self).dispatch(request, *args, **kwargs)
 
 
+class ApprovedTripsMixin(object):
+    model = models.Trip
+
+    @property
+    def activity(self):
+        return self.kwargs['activity']
+
+    def get_queryset(self):
+        """ All upcoming trips of this activity type. """
+        return models.Trip.objects.filter(activity=self.activity,
+                                          trip_date__gte=local_date())
+
+    def get_context_data(self, **kwargs):
+        context = super(ApprovedTripsMixin, self).get_context_data(**kwargs)
+        context['activity'] = self.activity
+        trips = self.get_queryset()
+        context['approved_trips'] = trips.filter(chair_approved=True)
+        context['unapproved_trips'] = trips.filter(chair_approved=False)
+        return context
+
+
+class ManageTripsView(ApprovedTripsMixin, ListView):
+    model = models.Trip
+    template_name = 'chair/trips/all.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        activity = kwargs.get('activity')
+        if not perm_utils.is_chair(request.user, activity):
+            raise PermissionDenied
+        return super(ManageTripsView, self).dispatch(request, *args, **kwargs)
+
+
 class AllLeaderApplicationsView(ApplicationManager, ListView):
     context_object_name = 'leader_applications'
     template_name = 'chair/applications/all.html'
@@ -1170,22 +1201,6 @@ class ManageLeadersView(CreateView):
         return super(ManageLeadersView, self).dispatch(request, *args, **kwargs)
 
 
-def _manage_trips(request, activity=None):
-    return render(request, 'trips/manage.html')
-
-
-@chairs_only()
-def manage_trips(request, activity=None):
-    # NOTE: decorator doesn't care which activity it is, but
-    # that's fine - we don't do anything right now
-    return _manage_trips(request)
-
-
-@admin_only
-def admin_manage_trips(request, activity=None):
-    return _manage_trips(request)
-
-
 class CreateTripView(CreateView):
     model = models.Trip
     form_class = forms.TripForm
@@ -1252,7 +1267,6 @@ class EditTripView(UpdateView, TripLeadersOnlyView):
     model = models.Trip
     form_class = forms.TripForm
     template_name = 'trips/edit.html'
-
 
     def get_form_kwargs(self):
         kwargs = super(EditTripView, self).get_form_kwargs()
@@ -1348,6 +1362,27 @@ class UpcomingTripsView(TripListView):
 class AllTripsView(TripListView):
     """ View all trips, past and present. """
     pass
+
+
+class ApproveTripsView(UpcomingTripsView):
+    template_name = 'trips/all/manage.html'
+
+    def get_queryset(self):
+        upcoming_trips = super(ApproveTripsView, self).get_queryset()
+        return upcoming_trips.filter(activity=self.kwargs['activity'])
+
+    def dispatch(self, request, *args, **kwargs):
+        activity = kwargs.get('activity')
+        if not perm_utils.is_chair(request.user, activity):
+            raise PermissionDenied
+        return super(ApproveTripsView, self).dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        # No point sorting into current, past (queryset already handles)
+        context = super(ApproveTripsView, self).get_context_data(**kwargs)
+        unapproved_trips = self.get_queryset().filter(chair_approved=False)
+        context['first_unapproved_trip'] = unapproved_trips.first()
+        return context
 
 
 class LotteryPairingView(CreateView, LotteryPairingMixin):
@@ -1606,6 +1641,55 @@ class TripMedicalView(DetailView, TripLeadersOnlyView, TripMedical,
         context_data['info_form'] = self.get_info_form(trip)
         context_data.update(self.info_form_context(trip))
         return context_data
+
+
+class ChairTripView(ApprovedTripsMixin, TripMedical, DetailView):
+    """ Give a view of the trip intended to let chairs approve or not.
+
+    Will show just the important details, like leaders, description, & itinerary.
+    """
+    template_name = 'chair/trips/view.html'
+
+    def get_other_trips(self):
+        """ Get the trips that come before and after this trip. """
+        this_trip = self.get_object()
+
+        ordered_trips = iter(self.get_queryset().filter(chair_approved=False))
+        prev_trip = None
+        for trip in ordered_trips:
+            if trip.pk == this_trip.pk:
+                try:
+                    next_trip = next(ordered_trips)
+                except StopIteration:
+                    next_trip = None
+                break
+            prev_trip = trip
+        else:
+            return None, None  # (Could be the last unapproved trip)
+        return prev_trip, next_trip
+
+    def get_context_data(self, **kwargs):
+        context = super(ChairTripView, self).get_context_data(**kwargs)
+        context['prev_trip'], context['next_trip'] = self.get_other_trips()
+        context['info_form'] = self.get_info_form(context['trip'])
+        return context
+
+    def post(self, request, *args, **kwargs):
+        """ Mark the trip approved and move to the next one. """
+        trip = self.get_object()
+        prev_trip, next_trip = self.get_other_trips()  # Do this before saving trip
+        trip.chair_approved = True
+        trip.save()
+        if next_trip:
+            return redirect(reverse('view_trip_for_approval', args=(self.activity, next_trip.id,)))
+        else:
+            return redirect(reverse('manage_trips', args=(self.activity,)))
+
+    def dispatch(self, request, *args, **kwargs):
+        trip = self.get_object()
+        if not perm_utils.is_chair(request.user, trip.activity, False):
+            raise PermissionDenied
+        return super(ChairTripView, self).dispatch(request, *args, **kwargs)
 
 
 class TripItineraryView(UpdateView, TripLeadersOnlyView, ItineraryEditableMixin):

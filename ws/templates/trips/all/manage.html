@@ -1,0 +1,29 @@
+{% extends "messages_page.html" %}
+{% load trip_tags %}
+
+{% block head_title %}Manage trips {% endblock head_title %}
+
+{% block content %}
+{{ block.super }}
+
+<h2>Approve upcoming trips
+  {% if first_unapproved_trip %}
+    <a role="button" href="{% url 'view_trip_for_approval' first_unapproved_trip.activity first_unapproved_trip.pk %}" class="btn btn-primary pull-right">
+      <i class="fa fa-check"></i>
+      Start
+    </a>
+  {% endif %}
+</h2>
+
+{% if current_trips %}
+  {% trip_list_table current_trips True %}
+{% else %}
+  <p class="lead">
+    No current or upcoming trips!
+  </p>
+  <p>
+    Once leaders create trips, you'll be able to mark their trips as approved here.
+  </p>
+{% endif %}
+
+{% endblock content %}

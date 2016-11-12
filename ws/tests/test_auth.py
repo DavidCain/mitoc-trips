@@ -96,7 +96,7 @@ class AuthTests(TestCase):
         """ Unregistered users are prompted to log in on restricted pages. """
         # Non-exhaustive list of restricted URLs (some require more than login)
         for login_required in ['all_trips_medical', 'account_change_password',
-                               'admin_manage_trips', 'manage_leaders',
+                               'manage_leaders',
                                'manage_applications', 'manage_trips',
                                'participant_lookup', 'json-membership_statuses',
                                'trip_signup', 'leader_trip_signup',

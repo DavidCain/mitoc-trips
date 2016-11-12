@@ -1,38 +1,65 @@
 {% load signup_tags %}
 <table class="footable">
-    <thead>
-        <tr>
-            <th>Name</th>  {# Link out #}
-            <th data-type="numeric" class="nowrap">Date</th>
-            <th data-hide="phone,tablet" data-sort-ignore="true">Description</th>
-            <th data-type="numeric" class="nowrap" data-hide="phone">Signups</th>
-            <th data-type="numeric" class="nowrap">Spaces</th>
-            <th data-hide="phone,tablet">Leaders</th>
-        </tr>
-    </thead>
-
-    <tbody>
-    {% for trip in trip_list %}
-
+  <thead>
     <tr>
-        <td><a href="{% url 'view_trip' trip.id %}">{{ trip.name|truncatechars:45 }}</a></td>
-        <td class="nowrap" data-value="{{ trip.trip_date|date:'U' }}">
-            {% if trip.in_past %}
-                {{ trip.trip_date|date:"Y-m-d" }}
-            {% else %}
-                {{ trip.trip_date|date:"D, M j" }}
-            {% endif %}
-        </td>
-        <td><strong>{{ trip.difficulty_rating }}</strong> {{ trip.description|truncatechars:50 }}</td>
-        {% with signups_on_trip=trip.signups_on_trip %}
-        <td data-value="{{ trip.num_signups }}"> {{ trip.num_signups }} / {{ trip.maximum_participants }}</td>
-        <td> {{ trip.maximum_participants|subtract:signups_on_trip }} </td>
-        {% endwith %}
-        <td>
-            {{ trip.leaders_with_rating|slice:':5'|join:', ' }}{% if trip.leaders.count > 5 %}... ({{ trip.leaders.count }} in total){% endif %}
-        </td>
+      <th>Name</th>  {# Link out #}
+      <th data-type="numeric" class="nowrap">Date</th>
+      <th data-hide="phone,tablet" data-sort-ignore="true">Description</th>
+      {% if not approve_mode %}
+        <th data-type="numeric" class="nowrap" data-hide="phone">Signups</th>
+        <th data-type="numeric" class="nowrap">Spaces</th>
+      {% endif %}
+      <th data-hide="phone,tablet">Leaders</th>
+      {% if approve_mode %}
+        <th data-sort-ignore="true">Approve</th>
+      {% endif %}
     </tr>
+  </thead>
 
+  <tbody>
+    {% for trip in trip_list %}
+      <tr>
+        <td>
+          {% if approve_mode %}
+            <a href="{% url 'view_trip_for_approval' trip.activity trip.pk %}">
+          {% else %}
+            <a href="{% url 'view_trip' trip.pk %}">
+          {% endif  %}
+              {{ trip.name|truncatechars:45 }}
+          </a>
+        </td>
+        <td class="nowrap" data-value="{{ trip.trip_date|date:'U' }}">
+          {% if trip.in_past %}
+            {{ trip.trip_date|date:"Y-m-d" }}
+          {% else %}
+            {{ trip.trip_date|date:"D, M j" }}
+          {% endif %}
+        </td>
+
+        <td>
+          <strong>{{ trip.difficulty_rating }}</strong> {{ trip.description|truncatechars:50 }}
+        </td>
+
+        {% if not approve_mode %}
+          {% with signups_on_trip=trip.signups_on_trip %}
+            <td data-value="{{ trip.num_signups }}"> {{ trip.num_signups }} / {{ trip.maximum_participants }}</td>
+            <td> {{ trip.maximum_participants|subtract:signups_on_trip }} </td>
+          {% endwith %}
+        {% endif  %}
+
+        <td>
+          {{ trip.leaders_with_rating|slice:':5'|join:', ' }}{% if trip.leaders.count > 5 %}... ({{ trip.leaders.count }} in total){% endif %}
+        </td>
+
+        {% if approve_mode %}
+          <td>
+            <data-approve-trip
+                data-trip-id="{{ trip.pk }}"
+                data-approved="{{ trip.chair_approved|yesno:'true,false' }}">
+            </data-approve-trip>
+          </td>
+        {% endif %}
+      </tr>
     {% endfor %}
-    </tbody>
+  </tbody>
 </table>

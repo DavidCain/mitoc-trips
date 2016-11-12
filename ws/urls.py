@@ -29,8 +29,9 @@ urlpatterns = patterns('',
     url(r'^chair/leaders/$', views.ManageLeadersView.as_view(), name='manage_leaders'),
     url(r'^(?P<activity>.+)/applications/$', views.AllLeaderApplicationsView.as_view(), name='manage_applications'),
     url(r'^(?P<activity>.+)/applications/(?P<pk>\d+)/$', views.LeaderApplicationView.as_view(), name='view_application'),
-    url(r'^(?P<activity>.+)/trips/$', views.manage_trips, name='manage_trips'),
+    url(r'^(?P<activity>.+)/trips/$', views.ApproveTripsView.as_view(), name='manage_trips'),
     url(r'^winter_school/settings/$', views.WinterSchoolSettingsView.as_view(), name='ws_settings'),
+    url(r'^(?P<activity>.+)/trips/(?P<pk>\d+)/$', views.ChairTripView.as_view(), name='view_trip_for_approval'),
     url(r'^trips/(?P<pk>\d+)/approve$', api_views.ApproveTripView.as_view(), name='json-approve_trip'),
 
     # Activity Chairs or WIMP views

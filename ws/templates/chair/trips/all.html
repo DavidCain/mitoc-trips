@@ -1,0 +1,74 @@
+{% extends "messages_page.html" %}
+{% load trip_tags %}
+{% block head_title %}Leader applications {% endblock head_title %}
+
+{% block content %}
+{{ block.super }}
+
+{% if approved_trips or unapproved_trips %}
+  <div class="row">
+    <div class="col-md-6">
+      <h2>
+        Needs Approval
+        {% if unapproved_trips %}
+          <a role="button" href="{% url 'view_trip_for_approval' activity unapproved_trips.0.pk %}" class="btn btn-primary pull-right">
+            <i class="fa fa-thumbs-up"></i>
+            Start
+          </a>
+        {% endif %}
+      </h2>
+
+      {% if unapproved_trips %}
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for trip in unapproved_trips %}
+            <tr>
+              <td><a href="{% url 'view_trip_for_approval' activity trip.pk %}">{{ trip.name }}</a></td>
+              <td class="nowrap">{{ trip.trip_date|date:"D, M j" }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <div class="alert alert-info">
+          All upcoming trips have been marked as approved!
+        </div>
+      {% endif %}
+    </div>
+
+    {% if approved_trips %}
+      <div class="col-md-6">
+        <h2>Upcoming Approved Trips</h2>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for trip in approved_trips %}
+            <tr>
+              <td><a href="{% url 'view_trip' trip.pk %}">{{ trip.name }}</a></td>
+              <td class="nowrap">{{ trip.trip_date|date:"D, M j" }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endif %}
+  </div>
+{% else %}
+  <h2>Approve Upcoming Trips</h2>
+  <p class="lead">When there are upcoming trips, this page allows you to mark the trips as approved.</p>
+  <p>There aren't currently any upcoming trips, but you can check back here when there are!</p>
+{% endif %}
+
+
+{% endblock content %}

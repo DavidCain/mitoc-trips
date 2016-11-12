@@ -1,0 +1,65 @@
+{% extends "messages_page.html" %}
+{% load signup_tags %}
+{% load trip_tags %}
+{% load form_tags %}
+
+{% block head_title %}{{ trip.name }}{% endblock head_title %}
+
+{% block content %}
+{{ block.super }}
+
+
+<div class="row">
+  <div class="col-xs-4">
+    <a role="button" class="btn btn-default"
+      {% if prev_trip %}
+        href="{% url 'view_trip_for_approval' activity prev_trip.pk %}"
+      {% else %}
+        disabled
+      {% endif %}
+      >
+      &laquo; Previous
+    </a>
+  </div>
+  <div class="col-xs-4 text-center">
+    <form method="post" action=".">
+      {% csrf_token %}
+      <button class="btn btn-primary" type="submit">Approve &amp; Next</button>
+    </form>
+  </div>
+
+  <div class="col-xs-4 text-right">
+    <a role="button" class="btn btn-default"
+      {% if next_trip %}
+        href="{% url 'view_trip_for_approval' activity next_trip.pk %}"
+      {% else %}
+        disabled
+      {% endif %}
+      >
+      Next &raquo;
+    </a>
+  </div>
+</div>
+
+<hr>
+
+
+{% trip_edit_buttons trip viewing_participant user True %}
+
+<div class="row">
+  <div class="col-md-6">
+    {% trip_summary trip %}
+  </div>
+  <div class="col-md-6">
+    <h2>Trip Itinerary</h2>
+    {% if info_form %}
+      {% readonly_form info_form %}
+    {% else %}
+      <div class="alert alert-warning">
+        No trip itinerary posted!
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock content %}
