@@ -1004,22 +1004,48 @@ class LeaderApplicationView(LeaderApplicationMixin, FormMixin, DetailView):
             initial['notes'] = existing.notes
         return initial
 
-    def get_recommendations(self):
-        """ Get recommendations made by other leaders or chairs. """
-        this_app = Q(participant=self.object.participant,
-                     activity=self.activity)
-        return models.LeaderRecommendation.objects.filter(this_app)
+    @property
+    def assigned_rating(self):
+        """ Return any rating given in response to this application. """
+        in_future = Q(participant=self.object.participant,
+                      activity=self.activity,
+                      time_created__gte=self.object.time_created)
+        future_ratings = models.LeaderRating.objects.filter(in_future)
+        return future_ratings.order_by('time_created').first()
+
+    def get_recommendations(self, assigned_rating=None):
+        """ Get recommendations made by leaders/chairs for this application.
+
+        If this is a past application, only show recommendations that were
+        made for that application. That is, don't show recommendations created
+        after a rating was assigned based on the application.
+        """
+        match = Q(participant=self.object.participant, activity=self.activity)
+
+        if assigned_rating:
+            match &= Q(time_created__lte=assigned_rating.time_created)
+        return models.LeaderRecommendation.objects.filter(match)
 
     def get_feedback(self):
-        """ Return all feedback (chairs can see everything). """
-        feedback = models.Feedback.everything.filter(participant=self.object.participant)
-        for_joining = feedback.select_related('leader', 'trip')
-        return for_joining.prefetch_related('leader__leaderrating_set')
+        """ Return all feedback for the participant.
+
+        Activity chairs see the complete history of feedback (without the normal
+        "clean slate" period. The only exception is that activity chairs cannot
+        see their own feedback.
+        """
+        feedback = models.Feedback.everything.filter(
+            Q(participant=self.object.participant) &
+            ~Q(participant=self.request.participant)
+        ).select_related('leader', 'trip')
+
+        return feedback.prefetch_related('leader__leaderrating_set')
 
     def get_context_data(self, **kwargs):
         # Super calls DetailView's `get_context_data` so we'll manually add form
         context = super(LeaderApplicationView, self).get_context_data(**kwargs)
-        context['recommendations'] = self.get_recommendations()
+        assigned_rating = self.assigned_rating
+        context['assigned_rating'] = assigned_rating
+        context['recommendations'] = self.get_recommendations(assigned_rating)
         context['leader_form'] = self.get_form()
         context['all_feedback'] = self.get_feedback()
         context['prev_app'], context['next_app'] = self.get_other_apps()
