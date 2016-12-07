@@ -1,3 +1,4 @@
+from collections import defaultdict
 import json
 
 from django.db.models import Case, Count, F, IntegerField, Sum, Q, When
@@ -883,7 +884,7 @@ class AllLeaderApplicationsView(LeaderApplicationMixin, ListView):
     template_name = 'chair/applications/all.html'
 
     def get_queryset(self):
-        return self.sorted_applications(just_this_year=True)
+        return self.sorted_applications(just_this_year=False)
 
     def get_context_data(self, **kwargs):
         # Super calls DetailView's `get_context_data` so we'll manually add form
@@ -891,7 +892,9 @@ class AllLeaderApplicationsView(LeaderApplicationMixin, ListView):
 
         apps = context['leader_applications']
         given_rating = apps.filter(num_ratings__gt=0)
-        needs_rating = apps.filter(num_ratings=0)
+
+        # Only consider applications for this current year
+        needs_rating = apps.filter(num_ratings=0, year=self.year)
 
         context['num_chairs'] = self.num_chairs
 
@@ -904,7 +907,11 @@ class AllLeaderApplicationsView(LeaderApplicationMixin, ListView):
 
         context['pending'] = context['needs_rating'] or context.get('needs_rec')
 
-        context['given_rating'] = given_rating.order_by('participant__name')
+        apps_by_year = defaultdict(list)
+        for application in given_rating.order_by('-year', 'participant__name'):
+            apps_by_year[application.year].append(application)
+        context['apps_by_year'] = [(year, apps_by_year[year])
+                                   for year in sorted(apps_by_year, reverse=True)]
 
         return context
 
