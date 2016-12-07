@@ -204,3 +204,7 @@ participant-select .ui-select-container input.ui-select-search {
 #application-controls .checkbox-inline {
   margin-bottom: 5px;
 }
+
+dd ul {
+  margin-bottom: 0;
+}

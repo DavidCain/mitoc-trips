@@ -86,8 +86,27 @@
           <a href="{% url 'view_participant' application.participant.id %}">{{ application.participant.name }}</a>
         </h2>
         <dl class="dl-horizontal">
-          <dt>Previous rating:</dt>
-          <dd>{{ application.previous_rating|default:None }}</dd>
+          <dt>Previous ratings:</dt>
+          <dd>
+            <ul class="list-unstyled">
+              {% for rating in previous_ratings %}
+              <li>
+                {{ rating.rating }},
+                <span
+                  {% if rating.active %}
+                    class="label label-primary"
+                  {% else %}
+                    class="label label-default"
+                  {% endif %}
+                  data-uib-tooltip="Rating of '{{ rating.rating }}' created by {{ rating.creator.name }} on {{ rating.time_created|date }}"
+                >{{ rating.time_created|date:"Y-m-d" }}</span>
+              </li>
+              {% empty %}
+                {# It might be an old application where we just asked participants #}
+                <li>{{ application.previous_rating|default:"None" }}</li>
+              {% endfor %}
+            </ul>
+          </dd>
           <dt>Desired rating:</dt>
           <dd>{{ application.desired_rating }}</dd>
           {% if assigned_rating %}

@@ -969,11 +969,20 @@ class LeaderApplicationView(LeaderApplicationMixin, FormMixin, DetailView):
 
         return if_valid(prev_app), if_valid(next_app)
 
+    @property
+    def par_ratings(self):
+        find_ratings = Q(participant=self.object.participant,
+                         activity=self.activity)
+        return models.LeaderRating.objects.filter(find_ratings)
+
+    @property
+    def previous_ratings(self):
+        """ Return ratings, with active & newer ratings ordered first. """
+        ratings = self.par_ratings.filter(time_created__lte=self.object.time_created)
+        return ratings.order_by('-active', '-time_created')
+
     def existing_rating(self):
-        find_rating = Q(participant=self.object.participant,
-                        activity=self.activity,
-                        active=True)
-        return models.LeaderRating.objects.filter(find_rating).first()
+        return self.par_ratings.filter(active=True).first()
 
     def existing_rec(self):
         """ Load an existing recommendation for the viewing participant. """
@@ -1049,6 +1058,7 @@ class LeaderApplicationView(LeaderApplicationMixin, FormMixin, DetailView):
         context['leader_form'] = self.get_form()
         context['all_feedback'] = self.get_feedback()
         context['prev_app'], context['next_app'] = self.get_other_apps()
+        context['previous_ratings'] = self.previous_ratings
         return context
 
     def form_valid(self, form):
