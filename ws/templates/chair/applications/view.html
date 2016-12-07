@@ -168,6 +168,12 @@
     {% endif %}
 
     {% feedback_table all_feedback %}
+
+    {% if trips_led %}
+      <h3><i class="fa fa-suitcase"></i> Trips Led</h3>
+      {% simple_trip_list trips_led 50 150 True %}
+    {% endif %}
   </div>
 </div>
+
 {% endblock content %}

@@ -2,7 +2,9 @@
   <thead>
     <tr>
       <th>Trip</th>
-      <th data-type="numeric" class="nowrap">Date</th>
+      {% if not collapse_date %}
+        <th data-type="numeric" class="nowrap">Date</th>
+      {% endif %}
       <th data-hide="phone" class="nowrap">Leaders</th>
     </tr>
   </thead>
@@ -14,13 +16,15 @@
           <a href="{% url 'view_trip' trip.id %}">{{ trip.name|truncatechars:max_title_chars }}</a><br>
           <strong>{{ trip.difficulty_rating }}</strong> {{ trip.description|truncatechars:max_description_chars }}
         </td>
-        <td class="nowrap" data-value="{{ trip.trip_date|date:'U' }}">
-          {% if trip.in_past %}
-            {{ trip.trip_date|date:"Y-m-d" }}
-          {% else %}
-            {{ trip.trip_date|date:"D" }}
-          {% endif %}
-        </td>
+        {% if not collapse_date %}
+          <td class="nowrap" data-value="{{ trip.trip_date|date:'U' }}">
+            {% if trip.in_past %}
+              {{ trip.trip_date|date:"Y-m-d" }}
+            {% else %}
+              {{ trip.trip_date|date:"D" }}
+            {% endif %}
+          </td>
+        {% endif %}
         <td>
           {% for leader in trip.leaders_with_rating|slice:":5" %}
             <div class="nowrap">{{ leader }}</div>

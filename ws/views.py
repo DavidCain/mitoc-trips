@@ -1019,8 +1019,17 @@ class LeaderApplicationView(LeaderApplicationMixin, FormMixin, DetailView):
         in_future = Q(participant=self.object.participant,
                       activity=self.activity,
                       time_created__gte=self.object.time_created)
-        future_ratings = models.LeaderRating.objects.filter(in_future)
-        return future_ratings.order_by('time_created').first()
+        if not hasattr(self, '_assigned_rating'):
+            ratings = models.LeaderRating.objects.filter(in_future)
+            self._assigned_rating = ratings.order_by('time_created').first()
+        return self._assigned_rating
+
+    @property
+    def before_rating(self):
+        if self.assigned_rating:
+            return Q(time_created__lte=self.assigned_rating.time_created)
+        else:
+            return Q()
 
     def get_recommendations(self, assigned_rating=None):
         """ Get recommendations made by leaders/chairs for this application.
@@ -1030,10 +1039,9 @@ class LeaderApplicationView(LeaderApplicationMixin, FormMixin, DetailView):
         after a rating was assigned based on the application.
         """
         match = Q(participant=self.object.participant, activity=self.activity)
-
-        if assigned_rating:
-            match &= Q(time_created__lte=assigned_rating.time_created)
-        return models.LeaderRecommendation.objects.filter(match)
+        find_recs = match & self.before_rating
+        recs = models.LeaderRecommendation.objects.filter(find_recs)
+        return recs.select_related('creator')
 
     def get_feedback(self):
         """ Return all feedback for the participant.
@@ -1059,6 +1067,10 @@ class LeaderApplicationView(LeaderApplicationMixin, FormMixin, DetailView):
         context['all_feedback'] = self.get_feedback()
         context['prev_app'], context['next_app'] = self.get_other_apps()
         context['previous_ratings'] = self.previous_ratings
+
+        all_trips_led = self.object.participant.trips_led
+        trips_led = all_trips_led.filter(self.before_rating, activity=self.activity)
+        context['trips_led'] = trips_led.prefetch_related('leaders__leaderrating_set')
         return context
 
     def form_valid(self, form):

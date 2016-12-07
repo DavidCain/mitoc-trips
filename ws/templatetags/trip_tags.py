@@ -4,10 +4,12 @@ register = template.Library()
 
 
 @register.inclusion_tag('for_templatetags/simple_trip_list.html')
-def simple_trip_list(trip_list, max_title_chars=45, max_description_chars=120):
+def simple_trip_list(trip_list, max_title_chars=45, max_description_chars=120,
+                     collapse_date=False):
     return {'trip_list': trip_list,
             'max_title_chars': max_title_chars,
-            'max_description_chars': max_description_chars}
+            'max_description_chars': max_description_chars,
+            'collapse_date': collapse_date}
 
 
 @register.inclusion_tag('for_templatetags/trip_list_table.html')
