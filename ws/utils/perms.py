@@ -1,3 +1,4 @@
+from django.contrib.auth.models import Group
 from ws import models
 
 
@@ -17,10 +18,14 @@ def chair_group(activity):
 
 
 def in_any_group(user, group_names, allow_superusers=True):
-    if user.is_authenticated():
-        if allow_superusers and user.is_superuser:
-            return True
-        return any(g.name in group_names for g in user.groups.all())
+    if user.is_anonymous():
+        return False
+
+    if allow_superusers and user.is_superuser:
+        search_groups = Group.objects.all()
+    else:
+        search_groups = user.groups.all()
+    return any(g.name in group_names for g in search_groups)
 
 
 def is_chair(user, activity_type, allow_superusers=True):
