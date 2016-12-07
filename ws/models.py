@@ -643,6 +643,22 @@ class LeaderApplication(models.Model):
         ordering = ["time_created"]
 
 
+class HikingLeaderApplication(LeaderApplication):
+    desired_rating = models.CharField(max_length=10,
+                                      choices=[("Leader", "Leader"),
+                                               ("Co-Leader", "Co-Leader")],
+                                      help_text="Co-Leader: Can co-lead a 3-season hiking trip with a Leader. Leader: Can run 3-season hiking trips.")
+
+    mitoc_experience = models.TextField(max_length=5000,
+                                        verbose_name="Hiking Experience with MITOC",
+                                        help_text="How long have you been a MITOC member? Please indicate what official MITOC hikes and Circuses you have been on. Include approximate dates and locations, number of participants, trail conditions, type of trip, etc. Give details of whether you participated, led, or co-led these trips. [Optional]: If you like, briefly summarize your experience on unofficial trips or experience outside of New England.")
+    formal_training = models.TextField(blank=True, max_length=5000,
+                                       help_text="Please give details of any medical training and qualifications, with dates. Also include any other formal outdoor education or qualifications.")
+    leadership_experience = models.TextField(blank=True, max_length=5000,
+                                             verbose_name="Group outdoor/leadership experience",
+                                             help_text="If you've been a leader elsewhere, please describe that here. This could include leadership in other collegiate outing clubs, student sports clubs, NOLS, Outward Bound, or AMC; working as a guide, summer camp counselor, or Scout leader; or organizing hikes with friends.")
+
+
 class WinterSchoolLeaderApplication(LeaderApplication):
     # Leave ratings long for miscellaneous comments
     # (Omitted from base - some activities might not have users request ratings)
