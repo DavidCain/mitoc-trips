@@ -5,11 +5,12 @@
 {% block content %}
 {{ block.super }}
 
-{% if not leader_applications %}
+{% if not pending %}
   <h2>Leader Applications</h2>
   <p class="lead">
-    This page lists all leader applications that are pending your review.
+    There are no leader applications pending your review.
   </p>
+
   {% if missing_form %}
     <div class="alert alert-warning">
       <p>You don't have any application form defined for your activity!</p>
@@ -26,127 +27,117 @@
       a <a href="{% url 'become_leader' activity %}">leader application</a>, you
       will be able to assign them ratings based on their responses.
     </p>
-  {% endif  %}
+  {% endif %}
 
-{% else %}
+{% else %}  {# Some applications need recommendations and/or ratings #}
 
-<div class="row">
-  <div class="col-md-6">
-    <h2>
-      Needs Recommendation
-      {% if needs_rec %}
-        <a role="button" href="{% url 'view_application' activity needs_rec.0.id %}" class="btn btn-primary pull-right">
-          <i class="fa fa-thumbs-up"></i>
-          Start
-        </a>
-      {% endif %}
-    </h2>
-
-    {% if needs_rec %}
-      <table class="table">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Past rating</th>
-            <th>Desired rating</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for application in needs_rec %}
-          <tr>
-            <td class="nowrap"><a href="{% url 'view_application' activity application.id %}">{{ application.participant.name }}</a></td>
-            <td>{{ application.previous_rating }}</td>
-            <td>{{ application.desired_rating }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    {% else %}
-      <div class="alert alert-info">
-        {% if needs_rec and num_chairs > 1 %}
-          <p>You've given recommendations on all open applications!</p>
-        {% elif given_rating and not needs_rec %}
-          All applications have ratings!
-        {% else %}
-          You're the only chair! <br>
-          If you had co-chairs, you'd be able to make recommendations for each leader.
-        {% endif %}
-      </div>
-    {% endif %}
-  </div>
-
-  <div class="col-md-6">
-    <h2>
-      Needs Rating
-      {% if needs_rating %}
-        <a role="button" href="{% url 'view_application' activity needs_rating.0.id %}" class="btn btn-success pull-right">
-          <i class="fa fa-star-half-o"></i>
-          Start
-        </a>
-      {% endif %}
-    </h2>
-
-    {% if needs_rating %}
-      <table class="table">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th data-hide="phone">Past rating</th>
-            <th>Desired rating</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for application in needs_rating %}
-          <tr>
-            <td><a href="{% url 'view_application' activity application.id %}">{{ application.participant.name }}</a></td>
-            <td>{{ application.previous_rating }}</td>
-            <td>{{ application.desired_rating }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    {% else %}
-      <div class="alert alert-info">
+  <div class="row">
+    <div class="col-md-6">
+      <h2>
+        Needs Recommendation
         {% if needs_rec %}
-          &larr; Recommend some leader ratings for other applications to populate this list.
-        {% elif given_rating %}
-          All applications have ratings!
-        {% else %}
-          No active applications.
+          <a role="button" href="{% url 'view_application' activity needs_rec.0.id %}" class="btn btn-primary pull-right">
+            <i class="fa fa-thumbs-up"></i>
+            Start
+          </a>
         {% endif %}
-      </div>
-    {% endif %}
+      </h2>
+
+      {% if needs_rec %}
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Past rating</th>
+              <th>Desired rating</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for application in needs_rec %}
+            <tr>
+              <td class="nowrap"><a href="{% url 'view_application' activity application.id %}">{{ application.participant.name }}</a></td>
+              <td>{{ application.previous_rating }}</td>
+              <td>{{ application.desired_rating }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}  {# There aren't any applications that need recommendations. #}
+        <div class="alert alert-info">
+          {% if num_chairs == 0 %}
+            If you had co-chairs, you could make recommendations on each leader!
+          {% else %}
+            You've given recommendations on all open applications!
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="col-md-6">
+      <h2>
+        Needs Rating
+        {% if needs_rating %}
+          <a role="button" href="{% url 'view_application' activity needs_rating.0.id %}" class="btn btn-success pull-right">
+            <i class="fa fa-star-half-o"></i>
+            Start
+          </a>
+        {% endif %}
+      </h2>
+
+      {% if needs_rating %}
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th data-hide="phone">Past rating</th>
+              <th>Desired rating</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for application in needs_rating %}
+            <tr>
+              <td><a href="{% url 'view_application' activity application.id %}">{{ application.participant.name }}</a></td>
+              <td>{{ application.previous_rating }}</td>
+              <td>{{ application.desired_rating }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% elif needs_rec %}
+        <div class="alert alert-info">
+          Recommend some leader ratings for other applications to populate this list.
+        </div>
+      {% endif %}
+    </div>
   </div>
-</div>
-
-
-{% if given_rating %}
-<hr>
-
-  <h2> Ratings Given </h2>
-    <table class="footable">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th data-hide="phone">Past rating</th>
-          <th>Desired rating</th>
-          <th data-hide="phone">Assigned rating</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for application in given_rating %}
-          <tr>
-            <td><a href="{% url 'view_application' activity application.id %}">{{ application.participant.name }}</a></td>
-            <td>{{ application.previous_rating }}</td>
-            <td>{{ application.desired_rating }}</td>
-            <td>{{ application.participant|activity_rating:application.activity }}</td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
 {% endif %}
 
 
+
+{% if given_rating %}
+  <hr>
+
+  <h2>Past Applications</h2>
+  <table class="footable">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th data-hide="phone">Past rating</th>
+        <th>Desired rating</th>
+        <th data-hide="phone">Assigned rating</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for application in given_rating %}
+        <tr>
+          <td><a href="{% url 'view_application' activity application.id %}">{{ application.participant.name }}</a></td>
+          <td>{{ application.previous_rating }}</td>
+          <td>{{ application.desired_rating }}</td>
+          <td>{{ application.participant|activity_rating:application.activity }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 {% endif %}
 
 {% endblock content %}

@@ -801,18 +801,18 @@ class LeaderApplicationMixin(object):
 
         # Identify which have ratings and/or the leader's recommendation
         applications = applications.annotate(
-            has_rating=Sum(Case(
+            num_ratings=Sum(Case(
                 When(self.current_rating, then=1),
                 default=0,
                 output_field=IntegerField(),
             )),
-            has_rec=Sum(Case(
+            num_recs=Sum(Case(
                 When(self.recommended, then=1),
                 default=0,
                 output_field=IntegerField(),
             )),
         )
-        return applications.distinct().order_by('has_rating', 'has_rec', 'time_created')
+        return applications.distinct().order_by('num_ratings', 'num_recs', 'time_created')
 
     def get_context_data(self, **kwargs):
         context = super(LeaderApplicationMixin, self).get_context_data(**kwargs)
@@ -890,16 +890,20 @@ class AllLeaderApplicationsView(LeaderApplicationMixin, ListView):
         context = super(AllLeaderApplicationsView, self).get_context_data(**kwargs)
 
         apps = context['leader_applications']
+        given_rating = apps.filter(num_ratings__gt=0)
+        needs_rating = apps.filter(num_ratings=0)
+
         context['num_chairs'] = self.num_chairs
 
         # For activities with one chair, we skip the recommendation process
         if context['num_chairs'] > 1:
-            context['needs_rec'] = apps.filter(has_rating=False, has_rec=False)
-            context['needs_rating'] = apps.filter(has_rating=False, has_rec__gt=0)
+            context['needs_rec'] = needs_rating.filter(num_recs=0)
+            context['needs_rating'] = needs_rating.filter(num_recs__gt=0)
         else:
-            context['needs_rating'] = apps.filter(has_rating=False)
+            context['needs_rating'] = needs_rating
 
-        given_rating = apps.filter(has_rating=True)
+        context['pending'] = context['needs_rating'] or context.get('needs_rec')
+
         context['given_rating'] = given_rating.order_by('participant__name')
 
         return context
@@ -952,8 +956,8 @@ class LeaderApplicationView(LeaderApplicationMixin, FormMixin, DetailView):
 
         def if_valid(other_app):
             mismatch = (not other_app or
-                        bool(other_app.has_rec) != bool(app.has_rec) or
-                        bool(other_app.has_rating) != bool(app.has_rating))
+                        bool(other_app.num_recs) != bool(app.num_recs) or
+                        bool(other_app.num_ratings) != bool(app.num_ratings))
             return None if mismatch else other_app
 
         return if_valid(prev_app), if_valid(next_app)
