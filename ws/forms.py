@@ -78,6 +78,7 @@ class EmergencyContactForm(DjangularRequiredModelForm):
     class Meta:
         model = models.EmergencyContact
         fields = ['name', 'email', 'cell_phone', 'relationship']
+        widgets = {'email': forms.TextInput()}
 
 
 class EmergencyInfoForm(DjangularRequiredModelForm):
