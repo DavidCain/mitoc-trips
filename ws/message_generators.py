@@ -23,7 +23,14 @@ class LotteryMessages(object):
 
     @property
     def lotteryinfo(self):
-        return self.request.participant and self.participant.lotteryinfo
+        participant = self.request.participant
+        if not participant:
+            return None
+
+        try:
+            return participant.lotteryinfo
+        except models.LotteryInfo.DoesNotExist:
+            return None
 
     def supply_all_messages(self):
         if not self.request.participant or not is_winter_school():
