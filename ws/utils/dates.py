@@ -92,7 +92,9 @@ def is_winter_school():
 
     Used to give warnings about lottery preferences and such.
     """
-    return local_now().month == 1
+    # Approximate -programming for IAP is difficult
+    now = local_now()
+    return now.month == 1 or (now.month == 2 and now.day < 7)
 
 
 def ws_year():
