@@ -3,6 +3,8 @@
 {% load gravatar %}
 {% load trip_tags %}
 
+{% block head_title %}{{ application.participant.name }} leader application{% endblock head_title %}
+
 {% block content %}
 {{ block.super }}
 
