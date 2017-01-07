@@ -1623,44 +1623,5 @@ class TripItineraryView(UpdateView, TripLeadersOnlyView, ItineraryEditableMixin)
         return reverse('view_trip', args=(self.trip.id,))
 
 
-class LectureAttendanceView(FormView):
-    form_class = forms.AttendedLecturesForm
-    template_name = 'chair/participants/lecture_attendance.html'
-    success_url = reverse_lazy('lecture_attendance')
-
-    @method_decorator(group_required('WSC'))
-    def dispatch(self, request, *args, **kwargs):
-        return super(LectureAttendanceView, self).dispatch(request, *args, **kwargs)
-
-    def user_or_none(self, email):
-        try:
-            return User.objects.get(emailaddress__email=email,
-                                    emailaddress__verified=True)
-        except ObjectDoesNotExist:
-            return None
-
-    def form_valid(self, form):
-        user = self.user_or_none(form.cleaned_data['email'])
-        if user and user.check_password(form.cleaned_data['password']):
-            self.record_attendance(user)
-            return super(LectureAttendanceView, self).form_valid(form)
-        else:
-            messages.error(self.request, 'Incorrect email + password')
-            return self.form_invalid(form)
-
-    def record_attendance(self, user):
-        try:
-            participant = models.Participant.objects.get(user_id=user.id)
-        except ObjectDoesNotExist:
-            msg = ("Personal info required to sign in to lectures. "
-                   "Log in to your personal account, then visit this page.")
-            messages.error(self.request, msg)
-        else:
-            participant.attended_lectures = True
-            participant.save()
-            success_msg = 'Lecture attendance recorded for {}'.format(user.email)
-            messages.success(self.request, success_msg)
-
-
 class StatsView(TemplateView, FormView):
     template_name = 'stats/index.html'

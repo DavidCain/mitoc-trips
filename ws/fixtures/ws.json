@@ -2210,7 +2210,6 @@
 },
 {
     "fields": {
-        "attended_lectures": true,
         "last_updated": "2016-09-07T03:05:43.023Z",
         "name": "Hanna Hollowell",
         "discounts": [
@@ -2228,7 +2227,6 @@
 },
 {
     "fields": {
-        "attended_lectures": true,
         "last_updated": "2016-09-07T03:05:42.959Z",
         "name": "Ashley Alexis",
         "discounts": [],
@@ -2244,7 +2242,6 @@
 },
 {
     "fields": {
-        "attended_lectures": true,
         "last_updated": "2016-09-07T03:05:43.088Z",
         "name": "Linn Luckie",
         "discounts": [],
@@ -2260,7 +2257,6 @@
 },
 {
     "fields": {
-        "attended_lectures": true,
         "last_updated": "2016-09-07T03:05:43.032Z",
         "name": "Jeannie Jenning",
         "discounts": [],
@@ -2276,7 +2272,6 @@
 },
 {
     "fields": {
-        "attended_lectures": true,
         "last_updated": "2016-09-07T03:05:43.153Z",
         "name": "Rosann Rabalais",
         "discounts": [],
@@ -2292,7 +2287,6 @@
 },
 {
     "fields": {
-        "attended_lectures": true,
         "last_updated": "2016-09-07T03:05:43.134Z",
         "name": "Nicky Noland",
         "discounts": [],
@@ -2308,7 +2302,6 @@
 },
 {
     "fields": {
-        "attended_lectures": true,
         "last_updated": "2016-09-07T03:05:43.149Z",
         "name": "Rima Ruhland",
         "discounts": [],
@@ -2324,7 +2317,6 @@
 },
 {
     "fields": {
-        "attended_lectures": true,
         "last_updated": "2016-09-07T03:05:43.158Z",
         "name": "Rosio Rhoda",
         "discounts": [],
@@ -2340,7 +2332,6 @@
 },
 {
     "fields": {
-        "attended_lectures": true,
         "last_updated": "2016-09-07T03:05:43.139Z",
         "name": "Nobuko Nalls",
         "discounts": [],
@@ -2356,7 +2347,6 @@
 },
 {
     "fields": {
-        "attended_lectures": false,
         "last_updated": "2016-09-07T03:05:42.999Z",
         "name": "Delphia Davison",
         "discounts": [],
@@ -2372,7 +2362,6 @@
 },
 {
     "fields": {
-        "attended_lectures": true,
         "last_updated": "2016-09-07T03:05:43.046Z",
         "name": "Karyn Kottwitz",
         "discounts": [],
@@ -2388,7 +2377,6 @@
 },
 {
     "fields": {
-        "attended_lectures": true,
         "last_updated": "2016-09-07T03:05:43.055Z",
         "name": "Katy Kunz",
         "discounts": [],
@@ -2404,7 +2392,6 @@
 },
 {
     "fields": {
-        "attended_lectures": false,
         "last_updated": "2016-09-07T03:05:42.963Z",
         "name": "Ayanna Anker",
         "discounts": [],
@@ -2420,7 +2407,6 @@
 },
 {
     "fields": {
-        "attended_lectures": true,
         "last_updated": "2016-09-07T03:05:43.027Z",
         "name": "Hiedi Hoffmann",
         "discounts": [],
@@ -2436,7 +2422,6 @@
 },
 {
     "fields": {
-        "attended_lectures": true,
         "last_updated": "2016-09-07T03:05:43.190Z",
         "name": "Wilmer Warrick",
         "discounts": [],
@@ -2452,7 +2437,6 @@
 },
 {
     "fields": {
-        "attended_lectures": false,
         "last_updated": "2016-09-07T03:05:43.018Z",
         "name": "Eugenio Eadie",
         "discounts": [],
@@ -2468,7 +2452,6 @@
 },
 {
     "fields": {
-        "attended_lectures": true,
         "last_updated": "2016-09-07T03:05:43.092Z",
         "name": "Lolita Lavallie",
         "discounts": [],
@@ -2484,7 +2467,6 @@
 },
 {
     "fields": {
-        "attended_lectures": false,
         "last_updated": "2016-09-07T03:05:42.994Z",
         "name": "Cristie Crossett",
         "discounts": [],
@@ -2500,7 +2482,6 @@
 },
 {
     "fields": {
-        "attended_lectures": true,
         "last_updated": "2016-09-07T03:05:43.013Z",
         "name": "Ettie Embree",
         "discounts": [
@@ -2518,7 +2499,6 @@
 },
 {
     "fields": {
-        "attended_lectures": false,
         "last_updated": "2016-09-07T03:05:43.101Z",
         "name": "Malcolm Morello",
         "discounts": [],
@@ -2534,7 +2514,6 @@
 },
 {
     "fields": {
-        "attended_lectures": false,
         "last_updated": "2016-09-07T03:05:43.130Z",
         "name": "Nevada Null",
         "discounts": [],
@@ -2550,7 +2529,6 @@
 },
 {
     "fields": {
-        "attended_lectures": false,
         "last_updated": "2016-09-07T03:05:42.976Z",
         "name": "Chantell Crowl",
         "discounts": [],
@@ -2566,7 +2544,6 @@
 },
 {
     "fields": {
-        "attended_lectures": false,
         "last_updated": "2016-09-07T03:05:43.194Z",
         "name": "Winnifred Wojtczak",
         "discounts": [],
@@ -2582,7 +2559,6 @@
 },
 {
     "fields": {
-        "attended_lectures": false,
         "last_updated": "2016-09-07T03:05:43.172Z",
         "name": "Terina Thakkar",
         "discounts": [],
@@ -2598,7 +2574,6 @@
 },
 {
     "fields": {
-        "attended_lectures": false,
         "last_updated": "2016-09-07T03:05:42.948Z",
         "name": "Alvera Atencio",
         "discounts": [],
@@ -2614,7 +2589,6 @@
 },
 {
     "fields": {
-        "attended_lectures": false,
         "last_updated": "2016-09-07T03:05:43.041Z",
         "name": "Karly Kowal",
         "discounts": [],
@@ -2630,7 +2604,6 @@
 },
 {
     "fields": {
-        "attended_lectures": false,
         "last_updated": "2016-09-07T03:05:43.111Z",
         "name": "Margaretta Mayhan",
         "discounts": [],
@@ -2646,7 +2619,6 @@
 },
 {
     "fields": {
-        "attended_lectures": false,
         "last_updated": "2016-09-07T03:05:43.083Z",
         "name": "Lily Laroque",
         "discounts": [],
@@ -2662,7 +2634,6 @@
 },
 {
     "fields": {
-        "attended_lectures": false,
         "last_updated": "2016-09-07T03:05:43.181Z",
         "name": "Valentin Vicini",
         "discounts": [],
@@ -2678,7 +2649,6 @@
 },
 {
     "fields": {
-        "attended_lectures": false,
         "last_updated": "2016-09-07T03:05:42.986Z",
         "name": "Claire Costas",
         "discounts": [],
@@ -2694,7 +2664,6 @@
 },
 {
     "fields": {
-        "attended_lectures": false,
         "last_updated": "2016-09-07T03:05:42.967Z",
         "name": "Becki Brashears",
         "discounts": [],
@@ -2710,7 +2679,6 @@
 },
 {
     "fields": {
-        "attended_lectures": false,
         "last_updated": "2016-09-07T03:05:43.037Z",
         "name": "Jonah Jacks",
         "discounts": [],
@@ -2726,7 +2694,6 @@
 },
 {
     "fields": {
-        "attended_lectures": false,
         "last_updated": "2016-09-07T03:05:42.972Z",
         "name": "Blaine Benner",
         "discounts": [],
@@ -2742,7 +2709,6 @@
 },
 {
     "fields": {
-        "attended_lectures": false,
         "last_updated": "2016-09-07T03:05:43.125Z",
         "name": "Natashia Nesler",
         "discounts": [],
@@ -2758,7 +2724,6 @@
 },
 {
     "fields": {
-        "attended_lectures": false,
         "last_updated": "2016-09-07T03:05:43.050Z",
         "name": "Kathie Kitzman",
         "discounts": [],
@@ -2774,7 +2739,6 @@
 },
 {
     "fields": {
-        "attended_lectures": false,
         "last_updated": "2016-09-07T03:05:43.097Z",
         "name": "Lorilee Lineman",
         "discounts": [],
@@ -2790,7 +2754,6 @@
 },
 {
     "fields": {
-        "attended_lectures": false,
         "last_updated": "2016-09-07T03:05:42.922Z",
         "name": "Aide Ali",
         "discounts": [],
@@ -2806,7 +2769,6 @@
 },
 {
     "fields": {
-        "attended_lectures": false,
         "last_updated": "2016-09-07T03:05:43.106Z",
         "name": "Marco Masi",
         "discounts": [],
@@ -2822,7 +2784,6 @@
 },
 {
     "fields": {
-        "attended_lectures": false,
         "last_updated": "2016-09-07T03:05:43.004Z",
         "name": "Eleanora Everts",
         "discounts": [],
@@ -2838,7 +2799,6 @@
 },
 {
     "fields": {
-        "attended_lectures": false,
         "last_updated": "2016-09-07T03:05:43.115Z",
         "name": "Margene Mosby",
         "discounts": [],
@@ -2854,7 +2814,6 @@
 },
 {
     "fields": {
-        "attended_lectures": false,
         "last_updated": "2016-09-07T03:05:43.078Z",
         "name": "Laurene Le",
         "discounts": [],
@@ -2870,7 +2829,6 @@
 },
 {
     "fields": {
-        "attended_lectures": false,
         "last_updated": "2016-09-07T03:05:42.981Z",
         "name": "Chester Clopton",
         "discounts": [],
@@ -2886,7 +2844,6 @@
 },
 {
     "fields": {
-        "attended_lectures": false,
         "last_updated": "2016-09-07T03:05:42.990Z",
         "name": "Corrine Cravey",
         "discounts": [],
@@ -2902,7 +2859,6 @@
 },
 {
     "fields": {
-        "attended_lectures": false,
         "last_updated": "2016-09-07T03:05:42.954Z",
         "name": "Anette Alcazar",
         "discounts": [
@@ -2920,7 +2876,6 @@
 },
 {
     "fields": {
-        "attended_lectures": false,
         "last_updated": "2016-09-07T03:05:43.074Z",
         "name": "Latia Lisby",
         "discounts": [],
@@ -2936,7 +2891,6 @@
 },
 {
     "fields": {
-        "attended_lectures": false,
         "last_updated": "2016-09-07T03:05:43.163Z",
         "name": "Sha Swiney",
         "discounts": [],

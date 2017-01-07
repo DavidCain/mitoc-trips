@@ -111,7 +111,6 @@ class Participant(models.Model):
                                    choices=[('S', "MIT student"),
                                             ('M', "MIT affiliate"),
                                             ('N', "Non-affiliate")])
-    attended_lectures = models.BooleanField(default=False)
 
     discounts = models.ManyToManyField(Discount, blank=True)
 
@@ -195,6 +194,15 @@ class Participant(models.Model):
 
     class Meta:
         ordering = ['name', 'email']
+
+
+class LectureAttendance(models.Model):
+    year = models.PositiveIntegerField(validators=[MinValueValidator(2016)],
+                                       default=dateutils.ws_year,
+                                       help_text="Winter School year when lectures were attended.")
+    participant = models.ForeignKey(Participant)
+    creator = models.ForeignKey(Participant, related_name='lecture_attendances_marked')
+    time_created = models.DateTimeField(auto_now_add=True)
 
 
 class BaseRating(models.Model):
