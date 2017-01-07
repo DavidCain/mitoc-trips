@@ -4,7 +4,7 @@
 {% block faq %}
 <div class="well" id="trip_approval">
   <h4>How does does the WSC approve trips?</h4>
-  <p>To mark a trip as approved, use the <a href="{% url 'manage_trips' %}">trip management interface</a>. Simply tick each
+  <p>To mark a trip as approved, use the <a href="{% url 'manage_trips' 'winter_school' %}">trip management interface</a>. Simply tick each
   trip as approved, and click submit.</p>
 </div>
 
@@ -32,15 +32,14 @@
 
 <div class="well" id="lecture_attendance">
   <h4>How do we record lecture attendance?</h4>
-  <p>Temporarily, you'll need to ask the admin to do this task.</p>
-  {#<p>Lecture attendance can always be manually set for any participant on the#}
-  {#<a href="{% url 'manage_participants' %}">manage participants</a> page.</p>#}
-  <p>A <a href="{% url 'lecture_attendance' %}">special page</a> exists that allows
-  participants to enter their login information and be marked as having attended
-  lectures. Note that this does not actually log in the participants. The page
-  is only viewable to the WSC - committee members are encouraged to bring laptops
-  to lecture for sign-in. Alternatively, an admin can temporarily alter
-  permissions to allow any participant to view the page.
+  <p>In the <a href="{% url 'ws_settings' %}">Winter School settings</a>, you
+  can let participants mark themselves as having attended lectures. It's recommended
+  that you only do this during lectures. Participants can then sign on with their mobile
+  devices or laptops, and mark themselves as having attended.
+  </p>
+  <p>As the Winter School chair, you can also manually mark a participant as having
+  attended lectures. (Recall that you can
+  <a href="{% url 'participant_lookup' %}">look up any participant</a>.
   </p>
 </div>
 

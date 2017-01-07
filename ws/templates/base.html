@@ -74,6 +74,7 @@
                                 <li> <a href="{% url 'manage_trips' activity %}"> Trips </a> </li>
                                 {% if activity == 'winter_school' %}
                                     <li> <a href="{% url 'all_trips_medical' %}"> WIMP </a> </li>
+                                    <li> <a href="{% url 'ws_settings' %}"> Settings </a> </li>
                                 {% endif %}
                             </ul>
                         </li>
@@ -87,6 +88,7 @@
                                 <li> <a href="{% url 'manage_leaders' %}">Leader ratings</a> </li>
                                 <li> <a href="{% url 'admin_manage_trips' %}"> Manage trips </a> </li>
                                 <li> <a href="{% url 'all_trips_medical' %}"> WIMP </a> </li>
+                                <li> <a href="{% url 'ws_settings' %}"> Settings </a> </li>
                             </ul>
                         </li>
                     {% endif %}

@@ -323,6 +323,12 @@ class AttendedLecturesForm(NgFormValidationMixin, Bootstrap3Form):
     password = forms.CharField(widget=forms.PasswordInput())
 
 
+class WinterSchoolSettingsForm(DjangularRequiredModelForm):
+    class Meta:
+        model = models.WinterSchoolSettings
+        fields = ['allow_setting_attendance']
+
+
 def LeaderApplicationForm(*args, **kwargs):
     """ Factory form for applying to be a leader in any activity. """
     activity = kwargs.pop('activity', 'winter_school')

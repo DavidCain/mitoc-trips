@@ -1,0 +1,14 @@
+{% extends "messages_page.html" %}
+
+{% block head_title %}Settings{% endblock head_title %}
+
+{% block content %}
+{{ block.super }}
+
+<h2>Settings</h2>
+<form method="post" action="">
+  {% csrf_token %}
+  {{ form.as_div }}
+  <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+{% endblock content %}
