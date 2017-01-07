@@ -101,3 +101,9 @@ def ws_year():
     """ Returns the year of the nearest Winter School. """
     this_year = local_now().year
     return this_year if local_now().month <= 6 else this_year + 1
+
+
+def jan_1():
+    pytz_timezone = timezone.get_default_timezone()
+    jan_1st = timezone.datetime(local_date().year, 1, 1)
+    return pytz_timezone.localize(jan_1st)

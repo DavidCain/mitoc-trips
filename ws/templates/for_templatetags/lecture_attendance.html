@@ -1,0 +1,65 @@
+{% if attended_lectures %}
+  {% if not user_viewing %} {# We don't show users that they've attended. #}
+    <h3>Lecture Attendance</h3>
+    <p>
+      <span class="label label-success">Attended</span>
+      {{ participant.name }} has attended this year's lectures!
+    </p>
+  {% endif %}
+{% elif can_set_attendance %}  {# User (or chair) can mark attendance. #}
+  <form method="post" action="{% url 'lecture_attendance' %}">
+    {% csrf_token %}
+    {{ form }}
+    <div class="panel panel-primary">
+      <div class="panel-heading">
+        Winter School lecture attendance
+      </div>
+      <div class="panel-body">
+        {% if user_viewing %}
+          <p>We don't show you as having attended this year's lectures.</p>
+          <p>Please mark your attendance if you've come to lectures this year.
+            <small>(You're on your honor!)</small>
+          </p>
+        {% else %}
+          <p>{{ participant.name }} has not attended this year's lectures.</p>
+          {% if past_attendance %}
+            <p>
+            Past years' attendance:
+            {% for record in past_attendance %}
+              <span class="label label-success"><i class="fa fa-fw fa-check"></i>{{ record.year }}</span>
+            {% endfor %}
+            </p>
+          {% endif %}
+        {% endif %}
+      </div>
+
+      <div class="panel-footer">
+        <p><button type="submit" class="btn btn-primary">{{ user_viewing|yesno:"I attended lectures,Mark attendance" }}</button></p>
+      </div>
+    </div>
+  </form>
+{% else %}  {# Any leader can see that the participant was absent. #}
+  <h3>Lecture Attendance</h3>
+  <p>
+    <span class="label label-danger">Absent</span>
+    {% if user_viewing %}You{% else %}{{ participant.name }}{% endif %} did not attend this year's lectures!
+    {% if user_viewing %}
+      <div class="alert alert-danger">
+        <p>You <strong>must</strong> attend lectures each year in order to participate in Winter School.
+        If you did indeed attend this year's lectures, please contact the
+        the <a href="mailto:ws-chair@mit.edu">Winter School chair</a>.
+        </p>
+      </div>
+      </p>
+    {% endif %}
+  </p>
+
+  {% if past_attendance %}
+    <p>
+    Past years' attendance:
+    {% for record in past_attendance %}
+      <span class="label label-success"><i class="fa fa-fw fa-check"></i>{{ record.year }}</span>
+    {% endfor %}
+    </p>
+  {% endif %}
+{% endif %}

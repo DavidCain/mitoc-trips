@@ -27,6 +27,7 @@ from ws import message_generators
 from ws import tasks
 
 from ws.utils.dates import local_date, friday_before, is_winter_school, ws_year
+from ws.utils.model_dates import ws_lectures_complete
 import ws.utils.perms as perm_utils
 from ws.utils.ratings import deactivate_ratings
 import ws.utils.signups as signup_utils
@@ -278,7 +279,68 @@ class LotteryPairingMixin(object):
         return False
 
 
-class ParticipantView(ParticipantLookupView, SingleObjectMixin, LotteryPairingMixin):
+class LectureAttendanceMixin:
+    """ Manage the participant's lecture attendance. """
+    def can_set_attendance(self, participant):
+        # WS chairs can set any time for any user
+        if perm_utils.is_chair(self.request.user, 'winter_school'):
+            return True
+
+        # Non-chairs are only allowed during WS when setting enabled
+        if not is_winter_school():
+            return False
+        settings = models.WinterSchoolSettings.load()
+        if not settings.allow_setting_attendance:
+            return False
+
+        # Non-chairs may only set attendance for themselves
+        return participant == self.request.participant
+
+
+class LectureAttendanceView(FormView, LectureAttendanceMixin):
+    """ Mark the participant as having attended lectures. """
+
+    form_class = forms.AttendedLecturesForm
+
+    def get(self, *args, **kwargs):
+        return redirect(reverse('home'))  # (View lacks its own template)
+
+    def form_valid(self, form):
+        participant = form.cleaned_data['participant']
+        if not self.can_set_attendance(participant):
+            return self.form_invalid(form)
+
+        attended, _ = models.LectureAttendance.objects.get_or_create(
+            participant=participant,
+            year=ws_year(),
+            creator=self.request.participant
+        )
+        attended.save()
+
+        # Notifications aren't shown when viewing other participants
+        if participant == self.request.participant:
+            messages.success(self.request, "Marked as having attended lectures!")
+
+        return redirect(reverse('view_participant', args=(participant.id,)))
+
+
+class WinterSchoolSettingsView(CreateView):
+    form_class = forms.WinterSchoolSettingsForm
+    template_name = 'chair/settings.html'
+
+    def get_form_kwargs(self):
+        """ Load existing settingcs. """
+        kwargs = super(WinterSchoolSettingsView, self).get_form_kwargs()
+        kwargs['instance'] = models.WinterSchoolSettings.load()
+        return kwargs
+
+    def get_success_url(self):
+        messages.success(self.request, "Updated Winter School settings!")
+        return reverse('ws_settings')
+
+
+class ParticipantView(ParticipantLookupView, SingleObjectMixin,
+                      LotteryPairingMixin, LectureAttendanceMixin):
     model = models.Participant
     context_object_name = 'participant'
 
@@ -353,9 +415,14 @@ class ParticipantView(ParticipantLookupView, SingleObjectMixin, LotteryPairingMi
 
     def get_context_data(self, **kwargs):
         participant = self.object = self.get_object()
+        user_viewing = self.request.participant == participant
+
         context = super(ParticipantView, self).get_context_data(**kwargs)
 
-        user_viewing = self.request.participant == participant
+        can_set_attendance = self.can_set_attendance(participant)
+        context['can_set_attendance'] = can_set_attendance
+        context['show_attendance'] = can_set_attendance or ws_lectures_complete()
+
         context['user_viewing'] = user_viewing
         if user_viewing:
             user = self.request.user

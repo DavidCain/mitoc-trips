@@ -26,6 +26,23 @@ alphanum = RegexValidator(r'^[a-zA-Z0-9 ]*$',
                           "Only alphanumeric characters and spaces allowed")
 
 
+class SingletonModel(models.Model):
+    class Meta:
+        abstract = True
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super(SingletonModel, self).save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        pass
+
+    @classmethod
+    def load(cls):
+        obj, created = cls.objects.get_or_create(pk=1)
+        return obj
+
+
 class Car(models.Model):
     # As long as this module is reloaded once a year, this is fine
     # (First license plates were issued in Mass in 1903)
@@ -203,6 +220,17 @@ class LectureAttendance(models.Model):
     participant = models.ForeignKey(Participant)
     creator = models.ForeignKey(Participant, related_name='lecture_attendances_marked')
     time_created = models.DateTimeField(auto_now_add=True)
+
+
+class WinterSchoolSettings(SingletonModel):
+    """ Stores settings for the current Winter School.
+
+    These settings should only be modified by the WS chair.
+    """
+    time_created = models.DateTimeField(auto_now_add=True)
+    last_updated = models.DateTimeField(auto_now=True)
+    last_updated_by = models.ForeignKey(Participant, null=True, blank=True)
+    allow_setting_attendance = models.BooleanField(default=False, verbose_name="Let participants set lecture attendance")
 
 
 class BaseRating(models.Model):

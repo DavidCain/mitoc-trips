@@ -318,9 +318,8 @@ class FeedbackForm(RequiredModelForm):
         fields = ['comments', 'showed_up']
 
 
-class AttendedLecturesForm(NgFormValidationMixin, Bootstrap3Form):
-    email = forms.EmailField()
-    password = forms.CharField(widget=forms.PasswordInput())
+class AttendedLecturesForm(forms.Form):
+    participant = forms.ModelChoiceField(queryset=models.Participant.objects.all())
 
 
 class WinterSchoolSettingsForm(DjangularRequiredModelForm):
