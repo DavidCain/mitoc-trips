@@ -124,10 +124,19 @@ class Participant(models.Model):
                                                                    reverse_lazy('account_email'),
                                                                    "'>Manage email addresses</a>."))
     car = OptionalOneToOneField(Car)
-    affiliation = models.CharField(max_length=1,
-                                   choices=[('S', "MIT student"),
-                                            ('M', "MIT affiliate"),
-                                            ('N', "Non-affiliate")])
+
+    # We used to not collect level of student + MIT affiliation
+    # Any participants with single-digit affiliation codes have dated status
+    # Old codes were: S (student), M (MIT affiliate), and N (non-affiliated)
+    affiliation = models.CharField(
+        max_length=2,
+        choices=[
+            ('Undergraduate student', [('MU', "MIT undergrad"), ('NU', "Non-MIT undergrad")]),
+            ('Graduate student', [('MG', "MIT grad student"), ('NG', "Non-MIT grad student")]),
+            ('MA', 'MIT affiliate'),
+            ('NA', 'Non-affiliate'),
+        ]
+    )
 
     discounts = models.ManyToManyField(Discount, blank=True)
 

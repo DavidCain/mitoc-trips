@@ -62,7 +62,10 @@ class ParticipantRanker(object):
         # will have an advantage over those who've been on none
         flaky_or_neutral = max(flake_factor, 0)
         number_of_trips = self.number_ws_trips(participant)
-        affiliation = ['S', 'M', 'N'].index(participant.affiliation)
+
+        # First preference first (single-letter codes are old)
+        ranked_affiliations = ['MU', 'MG', 'MA', 'M', 'NU', 'NG', 'S', 'NA', 'N']
+        affiliation = ranked_affiliations.index(participant.affiliation)
 
         # Lower = higher in the list
         # Random float faily resolves ties without using database order

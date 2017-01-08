@@ -59,6 +59,10 @@ def profile_needs_update(request):
                       'addresses.'.format(par.email), extra_tags='safe')
         has_problems = True
 
+    if len(par.affiliation) == 1:
+        messages.info(request, 'Please update your MIT affiliation.')
+        has_problems = True
+
     return has_problems
 
 

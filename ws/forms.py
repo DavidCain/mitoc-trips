@@ -39,6 +39,11 @@ class ParticipantForm(DjangularRequiredModelForm):
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user')
+
+        # Mark any old affiliations as equivalent to blank
+        # (Will properly trigger a "complete this field" warning)
+        if kwargs.get('instance') and len(kwargs['instance'].affiliation) == 1:
+            kwargs['instance'].affiliation = ''
         super(ParticipantForm, self).__init__(*args, **kwargs)
 
         verified_emails = user.emailaddress_set.filter(verified=True)
