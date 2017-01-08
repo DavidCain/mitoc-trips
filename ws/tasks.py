@@ -8,6 +8,7 @@ from django.core.cache import cache
 from ws import models
 from ws.utils import member_sheets
 from ws.utils.signups import add_to_waitlist
+from ws.lottery import LotteryRunner
 
 
 def acquire_lock(discount, lock_expires_after=300):
@@ -54,6 +55,12 @@ def update_discount_sheet(self, discount_id):
 def update_all_discount_sheets():
     discount_pks = models.Discount.objects.values_list('pk', flat=True)
     group([update_discount_sheet.s(pk) for pk in discount_pks])()
+
+
+@shared_task
+def run_ws_lottery():
+    runner = LotteryRunner()
+    runner.execute_lottery()
 
 
 @shared_task(bind=True, max_retries=4)

@@ -154,6 +154,10 @@ CELERYBEAT_SCHEDULE = {
         'task': 'ws.tasks.update_all_discount_sheets',
         'schedule': crontab(minute=0, hour=3)
     },
+    #'run-ws-lottery': {
+    #    'task': 'ws.tasks.run_ws_lottery',
+    #    'schedule': crontab(minute=0, hour=11)
+    #},
 }
 
 CELERY_TIMEZONE = 'UTC'
