@@ -1260,10 +1260,15 @@ class CreateTripView(CreateView):
         kwargs = super(CreateTripView, self).get_form_kwargs()
         kwargs['initial'] = kwargs.get('initial', {})
         if not self.request.user.is_superuser:
-            kwargs['allowed_activities'] = self.request.participant.allowed_activities
-            # The first activity may not be open to the leader.
-            # Since we'll restrict choices, make sure the leader can lead this activity.
-            kwargs['initial']['activity'] = kwargs['allowed_activities'][0]
+            allowed_activities = self.request.participant.allowed_activities
+            kwargs['allowed_activities'] = allowed_activities
+
+            if is_winter_school() and 'winter_school' in allowed_activities:
+                kwargs['initial']['activity'] = 'winter_school'
+            else:
+                # The first activity may not be open to the leader.
+                # We restrict choices, so ensure leader can lead this activity.
+                kwargs['initial']['activity'] = kwargs['allowed_activities'][0]
         return kwargs
 
     def get_success_url(self):
