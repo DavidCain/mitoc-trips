@@ -16,7 +16,7 @@
         </div>
 
       </div>
-      <div class="col-md-9">
+      <div class="col-md-9 signup-summary">
         <button type="button" class="btn btn-sm btn-default pull-right" data-ng-click="deleteSignup(signup)" data-ng-bind="signup.deleted ? 'Restore' : 'Delete'"></button>
         <p>
           <span class="label"
@@ -24,6 +24,11 @@
                 data-ng-bind="signup.participant.membership.status"
                 data-ng-class="labelClass[signup.participant.membership.status]">
           </span>
+
+          <span class="label label-danger" data-ng-if="signup.missed_lectures">
+            Missed lectures
+          </span>
+
           <span data-ng-bind="signup.notes"></span>
         </p>
         <div data-ng-if="signup.feedback.length && !hideFeedback">

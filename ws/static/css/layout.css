@@ -129,6 +129,10 @@ admin-trip-signups h3 {
   margin-top: 0;
 }
 
+admin-trip-signups .signup-list .signup-summary .label {
+  margin-right: 5px;
+}
+
 
 /* Profile page */
 .profile-photo {

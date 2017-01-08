@@ -16,6 +16,8 @@ from ws import models
 from ws.views import AllLeadersView, ItineraryEditableMixin, TripLeadersOnlyView
 from ws.decorators import group_required, user_info_required
 
+from ws.utils.model_dates import missed_lectures
+import ws.utils.dates as date_utils
 import ws.utils.perms as perm_utils
 import ws.utils.signups as signup_utils
 import ws.utils.geardb as geardb_utils
@@ -70,10 +72,16 @@ class FormatSignupMixin(object):
             car_status = lotteryinfo.car_status
             num_passengers = lotteryinfo.number_of_passengers
 
+        if signup.trip.activity == 'winter_school':
+            no_lectures = missed_lectures(par, signup.trip.trip_date.year)
+        else:
+            no_lectures = False  # Don't show warning for other activities
+
         return {'id': signup.id,
                 'participant': {'id': par.id,
                                 'name': par.name,
                                 'email': par.email},
+                'missed_lectures': no_lectures,
                 'feedback': [{'showed_up': f.showed_up,
                               'leader': f.leader.name,
                               'comments': f.comments,

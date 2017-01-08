@@ -18,9 +18,6 @@ def ws_lectures_complete():
     the first week, and lectures have completed. If it's at least Thursday
     night and there are future trips, we can deduce that lectures have ended.
     """
-    if not dateutils.is_winter_school():
-        return False
-
     now = dateutils.local_now()
     today = now.date()
     jan_1 = dateutils.jan_1()
@@ -34,3 +31,16 @@ def ws_lectures_complete():
         return True
     else:  # It's Winter School, but it's not late enough in the first week
         return False
+
+
+def missed_lectures(participant, year):
+    """ Whether the participant missed WS lectures in the given year. """
+    if year < 2016:  # We lack records for 2014 & 2015; assume present
+        return False
+    absent = not participant.lectureattendance_set.filter(year=year).exists()
+
+    # If this year's lectures haven't happened yet, don't consider to have missed
+    if year == dateutils.ws_year():
+        return ws_lectures_complete() and absent
+    else:
+        return absent
