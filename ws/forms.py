@@ -150,7 +150,7 @@ class TripForm(DjangularRequiredModelForm):
                   'description', 'trip_date',
                   'algorithm', 'signups_open_at', 'signups_close_at',
                   'let_participants_drop',
-                  'maximum_participants', 'difficulty_rating',  # 'level',
+                  'maximum_participants', 'difficulty_rating', 'level',
                   'prereqs', 'notes']
         ex_notes = (" 1. Do you have any dietary restrictions?\n"
                     " 2. What's your experience level?\n"
@@ -203,17 +203,23 @@ class TripForm(DjangularRequiredModelForm):
             self.add_error('leaders', msg)
 
     def clean_level(self):
-        activity = self.cleaned_data['activity']
-        level = self.cleaned_data['level'].strip()
-        if (not level) and activity == models.LeaderRating.WINTER_SCHOOL:
-            raise ValidationError("Please specify this trip's level")
-        return level
+        """ Remove extra whitespace from the level, strip if not WS. """
+        activity = self.cleaned_data.get('activity')
+        if activity != models.LeaderRating.WINTER_SCHOOL:
+            return None
+        return self.cleaned_data.get('level', '').strip()
 
     def __init__(self, *args, **kwargs):
         allowed_activities = kwargs.pop("allowed_activities", None)
         super(TripForm, self).__init__(*args, **kwargs)
         self.fields['leaders'].queryset = models.Participant.leaders.get_queryset()
         self.fields['leaders'].help_text = None  # Disable "Hold command..."
+
+        # We'll dynamically hide the level widget on GET if it's not a WS trip
+        # On POST, we only want this field required for Winter School trips
+        activity = self.data.get('activity')
+        self.fields['level'].required = activity == 'winter_school' or not activity
+
         if allowed_activities is not None:
             activities = filter(lambda (val, label): val in allowed_activities,
                                 self.fields['activity'].choices)
