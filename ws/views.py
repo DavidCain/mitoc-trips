@@ -1318,6 +1318,13 @@ class EditTripView(UpdateView, TripLeadersOnlyView):
     form_class = forms.TripForm
     template_name = 'trips/edit.html'
 
+    def get_form_kwargs(self):
+        kwargs = super(EditTripView, self).get_form_kwargs()
+        if not self.request.user.is_superuser:
+            allowed_activities = self.request.participant.allowed_activities
+            kwargs['allowed_activities'] = allowed_activities
+        return kwargs
+
     def get_success_url(self):
         return reverse('view_trip', args=(self.object.id,))
 
