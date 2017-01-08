@@ -208,10 +208,12 @@ Lookup participant
     {% if paired_par or pair_requests %}
       <div class="row">
         <div class="col-md-12">
-            <h3>Lottery pairing</h3>
+          <h3>Lottery pairing</h3>
           {% if paired_par %}
             {% if reciprocally_paired %}
-              <p>Paired with {{ paired_par.name }}</p>
+              <div class="alert alert-success">
+                <p><i class="fa fa-link"></i> Paired with {{ paired_par.name }}</p>
+              </div>
               {% if user_viewing %}
                 <p>
                   When lotteries run, either both of you will be placed on a trip
@@ -219,12 +221,14 @@ Lookup participant
                 </p>
               {% endif %}
             {% else %}
-              <p>Requested to be paired with {{ paired_par.name }}.
-                {% if user_viewing %}
-                  Until {{ paired_par.name }} does the same, no effort will be made to place you both
-                  on the same trip.
-                {% endif %}
-              </p>
+              <div class="alert alert-warning">
+                <p>Requested to be paired with {{ paired_par.name }}.
+                  {% if user_viewing %}
+                    Until {{ paired_par.name }} does the same, no effort will be made to place you both
+                    on the same trip.
+                  {% endif %}
+                </p>
+              </div>
             {% endif %}
           {% endif %}
 
