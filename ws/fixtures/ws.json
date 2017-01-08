@@ -2909,7 +2909,9 @@
         "rating": "CIS",
         "notes": "",
         "participant": 52,
-        "activity": "winter_school"
+        "activity": "winter_school",
+        "time_created": "2016-01-01T12:34:56.789Z",
+        "creator": 1
     },
     "model": "ws.leaderrating",
     "pk": 109
@@ -2919,7 +2921,9 @@
         "rating": "B coC",
         "notes": "",
         "participant": 73,
-        "activity": "winter_school"
+        "activity": "winter_school",
+        "time_created": "2016-01-01T12:34:56.789Z",
+        "creator": 1
     },
     "model": "ws.leaderrating",
     "pk": 125
@@ -2929,7 +2933,9 @@
         "rating": "CS",
         "notes": "",
         "participant": 66,
-        "activity": "winter_school"
+        "activity": "winter_school",
+        "time_created": "2016-01-01T12:34:56.789Z",
+        "creator": 1
     },
     "model": "ws.leaderrating",
     "pk": 142
@@ -2939,7 +2945,9 @@
         "rating": "C",
         "notes": "",
         "participant": 120,
-        "activity": "winter_school"
+        "activity": "winter_school",
+        "time_created": "2016-01-01T12:34:56.789Z",
+        "creator": 1
     },
     "model": "ws.leaderrating",
     "pk": 155
@@ -2949,7 +2957,9 @@
         "rating": "C",
         "notes": "",
         "participant": 45,
-        "activity": "winter_school"
+        "activity": "winter_school",
+        "time_created": "2016-01-01T12:34:56.789Z",
+        "creator": 1
     },
     "model": "ws.leaderrating",
     "pk": 158
@@ -2959,7 +2969,9 @@
         "rating": "B",
         "notes": "",
         "participant": 501,
-        "activity": "winter_school"
+        "activity": "winter_school",
+        "time_created": "2016-01-01T12:34:56.789Z",
+        "creator": 1
     },
     "model": "ws.leaderrating",
     "pk": 160
@@ -2969,7 +2981,9 @@
         "rating": "B coC coI",
         "notes": "",
         "participant": 1,
-        "activity": "winter_school"
+        "activity": "winter_school",
+        "time_created": "2016-01-01T12:34:56.789Z",
+        "creator": 1
     },
     "model": "ws.leaderrating",
     "pk": 168
@@ -2979,7 +2993,9 @@
         "rating": "A coC coS",
         "notes": "",
         "participant": 3,
-        "activity": "winter_school"
+        "activity": "winter_school",
+        "time_created": "2016-01-01T12:34:56.789Z",
+        "creator": 1
     },
     "model": "ws.leaderrating",
     "pk": 190
@@ -2989,7 +3005,9 @@
         "rating": "Leader",
         "notes": "",
         "participant": 1,
-        "activity": "hiking"
+        "activity": "hiking",
+        "time_created": "2016-01-01T12:34:56.789Z",
+        "creator": 120
     },
     "model": "ws.leaderrating",
     "pk": 198
@@ -2999,7 +3017,9 @@
         "rating": "Single-pitch",
         "notes": "Self-Rescue / WFR",
         "participant": 1,
-        "activity": "climbing"
+        "activity": "climbing",
+        "time_created": "2016-01-01T12:34:56.789Z",
+        "creator": 52
     },
     "model": "ws.leaderrating",
     "pk": 199
@@ -3009,7 +3029,9 @@
         "rating": "Hiking chair",
         "notes": "",
         "participant": 120,
-        "activity": "hiking"
+        "activity": "hiking",
+        "time_created": "2016-01-01T12:34:56.789Z",
+        "creator": 1
     },
     "model": "ws.leaderrating",
     "pk": 200
@@ -3019,7 +3041,9 @@
         "rating": "Climbing Chair",
         "notes": "",
         "participant": 52,
-        "activity": "climbing"
+        "activity": "climbing",
+        "time_created": "2016-01-01T12:34:56.789Z",
+        "creator": 52
     },
     "model": "ws.leaderrating",
     "pk": 210
@@ -3029,7 +3053,9 @@
         "rating": "Whitewater Leader",
         "notes": "",
         "participant": 66,
-        "activity": "boating"
+        "activity": "boating",
+        "time_created": "2016-01-01T12:34:56.789Z",
+        "creator": 1
     },
     "model": "ws.leaderrating",
     "pk": 218
@@ -3039,7 +3065,9 @@
         "rating": "Multi-Pitch",
         "notes": "WFA, Self-Rescue",
         "participant": 809,
-        "activity": "climbing"
+        "activity": "climbing",
+        "time_created": "2016-01-01T12:34:56.789Z",
+        "creator": 52
     },
     "model": "ws.leaderrating",
     "pk": 236
@@ -3049,7 +3077,9 @@
         "rating": "Camelot Manager",
         "notes": "",
         "participant": 501,
-        "activity": "cabin"
+        "activity": "cabin",
+        "time_created": "2016-01-01T12:34:56.789Z",
+        "creator": 1
     },
     "model": "ws.leaderrating",
     "pk": 237
@@ -3059,7 +3089,9 @@
         "rating": "Camelot Manager",
         "notes": "",
         "participant": 3,
-        "activity": "cabin"
+        "activity": "cabin",
+        "time_created": "2016-01-01T12:34:56.789Z",
+        "creator": 1
     },
     "model": "ws.leaderrating",
     "pk": 239
@@ -3069,7 +3101,9 @@
         "rating": "Intervale Manager",
         "notes": "",
         "participant": 120,
-        "activity": "cabin"
+        "activity": "cabin",
+        "time_created": "2016-01-01T12:34:56.789Z",
+        "creator": 1
     },
     "model": "ws.leaderrating",
     "pk": 241
@@ -3079,7 +3113,9 @@
         "rating": "Mountain biking chair",
         "notes": "",
         "participant": 45,
-        "activity": "biking"
+        "activity": "biking",
+        "time_created": "2016-01-01T12:34:56.789Z",
+        "creator": 1
     },
     "model": "ws.leaderrating",
     "pk": 244
@@ -3089,7 +3125,9 @@
         "rating": "Leader",
         "notes": "",
         "participant": 3,
-        "activity": "hiking"
+        "activity": "hiking",
+        "time_created": "2016-01-01T12:34:56.789Z",
+        "creator": 120
     },
     "model": "ws.leaderrating",
     "pk": 249
@@ -3099,7 +3137,9 @@
         "rating": "Leader",
         "notes": "",
         "participant": 73,
-        "activity": "hiking"
+        "activity": "hiking",
+        "time_created": "2016-01-01T12:34:56.789Z",
+        "creator": 120
     },
     "model": "ws.leaderrating",
     "pk": 250
@@ -3109,7 +3149,9 @@
         "rating": "Surfing Chair",
         "notes": "",
         "participant": 973,
-        "activity": "boating"
+        "activity": "boating",
+        "time_created": "2016-01-01T12:34:56.789Z",
+        "creator": 1
     },
     "model": "ws.leaderrating",
     "pk": 255
@@ -3119,7 +3161,9 @@
         "rating": "Surfing Chair",
         "notes": "",
         "participant": 974,
-        "activity": "boating"
+        "activity": "boating",
+        "time_created": "2016-01-01T12:34:56.789Z",
+        "creator": 1
     },
     "model": "ws.leaderrating",
     "pk": 256
@@ -3129,7 +3173,9 @@
         "rating": "Surfing Chair",
         "notes": "",
         "participant": 977,
-        "activity": "boating"
+        "activity": "boating",
+        "time_created": "2016-01-01T12:34:56.789Z",
+        "creator": 1
     },
     "model": "ws.leaderrating",
     "pk": 257
@@ -3139,7 +3185,9 @@
         "rating": "Climbing Chair",
         "notes": "",
         "participant": 810,
-        "activity": "climbing"
+        "activity": "climbing",
+        "time_created": "2016-01-01T12:34:56.789Z",
+        "creator": 1
     },
     "model": "ws.leaderrating",
     "pk": 259
@@ -3149,7 +3197,9 @@
         "rating": "Leader",
         "notes": "",
         "participant": 52,
-        "activity": "hiking"
+        "activity": "hiking",
+        "time_created": "2016-01-01T12:34:56.789Z",
+        "creator": 120
     },
     "model": "ws.leaderrating",
     "pk": 272
@@ -3159,7 +3209,9 @@
         "rating": "Leader",
         "notes": "",
         "participant": 45,
-        "activity": "hiking"
+        "activity": "hiking",
+        "time_created": "2016-01-01T12:34:56.789Z",
+        "creator": 120
     },
     "model": "ws.leaderrating",
     "pk": 275
@@ -3169,7 +3221,9 @@
         "rating": "Co-leader",
         "notes": "",
         "participant": 779,
-        "activity": "hiking"
+        "activity": "hiking",
+        "time_created": "2016-01-01T12:34:56.789Z",
+        "creator": 120
     },
     "model": "ws.leaderrating",
     "pk": 297
@@ -3179,7 +3233,9 @@
         "rating": "Co-leader",
         "notes": "",
         "participant": 1089,
-        "activity": "hiking"
+        "activity": "hiking",
+        "time_created": "2016-01-01T12:34:56.789Z",
+        "creator": 120
     },
     "model": "ws.leaderrating",
     "pk": 298
@@ -3189,7 +3245,9 @@
         "rating": "Leader",
         "notes": "",
         "participant": 66,
-        "activity": "hiking"
+        "activity": "hiking",
+        "time_created": "2016-01-01T12:34:56.789Z",
+        "creator": 120
     },
     "model": "ws.leaderrating",
     "pk": 324
@@ -3199,7 +3257,9 @@
         "rating": "Leader",
         "notes": "",
         "participant": 315,
-        "activity": "hiking"
+        "activity": "hiking",
+        "time_created": "2016-01-01T12:34:56.789Z",
+        "creator": 120
     },
     "model": "ws.leaderrating",
     "pk": 325
@@ -3209,7 +3269,9 @@
         "rating": "Co-leader",
         "notes": "",
         "participant": 212,
-        "activity": "hiking"
+        "activity": "hiking",
+        "time_created": "2016-01-01T12:34:56.789Z",
+        "creator": 120
     },
     "model": "ws.leaderrating",
     "pk": 351
@@ -3219,7 +3281,9 @@
         "rating": "Leader",
         "notes": "",
         "participant": 501,
-        "activity": "hiking"
+        "activity": "hiking",
+        "time_created": "2016-01-01T12:34:56.789Z",
+        "creator": 120
     },
     "model": "ws.leaderrating",
     "pk": 352
@@ -3229,7 +3293,9 @@
         "rating": "Co-leader",
         "notes": "",
         "participant": 974,
-        "activity": "hiking"
+        "activity": "hiking",
+        "time_created": "2016-01-01T12:34:56.789Z",
+        "creator": 120
     },
     "model": "ws.leaderrating",
     "pk": 353
@@ -3658,6 +3724,7 @@
         "last_edited": "2016-08-01T14:27:46.390Z",
         "description": "Lead a trip for incoming grad students: If you're a 3-season hiking leader, we need your help to lead hikes on the Graduate Student Council (GSC) hiking trip on Saturday, Sep 3.\n\nEvery fall MITOC and the GSC organize a hiking trip as part of the orientation week for incoming grad students. The GSC charters two buses; one goes to Franconia, the other to Ferncroft. We split into groups of ~8, hike, and the leaders (this would be you) lead an easy-medium 6-8h hike.\n\nThis signup is for the 16 leaders we need to run this trip. Your responsibilities would be to lead a hike and be back to the bus by 6. You don't have to be a grad student, be MIT-affiliated, or have experience organizing large trips. MITOC and the GSC are organizing trip signups, transportation, food, emails, and all other logistics. We'll plan the hiking routes and turnaround times, and provide free breakfast and dinner for leaders. We just need you to hop on the bus, lead a hike when you get to the trailhead, and be back on time :)",
         "algorithm": "fcfs",
+        "time_created": "2016-01-01T12:34:56.789Z",
         "creator": 120,
         "prereqs": "Hiking leader or co-leader",
         "allow_leader_signups": true,
@@ -3691,6 +3758,7 @@
         "last_edited": "2016-08-17T01:19:14.764Z",
         "description": "Paddle trip to include the Brewster Islands and possibly the Graves light, conditions permitting. The level is advanced beginner to intermediate (capable of moderate paddle pace to keep group together and general idea of basic rescue procedure). Distance of 10-12 miles with 2 stops. Both tandems and a number of singles will be used. Current MITOC membership required. Ability to dress in non-cotton required. Trip fee is $15, pay MITOC to confirm after trip leader approves Will meet at MITOC boat room area at 8:00 am.\r\n",
         "algorithm": "fcfs",
+        "time_created": "2016-01-01T12:34:56.789Z",
         "creator": 1,
         "prereqs": "MITOC membership, ability to swim, ability to properly dress in non-cotton for water temperature, advanced beginner to intermediate level skills",
         "allow_leader_signups": false,
