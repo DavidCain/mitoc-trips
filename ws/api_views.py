@@ -232,7 +232,7 @@ class JsonAllParticipantsView(ListView):
         top_matches = participants[:20].values('name', 'email', 'id')
         return JsonResponse({'participants': list(top_matches)})
 
-    @method_decorator(group_required('leaders'))
+    @method_decorator(user_info_required)
     def dispatch(self, request, *args, **kwargs):
         return super(JsonAllParticipantsView, self).dispatch(request, *args, **kwargs)
 

@@ -41,5 +41,8 @@ much-needed testing and detailed feedback.
 - Zavisa Dogic
 - Zhifei Ge
 
+## Bug fixes
+- Gal Shenar
+
 Special thanks to Adam Rosenfield, Michele Pratusevich, Zavisa Dogic, and the
 Scripts team for their invaluable help in shaping this site.
