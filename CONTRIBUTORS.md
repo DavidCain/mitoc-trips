@@ -17,11 +17,11 @@ much-needed testing and detailed feedback.
 - Ethan DiNinno
 - Greg Wallace
 - Hanna Mendes Levitin
+- Ian Halim
 - Jacob Sargent
 - Jessica Noss
 - Kayla Meduna
 - Kris Brewer
-- Ian Halim
 - Leigh Ann Kesler
 - Ludwig Schmidt
 - Majed Alnaji
@@ -44,5 +44,15 @@ much-needed testing and detailed feedback.
 ## Bug fixes
 - Gal Shenar
 
-Special thanks to Adam Rosenfield, Michele Pratusevich, Zavisa Dogic, and the
-Scripts team for their invaluable help in shaping this site.
+Special thanks to the following especially dedicated individuals:
+ - Adam Rosenfield
+ - Chris Saulnier
+ - Ethan DiNinno
+ - Jessica Noss
+ - Leigh Ann Kesler
+ - Michele Pratusevich
+ - Sally Miller
+ - Zavisa Dogic
+ - SIPB's Scripts team
+
+ Each of these contributors have been invaluable in shaping this project.
