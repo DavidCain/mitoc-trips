@@ -20,10 +20,11 @@ def ws_lectures_complete():
     """
     now = dateutils.local_now()
     today = now.date()
+    dow = now.weekday()
     jan_1 = dateutils.jan_1()
     trips_this_ws = models.Trip.objects.filter(trip_date__gte=jan_1, activity='winter_school')
 
-    after_thursday = now.day > 5 or now.day == 5 and now.hour >= 21
+    after_thursday = dow > 3 or dow == 3 and now.hour >= 21
 
     if trips_this_ws.filter(trip_date__lt=today):
         return True
