@@ -17,7 +17,6 @@ from ws.views import AllLeadersView, ItineraryEditableMixin, TripLeadersOnlyView
 from ws.decorators import group_required, user_info_required
 
 from ws.utils.model_dates import missed_lectures
-import ws.utils.dates as date_utils
 import ws.utils.perms as perm_utils
 import ws.utils.signups as signup_utils
 import ws.utils.geardb as geardb_utils
