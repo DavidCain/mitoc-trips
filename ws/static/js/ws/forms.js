@@ -597,10 +597,6 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
         return !(leaders && leaders.length);
       };
 
-      ngModelCtrl.$validators.leadersOkay = function(modelValue, viewValue) {
-        return _.every(_.map(viewValue, 'canLead'));
-      };
-
       ngModelCtrl.$formatters.push(function(modelValue) {
         return _.filter(scope.allLeaders, function(leader) {
           return _.includes(modelValue, leader.id);
@@ -621,12 +617,23 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
         });
       };
 
+      ngModelCtrl.$validators.leadersOkay = function(modelValue, viewValue) {
+
+        // If we haven't yet checked everybody's ability to lead, do that now.
+        viewValue.forEach(function(leader) {
+          if (!_.has(leader, 'canLead')) {
+            checkSelectedLeaders();
+          }
+        });
+
+        return _.every(_.map(viewValue, 'canLead'));
+      };
+
       scope.$watch('activity', filterForActivity);
       scope.$watch('activity', checkSelectedLeaders);
       scope.$watch('activity', ngModelCtrl.$validate);
 
       scope.$watch('selected.leaders', function() {
-        checkSelectedLeaders();
         ngModelCtrl.$setViewValue(scope.selected.leaders);
       });
 
