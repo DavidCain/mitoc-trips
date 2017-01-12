@@ -1,11 +1,18 @@
-<p ng-hide="signups.length">You haven't signed up for any trips!</p>
+<p data-ng-hide="signups.length">You haven't signed up for any trips!</p>
 
-<div ng-show="signups.length">
+<div data-ng-show="signups.length">
   <ul class="list-group" ui-sortable="sortableOptions" data-ng-model="activeSignups">
-    <li class="list-group-item" ng-repeat="signup in activeSignups">
-      <span ng-bind="'#' + ($index + 1)"></span>
-      <label ng-bind="signup.trip.name"></label>
+    <li class="list-group-item" data-ng-repeat="signup in activeSignups">
+      <span data-ng-bind="'#' + ($index + 1)"></span>
+      <label data-ng-bind="signup.trip.name"></label>
       <button type="button" class="btn btn-sm btn-danger pull-right" data-ng-click="deleteSignup(signup, $index)">Delete</button>
     </li>
   </ul>
+</div>
+
+<div data-ng-show="changesMade">
+  <div class="alert alert-info">
+    <strong data-ng-hide="activeSignups.length">All signups deleted.</strong>
+    <p>Please click "Submit" when you're ready to update your selections!</p>
+  </div>
 </div>

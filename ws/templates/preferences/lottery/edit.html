@@ -13,21 +13,12 @@
 
 <h2>Lottery Preferences</h2>
 {% if is_winter_school %}
-  <h3>Winter School Lottery</h3>
-  <p>Due to the large number of Winter School participants and a limited number
-  of trips, placement for each weekend's trips will be done by lottery.
-  For more information, see the <a href="{% url 'help-lottery' %}">help pages</a>.</p>
-  
-  {% if "leaders" in groups %}
-    <h3> Leaders </h3>
-    <p> If you're able to drive for your trip (or any of the trips you've signed up
-    for as a participant), please indicate here. It will help participants get
-    placed on trips they're interested in.
-    </p>
-  {% endif %}
+  <p class="lead">Due to the large number of Winter School participants, placement for each weekend's trips will be
+  <a href="{% url 'help-lottery' %}">done by lottery</a>.</p>
+
 {% endif %}
 
-{% if not ranked_signups %}
+{% if not ranked_signups.exists %}
   <h3>About ranking trips</h3>
   <p>Begin by signing up for any trips you're interested in. You can always
   browse <a href="{% url 'upcoming_trips' %}">upcoming trips</a>.</p>
@@ -40,15 +31,24 @@
 {% endif %}
 
 
-<h4> Car info </h4>
+<h3> Car info </h3>
+
+{# The lottery form doesn't need validation, so just consider this whole form the car form #}
+<form name="{{ car_form.form_name }}" action="" method="post" data-ng-controller="lotteryController" novalidate>
+  {% csrf_token %}
+
 
 <p> Drivers are {% if not is_winter_school %} occasionally {% endif %} given
 priority on trips that would not otherwise be able to transport lottery-winning
 participants. </p>
 
-{# The lottery form doesn't need validation, so just consider this whole form the car form #}
-<form name="{{ car_form.form_name }}" action="" method="post" data-ng-controller="lotteryController" novalidate>
-  {% csrf_token %}
+{% if "leaders" in groups %}
+  <p data-ng-show="car_status == 'none'" data-ng-cloak>
+    <strong>Leaders:</strong>
+    If you're able to drive, please indicate here. It will help
+    participants get placed on trips they're interested in.
+  </p>
+{% endif %}
 
   <div style="display:none">{{ lottery_form.car_status }}</div>
 
@@ -66,7 +66,11 @@ participants. </p>
 
   <div data-ng-show="car_status == 'own'" data-ng-cloak>
     <p>Please ensure that the form below matches the car you'll be driving.</p>
-    {{ car_form.as_div }}
+    <div class="row">
+      <div class="col-md-4 col-sm-6">
+        {{ car_form.as_div }}
+      </div>
+    </div>
   </div>
 
   <div class="form-inline" data-ng-show="car_status == 'own' || car_status == 'rent'" data-ng-cloak>
@@ -76,9 +80,7 @@ participants. </p>
     </div>
   </div>
 
-  <hr>
-
-  <h4 id="ranked_trips"> Ranked trips </h4>
+  <h3 id="ranked_trips"> Ranked trips </h3>
 
   {% if reciprocally_paired %}
     <p>You are <a href="{% url 'lottery_pairing' %}">paired with {{ paired_par }}</a>.
@@ -95,6 +97,7 @@ participants. </p>
   <trip-rank signups="ranked.signups"></trip-rank>
 
   <button type="button" data-ng-click="submit()" data-ng-disabled="!car_status || (car_status == 'own' && {{ car_form.form_name }}.$invalid)" class="btn btn-primary">Submit</button>
+  <a href="{% url 'lottery_preferences' %}" role="button" class="btn btn-default">Cancel</button>
   <ul class="djng-form-control-feedback djng-field-errors" ng-show="formErrors">
     {# This should never happen, but handle it just in case #}
     <li ng-cloak ng-show="submitError" class="invalid">An error occurred with form submission.</li>

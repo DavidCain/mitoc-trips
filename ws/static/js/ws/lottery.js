@@ -31,6 +31,9 @@ angular.module('ws.lottery', ['ui.select', 'ui.sortable'])
       scope.activeSignups = scope.signups.slice();  // We need object references
       var setOrder = function() {
         scope.activeSignups.forEach(function(signup, index) {
+          if (signup.order && signup.order !== index + 1) {
+            scope.changesMade = true;
+          }
           signup.order = index + 1;
         });
       };
@@ -42,6 +45,7 @@ angular.module('ws.lottery', ['ui.select', 'ui.sortable'])
       scope.deleteSignup = function (signup, index) {
         signup.deleted = true;
         scope.activeSignups.splice(index, 1);
+        scope.changesMade = true;
       };
     }
   };
