@@ -458,13 +458,9 @@ class ParticipantView(ParticipantLookupView, SingleObjectMixin,
 
 
 class ParticipantDetailView(ParticipantView, FormView, DetailView):
-    def get(self, request, *args, **kwargs):
+    def dispatch(self, request, *args, **kwargs):
         if request.participant == self.get_object():
             return redirect(reverse('home'))
-        return super(ParticipantDetailView, self).get(request, *args, **kwargs)
-
-    @method_decorator(group_required('leaders'))
-    def dispatch(self, request, *args, **kwargs):
         return super(ParticipantView, self).dispatch(request, *args, **kwargs)
 
 
