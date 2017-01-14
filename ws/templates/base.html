@@ -2,6 +2,7 @@
 {% load staticfiles %}
 {% load gravatar %}
 {% load perm_tags %}
+{% load trip_tags %}
 {% load content_tags %}
 <!DOCTYPE html>
 <html lang="en">
@@ -59,25 +60,29 @@
                     {% endif %}
 
                     {% for activity, label in user|labeled_chair_activities %}
-                        <li class="dropdown">
-                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
-                                {% if activity == 'winter_school' %}
-                                    WSC
-                                {% else %}
-                                    {{ activity|title }}
-                                {% endif %}
-                                <span class="caret"></span>
-                            </a>
-                            <ul class="dropdown-menu">
-                                <li> <a href="{% url 'manage_leaders' %}">Leader ratings</a> </li>
-                                <li> <a href="{% url 'manage_applications' activity %}"> Leader applications </a> </li>
-                                <li> <a href="{% url 'manage_trips' activity %}"> Trips </a> </li>
-                                {% if activity == 'winter_school' %}
-                                    <li> <a href="{% url 'all_trips_medical' %}"> WIMP </a> </li>
-                                    <li> <a href="{% url 'ws_settings' %}"> Settings </a> </li>
-                                {% endif %}
-                            </ul>
-                        </li>
+                        {% with viewing_participant|pending_applications_count:activity as num_pending_apps %}
+                            <li class="dropdown">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                                    {% if activity == 'winter_school' %}
+                                        WSC
+                                    {% else %}
+                                        {{ activity|title }}
+                                    {% endif %}
+                                    {% if num_pending_apps %}
+                                        <span class="badge">{{ num_pending_apps }}</span>
+                                    {% endif %}
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li> <a href="{% url 'manage_leaders' %}">Leader ratings</a> </li>
+                                    <li> <a href="{% url 'manage_applications' activity %}"> Leader applications <span class="badge">{{ num_pending_apps }}</span> </a> </li>
+                                    <li> <a href="{% url 'manage_trips' activity %}"> Trips </a> </li>
+                                    {% if activity == 'winter_school' %}
+                                        <li> <a href="{% url 'all_trips_medical' %}"> WIMP </a> </li>
+                                        <li> <a href="{% url 'ws_settings' %}"> Settings </a> </li>
+                                    {% endif %}
+                                </ul>
+                            </li>
+                        {% endwith %}
                     {% endfor %}
 
                     {% if user.is_superuser %}

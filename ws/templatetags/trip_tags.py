@@ -1,5 +1,7 @@
 from django import template
 
+import ws.utils.ratings as ratings_utils
+
 register = template.Library()
 
 
@@ -31,3 +33,14 @@ def name_with_rating(leader, trip):
 @register.filter
 def activity_rating(leader, activity):
     return leader.activity_rating(activity) or ""
+
+
+@register.filter
+def pending_applications_count(chair, activity, just_this_year=True):
+    """ Count applications where:
+
+    - All chairs have given recs, rating is needed
+    - Viewing user hasn't given a rec
+    """
+    manager = ratings_utils.ApplicationManager(chair=chair, activity=activity)
+    return len(manager.pending_applications(just_this_year))

@@ -1,4 +1,4 @@
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, User
 from ws import models
 
 
@@ -30,6 +30,11 @@ def in_any_group(user, group_names, allow_superusers=True):
 
 def is_chair(user, activity_type, allow_superusers=True):
     return in_any_group(user, [chair_group(activity_type)], allow_superusers)
+
+
+def num_chairs(activity):
+    group = chair_group(activity)
+    return User.objects.filter(groups__name=group).count()
 
 
 activity_types = models.LeaderRating.ACTIVITIES
