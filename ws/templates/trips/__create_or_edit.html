@@ -23,7 +23,7 @@
         </div>
       </div>
 
-      <div class="row" data-ng-if="activity == 'winter_school'">
+      <div class="row" data-ng-if="activity === 'winter_school'">
         <div class="col-sm-12">
           {% form_group form.level %}
         </div>
@@ -35,7 +35,9 @@
 
       <h2>Signup</h2>
 
-      {% form_group form.allow_leader_signups True %}
+      <div data-ng-hide="activity === 'winter_school'">
+        {% form_group form.allow_leader_signups True %}
+      </div>
       {% form_group form.let_participants_drop True %}
       {% form_group form.trip_date %}
 

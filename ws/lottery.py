@@ -127,7 +127,7 @@ class LotteryRunner(ParticipantRanker):
     def free_for_all(self):
         """ Make trips first-come, first-serve.
 
-        Trips re-open Wednesday at noon, close at midnight before trip.
+        Trips re-open Wednesday at noon, close at midnight on Thursday.
         """
         print "Making all lottery trips first-come, first-serve"
         ws_trips = models.Trip.objects.filter(activity='winter_school')
