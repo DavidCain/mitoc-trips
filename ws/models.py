@@ -445,7 +445,12 @@ class Trip(models.Model):
 
     @property
     def midnight_before(self):
-        return pytz_timezone.localize(dateutils.midnight_before(self.trip_date))
+        day_before = self.trip_date - timedelta(days=1)
+        return pytz_timezone.localize(dateutils.late_at_night(day_before))
+
+    @property
+    def fcfs_close_time(self):
+        return pytz_timezone.localize(dateutils.fcfs_close_time(self.trip_date))
 
     @property
     def open_slots(self):
@@ -499,7 +504,7 @@ class Trip(models.Model):
             self.signups_open_at = dateutils.closest_wed_at_noon()
         else:
             self.signups_open_at = now
-        self.signups_close_at = self.midnight_before
+        self.signups_close_at = self.fcfs_close_time
 
     def clean(self):
         """ Ensure that all trip dates are reasonable. """

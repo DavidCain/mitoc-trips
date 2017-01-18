@@ -27,10 +27,6 @@ class DateUtilTests(TestCase):
             else:
                 self.assertGreater(test_dt, fri_before)
 
-    def test_midnight_before(self):
-        one_sec_before = datetime(1999, 12, 31, 23, 59, 59)
-        self.assertEqual(date_utils.midnight_before(self.y2k), one_sec_before)
-
     @mock.patch('ws.utils.dates.local_now')
     def test_nearest_sat(self, local_now):
         for test_dt in self.test_datetimes:

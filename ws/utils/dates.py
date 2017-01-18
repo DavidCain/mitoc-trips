@@ -12,11 +12,16 @@ def friday_before(trip_date):
     return trip_date - timedelta(days=(trip_dow - 4) % 7)
 
 
-def midnight_before(trip_date):
-    day_before = trip_date - timedelta(days=1)
-    # Use 11:59 to be clear
-    return timezone.datetime(day_before.year, day_before.month,
-                             day_before.day, 23, 59, 59)
+def late_at_night(date):
+    """ 23:59 on the date, since midnight is technically the next day. """
+    return timezone.datetime(date.year, date.month, date.day, 23, 59, 59)
+
+
+def fcfs_close_time(trip_date):
+    """ WS trips close first-come, first-serve signups on Thursday night. """
+    trip_dow = trip_date.weekday()
+    thur_before = trip_date - timedelta(days=(trip_dow - 3) % 7)
+    return late_at_night(thur_before)
 
 
 def local_now():
