@@ -97,7 +97,7 @@ participants. </p>
   <trip-rank signups="ranked.signups"></trip-rank>
 
   <button type="button" data-ng-click="submit()" data-ng-disabled="!car_status || (car_status == 'own' && {{ car_form.form_name }}.$invalid)" class="btn btn-primary">Submit</button>
-  <a href="{% url 'lottery_preferences' %}" role="button" class="btn btn-default">Cancel</button>
+  <a href="{% url 'lottery_preferences' %}" role="button" class="btn btn-default">Cancel</a>
   <ul class="djng-form-control-feedback djng-field-errors" ng-show="formErrors">
     {# This should never happen, but handle it just in case #}
     <li ng-cloak ng-show="submitError" class="invalid">An error occurred with form submission.</li>
