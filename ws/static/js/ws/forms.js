@@ -301,8 +301,8 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
         scope.anyFeedbackPresent = _.some(allSignups, 'feedback.length');
       });
 
-      scope.signUp = function(participantId) {
-        var payload = {participant_id: participantId, notes: scope.notes};
+      scope.signUp = function(participant) {
+        var payload = {participant_id: participant.id, notes: scope.notes};
         var tripSignup = djangoUrl.reverse('json-leader_participant_signup',
                                            [scope.tripId]);
         $http.post(tripSignup, payload).then(
@@ -477,8 +477,8 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
     restrict: 'E',
     templateUrl: '/static/template/participant-lookup.html',
     link: function (scope, element, attrs, ngModelCtrl) {
-      scope.viewParticipant = function(participantId) {
-        $window.location.href = '/participants/' + participantId;
+      scope.viewParticipant = function(participant) {
+        $window.location.href = '/participants/' + participant.id;
       };
     },
   };
@@ -502,7 +502,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
       if (scope.selectedId) {
         scope.participants.selected = {id: scope.selectedId,
                                        name: scope.selectedName};
-        ngModelCtrl.$setViewValue(scope.participants.selected.id);
+        ngModelCtrl.$setViewValue(scope.participants.selected);
       }
 
       if (ngModelCtrl) {
@@ -511,7 +511,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
         };
         scope.$watch('participants.selected', function(newval, oldval) {
           if( newval !== oldval ) {
-            ngModelCtrl.$setViewValue(newval && newval.id);
+            ngModelCtrl.$setViewValue(newval);
           }
         });
       }
