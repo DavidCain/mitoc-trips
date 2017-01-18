@@ -4,7 +4,6 @@ import random
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
-from django.utils import timezone
 
 from ws.utils.dates import local_date, closest_wed_at_noon, jan_1
 from ws.utils.signups import add_to_waitlist
@@ -185,7 +184,7 @@ class ParticipantHandler(object):
     def future_signups(self):
         # Only consider lottery signups for future trips
         signups = self.participant.signup_set.filter(
-            trip__trip_date__gt=self.today,
+            trip__trip_date__gt=self.runner.today,
             trip__algorithm='lottery',
             trip__activity='winter_school'
         )
