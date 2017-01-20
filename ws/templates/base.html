@@ -98,6 +98,8 @@
                                 <li> <a href="{% url 'ws_settings' %}"> Settings </a> </li>
                             </ul>
                         </li>
+                    {% elif 'WIMP' in groups and 'WSC' not in groups %}
+                        <li> <a href="{% url 'all_trips_medical' %}"> WIMP </a> </li>
                     {% endif %}
 
 
