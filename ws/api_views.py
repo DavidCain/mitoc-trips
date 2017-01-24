@@ -243,12 +243,17 @@ class JsonAllLeadersView(AllLeadersView):
         if activity:
             leaders = leaders.filter(leaderrating__activity=activity,
                                      leaderrating__active=True).distinct()
-        ret = [{'name': leader.name, 'id': leader.id,
-                'ratings': list(leader.leaderrating_set.values("activity",
-                                                               "rating"))}
-               for leader in leaders]
 
-        return JsonResponse({'leaders': ret})
+        all_leaders = []
+        for leader in leaders:
+            active_ratings = leader.leaderrating_set.filter(active=True)
+            all_leaders.append({
+                'name': leader.name,
+                'id': leader.id,
+                'ratings': list(active_ratings.values("activity", "rating"))
+            })
+
+        return JsonResponse({'leaders': all_leaders})
 
 
 @login_required
