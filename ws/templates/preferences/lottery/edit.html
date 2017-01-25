@@ -80,8 +80,15 @@ participants. </p>
     </div>
   </div>
 
-  <h3 id="ranked_trips"> Ranked trips </h3>
-
+  <h3 id="ranked_trips">
+    Ranked trips
+    <a
+      role="button"
+      data-uib-popover="Click and drag to order your trips. Delete any trips you're no longer interested in."
+      data-popover-title="How to rank trips">
+        <i class="fa fa-question-circle-o"></i>
+    </a>
+  </h3>
   {% if reciprocally_paired %}
     <p>You are <a href="{% url 'lottery_pairing' %}">paired with {{ paired_par }}</a>.
     You will only be placed on a trip if there is room for both of you.

@@ -113,7 +113,8 @@ label.required:after,
 }
 
 /* UI-sortable */
-.ui-sortable .list-group-item {
+.ui-sortable .list-group-item,
+.ui-sortable label {
   cursor: move;
 }
 
