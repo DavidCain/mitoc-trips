@@ -127,6 +127,7 @@ class ParticipantEditMixin(TemplateView):
             par_kwargs["initial"] = {'email': self.user.email}
 
         context = {
+            'currently_has_car': bool(car),
             'participant_form': forms.ParticipantForm(post, **par_kwargs),
             'car_form': forms.CarForm(post, instance=car, **self.prefix('car')),
             'emergency_info_form': forms.EmergencyInfoForm(post, instance=e_info, **self.prefix('einfo')),

@@ -561,7 +561,7 @@ class LotteryInfo(models.Model):
     """ Persists from week-to-week, but can be changed. """
     participant = models.OneToOneField(Participant)
     car_status = models.CharField(max_length=7,
-                                  choices=[("none", "No car"),
+                                  choices=[("none", "Not driving"),
                                            ("own", "Can drive own car"),
                                            ("rent", "Willing to rent")],
                                   default="none")

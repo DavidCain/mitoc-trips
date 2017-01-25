@@ -43,13 +43,21 @@ Edit profile
                 <div data-ng-switch-when="true">
                     {{ car_form.as_div }}
                 </div>
-                <p data-ng-switch-when="false">
-                If you ever rent a car for a trip, please come back here and
-                tell us about it!
-                </p>
+                <div data-ng-switch-when="false">
+                    {% if currently_has_car %}
+                        <div class="alert alert-warning">
+                            <p><strong>Do you really want to delete your car's information?</strong></p>
+                            <p>If you simply do not want to drive, update your <a href="{% url 'lottery_preferences' %}">lottery preferences</a> instead.</p>
+                        </div>
+                    {% endif %}
+                    <p>
+                        If you ever rent a car for a trip, please come back here and
+                        tell us about it!
+                    </p>
+                </div>
                 <p data-ng-switch-default>
-                If you do, please let us know!
-                You'll never be under any obligation to drive it.
+                    If you do, please let us know!
+                    You'll never be under any obligation to drive it.
                 </p>
             </div>
         </div>

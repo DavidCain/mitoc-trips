@@ -36,10 +36,15 @@ class LotteryMessages(object):
         if not self.request.participant or not is_winter_school():
             return
         self.warn_if_missing_lottery()
+        self.warn_if_car_missing()
 
         if self.lotteryinfo:  # (warnings are redundant if no lottery info)
             self.warn_if_no_ranked_trips()
             self.warn_if_dated_info()
+
+    def profile_link(self, text):
+        # Remember to set extra_tags='safe' to avoid escaping HTML
+        return '<a href="{}">{}</a>'.format(reverse('edit_profile'), text)
 
     def prefs_link(self, text='lottery preferences'):
         # Remember to set extra_tags='safe' to avoid escaping HTML
@@ -54,6 +59,19 @@ class LotteryMessages(object):
         if not self.lotteryinfo:
             msg = "You haven't set your {}.".format(self.prefs_link())
             messages.warning(self.request, msg, extra_tags='safe')
+
+    def warn_if_car_missing(self):
+        lottery = self.lotteryinfo
+        if not lottery:
+            return
+        if lottery.car_status == 'own' and not self.request.participant.car:
+            msg = ("You're a driver in the lottery, but haven't {edit_car}. "
+                   "If you can no longer drive, please update your {prefs}.")
+            message = msg.format(
+                edit_car=self.profile_link("submitted car information"),
+                prefs=self.prefs_link(),
+            )
+            messages.warning(self.request, message, extra_tags='safe')
 
     def warn_if_no_ranked_trips(self):
         """ Warn the user if there are future signups, and none are ranked. """
