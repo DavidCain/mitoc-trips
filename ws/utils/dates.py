@@ -7,6 +7,11 @@ from django.utils import timezone
 from django.conf import settings
 
 
+def localize(dt_time):
+    pytz_timezone = timezone.get_default_timezone()
+    return pytz_timezone.localize(dt_time)
+
+
 def friday_before(trip_date):
     trip_dow = trip_date.weekday()
     return trip_date - timedelta(days=(trip_dow - 4) % 7)
@@ -83,7 +88,8 @@ def closest_wednesday():
 def closest_wed_at_noon():
     """ Useful in case lottery is run slightly after noon on Wednesday. """
     closest_wed = closest_wednesday()
-    return datetime.combine(closest_wed, datetime.min.time().replace(hour=12))
+    ret = datetime.combine(closest_wed, datetime.min.time().replace(hour=12))
+    return localize(ret)
 
 
 def participant_cutoff():
@@ -109,6 +115,5 @@ def ws_year():
 
 
 def jan_1():
-    pytz_timezone = timezone.get_default_timezone()
     jan_1st = timezone.datetime(local_date().year, 1, 1)
-    return pytz_timezone.localize(jan_1st)
+    return localize(jan_1st)
