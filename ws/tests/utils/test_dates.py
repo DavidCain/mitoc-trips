@@ -17,15 +17,15 @@ class DateUtilTests(TestCase):
         self.y2k = datetime(2000, 1, 1)
         self.test_datetimes = [self.y2k + timedelta(days=i) for i in range(15)]
 
-    def test_friday_before(self):
+    def test_itinerary_available_at(self):
         for test_dt in self.test_datetimes:
-            fri_before = date_utils.friday_before(test_dt)
-            self.assertEqual(fri_before.weekday(), 4)  # Is always a Friday
+            avail_datetime = date_utils.itinerary_available_at(test_dt)
+            self.assertEqual(avail_datetime.weekday(), 3)  # Is always a Thursday
 
-            if test_dt.weekday() == 4:
-                self.assertEqual(test_dt, fri_before)
+            if test_dt.weekday() == 3:
+                self.assertEqual(test_dt, avail_datetime.date())
             else:
-                self.assertGreater(test_dt, fri_before)
+                self.assertGreater(test_dt, avail_datetime.date())
 
     @mock.patch('ws.utils.dates.local_now')
     def test_nearest_sat(self, local_now):
@@ -62,10 +62,10 @@ class DateUtilTests(TestCase):
 
     @mock.patch('ws.utils.dates.local_now')
     def test_is_winter_school(self, local_now):
-        for day, expected in [(datetime(2016,12,28), False),
-                              (datetime(2017, 1, 1), True),
-                              (datetime(2017, 1,14), True),
-                              (datetime(2017, 1,31), True),
-                              (datetime(2017, 2,10), False)]:
+        for day, expected in [(datetime(2016, 12, 28), False),
+                              (datetime(2017,  1,  1), True),
+                              (datetime(2017,  1, 14), True),
+                              (datetime(2017,  1, 31), True),
+                              (datetime(2017,  2, 10), False)]:
             local_now.return_value = day
             self.assertEqual(date_utils.is_winter_school(), expected)

@@ -16,7 +16,7 @@ for editing through the day of your trip.</p>
 
 <p><strong>Important:</strong> If you make any changes to your trip itinerary,
 you should return to this page and update the appropriate fields. This will ensure
-that the WIMP has the most up-to-date information regarding your trip.</p> 
+that the WIMP has the most up-to-date information regarding your trip.</p>
 
 <hr />
 
@@ -33,7 +33,7 @@ that the WIMP has the most up-to-date information regarding your trip.</p>
     <button type="submit" class="btn btn-primary">Submit</button>
   </form>
 {% else %}
-  <p>This form will be available on {{ friday_before }}.</p>
+  <p>This form will be available at {{ itinerary_available_at }}.</p>
 {% endif %}
 
 {% endblock content %}

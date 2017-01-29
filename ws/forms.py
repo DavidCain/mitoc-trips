@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 
 from djng.forms import NgFormValidationMixin
 from djng.forms import NgModelFormMixin, NgModelForm
-from djng.styling.bootstrap3.forms import Bootstrap3Form, Bootstrap3FormMixin
+from djng.styling.bootstrap3.forms import Bootstrap3FormMixin
 
 from localflavor.us.us_states import US_STATES
 
@@ -143,7 +143,6 @@ class TripInfoForm(DjangularRequiredModelForm):
 
     def __init__(self, *args, **kwargs):
         super(TripInfoForm, self).__init__(*args, **kwargs)
-        self.fields['drivers'].help_text = self.fields['drivers'].help_text
 
 
 class TripForm(DjangularRequiredModelForm):

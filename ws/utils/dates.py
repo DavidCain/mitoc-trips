@@ -2,7 +2,7 @@
 Some shortcuts to retrieve meaningful dates.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, time, timedelta
 from django.utils import timezone
 from django.conf import settings
 
@@ -12,9 +12,11 @@ def localize(dt_time):
     return pytz_timezone.localize(dt_time)
 
 
-def friday_before(trip_date):
+def itinerary_available_at(trip_date):
     trip_dow = trip_date.weekday()
-    return trip_date - timedelta(days=(trip_dow - 4) % 7)
+    thursday_before = trip_date - timedelta(days=(trip_dow - 3) % 7)
+    thursday_evening = datetime.combine(thursday_before, time(18, 0))
+    return localize(thursday_evening)
 
 
 def late_at_night(date):

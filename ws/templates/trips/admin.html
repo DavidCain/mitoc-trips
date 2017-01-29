@@ -12,9 +12,14 @@
   <a type="button" class="btn btn-default" href="{% url 'trip_medical' trip.id %}"><i class="fa fa-medkit"></i>&nbsp;WIMP info</a>
   <a type="button" class="btn btn-default
   {% if info_form_available %}
-      {{ trip.info|yesno:",btn-danger" }}" uib-tooltip="Must be completed before departure!" href="{% url 'trip_itinerary' trip.id %}">
+    {{ trip.info|yesno:",btn-danger" }}" uib-tooltip="Must be completed before departure!" href="{% url 'trip_itinerary' trip.id %}">
   {% else %}
-      " uib-tooltip="Will become available {{ friday_before|date:"l, F jS" }}" href="#">
+    " uib-tooltip="Will become available
+    {% if not available_today %}
+      {{ itinerary_available_at|date:"l, F jS" }}
+    {% endif %}
+    at {{ itinerary_available_at|date:"H:i" }}"
+    href="#">
   {% endif %}
   <i class="fa fa-list-alt"></i>&nbsp;Itinerary</a>
   <a type="button" class="btn btn-default" href="{% url 'review_trip' trip.id %}"><i class="fa fa-comments"></i>&nbsp;Feedback</a>

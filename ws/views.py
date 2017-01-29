@@ -27,7 +27,7 @@ from ws.decorators import group_required, user_info_required, admin_only, chairs
 from ws import message_generators
 from ws import tasks
 
-from ws.utils.dates import local_date, friday_before, is_winter_school, ws_year
+from ws.utils.dates import local_date, local_now, itinerary_available_at, is_winter_school, ws_year
 from ws.utils.model_dates import ws_lectures_complete
 import ws.utils.perms as perm_utils
 import ws.utils.ratings as ratings_utils
@@ -640,17 +640,18 @@ class TripView(TripDetailView):
 
 
 class ItineraryEditableMixin(object):
-    def friday_before(self, trip):
-        return friday_before(trip.trip_date)
+    def itinerary_available_at(self, trip):
+        return itinerary_available_at(trip.trip_date)
 
     def info_form_available(self, trip):
         """ Trip itinerary should only be submitted Friday before or later. """
-        today = local_date()
-        return today >= self.friday_before(trip)
+        return local_now() >= self.itinerary_available_at(trip)
 
     def info_form_context(self, trip):
+        available_at = self.itinerary_available_at(trip)
         return {'info_form_available': self.info_form_available(trip),
-                'friday_before': self.friday_before(trip)}
+                'available_today': available_at.date() == local_date(),
+                'itinerary_available_at': available_at}
 
     def get_info_form(self, trip):
         """ Return a stripped form for read-only display.
