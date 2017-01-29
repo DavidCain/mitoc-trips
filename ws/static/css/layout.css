@@ -134,6 +134,13 @@ admin-trip-signups .signup-list .signup-summary .label {
   margin-right: 5px;
 }
 
+/* Mimick the `img-responsive` class for images produced by the Markdown processor. */
+.trip-description img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
 
 /* Profile page */
 .profile-photo {
