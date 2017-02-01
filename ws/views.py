@@ -1226,7 +1226,7 @@ class CreateTripView(CreateView):
         return kwargs
 
     def get_success_url(self):
-        return reverse('view_trip', args=(self.object.id,))
+        return reverse('view_trip', args=(self.object.pk,))
 
     def get_initial(self):
         """ Default with trip creator among leaders. """
@@ -1252,17 +1252,31 @@ class DeleteTripView(DeleteView, TripLeadersOnlyView):
     model = models.Trip
     success_url = reverse_lazy('upcoming_trips')
 
+    def get(self, *args, **kwargs):
+        """ Request is valid, but method is not (use POST). """
+        messages.warning(self.request, "Use delete button to remove trips.")
+        return redirect(reverse('admin_trip', kwargs=self.kwargs))
+
 
 class DeleteSignupView(DeleteView):
     model = models.SignUp
     success_url = reverse_lazy('upcoming_trips')
+
+    def get(self, *args, **kwargs):
+        """ Request is valid, but method is not (use POST). """
+        messages.warning(self.request, "Use delete button to remove signups.")
+        trip = self.get_object().trip
+        return redirect(reverse('view_trip', args=(trip.pk,)))
 
     @method_decorator(user_info_required)
     def dispatch(self, request, *args, **kwargs):
         signup = self.get_object()
         if not signup.participant == request.participant:
             raise PermissionDenied
-        if not (signup.trip.upcoming or signup.trip.algorithm == 'lottery'):
+        trip = signup.trip
+        drops_allowed = (trip.let_participants_drop or
+                         (trip.upcoming and trip.algorithm == 'lottery'))
+        if not drops_allowed:
             raise PermissionDenied
         return super(DeleteSignupView, self).dispatch(request, *args, **kwargs)
 
@@ -1293,7 +1307,7 @@ class EditTripView(UpdateView, TripLeadersOnlyView):
         return context
 
     def get_success_url(self):
-        return reverse('view_trip', args=(self.object.id,))
+        return reverse('view_trip', args=(self.object.pk,))
 
     def _ignore_leaders_if_unchanged(self, form):
         """ Don't update the leaders m2m field if unchanged.
