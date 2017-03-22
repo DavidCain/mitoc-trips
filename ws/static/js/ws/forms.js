@@ -571,7 +571,10 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
       /* Fetch all leaders and their ratings */
       var fetchLeaderList = function() {
         $http.get(djangoUrl.reverse("json-leaders")).then(function (response) {
-          scope.allLeaders = response.data.leaders;
+          // Only select needed values, since we'll be storing array in scope
+          scope.allLeaders = _.map(response.data.leaders, function(leader) {
+            return _.pick(leader, ['id', 'name', 'ratings']);
+          });
 
           // Match IDs of leaders (supplied in directive attr) to leaders
           if (scope.leaderIds && scope.leaderIds.length) {

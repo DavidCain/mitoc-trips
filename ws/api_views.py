@@ -15,6 +15,7 @@ from allauth.account.models import EmailAddress
 from ws import models
 from ws.views import AllLeadersView, ItineraryEditableMixin, TripLeadersOnlyView
 from ws.decorators import chairs_only, group_required, user_info_required
+from ws.templatetags.gravatar import gravatar_url
 
 from ws.utils.model_dates import missed_lectures
 import ws.utils.perms as perm_utils
@@ -237,23 +238,40 @@ class JsonAllParticipantsView(ListView):
 
 
 class JsonAllLeadersView(AllLeadersView):
-    def render_to_response(self, context, **response_kwargs):
-        leaders = self.get_queryset()  # Excludes inactive leaders
-        activity = self.kwargs['activity']
+    """ Give basic information about leaders, viewable to the public. """
+    def get_queryset(self):
+        leaders = super(JsonAllLeadersView, self).get_queryset()
+        activity = self.kwargs.get('activity')
         if activity:
             leaders = leaders.filter(leaderrating__activity=activity,
                                      leaderrating__active=True).distinct()
+        return leaders
 
+    def render_to_response(self, context, **response_kwargs):
+        user_is_leader = perm_utils.is_leader(self.request.user)
         all_leaders = []
-        for leader in leaders:
-            active_ratings = leader.leaderrating_set.filter(active=True)
-            all_leaders.append({
-                'name': leader.name,
+        for leader in self.get_queryset():
+            json_leader = {
                 'id': leader.id,
-                'ratings': list(active_ratings.values("activity", "rating"))
-            })
+                'name': leader.name,
+                # Use 200x200 for Retina display at 100x100 on mitoc.mit.edu
+                'gravatar': gravatar_url(leader.email, 200)
+            }
+
+            # Full roster of leaders by rating is not meant to be public
+            if user_is_leader:
+                active_ratings = leader.leaderrating_set.filter(active=True)
+                select_fields = active_ratings.values("activity", "rating")
+                json_leader['ratings'] = list(select_fields)
+
+            all_leaders.append(json_leader)
 
         return JsonResponse({'leaders': all_leaders})
+
+    # Give leader names and Gravatars to the public
+    # (Gravatar URLs hash the email with MD5)
+    def dispatch(self, request, *args, **kwargs):
+        return super(AllLeadersView, self).dispatch(request, *args, **kwargs)
 
 
 @login_required
