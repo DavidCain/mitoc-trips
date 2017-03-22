@@ -10,8 +10,10 @@
 
 <p>{% blocktrans %}Already have an account? Then please <a href="{{ login_url }}">log in</a>.{% endblocktrans %}</p>
 
-<div id="respond" class="narrow">
-    <p>{% blocktrans %}Please use your @mit.edu email address if you have one.{% endblocktrans %}</p>
+<div class="narrow">
+    <div class="alert alert-info">
+        If you already have a membership, use the same email you used when signing up!
+    </div>
     <form class="signup" id="signup_form" method="post" action="{% url 'account_signup' %}">
         {% csrf_token %}
         <table>
