@@ -1,4 +1,5 @@
 from django import template
+from django.db.models import Case, Count, IntegerField, Sum, When
 
 from ws import models
 
@@ -7,6 +8,20 @@ import ws.utils.ratings as ratings_utils
 import ws.utils.perms as perm_utils
 
 register = template.Library()
+
+
+def annotated_for_trip_list(trips):
+    """ Modify a trips queryset to have annotated fields used in tags. """
+    # Each trip will need information about its leaders, so prefetch models
+    trips = trips.prefetch_related('leaders', 'leaders__leaderrating_set')
+
+    signup_on_trip = Case(
+        When(signup__on_trip=True, then=1),
+        default=0,
+        output_field=IntegerField()
+    )
+    return trips.annotate(num_signups=Count('signup'),
+                          signups_on_trip=Sum(signup_on_trip))
 
 
 @register.inclusion_tag('for_templatetags/simple_trip_list.html')

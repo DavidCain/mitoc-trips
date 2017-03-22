@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 from collections import defaultdict
 import json
 
-from django.db.models import Case, Count, IntegerField, Sum, Q, When
+from django.db.models import Q
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
@@ -26,6 +26,7 @@ from ws import models
 from ws.decorators import group_required, user_info_required, admin_only, chairs_only
 from ws import message_generators
 from ws import tasks
+from ws.templatetags.trip_tags import annotated_for_trip_list
 
 from ws.utils.dates import local_date, local_now, itinerary_available_at, is_winter_school, ws_year
 from ws.utils.model_dates import ws_lectures_complete
@@ -469,7 +470,10 @@ class ParticipantDetailView(ParticipantView, FormView, DetailView):
 class ProfileView(ParticipantView):
     def get(self, request, *args, **kwargs):
         if request.user.is_anonymous():
-            return render(request, 'home.html')
+            today = local_date()
+            current_trips = models.Trip.objects.filter(trip_date__gte=today)
+            trips = annotated_for_trip_list(current_trips)
+            return render(request, 'home.html', {'current_trips': trips})
         elif not request.participant:
             return redirect(reverse('edit_profile'))
 
@@ -1341,17 +1345,8 @@ class TripListView(ListView):
     form_class = forms.SummaryTripForm
 
     def get_queryset(self):
-        # Each trip will need information about its leaders, so prefetch models
         trips = super(TripListView, self).get_queryset()
-        trips = trips.prefetch_related('leaders', 'leaders__leaderrating_set')
-
-        signup_on_trip = Case(
-            When(signup__on_trip=True, then=1),
-            default=0,
-            output_field=IntegerField()
-        )
-        return trips.annotate(num_signups=Count('signup'),
-                              signups_on_trip=Sum(signup_on_trip))
+        return annotated_for_trip_list(trips)
 
     def get_context_data(self, **kwargs):
         """ Sort trips into past and present trips. """
