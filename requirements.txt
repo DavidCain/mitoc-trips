@@ -3,6 +3,7 @@ pytz
 celery==3.1.23
 django-allauth
 django-localflavor
+django-cors-headers
 django-debug-toolbar>=1.5
 django-pipeline
 django-smtp-ssl

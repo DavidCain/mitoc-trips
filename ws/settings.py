@@ -94,6 +94,9 @@ MIDDLEWARE_CLASSES = [
 ]
 if 'debug_toolbar' in INSTALLED_APPS:
     MIDDLEWARE_CLASSES.append('debug_toolbar.middleware.DebugToolbarMiddleware')
+if 'corsheaders' in INSTALLED_APPS:
+    MIDDLEWARE_CLASSES.insert(0, 'corsheaders.middleware.CorsMiddleware')
+    MIDDLEWARE_CLASSES.append('django.middleware.common.CommonMiddleware')
 
 AUTHENTICATION_BACKENDS = (
     # Needed to login by username in Django admin, regardless of `allauth`

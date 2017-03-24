@@ -38,4 +38,8 @@ INSTALLED_APPS = (
     'pipeline',
     'raven.contrib.django.raven_compat',
     'ws.apps.TripsConfig',
+    'corsheaders',
 )
+
+CORS_ORIGIN_WHITELIST = ('mitoc.mit.edu')
+CORS_ALLOW_METHODS = ('GET')
