@@ -1,9 +1,9 @@
-{% if is_creator or is_chair %}
-  <h4>{{ is_chair|yesno:"Activity chair,Creator" }} functions</h4>
+{% if is_creator or chair_or_admin %}
+  <h4>{{ chair_or_admin|yesno:"Activity chair,Creator" }} functions</h4>
   <div class="btn-group" role="group"> <a type="button" class="btn btn-default" href="{% url 'edit_trip' trip.id %}"   ><i class="fa fa-edit"  ></i>&nbsp;Edit</a>
     <a type="button" class="btn btn-default" href="{% url 'trip_medical' trip.id %}"><i class="fa fa-medkit"></i>&nbsp;WIMP info</a>
     <a type="button" class="btn btn-default" href="{% url 'admin_trip' trip.id %}"  ><i class="fa fa-wrench"></i>&nbsp;Admin</a>
-    {% if is_chair %}
+    {% if chair_or_admin %}
       <a type="button" class="btn btn-default {{ trip.info|yesno:",btn-danger" }}"
           {% if trip.info %}
             href="{% url 'trip_itinerary' trip.pk %}"

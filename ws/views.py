@@ -36,12 +36,11 @@ import ws.utils.signups as signup_utils
 
 
 class TripLeadersOnlyView(View):
-    @method_decorator(group_required('leaders', *perm_utils.all_chair_groups))
     def dispatch(self, request, *args, **kwargs):
         """ Only allow creator, leaders of the trip, and chairs. """
         trip = self.get_object()
-        chair = perm_utils.is_chair(request.user, trip.activity)
-        if not (leader_on_trip(request, trip, creator_allowed=True) or chair):
+        chair = perm_utils.chair_or_admin(request.user, trip.activity)
+        if not (chair or leader_on_trip(request, trip, creator_allowed=True)):
             return render(request, 'not_your_trip.html', {'trip': trip})
         return super(TripLeadersOnlyView, self).dispatch(request, *args, **kwargs)
 
@@ -286,7 +285,7 @@ class LectureAttendanceMixin:
     """ Manage the participant's lecture attendance. """
     def can_set_attendance(self, participant):
         # WS chairs can set any time for any user
-        if perm_utils.is_chair(self.request.user, 'winter_school'):
+        if perm_utils.is_chair(self.request.user, 'winter_school', True):
             return True
 
         # Non-chairs are only allowed during WS when setting enabled
@@ -692,8 +691,9 @@ class AdminTripView(TripDetailView, ItineraryEditableMixin):
             messages.info(request, cant)
             return redirect(reverse('view_trip', args=(trip.id,)))
 
-        chair = perm_utils.is_chair(request.user, trip.activity)
-        if not (leader_on_trip(request, trip, creator_allowed=True) or chair):
+        allowed = (perm_utils.chair_or_admin(request.user, trip.activity) or
+                   leader_on_trip(request, trip, creator_allowed=True))
+        if not allowed:
             return render(request, 'not_your_trip.html', {'trip': trip})
         return super(AdminTripView, self).dispatch(request, *args, **kwargs)
 
@@ -701,7 +701,7 @@ class AdminTripView(TripDetailView, ItineraryEditableMixin):
         trip = self.object = self.get_object()
         context = super(AdminTripView, self).get_context_data()
         context.update(self.info_form_context(trip))
-        context['is_chair'] = perm_utils.is_chair(self.request.user, trip.activity)
+        context['is_chair'] = perm_utils.chair_or_admin(self.request.user, trip.activity)
         return context
 
 
@@ -930,7 +930,7 @@ class ManageTripsView(ApprovedTripsMixin, ListView):
 
     def dispatch(self, request, *args, **kwargs):
         activity = kwargs.get('activity')
-        if not perm_utils.is_chair(request.user, activity):
+        if not perm_utils.chair_or_admin(request.user, activity):
             raise PermissionDenied
         return super(ManageTripsView, self).dispatch(request, *args, **kwargs)
 
@@ -963,7 +963,7 @@ class AllLeaderApplicationsView(ApplicationManager, ListView):
 
     def dispatch(self, request, *args, **kwargs):
         activity = kwargs.get('activity')
-        if not perm_utils.is_chair(request.user, activity):
+        if not perm_utils.chair_or_admin(request.user, activity):
             raise PermissionDenied
         if not models.LeaderApplication.can_apply(self.activity):
             context = {'missing_form': True, 'activity': self.activity}
@@ -1155,7 +1155,7 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):
     @method_decorator(chairs_only())
     def dispatch(self, request, *args, **kwargs):
         """ Redirect if anonymous, but deny permission if not a chair. """
-        if not perm_utils.is_chair(request.user, self.activity):
+        if not perm_utils.chair_or_admin(request.user, self.activity):
             raise PermissionDenied
         return super(LeaderApplicationView, self).dispatch(request, *args, **kwargs)
 

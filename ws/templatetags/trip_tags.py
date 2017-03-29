@@ -78,6 +78,6 @@ def unapproved_trip_count(activity):
 @register.inclusion_tag('for_templatetags/trip_edit_buttons.html')
 def trip_edit_buttons(trip, viewing_participant, viewing_user, hide_approve=False):
     return {'trip': trip,
-            'is_chair': perm_utils.is_chair(viewing_user, trip.activity),
+            'chair_or_admin': perm_utils.chair_or_admin(viewing_user, trip.activity),
             'is_creator': trip.creator == viewing_participant,
             'hide_approve': hide_approve}
