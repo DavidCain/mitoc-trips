@@ -103,6 +103,9 @@ class Discount(models.Model):
     time_created = models.DateTimeField(auto_now_add=True)
     last_updated = models.DateTimeField(auto_now=True)
 
+    student_required = models.BooleanField(default=False, help_text="Discount provider requires recipients to be students")
+    report_leader = models.BooleanField(default=False, help_text="Report MITOC leader status to discount provider")
+
     def __unicode__(self):
         return self.name
 
