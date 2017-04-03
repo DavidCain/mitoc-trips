@@ -33,6 +33,7 @@ class DiscountForm(forms.ModelForm):
                 if discount.student_required:
                     err = "{} is a student-only discount".format(discount.name)
                     raise ValidationError(err)
+        return self.cleaned_data
 
     class Meta:
         model = models.Participant
@@ -217,6 +218,7 @@ class TripForm(DjangularRequiredModelForm):
             names = ', '.join(leader.name for leader in lacking_privs)
             msg = "{} can't lead {} trips".format(names, activity)
             self.add_error('leaders', msg)
+        return self.cleaned_data
 
     def clean_level(self):
         """ Remove extra whitespace from the level, strip if not WS. """

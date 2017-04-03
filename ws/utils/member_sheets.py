@@ -18,6 +18,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 from ws import models
 from ws import settings
 from ws.utils import geardb
+from ws.utils.perms import activity_name, is_chair
 
 
 scope = ['https://spreadsheets.google.com/feeds']
@@ -45,20 +46,61 @@ def grouper(iterable, n, fillvalue=None):
     return izip_longest(*args, fillvalue=fillvalue)
 
 
-def get_row_values(participant, user):
-    """ Get user's name, verified primary email, and membership status. """
-    # Status is one external query per user. Expensive! (We should refactor...)
-    membership = geardb.user_membership_expiration(user)['membership']
+class SheetWriter(object):
+    """ Utility methods for formatting a row in discount worksheets. """
+    def __init__(self, discount):
+        self.discount = discount
 
-    # We report Active/Expired, since companies don't care about waiver status
-    if membership['active']:
-        status = 'Active'
-    elif membership['expires']:
-        status = 'Expired {}'.format(membership['expires'].isoformat())
-    else:
-        status = 'Missing'
+        self.header = ['Name', 'Email', 'Membership Status']
+        if self.discount.report_leader:
+            self.header.append('Leader Status')
+        if self.discount.student_required:
+            self.header.append('Student Status')
 
-    return [participant.name, user.email, status]
+    @staticmethod
+    def activity_descriptors(participant, user):
+        """ Yield a description for each activity the participant is a leader.
+
+        Mentions if the person is a leader or a chair, but does not give their
+        specific ranking.
+        """
+        active_ratings = participant.leaderrating_set.filter(active=True)
+        for activity in active_ratings.values_list('activity', flat=True):
+            position = 'chair' if is_chair(user, activity, False) else 'leader'
+            yield "{} {}".format(activity_name(activity), position)
+
+    def leader_text(self, participant, user):
+        return ', '.join(self.activity_descriptors(participant, user))
+
+    @staticmethod
+    def membership_status(user):
+        """ Return membership status, irrespective of waiver status.
+
+        (Companies don't care about participant waiver status, so ignore it).
+        """
+        # Status is one external query per user. Expensive! (We should refactor...)
+        membership = geardb.user_membership_expiration(user)['membership']
+
+        # We report Active/Expired, since companies don't care about waiver status
+        if membership['active']:
+            return 'Active'
+        elif membership['expires']:
+            return 'Expired {}'.format(membership['expires'].isoformat())
+        else:
+            return 'Missing'
+
+    def get_row(self, participant, user):
+        """ Get the row values that match the header for this discount sheet. """
+        row_mapper = {
+            'Name': participant.name,
+            'Email': participant.email,
+            'Membership Status': self.membership_status(user),
+            'Student Status': participant.get_affiliation_display()
+        }
+        if 'Leader Status' in self.header:  # Only fetch if needed
+            row_mapper['Leader Status'] = self.leader_text(participant, user)
+
+        return [row_mapper[label] for label in self.header]
 
 
 def assign(cells, values):
@@ -74,20 +116,21 @@ def update_participant(discount, participant):
     """
     user = models.User.objects.get(pk=participant.user_id)
     wks = gc.open_by_key(discount.ga_key).sheet1
+    writer = SheetWriter(discount)
 
     # Attempt to find existing row, update it if found
     for cell in wks.findall(user.email):
         if cell.col == 2:  # (Participants _could_ name themselves an email...)
             start_cell = wks.get_addr_int(cell.row, 1)
-            end_cell = wks.get_addr_int(cell.row, 3)
+            end_cell = wks.get_addr_int(cell.row, len(writer.header))
             cells = wks.range('{}:{}'.format(start_cell, end_cell))
-            assign(cells, get_row_values(participant, user))
+            assign(cells, writer.get_row(participant, user))
             return
 
     # Insert a new row if no existing row found
     sorted_names = wks.col_values(1)[1:]
     row_index = bisect.bisect(sorted_names, participant.name) + 1
-    wks.insert_row(get_row_values(participant, user), row_index + 1)
+    wks.insert_row(writer.get_row(participant, user), row_index + 1)
 
 
 @with_refreshed_token
@@ -106,20 +149,20 @@ def update_discount_sheet(discount):
     users = models.User.objects.filter(pk__in=[p.user_id for p in participants])
     user_by_id = {user.pk: user for user in users}
 
-    header = ['Name', 'Email', 'Membership Status']
+    writer = SheetWriter(discount)
 
     # Resize sheet to exact size, select all cells
-    num_rows, num_cols = len(participants) + 1, len(header)
+    num_rows, num_cols = len(participants) + 1, len(writer.header)
     wks.resize(num_rows, num_cols)
     all_cells = wks.range('A1:{}'.format(wks.get_addr_int(num_rows, num_cols)))
-    rows = grouper(all_cells, len(header))
+    rows = grouper(all_cells, len(writer.header))
 
-    assign(rows.next(), header)
+    assign(rows.next(), writer.header)
 
     # Update each cell with current membership information
     for participant, row in zip(participants, rows):
         user = user_by_id[participant.user_id]
-        assign(row, get_row_values(participant, user))
+        assign(row, writer.get_row(participant, user))
 
     # Batch update to minimize API calls
     wks.update_cells(all_cells)

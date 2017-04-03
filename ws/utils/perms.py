@@ -20,6 +20,14 @@ def chair_group(activity):
     return activity + '_chair'
 
 
+def activity_name(activity):
+    """ Human-readable activity name.
+
+    'winter_school' -> 'Winter School'
+    """
+    return activity.replace('_', ' ').title()
+
+
 def in_any_group(user, group_names, allow_superusers=True):
     if user.is_anonymous():
         return False
