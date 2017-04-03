@@ -1464,6 +1464,13 @@ class DiscountsView(FormView):
     template_name = 'preferences/discounts.html'
     success_url = reverse_lazy('discounts')
 
+    def get_form(self, *args, **kwargs):
+        form = super(DiscountsView, self).get_form(*args, **kwargs)
+        if not self.request.participant.is_student:
+            discounts = models.Discount.objects.filter(student_required=False)
+            form.fields['discounts'].queryset = discounts
+        return form
+
     def get_form_kwargs(self):
         kwargs = super(DiscountsView, self).get_form_kwargs()
         kwargs['instance'] = self.request.participant

@@ -144,6 +144,10 @@ class Participant(models.Model):
     discounts = models.ManyToManyField(Discount, blank=True)
 
     @property
+    def is_student(self):
+        return self.affiliation in {'MU', 'NU', 'MG', 'NG'}
+
+    @property
     def user(self):
         return User.objects.prefetch_related('groups').get(pk=self.user_id)
 

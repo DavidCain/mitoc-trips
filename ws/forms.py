@@ -22,6 +22,18 @@ class RequiredModelForm(forms.ModelForm):
 
 
 class DiscountForm(forms.ModelForm):
+    def clean(self):
+        """ Ensure the participant meets the requirements for the discount. """
+        super(DiscountForm, self).clean()
+        participant = self.instance
+        discounts = self.cleaned_data['discounts']
+
+        if not participant.is_student:
+            for discount in discounts:
+                if discount.student_required:
+                    err = "{} is a student-only discount".format(discount.name)
+                    raise ValidationError(err)
+
     class Meta:
         model = models.Participant
         fields = ['discounts']
