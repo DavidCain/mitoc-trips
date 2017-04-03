@@ -4,6 +4,7 @@ import random
 
 from celery import group, shared_task
 from django.core.cache import cache
+from django.db.models import Q
 
 from ws import models
 from ws.utils import member_sheets
@@ -61,6 +62,24 @@ def update_all_discount_sheets():
 def run_ws_lottery():
     runner = LotteryRunner()
     runner.execute_lottery()
+
+
+@shared_task
+def purge_non_student_discounts():
+    """ Purge non-students from student-only discounts.
+
+    Student eligibility is enforced at the API and form level. If somebody was
+    a student at the time of enrolling but is no longer a student, we should
+    unenroll them.
+    """
+    stu_discounts = models.Discount.objects.filter(student_required=True)
+    not_student = ~Q(affiliation__in=models.Participant.STUDENT_AFFILIATIONS)
+
+    # Remove student discounts from all non-students who have them
+    participants = models.Participant.objects.all()
+    for par in participants.filter(not_student, discounts__in=stu_discounts):
+        par.discounts = par.discounts.filter(student_required=True)
+        par.save()
 
 
 @shared_task(bind=True, max_retries=4)

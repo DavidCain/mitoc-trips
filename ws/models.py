@@ -140,12 +140,13 @@ class Participant(models.Model):
             ('NA', 'Non-affiliate'),
         ]
     )
+    STUDENT_AFFILIATIONS = {'MU', 'NU', 'MG', 'NG'}
 
     discounts = models.ManyToManyField(Discount, blank=True)
 
     @property
     def is_student(self):
-        return self.affiliation in {'MU', 'NU', 'MG', 'NG'}
+        return self.affiliation in self.STUDENT_AFFILIATIONS
 
     @property
     def user(self):

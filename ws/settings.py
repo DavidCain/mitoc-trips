@@ -153,6 +153,10 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_ACCEPT_CONTENT = ['json']
 
 CELERYBEAT_SCHEDULE = {
+    'purge-non-student-discounts': {
+        'task': 'ws.tasks.purge_non_student_discounts',
+        'schedule': crontab(minute=0, hour=2, day_of_week=1)
+    },
     'refresh-all-discount-spreadsheets': {
         'task': 'ws.tasks.update_all_discount_sheets',
         'schedule': crontab(minute=0, hour=3)
