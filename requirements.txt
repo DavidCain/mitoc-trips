@@ -7,7 +7,7 @@ django-cors-headers
 django-debug-toolbar>=1.5
 django-pipeline
 django-smtp-ssl
-raven
+raven>=6.0.0
 six
 django-angular>=0.8.1
 psycopg2
