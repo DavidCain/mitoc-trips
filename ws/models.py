@@ -106,6 +106,9 @@ class Discount(models.Model):
     last_updated = models.DateTimeField(auto_now=True)
 
     student_required = models.BooleanField(default=False, help_text="Discount provider requires recipients to be students")
+
+    report_school = models.BooleanField(default=False, help_text="Report MIT affiliation if participant is a student")
+    report_student = models.BooleanField(default=False, help_text="Report MIT affiliation and student status to discount provider")
     report_leader = models.BooleanField(default=False, help_text="Report MITOC leader status to discount provider")
     report_access = models.BooleanField(default=False, help_text="Report if participant should have leader, student, or admin level access")
 

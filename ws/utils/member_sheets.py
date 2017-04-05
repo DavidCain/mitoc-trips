@@ -77,8 +77,8 @@ class SheetWriter(object):
         extra_optional_columns = [
             (self.labels.access, discount.report_access),
             (self.labels.leader, discount.report_leader),
-            (self.labels.student, discount.student_required),
-            (self.labels.school, discount.student_required)
+            (self.labels.student, discount.report_student),
+            (self.labels.school, discount.report_school)
         ]
         for label, should_include in extra_optional_columns:
             if should_include:
