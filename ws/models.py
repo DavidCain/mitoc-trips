@@ -94,6 +94,8 @@ class LeaderManager(models.Manager):
 
 class Discount(models.Model):
     """ Discount at another company available to MITOC members. """
+    administrators = models.ManyToManyField('Participant', blank=True, help_text="Persons selected to administer this discount")
+
     name = models.CharField(max_length=255)
     summary = models.CharField(max_length=255)
     terms = models.TextField(max_length=4095)
@@ -105,6 +107,7 @@ class Discount(models.Model):
 
     student_required = models.BooleanField(default=False, help_text="Discount provider requires recipients to be students")
     report_leader = models.BooleanField(default=False, help_text="Report MITOC leader status to discount provider")
+    report_access = models.BooleanField(default=False, help_text="Report if participant should have leader, student, or admin level access")
 
     def __unicode__(self):
         return self.name

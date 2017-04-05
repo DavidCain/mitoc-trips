@@ -8,6 +8,7 @@ spreadsheets. Each spreadsheet will be shared with the company offering the
 discount, so that they can verify membership status.
 """
 import bisect
+from collections import OrderedDict, namedtuple
 from itertools import izip_longest
 import httplib2
 import os
@@ -48,14 +49,40 @@ def grouper(iterable, n, fillvalue=None):
 
 class SheetWriter(object):
     """ Utility methods for formatting a row in discount worksheets. """
+
+    # Use constants to refer to columns
+    col_constants = OrderedDict(
+        name='Name',
+        email='Email',
+        membership='Membership Status',
+        access='Access Level',
+        leader='Leader Status',
+        student='Student Status',
+        school='School'
+    )
+    labels = namedtuple('SpreadsheetLabels', col_constants)(**col_constants)
+
     def __init__(self, discount):
+        """ Identify the columns that will be used in the spreadsheet. """
         self.discount = discount
 
-        self.header = ['Name', 'Email', 'Membership Status']
-        if self.discount.report_leader:
-            self.header.append('Leader Status')
-        if self.discount.student_required:
-            self.header.append('Student Status')
+        # These columns appear in all discount sheets
+        self.header = [
+            self.labels.name,
+            self.labels.email,
+            self.labels.membership
+        ]
+
+        # Depending on properties of the discount, include additional cols
+        extra_optional_columns = [
+            (self.labels.access, discount.report_access),
+            (self.labels.leader, discount.report_leader),
+            (self.labels.student, discount.student_required),
+            (self.labels.school, discount.student_required)
+        ]
+        for label, should_include in extra_optional_columns:
+            if should_include:
+                self.header.append(label)
 
     @staticmethod
     def activity_descriptors(participant, user):
@@ -71,6 +98,27 @@ class SheetWriter(object):
 
     def leader_text(self, participant, user):
         return ', '.join(self.activity_descriptors(participant, user))
+
+    @staticmethod
+    def school(participant):
+        """ Return what school participant goes to, if appliciable. """
+        if not participant.is_student:
+            return 'N/A'
+        elif participant.affiliation in {'MU', 'MG'}:
+            return 'MIT'
+        else:
+            return 'Other'  # We don't collect non-MIT affiliation
+
+    def access_text(self, participant):
+        """ Simple string indicating level of access person should have. """
+        if self.discount.administrators.filter(pk=participant.pk).exists():
+            return 'Admin'
+        elif participant.is_leader:
+            return 'Leader'
+        elif participant.is_student:
+            return 'Student'
+        else:
+            return 'Standard'
 
     @staticmethod
     def membership_status(user):
@@ -92,13 +140,18 @@ class SheetWriter(object):
     def get_row(self, participant, user):
         """ Get the row values that match the header for this discount sheet. """
         row_mapper = {
-            'Name': participant.name,
-            'Email': participant.email,
-            'Membership Status': self.membership_status(user),
-            'Student Status': participant.get_affiliation_display()
+            self.labels.name: participant.name,
+            self.labels.email: participant.email,
+            self.labels.membership: self.membership_status(user),
+            self.labels.student: participant.get_affiliation_display(),
+            self.labels.school: self.school(participant)
         }
-        if 'Leader Status' in self.header:  # Only fetch if needed
-            row_mapper['Leader Status'] = self.leader_text(participant, user)
+
+        # Only fetch these if needed, as we hit the database
+        if self.labels.leader in self.header:
+            row_mapper[self.labels.leader] = self.leader_text(participant, user)
+        if self.labels.access in self.header:
+            row_mapper[self.labels.access] = self.access_text(participant)
 
         return [row_mapper[label] for label in self.header]
 
