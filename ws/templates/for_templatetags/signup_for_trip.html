@@ -1,3 +1,6 @@
+{% load signup_tags %}
+
+
 {% if trip.signups_closed %} {# Can show this to anybody, authenticated or not. #}
   <div class="alert alert-info">
     Signups for this trip are closed.
@@ -34,23 +37,6 @@
           </form>
         </div>
       </div>
-    {% else %}
-      <div class="alert alert-success">
-        {% if trip.algorithm == 'lottery' %}
-          You're signed up for this trip's lottery.
-          You'll find out if you have a spot after
-          <a href="{% url 'help-lottery' %}">the lottery</a> runs.
-        {% else %}
-          You are signed up for this trip.
-        {% endif %}
-      </div>
-      {% if trip.upcoming %}
-        {% if trip.let_participants_drop or trip.algorithm == 'lottery' %}
-          <delete data-label="Drop off trip" data-api-slug="signups" data-obj-id="{{ existing_signup.id }}"></delete>
-        {% elif participant != trip.creator %}
-          <p>If you can no longer attend this trip, let your leaders know.</p>
-        {% endif %}
-      {% endif %}
     {% endif %}
   {% else %}
     <div class="alert alert-info">
@@ -123,3 +109,20 @@
     {% endif %}
   {% endif %}
 {% endif %} {# No else - these states should cover all cases #}
+
+
+{% if trip.upcoming and existing_signup %}
+  {% if trip.algorithm == 'lottery' %}
+    <div class="alert alert-success">
+      You're signed up for this trip's lottery.
+      You'll find out if you have a spot after
+      <a href="{% url 'help-lottery' %}">the lottery</a> runs.
+    </div>
+  {% elif existing_signup.on_trip %}
+    <div class="alert alert-success">
+      You are signed up for this trip.
+    </div>
+  {% endif %}
+
+  {% drop_off_trip trip existing_signup %}
+{% endif %}

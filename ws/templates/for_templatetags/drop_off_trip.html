@@ -1,0 +1,7 @@
+{% if trip.upcoming and existing_signup %}
+  {% if trip.let_participants_drop or trip.algorithm == 'lottery' %}
+    <delete data-label="Drop off trip" data-api-slug="signups" data-obj-id="{{ existing_signup.id }}"></delete>
+  {% elif existing_signup.participant != trip.creator %}
+    <p>If you can no longer attend this trip, let your leaders know.</p>
+  {% endif %}
+{% endif %}

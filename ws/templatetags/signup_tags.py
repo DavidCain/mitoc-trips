@@ -19,8 +19,8 @@ def leader_signup_allowed(trip, participant):
         return False
     trip_upcoming = local_date() <= trip.trip_date
 
-    return (trip_upcoming and trip.allow_leader_signups
-            and participant.can_lead(trip.activity))
+    return (trip_upcoming and trip.allow_leader_signups and
+            participant.can_lead(trip.activity))
 
 
 @register.inclusion_tag('for_templatetags/signup_for_trip.html', takes_context=True)
@@ -46,6 +46,11 @@ def signup_for_trip(context, trip, participant, existing_signup=None):
         context['signup_form'].fields['trip'].widget = HiddenInput()
 
     return context
+
+
+@register.inclusion_tag('for_templatetags/drop_off_trip.html')
+def drop_off_trip(trip, existing_signup):
+    return {'trip': trip, 'existing_signup': existing_signup}
 
 
 @register.inclusion_tag('for_templatetags/signup_table.html')
