@@ -450,7 +450,6 @@ class Trip(models.Model):
     @property
     def after_lottery(self):
         """ True if it's after the lottery, but takes place before the next one. """
-        # Assumes lotteries take place at same time. Should be 'good enough'
         next_lottery = dateutils.next_lottery()
         past_lottery = dateutils.lottery_time(next_lottery - timedelta(days=7))
 
@@ -518,13 +517,19 @@ class Trip(models.Model):
             self.signups_open_at = dateutils.closest_wed_at_noon()
         else:
             self.signups_open_at = now
-        self.signups_close_at = self.fcfs_close_time
+
+        # If a Winter School trip is last-minute, occurring mid-week,
+        # we end up with a close time in the past (preventing trip creation)
+        if self.fcfs_close_time > now:
+            self.signups_close_at = self.fcfs_close_time
 
     def clean(self):
         """ Ensure that all trip dates are reasonable. """
         if not self.time_created:  # Trip first being created
-            if self.after_lottery:
+            is_ws_trip = self.activity == LeaderRating.WINTER_SCHOOL
+            if is_ws_trip and self.after_lottery:
                 self.make_fcfs()
+
             if self.signups_closed:
                 raise ValidationError("Signups can't be closed already!")
             # Careful here - don't want to disallow editing of past trips
