@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load application_tags %}
 {% load messages_tags %}
 {% load gravatar %}
 {% load trip_tags %}
@@ -115,33 +116,15 @@
             <dt>Assigned rating:</dt>
             <dd>{{ assigned_rating.rating }}</dd>
           {% endif %}
-          <dt>Taking WFA:</dt>
-          <dd>{{ application.taking_wfa }}</dd>
+          {% if application.activity == 'winter_school' %}
+            <dt>Taking WFA:</dt>
+            <dd>{{ application.taking_wfa }}</dd>
+          {% endif %}
         </dl>
       </div>
     </div>
 
-    <dl>
-      {% if application.training %}
-        <dt>Formal training and qualifications</dt>
-        <dd>{{ application.training|linebreaks }}</dd>
-      {% endif %}
-
-      {% if application.winter_experience %}
-        <dt>Winter experience</dt>
-        <dd>{{ application.winter_experience|linebreaks }}</dd>
-      {% endif %}
-
-      {% if application.other_experience %}
-        <dt>Other outdoors/leadership experience</dt>
-        <dd>{{ application.other_experience|linebreaks }}</dd>
-      {% endif %}
-
-      {% if application.notes_or_comments %}
-        <dt>Notes or comments</dt>
-        <dd>{{ application.notes_or_comments|linebreaks }}</dd>
-      {% endif %}
-    <dl>
+    {% application_details application %}
   </div>
 
   <div class="col-md-6">

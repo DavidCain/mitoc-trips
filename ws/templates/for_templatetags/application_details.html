@@ -1,0 +1,9 @@
+{# NOTE: This only handles text responses. Other fields must still be rendered. #}
+<dl>
+  {% for field, response in text_fields %}
+    {% if response %}
+      <dt>{{ field.verbose_name|capfirst }}</dt>
+      <dd>{{ response|linebreaks }}</dd>
+    {% endif %}
+  {% endfor %}
+<dl>

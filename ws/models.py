@@ -652,6 +652,7 @@ class LeaderApplication(models.Model):
     time_created = models.DateTimeField(auto_now_add=True)
     previous_rating = models.CharField(max_length=255, blank=True,
                                        help_text="Previous rating (if any)")
+    #desired_rating = ... (a CharField, but can vary per application)
     year = models.PositiveIntegerField(validators=[MinValueValidator(2014)],
                                        default=dateutils.ws_year,
                                        help_text="Year this application pertains to.")
