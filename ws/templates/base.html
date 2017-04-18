@@ -59,6 +59,18 @@
                         </li>
                     {% endif %}
 
+                    {% if user.is_superuser %}
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Admin <span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li> <a href="{% url 'admin:index' %}"> Site administration </a> </li>
+                                <li> <a href="{% url 'manage_leaders' %}">Leader ratings</a> </li>
+                                <li> <a href="{% url 'all_trips_medical' %}"> WIMP </a> </li>
+                                <li> <a href="{% url 'ws_settings' %}"> Settings </a> </li>
+                            </ul>
+                        </li>
+                    {% endif %}
+
                     {% for activity, label in user|labeled_chair_activities %}
                         {% with viewing_participant|pending_applications_count:activity as num_pending_apps %}
                         {% with activity|unapproved_trip_count as num_pending_approval %}
@@ -87,18 +99,7 @@
                         {% endwith %}
                         {% endwith %}
                     {% endfor %}
-
-                    {% if user.is_superuser %}
-                        <li class="dropdown">
-                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Admin <span class="caret"></span></a>
-                            <ul class="dropdown-menu">
-                                <li> <a href="{% url 'admin:index' %}"> Site administration </a> </li>
-                                <li> <a href="{% url 'manage_leaders' %}">Leader ratings</a> </li>
-                                <li> <a href="{% url 'all_trips_medical' %}"> WIMP </a> </li>
-                                <li> <a href="{% url 'ws_settings' %}"> Settings </a> </li>
-                            </ul>
-                        </li>
-                    {% elif 'WIMP' in groups and 'WSC' not in groups %}
+                    {% if 'WIMP' in groups and 'WSC' not in groups and not user.is_superuser %}
                         <li> <a href="{% url 'all_trips_medical' %}"> WIMP </a> </li>
                     {% endif %}
 
