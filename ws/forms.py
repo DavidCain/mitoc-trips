@@ -1,4 +1,5 @@
 from django import forms
+from django.db.models.fields import TextField
 from django.core.exceptions import ValidationError
 
 from djng.forms import NgFormValidationMixin
@@ -360,6 +361,9 @@ def LeaderApplicationForm(*args, **kwargs):
         class Meta:
             exclude = ['year', 'participant', 'previous_rating']
             model = models.LeaderApplication.model_from_activity(activity)
+            widgets = {field.name: forms.Textarea(attrs={'rows': 4})
+                       for field in model._meta.fields
+                       if isinstance(field, TextField)}
 
         def __init__(self):
             # TODO: Errors on args, where args is a single tuple of the view
