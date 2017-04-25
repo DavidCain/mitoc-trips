@@ -750,3 +750,48 @@ class WinterSchoolLeaderApplication(LeaderApplication):
                                         help_text="Details about any relevant non-winter experience")
     notes_or_comments = models.TextField(blank=True, max_length=5000,
                                          help_text="Any relevant details, such as any limitations on availability on Tue/Thurs nights or weekends during IAP.")
+
+
+class ClimbingLeaderApplication(LeaderApplication):
+    FAMILIARITY_CHOICES = [
+        ('none', "not at all"),
+        ('some', "some exposure", ),
+        ('comfortable', "comfortable"),
+        ('very comfortable', "very comfortable"),
+    ]
+
+    desired_rating = models.CharField(max_length=20,
+                                      choices=[
+                                          ("Bouldering", "Bouldering"),
+                                          ("Single-pitch", "Single-pitch"),
+                                          ("Multi-pitch", "Multi-pitch"),
+                                          ("Bouldering + Single-pitch", "Bouldering + Single-pitch"),
+                                          ("Bouldering + Multi-pitch", "Bouldering + Multi-pitch"),
+                                      ])
+    years_climbing = models.IntegerField()
+    years_climbing_outside = models.IntegerField()
+    outdoor_bouldering_level = models.TextField(help_text="At what level are you comfortable bouldering outside?")
+    outdoor_sport_leading_level = models.TextField(help_text="At what level are you comfortable leading outside on sport routes?")
+    outdoor_trad_leading_level = models.TextField(help_text="At what level are you comfortable leading outside on trad routes?")
+
+    # How familiar are you with the following...
+    familiarity_spotting = models.CharField(max_length=16, choices=FAMILIARITY_CHOICES,
+                                            verbose_name="Familarity with spotting boulder problems")
+    familiarity_bolt_anchors = models.CharField(max_length=16, choices=FAMILIARITY_CHOICES,
+                                                verbose_name="Familiarity with 2-bolt 'sport' anchors")
+    familiarity_gear_anchors = models.CharField(max_length=16, choices=FAMILIARITY_CHOICES,
+                                                verbose_name="Familiarity with trad 'gear' anchors")
+    familiarity_sr = models.CharField(max_length=16, choices=FAMILIARITY_CHOICES,
+                                      verbose_name="Familiarity with multi-pitch self-rescue")
+
+    spotting_description = models.TextField(blank=True, help_text="Describe how you would spot a climber on a meandering tall bouldering problem.")
+    tr_anchor_description = models.TextField(blank=True, verbose_name="Top rope anchor description", help_text="Describe how you would build a top-rope anchor at a sport crag.")
+    rappel_description = models.TextField(blank=True, help_text="Describe how you would set up a safe rappel.")
+    gear_anchor_description = models.TextField(blank=True, help_text="Describe what you look for when building a typical gear anchor.")
+
+    formal_training = models.TextField(blank=True)
+    teaching_experience = models.TextField(blank=True)
+    notable_climbs = models.TextField(blank=True, help_text="What are some particularly memorable climbs you have done?")
+    favorite_route = models.TextField(blank=True, help_text="Do you have a favorite route? If so, what is it and why?")
+
+    extra_info = models.TextField(blank=True, help_text="Is there anything else you would like us to know?")
