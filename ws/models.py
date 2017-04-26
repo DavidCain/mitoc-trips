@@ -770,9 +770,9 @@ class ClimbingLeaderApplication(LeaderApplication):
                                       ])
     years_climbing = models.IntegerField()
     years_climbing_outside = models.IntegerField()
-    outdoor_bouldering_level = models.TextField(help_text="At what level are you comfortable bouldering outside?")
-    outdoor_sport_leading_level = models.TextField(help_text="At what level are you comfortable leading outside on sport routes?")
-    outdoor_trad_leading_level = models.TextField(help_text="At what level are you comfortable leading outside on trad routes?")
+    outdoor_bouldering_grade = models.CharField(max_length=255, help_text="At what grade are you comfortable bouldering outside?")
+    outdoor_sport_leading_grade = models.CharField(max_length=255, help_text="At what grade are you comfortable leading outside on sport routes?")
+    outdoor_trad_leading_grade = models.CharField(max_length=255, help_text="At what grade are you comfortable leading outside on trad routes?")
 
     # How familiar are you with the following...
     familiarity_spotting = models.CharField(max_length=16, choices=FAMILIARITY_CHOICES,
