@@ -3,9 +3,9 @@
     <tr>
         <th>Name</th>
         <th>Cell</th>
-        <th data-hide="phone">Allergies</th>
-        <th data-hide="phone">Medications</th>
-        <th data-hide="phone,tablet">History</th>
+        <th class="hidden-print" data-hide="phone">Allergies</th>
+        <th class="hidden-print" data-hide="phone">Medications</th>
+        <th class="hidden-print" data-hide="phone,tablet">History</th>
         <th data-hide="phone,tablet">ICE Contact</th>
         <th data-hide="phone,tablet" class="nowrap">ICE Cell</th>
     </tr>
@@ -15,9 +15,9 @@
     <tr>
         <td class="nowrap"><a href="{% url 'view_participant' participant.id %}">{{ participant.name }}</a></td>
         <td class="nowrap">{{ participant.cell_phone }}</td>
-        <td>{{ participant.emergency_info.allergies }}</td>
-        <td>{{ participant.emergency_info.medications }}</td>
-        <td>{{ participant.emergency_info.medical_history }}</td>
+        <td class="hidden-print">{{ participant.emergency_info.allergies }}</td>
+        <td class="hidden-print">{{ participant.emergency_info.medications }}</td>
+        <td class="hidden-print">{{ participant.emergency_info.medical_history }}</td>
         {% with ec=participant.emergency_info.emergency_contact %}
         <td><a href="mailto:{{ ec.email }}" class="nowrap">{{ ec.name }}</a> ({{ ec.relationship }})</td>
         <td class="nowrap">{{ ec.cell_phone }}</td>

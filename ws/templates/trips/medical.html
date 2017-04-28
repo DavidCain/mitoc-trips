@@ -7,7 +7,9 @@
 {% block content %}
 {{ block.super }}
 
-<h2>Trip Itinerary for '<a href="{% url 'admin_trip' trip.id %}">{{ trip.name }}</a>'</h2>
+{% include "snippets/phi_omitted_notice.html" %}
+
+<h2>Trip Itinerary for '<a href="{% url 'admin_trip' trip.pk %}">{{ trip.name }}</a>'</h2>
 {% if trip.info %}
     {% readonly_form info_form %}
 {% endif %}

@@ -7,6 +7,9 @@
 {% block content %}
 {{ block.super }}
 
+{% include "snippets/phi_omitted_notice.html" %}
+
+
 <h1>WIMP Information Sheet</h1>
 <p>This page contains all known medical information for trips taking place
 on or after {% now "DATE_FORMAT" %}.</p>
