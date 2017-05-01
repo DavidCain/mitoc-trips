@@ -8,8 +8,7 @@ from django.db.models import Q
 
 from ws import models
 from ws.utils import member_sheets
-from ws.utils.signups import add_to_waitlist
-from ws.lottery import LotteryRunner
+from ws.lottery import SingleTripLotteryRunner, WinterSchoolLotteryRunner
 
 
 def acquire_lock(discount, lock_expires_after=300):
@@ -60,8 +59,8 @@ def update_all_discount_sheets():
 
 @shared_task
 def run_ws_lottery():
-    runner = LotteryRunner()
-    runner.execute_lottery()
+    runner = WinterSchoolLotteryRunner()
+    runner()
 
 
 @shared_task
@@ -105,14 +104,5 @@ def run_lottery(trip_id, lottery_config=None):
     any changes (making this task idempotent).
     """
     trip = models.Trip.objects.get(pk=trip_id)
-    if trip.algorithm != 'lottery':
-        return
-
-    for signup in trip.signup_set.order_by('?'):
-        if trip.open_slots:
-            signup.on_trip = True
-            signup.save()
-        else:
-            add_to_waitlist(signup)
-    trip.algorithm = 'fcfs'
-    trip.save()
+    runner = SingleTripLotteryRunner(trip)
+    runner()

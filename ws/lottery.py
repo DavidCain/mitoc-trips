@@ -37,22 +37,20 @@ def place_on_trip(signup):
     signup.save()
 
 
-class ParticipantRanker(object):
-    """ Rank participants at a given point in time. """
-
+class WinterSchoolParticipantRanker(object):
     def __init__(self):
         self.today = local_date()
         self.jan_1st = jan_1()
 
-    def get_prioritized_participants(self):
-        """ Return ordered list of participants, ranked by:
+    def __iter__(self):
+        """ Ordered list of participants, ranked by:
 
         1. number of trips (fewer -> higher priority)
         2. affiliation (MIT affiliated is higher priority)
         3. 'flakiness' (more flakes -> lower priority
         """
         participants = models.Participant.objects.all()
-        return sorted(participants, key=self.priority_key)
+        return iter(sorted(participants, key=self.priority_key))
 
     def priority_key(self, participant):
         """ Return tuple for sorting participants. """
@@ -109,9 +107,8 @@ class ParticipantRanker(object):
         return max(non_drivers, key=lambda signup: self.priority_key(signup.participant))
 
 
-class LotteryRunner(ParticipantRanker):
-    def __init__(self, *args, **kwargs):
-        super(LotteryRunner, self).__init__(*args, **kwargs)
+class LotteryRunner(object):
+    def __init__(self):
         self.participants_handled = {}  # Key: primary keys, gives boolean if handled
 
     def handled(self, participant):
@@ -120,7 +117,43 @@ class LotteryRunner(ParticipantRanker):
     def mark_handled(self, participant, handled=True):
         self.participants_handled[participant.pk] = handled
 
-    def execute_lottery(self):
+    def participant_to_bump(self, trip):
+        """ Which participant to bump off the trip if another needs a place.
+
+        By default, just goes with the most recently-added participant.
+        Standard us case: Somebody needs to be bumped so a driver may join.
+        """
+        on_trip = trip.signup_set.filter(on_trip=True)
+        return on_trip.order_by('-last_updated').first()
+
+    def __call__(self):
+        raise NotImplementedError("Subclasses must implement lottery behavior")
+
+
+class SingleTripLotteryRunner(LotteryRunner):
+    def __init__(self, trip):
+        random_signups = trip.signup_set.order_by('?')
+        self.ranked_participants = [s.participant for s in random_signups]
+        self.trip = trip
+        super(SingleTripLotteryRunner, self).__init__()
+
+    def __call__(self):
+        if self.trip.algorithm != 'lottery':
+            return
+
+        for participant in self.ranked_participants:
+            par_handler = SingleTripParticipantHandler(participant, self, self.trip)
+            par_handler.place_participant()
+        self.trip.algorithm = 'fcfs'
+        self.trip.save()
+
+
+class WinterSchoolLotteryRunner(LotteryRunner):
+    def __init__(self):
+        self.ranked_participants = WinterSchoolParticipantRanker()
+        super(WinterSchoolLotteryRunner, self).__init__()
+
+    def __call__(self):
         self.assign_trips()
         self.free_for_all()
 
@@ -136,12 +169,15 @@ class LotteryRunner(ParticipantRanker):
             trip.make_fcfs(signups_open_at=noon)
             trip.save()
 
+    def participant_to_bump(self, trip):
+        return self.ranked_participants.lowest_non_driver(trip)
+
     def assign_trips(self):
-        for participant in self.get_prioritized_participants():
+        for participant in self.ranked_participants:
             handling_text = "Handling {}".format(participant)
             print handling_text
             print '-' * len(handling_text)
-            par_handler = ParticipantHandler(participant, self)
+            par_handler = WinterSchoolParticipantHandler(participant, self)
             par_handler.place_participant()
             print
 
@@ -150,10 +186,13 @@ class ParticipantHandler(object):
     """ Class to handle placement of a single participant or pair. """
     is_driver_q = Q(participant__lotteryinfo__car_status__in=['own', 'rent'])
 
-    def __init__(self, participant, runner):
+    def __init__(self, participant, runner, min_drivers=2, allow_pairs=True):
         self.participant = participant
-        self.slots_needed = len(self.to_be_placed)
         self.runner = runner
+        self.min_drivers = min_drivers
+        self.allow_pairs = allow_pairs
+
+        self.slots_needed = len(self.to_be_placed)
 
     @property
     def is_driver(self):
@@ -171,7 +210,7 @@ class ParticipantHandler(object):
 
     @property
     def to_be_placed(self):
-        if self.paired:
+        if self.paired and self.allow_pairs:
             return (self.participant, self.paired_par)
         else:
             return (self.participant,)
@@ -179,18 +218,6 @@ class ParticipantHandler(object):
     @property
     def par_text(self):
         return " + ".join(map(unicode, self.to_be_placed))
-
-    @property
-    def future_signups(self):
-        # Only consider lottery signups for future trips
-        signups = self.participant.signup_set.filter(
-            trip__trip_date__gt=self.runner.today,
-            trip__algorithm='lottery',
-            trip__activity='winter_school'
-        )
-        if self.paired:  # Restrict signups to those both signed up for
-            signups = signups.filter(trip__in=self.paired_par.trip_set.all())
-        return signups.order_by('order', 'time_created')
 
     def place_all_on_trip(self, signup):
         place_on_trip(signup)
@@ -206,7 +233,11 @@ class ParticipantHandler(object):
                                  for leader in lottery_leaders)
         return participant_drivers.count() + num_leader_drivers
 
-    def placed_on_trip(self, signup):
+    def try_to_place(self, signup):
+        """ Try to place participant (and partner) on the trip.
+
+        Returns if successful.
+        """
         trip = signup.trip
         if trip.open_slots >= self.slots_needed:
             self.place_all_on_trip(signup)
@@ -214,14 +245,65 @@ class ParticipantHandler(object):
         elif self.is_driver and not trip.open_slots and not self.paired:
             # A driver may displace somebody else
             # (but a couple with a driver cannot displace two people)
-            if self.count_drivers_on_trip(trip) < 2:
-                print "{} is full, but doesn't have two drivers".format(trip)
+            if self.count_drivers_on_trip(trip) < self.min_drivers:
+                print "{} is full, but doesn't have {} drivers".format(trip, self.min_drivers)
                 print "Adding {} to '{}', as they're a driver".format(signup, trip)
-                par_to_bump = self.runner.lowest_non_driver(trip)
+                par_to_bump = self.runner.participant_to_bump(trip)
                 add_to_waitlist(par_to_bump, prioritize=True)
                 signup.on_trip = True
                 signup.save()
                 return True
+        return False
+
+    def place_participant(self):
+        raise NotImplementedError()
+        # (Place on trip or waitlist, then):
+        #self.runner.mark_handled(self.participant)
+
+
+class SingleTripParticipantHandler(ParticipantHandler):
+    def __init__(self, participant, runner, trip):
+        self.trip = trip
+        super(SingleTripParticipantHandler, self).__init__(participant, runner)
+
+    def place_participant(self):
+        if self.paired:
+            print "{} is paired with {}".format(self.participant, self.paired_par)
+            if not self.runner.handled(self.paired_par):
+                print "Will handle signups when {} comes".format(self.paired_par)
+                self.runner.mark_handled(self.participant)
+                return
+
+        # Try to place all participants, otherwise add them to the waitlist
+        signup = models.SignUp.objects.get(participant=self.participant,
+                                           trip=self.trip)
+        if not self.try_to_place(signup):
+            for par in self.to_be_placed:
+                add_to_waitlist(models.SignUp.objects.get(trip=self.trip,
+                                                          participant=par))
+        self.runner.mark_handled(self.participant)
+
+
+class WinterSchoolParticipantHandler(ParticipantHandler):
+    def __init__(self, participant, runner):
+        """
+        :param runner: An instance of LotteryRunner
+        """
+        self.today = local_date()
+        parent = super(WinterSchoolParticipantHandler, self)
+        parent.__init__(participant, runner, min_drivers=2, allow_pairs=True)
+
+    @property
+    def future_signups(self):
+        # Only consider lottery signups for future trips
+        signups = self.participant.signup_set.filter(
+            trip__trip_date__gt=self.today,
+            trip__algorithm='lottery',
+            trip__activity='winter_school'
+        )
+        if self.paired:  # Restrict signups to those both signed up for
+            signups = signups.filter(trip__in=self.paired_par.trip_set.all())
+        return signups.order_by('order', 'time_created')
 
     def place_participant(self):
         if self.paired:
@@ -237,7 +319,7 @@ class ParticipantHandler(object):
 
         # Try to place participants on their first choice available trip
         for signup in self.future_signups:
-            if self.placed_on_trip(signup):
+            if self.try_to_place(signup):
                 break
             else:
                 print "Can't place {} on {}".format(self.par_text, signup.trip)
