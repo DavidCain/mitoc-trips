@@ -24,6 +24,7 @@ from allauth.account.views import PasswordChangeView
 from ws import forms
 from ws import models
 from ws.decorators import group_required, user_info_required, admin_only, chairs_only
+from ws.lottery import SingleTripLotteryRunner
 from ws import message_generators
 from ws import tasks
 from ws.templatetags.trip_tags import annotated_for_trip_list
@@ -1757,3 +1758,13 @@ class TripItineraryView(UpdateView, TripLeadersOnlyView, ItineraryEditableMixin)
 
 class StatsView(TemplateView, FormView):
     template_name = 'stats/index.html'
+
+
+class RunTripLotteryView(DetailView, TripLeadersOnlyView):
+    model = models.Trip
+
+    def post(self, request, *args, **kwargs):
+        trip = self.get_object()
+        runner = SingleTripLotteryRunner(trip)
+        runner()
+        return redirect(reverse('admin_trip', args=(trip.pk,)))

@@ -33,6 +33,13 @@
 
 <delete class="pull-right" data-api-slug="trips" data-obj-id="{{ trip.id }}"></delete>
 
+{% if trip.algorithm == 'lottery' and trip.activity != 'winter_school' %}
+  <form method="POST" action="{% url 'run_lottery' trip.pk %}">
+    {% csrf_token %}
+    <button class="btn btn-success" type="submit">Run Lottery Now</button>
+  </form>
+{% endif %}
+
 {% trip_summary trip %}
 
 <div class="alert alert-info">
