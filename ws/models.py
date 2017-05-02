@@ -427,6 +427,8 @@ class Trip(models.Model):
 
     let_participants_drop = models.BooleanField(default=False,
                                                 help_text="Allow participants to remove themselves from the trip any time before its start date.")
+    honor_participant_pairing = models.BooleanField(default=True,
+                                                    help_text="Try to place paired participants together on the trip.")
 
     info = OptionalOneToOneField(TripInfo)
 

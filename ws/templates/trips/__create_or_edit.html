@@ -39,6 +39,9 @@
         {% form_group form.allow_leader_signups True %}
       </div>
       {% form_group form.let_participants_drop True %}
+      <div data-ng-show="(algorithm === 'lottery') && (activity !== 'winter_school')">
+        {% form_group form.honor_participant_pairing True %}
+      </div>
       {% form_group form.trip_date %}
 
       {% form_group form.algorithm %}

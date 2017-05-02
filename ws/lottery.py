@@ -264,7 +264,9 @@ class ParticipantHandler(object):
 class SingleTripParticipantHandler(ParticipantHandler):
     def __init__(self, participant, runner, trip):
         self.trip = trip
-        super(SingleTripParticipantHandler, self).__init__(participant, runner)
+        allow_pairs = trip.honor_participant_pairing
+        parent = super(SingleTripParticipantHandler, self)
+        parent.__init__(participant, runner, allow_pairs=allow_pairs)
 
     def place_participant(self):
         if self.paired:

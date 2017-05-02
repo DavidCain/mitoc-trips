@@ -167,7 +167,7 @@ class TripForm(DjangularRequiredModelForm):
                   'allow_leader_signups',
                   'description', 'trip_date',
                   'algorithm', 'signups_open_at', 'signups_close_at',
-                  'let_participants_drop',
+                  'let_participants_drop', 'honor_participant_pairing',
                   'maximum_participants', 'difficulty_rating', 'level',
                   'prereqs', 'notes']
         ex_notes = (" 1. Do you have any dietary restrictions?\n"
