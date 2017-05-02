@@ -407,7 +407,7 @@ class Trip(models.Model):
     # be leaders later (and we don't want to break the relation)
     leaders = models.ManyToManyField(Participant, related_name='trips_led', blank=True)
     allow_leader_signups = models.BooleanField(default=False,
-                                               help_text="Allow leaders (with ratings for this activity) to sign themselves up for the trip any time before its date. Recommended for Circuses!")
+                                               help_text="Allow leaders to sign themselves up as trip leaders. (Leaders can always sign up as participants). Recommended for Circuses!")
     name = models.CharField(max_length=127)
     description = models.TextField()
     maximum_participants = models.PositiveIntegerField(default=8, verbose_name="Max participants")
