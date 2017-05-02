@@ -434,7 +434,9 @@ class Trip(models.Model):
     algorithm = models.CharField(max_length='31', default='lottery',
                                  choices=[('lottery', 'lottery'),
                                           ('fcfs', 'first-come, first-serve')])
+
     lottery_task_id = models.CharField(max_length='36', unique=True, null=True, blank=True)
+    lottery_log = models.TextField(null=True, blank=True)
 
     def __unicode__(self):
         return self.name
