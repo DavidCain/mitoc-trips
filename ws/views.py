@@ -1343,6 +1343,7 @@ class LotteryPairingView(CreateView, LotteryPairingMixin):
         context = super(LotteryPairingView, self).get_context_data(**kwargs)
         self.participant = self.request.participant
         context['pair_requests'] = self.pair_requests
+        context['is_winter_school'] = is_winter_school()
         return context
 
     def get_form_kwargs(self):

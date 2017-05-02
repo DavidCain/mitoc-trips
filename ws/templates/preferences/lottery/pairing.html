@@ -6,13 +6,24 @@
 
 <h1>Lottery Pair</h1>
 
-<p>If you like, you can specify another participant that you'd like to go on trips with.
-When the lottery runs, you will either both be placed on a trip, or be placed
-on your highest ranked trip's waitlist .</p>
+<p class="lead">
+  Specify another participant that you'd like to go on trips with.
+</p>
 
-<p>The other participant must confirm that they are part of this pair. If they do not, you
-will be treated as an individual participant (i.e. no effort will be made to place you both
-on the same trip).</p>
+<p>
+  {% if is_winter_school %}
+    When the lottery runs, you will either both be placed on a trip, or be placed
+    on your highest ranked trip's waitlist.
+  {% else %}
+    When a trip's lottery runs, you will either both be placed on it, or neither
+    of you will.
+  {% endif %}
+</p>
+
+<p>
+  The other participant must confirm that they are part of this pair.
+  Otherwise, no effort will be made to place you both on the same trip).
+</p>
 
 <ul>
   {% for requesting_participant in pair_requests %}

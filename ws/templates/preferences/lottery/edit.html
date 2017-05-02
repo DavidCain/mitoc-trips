@@ -11,14 +11,14 @@
 {% block content %}
 {{ block.super }}
 
-<h2>Lottery Preferences</h2>
 {% if is_winter_school %}
+  <h2>Lottery Preferences</h2>
   <p class="lead">Due to the large number of Winter School participants, placement for each weekend's trips will be
   <a href="{% url 'help-lottery' %}">done by lottery</a>.</p>
 
 {% endif %}
 
-{% if not ranked_signups.exists %}
+{% if not ranked_signups %}
   <h3>About ranking trips</h3>
   <p>Begin by signing up for any trips you're interested in. You can always
   browse <a href="{% url 'upcoming_trips' %}">upcoming trips</a>.</p>
