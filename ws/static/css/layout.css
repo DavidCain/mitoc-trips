@@ -126,6 +126,10 @@ admin-trip-signups .signup-controls {
   margin-bottom: 10px; /* To match h3 for visual alignment */
 }
 
+.admin-trip-signups {
+  margin-top: 15px;
+}
+
 admin-trip-signups h3 {
   margin-top: 0;
 }
@@ -224,4 +228,8 @@ participant-select .ui-select-container input.ui-select-search {
 
 dd ul {
   margin-bottom: 0;
+}
+
+#admin-trip-tabs {
+  margin-top: 15px;
 }

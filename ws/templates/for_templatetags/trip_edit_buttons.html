@@ -2,7 +2,6 @@
   <h4>{{ chair_or_admin|yesno:"Activity chair,Creator" }} functions</h4>
   <div class="btn-group" role="group"> <a type="button" class="btn btn-default" href="{% url 'edit_trip' trip.id %}"   ><i class="fa fa-edit"  ></i>&nbsp;Edit</a>
     <a type="button" class="btn btn-default" href="{% url 'trip_medical' trip.id %}"><i class="fa fa-medkit"></i>&nbsp;WIMP info</a>
-    <a type="button" class="btn btn-default" href="{% url 'admin_trip' trip.id %}"  ><i class="fa fa-wrench"></i>&nbsp;Admin</a>
     {% if chair_or_admin %}
       <a type="button" class="btn btn-default {{ trip.info|yesno:",btn-danger" }}"
           {% if trip.info %}
@@ -11,6 +10,8 @@
             uib-tooltip="Not yet completed"
           {% endif %}
       ><i class="fa fa-list-alt"></i>&nbsp;Itinerary</a>
+      {# TODO: Only display if you're the leader #}
+      <a type="button" class="btn btn-default" href="{% url 'review_trip' trip.id %}"><i class="fa fa-comments"></i>&nbsp;Feedback</a>
       {% if not hide_approve %}
         <data-approve-trip
             data-trip-id="{{ trip.pk }}"

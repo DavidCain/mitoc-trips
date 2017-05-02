@@ -81,3 +81,37 @@ def trip_edit_buttons(trip, viewing_participant, viewing_user, hide_approve=Fals
             'chair_or_admin': perm_utils.chair_or_admin(viewing_user, trip.activity),
             'is_creator': trip.creator == viewing_participant,
             'hide_approve': hide_approve}
+
+
+@register.inclusion_tag('for_templatetags/view_trip.html')
+def view_trip(trip, participant, user):
+    # For efficiency, the trip should be called with:
+    #      select_related('info')
+    #      prefetch_related('leaders', 'leaders__leaderrating_set')
+
+    def get_signups(model=models.SignUp):
+        """ Signups, with related fields used in template preselected. """
+        signups = model.objects.filter(trip=trip)
+        signups = signups.select_related('participant', 'trip')
+        return signups.select_related('participant__lotteryinfo')
+
+    context = {
+        'trip': trip,
+        'viewing_participant': participant,
+        'user': user
+    }
+
+    signups = get_signups(models.SignUp)
+    context['par_signup'] = signups.filter(participant=participant).first()
+    wl_signups = trip.waitlist.signups.select_related('participant',
+                                                      'participant__lotteryinfo')
+    context['signups'] = {
+        'waitlist': wl_signups,
+        'off_trip': signups.filter(on_trip=False).exclude(pk__in=wl_signups),
+        'on_trip': signups.filter(on_trip=True),
+        'leader': get_signups(models.LeaderSignUp)
+    }
+    context['has_notes'] = (bool(trip.notes) or
+                            any(s.notes for s in signups) or
+                            any(s.notes for s in context['signups']['leader']))
+    return context

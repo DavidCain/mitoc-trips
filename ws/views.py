@@ -568,81 +568,6 @@ class SignUpView(BaseSignUpView):
         return super(SignUpView, self).dispatch(request, *args, **kwargs)
 
 
-class TripDetailView(DetailView):
-    model = models.Trip
-    context_object_name = 'trip'
-
-    def get_queryset(self):
-        trips = super(TripDetailView, self).get_queryset()
-        trips = trips.select_related('info')
-        return trips.prefetch_related('leaders', 'leaders__leaderrating_set')
-
-    def get_signups(self, model=models.SignUp):
-        """ Signups, with related fields used in templates preselected. """
-        signups = model.objects.filter(trip=self.object)
-        signups = signups.select_related('participant', 'trip')
-        return signups.select_related('participant__lotteryinfo')
-
-    @property
-    def wl_signups(self):
-        trip = self.object
-        return trip.waitlist.signups.select_related('participant',
-                                                    'participant__lotteryinfo')
-
-    def get_context_data(self, **kwargs):
-        context = super(TripDetailView, self).get_context_data()
-        context['waitlist_signups'] = wl_signups = self.wl_signups
-        signups = self.get_signups(models.SignUp)
-        off_trip = signups.filter(on_trip=False).exclude(pk__in=wl_signups)
-        context['signups'] = signups
-        context['signups_on_trip'] = signups.filter(on_trip=True)
-        context['waitlist_signups'] = wl_signups
-        context['signups_off_trip'] = off_trip
-        context['leader_signups'] = self.get_signups(models.LeaderSignUp)
-        context['has_notes'] = (bool(self.object.notes) or
-                                any(s.notes for s in context['signups']) or
-                                any(s.notes for s in context['leader_signups']))
-        return context
-
-
-class TripView(TripDetailView):
-    """ Display the trip to both unregistered users and known participants.
-
-    For unregistered users, the page will have minimal information (a description,
-    and leader names). For other participants, the controls displayed to them
-    will vary depending on their permissions.
-    """
-    template_name = 'trips/view.html'
-
-    def get_participant_signup(self, trip=None):
-        """ Return viewer's signup for this trip (if one exists, else None) """
-        if not self.request.participant:
-            return None
-        trip = trip or self.get_object()
-        return self.request.participant.signup_set.filter(trip=trip).first()
-
-    def get_context_data(self, **kwargs):
-        context = super(TripView, self).get_context_data()
-        trip = self.object
-        context['participant_signup'] = self.get_participant_signup(trip)
-        return context
-
-    def get(self, request, *args, **kwargs):
-        trip = self.get_object()
-        if leader_on_trip(request, trip):
-            return redirect(reverse('admin_trip', args=(trip.id,)))
-        return super(TripView, self).get(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        """ Add signup to trip or waitlist, if applicable.
-
-        Used if the participant has signed up, but wasn't placed.
-        """
-        signup = self.get_participant_signup()
-        signup_utils.trip_or_wait(signup, self.request, trip_must_be_open=True)
-        return self.get(request)
-
-
 class ItineraryEditableMixin(object):
     def itinerary_available_at(self, trip):
         return itinerary_available_at(trip.trip_date)
@@ -671,39 +596,47 @@ class ItineraryEditableMixin(object):
         return info_form
 
 
-class AdminTripView(TripDetailView, ItineraryEditableMixin):
-    template_name = 'trips/admin.html'
-    par_prefix = "ontrip"
-    wl_prefix = "waitlist"
+class TripView(DetailView, ItineraryEditableMixin):
+    """ Display the trip to both unregistered users and known participants.
 
-    @method_decorator(user_info_required)
-    def dispatch(self, request, *args, **kwargs):
-        """ If requester is a participant, just redirect to view the trip.
+    For unregistered users, the page will have minimal information (a description,
+    and leader names). For other participants, the controls displayed to them
+    will vary depending on their permissions.
+    """
+    model = models.Trip
+    context_object_name = 'trip'
+    template_name = 'trips/view.html'
 
-        If the requesting user is a leader, give a warning that it's not your
-        trip (with a link to view the trip). This method exists because leaders
-        will often post the admin link to the trip, and participants get an
-        "access denied" page when they try to click it.
-        """
-        trip = self.get_object()
+    def get_queryset(self):
+        trips = super(TripView, self).get_queryset()
+        trips = trips.select_related('info')
+        return trips.prefetch_related('leaders', 'leaders__leaderrating_set')
 
-        if not perm_utils.is_leader(request.user):
-            cant = ("Redirected - only MITOC leaders can administrate trips.")
-            messages.info(request, cant)
-            return redirect(reverse('view_trip', args=(trip.id,)))
-
-        allowed = (perm_utils.chair_or_admin(request.user, trip.activity) or
-                   leader_on_trip(request, trip, creator_allowed=True))
-        if not allowed:
-            return render(request, 'not_your_trip.html', {'trip': trip})
-        return super(AdminTripView, self).dispatch(request, *args, **kwargs)
+    def get_participant_signup(self, trip=None):
+        """ Return viewer's signup for this trip (if one exists, else None) """
+        if not self.request.participant:
+            return None
+        trip = trip or self.get_object()
+        return self.request.participant.signup_set.filter(trip=trip).first()
 
     def get_context_data(self, **kwargs):
-        trip = self.object = self.get_object()
-        context = super(AdminTripView, self).get_context_data()
+        context = super(TripView, self).get_context_data()
+        trip = self.object
         context.update(self.info_form_context(trip))
-        context['is_chair'] = perm_utils.chair_or_admin(self.request.user, trip.activity)
+        context['can_admin'] = (
+            perm_utils.chair_or_admin(self.request.user, trip.activity) or
+            leader_on_trip(self.request, trip, creator_allowed=True)
+        )
         return context
+
+    def post(self, request, *args, **kwargs):
+        """ Add signup to trip or waitlist, if applicable.
+
+        Used if the participant has signed up, but wasn't placed.
+        """
+        signup = self.get_participant_signup()
+        signup_utils.trip_or_wait(signup, self.request, trip_must_be_open=True)
+        return self.get(request)
 
 
 class ReviewTripView(DetailView):
@@ -1260,7 +1193,7 @@ class DeleteTripView(DeleteView, TripLeadersOnlyView):
     def get(self, *args, **kwargs):
         """ Request is valid, but method is not (use POST). """
         messages.warning(self.request, "Use delete button to remove trips.")
-        return redirect(reverse('admin_trip', kwargs=self.kwargs))
+        return redirect(reverse('view_trip', kwargs=self.kwargs))
 
 
 class DeleteSignupView(DeleteView):
@@ -1767,4 +1700,4 @@ class RunTripLotteryView(DetailView, TripLeadersOnlyView):
         trip = self.get_object()
         runner = SingleTripLotteryRunner(trip)
         runner()
-        return redirect(reverse('admin_trip', args=(trip.pk,)))
+        return redirect(reverse('view_trip', args=(trip.pk,)))

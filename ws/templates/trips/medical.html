@@ -9,7 +9,7 @@
 
 {% include "snippets/phi_omitted_notice.html" %}
 
-<h2>Trip Itinerary for '<a href="{% url 'admin_trip' trip.pk %}">{{ trip.name }}</a>'</h2>
+<h2>Trip Itinerary for '<a href="{% url 'view_trip' trip.pk %}">{{ trip.name }}</a>'</h2>
 {% if trip.info %}
     {% readonly_form info_form %}
 {% endif %}

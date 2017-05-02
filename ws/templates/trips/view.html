@@ -7,37 +7,31 @@
 {% block content %}
 {{ block.super }}
 
-{% trip_edit_buttons trip viewing_participant user %}
+{% if can_admin %}
+  {% trip_edit_buttons trip viewing_participant user %}
 
-{% trip_summary trip %}
+  <uib-tabset id="admin-trip-tabs">
+    <uib-tab heading="Trip">
+      {% view_trip trip viewing_participant user %}
+    </uib-tab>
 
-{% signup_for_trip trip viewing_participant participant_signup %}
-
-
-{% if user.is_authenticated %}
-  <hr>
-
-  {# The leader table is so participants can see leader notes #}
-  {#   (or so leaders can see who's driving on other trips)   #}
-  {% if has_notes and leader_signups or viewing_participant.is_leader and trip.leaders.count %}
-    <h3>Leaders ({{ trip.leaders.count }})</h3>
-    {% signup_table leader_signups has_notes show_drivers=viewing_participant.is_leader all_participants=trip.leaders%}
-  {% endif %}
-
-  {% if signups_on_trip %}
-    <h3>Participants ({{ signups_on_trip.count }} / {{ trip.maximum_participants }})</h3>
-    {% signup_table signups_on_trip has_notes show_drivers=viewing_participant.is_leader %}
-  {% endif %}
-
-  <email-trip-members data-trip-id="{{ trip.pk }}">
-  </email-trip-members>
-
-  {% if waitlist_signups %}
-    <h3>Waiting List ({{ waitlist_signups.count }}) </h3>
-    {% signup_table waitlist_signups has_notes show_drivers=viewing_participant.is_leader %}
-  {% endif %}
-
-  {% not_on_trip trip signups_on_trip signups_off_trip has_notes %}
+    <uib-tab heading="Admin">
+      {% if trip.algorithm == 'fcfs' %}
+        <admin-trip-signups data-trip-id="{{ trip.pk }}" data-maximum_participants="{{ trip.maximum_participants }}"></admin-trip-signups>
+      {% else %}
+        <h3>Trip still in lottery mode</h3>
+        <p>Once this trip's lottery completes, you can manage participants here.</p>
+        {% if trip.algorithm == 'lottery' and trip.activity != 'winter_school' %}
+          <form method="POST" action="{% url 'run_lottery' trip.pk %}">
+            {% csrf_token %}
+            <button class="btn btn-success" type="submit">Run Lottery Now</button>
+          </form>
+        {% endif %}
+      {% endif %}
+    </uib-tab>
+  </uib-tabset>
+{% else %}
+  {% view_trip trip viewing_participant user %}
 {% endif %}
 
 {% endblock content %}
