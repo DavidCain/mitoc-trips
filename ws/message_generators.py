@@ -8,6 +8,7 @@ from datetime import timedelta
 from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.utils import timezone
+from django.utils.html import escape
 
 from ws import models
 from ws.utils.dates import local_date, is_winter_school
@@ -138,5 +139,5 @@ def complain_if_missing_feedback(request):
         if not trip_feedback.exists():
             trip_url = reverse('review_trip', args=(trip.id,))
             msg = ('Please supply feedback for '
-                   '<a href="{}">{}</a>'.format(trip_url, trip))
+                   '<a href="{}">{}</a>'.format(trip_url, escape(trip)))
             messages.warning(request, msg, extra_tags='safe')

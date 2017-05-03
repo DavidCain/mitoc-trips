@@ -8,6 +8,7 @@ from django.contrib.auth.views import redirect_to_login
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.shortcuts import resolve_url
 from django.utils.decorators import available_attrs
+from django.utils.html import escape
 
 import ws.utils.perms
 
@@ -55,7 +56,8 @@ def profile_needs_update(request):
                       'Please <a href="{}">'.format(reverse('account_email')) +
                       'verify that you own {}</a>, or set your system '
                       'email address to one of your already verified email '
-                      'addresses.'.format(par.email), extra_tags='safe')
+                      'addresses.'.format(escape(par.email)),
+                      extra_tags='safe')
         has_problems = True
 
     if len(par.affiliation) == 1:
