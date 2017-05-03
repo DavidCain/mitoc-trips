@@ -196,9 +196,7 @@ class ParticipantHandler(object):
 
     @property
     def is_driver(self):
-        driver = par_is_driver(self.participant)
-        paired_par = self.paired_par
-        return driver or paired_par and par_is_driver(paired_par)
+        return any(par_is_driver(par) for par in self.to_be_placed)
 
     @property
     def paired(self):
@@ -206,7 +204,10 @@ class ParticipantHandler(object):
 
     @property
     def paired_par(self):
-        return self.paired and self.participant.lotteryinfo.paired_with
+        try:
+            return self.participant.lotteryinfo.paired_with
+        except ObjectDoesNotExist:
+            return None
 
     @property
     def to_be_placed(self):
@@ -267,6 +268,16 @@ class SingleTripParticipantHandler(ParticipantHandler):
         allow_pairs = trip.honor_participant_pairing
         parent = super(SingleTripParticipantHandler, self)
         parent.__init__(participant, runner, allow_pairs=allow_pairs)
+
+    @property
+    def paired(self):
+        # Obviously, participants must mark each other as in the pair
+        if not reciprocally_paired(self.participant):
+            return False
+
+        # A participant is only paired if both signed up for this trip
+        partner_signed_up = Q(trip=self.trip, participant=self.paired_par)
+        return models.SignUp.objects.filter(partner_signed_up).exists()
 
     def place_participant(self):
         if self.paired:
