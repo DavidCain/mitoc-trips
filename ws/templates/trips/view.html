@@ -21,11 +21,15 @@
       {% else %}
         <h3>Trip still in lottery mode</h3>
         <p>Once this trip's lottery completes, you can manage participants here.</p>
+
+        {# Temporarily disable this control for non-admins #}
+        {% if user.is_superuser %}
         {% if trip.algorithm == 'lottery' and trip.activity != 'winter_school' %}
           <form method="POST" action="{% url 'run_lottery' trip.pk %}">
             {% csrf_token %}
             <button class="btn btn-success" type="submit">Run Lottery Now</button>
           </form>
+        {% endif %}
         {% endif %}
       {% endif %}
     </uib-tab>
