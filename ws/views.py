@@ -493,10 +493,14 @@ class ProfileView(ParticipantView):
         return View.dispatch(self, request, *args, **kwargs)
 
 
-class BaseSignUpView(CreateView):
+class BaseSignUpView(CreateView, LotteryPairingMixin):
     model = None
     form_class = None
     template_name = 'trips/signup.html'
+
+    @property
+    def participant(self):
+        return self.request.participant
 
     def get_form(self, form_class):
         signup_form = super(BaseSignUpView, self).get_form(form_class)
@@ -504,8 +508,22 @@ class BaseSignUpView(CreateView):
         return signup_form
 
     def get_success_url(self):
-        messages.success(self.request, "Signed up!")
-        return reverse('view_trip', args=(self.object.trip.id,))
+        trip = self.object.trip
+        msg = "Signed up!"
+
+        # If the lottery will run in single-trip mode,
+        # inform participants about pairing effects
+        if trip.single_trip_pairing and self.reciprocally_paired:
+            msg += " You're paired with {}.".format(self.paired_par.name)
+            if trip.signup_set.filter(participant=self.paired_par).exists():
+                msg += " The lottery will attempt to place you together."
+            else:
+                msg += (" If they do not sign up for this trip, the lottery"
+                        " will attempt to place you alone on this trip.")
+
+        messages.success(self.request, msg)
+
+        return reverse('view_trip', args=(trip.pk,))
 
 
 class LeaderSignUpView(BaseSignUpView):

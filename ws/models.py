@@ -444,6 +444,15 @@ class Trip(models.Model):
         return self.name
 
     @property
+    def single_trip_pairing(self):
+        """ Return if the trip will apply pairing as a single lottery trip. """
+        if self.algorithm != "lottery":
+            return False  # Trip is FCFS, or lottery has completed
+        if self.activity == LeaderRating.WINTER_SCHOOL:
+            return False  # Winter School trips do their own lottery
+        return self.honor_participant_pairing
+
+    @property
     def in_past(self):
         return self.trip_date < dateutils.local_date()
 
