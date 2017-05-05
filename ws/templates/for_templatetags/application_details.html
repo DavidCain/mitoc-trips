@@ -1,4 +1,13 @@
-{# NOTE: This only handles text responses. Other fields must still be rendered. #}
+{% if familiarities %}
+  <h4>Familiarity</h4>
+  <dl class="dl-horizontal">
+    {% for label, response in familiarities %}
+      <dt>{{ label|capfirst }}</dt>
+      <dd>{{ response }}</dd>
+    {% endfor %}
+  </dl>
+{% endif %}
+
 <dl>
   {% for field, response in text_fields %}
     {% if response %}

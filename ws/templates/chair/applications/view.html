@@ -116,9 +116,23 @@
             <dt>Assigned rating:</dt>
             <dd>{{ assigned_rating.rating }}</dd>
           {% endif %}
+
           {% if application.activity == 'winter_school' %}
             <dt>Taking WFA:</dt>
             <dd>{{ application.taking_wfa }}</dd>
+
+          {% elif application.activity == 'climbing' %}
+            <dt>Years climbing</dt>
+            <dd>{{ application.years_climbing }} total, {{ application.years_climbing_outside }} outside</dd>
+
+            <dt>Bouldering</dt>
+            <dd>{{ application.outdoor_bouldering_grade }}</dd>
+
+            <dt>Sport</dt>
+            <dd>{{ application.outdoor_sport_leading_grade }}</dd>
+
+            <dt>Trad</dt>
+            <dd>{{ application.outdoor_trad_leading_grade }}</dd>
           {% endif %}
         </dl>
       </div>
