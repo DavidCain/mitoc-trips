@@ -1660,7 +1660,7 @@ class ChairTripView(ApprovedTripsMixin, TripMedical, DetailView):
 
     def dispatch(self, request, *args, **kwargs):
         trip = self.get_object()
-        if not perm_utils.is_chair(request.user, trip.activity, False):
+        if not perm_utils.is_chair(request.user, trip.activity):
             raise PermissionDenied
         return super(ChairTripView, self).dispatch(request, *args, **kwargs)
 
