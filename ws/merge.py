@@ -10,7 +10,7 @@ account where they can log in with either email address, and get access to a
 complete history.
 """
 
-from django.db import connections
+from django.db import connections, transaction
 
 
 def simple_fk_update(cursor, table, col, old_pk, new_pk):
@@ -187,5 +187,6 @@ def migrate_participant(old_pk, new_pk):
 
 
 def merge_people(old, new):
-    migrate_user(old.user_id, new.user_id)
-    migrate_participant(old.pk, new.pk)
+    with transaction.atomic():  # Rollback if FK migration fails
+        migrate_user(old.user_id, new.user_id)
+        migrate_participant(old.pk, new.pk)
