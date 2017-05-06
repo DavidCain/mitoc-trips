@@ -25,6 +25,16 @@
       <p>Your membership is active, and expires on <span data-ng-bind="::membership.expires | date"></span>.</p>
       <p>Your waiver will expire on <span data-ng-bind="::waiver.expires | date"></span>.</p>
     </div>
+    <div data-ng-switch-when="Missing Membership">
+      <p>
+        We have a current waiver on file, but no active membership.
+      </p>
+      <p>
+        You can still participate in mini-trips, but you'll need
+        <a href="http://mitoc.mit.edu/#join">a full MITOC membership</a>
+        in order to rent gear, use cabins, or join other trips.
+      </p>
+    </div>
     <div data-ng-switch-when="Missing">
       <p>
         We have no membership information on file for any of your
@@ -54,6 +64,12 @@
     <p data-ng-switch-when="Missing Waiver">
       No waiver on file.
     </p>
+    <div data-ng-switch-when="Missing Membership">
+      <p>Waiver expires on <span data-ng-bind="::waiver.expires | date"></span>.</p>
+      <p>
+        No active membership.
+      </p>
+    </div>
     <p data-ng-switch-when="Waiver Expired">
       Waiver expired on <span data-ng-bind="::waiver.expires | date"></span>.
     </p>

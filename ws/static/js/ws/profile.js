@@ -16,7 +16,17 @@ angular.module('ws.profile', [])
     }
   };
 })
-.directive('membershipStatus', function($http, $filter) {
+.value('membershipStatusLabels',
+  {
+    'Active':             'label-success',
+    'Waiver Expired':     'label-warning',
+    'Missing Waiver':     'label-warning',
+    'Missing Membership': 'label-warning',
+    'Expired':            'label-danger',
+    'Missing':            'label-danger',
+  }
+)
+.directive('membershipStatus', function($http, $filter, membershipStatusLabels) {
   return {
     restrict: 'E',
     scope: {
@@ -26,13 +36,7 @@ angular.module('ws.profile', [])
     },
     templateUrl: '/static/template/membership-status.html',
     link: function (scope, element, attrs) {
-      scope.labelClass = {
-        'Active':         'label-success',
-        'Waiver Expired': 'label-warning',
-        'Missing Waiver': 'label-warning',
-        'Expired':        'label-danger',
-        'Missing':        'label-danger',
-      };
+      scope.labelClass = membershipStatusLabels;
       $http.get('/users/' + scope.userId + '/membership.json')
         .then(function(resp) {
           scope.membership = resp.data.membership;

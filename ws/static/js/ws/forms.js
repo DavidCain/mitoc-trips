@@ -88,7 +88,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
     }
   });
 })
-.directive('editableSignupList', function() {
+.directive('editableSignupList', function(membershipStatusLabels) {
   return {
     restrict: 'E',
     scope: {
@@ -99,14 +99,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
     },
     templateUrl: '/static/template/editable-signup-list.html',
     link: function (scope, element, attrs) {
-      // TODO: Copy-pasted. Make this common to two places it's used
-      scope.labelClass = {
-        'Active':         'label-success',
-        'Waiver Expired': 'label-warning',
-        'Missing Waiver': 'label-warning',
-        'Expired':        'label-danger',
-        'Missing':        'label-danger',
-      };
+      scope.labelClass = membershipStatusLabels;
     },
   };
 })

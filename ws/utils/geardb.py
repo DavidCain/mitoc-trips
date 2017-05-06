@@ -64,7 +64,7 @@ def format_membership(email, membership_expires, waiver_expires):
         else:
             status = "Active"
     else:
-        status = "Expired"
+        status = "Missing Membership" if waiver['active'] else "Expired"
 
     person['status'] = status
 
