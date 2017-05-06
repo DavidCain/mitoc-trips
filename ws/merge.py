@@ -113,9 +113,9 @@ def migrate_user(old_pk, new_pk):
     cursor.execute(
         """
         update account_emailaddress
-           set primary = false
+           set "primary" = false
          where user_id = {old_pk}
-        """
+        """.format(old_pk=old_pk)
     )
     for table in ['account_emailaddress', 'django_admin_log']:
         simple_fk_update(cursor, table, 'user_id', old_pk, new_pk)
