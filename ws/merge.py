@@ -60,9 +60,15 @@ def check_fk_tables(cursor, src_table, col, expected):
     Useful as a canary that things may go wrong if we've since added
     more foreign keys.
     """
+    non_handled = []
     for table, col, ftable in fk_tables(cursor, src_table, col):
         if col not in expected.get(table, {}):
-            raise ValueError("Database has more FKs than we're handling")
+            non_handled.append((table, col))
+    if non_handled:
+        print("The following foreign keys are not properly handled:")
+        for table, col in non_handled:
+            print(col + '\t' + table)
+        raise ValueError("Database has more FKs than we're handling")
 
 
 def update_lotteryinfo(cursor, old_pk, new_pk):
@@ -150,7 +156,16 @@ def migrate_participant(old_pk, new_pk):
         'ws_feedback': {'participant_id', 'leader_id'},
         'ws_lotteryinfo': {'participant_id', 'paired_with_id'},
 
+        'ws_climbingleaderapplication': {'participant_id'},
+        'ws_hikingleaderapplication': {'participant_id'},
         'ws_winterschoolleaderapplication': {'participant_id'},
+        'ws_leaderrecommendation': {'creator_id', 'participant_id'},
+
+        'ws_lectureattendance': {'participant_id', 'creator_id'},
+
+        'ws_winterschoolsettings': {'last_updated_by_id'},
+        'ws_discount_administrators': {'participant_id'},
+
 
         # All these should only have one participant each
         # (In practice, we should rarely see the old & the new on the same object)
@@ -160,7 +175,7 @@ def migrate_participant(old_pk, new_pk):
         'ws_leadersignup': {'participant_id'},
         'ws_signup': {'participant_id'},
     }
-    check_fk_tables(cursor, 'auth_user', 'id', expected)
+    check_fk_tables(cursor, 'ws_participant', 'id', expected)
 
     update_lotteryinfo(cursor, old_pk, new_pk)
 
