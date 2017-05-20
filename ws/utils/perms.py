@@ -11,6 +11,13 @@ def is_leader(user):
     return in_any_group(user, ['leaders'], allow_superusers=False)
 
 
+def leader_on_trip(participant, trip, creator_allowed=False):
+    if not participant:
+        return False
+    return (participant in trip.leaders.all() or
+            creator_allowed and participant == trip.creator)
+
+
 def chair_group(activity):
     if activity in models.LeaderRating.OPEN_ACTIVITIES:
         raise ValueError("Open activities don't have chairs")

@@ -41,7 +41,8 @@ class TripLeadersOnlyView(View):
         """ Only allow creator, leaders of the trip, and chairs. """
         trip = self.get_object()
         chair = perm_utils.chair_or_admin(request.user, trip.activity)
-        if not (chair or leader_on_trip(request, trip, creator_allowed=True)):
+        trip_leader = perm_utils.leader_on_trip(request.participant, trip, True)
+        if not (chair or trip_leader):
             return render(request, 'not_your_trip.html', {'trip': trip})
         return super(TripLeadersOnlyView, self).dispatch(request, *args, **kwargs)
 
@@ -52,14 +53,6 @@ class LoginAfterPasswordChangeView(PasswordChangeView):
         return reverse_lazy('account_login')
 
 login_after_password_change = login_required(LoginAfterPasswordChangeView.as_view())
-
-
-def leader_on_trip(request, trip, creator_allowed=False):
-    leader = request.participant
-    if not leader:
-        return False
-    return (leader in trip.leaders.all() or
-            creator_allowed and leader == trip.creator)
 
 
 class OtherParticipantView(SingleObjectMixin):
@@ -359,7 +352,7 @@ class ParticipantView(ParticipantLookupView, SingleObjectMixin,
         # reusable Query objects
         is_par = Q(signup__participant=participant)
         par_on_trip = is_par & Q(signup__on_trip=True)
-        leader_on_trip = Q(leaders=participant)
+        leading_trip = Q(leaders=participant)
         in_future = Q(trip_date__gte=today)
         in_past = Q(trip_date__lt=today)
 
@@ -376,7 +369,7 @@ class ParticipantView(ParticipantLookupView, SingleObjectMixin,
                          .prefetch_related(*prefetches))
 
         # Avoid doubly-listing trips where they participated or led the trip
-        created_but_not_on = trips_created.exclude(leader_on_trip | par_on_trip)
+        created_but_not_on = trips_created.exclude(leading_trip | par_on_trip)
 
         return {
             'current': {
@@ -643,7 +636,7 @@ class TripView(DetailView, ItineraryEditableMixin):
         context.update(self.info_form_context(trip))
         context['can_admin'] = (
             perm_utils.chair_or_admin(self.request.user, trip.activity) or
-            leader_on_trip(self.request, trip, creator_allowed=True)
+            perm_utils.leader_on_trip(self.request.participant, trip, True)
         )
         return context
 
@@ -740,7 +733,7 @@ class ReviewTripView(DetailView):
     @method_decorator(group_required('leaders'))
     def dispatch(self, request, *args, **kwargs):
         trip = self.get_object()
-        if not leader_on_trip(request, trip):
+        if not perm_utils.leader_on_trip(request.participant, trip, False):
             return render(request, 'not_your_trip.html', {'trip': trip})
         return super(ReviewTripView, self).dispatch(request, *args, **kwargs)
 
