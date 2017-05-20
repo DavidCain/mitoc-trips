@@ -1,24 +1,44 @@
-{% if is_creator or chair_or_admin %}
-  <h4>{{ chair_or_admin|yesno:"Activity chair,Creator" }} functions</h4>
-  <div class="btn-group" role="group"> <a type="button" class="btn btn-default" href="{% url 'edit_trip' trip.id %}"   ><i class="fa fa-edit"  ></i>&nbsp;Edit</a>
-    <a type="button" class="btn btn-default" href="{% url 'trip_medical' trip.id %}"><i class="fa fa-medkit"></i>&nbsp;WIMP info</a>
-    {% if chair_or_admin %}
-      <a type="button" class="btn btn-default {{ trip.info|yesno:",btn-danger" }}"
-          {% if trip.info %}
-            href="{% url 'trip_itinerary' trip.pk %}"
-          {% else %}
-            uib-tooltip="Not yet completed"
-          {% endif %}
-      ><i class="fa fa-list-alt"></i>&nbsp;Itinerary</a>
-      {# TODO: Only display if you're the leader #}
-      <a type="button" class="btn btn-default" href="{% url 'review_trip' trip.id %}"><i class="fa fa-comments"></i>&nbsp;Feedback</a>
-      {% if not hide_approve %}
-        <data-approve-trip
-            data-trip-id="{{ trip.pk }}"
-            data-approved="{{ trip.chair_approved|yesno:'true,false' }}">
-        </data-approve-trip>
-      {% endif %}
+{% if is_chair or is_creator or is_trip_leader %}
+  {# Show label that describes all available functions #}
+  <h4>
+    {% if is_chair %}
+      Activity chair
+    {% elif is_creator %}
+      Creator
+    {% elif is_trip_leader %}
+      Leader
     {% endif %}
+    functions
+  </h4>
+
+  <div class="btn-group" role="group">
+    <a type="button" class="btn btn-default" href="{% url 'edit_trip' trip.pk %}"   ><i class="fa fa-edit"  ></i>&nbsp;Edit</a>
+    <a type="button" class="btn btn-default" href="{% url 'trip_medical' trip.pk %}"><i class="fa fa-medkit"></i>&nbsp;WIMP info</a>
+
+    <a type="button" class="btn btn-default {{ trip.info|yesno:",btn-danger" }}"
+        {% if trip.info %}
+          href="{% url 'trip_itinerary' trip.pk %}"
+        {% else %}
+          uib-tooltip="Not yet completed"
+        {% endif %}
+    ><i class="fa fa-list-alt"></i>&nbsp;Itinerary</a>
+
+    {% if is_trip_leader %}
+      <a type="button" class="btn btn-default" href="{% url 'review_trip' trip.pk %}"><i class="fa fa-comments"></i>&nbsp;Feedback</a>
+    {% endif %}
+
+    {# Approval is a chair-only function #}
+    {% if is_chair and not hide_approve %}
+      <data-approve-trip
+          data-trip-id="{{ trip.pk }}"
+          data-approved="{{ trip.chair_approved|yesno:'true,false' }}">
+      </data-approve-trip>
+    {% endif %}
+
   </div>
-  <data-delete class="pull-right" data-api-slug="trips" data-obj-id="{{ trip.id }}"></data-delete>
+
+  {% if is_creator or is_chair %} {# Other trip leaders cannot delete the trip #}
+    <data-delete class="pull-right" data-api-slug="trips" data-obj-id="{{ trip.pk }}"></data-delete>
+  {% endif %}
+
 {% endif %}
