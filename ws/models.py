@@ -773,7 +773,7 @@ class ClimbingLeaderApplication(LeaderApplication):
         ('very comfortable', "very comfortable"),
     ]
 
-    desired_rating = models.CharField(max_length=20,
+    desired_rating = models.CharField(max_length=32,
                                       choices=[
                                           ("Bouldering", "Bouldering"),
                                           ("Single-pitch", "Single-pitch"),
