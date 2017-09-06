@@ -3,12 +3,6 @@
   {% javascript 'raven' %}
 
   <script>
-    {# Alternative async tracking snippet, optimized for modern browsers #}
-    {# Google Analytics must be loaded afterwards #}
-    window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
-    ga('create', 'UA-55762204-2', 'auto');
-    ga('send', 'pageview');
-
     Raven.config('https://8ca35907a538416cbfad696d187acdc0@sentry.io/104648', {
       logger: 'javascript',
       ignoreErrors: [
