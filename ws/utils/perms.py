@@ -2,6 +2,12 @@ from django.contrib.auth.models import Group, User
 from ws import models
 
 
+# This is technically only accurate when starting the web server,
+# but that's okay (new groups are created extremely rarely)
+# This allows us to avoid repeatedly querying groups.
+all_group_names = set(Group.objects.values_list('name', flat=True))
+
+
 def is_leader(user):
     """ Return if the user is a trip leader.
 
@@ -40,10 +46,10 @@ def in_any_group(user, group_names, allow_superusers=True):
         return False
 
     if allow_superusers and user.is_superuser:
-        search_groups = Group.objects.all()
+        search_groups = all_group_names
     else:
-        search_groups = user.groups.all()
-    return any(g.name in group_names for g in search_groups)
+        search_groups = user.groups.values_list('name', flat=True)
+    return any(g in group_names for g in search_groups)
 
 
 def is_chair(user, activity_type, allow_superusers=True):
