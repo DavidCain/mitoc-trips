@@ -1410,11 +1410,15 @@ class DiscountsView(FormView):
     template_name = 'preferences/discounts.html'
     success_url = reverse_lazy('discounts')
 
+    def get_queryset(self):
+        available = Q(active=True)
+        if not self.request.participant.is_student:
+            available &= Q(student_required=False)
+        return models.Discount.objects.filter(available)
+
     def get_form(self, *args, **kwargs):
         form = super(DiscountsView, self).get_form(*args, **kwargs)
-        if not self.request.participant.is_student:
-            discounts = models.Discount.objects.filter(student_required=False)
-            form.fields['discounts'].queryset = discounts
+        form.fields['discounts'].queryset = self.get_queryset()
         return form
 
     def get_form_kwargs(self):

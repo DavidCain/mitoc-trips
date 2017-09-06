@@ -96,6 +96,7 @@ class Discount(models.Model):
     """ Discount at another company available to MITOC members. """
     administrators = models.ManyToManyField('Participant', blank=True, help_text="Persons selected to administer this discount")
 
+    active = models.BooleanField(default=True, help_text="Discount is currently open & active")
     name = models.CharField(max_length=255)
     summary = models.CharField(max_length=255)
     terms = models.TextField(max_length=4095)
