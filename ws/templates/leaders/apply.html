@@ -1,4 +1,6 @@
 {% extends "messages_page.html" %}
+{% load application_tags %}
+
 {% block head_title %}Leader application{% endblock head_title %}
 
 {% block content %}
@@ -11,83 +13,12 @@
 {% endif %}
 
 {% if application %}
-  <div class="alert alert-info">
-    {% if rating %}
-     Your application has been reviewed! You were given a rating of: <strong>{{ rating }}</strong>.
-    {% else %}
-      You've submitted your leader application.
-    {% endif %}
-  </div>
-{% elif activity == 'winter_school' %}
-  <p>
-    Please complete and submit the form below if you're interested in becoming a MITOC Winter School Leader.
-    The rating system outlined here determines the categories within which leaders are allowed to conduct trips.
-    Qualifications for a particular category are a combination of outdoor experience and leadership, particularly in winter conditions.
-  </p>
-
-  <p>
-    Contact the <a href="mailto:ws-chair@mit.edu">Winter School chair</a> if you have any questions.
-  </p>
-{% elif activity == 'climbing' %}
-  <p>Please fill out the form below to apply to become a climbing leader. In addition to this form, we require that applicants have two recommendations from current MITOC climbing leaders.</p>
+  {% application_status application can_apply %}
 {% endif %}
 
-{% if activity == 'hiking' %}
-<p class="lead">Please complete and submit the form below if you're interested in becoming a MITOC Hiking Leader.</p>
-<p>
-The leader ratings are assigned based on a combination of your involvement with MITOC and leadership experience
-in addition to your baseline technical skills of hiking in the Whites.
-</p>
-<p>The requirements are as follows:</p>
-<ul>
-  <li>Co-Leader: Participant in two MITOC hiking events (including one Circus). Must be different weekends.</li>
-  <li>Leader: Co-lead two official MITOC hikes (on separate weekends). On one of the hikes, handle the majority of the planning and group management, and get a recommendation from the leader.</li>
-</ul>
-{% elif activity == 'winter_school' %}
+{% if can_apply %}
+  {% application_description activity %}
 
-  <div class="panel panel-default">
-    <div class="panel-heading"><h4>Leader Ratings</h4></div>
-    <div class="panel-body">
-
-      <h4>Ratings by Location</h4>
-
-      <ul>
-        <li><strong>A</strong>: less than one hour from intensive care (ski resorts, short hikes from the road, et cetera)</li>
-        <li><strong>B</strong>: anything below treeline more than one hour from intensive care</li>
-        <li><strong>C</strong>: above treeline</li>
-      </ul>
-
-      <h4>Ratings by Activity</h4>
-
-      <ul>
-        <li><strong>I</strong>: ice climbing</li>
-        <li><strong>S</strong>: telemark/backcountry skiing</li>
-      </ul>
-
-      <h4>Primary leaders (A, B, C, I, S)</h4>
-
-      Each Winter School trip must have a minimum of two leaders, at least one of whom is rated as a 'primary' leader. WFA or higher is required for all B and C primary leaders. Please note that full C ratings have typically been denied to people who have not demonstrated ability to act as primary leader on at least one Winter School trip in above treeline conditions (e.g. a co-leader who runs the show).
-
-      <h4>Co-leaders (co-A, co-B, co-C, co-I, co-S)</h4>
-
-      <p>Co-leaders require a primary leader to be present in the group in order to lead a trip.
-      Co-ratings are given to those who show promise in an area but have not demonstrated the specific outdoor experience/leadership/group management necessary for a full rating.
-      This allows them to gain experience under the supervision of an experienced leader.
-      Co-leaders are encouraged to use the earlier weeks of Winter School to demonstrate the skill set necessary to be 'upgraded' to primary leader prior to the close of IAP.
-      </p>
-
-      <h4>How ratings work</h4>
-
-      <p>
-      All leaders are assigned a location rating along with any applicable activity ratings.
-      Activity ratings are subordinate to location ratings: a {B, S} leader can only lead ski mountaineering trips below treeline.
-      A leader rated {A, co-B, co-I} can act as primary leader on A-level trips, can co-lead B-level trips with a full B or C leader, and can co-lead ice climbing trips as long as they qualify as B level or below.
-      </p>
-    </div>
-  </div>
-{% endif %}
-
-{% if not application %}
   <hr />
   <form name="{{ form.form_name }}" method="post" action="." novalidate data-submit-if-valid>
     {% csrf_token %}
@@ -98,4 +29,5 @@ in addition to your baseline technical skills of hiking in the Whites.
     <button type="submit" class="btn btn-primary">Submit application</button>
   </form>
 {% endif %}
+
 {% endblock content %}

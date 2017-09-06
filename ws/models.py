@@ -676,6 +676,19 @@ class LeaderApplication(models.Model):
                                        default=dateutils.ws_year,
                                        help_text="Year this application pertains to.")
 
+    @property
+    def rating_given(self):
+        """ Return any activity rating created after this application. """
+        return self.participant.activity_rating(self.activity, rating_active=True,
+                                                after_time=self.time_created)
+
+    @property
+    def application_year(self):
+        if self.activity == LeaderRating.WINTER_SCHOOL:
+            return dateutils.ws_year()
+        else:
+            return dateutils.local_date().year
+
     @staticmethod
     def can_apply(activity):
         """ Return if an application exists for the activity. """

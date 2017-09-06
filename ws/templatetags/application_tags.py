@@ -22,3 +22,15 @@ def application_details(application):
         familiarities.append((short_label, response))
 
     return {'familiarities': familiarities, 'text_fields': text_fields}
+
+
+@register.inclusion_tag('for_templatetags/application_description.html')
+def application_description(activity):
+    return {'activity': activity}
+
+
+@register.inclusion_tag('for_templatetags/application_status.html')
+def application_status(latest_application, can_apply):
+    return {'rating_given': latest_application.rating_given,
+            'activity': latest_application.activity,
+            'can_apply': can_apply}

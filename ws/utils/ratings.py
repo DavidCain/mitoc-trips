@@ -1,7 +1,9 @@
-from ws import models
+from datetime import timedelta
+
 from django.db.models import Case, F, IntegerField, Q, Sum, When
 
-from ws.utils.dates import ws_year, local_date
+from ws import models
+from ws.utils.dates import ws_year, local_date, local_now
 import ws.utils.perms as perm_utils
 
 
@@ -20,6 +22,21 @@ class LeaderApplicationMixin(object):
 
     Requires self.activity
     """
+    def can_reapply(self, latest_application):
+        """ Winter School allows one application per year.
+
+        Other activities just impose a reasonable waiting time.
+        """
+        if not latest_application:
+            return True  # Not "re-applying," just applying for first time
+
+        if latest_application.activity == models.LeaderRating.WINTER_SCHOOL:
+            return latest_application.year < self.application_year
+
+        # Allow upgrades after 2 weeks, repeat applications after ~6 months
+        waiting_period_days = 14 if latest_application.rating_given else 180
+        time_passed = local_now() - latest_application.time_created
+        return time_passed > timedelta(days=waiting_period_days)
 
     @property
     def application_year(self):

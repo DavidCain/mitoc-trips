@@ -1,0 +1,19 @@
+<div class="alert alert-info">
+  {% if rating_given %}
+    Your latest application has been reviewed! You were given a rating of: <strong>{{ rating_given }}</strong>.
+  {% else %}
+    You've submitted your leader application, and it's awaiting review.
+  {% endif %}
+</div>
+
+{% if can_apply %}
+  <div class="alert alert-warning">
+    {% if rating_given and activity == 'winter_school' %}
+      To remain a Winter School leader, you must submit another application this year.
+    {% elif rating_given %}
+       To apply for another rating, please submit a new application.
+    {% else %}
+      You can re-apply, or ask the activity chair(s) to consider your original application.
+    {% endif %}
+  </div>
+{% endif %}

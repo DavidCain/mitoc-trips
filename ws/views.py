@@ -819,26 +819,18 @@ class LeaderApplyView(LeaderApplicationMixin, CreateView):
         messages.success(self.request, "Leader application received!")
         return super(LeaderApplyView, self).form_valid(form)
 
-    def active_rating(self, after_time=None):
-        """ Return any WS rating created after this application.
-
-        If a rating was created after the application was submitted, then we'll
-        inform the participant that the WSC responded to their application.
-        """
-        return self.par.activity_rating('winter_school', rating_active=True,
-                                        after_time=after_time)
-
     def get_context_data(self, **kwargs):
         """ Get any existing application and rating. """
         context = super(LeaderApplyView, self).get_context_data(**kwargs)
 
         context['year'] = self.application_year
-        existing = self.get_queryset().filter(participant=self.par,
-                                              year=context['year'])
+        existing = self.get_queryset().filter(participant=self.par)
         if existing:
-            app = existing.first()
+            app = existing.order_by('-time_created').first()
             context['application'] = app
-            context['rating'] = self.active_rating(after_time=app.time_created)
+            context['can_apply'] = self.can_reapply(app)
+        else:
+            context['can_apply'] = True
         return context
 
     @method_decorator(user_info_required)
