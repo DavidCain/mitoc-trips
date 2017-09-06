@@ -94,7 +94,8 @@ class LeaderManager(models.Manager):
 
 class Discount(models.Model):
     """ Discount at another company available to MITOC members. """
-    administrators = models.ManyToManyField('Participant', blank=True, help_text="Persons selected to administer this discount")
+    administrators = models.ManyToManyField('Participant', blank=True, help_text="Persons selected to administer this discount",
+                                            related_name='discounts_administered')
 
     active = models.BooleanField(default=True, help_text="Discount is currently open & active")
     name = models.CharField(max_length=255)
