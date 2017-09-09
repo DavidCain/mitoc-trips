@@ -44,11 +44,11 @@ LOGIN_REDIRECT_URL = '/'
 ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 
 if os.environ.get('WS_TEST_CONFIG'):
-    from conf.test_settings import *
+    from .conf.test_settings import *
 elif os.environ.get('WS_DJANGO_LOCAL'):
-    from conf.local_settings import *
+    from .conf.local_settings import *
 else:
-    from conf.production_settings import *
+    from .conf.production_settings import *
 
 DATABASES = {
     'default': {

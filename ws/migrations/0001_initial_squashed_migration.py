@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 
 import datetime
 
@@ -200,7 +199,7 @@ class Migration(migrations.Migration):
                 ('return_time', models.CharField(help_text='When you expect to return to your car/starting location and be able to call the WIMP', max_length=63)),
                 ('worry_time', models.CharField(help_text='Suggested: return time +3 hours. If the WIMP has not heard from you after this time and is unable to make contact with any leaders or participants, the authorities will be called.', max_length=63)),
                 ('itinerary', models.TextField(help_text='A detailed account of your trip plan. Where will you be going? What route will you be taking? Include trails, peaks, intermediate destinations, back-up plans- anything that would help rescuers find you.')),
-                ('drivers', models.ManyToManyField(help_text="If a trip participant is driving, but is not on this list, they must first submit <a href='/profile/edit/#car'>information about their car</a>. They should then be added here.", to=b'ws.Participant', blank=True)),
+                ('drivers', models.ManyToManyField(help_text="If a trip participant is driving, but is not on this list, they must first submit <a href='/profile/edit/#car'>information about their car</a>. They should then be added here.", to='ws.Participant', blank=True)),
             ],
         ),
         migrations.CreateModel(
@@ -226,7 +225,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='waitlist',
             name='unordered_signups',
-            field=models.ManyToManyField(to=b'ws.SignUp', through='ws.WaitListSignup'),
+            field=models.ManyToManyField(to='ws.SignUp', through='ws.WaitListSignup'),
         ),
         migrations.AddField(
             model_name='trip',
@@ -236,12 +235,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='trip',
             name='leaders',
-            field=models.ManyToManyField(related_name='trips_led', to=b'ws.Participant'),
+            field=models.ManyToManyField(related_name='trips_led', to='ws.Participant'),
         ),
         migrations.AddField(
             model_name='trip',
             name='signed_up_participants',
-            field=models.ManyToManyField(to=b'ws.Participant', through='ws.SignUp'),
+            field=models.ManyToManyField(to='ws.Participant', through='ws.SignUp'),
         ),
         migrations.AddField(
             model_name='signup',
@@ -333,7 +332,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='participant',
             name='discounts',
-            field=models.ManyToManyField(to=b'ws.Discount', blank=True),
+            field=models.ManyToManyField(to='ws.Discount', blank=True),
         ),
         migrations.AlterField(
             model_name='trip',
@@ -368,7 +367,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='trip',
             name='leaders',
-            field=models.ManyToManyField(related_name='trips_led', to=b'ws.Participant', blank=True),
+            field=models.ManyToManyField(related_name='trips_led', to='ws.Participant', blank=True),
         ),
         migrations.AddField(
             model_name='trip',
@@ -532,7 +531,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='discount',
             name='administrators',
-            field=models.ManyToManyField(help_text='Persons selected to administer this discount', related_name='discounts_administered', to=b'ws.Participant', blank=True),
+            field=models.ManyToManyField(help_text='Persons selected to administer this discount', related_name='discounts_administered', to='ws.Participant', blank=True),
         ),
         migrations.AddField(
             model_name='discount',

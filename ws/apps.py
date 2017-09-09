@@ -19,7 +19,7 @@ class TripsConfig(AppConfig):
 
     def load_signals(self):
         try:
-            import signals
+            from . import signals
         except:
             pass  # Database initialization, etc.
 
@@ -40,8 +40,8 @@ class TripsConfig(AppConfig):
             Group.objects.get_or_create(name='climbing_chair')
             Group.objects.get_or_create(name='hiking_chair')
         except (OperationalError, ProgrammingError):
-            print "Can't create groups"
-            print "Django tables likely not created yet (run migrate)."
+            print("Can't create groups")
+            print("Django tables likely not created yet (run migrate).")
 
     def ready(self):
         self.load_signals()

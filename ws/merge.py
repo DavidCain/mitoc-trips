@@ -67,7 +67,7 @@ def check_fk_tables(cursor, src_table, col, expected):
     if non_handled:
         print("The following foreign keys are not properly handled:")
         for table, col in non_handled:
-            print(col + '\t' + table)
+            print((col + '\t' + table))
         raise ValueError("Database has more FKs than we're handling")
 
 

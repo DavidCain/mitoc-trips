@@ -94,7 +94,7 @@ class TestMembershipLookups(FormatHelpers):
 
         matches = OrderedDict(match_tuples)
         matching_memberships.return_value = matches
-        emails = matches.keys()
+        emails = list(matches)
         newest_membership = match_tuples[-1][1]
         self.assertEqual(newest_membership,
                          geardb_utils.membership_expiration(emails))

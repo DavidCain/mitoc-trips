@@ -40,9 +40,11 @@ def membership_expiration(emails):
 
     It also calculates whether or not the membership has expired.
     """
-    # First membership matching will be the most current
-    matches = matching_memberships(emails)
-    return matches.values()[-1] if matches else repr_blank_membership()
+    def expiration_date(membership_info):
+        return membership_info['membership']['expires']
+
+    return max(matching_memberships(emails).values(), key=expiration_date,
+               default=repr_blank_membership())
 
 
 def format_membership(email, membership_expires, waiver_expires):

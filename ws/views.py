@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from collections import defaultdict
 import json
 
@@ -663,7 +661,7 @@ class ReviewTripView(DetailView):
         If the form data was garbled (intentionally or otherwise), this method
         will raise ValueError or TypeError (on either 'split' or `int`)
         """
-        for key, comments in self.request.POST.iteritems():
+        for key, comments in self.request.POST.items():
             if not (key.startswith("par_") or key.startswith("flake_")):
                 continue
 

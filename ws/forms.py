@@ -137,8 +137,8 @@ class LeaderForm(DjangularRequiredModelForm):
         self.fields['participant'].queryset = all_par
         self.fields['participant'].empty_label = 'Nobody'
         if allowed_activities is not None:
-            activities = filter(lambda (val, label): val in allowed_activities,
-                                self.fields['activity'].choices)
+            activities = [activity for activity in self.fields['activity'].choices
+                          if activity[0] in allowed_activities]
             self.fields['activity'].choices = activities
 
     class Meta:
@@ -240,8 +240,8 @@ class TripForm(DjangularRequiredModelForm):
         self.fields['level'].required = activity == 'winter_school' or not activity
 
         if allowed_activities is not None:
-            activities = filter(lambda (val, label): val in allowed_activities,
-                                self.fields['activity'].choices)
+            activities = [vl for vl in self.fields['activity'].choices
+                          if vl[0] in allowed_activities]
             self.fields['activity'].choices = activities
 
 

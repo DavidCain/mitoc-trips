@@ -347,7 +347,7 @@ class MembershipStatusesView(View):
         participant_memberships = {pk: no_membership for pk in par_pks}
 
         # Update participants where matching membership information was found
-        for email, membership in matches.iteritems():
+        for email, membership in matches.items():
             par_pk = user_to_par[email_to_user[email]]
             # We might overwrite a previous membership record, but that will
             # only happen if the user has memberships under 2+ emails

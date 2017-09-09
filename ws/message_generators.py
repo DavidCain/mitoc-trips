@@ -1,4 +1,3 @@
-from __future__ import unicode_literals
 """
 Functions that take a request, create messages if applicable.
 """

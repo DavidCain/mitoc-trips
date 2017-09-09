@@ -9,7 +9,7 @@ discount, so that they can verify membership status.
 """
 import bisect
 from collections import OrderedDict, namedtuple
-from itertools import izip_longest
+from itertools import zip_longest
 import httplib2
 import os
 
@@ -44,7 +44,7 @@ def with_refreshed_token(func):
 
 def grouper(iterable, n, fillvalue=None):
     args = [iter(iterable)] * n
-    return izip_longest(*args, fillvalue=fillvalue)
+    return zip_longest(*args, fillvalue=fillvalue)
 
 
 class SheetWriter(object):
@@ -210,7 +210,7 @@ def update_discount_sheet(discount):
     all_cells = wks.range('A1:{}'.format(wks.get_addr_int(num_rows, num_cols)))
     rows = grouper(all_cells, len(writer.header))
 
-    assign(rows.next(), writer.header)
+    assign(next(rows), writer.header)
 
     # Update each cell with current membership information
     for participant, row in zip(participants, rows):
