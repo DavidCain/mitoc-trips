@@ -5,8 +5,6 @@ MITOC's volunteer leaders craft trips to take participants climbing, hiking,
 biking, skiing, mountaineering, rafting, canoeing, and surfing. All trips are
 open to MITOC members - a community of thousands.
 
-Since its creation, the site has had over 4,000 users and 170,000 page views.
-
 # Deployment
 It takes a single command and a few minutes to deploy this software.
 Clone the [mitoc-ansible][mitoc-ansible] repository and follow the instructions
