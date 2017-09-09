@@ -12,27 +12,6 @@ import django.core.validators
 
 class Migration(migrations.Migration):
 
-    replaces = [(b'ws', '0001_initial'),
-                (b'ws', '0002_auto_20141031_1643'),
-                (b'ws', '0003_auto_20141103_1440'),
-                (b'ws', '0005_trip_worry_time'),
-                (b'ws', '0006_auto_20150106_1950'),
-                (b'ws', '0007_auto_20150107_0033'),
-                (b'ws', '0008_auto_20150126_0903'),
-                (b'ws', '0009_auto_20150127_1752'),
-                (b'ws', '0010_remove_leaders_20151026_2106'),
-                (b'ws', '0011_change_ratings_20151026_2150'),
-                (b'ws', '0012_auto_20151026_2207'),
-                (b'ws', '0013_remove_leaders_20151026_2233'),
-                (b'ws', '0014_trip_activity'),
-                (b'ws', '0015_auto_20151128_1717'),
-                (b'ws', '0016_rename_emergency_contact_fields'),
-                (b'ws', '0017_clarify_participant_email'),
-                (b'ws', '0018_sort_trip_signups'),
-                (b'ws', '0019_trip_level_20160118_2018'),
-                (b'ws', '0020_new_activity_types'),
-                (b'ws', '0021_restore_econtact_names_20160227_1345')]
-
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
