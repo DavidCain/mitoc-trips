@@ -9,7 +9,7 @@ django-pipeline
 django-smtp-ssl
 raven>=6.0.0
 six
-django-angular>=0.8.1
+django-angular==0.8.4
 psycopg2
 mysql-python
 markdown2
