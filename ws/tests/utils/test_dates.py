@@ -11,11 +11,10 @@ class DateUtilTests(TestCase):
     These methods don't depend on models and don't expect any particular
     timezone, so we can test them in UTC.
     """
-    fixtures = ['ws']
-
     def setUp(self):
         self.y2k = datetime(2000, 1, 1)
-        self.test_datetimes = [self.y2k + timedelta(days=i) for i in range(15)]
+        test_datetimes = [self.y2k + timedelta(days=i) for i in range(15)]
+        self.test_datetimes = [date_utils.localize(dt) for dt in test_datetimes]
 
     def test_itinerary_available_at(self):
         for test_dt in self.test_datetimes:
@@ -23,9 +22,9 @@ class DateUtilTests(TestCase):
             self.assertEqual(avail_datetime.weekday(), 3)  # Is always a Thursday
 
             if test_dt.weekday() == 3:
-                self.assertEqual(test_dt, avail_datetime.date())
+                self.assertEqual(test_dt.date(), avail_datetime.date())
             else:
-                self.assertGreater(test_dt, avail_datetime.date())
+                self.assertGreater(test_dt, avail_datetime)
 
     @mock.patch('ws.utils.dates.local_now')
     def test_nearest_sat(self, local_now):
@@ -63,9 +62,9 @@ class DateUtilTests(TestCase):
     @mock.patch('ws.utils.dates.local_now')
     def test_is_winter_school(self, local_now):
         for day, expected in [(datetime(2016, 12, 28), False),
-                              (datetime(2017,  1,  1), True),
-                              (datetime(2017,  1, 14), True),
-                              (datetime(2017,  1, 31), True),
-                              (datetime(2017,  2, 10), False)]:
+                              (datetime(2017, 1, 1), True),
+                              (datetime(2017, 1, 14), True),
+                              (datetime(2017, 1, 31), True),
+                              (datetime(2017, 2, 10), False)]:
             local_now.return_value = day
             self.assertEqual(date_utils.is_winter_school(), expected)

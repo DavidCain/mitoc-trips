@@ -1404,7 +1404,8 @@ class DiscountsView(FormView):
 
     def get_queryset(self):
         available = Q(active=True)
-        if not self.request.participant.is_student:
+        par = self.request.participant
+        if not (par and par.is_student):
             available &= Q(student_required=False)
         return models.Discount.objects.filter(available)
 
@@ -1697,7 +1698,7 @@ class TripItineraryView(UpdateView, TripLeadersOnlyView, ItineraryEditableMixin)
         return reverse('view_trip', args=(self.trip.id,))
 
 
-class StatsView(TemplateView, FormView):
+class StatsView(TemplateView):
     template_name = 'stats/index.html'
 
 

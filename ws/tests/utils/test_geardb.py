@@ -28,8 +28,6 @@ class FormatHelpers(TestCase):
 
 
 class TestFormattingMemberships(FormatHelpers):
-    fixtures = ['ws']
-
     def test_active_membership(self):
         """ Test active membership and current waiver. """
         formatted = self._format_membership(self.tomorrow, self.tomorrow)
@@ -47,24 +45,26 @@ class TestFormattingMemberships(FormatHelpers):
         }
         self.assertEqual(formatted, expected)
 
+    def expect_status(self, membership_exp, waiver_exp, status):
+        formatted = self._format_membership(membership_exp, waiver_exp)
+        self.assertEqual(formatted['status'], status)
+        self._check_format(formatted)
+
     def test_expired_membership(self):
-        """ Report expired memberships regardless of waiver expiration. """
-        for days in [self.yesterday, self.today, self.tomorrow]:
-            formatted = self._format_membership(self.yesterday, self.today)
-            self.assertEqual(formatted['status'], 'Expired')
-            self._check_format(formatted)
+        """ Report 'Expired' when both membership & waiver missing """
+        self.expect_status(self.yesterday, self.yesterday, 'Expired')
+
+    def test_missing_membership(self):
+        """ Test valid waiver, but missing membership. """
+        self.expect_status(self.yesterday, self.tomorrow, 'Missing Membership')
 
     def test_missing_waiver(self):
         """ Test valid membership, but missing waiver. """
-        formatted = self._format_membership(self.tomorrow, None)
-        self.assertEqual(formatted['status'], 'Missing Waiver')
-        self._check_format(formatted)
+        self.expect_status(self.tomorrow, None, 'Missing Waiver')
 
     def test_expired_waiver(self):
         """ Test valid membership, but expired waiver. """
-        formatted = self._format_membership(self.tomorrow, self.yesterday)
-        self.assertEqual(formatted['status'], 'Waiver Expired')
-        self._check_format(formatted)
+        self.expect_status(self.tomorrow, self.yesterday, 'Waiver Expired')
 
 
 class TestMembershipLookups(FormatHelpers):
@@ -88,7 +88,7 @@ class TestMembershipLookups(FormatHelpers):
         # Mock matching_memberships: a list of matches, newest last
         for i in range(1, 4):
             email = 'member_{}@example.com'.format(i)
-            expires = self.tomorrow + timedelta(weeks=1)
+            expires = self.tomorrow + timedelta(weeks=i)
             person = self._format_membership(expires, expires, email)
             match_tuples.append((email, person))
 
