@@ -1,4 +1,3 @@
-from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import User
 from ws import models
 
@@ -31,12 +30,14 @@ class ParticipantMiddleware(object):
         self.get_response = get_response
 
     def __call__(self, request):
-        user = request.user
-        if user.is_anonymous:
-            request.participant = None
-        else:
-            try:
-                request.participant = models.Participant.objects.get(user_id=user.id)
-            except ObjectDoesNotExist:
-                request.participant = None
+        request.participant = participant_from_user(request.user)
         return self.get_response(request)
+
+
+def participant_from_user(user):
+    if user.is_anonymous:
+        return None
+    try:
+        return models.Participant.objects.get(user_id=user.id)
+    except models.Participant.DoesNotExist:
+        return None
