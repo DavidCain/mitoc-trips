@@ -42,7 +42,7 @@ class TripLeadersOnlyView(View):
         trip_leader = perm_utils.leader_on_trip(request.participant, trip, True)
         if not (chair or trip_leader):
             return render(request, 'not_your_trip.html', {'trip': trip})
-        return super(TripLeadersOnlyView, self).dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
 
 class LoginAfterPasswordChangeView(PasswordChangeView):
@@ -70,13 +70,13 @@ class DeleteParticipantView(OtherParticipantView, DeleteView):
     success_url = reverse_lazy('participant_lookup')
 
     def delete(self, request, *args, **kwargs):
-        redir = super(DeleteParticipantView, self).delete(request, *args, **kwargs)
+        redir = super().delete(request, *args, **kwargs)
         self.user.delete()
         return redir
 
     @method_decorator(admin_only)
     def dispatch(self, request, *args, **kwargs):
-        return super(DeleteParticipantView, self).dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
 
 class ParticipantEditMixin(TemplateView):
@@ -194,7 +194,7 @@ class ParticipantEditMixin(TemplateView):
 
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
-        return super(ParticipantEditMixin, self).dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
     def success_redirect(self):
         return redirect(self.request.GET.get('next', 'home'))
@@ -212,7 +212,7 @@ class EditParticipantView(ParticipantEditMixin, OtherParticipantView):
 
     @method_decorator(admin_only)
     def dispatch(self, request, *args, **kwargs):
-        return super(ParticipantEditMixin, self).dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
 
 class EditProfileView(ParticipantEditMixin):
@@ -230,7 +230,7 @@ class ParticipantLookupView(TemplateView, FormView):
     form_class = forms.ParticipantLookupForm
 
     def get_context_data(self, **kwargs):
-        context = super(ParticipantLookupView, self).get_context_data()
+        context = super().get_context_data()
         context['user_viewing'] = False
         context['lookup_form'] = self.get_form(self.form_class)
         return context
@@ -241,7 +241,7 @@ class ParticipantLookupView(TemplateView, FormView):
 
     @method_decorator(group_required('leaders'))
     def dispatch(self, request, *args, **kwargs):
-        return super(ParticipantLookupView, self).dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
 
 class LotteryPairingMixin(object):
@@ -324,7 +324,7 @@ class WinterSchoolSettingsView(CreateView):
 
     def get_form_kwargs(self):
         """ Load existing settingcs. """
-        kwargs = super(WinterSchoolSettingsView, self).get_form_kwargs()
+        kwargs = super().get_form_kwargs()
         kwargs['instance'] = models.WinterSchoolSettings.load()
         return kwargs
 
@@ -339,7 +339,7 @@ class ParticipantView(ParticipantLookupView, SingleObjectMixin,
     context_object_name = 'participant'
 
     def get_queryset(self):
-        participant = super(ParticipantView, self).get_queryset()
+        participant = super().get_queryset()
         return participant.select_related('emergency_info__emergency_contact')
 
     def get_trips(self):
@@ -411,7 +411,7 @@ class ParticipantView(ParticipantLookupView, SingleObjectMixin,
         participant = self.object = self.get_object()
         user_viewing = self.request.participant == participant
 
-        context = super(ParticipantView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
 
         can_set_attendance = self.can_set_attendance(participant)
         context['can_set_attendance'] = can_set_attendance
@@ -449,14 +449,14 @@ class ParticipantView(ParticipantLookupView, SingleObjectMixin,
 
     @method_decorator(user_info_required)
     def dispatch(self, request, *args, **kwargs):
-        return super(ParticipantView, self).dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
 
 class ParticipantDetailView(ParticipantView, FormView, DetailView):
     def dispatch(self, request, *args, **kwargs):
         if request.participant == self.get_object():
             return redirect(reverse('home'))
-        return super(ParticipantView, self).dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
 
 class ProfileView(ParticipantView):
@@ -474,11 +474,11 @@ class ProfileView(ParticipantView):
 
         lottery_messages = message_generators.LotteryMessages(request)
         lottery_messages.supply_all_messages()
-        return super(ProfileView, self).get(request, *args, **kwargs)
+        return super().get(request, *args, **kwargs)
 
     def get_object(self):
         self.kwargs['pk'] = self.request.participant.id
-        return super(ProfileView, self).get_object()
+        return super().get_object()
 
     # Login is not required - we'll handle that in `get()`
     def dispatch(self, request, *args, **kwargs):
@@ -495,7 +495,7 @@ class BaseSignUpView(CreateView, LotteryPairingMixin):
         return self.request.participant
 
     def get_form(self, form_class=None):
-        signup_form = super(BaseSignUpView, self).get_form(form_class)
+        signup_form = super().get_form(form_class)
         signup_form.fields['trip'].widget = HiddenInput()
         return signup_form
 
@@ -538,11 +538,11 @@ class LeaderSignUpView(BaseSignUpView):
         if errors:
             form.errors['__all__'] = ErrorList(errors)
             return self.form_invalid(form)
-        return super(LeaderSignUpView, self).form_valid(form)
+        return super().form_valid(form)
 
     @method_decorator(group_required('leaders'))
     def dispatch(self, request, *args, **kwargs):
-        return super(LeaderSignUpView, self).dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
 
 class SignUpView(BaseSignUpView):
@@ -571,11 +571,11 @@ class SignUpView(BaseSignUpView):
         elif not signup.trip.signups_open:  # Guards against direct POST
             form.errors['__all__'] = ErrorList(["Signups aren't open!"])
             return self.form_invalid(form)
-        return super(SignUpView, self).form_valid(form)
+        return super().form_valid(form)
 
     @method_decorator(user_info_required)
     def dispatch(self, request, *args, **kwargs):
-        return super(SignUpView, self).dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
 
 class ItineraryEditableMixin(object):
@@ -618,8 +618,7 @@ class TripView(DetailView, ItineraryEditableMixin):
     template_name = 'trips/view.html'
 
     def get_queryset(self):
-        trips = super(TripView, self).get_queryset()
-        trips = trips.select_related('info')
+        trips = super().get_queryset().select_related('info')
         return trips.prefetch_related('leaders', 'leaders__leaderrating_set')
 
     def get_participant_signup(self, trip=None):
@@ -630,7 +629,7 @@ class TripView(DetailView, ItineraryEditableMixin):
         return self.request.participant.signup_set.filter(trip=trip).first()
 
     def get_context_data(self, **kwargs):
-        context = super(TripView, self).get_context_data()
+        context = super().get_context_data()
         trip = self.object
         context.update(self.info_form_context(trip))
         context['can_admin'] = (
@@ -734,7 +733,7 @@ class ReviewTripView(DetailView):
         trip = self.get_object()
         if not perm_utils.leader_on_trip(request.participant, trip, False):
             return render(request, 'not_your_trip.html', {'trip': trip})
-        return super(ReviewTripView, self).dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
 
 class AllLeadersView(ListView):
@@ -747,7 +746,7 @@ class AllLeadersView(ListView):
         return models.Participant.leaders.get_queryset()
 
     def get_context_data(self, **kwargs):
-        context_data = super(AllLeadersView, self).get_context_data(**kwargs)
+        context_data = super().get_context_data(**kwargs)
 
         closed_activities = models.LeaderRating.CLOSED_ACTIVITY_CHOICES
         activities = [(val, label) for (val, label) in closed_activities
@@ -757,7 +756,7 @@ class AllLeadersView(ListView):
 
     @method_decorator(group_required('leaders'))
     def dispatch(self, request, *args, **kwargs):
-        return super(AllLeadersView, self).dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
 
 class LeaderApplicationMixin(ratings_utils.LeaderApplicationMixin):
@@ -776,7 +775,7 @@ class LeaderApplicationMixin(ratings_utils.LeaderApplicationMixin):
         return self.joined_queryset()
 
     def get_context_data(self, **kwargs):
-        context = super(LeaderApplicationMixin, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context['activity'] = self.activity
         return context
 
@@ -796,7 +795,7 @@ class LeaderApplyView(LeaderApplicationMixin, CreateView):
 
     def get_form_kwargs(self):
         """ Pass the needed "activity" paramater for dynamic form construction. """
-        kwargs = super(LeaderApplyView, self).get_form_kwargs()
+        kwargs = super().get_form_kwargs()
         kwargs['activity'] = self.activity
         return kwargs
 
@@ -816,11 +815,11 @@ class LeaderApplyView(LeaderApplicationMixin, CreateView):
         rating = self.par.activity_rating(self.activity, rating_active=False)
         application.previous_rating = rating or ''
         messages.success(self.request, "Leader application received!")
-        return super(LeaderApplyView, self).form_valid(form)
+        return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
         """ Get any existing application and rating. """
-        context = super(LeaderApplyView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
 
         context['year'] = self.application_year
         existing = self.get_queryset().filter(participant=self.par)
@@ -836,7 +835,7 @@ class LeaderApplyView(LeaderApplicationMixin, CreateView):
     def dispatch(self, request, *args, **kwargs):
         if not models.LeaderApplication.can_apply(kwargs.get('activity')):
             raise Http404
-        return super(LeaderApplyView, self).dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
 
 class ApprovedTripsMixin(object):
@@ -852,7 +851,7 @@ class ApprovedTripsMixin(object):
                                           trip_date__gte=local_date())
 
     def get_context_data(self, **kwargs):
-        context = super(ApprovedTripsMixin, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context['activity'] = self.activity
         trips = self.get_queryset()
         context['approved_trips'] = trips.filter(chair_approved=True)
@@ -868,7 +867,7 @@ class ManageTripsView(ApprovedTripsMixin, ListView):
         activity = kwargs.get('activity')
         if not perm_utils.chair_or_admin(request.user, activity):
             raise PermissionDenied
-        return super(ManageTripsView, self).dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
 
 class AllLeaderApplicationsView(ApplicationManager, ListView):
@@ -880,7 +879,7 @@ class AllLeaderApplicationsView(ApplicationManager, ListView):
 
     def get_context_data(self, **kwargs):
         # Super calls DetailView's `get_context_data` so we'll manually add form
-        context = super(AllLeaderApplicationsView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
 
         apps = context['leader_applications']
         context['num_chairs'] = self.num_chairs
@@ -904,7 +903,7 @@ class AllLeaderApplicationsView(ApplicationManager, ListView):
         if not models.LeaderApplication.can_apply(self.activity):
             context = {'missing_form': True, 'activity': self.activity}
             return render(request, self.template_name, context)
-        return super(AllLeaderApplicationsView, self).dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
 
 class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):
@@ -1032,7 +1031,7 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         # Super calls DetailView's `get_context_data` so we'll manually add form
-        context = super(LeaderApplicationView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         assigned_rating = self.assigned_rating
         context['assigned_rating'] = assigned_rating
         context['recommendations'] = self.get_recommendations(assigned_rating)
@@ -1078,7 +1077,7 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):
         msg = "{verb} {rating} rating for {participant}".format(**fmt)
         messages.success(self.request, msg)
 
-        return super(LeaderApplicationView, self).form_valid(form)
+        return super().form_valid(form)
 
     def post(self, request, *args, **kwargs):
         """ Create the leader's rating, redirect to other applications. """
@@ -1095,7 +1094,7 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):
         """ Redirect if anonymous, but deny permission if not a chair. """
         if not perm_utils.chair_or_admin(request.user, self.activity):
             raise PermissionDenied
-        return super(LeaderApplicationView, self).dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
 
 class ManageLeadersView(CreateView):
@@ -1108,12 +1107,12 @@ class ManageLeadersView(CreateView):
         return perm_utils.chair_activities(self.request.user, True)
 
     def get_form_kwargs(self):
-        kwargs = super(ManageLeadersView, self).get_form_kwargs()
+        kwargs = super().get_form_kwargs()
         kwargs['allowed_activities'] = self.allowed_activities
         return kwargs
 
     def get_initial(self):
-        initial = super(ManageLeadersView, self).get_initial().copy()
+        initial = super().get_initial().copy()
         allowed_activities = self.allowed_activities
         if len(allowed_activities) == 1:
             initial['activity'] = allowed_activities[0]
@@ -1140,11 +1139,11 @@ class ManageLeadersView(CreateView):
 
         msg = "Gave {} rating of '{}'".format(participant, rating.rating)
         messages.success(self.request, msg)
-        return super(ManageLeadersView, self).form_valid(form)
+        return super().form_valid(form)
 
     @method_decorator(chairs_only())
     def dispatch(self, request, *args, **kwargs):
-        return super(ManageLeadersView, self).dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
 
 class CreateTripView(CreateView):
@@ -1153,7 +1152,7 @@ class CreateTripView(CreateView):
     template_name = 'trips/create.html'
 
     def get_form_kwargs(self):
-        kwargs = super(CreateTripView, self).get_form_kwargs()
+        kwargs = super().get_form_kwargs()
         kwargs['initial'] = kwargs.get('initial', {})
         if not self.request.user.is_superuser:
             allowed_activities = self.request.participant.allowed_activities
@@ -1172,7 +1171,7 @@ class CreateTripView(CreateView):
 
     def get_initial(self):
         """ Default with trip creator among leaders. """
-        initial = super(CreateTripView, self).get_initial().copy()
+        initial = super().get_initial().copy()
         # It's possible for WSC to create trips while not being a leader
         if perm_utils.is_leader(self.request.user):
             initial['leaders'] = [self.request.participant]
@@ -1183,11 +1182,11 @@ class CreateTripView(CreateView):
         creator = self.request.participant
         trip = form.save(commit=False)
         trip.creator = creator
-        return super(CreateTripView, self).form_valid(form)
+        return super().form_valid(form)
 
     @method_decorator(group_required('WSC', 'leaders'))
     def dispatch(self, request, *args, **kwargs):
-        return super(CreateTripView, self).dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
 
 class DeleteTripView(DeleteView, TripLeadersOnlyView):
@@ -1220,7 +1219,7 @@ class DeleteSignupView(DeleteView):
                          (trip.upcoming and trip.algorithm == 'lottery'))
         if not drops_allowed:
             raise PermissionDenied
-        return super(DeleteSignupView, self).dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
 
 class EditTripView(UpdateView, TripLeadersOnlyView):
@@ -1229,7 +1228,7 @@ class EditTripView(UpdateView, TripLeadersOnlyView):
     template_name = 'trips/edit.html'
 
     def get_form_kwargs(self):
-        kwargs = super(EditTripView, self).get_form_kwargs()
+        kwargs = super().get_form_kwargs()
         if not self.request.user.is_superuser:
             allowed_activities = self.request.participant.allowed_activities
             kwargs['allowed_activities'] = allowed_activities
@@ -1244,7 +1243,7 @@ class EditTripView(UpdateView, TripLeadersOnlyView):
                 )
 
     def get_context_data(self, **kwargs):
-        context = super(EditTripView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context['update_rescinds_approval'] = self.update_rescinds_approval
         return context
 
@@ -1272,7 +1271,7 @@ class EditTripView(UpdateView, TripLeadersOnlyView):
         if self.update_rescinds_approval:
             trip = form.save(commit=False)
             trip.chair_approved = False
-        return super(EditTripView, self).form_valid(form)
+        return super().form_valid(form)
 
 
 class TripListView(ListView):
@@ -1283,12 +1282,12 @@ class TripListView(ListView):
     form_class = forms.SummaryTripForm
 
     def get_queryset(self):
-        trips = super(TripListView, self).get_queryset()
+        trips = super().get_queryset()
         return annotated_for_trip_list(trips)
 
     def get_context_data(self, **kwargs):
         """ Sort trips into past and present trips. """
-        context_data = super(TripListView, self).get_context_data(**kwargs)
+        context_data = super().get_context_data(**kwargs)
         trips = context_data[self.context_object_name]
 
         today = local_date()
@@ -1302,12 +1301,12 @@ class UpcomingTripsView(TripListView):
     context_object_name = 'current_trips'
 
     def get_queryset(self):
-        queryset = super(UpcomingTripsView, self).get_queryset()
+        queryset = super().get_queryset()
         return queryset.filter(trip_date__gte=local_date())
 
     def get_context_data(self, **kwargs):
         # No point sorting into current, past (queryset already handles)
-        return super(TripListView, self).get_context_data(**kwargs)
+        return super().get_context_data(**kwargs)
 
 
 class AllTripsView(TripListView):
@@ -1319,18 +1318,18 @@ class ApproveTripsView(UpcomingTripsView):
     template_name = 'trips/all/manage.html'
 
     def get_queryset(self):
-        upcoming_trips = super(ApproveTripsView, self).get_queryset()
+        upcoming_trips = super().get_queryset()
         return upcoming_trips.filter(activity=self.kwargs['activity'])
 
     def dispatch(self, request, *args, **kwargs):
         activity = kwargs.get('activity')
         if not perm_utils.is_chair(request.user, activity):
             raise PermissionDenied
-        return super(ApproveTripsView, self).dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         # No point sorting into current, past (queryset already handles)
-        context = super(ApproveTripsView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         unapproved_trips = self.get_queryset().filter(chair_approved=False)
         context['first_unapproved_trip'] = unapproved_trips.first()
         return context
@@ -1344,7 +1343,7 @@ class LotteryPairingView(CreateView, LotteryPairingMixin):
 
     def get_context_data(self, **kwargs):
         """ Get a list of all other participants who've requested pairing. """
-        context = super(LotteryPairingView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         self.participant = self.request.participant
         context['pair_requests'] = self.pair_requests
         context['is_winter_school'] = is_winter_school()
@@ -1352,7 +1351,7 @@ class LotteryPairingView(CreateView, LotteryPairingMixin):
 
     def get_form_kwargs(self):
         """ Edit existing instance, prevent user from pairing with self. """
-        kwargs = super(LotteryPairingView, self).get_form_kwargs()
+        kwargs = super().get_form_kwargs()
         kwargs['participant'] = self.request.participant
         kwargs['exclude_self'] = True
         try:
@@ -1366,7 +1365,7 @@ class LotteryPairingView(CreateView, LotteryPairingMixin):
         lottery_info = form.save(commit=False)
         lottery_info.participant = participant
         self.add_pairing_messages()
-        return super(LotteryPairingView, self).form_valid(form)
+        return super().form_valid(form)
 
     def add_pairing_messages(self):
         """ Add messages that explain next steps for lottery pairing. """
@@ -1395,7 +1394,7 @@ class LotteryPairingView(CreateView, LotteryPairingMixin):
 
     @method_decorator(user_info_required)
     def dispatch(self, request, *args, **kwargs):
-        return super(LotteryPairingView, self).dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
 
 class DiscountsView(FormView):
@@ -1410,12 +1409,12 @@ class DiscountsView(FormView):
         return models.Discount.objects.filter(available)
 
     def get_form(self, *args, **kwargs):
-        form = super(DiscountsView, self).get_form(*args, **kwargs)
+        form = super().get_form(*args, **kwargs)
         form.fields['discounts'].queryset = self.get_queryset()
         return form
 
     def get_form_kwargs(self):
-        kwargs = super(DiscountsView, self).get_form_kwargs()
+        kwargs = super().get_form_kwargs()
         kwargs['instance'] = self.request.participant
         return kwargs
 
@@ -1427,11 +1426,11 @@ class DiscountsView(FormView):
         msg = ("Discounts updated! Ensure your membership "
                "is active for continued access to discounts.")
         messages.success(self.request, msg)
-        return super(DiscountsView, self).form_valid(discount_form)
+        return super().form_valid(discount_form)
 
     @method_decorator(user_info_required)
     def dispatch(self, request, *args, **kwargs):
-        return super(DiscountsView, self).dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
 
 class LotteryPreferencesView(TemplateView, LotteryPairingMixin):
@@ -1538,7 +1537,7 @@ class LotteryPreferencesView(TemplateView, LotteryPairingMixin):
 
     @method_decorator(user_info_required)
     def dispatch(self, request, *args, **kwargs):
-        return super(LotteryPreferencesView, self).dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
 
 class TripMedical(ItineraryEditableMixin):
@@ -1574,12 +1573,12 @@ class AllTripsMedicalView(ListView, TripMedical, ItineraryEditableMixin):
     form_class = forms.SummaryTripForm
 
     def get_queryset(self):
-        trips = super(AllTripsMedicalView, self).get_queryset().order_by('trip_date')
+        trips = super().get_queryset().order_by('trip_date')
         today = local_date()
         return trips.filter(trip_date__gte=today)
 
     def get_context_data(self, **kwargs):
-        context_data = super(AllTripsMedicalView, self).get_context_data(**kwargs)
+        context_data = super().get_context_data(**kwargs)
         by_trip = (self.get_trip_info(trip) for trip in self.get_queryset())
         all_trips = [(c['trip'], c['participants'], c['cars'], c['info_form'])
                      for c in by_trip]
@@ -1588,7 +1587,7 @@ class AllTripsMedicalView(ListView, TripMedical, ItineraryEditableMixin):
 
     @method_decorator(group_required('WSC', 'WIMP'))
     def dispatch(self, request, *args, **kwargs):
-        return super(AllTripsMedicalView, self).dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
 
 class TripMedicalView(DetailView, TripLeadersOnlyView, TripMedical,
@@ -1632,7 +1631,7 @@ class ChairTripView(ApprovedTripsMixin, TripMedical, DetailView):
         return prev_trip, next_trip
 
     def get_context_data(self, **kwargs):
-        context = super(ChairTripView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context['prev_trip'], context['next_trip'] = self.get_other_trips()
         context['info_form'] = self.get_info_form(context['trip'])
         return context
@@ -1652,7 +1651,7 @@ class ChairTripView(ApprovedTripsMixin, TripMedical, DetailView):
         trip = self.get_object()
         if not perm_utils.is_chair(request.user, trip.activity):
             raise PermissionDenied
-        return super(ChairTripView, self).dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
 
 class TripItineraryView(UpdateView, TripLeadersOnlyView, ItineraryEditableMixin):
@@ -1663,7 +1662,7 @@ class TripItineraryView(UpdateView, TripLeadersOnlyView, ItineraryEditableMixin)
     form_class = forms.TripInfoForm
 
     def get_context_data(self, **kwargs):
-        context_data = super(TripItineraryView, self).get_context_data(**kwargs)
+        context_data = super().get_context_data(**kwargs)
         context_data.update(self.info_form_context(self.trip))
         return context_data
 
@@ -1672,12 +1671,12 @@ class TripItineraryView(UpdateView, TripLeadersOnlyView, ItineraryEditableMixin)
         return {'trip': self.trip}
 
     def get_form_kwargs(self):
-        kwargs = super(TripItineraryView, self).get_form_kwargs()
+        kwargs = super().get_form_kwargs()
         kwargs['instance'] = self.trip.info
         return kwargs
 
     def get_form(self, form_class=None):
-        form = super(TripItineraryView, self).get_form(form_class)
+        form = super().get_form(form_class)
         signups = self.trip.signup_set.filter(on_trip=True)
         on_trip = (Q(pk__in=self.trip.leaders.all()) |
                    Q(signup__in=signups))
@@ -1692,7 +1691,7 @@ class TripItineraryView(UpdateView, TripLeadersOnlyView, ItineraryEditableMixin)
             return self.form_invalid(form)
         self.trip.info = form.save()
         self.trip.save()
-        return super(TripItineraryView, self).form_valid(form)
+        return super().form_valid(form)
 
     def get_success_url(self):
         return reverse('view_trip', args=(self.trip.id,))

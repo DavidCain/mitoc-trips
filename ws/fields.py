@@ -6,5 +6,4 @@ class OptionalOneToOneField(models.OneToOneField):
     def __init__(self, *args, **kwargs):
         null = kwargs.pop('null', True)
         blank = kwargs.pop('blank', True)
-        super(OptionalOneToOneField, self).__init__(*args, null=null,
-                                                    blank=blank, **kwargs)
+        return super().__init__(*args, null=null, blank=blank, **kwargs)

@@ -30,7 +30,7 @@ class SingletonModel(models.Model):
 
     def save(self, *args, **kwargs):
         self.pk = 1
-        super(SingletonModel, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
         pass
@@ -85,7 +85,7 @@ class EmergencyInfo(models.Model):
 
 class LeaderManager(models.Manager):
     def get_queryset(self):
-        all_participants = super(LeaderManager, self).get_queryset()
+        all_participants = super().get_queryset()
         leaders = all_participants.filter(leaderrating__active=True).distinct()
         return leaders.prefetch_related('leaderrating_set')
 
@@ -388,7 +388,7 @@ class SignUp(BaseSignUp):
         """
         if not kwargs.pop('commit', True):
             assert self.trip not in self.participant.trip_set.all()
-        super(SignUp, self).save(**kwargs)
+        super().save(**kwargs)
 
     class Meta:
         # When ordering for an individual, should order by priority (i.e. 'order')
@@ -576,7 +576,7 @@ class Trip(models.Model):
 
 class BygonesManager(models.Manager):
     def get_queryset(self):
-        feedback = super(BygonesManager, self).get_queryset()
+        feedback = super().get_queryset()
         fuggedaboutit = dateutils.local_now() - timedelta(days=390)
 
         return feedback.exclude(trip__trip_date__lt=fuggedaboutit)

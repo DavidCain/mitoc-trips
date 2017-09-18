@@ -51,7 +51,7 @@ class SimpleSignupsView(DetailView):
 
     @method_decorator(user_info_required)
     def dispatch(self, request, *args, **kwargs):
-        return super(SimpleSignupsView, self).dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
 
 class FormatSignupMixin(object):
@@ -234,13 +234,13 @@ class JsonAllParticipantsView(ListView):
 
     @method_decorator(user_info_required)
     def dispatch(self, request, *args, **kwargs):
-        return super(JsonAllParticipantsView, self).dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
 
 class JsonAllLeadersView(AllLeadersView):
     """ Give basic information about leaders, viewable to the public. """
     def get_queryset(self):
-        leaders = super(JsonAllLeadersView, self).get_queryset()
+        leaders = super().get_queryset()
         activity = self.kwargs.get('activity')
         if activity:
             leaders = leaders.filter(leaderrating__activity=activity,
@@ -271,7 +271,7 @@ class JsonAllLeadersView(AllLeadersView):
     # Give leader names and Gravatars to the public
     # (Gravatar URLs hash the email with MD5)
     def dispatch(self, request, *args, **kwargs):
-        return super(AllLeadersView, self).dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
 
 @login_required
@@ -296,21 +296,21 @@ class ApproveTripView(SingleObjectMixin, View):
         trip = self.get_object()
         if not perm_utils.is_chair(request.user, trip.activity, False):
             raise PermissionDenied
-        return super(ApproveTripView, self).dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
 
 class UserView(DetailView):
     model = models.User
 
     def get_queryset(self, *args, **kwargs):
-        queryset = super(UserView, self).get_queryset(*args, **kwargs)
+        queryset = super().get_queryset(*args, **kwargs)
         if not perm_utils.is_leader(self.request.user):
             return queryset.filter(pk=self.request.user.id)
         return queryset
 
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
-        return super(UserView, self).dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
 
 class UserMembershipView(UserView):
@@ -358,7 +358,7 @@ class MembershipStatusesView(View):
 
     @method_decorator(group_required('leaders'))
     def dispatch(self, request, *args, **kwargs):
-        return super(MembershipStatusesView, self).dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
 
 class CheckTripOverflowView(View, SingleObjectMixin):
@@ -369,7 +369,7 @@ class CheckTripOverflowView(View, SingleObjectMixin):
 
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
-        return super(CheckTripOverflowView, self).dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
     def response_dict(self, trip, max_participants):
         """ Returns dictionary giving info about effects on the trip lists."""

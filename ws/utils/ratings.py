@@ -114,7 +114,7 @@ class ApplicationManager(LeaderApplicationMixin, RatingsRecommendationsMixin):
         if 'activity' in kwargs:
             self.activity = kwargs.pop('activity')
 
-        super(ApplicationManager, self).__init__(*args, **kwargs)
+        return super().__init__(*args, **kwargs)
 
     def sorted_applications(self, just_this_year=False):
         """ Sort all applications by order of attention they need. """

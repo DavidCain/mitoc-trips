@@ -25,7 +25,7 @@ class RequiredModelForm(forms.ModelForm):
 class DiscountForm(forms.ModelForm):
     def clean(self):
         """ Ensure the participant meets the requirements for the discount. """
-        super(DiscountForm, self).clean()
+        super().clean()
         participant = self.instance
         discounts = self.cleaned_data['discounts']
 
@@ -58,7 +58,7 @@ class ParticipantForm(DjangularRequiredModelForm):
         # (Will properly trigger a "complete this field" warning)
         if kwargs.get('instance') and len(kwargs['instance'].affiliation) == 1:
             kwargs['instance'].affiliation = ''
-        super(ParticipantForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         verified_emails = user.emailaddress_set.filter(verified=True)
         choices = [email * 2 for email in verified_emails.values_list('email')]
@@ -70,7 +70,7 @@ class ParticipantLookupForm(forms.Form):
     participant = forms.ModelChoiceField(queryset=models.Participant.objects.all())
 
     def __init__(self, *args, **kwargs):
-        super(ParticipantLookupForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         participant_field = self.fields['participant']
         participant_field.help_text = None  # Disable "Hold command..."
         participant_field.label = ''
@@ -132,7 +132,7 @@ class LeaderForm(DjangularRequiredModelForm):
     """ Allows assigning a rating to participants in any allowed activity. """
     def __init__(self, *args, **kwargs):
         allowed_activities = kwargs.pop("allowed_activities", None)
-        super(LeaderForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         all_par = models.Participant.objects.all()
         self.fields['participant'].queryset = all_par
         self.fields['participant'].empty_label = 'Nobody'
@@ -156,7 +156,7 @@ class TripInfoForm(DjangularRequiredModelForm):
                   'return_time', 'worry_time', 'itinerary']
 
     def __init__(self, *args, **kwargs):
-        super(TripInfoForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
 
 class TripForm(DjangularRequiredModelForm):
@@ -209,7 +209,7 @@ class TripForm(DjangularRequiredModelForm):
         want ValidationErrors when trying to modify old trips where a
         leader rating may have lapsed.
         """
-        super(TripForm, self).clean()
+        super().clean()
         activity = self.cleaned_data['activity']
         leaders = self.cleaned_data['leaders']
 
@@ -230,7 +230,7 @@ class TripForm(DjangularRequiredModelForm):
 
     def __init__(self, *args, **kwargs):
         allowed_activities = kwargs.pop("allowed_activities", None)
-        super(TripForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fields['leaders'].queryset = models.Participant.leaders.get_queryset()
         self.fields['leaders'].help_text = None  # Disable "Hold command..."
 
@@ -272,7 +272,7 @@ class SignUpForm(DjangularRequiredModelForm):
         Trips should always be given via initial. We can check if the trip
         has a notes field this way.
         """
-        super(SignUpForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         trip = self.initial.get('trip')
         if trip and trip.notes:
             notes = self.fields['notes']
@@ -298,7 +298,7 @@ class LeaderParticipantSignUpForm(RequiredModelForm):
         widgets = {'notes': forms.Textarea(attrs={'rows': 4})}
 
     def __init__(self, trip, *args, **kwargs):
-        super(LeaderParticipantSignUpForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         non_trip = non_trip_participants(trip)
         self.fields['participant'].queryset = non_trip
         self.fields['participant'].help_text = None  # Disable "Hold command..."
@@ -315,7 +315,7 @@ class LotteryPairForm(DjangularRequiredModelForm):
     def __init__(self, *args, **kwargs):
         participant = kwargs.pop('participant')
         exclude_self = kwargs.pop('exclude_self', False)
-        super(LotteryPairForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         participants = models.Participant.objects.all()
         all_but_user = participants.exclude(pk=participant.pk)
 
@@ -367,7 +367,7 @@ def LeaderApplicationForm(*args, **kwargs):
 
         def __init__(self):
             # TODO: Errors on args, where args is a single tuple of the view
-            #super(DynamicActivityForm, self).__init__(*args, **kwargs)
-            super(DynamicActivityForm, self).__init__(**kwargs)
+            #super().__init__(*args, **kwargs)
+            super().__init__(**kwargs)
 
     return DynamicActivityForm()

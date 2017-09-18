@@ -17,7 +17,7 @@ class MarkdownTextarea(dj_widgets.Textarea):
             attrs.update({'rows': max(4, example_text.count('\n') + 1),
                           'placeholder': example_text})
 
-        super(dj_widgets.Textarea, self).__init__(attrs)
+        return super().__init__(attrs)
 
 
 class BootstrapDateInput(dj_widgets.DateInput):
@@ -42,7 +42,7 @@ class BootstrapDateInput(dj_widgets.DateInput):
         self._set_datepicker_settings()
         self.attrs['data-ng-init'] = "{}=false".format(self.attrs[is_open])
 
-        date_input = super(BootstrapDateInput, self).render(name, value, attrs)
+        date_input = super().render(name, value, attrs)
         return format_html(
             '''<span class="input-group">
                   <span class="input-group-btn">
