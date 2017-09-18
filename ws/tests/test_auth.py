@@ -2,9 +2,9 @@ from urllib.parse import urlparse, parse_qs
 
 import mock
 
-from django.core.urlresolvers import reverse
 from django.contrib.auth.models import Group
 from django.test import Client, TestCase
+from django.urls import reverse
 
 from ws import models
 

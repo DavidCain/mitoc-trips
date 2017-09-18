@@ -5,12 +5,12 @@ from django.db.models import Q
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
-from django.core.urlresolvers import reverse, reverse_lazy
 from django.forms import HiddenInput
 from django.forms.models import model_to_dict
 from django.forms.utils import ErrorList
 from django.http import Http404, JsonResponse, HttpResponseBadRequest
 from django.shortcuts import render, redirect
+from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.generic import (CreateView, DetailView, DeleteView, FormView,
                                   ListView, TemplateView, UpdateView, View)

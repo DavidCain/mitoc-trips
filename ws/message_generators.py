@@ -5,7 +5,7 @@ Functions that take a request, create messages if applicable.
 from datetime import timedelta
 
 from django.contrib import messages
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import escape
 
