@@ -1,4 +1,4 @@
-from django.conf.urls import include, patterns, url
+from django.conf.urls import include, url
 from django.contrib import admin
 from django.conf.urls.static import static
 from django.core.urlresolvers import reverse_lazy
@@ -12,7 +12,7 @@ from ws.decorators import group_required
 
 
 # Access is controlled in views, but URLs are roughly grouped by access
-urlpatterns = patterns('',
+urlpatterns = [
     url(r'^$', views.ProfileView.as_view(), name='home'),
     url(r'^profile/*$', RedirectView.as_view(url=reverse_lazy('home'), permanent=True), name='profile'),
 
@@ -93,12 +93,12 @@ urlpatterns = patterns('',
     # D3-based statistics views
     url(r'^data/trips_by_leader.json', api_views.TripsByLeaderView.as_view(), name='json-trips_by_leader'),
     url(r'^stats/*$', views.StatsView.as_view(), name='stats'),
-)
+]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 if settings.DEBUG:
     import debug_toolbar
-    urlpatterns += patterns('',
+    urlpatterns = [
         url(r'^__debug__/', include(debug_toolbar.urls)),
-    )
+    ] + urlpatterns
