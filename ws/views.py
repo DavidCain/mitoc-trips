@@ -487,14 +487,14 @@ class ProfileView(ParticipantView):
 
 class BaseSignUpView(CreateView, LotteryPairingMixin):
     model = None
-    form_class = None
+    form_class = None  # Will be overridden by children
     template_name = 'trips/signup.html'
 
     @property
     def participant(self):
         return self.request.participant
 
-    def get_form(self, form_class):
+    def get_form(self, form_class=None):
         signup_form = super(BaseSignUpView, self).get_form(form_class)
         signup_form.fields['trip'].widget = HiddenInput()
         return signup_form
@@ -1676,7 +1676,7 @@ class TripItineraryView(UpdateView, TripLeadersOnlyView, ItineraryEditableMixin)
         kwargs['instance'] = self.trip.info
         return kwargs
 
-    def get_form(self, form_class):
+    def get_form(self, form_class=None):
         form = super(TripItineraryView, self).get_form(form_class)
         signups = self.trip.signup_set.filter(on_trip=True)
         on_trip = (Q(pk__in=self.trip.leaders.all()) |
