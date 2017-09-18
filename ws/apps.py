@@ -1,5 +1,4 @@
 from django.apps import AppConfig
-from django.contrib.auth.models import Group
 from django.db.utils import OperationalError, ProgrammingError
 
 
@@ -19,13 +18,14 @@ class TripsConfig(AppConfig):
 
     def load_signals(self):
         try:
-            from . import signals
+            from . import signals  # noQA
         except:
             pass  # Database initialization, etc.
 
     def create_groups(self):
         # Groups don't need Django permissions defined.
         # Their ability to modify models is controlled by access to views
+        from django.contrib.auth.models import Group
         try:
             Group.objects.get_or_create(name='leaders')
             Group.objects.get_or_create(name='users_with_info')
