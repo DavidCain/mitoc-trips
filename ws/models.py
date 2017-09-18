@@ -305,7 +305,7 @@ class BaseRating(models.Model):
 
     time_created = models.DateTimeField(auto_now_add=True)
     participant = models.ForeignKey(Participant)
-    activity = models.CharField(max_length='31', choices=ACTIVITY_CHOICES)
+    activity = models.CharField(max_length=31, choices=ACTIVITY_CHOICES)
     rating = models.CharField(max_length=31)
     notes = models.TextField(max_length=500, blank=True)  # Contingencies, etc.
 
@@ -412,7 +412,7 @@ class TripInfo(models.Model):
 
 
 class Trip(models.Model):
-    activity = models.CharField(max_length='31',
+    activity = models.CharField(max_length=31,
                                 choices=LeaderRating.ACTIVITY_CHOICES,
                                 default=LeaderRating.WINTER_SCHOOL)
     creator = models.ForeignKey(Participant, related_name='created_trips')
@@ -446,11 +446,11 @@ class Trip(models.Model):
     info = OptionalOneToOneField(TripInfo)
 
     signed_up_participants = models.ManyToManyField(Participant, through=SignUp)
-    algorithm = models.CharField(max_length='31', default='lottery',
+    algorithm = models.CharField(max_length=31, default='lottery',
                                  choices=[('lottery', 'lottery'),
                                           ('fcfs', 'first-come, first-serve')])
 
-    lottery_task_id = models.CharField(max_length='36', unique=True, null=True, blank=True)
+    lottery_task_id = models.CharField(max_length=36, unique=True, null=True, blank=True)
     lottery_log = models.TextField(null=True, blank=True)
 
     def __unicode__(self):
