@@ -21,7 +21,7 @@ urlpatterns = [
     url(r'^accounts/', include('allauth.urls')),
 
     # Administrator views
-    url(r'^admin/', include(admin.site.urls)),
+    url(r'^admin/', admin.site.urls),
     url(r'^participants/(?P<pk>\d+)/edit/$', views.EditParticipantView.as_view(), name='edit_participant'),
     url(r'^participants/(?P<pk>\d+)/delete/$', views.DeleteParticipantView.as_view(), name='delete_participant'),
 
