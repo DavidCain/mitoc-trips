@@ -74,7 +74,7 @@ class Migration(migrations.Migration):
                 ('allergies', models.CharField(max_length=255)),
                 ('medications', models.CharField(max_length=255)),
                 ('medical_history', models.TextField(help_text='Anything your trip leader would want to know about.', max_length=2000)),
-                ('emergency_contact', models.OneToOneField(to='ws.EmergencyContact')),
+                ('emergency_contact', models.OneToOneField(to='ws.EmergencyContact', on_delete=models.CASCADE)),
             ],
         ),
         migrations.CreateModel(
@@ -140,8 +140,8 @@ class Migration(migrations.Migration):
                 ('email', models.EmailField(help_text="This will be shared with leaders & other participants. <a href='/accounts/email/'>Change your account email</a>.", unique=True, max_length=254)),
                 ('affiliation', models.CharField(max_length=1, choices=[('S', 'MIT student'), ('M', 'MIT affiliate'), ('N', 'Non-affiliate')])),
                 ('attended_lectures', models.BooleanField(default=False)),
-                ('car', ws.fields.OptionalOneToOneField(null=True, blank=True, to='ws.Car')),
-                ('emergency_info', models.OneToOneField(to='ws.EmergencyInfo')),
+                ('car', ws.fields.OptionalOneToOneField(null=True, blank=True, to='ws.Car', on_delete=models.CASCADE)),
+                ('emergency_info', models.OneToOneField(to='ws.EmergencyInfo', on_delete=models.CASCADE)),
                 ('user_id', models.IntegerField()),
             ],
             options={
@@ -158,7 +158,7 @@ class Migration(migrations.Migration):
                 ('order', models.IntegerField(null=True, blank=True)),
                 ('manual_order', models.IntegerField(null=True, blank=True)),
                 ('on_trip', models.BooleanField(default=False)),
-                ('participant', models.ForeignKey(to='ws.Participant')),
+                ('participant', models.ForeignKey(to='ws.Participant', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['manual_order', 'last_updated'],
@@ -183,7 +183,7 @@ class Migration(migrations.Migration):
                 ('signups_open_at', models.DateTimeField(default=django.utils.timezone.now)),
                 ('signups_close_at', models.DateTimeField(default=ws.utils.dates.wed_morning, null=True, blank=True)),
                 ('algorithm', models.CharField(default='lottery', max_length='31', choices=[('lottery', 'lottery'), ('fcfs', 'first-come, first-serve')])),
-                ('creator', models.ForeignKey(related_name='created_trips', to='ws.Participant')),
+                ('creator', models.ForeignKey(related_name='created_trips', to='ws.Participant', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['-trip_date', '-time_created'],
@@ -206,7 +206,7 @@ class Migration(migrations.Migration):
             name='WaitList',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('trip', models.OneToOneField(to='ws.Trip')),
+                ('trip', models.OneToOneField(to='ws.Trip', on_delete=models.CASCADE)),
             ],
         ),
         migrations.CreateModel(
@@ -215,8 +215,8 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('time_created', models.DateTimeField(auto_now_add=True)),
                 ('manual_order', models.IntegerField(null=True, blank=True)),
-                ('signup', models.OneToOneField(to='ws.SignUp')),
-                ('waitlist', models.ForeignKey(to='ws.WaitList')),
+                ('signup', models.OneToOneField(to='ws.SignUp', on_delete=models.CASCADE)),
+                ('waitlist', models.ForeignKey(to='ws.WaitList', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['-manual_order', 'time_created'],
@@ -230,7 +230,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='trip',
             name='info',
-            field=ws.fields.OptionalOneToOneField(null=True, blank=True, to='ws.TripInfo'),
+            field=ws.fields.OptionalOneToOneField(null=True, blank=True, to='ws.TripInfo', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='trip',
@@ -245,42 +245,42 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='signup',
             name='trip',
-            field=models.ForeignKey(to='ws.Trip'),
+            field=models.ForeignKey(to='ws.Trip', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='lotteryinfo',
             name='paired_with',
-            field=models.ForeignKey(related_name='paired_by', blank=True, to='ws.Participant', null=True),
+            field=models.ForeignKey(related_name='paired_by', blank=True, to='ws.Participant', null=True, on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='lotteryinfo',
             name='participant',
-            field=models.OneToOneField(to='ws.Participant'),
+            field=models.OneToOneField(to='ws.Participant', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='leaderrating',
             name='participant',
-            field=models.ForeignKey(to='ws.Participant'),
+            field=models.ForeignKey(to='ws.Participant', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='leaderapplication',
             name='participant',
-            field=models.OneToOneField(to='ws.Participant'),
+            field=models.OneToOneField(to='ws.Participant', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='feedback',
             name='leader',
-            field=models.ForeignKey(related_name='authored_feedback', to='ws.Participant'),
+            field=models.ForeignKey(related_name='authored_feedback', to='ws.Participant', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='feedback',
             name='participant',
-            field=models.ForeignKey(to='ws.Participant'),
+            field=models.ForeignKey(to='ws.Participant', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='feedback',
             name='trip',
-            field=models.ForeignKey(blank=True, to='ws.Trip', null=True),
+            field=models.ForeignKey(blank=True, to='ws.Trip', null=True, on_delete=models.CASCADE),
         ),
         migrations.AlterField(
             model_name='trip',
@@ -299,8 +299,8 @@ class Migration(migrations.Migration):
                 ('time_created', models.DateTimeField(auto_now_add=True)),
                 ('last_updated', models.DateTimeField(auto_now=True)),
                 ('notes', models.TextField(max_length=1000, blank=True)),
-                ('participant', models.ForeignKey(to='ws.Participant')),
-                ('trip', models.ForeignKey(to='ws.Trip')),
+                ('participant', models.ForeignKey(to='ws.Participant', on_delete=models.CASCADE)),
+                ('trip', models.ForeignKey(to='ws.Trip', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['time_created'],
@@ -382,7 +382,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='leaderrating',
             name='creator',
-            field=models.ForeignKey(related_name='ratings_created', default=1, to='ws.Participant'),
+            field=models.ForeignKey(related_name='ratings_created', default=1, to='ws.Participant', on_delete=models.CASCADE),
             preserve_default=False,
         ),
         migrations.AddField(
@@ -394,7 +394,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='leaderapplication',
             name='participant',
-            field=models.ForeignKey(to='ws.Participant'),
+            field=models.ForeignKey(to='ws.Participant', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='leaderapplication',
@@ -414,8 +414,8 @@ class Migration(migrations.Migration):
                 ('activity', models.CharField(max_length='31', choices=[('biking', 'Biking'), ('boating', 'Boating'), ('cabin', 'Cabin'), ('climbing', 'Climbing'), ('hiking', 'Hiking'), ('winter_school', 'Winter School'), ('circus', 'Circus'), ('official_event', 'Official Event'), ('course', 'Course')])),
                 ('rating', models.CharField(max_length=31)),
                 ('notes', models.TextField(max_length=500, blank=True)),
-                ('creator', models.ForeignKey(related_name='recommendations_created', to='ws.Participant')),
-                ('participant', models.ForeignKey(to='ws.Participant')),
+                ('creator', models.ForeignKey(related_name='recommendations_created', to='ws.Participant', on_delete=models.CASCADE)),
+                ('participant', models.ForeignKey(to='ws.Participant', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['participant'],
@@ -454,7 +454,7 @@ class Migration(migrations.Migration):
                 ('mitoc_experience', models.TextField(help_text='How long have you been a MITOC member? Please indicate what official MITOC hikes and Circuses you have been on. Include approximate dates and locations, number of participants, trail conditions, type of trip, etc. Give details of whether you participated, led, or co-led these trips. [Optional]: If you like, briefly summarize your experience on unofficial trips or experience outside of New England.', max_length=5000, verbose_name='Hiking Experience with MITOC')),
                 ('formal_training', models.TextField(help_text='Please give details of any medical training and qualifications, with dates. Also include any other formal outdoor education or qualifications.', max_length=5000, blank=True)),
                 ('leadership_experience', models.TextField(help_text="If you've been a leader elsewhere, please describe that here. This could include leadership in other collegiate outing clubs, student sports clubs, NOLS, Outward Bound, or AMC; working as a guide, summer camp counselor, or Scout leader; or organizing hikes with friends.", max_length=5000, verbose_name='Group outdoor/leadership experience', blank=True)),
-                ('participant', models.ForeignKey(to='ws.Participant')),
+                ('participant', models.ForeignKey(to='ws.Participant', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['time_created'],
@@ -467,8 +467,8 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('year', models.PositiveIntegerField(default=ws.utils.dates.ws_year, help_text='Winter School year when lectures were attended.', validators=[django.core.validators.MinValueValidator(2016)])),
                 ('time_created', models.DateTimeField(auto_now_add=True)),
-                ('participant', models.ForeignKey(to='ws.Participant')),
-                ('creator', models.ForeignKey(related_name='lecture_attendances_marked', to='ws.Participant')),
+                ('participant', models.ForeignKey(to='ws.Participant', on_delete=models.CASCADE)),
+                ('creator', models.ForeignKey(related_name='lecture_attendances_marked', to='ws.Participant', on_delete=models.CASCADE)),
             ],
         ),
         migrations.AlterField(
@@ -487,7 +487,7 @@ class Migration(migrations.Migration):
                 ('time_created', models.DateTimeField(auto_now_add=True)),
                 ('last_updated', models.DateTimeField(auto_now=True)),
                 ('allow_setting_attendance', models.BooleanField(default=False, verbose_name='Let participants set lecture attendance')),
-                ('last_updated_by', models.ForeignKey(blank=True, to='ws.Participant', null=True)),
+                ('last_updated_by', models.ForeignKey(blank=True, to='ws.Participant', null=True, on_delete=models.CASCADE)),
             ],
             options={
                 'abstract': False,
@@ -569,7 +569,7 @@ class Migration(migrations.Migration):
                 ('notable_climbs', models.TextField(help_text='What are some particularly memorable climbs you have done?', blank=True)),
                 ('favorite_route', models.TextField(help_text='Do you have a favorite route? If so, what is it and why?', blank=True)),
                 ('extra_info', models.TextField(help_text='Is there anything else you would like us to know?', blank=True)),
-                ('participant', models.ForeignKey(to='ws.Participant')),
+                ('participant', models.ForeignKey(to='ws.Participant', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['time_created'],

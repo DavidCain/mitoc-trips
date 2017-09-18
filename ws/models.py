@@ -71,7 +71,7 @@ class EmergencyContact(models.Model):
 
 
 class EmergencyInfo(models.Model):
-    emergency_contact = models.OneToOneField(EmergencyContact)
+    emergency_contact = models.OneToOneField(EmergencyContact, on_delete=models.CASCADE)
     allergies = models.CharField(max_length=255)
     medications = models.CharField(max_length=255)
     medical_history = models.TextField(max_length=2000,
@@ -128,11 +128,11 @@ class Participant(models.Model):
     name = models.CharField(max_length=255)
     cell_phone = PhoneNumberField(null=True, blank=True)  # Hi, Sheep.
     last_updated = models.DateTimeField(auto_now=True)
-    emergency_info = models.OneToOneField(EmergencyInfo)
+    emergency_info = models.OneToOneField(EmergencyInfo, on_delete=models.CASCADE)
     email = models.EmailField(unique=True, help_text=string_concat("This will be shared with leaders & other participants. <a href='",
                                                                    reverse_lazy('account_email'),
                                                                    "'>Manage email addresses</a>."))
-    car = OptionalOneToOneField(Car)
+    car = OptionalOneToOneField(Car, on_delete=models.CASCADE)
 
     # We used to not collect level of student + MIT affiliation
     # Any participants with single-digit affiliation codes have dated status
@@ -240,8 +240,8 @@ class LectureAttendance(models.Model):
     year = models.PositiveIntegerField(validators=[MinValueValidator(2016)],
                                        default=dateutils.ws_year,
                                        help_text="Winter School year when lectures were attended.")
-    participant = models.ForeignKey(Participant)
-    creator = models.ForeignKey(Participant, related_name='lecture_attendances_marked')
+    participant = models.ForeignKey(Participant, on_delete=models.CASCADE)
+    creator = models.ForeignKey(Participant, related_name='lecture_attendances_marked', on_delete=models.CASCADE)
     time_created = models.DateTimeField(auto_now_add=True)
 
 
@@ -252,7 +252,7 @@ class WinterSchoolSettings(SingletonModel):
     """
     time_created = models.DateTimeField(auto_now_add=True)
     last_updated = models.DateTimeField(auto_now=True)
-    last_updated_by = models.ForeignKey(Participant, null=True, blank=True)
+    last_updated_by = models.ForeignKey(Participant, null=True, blank=True, on_delete=models.CASCADE)
     allow_setting_attendance = models.BooleanField(default=False, verbose_name="Let participants set lecture attendance")
 
 
@@ -304,7 +304,7 @@ class BaseRating(models.Model):
     ACTIVITY_CHOICES = CLOSED_ACTIVITY_CHOICES + OPEN_ACTIVITY_CHOICES
 
     time_created = models.DateTimeField(auto_now_add=True)
-    participant = models.ForeignKey(Participant)
+    participant = models.ForeignKey(Participant, on_delete=models.CASCADE)
     activity = models.CharField(max_length=31, choices=ACTIVITY_CHOICES)
     rating = models.CharField(max_length=31)
     notes = models.TextField(max_length=500, blank=True)  # Contingencies, etc.
@@ -328,17 +328,17 @@ class LeaderRating(BaseRating):
     It also allows leaders to function as participants (e.g. if a "SC" leader
     wants to go ice climbing).
     """
-    creator = models.ForeignKey(Participant, related_name='ratings_created')
+    creator = models.ForeignKey(Participant, related_name='ratings_created', on_delete=models.CASCADE)
     active = models.BooleanField(default=True)
 
 
 class LeaderRecommendation(BaseRating):
-    creator = models.ForeignKey(Participant, related_name='recommendations_created')
+    creator = models.ForeignKey(Participant, related_name='recommendations_created', on_delete=models.CASCADE)
 
 
 class BaseSignUp(models.Model):
-    participant = models.ForeignKey(Participant)
-    trip = models.ForeignKey("Trip")
+    participant = models.ForeignKey(Participant, on_delete=models.CASCADE)
+    trip = models.ForeignKey("Trip", on_delete=models.CASCADE)
     time_created = models.DateTimeField(auto_now_add=True)
     last_updated = models.DateTimeField(auto_now=True)
     notes = models.TextField(blank=True, max_length=1000)  # e.g. Answers to questions
@@ -415,7 +415,7 @@ class Trip(models.Model):
     activity = models.CharField(max_length=31,
                                 choices=LeaderRating.ACTIVITY_CHOICES,
                                 default=LeaderRating.WINTER_SCHOOL)
-    creator = models.ForeignKey(Participant, related_name='created_trips')
+    creator = models.ForeignKey(Participant, related_name='created_trips', on_delete=models.CASCADE)
     # Leaders should be privileged at time of trip creation, but may no longer
     # be leaders later (and we don't want to break the relation)
     leaders = models.ManyToManyField(Participant, related_name='trips_led', blank=True)
@@ -443,7 +443,7 @@ class Trip(models.Model):
     honor_participant_pairing = models.BooleanField(default=True,
                                                     help_text="Try to place paired participants together on the trip.")
 
-    info = OptionalOneToOneField(TripInfo)
+    info = OptionalOneToOneField(TripInfo, on_delete=models.CASCADE)
 
     signed_up_participants = models.ManyToManyField(Participant, through=SignUp)
     algorithm = models.CharField(max_length=31, default='lottery',
@@ -587,12 +587,12 @@ class Feedback(models.Model):
     objects = BygonesManager()  # By default, ignore feedback older than ~13 months
     everything = models.Manager()  # But give the option to look at older feedback
 
-    participant = models.ForeignKey(Participant)
-    leader = models.ForeignKey(Participant, related_name="authored_feedback")
+    participant = models.ForeignKey(Participant, on_delete=models.CASCADE)
+    leader = models.ForeignKey(Participant, related_name="authored_feedback", on_delete=models.CASCADE)
     showed_up = models.BooleanField(default=True)
     comments = models.TextField(max_length=2000)
     # Allows general feedback (i.e. not linked to a trip)
-    trip = models.ForeignKey(Trip, null=True, blank=True)
+    trip = models.ForeignKey(Trip, null=True, blank=True, on_delete=models.CASCADE)
     time_created = models.DateTimeField(auto_now_add=True)
 
     def __unicode__(self):
@@ -604,7 +604,7 @@ class Feedback(models.Model):
 
 class LotteryInfo(models.Model):
     """ Persists from week-to-week, but can be changed. """
-    participant = models.OneToOneField(Participant)
+    participant = models.OneToOneField(Participant, on_delete=models.CASCADE)
     car_status = models.CharField(max_length=7,
                                   choices=[("none", "Not driving"),
                                            ("own", "Can drive own car"),
@@ -614,7 +614,7 @@ class LotteryInfo(models.Model):
                                                        validators=[MaxValueValidator(13, message="Do you drive a bus?")])
     last_updated = models.DateTimeField(auto_now=True)
     paired_with = models.ForeignKey(Participant, null=True, blank=True,
-                                    related_name='paired_by')
+                                    related_name='paired_by', on_delete=models.CASCADE)
 
     @property
     def is_driver(self):
@@ -631,8 +631,8 @@ class LotteryInfo(models.Model):
 
 class WaitListSignup(models.Model):
     """ Intermediary between initial signup and the trip's waiting list. """
-    signup = models.OneToOneField(SignUp)
-    waitlist = models.ForeignKey("WaitList")
+    signup = models.OneToOneField(SignUp, on_delete=models.CASCADE)
+    waitlist = models.ForeignKey("WaitList", on_delete=models.CASCADE)
     time_created = models.DateTimeField(auto_now_add=True)
     # Specify to override ordering by time created
     manual_order = models.IntegerField(null=True, blank=True)
@@ -649,7 +649,7 @@ class WaitListSignup(models.Model):
 
 class WaitList(models.Model):
     """ Treat the waiting list as a simple FIFO queue. """
-    trip = models.OneToOneField(Trip)
+    trip = models.OneToOneField(Trip, on_delete=models.CASCADE)
     unordered_signups = models.ManyToManyField(SignUp, through=WaitListSignup)
 
     @property
@@ -679,7 +679,7 @@ class LeaderApplication(models.Model):
 
        <Activity>LeaderApplication (naming matters, see code comments)
     """
-    participant = models.ForeignKey(Participant)
+    participant = models.ForeignKey(Participant, on_delete=models.CASCADE)
     time_created = models.DateTimeField(auto_now_add=True)
     previous_rating = models.CharField(max_length=255, blank=True,
                                        help_text="Previous rating (if any)")
