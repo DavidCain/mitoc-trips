@@ -35,16 +35,8 @@ def profile_needs_update(request):
 
     has_problems = False
 
-    # Non-exhaustive, but captures numbers in database
-    fake_nums = ['000-000-0000', '111-111-1111', '999-999-9999',
-                 '123-456-7890']
-
-    ec_phone = par.emergency_info.emergency_contact.cell_phone
-    if ec_phone in fake_nums or ec_phone.startswith('0'):
-        messages.info(request,
-                      "Please supply a valid North American number for your emergency contact. "
-                      "We intentionally request non-international numbers "
-                      "so that your contact can be easily reached.")
+    if not par.emergency_info.emergency_contact.cell_phone:
+        messages.info(request, "Please supply a valid number for your emergency contact.")
         has_problems = True
     if ' ' not in par.name:
         messages.info(request, "Please supply your full legal name.")
