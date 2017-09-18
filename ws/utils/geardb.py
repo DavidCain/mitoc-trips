@@ -14,14 +14,14 @@ from ws.utils.dates import local_now, local_date
 
 
 def verified_emails(user):
-    if not user or user.is_anonymous():
+    if not user or user.is_anonymous:
         return []
     emails = user.emailaddress_set
     return emails.filter(verified=True).values_list('email', flat=True)
 
 
 def user_membership_expiration(user):
-    if not user or user.is_anonymous():
+    if not user or user.is_anonymous:
         return None
     return membership_expiration(verified_emails(user))
 

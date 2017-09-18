@@ -461,7 +461,7 @@ class ParticipantDetailView(ParticipantView, FormView, DetailView):
 
 class ProfileView(ParticipantView):
     def get(self, request, *args, **kwargs):
-        if request.user.is_anonymous():
+        if request.user.is_anonymous:
             today = local_date()
             current_trips = models.Trip.objects.filter(trip_date__gte=today)
             trips = annotated_for_trip_list(current_trips)

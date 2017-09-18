@@ -100,7 +100,7 @@ class LotteryMessages(object):
 
 def warn_if_needs_update(request):
     """ Create message if Participant info needs update. Otherwise, do nothing. """
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         return
 
     participant = request.participant

@@ -26,7 +26,7 @@ def profile_needs_update(request):
     Create messages indicating the required changes so that the user may
     correct them.
     """
-    if request.user.is_anonymous():
+    if request.user.is_anonymous:
         return False  # We can't be sure until the user logs in
 
     par = request.participant
@@ -91,11 +91,9 @@ def group_required(*group_names, **kwargs):
     def decorator(view_func):
         @wraps(view_func, assigned=available_attrs(view_func))
         def _wrapped_view(request, *args, **kwargs):
-            logged_in = request.user.is_authenticated()
-
             if profile_needs_update(request):
                 next_url = resolve_url(reverse('edit_profile'))
-            elif logged_in and in_groups(request.user):
+            elif request.user.is_authenticated and in_groups(request.user):
                 return view_func(request, *args, **kwargs)
             else:  # Either logged in & missing groups, or not logged in
                 next_url = None

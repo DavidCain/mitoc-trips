@@ -15,20 +15,28 @@ class PrefetchGroupsMiddleware(object):
     method to do the prefetching (we would obviously extend all-auth).
     For now, this cuts down on query time and execution.
     """
-    def process_request(self, request):
-        if request.user.is_authenticated():
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        if request.user.is_authenticated:
             filtered_user = User.objects.filter(pk=request.user.pk)
             request.user = filtered_user.prefetch_related('groups').get()
+        return self.get_response(request)
 
 
 class ParticipantMiddleware(object):
     """ Include the user's participant (used in most views) """
-    def process_request(self, request):
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
         user = request.user
-        if user.is_anonymous():
+        if user.is_anonymous:
             request.participant = None
         else:
             try:
                 request.participant = models.Participant.objects.get(user_id=user.id)
             except ObjectDoesNotExist:
                 request.participant = None
+        return self.get_response(request)

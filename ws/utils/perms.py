@@ -42,7 +42,7 @@ def activity_name(activity):
 
 
 def in_any_group(user, group_names, allow_superusers=True):
-    if user.is_anonymous():
+    if user.is_anonymous:
         return False
 
     if allow_superusers and user.is_superuser:

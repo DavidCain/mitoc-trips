@@ -43,12 +43,13 @@ STATICFILES_FINDERS = (
 LOGIN_REDIRECT_URL = '/'
 ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 
+INSTALLED_APPS = []  # Must be defined by respective configs
 if os.environ.get('WS_TEST_CONFIG'):
-    from .conf.test_settings import *
+    from .conf.test_settings import *  # noQA
 elif os.environ.get('WS_DJANGO_LOCAL'):
-    from .conf.local_settings import *
+    from .conf.local_settings import *  # noQA
 else:
-    from .conf.production_settings import *
+    from .conf.production_settings import *  # noQA
 
 DATABASES = {
     'default': {
@@ -70,6 +71,9 @@ DATABASES = {
     'geardb': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': os.getenv('GEAR_DATABASE_NAME', 'geardb'),
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        },
         'USER': os.getenv('GEAR_DATABASE_USER', 'ws'),
         'PASSWORD': os.getenv('GEAR_DATABASE_PASSWORD', 'password'),
         'HOST': os.getenv('GEAR_DATABASE_HOST', 'localhost'),
@@ -78,7 +82,7 @@ DATABASES = {
 }
 DATABASE_ROUTERS = ['ws.routers.AuthRouter']
 
-MIDDLEWARE_CLASSES = [
+MIDDLEWARE = [
     'django.middleware.gzip.GZipMiddleware',
     'pipeline.middleware.MinifyHTMLMiddleware',
     'djng.middleware.AngularUrlMiddleware',
@@ -93,10 +97,10 @@ MIDDLEWARE_CLASSES = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 if 'debug_toolbar' in INSTALLED_APPS:
-    MIDDLEWARE_CLASSES.append('debug_toolbar.middleware.DebugToolbarMiddleware')
+    MIDDLEWARE.append('debug_toolbar.middleware.DebugToolbarMiddleware')
 if 'corsheaders' in INSTALLED_APPS:
-    MIDDLEWARE_CLASSES.insert(0, 'corsheaders.middleware.CorsMiddleware')
-    MIDDLEWARE_CLASSES.append('django.middleware.common.CommonMiddleware')
+    MIDDLEWARE.insert(0, 'corsheaders.middleware.CorsMiddleware')
+    MIDDLEWARE.append('django.middleware.common.CommonMiddleware')
 
 AUTHENTICATION_BACKENDS = (
     # Needed to login by username in Django admin, regardless of `allauth`
