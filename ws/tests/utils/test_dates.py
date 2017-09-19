@@ -1,11 +1,11 @@
 from datetime import datetime, timedelta
 import mock
-from unittest import TestCase  # Don't need database
+from django.test import SimpleTestCase  # No need for database
 
 from ws.utils import dates as date_utils
 
 
-class DateUtilTests(TestCase):
+class DateUtilTests(SimpleTestCase):
     """ Test the date utilities that lots of lottery logic depends on.
 
     These methods don't depend on models and don't expect any particular

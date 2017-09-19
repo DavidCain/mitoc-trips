@@ -78,10 +78,10 @@ def matching_memberships(emails):
 
     Newer memberships will appear earlier in the results.
     """
-    cursor = connections['geardb'].cursor()
-
     if not emails:  # Passing an empty tuple will cause a SQL error
         return OrderedDict()
+
+    cursor = connections['geardb'].cursor()
 
     # Get the most recent membership and most recent waiver per email
     # It's possible the user has a newer waiver under another email address,

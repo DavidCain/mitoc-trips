@@ -1,15 +1,17 @@
 from datetime import datetime, timedelta
 from collections import OrderedDict
-from django.test import TestCase
 
+from django.test import SimpleTestCase
 import mock
 
 from ws.utils import geardb as geardb_utils
 
 
-class FormatHelpers(TestCase):
+class FormatHelpers(SimpleTestCase):
+    email = 'tim@mit.edu'
+
+    @classmethod
     def setUp(self):
-        self.email = 'tim@mit.edu'
         self.today = datetime.now().date()
         self.yesterday = self.today - timedelta(days=1)
         self.tomorrow = self.today + timedelta(days=1)
