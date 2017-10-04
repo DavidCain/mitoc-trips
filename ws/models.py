@@ -258,6 +258,19 @@ class WinterSchoolSettings(SingletonModel):
     allow_setting_attendance = models.BooleanField(default=False, verbose_name="Let participants set lecture attendance")
 
 
+class MentorActivity(models.Model):
+    """ An activity which can be mentored.
+
+    NOTE: This is _not_ the same as activities for which we have activity
+    chairs (and which one might receive a leader rating). These activities
+    exist as constants on the BaseRating class.
+    """
+    name = models.CharField(max_length=31, unique=True)
+
+    def __unicode__(self):
+        return self.name
+
+
 class BaseRating(models.Model):
     # Activities where you must be rated in order to create/lead a trip
     BIKING = 'biking'
@@ -778,6 +791,13 @@ class WinterSchoolLeaderApplication(LeaderApplication):
                                         help_text="Details about any relevant non-winter experience")
     notes_or_comments = models.TextField(blank=True, max_length=5000,
                                          help_text="Any relevant details, such as any limitations on availability on Tue/Thurs nights or weekends during IAP.")
+
+    mentor_activities = models.ManyToManyField(MentorActivity, blank=True, related_name="activities_mentored",
+                                               verbose_name='Which activities would you like to mentor?',
+                                               help_text="Please select at least one.")
+    mentee_activities = models.ManyToManyField(MentorActivity, blank=True, related_name="mentee_activities",
+                                               verbose_name='For which activities would you like a mentor?',
+                                               help_text="Please select at least one.")
 
 
 class ClimbingLeaderApplication(LeaderApplication):

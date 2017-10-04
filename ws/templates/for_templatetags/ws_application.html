@@ -1,0 +1,75 @@
+{% load form_tags %}
+
+{% form_group form.desired_rating %}
+{% form_group form.taking_wfa %}
+{% form_group form.training %}
+{% form_group form.winter_experience %}
+{% form_group form.other_experience %}
+{% form_group form.notes_or_comments %}
+
+<h3 class="text-center">Mentorship</h3>
+<p>
+Mentoring relationships are a indispensable part of how MITOC members develop
+into awesome leaders. To ensure everyone has an opportunity to make these
+important connections, the Winter School Chairs will match new and experienced
+leaders who indicate interest in this program. Mentor/mentee assignments will
+be announced in advance of the Leaders Retreat.
+
+Email <a href="mailto:ws-chair@mit.edu">ws-chair@mit.edu</a> with questions.
+</p>
+
+<div class="row">
+<div class="col-md-6" id="mentorship">
+  <label for="wants_to_be_mentor">Would you like to serve as a mentor?</label>&nbsp;
+  <div id="wants_to_be_mentor" class="btn-group" role="group" data-ng-required>
+    <label class="btn btn-sm" data-ng-model="mentor" data-ng-class="mentor ? 'btn-primary' : 'btn-default'" data-uib-btn-radio="true">Yes</label>
+    <label class="btn btn-sm" data-ng-model="mentor" data-ng-class="mentor ? 'btn-default' : 'btn-primary'" data-uib-btn-radio="false">No</label>
+  </div>
+  <div data-ng-if="mentor">
+    <h5>Mentor expectations</h5>
+    <ul>
+      <li>Meet your mentee before Winter School begins (ideally at WS retreat)</li>
+      <li>Be responsive to questions from your mentee throughout WS</li>
+      <li>Lead a trip with your mentee in the first weekend of WS*</li>
+      <li>Provide your mentee with constructive feedback about their trip planning, group management, and decision making skills</li>
+      <li>Provide WSC with rating upgrade recommendation as appropriate</li>
+    </ul>
+
+    <p>
+      <small>*Note: Skiing and Ice climbing mentor/mentee pairs can lead their trip on the second weekend.</small>
+    </p>
+
+    {% form_group form.mentor_activities %}
+  </div>
+</div>
+
+
+<div class="col-md-6" id="menteeship">
+  <label for="wants_to_be_mentee">Would you like to be assigned a mentor?</label>&nbsp;
+  <div id="wants_to_be_mentee" class="btn-group" role="group" data-ng-required>
+    <label class="btn btn-sm" data-ng-model="mentee" data-ng-class="mentee ? 'btn-primary' : 'btn-default'" data-uib-btn-radio="true">Yes</label>
+    <label class="btn btn-sm" data-ng-model="mentee" data-ng-class="mentee ? 'btn-default' : 'btn-primary'" data-uib-btn-radio="false">No</label>
+  </div>
+  <div data-ng-if="mentee">
+    <h5>Mentee expectations</h5>
+    <ul>
+      <li>Meet your mentor before Winter School begins (ideally at WS retreat)</li>
+      <li>Be respectful of your mentor’s time by being prepared and prompt with communication</li>
+      <li>Lead a trip with your mentor in the first weekend of WS*</li>
+      <li>Be open and accepting of praise and criticism</li>
+    </ul>
+
+    <p>
+      <small>
+        *Note: Skiing and Ice climbing mentor/mentee pairs can lead their trip
+        on the second weekend. Leaders can be assigned a mentor for any
+        activity in which they receive at least a co-leader rating. Experienced
+        WS hiking leaders who are assigned a co-S or co-I rating can serve as
+        hiking mentors and receive an S or I mentor.
+      </small>
+    </p>
+    {% form_group form.mentee_activities %}
+  </div>
+</div>
+</div>
+<br>

@@ -121,6 +121,16 @@
             <dt>Taking WFA:</dt>
             <dd>{{ application.taking_wfa }}</dd>
 
+            {% if application.mentor_activities.count %}
+              <dt>Wants to mentor:</dt>
+              <dd>{{ application.mentor_activities.all|join:', ' }}</dd>
+            {% endif %}
+
+            {% if application.mentee_activities.count %}
+              <dt>Wants a mentor for:</dt>
+              <dd>{{ application.mentee_activities.all|join:', ' }}</dd>
+            {% endif %}
+
           {% elif application.activity == 'climbing' %}
             <dt>Years climbing</dt>
             <dd>{{ application.years_climbing }} total, {{ application.years_climbing_outside }} outside</dd>

@@ -34,3 +34,8 @@ def application_status(latest_application, can_apply):
     return {'rating_given': latest_application.rating_given,
             'activity': latest_application.activity,
             'can_apply': can_apply}
+
+
+@register.inclusion_tag('for_templatetags/ws_application.html')
+def ws_application(form):
+    return {'form': form}

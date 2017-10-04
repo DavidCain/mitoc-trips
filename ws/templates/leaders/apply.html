@@ -22,7 +22,11 @@
   <hr />
   <form name="{{ form.form_name }}" method="post" action="." novalidate data-submit-if-valid>
     {% csrf_token %}
-    {{ form.as_div }}
+    {% if activity == 'winter_school' %}
+      {% ws_application form %}
+    {% else %}
+      {{ form.as_div }}
+    {% endif %}
     <div class="alert alert-danger" data-ng-cloak data-ng-show="{{ form.form_name }}.$submitted && {{ form.form_name }}.$invalid">
       Please correct the above errors.
     </div>
