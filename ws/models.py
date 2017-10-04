@@ -780,12 +780,12 @@ class WinterSchoolLeaderApplication(LeaderApplication):
                                            ("No", "No"),
                                            ("Maybe", "Maybe/don't know")],
                                   verbose_name="Do you plan on taking the subsidized WFA at MIT?",
-                                  help_text="Save $110 on the course fee by leading two or more trips!")
+                                  help_text="Save $100 on the course fee by leading two or more trips!")
     training = models.TextField(blank=True, max_length=5000,
                                 verbose_name="Formal training and qualifications",
                                 help_text="Details of any medical, technical, or leadership training and qualifications relevant to the winter environment. State the approximate dates of these activities. Leave blank if not applicable.")
     winter_experience = models.TextField(blank=True, max_length=5000,
-                                         help_text="Details of previous winter outdoors experience. Include the type of trip (x-country skiiing, above treeline, snowshoeing, ice climbing, etc), approximate dates and locations, numbers of participants, notable trail and weather conditions. Please also give details of whether you participated, lead, or co-lead these trips.")
+                                         help_text="Details of previous winter outdoors experience. Include the type of trip (x-country skiiing, above treeline, snowshoeing, ice climbing, etc), approximate dates and locations, numbers of participants, notable trail and weather conditions. Please also give details of whether you participated, led, or co-led these trips.")
     other_experience = models.TextField(blank=True, max_length=5000,
                                         verbose_name="Other outdoors/leadership experience",
                                         help_text="Details about any relevant non-winter experience")
