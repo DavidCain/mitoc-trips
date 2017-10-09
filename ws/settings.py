@@ -44,9 +44,7 @@ LOGIN_REDIRECT_URL = '/'
 ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 
 INSTALLED_APPS = []  # Must be defined by respective configs
-if os.environ.get('WS_TEST_CONFIG'):
-    from .conf.test_settings import *  # noQA
-elif os.environ.get('WS_DJANGO_LOCAL'):
+if os.environ.get('WS_DJANGO_LOCAL'):
     from .conf.local_settings import *  # noQA
 else:
     from .conf.production_settings import *  # noQA
