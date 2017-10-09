@@ -70,6 +70,8 @@ def chair_or_admin(user, activity_type):
     any chairs by definition, but we still want to grant admins access as if
     they were activity chairs.
     """
+    # TODO: It's possible that we return `True` on a non-existent activity
+    # Just replace this with the is_chair call with allow_superusers=True
     return True if user.is_superuser else is_chair(user, activity_type, True)
 
 
