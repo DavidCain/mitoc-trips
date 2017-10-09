@@ -1,8 +1,9 @@
-from django.contrib.auth.models import AnonymousUser, User
+from django.contrib.auth.models import AnonymousUser
 from django.test import TestCase
 import mock
 
 from ws.middleware import ParticipantMiddleware
+from ws.tests.helpers import PermHelpers
 
 
 class TestParticipantMiddleware(TestCase):
@@ -14,9 +15,7 @@ class TestParticipantMiddleware(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.user = User.objects.create_user(username='realuser',
-                                            email='real@example.com',
-                                            password='not_important')
+        cls.user = PermHelpers.create_user()
 
     def test_anonymous_user(self):
         """ When the user is anonymous, request.participant is None. """

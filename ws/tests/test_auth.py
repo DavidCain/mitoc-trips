@@ -2,11 +2,11 @@ from urllib.parse import urlparse, parse_qs
 
 import mock
 
-from django.contrib.auth.models import Group
 from django.test import Client, TestCase
 from django.urls import reverse
 
 from ws import models
+from ws.tests.helpers import PermHelpers
 
 
 login_required_routes = [
@@ -25,7 +25,7 @@ login_required_routes = [
 ]
 
 
-class AuthTests(TestCase):
+class AuthTests(PermHelpers, TestCase):
     """ Test user authentication and authorization.
 
     These tests hit a lot of major routes in checking our access control system,
@@ -48,40 +48,14 @@ class AuthTests(TestCase):
     """
     def setUp(self):
         self.client = Client()
+        super().setUp()
 
     @classmethod
     def setUpTestData(cls):
-        cls.password = 'foobar'
-        cls.user = models.User.objects.create_user(
-            username='foo',
-            email='foo@example.com',
-            password=cls.password
-        )
+        cls.user = PermHelpers.create_user()
 
     def login(self):
-        return self.client.login(email=self.user.email, password=self.password)
-
-    def mark_leader(self):
-        """ Mark the user as belonging to the leaders group.
-
-        Note that some views may expect a LeaderRating to be present for the
-        user's Participant object. This is sufficient to pass access control, though.
-        """
-        leaders, _ = Group.objects.get_or_create(name='leaders')
-        leaders.user_set.add(self.user)
-
-    def mark_participant(self):
-        """ Mark the user as having participation information.
-
-        Note that this may not be enough to allow access to participant-only
-        pages. In the cases of bad phone numbers, non-verified emails, or any
-        other state of dated participation info, users will still be rediricted
-        to update their information.
-
-        To disable this redirect, mock `ws.decorators.profile_needs_update`
-        """
-        users_with_info, _ = Group.objects.get_or_create(name='users_with_info')
-        users_with_info.user_set.add(self.user)
+        return self.client.login(email=self.user.email, password=PermHelpers.password)
 
     def assertProfileRedirectedTo(self, response, desired_page):
         """ Check for edit profile redirect on a given response. """
