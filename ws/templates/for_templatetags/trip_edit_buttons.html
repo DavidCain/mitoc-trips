@@ -15,10 +15,10 @@
     <a type="button" class="btn btn-default" href="{% url 'edit_trip' trip.pk %}"   ><i class="fa fa-edit"  ></i>&nbsp;Edit</a>
     <a type="button" class="btn btn-default" href="{% url 'trip_medical' trip.pk %}"><i class="fa fa-medkit"></i>&nbsp;WIMP info</a>
 
-    <a type="button" class="btn btn-default {{ trip.info|yesno:",btn-danger" }}"
-        {% if trip.info %}
-          href="{% url 'trip_itinerary' trip.pk %}"
-        {% else %}
+    <a type="button"
+       class="btn btn-default {{ trip.info|yesno:",btn-danger" }}"
+       href="{% url 'trip_itinerary' trip.pk %}"
+        {% if not trip.info %}
           uib-tooltip="Not yet completed"
         {% endif %}
     ><i class="fa fa-list-alt"></i>&nbsp;Itinerary</a>
