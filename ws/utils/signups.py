@@ -19,17 +19,18 @@ def next_in_order(signup, manual_order=None):
     if signup.on_trip:
         signup.manual_order = manual_order or signup.trip.last_of_priority
         signup.save()
+        return
+
+    try:
+        wl = signup.waitlistsignup
+    except models.WaitListSignup.DoesNotExist:
+        return
     else:
-        try:
-            wl = signup.waitlistsignup
-        except models.WaitListSignup.DoesNotExist:
-            pass
+        if manual_order:
+            wl.manual_order = -manual_order  # See WaitlistSignup.meta
         else:
-            if manual_order:
-                wl.manual_order = -manual_order  # See WaitlistSignup.meta
-            else:
-                wl.manual_order = wl.waitlist.last_of_priority
-            wl.save()
+            wl.manual_order = wl.waitlist.last_of_priority
+        wl.save()
 
 
 def add_to_waitlist(signup, request=None, prioritize=False, top_spot=False):
