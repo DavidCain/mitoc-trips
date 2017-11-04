@@ -1,7 +1,20 @@
 from django.db.models.fields import TextField
 from django import template
+
+from ws import models
+
 register = template.Library()
 
+
+@register.inclusion_tag('for_templatetags/application_summary.html')
+def application_summary(application):
+    previous_ratings = models.LeaderRating.objects.filter(
+        participant=application.participant,
+        activity=application.activity,
+        time_created__lte=application.time_created
+    ).order_by('-active', '-time_created')
+
+    return {'application': application, 'previous_ratings': previous_ratings}
 
 @register.inclusion_tag('for_templatetags/application_details.html')
 def application_details(application):

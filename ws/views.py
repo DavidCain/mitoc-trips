@@ -440,9 +440,10 @@ class ParticipantView(ParticipantLookupView, SingleObjectMixin,
             feedback = feedback.prefetch_related('leader__leaderrating_set')
             context['all_feedback'] = feedback
         context['ratings'] = participant.ratings(rating_active=True)
-        chair_activities = set(perm_utils.chair_activities(user))
-        context['chair_activities'] = [label for (activity, label) in models.LeaderRating.ACTIVITY_CHOICES
-                                       if activity in chair_activities]
+        context['chair_activities'] = [
+            label for (activity, label) in models.LeaderRating.ACTIVITY_CHOICES
+            if activity in set(perm_utils.chair_activities(user))
+        ]
 
         if participant.car:
             context['car_form'] = forms.CarForm(instance=participant.car)
@@ -958,12 +959,6 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):
                          activity=self.activity)
         return models.LeaderRating.objects.filter(find_ratings)
 
-    @property
-    def previous_ratings(self):
-        """ Return ratings, with active & newer ratings ordered first. """
-        ratings = self.par_ratings.filter(time_created__lte=self.object.time_created)
-        return ratings.order_by('-active', '-time_created')
-
     def existing_rating(self):
         return self.par_ratings.filter(active=True).first()
 
@@ -1046,7 +1041,13 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):
         context['leader_form'] = self.get_form()
         context['all_feedback'] = self.get_feedback()
         context['prev_app'], context['next_app'] = self.get_other_apps()
-        context['previous_ratings'] = self.previous_ratings
+
+        participant = self.object.participant
+        context['active_ratings'] = list(participant.ratings(rating_active=True))
+        context['chair_activities'] = [
+            label for (activity, label) in models.LeaderRating.ACTIVITY_CHOICES
+            if activity in set(perm_utils.chair_activities(participant.user))
+        ]
 
         all_trips_led = self.object.participant.trips_led
         trips_led = all_trips_led.filter(self.before_rating, activity=self.activity)
