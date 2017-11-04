@@ -1013,12 +1013,14 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):
     def get_recommendations(self, assigned_rating=None):
         """ Get recommendations made by leaders/chairs for this application.
 
-        If this is a past application, only show recommendations that were
-        made for that application. That is, don't show recommendations created
-        after a rating was assigned based on the application.
+        Only show recommendations that were made for this application. That is,
+        don't show recommendations made before the application was created (they must
+        have pertained to a previous appplication), or those created after a
+        rating was assigned (those belong to a future application).
         """
         match = Q(participant=self.object.participant, activity=self.activity)
-        find_recs = match & self.before_rating
+        rec_after_creation = Q(time_created__gte=self.object.time_created)
+        find_recs = match & self.before_rating & rec_after_creation
         recs = models.LeaderRecommendation.objects.filter(find_recs)
         return recs.select_related('creator')
 
