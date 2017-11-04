@@ -2,7 +2,6 @@ from django.contrib import messages
 from django.db.models import Q
 
 from ws import models
-from ws.utils.dates import local_now
 
 
 def next_in_order(signup, manual_order=None):
@@ -85,9 +84,7 @@ def trip_or_wait(signup, request=None, prioritize=False, top_spot=False,
 
 def update_queues_if_trip_open(trip):
     """ Update queues if the trip is an open, first-come, first-serve trip. """
-    if local_now().date() >= trip.trip_date:
-        return
-    if trip.algorithm == 'fcfs':
+    if trip.signups_open and trip.algorithm == 'fcfs':
         update_signup_queues(trip)
 
 
