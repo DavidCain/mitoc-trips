@@ -1,109 +1,126 @@
-from datetime import datetime, timedelta
-from collections import OrderedDict
+from datetime import timedelta
 
+from django.contrib.auth.models import AnonymousUser
 from django.test import SimpleTestCase
-import mock
 
-from ws.utils import geardb as geardb_utils
+from ws.utils.dates import local_date
+from ws.utils import geardb
 
 
-class FormatHelpers(SimpleTestCase):
-    email = 'tim@mit.edu'
+class NoUserTests(SimpleTestCase):
+    """ Convenience methods neatly handle missing or anonymous users. """
+    def test_expiration_no_emails(self):
+        """ Test users with no email addresses. """
+        self.assertIsNone(geardb.user_membership_expiration(None))
+        self.assertIsNone(geardb.user_membership_expiration(AnonymousUser()))
+
+    def test_verified_email_no_user(self):
+        """ Test users with no email addresses. """
+        self.assertEqual(geardb.verified_emails(AnonymousUser()), [])
+        self.assertEqual(geardb.verified_emails(None), [])
+
+
+class MembershipFormattingTests(SimpleTestCase):
+    email = 'foo@example.com'
 
     @classmethod
-    def setUp(self):
-        self.today = datetime.now().date()
-        self.yesterday = self.today - timedelta(days=1)
-        self.tomorrow = self.today + timedelta(days=1)
+    def setUp(cls):
+        """ Use some convenience dates.
 
-    def _format_membership(self, membership_exp, waiver_exp, email=None):
-        email = email or self.email
-        return geardb_utils.format_membership(email, membership_exp, waiver_exp)
+        All we care about when testing is that the dates are in the past or the
+        future. Create two of each so we can be sure the right date was put
+        into the right part of the response.
+        """
+        cls.future = local_date() + timedelta(days=1)
+        cls.future2 = local_date() + timedelta(days=2)
+        cls.past = local_date() - timedelta(days=1)
+        cls.past2 = local_date() - timedelta(days=2)
 
-    def _check_format(self, person, email=None):
-        """ Ensure formatted memberships adhere to common principles. """
-        self.assertSetEqual(set(person.keys()), {'membership', 'waiver', 'status'})
-        self.assertEqual(person['membership']['email'], email or self.email)
+    def fmt(self, membership_expires=None, waiver_expires=None):
+        return geardb.format_membership(
+            self.email,
+            membership_expires=membership_expires and getattr(self, membership_expires),
+            waiver_expires=waiver_expires and getattr(self, waiver_expires)
+        )
 
-        active = person['membership']['active'] and person['waiver']['active']
-        self.assertEqual(person['status'] == 'Active', active)
-
-
-class TestFormattingMemberships(FormatHelpers):
-    def test_active_membership(self):
-        """ Test active membership and current waiver. """
-        formatted = self._format_membership(self.tomorrow, self.tomorrow)
+    def test_membership_formatting(self):
+        """ Test formatting of a normal, non-expired membership. """
+        formatted = self.fmt(membership_expires='future', waiver_expires='future2')
         expected = {
             'membership': {
-                'expires': self.tomorrow,
+                'expires': self.future,
                 'active': True,
-                'email': self.email,
+                'email': self.email
             },
             'waiver': {
-                'expires': self.tomorrow,
-                'active': True,
+                'expires': self.future2,
+                'active': True
             },
-            'status': 'Active',
+            'status': 'Active'
         }
         self.assertEqual(formatted, expected)
 
-    def expect_status(self, membership_exp, waiver_exp, status):
-        formatted = self._format_membership(membership_exp, waiver_exp)
-        self.assertEqual(formatted['status'], status)
-        self._check_format(formatted)
+    def test_expired(self):
+        """ Check output when both membership and waiver expired. """
+        formatted = self.fmt(membership_expires='past', waiver_expires='past2')
+        expected = {
+            'membership': {
+                'expires': self.past,
+                'active': False,
+                'email': self.email
+            },
+            'waiver': {
+                'expires': self.past2,
+                'active': False
+            },
+            'status': 'Expired'
+        }
+        self.assertEqual(formatted, expected)
 
-    def test_expired_membership(self):
-        """ Report 'Expired' when both membership & waiver missing """
-        self.expect_status(self.yesterday, self.yesterday, 'Expired')
+    def test_bad_waiver(self):
+        """ Check output when membership is valid, but waiver is not. """
+        # First, check an expired waiver
+        formatted = self.fmt(membership_expires='future', waiver_expires='past')
+        expected = {
+            'membership': {
+                'expires': self.future,
+                'active': True,
+                'email': self.email
+            },
+            'waiver': {
+                'expires': self.past,
+                'active': False
+            },
+            'status': 'Waiver Expired'
+        }
+        self.assertEqual(formatted, expected)
 
-    def test_missing_membership(self):
-        """ Test valid waiver, but missing membership. """
-        self.expect_status(self.yesterday, self.tomorrow, 'Missing Membership')
+        # Then, check a missing waiver
+        no_waiver = self.fmt(membership_expires='future', waiver_expires=None)
+        expected['waiver']['expires'] = None
+        expected['status'] = 'Missing Waiver'
+        self.assertEqual(no_waiver, expected)
 
-    def test_missing_waiver(self):
-        """ Test valid membership, but missing waiver. """
-        self.expect_status(self.tomorrow, None, 'Missing Waiver')
+    def test_bad_membership(self):
+        """ Check output when waiver is valid, but membership is not. """
+        # First, check an expired membership
+        formatted = self.fmt(membership_expires='past', waiver_expires='future')
+        expected = {
+            'membership': {
+                'expires': self.past,
+                'active': False,
+                'email': self.email
+            },
+            'waiver': {
+                'expires': self.future,
+                'active': True
+            },
+            'status': 'Missing Membership'
+        }
+        self.assertEqual(formatted, expected)
 
-    def test_expired_waiver(self):
-        """ Test valid membership, but expired waiver. """
-        self.expect_status(self.tomorrow, self.yesterday, 'Waiver Expired')
-
-
-class TestMembershipLookups(FormatHelpers):
-    @mock.patch('ws.utils.geardb.matching_memberships')
-    def test_no_membership_found(self, matching_memberships):
-        matching_memberships.return_value = OrderedDict()
-        emails = ['not.found@example.com', 'no-membership@example.com']
-        self.assertEqual(geardb_utils.repr_blank_membership(),
-                         geardb_utils.membership_expiration(emails))
-
-    def test_no_emails_given(self):
-        """ Test behavior when we're asking for membership under 0 emails. """
-        self.assertEqual(geardb_utils.repr_blank_membership(),
-                         geardb_utils.membership_expiration([]))
-
-    @mock.patch('ws.utils.geardb.matching_memberships')
-    def test_just_most_recent(self, matching_memberships):
-        """ When multiple memberships are found, only newest is used. """
-        match_tuples = []
-
-        # Mock matching_memberships: a list of matches, newest last
-        for i in range(1, 4):
-            email = 'member_{}@example.com'.format(i)
-            expires = self.tomorrow + timedelta(weeks=i)
-            person = self._format_membership(expires, expires, email)
-            match_tuples.append((email, person))
-
-        matches = OrderedDict(match_tuples)
-        matching_memberships.return_value = matches
-        emails = list(matches)
-        newest_membership = match_tuples[-1][1]
-        self.assertEqual(newest_membership,
-                         geardb_utils.membership_expiration(emails))
-
-    def test_empty_emails(self):
-        """ Passing an empty list of emails will return zero matches.
-
-        There's no need to hit the database.
-        """
-        self.assertEqual(OrderedDict(), geardb_utils.matching_memberships([]))
+        # Then, check a missing membership
+        # (Also reported as 'Missing Membership')
+        missing = self.fmt(membership_expires=None, waiver_expires='future')
+        expected['membership']['expires'] = None
+        self.assertEqual(missing, expected)
