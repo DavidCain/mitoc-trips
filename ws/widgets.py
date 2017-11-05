@@ -71,3 +71,12 @@ class ParticipantSelect(dj_widgets.Select):
         final_attrs = self.build_attrs(attrs, name=name)
         output = [format_html('<participant-select {}></participant-select>', flatatt(final_attrs))]
         return mark_safe('\n'.join(output))
+
+
+class PhoneInput(dj_widgets.Input):
+    def render(self, name, value, attrs=None):
+        attrs['bc-phone-number'] = ''
+        attrs['default-country'] = 'us'
+        attrs['preferred-countries'] = 'us ca'
+        attrs['placeholder'] = '+1 617-555-1234'
+        return super(PhoneInput, self).render(name, value, attrs)
