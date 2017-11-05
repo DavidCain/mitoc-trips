@@ -8,6 +8,11 @@ from ws import models
 import ws.utils.dates as dateutils
 
 
+def ws_trips_this_year():
+    jan_1 = dateutils.jan_1()
+    return models.Trip.objects.filter(trip_date__gte=jan_1, activity='winter_school')
+
+
 def ws_lectures_complete():
     """ Return if the mandatory first two lectures have occurred.
 
@@ -20,10 +25,9 @@ def ws_lectures_complete():
     """
     now = dateutils.local_now()
     today = now.date()
-    dow = now.weekday()
-    jan_1 = dateutils.jan_1()
-    trips_this_ws = models.Trip.objects.filter(trip_date__gte=jan_1, activity='winter_school')
+    trips_this_ws = ws_trips_this_year()
 
+    dow = now.weekday()
     after_thursday = dow > 3 or dow == 3 and now.hour >= 21
 
     if trips_this_ws.filter(trip_date__lt=today):
@@ -36,12 +40,9 @@ def ws_lectures_complete():
 
 def missed_lectures(participant, year):
     """ Whether the participant missed WS lectures in the given year. """
-    if year < 2016:  # We lack records for 2014 & 2015; assume present
-        return False
-    absent = not participant.lectureattendance_set.filter(year=year).exists()
+    if year < 2016:
+        return False  # We lack records for 2014 & 2015; assume present
+    if year == dateutils.ws_year() and not ws_lectures_complete():
+        return False  # Lectures aren't over yet, so nobody "missed" lectures
 
-    # If this year's lectures haven't happened yet, don't consider to have missed
-    if year == dateutils.ws_year():
-        return ws_lectures_complete() and absent
-    else:
-        return absent
+    return not participant.lectureattendance_set.filter(year=year).exists()
