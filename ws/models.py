@@ -54,7 +54,7 @@ class Car(models.Model):
                                                    MinValueValidator(year_min)])
     color = models.CharField(max_length=63)
 
-    def __unicode__(self):
+    def __str__(self):
         car_info = "{} {} {} {}".format(self.color, self.year, self.make, self.model)
         registration_info = "-".join([self.license_plate, self.state])
         return "{} ({})".format(car_info, registration_info)
@@ -66,7 +66,7 @@ class EmergencyContact(models.Model):
     relationship = models.CharField(max_length=63)
     email = models.EmailField()
 
-    def __unicode__(self):
+    def __str__(self):
         return "{} ({}): {}".format(self.name, self.relationship, self.cell_phone)
 
 
@@ -77,7 +77,7 @@ class EmergencyInfo(models.Model):
     medical_history = models.TextField(max_length=2000,
                                        help_text="Anything your trip leader would want to know about.")
 
-    def __unicode__(self):
+    def __str__(self):
         return ("Allergies: {} | Medications: {} | History: {} | "
                 "Contact: {}".format(self.allergies, self.medications,
                                      self.medical_history, self.emergency_contact))
@@ -112,7 +112,7 @@ class Discount(models.Model):
     report_leader = models.BooleanField(default=False, help_text="Report MITOC leader status to discount provider")
     report_access = models.BooleanField(default=False, help_text="Report if participant should have leader, student, or admin level access")
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
@@ -229,7 +229,7 @@ class Participant(models.Model):
         since_last_update = timezone.now() - self.last_updated
         return since_last_update.days < settings.MUST_UPDATE_AFTER_DAYS
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -265,7 +265,7 @@ class MentorActivity(models.Model):
     """
     name = models.CharField(max_length=31, unique=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
@@ -309,7 +309,7 @@ class BaseRating(models.Model):
     rating = models.CharField(max_length=31)
     notes = models.TextField(max_length=500, blank=True)  # Contingencies, etc.
 
-    def __unicode__(self):
+    def __str__(self):
         return "{} ({}, {})".format(self.participant, self.rating, self.activity)
 
     class Meta:
@@ -346,7 +346,7 @@ class BaseSignUp(models.Model):
     class Meta:
         abstract = True
 
-    def __unicode__(self):
+    def __str__(self):
         return "{} on {}".format(self.participant.name, self.trip)
 
 
@@ -453,7 +453,7 @@ class Trip(models.Model):
     lottery_task_id = models.CharField(max_length=36, unique=True, null=True, blank=True)
     lottery_log = models.TextField(null=True, blank=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     @property
@@ -595,7 +595,7 @@ class Feedback(models.Model):
     trip = models.ForeignKey(Trip, null=True, blank=True, on_delete=models.CASCADE)
     time_created = models.DateTimeField(auto_now_add=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return '{}: "{}" - {}'.format(self.participant, self.comments, self.leader)
 
     class Meta:
@@ -637,7 +637,7 @@ class WaitListSignup(models.Model):
     # Specify to override ordering by time created
     manual_order = models.IntegerField(null=True, blank=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return "{} waitlisted on {}".format(self.signup.participant.name,
                                             self.signup.trip)
 
@@ -743,7 +743,7 @@ class LeaderApplication(models.Model):
         model = cls.model_from_activity(activity)
         return super(LeaderApplication, cls).__new__(model) if model else None
 
-    def __unicode__(self):
+    def __str__(self):
         return self.participant.name
 
     class Meta:
