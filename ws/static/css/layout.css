@@ -147,6 +147,10 @@ admin-trip-signups .signup-list .signup-summary .label {
 
 
 /* Profile page */
+h3#car label {
+  font-weight: inherit;  /* Kill the bolding that distinguishes it from other headers. */
+}
+
 .profile-photo {
   position: relative;
   display: inline-block;

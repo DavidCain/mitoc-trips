@@ -28,17 +28,19 @@ Edit profile
     {% csrf_token %}
     <div class="row">
         <div class="col-sm-6">
-            <h4 id="personal_info">Personal info</h4>
+            <h3 id="personal_info"><i class="fa fa-user"></i> Personal info</h3>
             {{ participant_form.as_div }}
         </div>
         <div class="col-sm-6">
-            <h4 id="car" class="required"><label for="car_ownership">Do you have a car?</label>
+            <h3 id="car" class="required">
+                <i class="fa fa-car"></i>&nbsp;
+                <label for="car_ownership">Do you have a car?</label>
                 <div id="car_ownership" class="btn-group" role="group" data-ng-init="{{ has_car_checked|yesno:"car.owner=true,car.owner=false," }}" data-ng-required>
                     <label class="btn" data-ng-model="car.owner" data-ng-class="car.owner ? 'btn-primary' : 'btn-default'" data-uib-btn-radio="true">Yes</label>
                     <label class="btn" data-ng-model="car.owner" data-ng-class="car.owner === false ? 'btn-primary' : 'btn-default'" data-uib-btn-radio="false">No</label>
                 </div>
                 <input class="ng-hide" type="checkbox" name="has_car" data-ng-checked="car.owner">
-            </h4>
+            </h3>
             <div data-ng-switch="car.owner" data-ng-cloak>
                 <div data-ng-switch-when="true">
                     {{ car_form.as_div }}
@@ -66,15 +68,30 @@ Edit profile
     <hr>
 
     <div class="row">
-        <div class="col-sm-6">
-            <h4 id="emergency_info">Emergency info</h4>
-            {{ emergency_info_form.as_div }}
-        </div>
+      <div class="col-sm-6">
+        <h3 id="emergency_info"><i class="fa fa-medkit"></i> Emergency info</h3>
+        <p>
+          <strong>You do not have to share anything here.</strong>
+          <a href="{% url 'help-personal_info' %}">Read more on privacy</a>.
+        </p>
+        <p class="small">
+          Information will be passed along to trip leaders and (in the
+          event of an emergency) any medical professionals.
+          Including pertinent medical history here is helpful.
+          Regardless of what you choose to share, we encourage you to
+          always discuss relevant medical issues with your trip leaders.
+        </p>
+        {{ emergency_info_form.as_div }}
+      </div>
 
-        <div class="col-sm-6">
-            <h4 id="emergency_contact">Emergency contact</h4>
-            {{ emergency_contact_form.as_div }}
-        </div>
+      <div class="col-sm-6">
+        <h3 id="emergency_contact"><i class="fa fa-ambulance"></i> Emergency contact</h3>
+        <p>
+          Please consider an alternate person if your primary contact
+          will be on trips with you.
+        </p>
+        {{ emergency_contact_form.as_div }}
+      </div>
     </div>
 
     <div class="alert alert-danger" data-ng-cloak data-ng-show="{{ participant_form.form_name }}.$submitted && {{ participant_form.form_name }}.$invalid">
