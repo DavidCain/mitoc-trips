@@ -30,6 +30,6 @@
     "angular-raven": "^0.6.2",
     "raven-js": "^3.14.0",
     "angular-gravatar": "^0.4.2",
-    "bc-phone-number": "^5.1.1"
+    "bc-phone-number": "https://github.com/DavidCain/bc-phone-number.git#5.1.2"
   }
 }
