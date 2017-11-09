@@ -247,7 +247,7 @@ PIPELINE = {
                 'font-awesome/css/font-awesome.min.css',
                 'bc-phone-number/dist/css/bc-phone-number.css',
                 # Flags are an optional enhancement to the country picker
-                #'bc-css-flags/dist/css/bc-css-flags.css',
+                'bc-css-flags/dist/css/bc-css-flags.css',
             ),
             'output_filename': 'css/app.css',
         }
