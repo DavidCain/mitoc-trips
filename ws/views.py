@@ -784,6 +784,9 @@ class LeaderApplyView(LeaderApplicationMixin, CreateView):
     success_url = reverse_lazy('home')
     form_class = forms.LeaderApplicationForm
 
+    def get_success_url(self):
+        return reverse('become_leader', kwargs={'activity': self.activity})
+
     def get_form_kwargs(self):
         """ Pass the needed "activity" paramater for dynamic form construction. """
         kwargs = super(LeaderApplyView, self).get_form_kwargs()
@@ -805,7 +808,6 @@ class LeaderApplyView(LeaderApplicationMixin, CreateView):
         application.participant = self.par
         rating = self.par.activity_rating(self.activity, rating_active=False)
         application.previous_rating = rating or ''
-        messages.success(self.request, "Leader application received!")
         return super(LeaderApplyView, self).form_valid(form)
 
     def get_context_data(self, **kwargs):
