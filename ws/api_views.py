@@ -13,7 +13,7 @@ from django.utils.decorators import method_decorator
 from allauth.account.models import EmailAddress
 
 from ws import models
-from ws.views import AllLeadersView, ItineraryEditableMixin, TripLeadersOnlyView
+from ws.views import AllLeadersView, TripLeadersOnlyView
 from ws.decorators import chairs_only, group_required, user_info_required
 from ws.templatetags.gravatar import gravatar_url
 
@@ -95,7 +95,7 @@ class FormatSignupMixin(object):
 
 
 class AdminTripSignupsView(SingleObjectMixin, FormatSignupMixin,
-                           TripLeadersOnlyView, ItineraryEditableMixin):
+                           TripLeadersOnlyView):
     model = models.Trip
 
     # TODO: Select related fields

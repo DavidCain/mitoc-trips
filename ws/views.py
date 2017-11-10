@@ -29,7 +29,8 @@ from ws import message_generators
 from ws import tasks
 from ws.templatetags.trip_tags import annotated_for_trip_list
 
-from ws.utils.dates import local_date, local_now, itinerary_available_at, is_winter_school, ws_year
+from ws.utils.dates import (local_date, local_now, is_winter_school, ws_year,
+                            itinerary_available_at)
 from ws.utils.model_dates import ws_lectures_complete
 import ws.utils.perms as perm_utils
 import ws.utils.ratings as ratings_utils
@@ -51,6 +52,7 @@ class LoginAfterPasswordChangeView(PasswordChangeView):
     @property
     def success_url(self):
         return reverse_lazy('account_login')
+
 
 login_after_password_change = login_required(LoginAfterPasswordChangeView.as_view())
 
@@ -580,20 +582,7 @@ class SignUpView(BaseSignUpView):
         return super(SignUpView, self).dispatch(request, *args, **kwargs)
 
 
-class ItineraryEditableMixin(object):
-    def itinerary_available_at(self, trip):
-        return itinerary_available_at(trip.trip_date)
-
-    def info_form_available(self, trip):
-        """ Trip itinerary should only be submitted Friday before or later. """
-        return local_now() >= self.itinerary_available_at(trip)
-
-    def info_form_context(self, trip):
-        available_at = self.itinerary_available_at(trip)
-        return {'info_form_available': self.info_form_available(trip),
-                'available_today': available_at.date() == local_date(),
-                'itinerary_available_at': available_at}
-
+class ItineraryInfoFormMixin(object):
     def get_info_form(self, trip):
         """ Return a stripped form for read-only display.
 
@@ -608,7 +597,7 @@ class ItineraryEditableMixin(object):
         return info_form
 
 
-class TripView(DetailView, ItineraryEditableMixin):
+class TripView(DetailView):
     """ Display the trip to both unregistered users and known participants.
 
     For unregistered users, the page will have minimal information (a description,
@@ -634,7 +623,6 @@ class TripView(DetailView, ItineraryEditableMixin):
     def get_context_data(self, **kwargs):
         context = super(TripView, self).get_context_data()
         trip = self.object
-        context.update(self.info_form_context(trip))
         context['can_admin'] = (
             perm_utils.chair_or_admin(self.request.user, trip.activity) or
             perm_utils.leader_on_trip(self.request.participant, trip, True)
@@ -1543,7 +1531,7 @@ class LotteryPreferencesView(TemplateView, LotteryPairingMixin):
         return super(LotteryPreferencesView, self).dispatch(request, *args, **kwargs)
 
 
-class TripMedical(ItineraryEditableMixin):
+class TripMedical(ItineraryInfoFormMixin):
     def get_cars(self, trip):
         """ Return cars of specified drivers, otherwise all drivers' cars.
 
@@ -1569,7 +1557,7 @@ class TripMedical(ItineraryEditableMixin):
                 'info_form': self.get_info_form(trip)}
 
 
-class AllTripsMedicalView(ListView, TripMedical, ItineraryEditableMixin):
+class AllTripsMedicalView(ListView, TripMedical):
     model = models.Trip
     template_name = 'trips/all/medical.html'
     context_object_name = 'trips'
@@ -1593,8 +1581,7 @@ class AllTripsMedicalView(ListView, TripMedical, ItineraryEditableMixin):
         return super(AllTripsMedicalView, self).dispatch(request, *args, **kwargs)
 
 
-class TripMedicalView(DetailView, TripLeadersOnlyView, TripMedical,
-                      ItineraryEditableMixin):
+class TripMedicalView(DetailView, TripLeadersOnlyView, TripMedical):
     queryset = models.Trip.objects.all()
     template_name = 'trips/medical.html'
 
@@ -1604,7 +1591,6 @@ class TripMedicalView(DetailView, TripLeadersOnlyView, TripMedical,
         context_data = self.get_trip_info(trip)
         context_data['participants'] = trip.signed_up_participants.filter(signup__on_trip=True)
         context_data['info_form'] = self.get_info_form(trip)
-        context_data.update(self.info_form_context(trip))
         return context_data
 
 
@@ -1657,7 +1643,7 @@ class ChairTripView(ApprovedTripsMixin, TripMedical, DetailView):
         return super(ChairTripView, self).dispatch(request, *args, **kwargs)
 
 
-class TripItineraryView(UpdateView, TripLeadersOnlyView, ItineraryEditableMixin):
+class TripItineraryView(UpdateView, TripLeadersOnlyView, ItineraryInfoFormMixin):
     """ A hybrid view for creating/editing trip info for a given trip. """
     model = models.Trip
     context_object_name = 'trip'
@@ -1665,9 +1651,10 @@ class TripItineraryView(UpdateView, TripLeadersOnlyView, ItineraryEditableMixin)
     form_class = forms.TripInfoForm
 
     def get_context_data(self, **kwargs):
-        context_data = super(TripItineraryView, self).get_context_data(**kwargs)
-        context_data.update(self.info_form_context(self.trip))
-        return context_data
+        context = super(TripItineraryView, self).get_context_data(**kwargs)
+        context['itinerary_available_at'] = itinerary_available_at(self.trip.trip_date)
+        context['info_form_available'] = local_now() >= context['itinerary_available_at']
+        return context
 
     def get_initial(self):
         self.trip = self.object  # Form instance will become object
