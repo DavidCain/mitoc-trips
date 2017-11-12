@@ -11,8 +11,9 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import string_concat
 
-from localflavor.us.models import PhoneNumberField
 from localflavor.us.models import USStateField
+from phonenumber_field.modelfields import PhoneNumberField
+
 from ws.fields import OptionalOneToOneField
 import ws.utils.dates as dateutils
 
@@ -126,7 +127,7 @@ class Participant(models.Model):
     objects = models.Manager()
     leaders = LeaderManager()
     name = models.CharField(max_length=255)
-    cell_phone = PhoneNumberField(null=True, blank=True)  # Hi, Sheep.
+    cell_phone = PhoneNumberField(blank=True)  # Hi, Sheep.
     last_updated = models.DateTimeField(auto_now=True)
     emergency_info = models.OneToOneField(EmergencyInfo, on_delete=models.CASCADE)
     email = models.EmailField(unique=True, help_text=string_concat("This will be shared with leaders & other participants. <a href='",

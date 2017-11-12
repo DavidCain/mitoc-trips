@@ -37,6 +37,7 @@ footer a {
 
 /* Override Bootstrap styling for more consistent appearance */
 participant-select.form-control,
+bc-phone-number.form-control,
 leader-select.form-control {
   display: inline-block; /* Stops leaders from wrapping beyond block bounds */
   border: 0px;
@@ -81,6 +82,7 @@ form .ng-invalid.ng-dirty .ui-select-container.ui-select-multiple {
   border-color: #e9322d;
 }
 
+form bc-phone-number.ng-invalid.ng-dirty .form-control[type="tel"],
 form .ng-invalid.ng-dirty .ui-select-container:not(.ui-select-multiple) .ui-select-toggle {
   border-color: #e9322d !important;
 }
@@ -147,6 +149,10 @@ admin-trip-signups .signup-list .signup-summary .label {
 
 
 /* Profile page */
+h3#car label {
+  font-weight: inherit;  /* Kill the bolding that distinguishes it from other headers. */
+}
+
 .profile-photo {
   position: relative;
   display: inline-block;

@@ -71,3 +71,15 @@ class ParticipantSelect(dj_widgets.Select):
         final_attrs = self.build_attrs(attrs, name=name)
         output = [format_html('<participant-select {}></participant-select>', flatatt(final_attrs))]
         return mark_safe('\n'.join(output))
+
+
+class PhoneInput(dj_widgets.Input):
+    def render(self, name, value, attrs=None):
+        attrs['default-country'] = 'us'
+        attrs['preferred-countries'] = 'us ca'
+        final_attrs = self.build_attrs(attrs, name=name)
+        # Use a hack to init ng-model
+        ng_model_init = {'ng-model': final_attrs['ng-model'], 'value': value}
+        return format_html('<input type="hidden" {}/>' +
+                           '<bc-phone-number {}></bc-phone-number>',
+                           flatatt(ng_model_init), flatatt(final_attrs))

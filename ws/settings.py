@@ -210,6 +210,12 @@ other_libs = ['lodash/dist/lodash.js',
               'angular-sanitize/angular-sanitize.js',
               'angular-ui-sortable/sortable.js',
               'js/ui-bootstrap-tpls-0.14.3.js',
+
+              # Libraries to support international phone numbers
+              'google-libphonenumber/dist/browser/libphonenumber.js',
+              'digits-trie/dist/digits-trie.js',
+              'bc-countries/dist/bc-countries.js',
+              'bc-phone-number/dist/js/bc-phone-number.js'
               ]
 
 local_js = ['js/ws/*.js', 'js/footable_breakpoints.js']
@@ -241,6 +247,9 @@ PIPELINE = {
                 'bootstrap/dist/css/bootstrap.min.css',
                 'angular-ui-select/dist/select.min.css',
                 'font-awesome/css/font-awesome.min.css',
+                'bc-phone-number/dist/css/bc-phone-number.css',
+                # Flags are an optional enhancement to the country picker
+                'bc-css-flags/dist/css/bc-css-flags.css',
             ),
             'output_filename': 'css/app.css',
         }

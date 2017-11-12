@@ -27,6 +27,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.sites',
     'localflavor',
+    'phonenumber_field',
     'allauth',
     'allauth.account',
     'djng',

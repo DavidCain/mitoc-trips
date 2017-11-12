@@ -77,12 +77,16 @@ def unapproved_trip_count(activity):
 
 @register.inclusion_tag('for_templatetags/trip_edit_buttons.html')
 def trip_edit_buttons(trip, participant, user, hide_approve=False):
+    available_at = date_utils.itinerary_available_at(trip.trip_date)
     return {
         'trip': trip,
         'is_chair': perm_utils.chair_or_admin(user, trip.activity),
         'is_creator': trip.creator == participant,
         'is_trip_leader': perm_utils.leader_on_trip(participant, trip, False),
-        'hide_approve': hide_approve  # Hide approval even if user is a chair
+        'hide_approve': hide_approve,  # Hide approval even if user is a chair
+        'itinerary_available_at': available_at,
+        'available_today': available_at.date() == date_utils.local_date(),
+        'info_form_available': date_utils.local_now() >= available_at
     }
 
 
