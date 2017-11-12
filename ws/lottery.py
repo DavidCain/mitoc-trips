@@ -130,10 +130,12 @@ class LotteryRunner:
 
 class SingleTripLotteryRunner(LotteryRunner):
     def __init__(self, trip):
-        random_signups = trip.signup_set.order_by('?')
-        self.ranked_participants = [s.participant for s in random_signups]
         self.trip = trip
         super().__init__()
+
+    @property
+    def ranked_participants(self):
+        return [s.participant for s in self.trip.signup_set.order_by('?')]
 
     def __call__(self):
         if self.trip.algorithm != 'lottery':

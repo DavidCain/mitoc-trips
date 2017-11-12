@@ -1,4 +1,5 @@
 import mock
+import itertools
 
 from ws import lottery
 from ws import models
@@ -140,3 +141,117 @@ class FlakeFactorTests(SimpleTestCase):
 
         # Each trip counts as 5 points (a flake on each)
         self.assertEqual(self.ranker.get_flake_factor(par), 5 * len(self.trip_mapper))
+
+
+class ParticipantRankingTests(SimpleTestCase):
+    """ Test the logic by which we determine users with "first pick" status. """
+    def setUp(self):
+        number_ws_trips = mock.patch('ws.lottery.WinterSchoolParticipantRanker.number_ws_trips')
+        get_flake_factor = mock.patch('ws.lottery.WinterSchoolParticipantRanker.get_flake_factor')
+
+        number_ws_trips.start()
+        get_flake_factor.start()
+        self.addCleanup(number_ws_trips.stop)
+        self.addCleanup(get_flake_factor.stop)
+
+        # (Mocked-out methods accessible at self.ranker.<method_name>)
+        self.ranker = lottery.WinterSchoolParticipantRanker()
+
+    def expect_ranking(self, *participants):
+        """ Any permutation of participant ordering results in the same output. """
+        for permutation in itertools.permutations(participants):
+            ranked = sorted(permutation, key=self.ranker.priority_key)
+            self.assertEqual(list(participants), ranked)
+
+    def test_flaking(self):
+        """ Those who flake on trips always come last. """
+        # Flaking participant is an MIT undergrad (would normally get priority)
+        serial_flaker = models.Participant(affiliation='MU')
+        flaked_once = models.Participant(affiliation='MG')
+        reliable = models.Participant(affiliation='NA')
+
+        def mock_trip_count(participant):
+            """ Reliable participant has been on more trips, but is reliable. """
+            if participant is flaked_once:
+                return 1
+            elif participant is serial_flaker:
+                return 3
+            elif participant is reliable:
+                return 5
+
+        def mock_flake_factor(participant):
+            if participant is flaked_once:
+                return 5
+            elif participant is serial_flaker:
+                return 15
+            elif participant is reliable:
+                return -10
+
+        self.ranker.number_ws_trips.side_effect = mock_trip_count
+        self.ranker.get_flake_factor.side_effect = mock_flake_factor
+
+        self.expect_ranking(reliable, flaked_once, serial_flaker)
+
+    def test_affiliation(self):
+        """ All else held equal, priority is given to MIT affiliates. """
+        self.ranker.get_flake_factor.return_value = 0
+        self.ranker.number_ws_trips.return_value = 2
+
+        mit_undergrad = models.Participant(affiliation='MU')
+        mit_grad = models.Participant(affiliation='MG')
+        mit_affiliate = models.Participant(affiliation='MA')
+
+        # Within MIT, preference is given to students
+        self.expect_ranking(mit_undergrad, mit_grad, mit_affiliate)
+
+        harvard_undergrad = models.Participant(affiliation='NU')
+        harvard_grad = models.Participant(affiliation='NG')
+        non_affiliate = models.Participant(affiliation='NA')
+
+        # Outside MIT, preference is still given to students
+        self.expect_ranking(harvard_undergrad, harvard_grad, non_affiliate)
+
+        # Test the full hierarchy
+        self.expect_ranking(mit_undergrad, mit_grad, mit_affiliate,
+                            harvard_undergrad, harvard_grad, non_affiliate)
+
+    def test_more_trips(self):
+        """ All else held equal, participants with fewer trips get priority. """
+        # Both participants are MIT undergraduates, equally likely to flake
+        novice = models.Participant(affiliation='MU')
+        veteran = models.Participant(affiliation='MU')
+        self.ranker.get_flake_factor.return_value = 0
+
+        # Key difference: novice has been on fewer trips
+        def mock_trip_count(participant):
+            return 5 if participant is veteran else 1
+        self.ranker.number_ws_trips.side_effect = mock_trip_count
+
+        # Novice is given higher ranking
+        self.expect_ranking(novice, veteran)
+
+    def test_sort_key_randomness(self):
+        """ We break ties with a random value. """
+        tweedle_dee = models.Participant(affiliation='NG')
+        tweedle_dum = models.Participant(affiliation='NG')
+
+        self.ranker.get_flake_factor.return_value = -2
+        self.ranker.number_ws_trips.return_value = 3
+
+        dee_key = self.ranker.priority_key(tweedle_dee)
+        dum_key = self.ranker.priority_key(tweedle_dum)
+        self.assertNotEqual(dee_key, dum_key)
+
+        self.assertEqual(dee_key[:-1], dum_key[:-1])
+
+
+class SingleTripLotteryTests(SimpleTestCase):
+    @mock.patch.object(models.Trip, 'save')
+    def test_fcfs_not_run(self, save_trip):
+        """ If a trip's algorithm is not 'lottery', nothing happens. """
+        trip = models.Trip(algorithm='fcfs')
+        runner = lottery.SingleTripLotteryRunner(trip)
+
+        trip.algorithm = 'fcfs'
+        runner()  # Early exits because it's not a lottery trip
+        save_trip.assert_not_called()
