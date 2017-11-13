@@ -54,7 +54,7 @@ class SimpleSignupsView(DetailView):
         return super().dispatch(request, *args, **kwargs)
 
 
-class FormatSignupMixin(object):
+class FormatSignupMixin:
     def describe_signup(self, signup):
         """ Yield everything used in the participant-selecting modal."""
         par = signup.participant

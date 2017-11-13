@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from ws import models
 
 
-class PrefetchGroupsMiddleware(object):
+class PrefetchGroupsMiddleware:
     """ Prefetch the user's groups for use in the requset.
 
     We do a lot of group-centric logic - if the user's groups aren't
@@ -24,7 +24,7 @@ class PrefetchGroupsMiddleware(object):
         return self.get_response(request)
 
 
-class ParticipantMiddleware(object):
+class ParticipantMiddleware:
     """ Include the user's participant (used in most views) """
     def __init__(self, get_response):
         self.get_response = get_response

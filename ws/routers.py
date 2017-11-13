@@ -11,7 +11,7 @@ def is_auth(obj):
     return label_is_auth(obj._meta.app_label)
 
 
-class AuthRouter(object):
+class AuthRouter:
     """
     A router to control all database operations on models in the
     auth application.

@@ -14,7 +14,7 @@ from ws.utils.dates import local_date, is_winter_school
 import ws.utils.perms
 
 
-class LotteryMessages(object):
+class LotteryMessages:
     """ Supply messages relating to lottery status of one participant. """
     WARN_AFTER_DAYS_OLD = 5  # After these days, remind of lottery status
 

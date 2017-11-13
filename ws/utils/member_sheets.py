@@ -47,7 +47,7 @@ def grouper(iterable, n, fillvalue=None):
     return zip_longest(*args, fillvalue=fillvalue)
 
 
-class SheetWriter(object):
+class SheetWriter:
     """ Utility methods for formatting a row in discount worksheets. """
 
     # Use constants to refer to columns

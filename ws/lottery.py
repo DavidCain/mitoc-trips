@@ -35,7 +35,7 @@ def place_on_trip(signup):
     signup.save()
 
 
-class WinterSchoolParticipantRanker(object):
+class WinterSchoolParticipantRanker:
     def __init__(self):
         self.today = local_date()
         self.jan_1st = jan_1()
@@ -105,7 +105,7 @@ class WinterSchoolParticipantRanker(object):
         return max(non_drivers, key=lambda signup: self.priority_key(signup.participant))
 
 
-class LotteryRunner(object):
+class LotteryRunner:
     def __init__(self):
         self.participants_handled = {}  # Key: primary keys, gives boolean if handled
 
@@ -180,7 +180,7 @@ class WinterSchoolLotteryRunner(LotteryRunner):
             print()
 
 
-class ParticipantHandler(object):
+class ParticipantHandler:
     """ Class to handle placement of a single participant or pair. """
     is_driver_q = Q(participant__lotteryinfo__car_status__in=['own', 'rent'])
 

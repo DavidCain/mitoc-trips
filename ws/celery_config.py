@@ -10,6 +10,7 @@ from django.apps import apps
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ws.settings')
 RAVEN_DSN = os.getenv('RAVEN_DSN')
 
+
 class Celery(celery.Celery):
     def on_configure(self):
         if not RAVEN_DSN:
@@ -22,6 +23,7 @@ class Celery(celery.Celery):
 
         # hook into the Celery error handler
         register_signal(client)
+
 
 app = Celery('ws')
 

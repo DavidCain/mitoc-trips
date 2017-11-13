@@ -1,7 +1,7 @@
 from django.contrib.auth.models import Group, User
 
 
-class PermHelpers(object):
+class PermHelpers:
     multi_db = True  # Make sure transactions are used on all databases
     # Default TestCase behavior is to only use transactions in 'default'
     # See the AuthRouter - most changes relating to users occur in `auth_db`
