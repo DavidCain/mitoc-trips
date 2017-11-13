@@ -440,9 +440,11 @@ class ParticipantView(ParticipantLookupView, SingleObjectMixin,
             feedback = feedback.prefetch_related('leader__leaderrating_set')
             context['all_feedback'] = feedback
         context['ratings'] = participant.ratings(rating_active=True)
+
+        chair_activities = set(perm_utils.chair_activities(user))
         context['chair_activities'] = [
             label for (activity, label) in models.LeaderRating.ACTIVITY_CHOICES
-            if activity in set(perm_utils.chair_activities(user))
+            if activity in chair_activities
         ]
 
         if participant.car:
