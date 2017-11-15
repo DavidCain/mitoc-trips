@@ -79,6 +79,7 @@ urlpatterns = patterns('',
     url(r'^help/participants/leading_trips/$', TemplateView.as_view(template_name='help/participants/leading_trips.html'), name='help-leading_trips'),
     url(r'^help/leaders/feedback/$', group_required('leaders', 'WSC')(TemplateView.as_view(template_name='help/leaders/feedback.html')), name='help-feedback'),
     url(r'^help/leaders/trip_admin/$', group_required('leaders', 'WSC')(TemplateView.as_view(template_name='help/leaders/trip_admin.html')), name='help-trip_admin'),
+    url(r'^help/leaders/ws_ratings/$', group_required('leaders', 'WSC')(TemplateView.as_view(template_name='help/leaders/ws_ratings.html')), name='help-ws_ratings'),
     url(r'^help/wsc/wsc/$', group_required('WSC')(TemplateView.as_view(template_name='help/wsc/wsc.html')), name='help-wsc'),
 
     # API (must have account in system)
