@@ -38,6 +38,7 @@ import ws.utils.signups as signup_utils
 
 
 class TripLeadersOnlyView(View):
+    @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         """ Only allow creator, leaders of the trip, and chairs. """
         trip = self.get_object()
@@ -891,6 +892,7 @@ class AllLeaderApplicationsView(ApplicationManager, ListView):
 
         return context
 
+    @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         activity = kwargs.get('activity')
         if not perm_utils.chair_or_admin(request.user, activity):
@@ -1316,6 +1318,7 @@ class ApproveTripsView(UpcomingTripsView):
         upcoming_trips = super(ApproveTripsView, self).get_queryset()
         return upcoming_trips.filter(activity=self.kwargs['activity'])
 
+    @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         activity = kwargs.get('activity')
         if not perm_utils.is_chair(request.user, activity):
@@ -1640,6 +1643,7 @@ class ChairTripView(ApprovedTripsMixin, TripMedical, DetailView):
         else:
             return redirect(reverse('manage_trips', args=(self.activity,)))
 
+    @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         trip = self.get_object()
         if not perm_utils.is_chair(request.user, trip.activity):
