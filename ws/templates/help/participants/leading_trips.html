@@ -17,20 +17,7 @@
   <h4>How do ratings work?</h4>
   <p>All leaders are assigned a location rating along with any applicable activity ratings.</p>
 
-  <h5>Ratings by Location</h5>
-
-  <ul>
-    <li><strong>A</strong>: less than one hour from intensive care (ski resorts, short hikes from the road, et cetera)</li>
-    <li><strong>B</strong>: anything below treeline more than one hour from intensive care</li>
-    <li><strong>C</strong>: above treeline</li>
-  </ul>
-
-  <h5>Ratings by Activity</h5>
-
-  <ul>
-    <li><strong>I</strong>: ice climbing</li>
-    <li><strong>S</strong>: telemark/backcountry skiing</li>
-  </ul>
+  {% include 'snippets/ws_ratings.html' %}
 
   <p>
   Activity ratings are subordinate to location ratings: a {B, S} leader can only lead ski mountaineering trips below treeline.

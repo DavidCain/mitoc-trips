@@ -11,6 +11,7 @@ from django.dispatch import receiver
 from ws.celery_config import app
 from ws.models import LeaderSignUp, SignUp, WaitList, WaitListSignup, Trip
 from ws.utils.dates import local_date
+from ws import sentry
 from ws.utils.signups import trip_or_wait, update_queues_if_trip_open
 from ws import tasks
 
@@ -155,10 +156,15 @@ def add_lottery_task(sender, instance, created, raw, using, update_fields, **kwa
 
     if trip.activity == 'winter_school':
         return  # Winter School lotteries are handled separately
+    if trip.lottery_task_id or trip.algorithm != 'lottery':
+        return  # Only new lottery trips get a new task
 
-    if trip.algorithm == 'lottery' and trip.lottery_task_id is None:
+    try:
         task_id = tasks.run_lottery.apply_async((trip.pk, None),
                                                 eta=trip.signups_close_at)
+    except OSError:
+        sentry.message("Failed to make lottery task", {'trip_pk': trip.pk})
+    else:
         trip.lottery_task_id = task_id
         # Use update() to avoid repeated signal on post_save
         sender.objects.filter(pk=trip.pk).update(lottery_task_id=task_id)

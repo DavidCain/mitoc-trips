@@ -36,6 +36,7 @@ import ws.utils.signups as signup_utils
 
 
 class TripLeadersOnlyView(View):
+    @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         """ Only allow creator, leaders of the trip, and chairs. """
         trip = self.get_object()
@@ -851,17 +852,6 @@ class ApprovedTripsMixin(object):
         return context
 
 
-class ManageTripsView(ApprovedTripsMixin, ListView):
-    model = models.Trip
-    template_name = 'chair/trips/all.html'
-
-    def dispatch(self, request, *args, **kwargs):
-        activity = kwargs.get('activity')
-        if not perm_utils.chair_or_admin(request.user, activity):
-            raise PermissionDenied
-        return super().dispatch(request, *args, **kwargs)
-
-
 class AllLeaderApplicationsView(ApplicationManager, ListView):
     context_object_name = 'leader_applications'
     template_name = 'chair/applications/all.html'
@@ -888,6 +878,7 @@ class AllLeaderApplicationsView(ApplicationManager, ListView):
 
         return context
 
+    @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         activity = kwargs.get('activity')
         if not perm_utils.chair_or_admin(request.user, activity):
@@ -1313,6 +1304,7 @@ class ApproveTripsView(UpcomingTripsView):
         upcoming_trips = super().get_queryset()
         return upcoming_trips.filter(activity=self.kwargs['activity'])
 
+    @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         activity = kwargs.get('activity')
         if not perm_utils.is_chair(request.user, activity):
@@ -1638,6 +1630,7 @@ class ChairTripView(ApprovedTripsMixin, TripMedical, DetailView):
         else:
             return redirect(reverse('manage_trips', args=(self.activity,)))
 
+    @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         trip = self.get_object()
         if not perm_utils.is_chair(request.user, trip.activity):

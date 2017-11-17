@@ -100,4 +100,4 @@ user_info_required = group_required('users_with_info', allow_superusers=False,
                                     redir_url=reverse_lazy('edit_profile'))
 
 admin_only = user_passes_test(lambda u: u.is_superuser,
-                              login_url=reverse_lazy('admin:login'))
+                              login_url=reverse_lazy('account_login'))
