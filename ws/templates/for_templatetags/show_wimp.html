@@ -1,0 +1,24 @@
+{% load avatar_tags %}
+
+<div class="media">
+  <div class="media-left">
+    {{ participant|avatar:100 }}
+  </div>
+  <div class="media-body">
+    <h4 class="media-heading">{{ participant.name }}</h4>
+    <ul class="list-unstyled">
+      {% if participant.cell_phone %}
+        {# A WIMP should _really_ have a mobile phone #}
+        <li><i class="fa fa-fw fa-mobile"></i>{{ participant.cell_phone }}</li>
+      {% endif %}
+      <li>
+        <i class="fas fa-fw fa-envelope"></i>
+        <a href="mailto:wimp@mit.edu">wimp@mit.edu</a>
+      </li>
+      <li>
+        <i class="far fa-fw fa-envelope"></i>
+        <a href="mailto:{{ participant.email }}">{{ participant.email }}</a>
+      </li>
+    </ul>
+  </div>
+</div>

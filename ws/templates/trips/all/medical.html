@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load signup_tags %}
 {% load form_tags %}
+{% load medical_tags %}
 
 {% block head_title %}WIMP Information Sheet {% endblock head_title %}
 
@@ -10,18 +11,45 @@
 {% include "snippets/phi_omitted_notice.html" %}
 
 
-<h1>WIMP Information Sheet</h1>
-<p>This page contains all known medical information for trips taking place on or after {% now "DATE_FORMAT" %}.</p>
+<div class="row">
+  <div class="col-md-8">
+    <h1>WIMP Information Sheet</h1>
+    <p>
+      This page contains all known medical information for trips taking place
+      on or after {% now "DATE_FORMAT" %}.
+    </p>
+    <p>
+      It is intended as a comprehensive sheet for the "Worry If Missing Person,"
+      otherwise known as the WIMP.
+    </p>
 
-<p>It is intended as a comprehensive sheet for the "Worry If Missing Person," otherwise known as the WIMP.</p>
+    <h3>Drivers</h3>
+    <p>
+      When leaders submit trip itinerary, they specify the designated drivers,
+      and only those drivers will appear in the trip's summary below.
+    </p>
 
-<h3>Drivers</h3>
-<p>When leaders submit trip itinerary, they specify the designated drivers,
-and only those drivers will appear in the trip's summary below.</p>
+    <p>
+      If trip leaders failed to submit itinerary, then the driver table
+      will include all trip participants that submitted car information.
+      It may not represent who's actually driving for the trip.
+    </p>
+  </div>
 
-<p>If trip leaders failed to submit itinerary, then the driver table
-will include all trip participants that submitted car information.
-It may not represent who's actually driving for the trip.</p>
+  <div class="col-md-4">
+    <h3>Current WIMP</h3>
+    {% for participant in wimps %}
+      {% show_wimp participant %}
+
+      {% if not forloop.last %}
+        {% if forloop.counter == 1 %}
+          {# We should only have one WIMP at a time, but handle possibility that there are others. #}
+          <h3>Other Active WIMPs</h3>
+        {% endif %}
+      {% endif %}
+    {% endfor %}
+  </div>
+</div>
 
 <hr>
 

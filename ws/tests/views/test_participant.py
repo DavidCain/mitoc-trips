@@ -1,12 +1,88 @@
-from datetime import datetime
+from datetime import date, datetime
 from unittest import mock
 
 import pytz
 from bs4 import BeautifulSoup
+from django.contrib.auth.models import Group
 from freezegun import freeze_time
 
-from ws import models, tasks
+import ws.utils.perms as perm_utils
+from ws import enums, models, tasks
 from ws.tests import TestCase, factories
+
+
+@freeze_time("2020-01-12 09:00:00 EST")
+class WimpDisplayInProfileViewTests(TestCase):
+    def setUp(self):
+        super().setUp()
+        self.user = factories.UserFactory.create()
+        self.participant = factories.ParticipantFactory.create(user_id=self.user.pk)
+        self.client.force_login(self.user)
+
+    @staticmethod
+    def _create_wimp():
+        wimp_par = factories.ParticipantFactory.create()
+        Group.objects.get(name='WIMP').user_set.add(wimp_par.user_id)
+        return wimp_par
+
+    def test_admins_always_see_wimp(self):
+        admin = factories.UserFactory.create(is_superuser=True)
+        factories.ParticipantFactory.create(user_id=admin.pk)
+        self.client.force_login(admin)
+        wimp_par = self._create_wimp()
+
+        resp = self.client.get('/')
+        self.assertEqual(resp.context['wimp'], wimp_par)
+
+    def test_participants_not_shown_wimp(self):
+        # Upcoming WS trip exists
+        factories.TripFactory.create(
+            trip_date=date(2020, 1, 20), program=enums.Program.WINTER_SCHOOL.value
+        )
+        self._create_wimp()
+
+        # Normal participants don't see the WIMP
+        resp = self.client.get('/')
+        self.assertIsNone(resp.context['wimp'])
+
+    def test_no_wimp_shown_until_upcoming_ws_trips(self):
+        # Trip exists from yesterday (it's currently during IAP too)
+        factories.TripFactory.create(
+            trip_date=date(2020, 1, 11), program=enums.Program.WINTER_SCHOOL.value
+        )
+
+        # Viewing participant is a WS leader
+        factories.LeaderRatingFactory.create(
+            participant=self.participant, activity=enums.Activity.WINTER_SCHOOL.value,
+        )
+
+        # We have an assigned WIMP
+        wimp_par = self._create_wimp()
+
+        # Because there are no upcoming WS trips, though - no WIMP is shown
+        resp = self.client.get('/')
+        self.assertIsNone(resp.context['wimp'])
+
+        # If a trip is created today, we will then show the WIMP!
+        factories.TripFactory.create(
+            trip_date=date(2020, 1, 12), program=enums.Program.WINTER_SCHOOL.value
+        )
+
+        # Now, we show the WIMP because there are upcoming WS trips
+        resp = self.client.get('/')
+        self.assertEqual(resp.context['wimp'], wimp_par)
+
+    def test_chairs_see_wimp_even_if_not_leaders(self):
+        # WS trip exists today!
+        factories.TripFactory.create(
+            trip_date=date(2020, 1, 12), program=enums.Program.WINTER_SCHOOL.value
+        )
+        perm_utils.make_chair(self.user, enums.Activity.WINTER_SCHOOL)
+        wimp_par = self._create_wimp()
+
+        # There are upcoming WS trips, so the WS chairs should see the WIMP
+        resp = self.client.get('/')
+        self.assertEqual(resp.context['wimp'], wimp_par)
 
 
 @freeze_time("2019-02-15 12:25:00 EST")

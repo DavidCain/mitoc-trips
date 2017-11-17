@@ -22,7 +22,8 @@ import ws.messages.leader
 import ws.messages.lottery
 import ws.messages.participant
 import ws.utils.dates as date_utils
-from ws import forms, models, tasks
+import ws.utils.perms as perm_utils
+from ws import enums, forms, models, tasks, wimp
 from ws.decorators import admin_only, group_required, user_info_required
 from ws.mixins import LectureAttendanceMixin, LotteryPairingMixin
 from ws.templatetags.trip_tags import annotated_for_trip_list
@@ -407,7 +408,38 @@ class ParticipantView(
 
         if participant.car:
             context['car_form'] = forms.CarForm(instance=participant.car)
+        context['wimp'] = self.wimp
         return context
+
+    @property
+    def wimp(self):
+        """ Return the current WIMP, if there is one & it's appropriate to display them. """
+        participant = self.object
+
+        # Regardless of time of year, or any upcoming WS trips, admins always see WIMP
+        if self.request.user.is_superuser:
+            return wimp.current_wimp()
+
+        # If there aren't any upcoming trips (or trips today), don't show WIMP
+        # This will ensure that we hide the WIMP when:
+        # - It's not Winter School
+        # - Winter School just ended, but `is_currently_iap()` can't tell
+        # - The weekend just ended, and we don't yet have a new WIMP
+        ws_trips = models.Trip.objects.filter(
+            program=enums.Program.WINTER_SCHOOL.value,
+            trip_date__gte=date_utils.local_date(),
+        )
+        if not ws_trips:
+            return None
+
+        # Participants don't need to know the WIMP, only leaders/chairs do
+        if not (
+            participant.can_lead(enums.Program.WINTER_SCHOOL)
+            or perm_utils.is_chair(self.request.user, enums.Activity.WINTER_SCHOOL)
+        ):
+            return None
+
+        return wimp.current_wimp()
 
     @method_decorator(user_info_required)
     def dispatch(self, request, *args, **kwargs):

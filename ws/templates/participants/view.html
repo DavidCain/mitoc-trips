@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load avatar_tags %}
 {% load form_tags %}
+{% load medical_tags %}
 {% load messages_tags %}
 {% load misc_tags %}
 {% load perm_tags %}
@@ -181,6 +182,11 @@
     {% endif %}
 
     {% if user_viewing %}
+      {% if wimp %}
+        <h3>This Week's WIMP</h3>
+        {% show_wimp wimp %}
+        <hr>
+      {% endif %}
       {% if messages %}
         <div class="row">
           <div class="col-md-12">

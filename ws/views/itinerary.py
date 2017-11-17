@@ -17,7 +17,7 @@ from django.utils.decorators import method_decorator
 from django.views.generic import DetailView, ListView, UpdateView
 
 import ws.utils.perms as perm_utils
-from ws import forms, models
+from ws import forms, models, wimp
 from ws.decorators import group_required
 from ws.mixins import TripLeadersOnlyView
 from ws.utils.dates import itinerary_available_at, local_date, local_now
@@ -121,6 +121,7 @@ class AllTripsMedicalView(ListView, TripMedical):
             for c in by_trip
         ]
         context_data['all_trips'] = all_trips
+        context_data['wimps'] = wimp.active_wimps()
         return context_data
 
     @method_decorator(group_required('WSC', 'WIMP'))

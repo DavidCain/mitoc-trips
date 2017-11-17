@@ -6,7 +6,7 @@ from freezegun import freeze_time
 
 import ws.utils.perms as perm_utils
 from ws import enums, models
-from ws.tests import TestCase, factories
+from ws.tests import TestCase, factories, strip_whitespace
 
 
 @freeze_time("2020-01-01 12:25:00 EST")
@@ -28,9 +28,12 @@ class AllTripsMedicalViewTest(TestCase):
 
         soup = BeautifulSoup(response.content, 'html.parser')
 
-        self.assertTrue(soup.find('h1', text="WIMP Information Sheet"))
-        expected_header = "This page contains all known medical information for trips taking place on or after Jan. 1, 2020."
-        self.assertTrue(soup.find('p', text=expected_header))
+        header = soup.find('h1', text="WIMP Information Sheet")
+        self.assertTrue(header)
+        self.assertEqual(
+            strip_whitespace(header.find_next('p').text),
+            "This page contains all known medical information for trips taking place on or after Jan. 1, 2020.",
+        )
         self.assertTrue(soup.find('p', text="No upcoming trips."))
 
     def test_wimp(self):
