@@ -855,17 +855,6 @@ class ApprovedTripsMixin(object):
         return context
 
 
-class ManageTripsView(ApprovedTripsMixin, ListView):
-    model = models.Trip
-    template_name = 'chair/trips/all.html'
-
-    def dispatch(self, request, *args, **kwargs):
-        activity = kwargs.get('activity')
-        if not perm_utils.chair_or_admin(request.user, activity):
-            raise PermissionDenied
-        return super(ManageTripsView, self).dispatch(request, *args, **kwargs)
-
-
 class AllLeaderApplicationsView(ApplicationManager, ListView):
     context_object_name = 'leader_applications'
     template_name = 'chair/applications/all.html'
