@@ -59,9 +59,21 @@
         <div class="col-sm-4">
           <div>{{ leader_form.recommendation }}</div>
           <button type="submit"
-                  class="btn btn-primary"
-                  data-ng-bind="'Create ' + (recommendation ? 'Recommendation' : 'Rating' )">
-            Create Recommendation{# Hack to avoid the flicker without ng-cloak #}
+                  class="btn btn-primary">
+              <span data-ng-show="recommendation"
+                    data-ng-bind="' {{ existing_rec|yesno:'Update,Create' }} recommendation'">
+
+                  {# Avoid flickering button while Angular populates scope.recommendation #}
+                  {# This works because ng-bind overrides the contents once it evaluates. #}
+                  {% if leader_form.initial.recommendation %}
+                    {{ existing_rec|yesno:'Update,Create' }} recommendation
+                  {% else %}
+                    {{ existing_rating|yesno:'Update,Create' }} rating
+                  {% endif %}
+              </span>
+              <span data-ng-hide="recommendation" data-ng-cloak>
+                {{ existing_rating|yesno:'Update,Create' }} rating
+              </span>
           </button>
         </div>
       </div>

@@ -939,19 +939,22 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):
                          activity=self.activity)
         return models.LeaderRating.objects.filter(find_ratings)
 
+    @property
     def existing_rating(self):
         return self.par_ratings.filter(active=True).first()
 
+    @property
     def existing_rec(self):
         """ Load an existing recommendation for the viewing participant. """
         find_rec = Q(creator=self.chair,
                      participant=self.object.participant,
-                     activity=self.activity)
+                     activity=self.activity,
+                     time_created__gte=self.object.time_created)
         return models.LeaderRecommendation.objects.filter(find_rec).first()
 
     def default_to_recommendation(self):
         """ Whether to default the form to a recommendation or not. """
-        return False if self.num_chairs < 2 else not self.existing_rec()
+        return False if self.num_chairs < 2 else not self.existing_rec
 
     def get_initial(self):
         """ Load an existing rating if one exists.
@@ -961,7 +964,7 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):
         blank.
         """
         initial = {'recommendation': self.default_to_recommendation()}
-        existing = self.existing_rating()
+        existing = self.existing_rating or self.existing_rec
         if existing:
             initial['rating'] = existing.rating
             initial['notes'] = existing.notes
@@ -1028,6 +1031,8 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):
             label for (activity, label) in models.LeaderRating.ACTIVITY_CHOICES
             if activity in set(perm_utils.chair_activities(participant.user))
         ]
+        context['existing_rating'] = self.existing_rating
+        context['existing_rec'] = self.existing_rec
 
         all_trips_led = self.object.participant.trips_led
         trips_led = all_trips_led.filter(self.before_rating, activity=self.activity)
@@ -1049,7 +1054,7 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):
             # Hack to convert the (unsaved) rating to a recommendation
             # (Both models have the exact same fields)
             rec = forms.LeaderRecommendationForm(model_to_dict(rating),
-                                                 instance=self.existing_rec())
+                                                 instance=self.existing_rec)
             rec.save()
         else:
             ratings_utils.deactivate_ratings(rating.participant, rating.activity)
