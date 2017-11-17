@@ -247,14 +247,6 @@ class TripForm(DjangularRequiredModelForm):
             self.fields['activity'].choices = activities
 
 
-class SummaryTripForm(forms.ModelForm):
-    """ Intended to be read-only, summarize key elements about a trip."""
-    class Meta:
-        model = models.Trip
-        fields = ['name', 'trip_date', 'description', 'maximum_participants',
-                  'algorithm', 'difficulty_rating']
-
-
 class SignUpForm(DjangularRequiredModelForm):
     class Meta:
         model = models.SignUp

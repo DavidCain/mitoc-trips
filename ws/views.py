@@ -1267,7 +1267,6 @@ class TripListView(ListView):
     model = models.Trip
     template_name = 'trips/all/view.html'
     context_object_name = 'trip_queryset'
-    form_class = forms.SummaryTripForm
 
     def get_queryset(self):
         trips = super().get_queryset()
@@ -1560,7 +1559,6 @@ class AllTripsMedicalView(ListView, TripMedical):
     model = models.Trip
     template_name = 'trips/all/medical.html'
     context_object_name = 'trips'
-    form_class = forms.SummaryTripForm
 
     def get_queryset(self):
         trips = super().get_queryset().order_by('trip_date')
