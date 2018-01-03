@@ -2,6 +2,8 @@
 {% block head_title %}Help - Feedback{% endblock head_title %}
 
 {% block faq %}
+  <h2>Feedback</h2>
+
   <div class="well" id="view_past_feedback">
     <h4>How do I view a participant's past feedback?</h4>
     <p>When <a href="{% url 'help-trip_admin' %}">administrating your trip</a>, a summary of each participant's past feedback will appear in the signup table. Each instance of leader comments will include the leader supplying the feedback as well as the relevant trip. This information is also available on any participant's summary page (which you can find linked to across the site, or via <a href="{% url 'participant_lookup' %}">participant lookup</a>).</p>

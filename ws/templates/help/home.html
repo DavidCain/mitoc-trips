@@ -22,11 +22,12 @@
     {% endif %}
 
     {% if "WSC" in groups or user.is_superuser %}
-    <h3> WSC Topics </h3>
-    <ul class="list-unstyled" id='wsc_topics'>
-      <li><a href="{% url 'help-wsc' %}">Winter Safety Committee</a></li>
-    </ul>
+      <h3> WSC Administration </h3>
+      <ul class="list-unstyled" id='wsc_only_topics'>
+        <li><a href="{% url 'help-wsc' %}">Winter Safety Committee</a></li>
+      </ul>
     {% endif %}
+
     <hr>
     <ul class="list-unstyled" id='general'>
       <li><a href="{% url 'help-about' %}">About</a></li>
