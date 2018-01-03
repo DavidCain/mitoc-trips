@@ -77,9 +77,20 @@ urlpatterns = patterns('',
     url(r'^help/participants/lottery/$', TemplateView.as_view(template_name='help/participants/lottery.html'), name='help-lottery'),
     url(r'^help/participants/signups/$', TemplateView.as_view(template_name='help/participants/signups.html'), name='help-signups'),
     url(r'^help/participants/leading_trips/$', TemplateView.as_view(template_name='help/participants/leading_trips.html'), name='help-leading_trips'),
-    url(r'^help/leaders/feedback/$', group_required('leaders', 'WSC')(TemplateView.as_view(template_name='help/leaders/feedback.html')), name='help-feedback'),
+
+    url(r'^help/participants/weather/$', TemplateView.as_view(template_name='help/participants/weather.html'), name='help-weather'),
+    url(r'^help/participants/maps/$', TemplateView.as_view(template_name='help/participants/maps.html'), name='help-maps'),
+
     url(r'^help/leaders/trip_admin/$', group_required('leaders', 'WSC')(TemplateView.as_view(template_name='help/leaders/trip_admin.html')), name='help-trip_admin'),
+    url(r'^help/leaders/checklist/$', group_required('leaders', 'WSC')(TemplateView.as_view(template_name='help/leaders/checklist.html')), name='help-checklist'),
+    url(r'^help/leaders/example_emails/$', group_required('leaders', 'WSC')(TemplateView.as_view(template_name='help/leaders/example_emails.html')), name='help-example_emails'),
+    url(r'^help/leaders/rentals/$', group_required('leaders', 'WSC')(TemplateView.as_view(template_name='help/leaders/rentals.html')), name='help-rentals'),
+    url(r'^help/leaders/itinerary/$', group_required('leaders', 'WSC')(TemplateView.as_view(template_name='help/leaders/itinerary.html')), name='help-itinerary'),
+    url(r'^help/leaders/feedback/$', group_required('leaders', 'WSC')(TemplateView.as_view(template_name='help/leaders/feedback.html')), name='help-feedback'),
+
+    url(r'^help/leaders/ws_gear/$', group_required('leaders')(TemplateView.as_view(template_name='help/leaders/ws_gear.html')), name='help-ws_gear'),
     url(r'^help/leaders/ws_ratings/$', group_required('leaders', 'WSC')(TemplateView.as_view(template_name='help/leaders/ws_ratings.html')), name='help-ws_ratings'),
+
     url(r'^help/wsc/wsc/$', group_required('WSC')(TemplateView.as_view(template_name='help/wsc/wsc.html')), name='help-wsc'),
 
     # API (must have account in system)

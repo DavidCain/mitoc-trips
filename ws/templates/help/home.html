@@ -4,7 +4,7 @@
 {% block content %}
 <div class="row">
   <div class="col-md-3">
-    <h3> Topics </h3>
+    <h3> Overview of Trips </h3>
     <ul class="list-unstyled" id='topics'>
       <li><a href="{% url 'help-personal_info' %}">Personal information, privacy</a></li>
       <li><a href="{% url 'help-lottery' %}">The signup lottery</a></li>
@@ -12,13 +12,28 @@
       <li><a href="{% url 'help-leading_trips' %}">Leading trips</a></li>
     </ul>
 
-    {% if "leaders" in groups %}
-    <h3> Leader Topics </h3>
-    <ul class="list-unstyled" id='leader_topics'>
-      <li><a href="{% url 'help-feedback' %}">Feedback</a></li>
-      <li><a href="{% url 'help-trip_admin' %}">Trip administration</a></li>
-      <li><a href="{% url 'help-ws_ratings' %}">Winter School leader ratings</a></li>
+    <h3> Conditions of Trails </h3>
+    <ul class="list-unstyled" id='conditions_of_trails'>
+      <li><a href="{% url 'help-weather' %}">Weather &amp; trail conditions</a></li>
+      <li><a href="{% url 'help-maps' %}">Trail maps</a></li>
     </ul>
+
+    {% if "leaders" in groups %}
+      <h3> Trip Logistics </h3>
+      <ul class="list-unstyled" id='leader_topics'>
+        <li><a href="{% url 'help-trip_admin' %}">Trip administration</a></li>
+        <li><a href="{% url 'help-checklist' %}">Trip checklist</a></li>
+        <li><a href="{% url 'help-example_emails' %}">Example emails</a></li>
+        <li><a href="{% url 'help-rentals' %}">Renting a car</a></li>
+        <li><a href="{% url 'help-itinerary' %}">Itinerary</a></li>
+        <li><a href="{% url 'help-feedback' %}">Feedback</a></li>
+      </ul>
+
+      <h3> WSC Topics </h3>
+      <ul class="list-unstyled" id='wsc_topics'>
+        <li><a href="{% url 'help-ws_gear' %}">Safety gear list</a></li>
+        <li><a href="{% url 'help-ws_ratings' %}">Winter School leader ratings</a></li>
+      </ul>
     {% endif %}
 
     {% if "WSC" in groups or user.is_superuser %}
