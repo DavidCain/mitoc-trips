@@ -12,26 +12,35 @@
       <li><a href="{% url 'help-leading_trips' %}">Leading trips</a></li>
     </ul>
 
-    <h3> Conditions of Trails </h3>
-    <ul class="list-unstyled" id='conditions_of_trails'>
-      <li><a href="{% url 'help-weather' %}">Weather &amp; trail conditions</a></li>
-      <li><a href="{% url 'help-maps' %}">Trail maps</a></li>
-    </ul>
+    {% if "WSC" in groups or user.is_superuser %}
+      {# These pages are currently under construction #}
+      <h3> Conditions of Trails </h3>
+      <ul class="list-unstyled" id='conditions_of_trails'>
+        <li><a href="{% url 'help-weather' %}">Weather &amp; trail conditions</a></li>
+        <li><a href="{% url 'help-maps' %}">Trail maps</a></li>
+      </ul>
+    {% endif %}
 
     {% if "leaders" in groups %}
       <h3> Trip Logistics </h3>
       <ul class="list-unstyled" id='leader_topics'>
         <li><a href="{% url 'help-trip_admin' %}">Trip administration</a></li>
-        <li><a href="{% url 'help-checklist' %}">Trip checklist</a></li>
-        <li><a href="{% url 'help-example_emails' %}">Example emails</a></li>
-        <li><a href="{% url 'help-rentals' %}">Renting a car</a></li>
-        <li><a href="{% url 'help-itinerary' %}">Itinerary</a></li>
+        {% if "WSC" in groups or user.is_superuser %}
+          {# These pages are currently under construction #}
+          <li><a href="{% url 'help-checklist' %}">Trip checklist</a></li>
+          <li><a href="{% url 'help-example_emails' %}">Example emails</a></li>
+          <li><a href="{% url 'help-rentals' %}">Renting a car</a></li>
+          <li><a href="{% url 'help-itinerary' %}">Itinerary</a></li>
+        {% endif %}
         <li><a href="{% url 'help-feedback' %}">Feedback</a></li>
       </ul>
 
       <h3> WSC Topics </h3>
       <ul class="list-unstyled" id='wsc_topics'>
-        <li><a href="{% url 'help-ws_gear' %}">Safety gear list</a></li>
+        {% if "WSC" in groups or user.is_superuser %}
+          {# This page is currently under construction #}
+          <li><a href="{% url 'help-ws_gear' %}">Safety gear list</a></li>
+        {% endif %}
         <li><a href="{% url 'help-ws_ratings' %}">Winter School leader ratings</a></li>
       </ul>
     {% endif %}
