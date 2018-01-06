@@ -1673,7 +1673,7 @@ class TripItineraryView(UpdateView, TripLeadersOnlyView, ItineraryInfoFormMixin)
         return form
 
     def form_valid(self, form):
-        if not self.info_form_available(self.trip):
+        if local_now() < itinerary_available_at(self.trip.trip_date):
             form.errors['__all__'] = ErrorList(["Form not yet available!"])
             return self.form_invalid(form)
         self.trip.info = form.save()
