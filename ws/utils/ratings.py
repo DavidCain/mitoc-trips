@@ -90,9 +90,10 @@ class RatingsRecommendationsMixin(object):
     def gave_rating(self):
         """ Select applications where a rating was created after app creation. """
         return Q(
+            # NOTE: Rating doesn't need to be active (if the leader was
+            # deactivated, we don't want their application to re-appear)
             participant__leaderrating__time_created__gte=F('time_created'),
-            participant__leaderrating__activity=self.activity,
-            participant__leaderrating__active=True,
+            participant__leaderrating__activity=self.activity
         )
 
     def sum_annotation(self, selector):
