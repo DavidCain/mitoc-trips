@@ -23,6 +23,8 @@ def send_email_to_funds(trip, recipient='funds@mit.edu'):
     html_content = get_template('sao/funds_email.html').render(context)
 
     subject = "MITOC-Trips registration: {}".format(trip.name)
-    msg = EmailMultiAlternatives(subject, text_content, to=[recipient])
+    bursar = 'mitoc-bursar@mit.edu'
+    msg = EmailMultiAlternatives(subject, text_content, to=[recipient],
+                                 cc=[bursar], reply_to=[bursar])
     msg.attach_alternative(html_content, "text/html")
     msg.send()

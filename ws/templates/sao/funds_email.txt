@@ -20,5 +20,11 @@ Drivers:
  - {{ car.participant.name }}: {{ car.color }} {{ car.year }} {{ car.make }} {{ car.model }} {{ car.license_plate }} ({{ car.state }}){% endfor %}
 {% endif %}
 
+Approval
+
+Financial signatory: David Ward
+Travel expenses approved: $0.00
+Cost object: 2720209
+
 
 Questions? Respond to this email, or see https://mitoc-trips.mit.edu/contact/
