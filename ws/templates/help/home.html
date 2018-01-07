@@ -3,8 +3,15 @@
 
 {% block content %}
 <div class="row">
-  <div class="col-md-3">
+  <div class="col-md-3 hidden-print">
     <h3>Winter School Help</h3>
+    {% if 'WIMP' in groups or user.is_superuser %}
+      <h4>Being the WIMP</h4>
+      <ul class="list-unstyled" id='wimp'>
+        <li><a href="{% url 'help-wimp_guide' %}">WIMP guide</a></li>
+      </ul>
+    {% endif %}
+
     <h4>Participating on Trips</h4>
     <ul class="list-unstyled" id='participating'>
       <li><a href="{% url 'help-personal_info' %}">Personal information, privacy</a></li>
