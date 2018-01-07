@@ -1,0 +1,49 @@
+{% extends "help/home.html" %}
+{% block head_title %}Help - Leader/Trip Rating System{% endblock head_title %}
+
+{% block faq %}
+  <h2>Winter School Leader/Trip Ratings</h2>
+  <div class="well" id="definitions">
+    <h4>Leader/Trip Rating Definitions</h4>
+    <p>
+      Winter School leaders are assigned a terrain rating and an optional activity rating.
+      Leaders can be assigned full or co-ratings.
+      Full leaders are expected to mentor co-leaders and take responsibility for risk management decisions.
+    </p>
+    {% include 'snippets/ws_ratings.html' %}
+  </div>
+
+
+  <div class="well" id="leader_requirements">
+    <h4>Leader Requirements</h4>
+    <p>
+      All WS trips must have at least two leaders and one of these leaders must
+      be a full leader for the terrain (and if necessary the activity).
+    </p>
+    <p class="text-center">
+      <em>A coB leader needs a full B leader to co-lead a B trip.</em>
+    </p>
+
+    <p>
+      For A and B activity trips (climbing or skiing) one leader can be the
+      full leader for the activity and the other leader can be the full leader
+      for the terrain.
+    </p>
+    <p class="text-center">
+      <em>A B coI and a coB I leader can lead a BI trip together.</em>
+    </p>
+
+    <p>
+      This is not the case for C trips.
+
+      If you want to lead a C trip with ice climbing or skiing, the full C
+      leader also needs to be the full I or S leader as the terrain itself and
+      activity can’t be separated effectively from a risk management
+      perspective.
+    </p>
+    <p class="text-center">
+      <em>A C coS and coC S can NOT lead a CS trip. A CS leader is required for a CS trip.</em>
+    </p>
+  </div>
+
+{% endblock faq %}

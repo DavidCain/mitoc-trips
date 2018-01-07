@@ -4,49 +4,56 @@
 {% block content %}
 <div class="row">
   <div class="col-md-3">
-    <h3> Overview of Trips </h3>
+    <h3>Winter School Help</h3>
+    <h4>Participating on Trips</h4>
     <ul class="list-unstyled" id='topics'>
       <li><a href="{% url 'help-personal_info' %}">Personal information, privacy</a></li>
       <li><a href="{% url 'help-lottery' %}">The signup lottery</a></li>
+      {% if "WSC" in groups or user.is_superuser %}
+        <li><a href="{% url 'help-personal_gear' %}">Personal gear list</a>&nbsp;<span class="badge">Missing!</span></li>
+      {% endif %}
       <li><a href="{% url 'help-signups' %}">Signing up for trips</a></li>
-      <li><a href="{% url 'help-leading_trips' %}">Leading trips</a></li>
     </ul>
 
-    {% if "WSC" in groups or user.is_superuser %}
-      {# These pages are currently under construction #}
-      <h3> Conditions of Trails </h3>
-      <ul class="list-unstyled" id='conditions_of_trails'>
-        <li><a href="{% url 'help-weather' %}">Weather &amp; trail conditions</a></li>
-        <li><a href="{% url 'help-maps' %}">Trail maps</a></li>
-      </ul>
-    {% endif %}
+    <h4>Leading Trips</h4>
+    <ul class="list-unstyled" id='topics'>
+      <li><a href="{% url 'help-become_ws_leader' %}">How to become a WS leader</a></li>
+      <li><a href="{% url 'help-ws_ratings' %}">Leader/trip rating system</a></li>
+      <li><a href="{% url 'help-ws_rating_assignment' %}">Rating assignments and upgrades</a></li>
+    </ul>
+
+    <hr>
+
+    <h3>Trip Resources</h3>
+    <h4>Planning Trips</h4>
+    <ul class="list-unstyled" id='conditions_of_trails'>
+      <li><a href="{% url 'help-weather' %}">Weather &amp; trail conditions</a></li>
+      {% if "WSC" in groups or user.is_superuser %}
+        <li><a href="{% url 'help-maps' %}">Trail maps</a>&nbsp;<span class="badge">Missing!</span></li>
+      {% endif %}
+    </ul>
 
     {% if "leaders" in groups %}
-      <h3> Trip Logistics </h3>
+      <h4>Trip Logistics</h4>
       <ul class="list-unstyled" id='leader_topics'>
         <li><a href="{% url 'help-trip_admin' %}">Trip administration</a></li>
+        <li><a href="{% url 'help-checklist' %}">Trip checklist</a></li>
+        <li><a href="{% url 'help-example_emails' %}">Example emails</a></li>
+        <li><a href="{% url 'help-rideshare' %}">Rideshare template</a></li>
         {% if "WSC" in groups or user.is_superuser %}
-          {# These pages are currently under construction #}
-          <li><a href="{% url 'help-checklist' %}">Trip checklist</a></li>
-          <li><a href="{% url 'help-example_emails' %}">Example emails</a></li>
-          <li><a href="{% url 'help-rentals' %}">Renting a car</a></li>
-          <li><a href="{% url 'help-itinerary' %}">Itinerary</a></li>
+          <li><a href="{% url 'help-rentals' %}">Renting a car</a>&nbsp;<span class="badge">Missing!</span></li>
+          <li><a href="{% url 'help-itinerary' %}">Itinerary, planning, &amp; WIMP</a>&nbsp;<span class="badge">Missing!</span></li>
+          <li><a href="{% url 'help-ws_gear' %}">Safety gear list</a>&nbsp;<span class="badge">Missing!</span></li>
         {% endif %}
         <li><a href="{% url 'help-feedback' %}">Feedback</a></li>
       </ul>
 
-      <h3> WSC Topics </h3>
       <ul class="list-unstyled" id='wsc_topics'>
-        {% if "WSC" in groups or user.is_superuser %}
-          {# This page is currently under construction #}
-          <li><a href="{% url 'help-ws_gear' %}">Safety gear list</a></li>
-        {% endif %}
-        <li><a href="{% url 'help-ws_ratings' %}">Winter School leader ratings</a></li>
       </ul>
     {% endif %}
 
     {% if "WSC" in groups or user.is_superuser %}
-      <h3> WSC Administration </h3>
+      <h4>WSC Administration</h4>
       <ul class="list-unstyled" id='wsc_only_topics'>
         <li><a href="{% url 'help-wsc' %}">Winter Safety Committee</a></li>
       </ul>
