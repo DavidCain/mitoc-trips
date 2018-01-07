@@ -1,0 +1,24 @@
+This automated message is registering an official trip of the MIT Outing Club (MITOC).
+
+Trip: {{ trip.name }}
+Date: {{ trip.trip_date|date:"Y-m-d" }}
+Start location: {{ trip.info.start_location }}
+
+Trip leaders:
+{% for leader in trip.leaders.all %}
+  - {{ leader.name }} {{ leader.cell_phone }}{% endfor %}
+
+Trip participants:
+{% for signup in signups_on_trip %}
+  - {{ signup.participant.name }} {{ signup.participant.cell_phone }}{% endfor %}
+
+Drivers:
+{% if not cars %}
+  Nobody on this trip submitted information for a car.
+{% else %}
+  {% for car in cars %}
+ - {{ car.participant.name }}: {{ car.color }} {{ car.year }} {{ car.make }} {{ car.model }} {{ car.license_plate }} ({{ car.state }}){% endfor %}
+{% endif %}
+
+
+Questions? Respond to this email, or see https://mitoc-trips.mit.edu/contact/

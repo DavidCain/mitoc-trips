@@ -1,0 +1,46 @@
+{% load signup_tags %}
+
+{# When modifying this message, be sure to update its text equivalent #}
+
+This automated message is registering an official trip of the <a href="http://mitoc.mit.edu/">MIT Outing Club</a> (MITOC).
+
+<h3>{{ trip.name }}</h3>
+<dl>
+  <dt>Date</dt>
+  <dd>{{ trip.trip_date|date:"Y-m-d" }}</dd>
+  <dt>Start location</dt>
+  <dd>{{ trip.info.start_location }}</dd>
+</dl>
+
+<h3>Trip leaders</h3>
+<ul>
+  {% for leader in trip.leaders.all %}
+    <li>
+      <a href="mailto:{{ leader.email }}">{{ leader.name }}</a>
+      &nbsp;
+      <em>{{ leader.cell_phone }}</em>
+    </li>
+  {% endfor %}
+</ul>
+
+<h3>Trip participants</h3>
+<ul>
+  {% for signup in signups_on_trip %}
+    <li>
+      <a href="mailto:{{ signup.participant.email }}">{{ signup.participant.name }}</a>
+      &nbsp;
+      <em>{{ signup.participant.cell_phone }}</em>
+    </li>
+  {% endfor %}
+</ul>
+
+<h3>Drivers</h3>
+{% if not cars %}
+  <p>Nobody on this trip submitted information for a car.</p>
+{% else %}
+  {% driver_table cars %}
+{% endif %}
+
+<hr>
+
+<footer>Questions? Respond to this email or <a href="https://mitoc-trips.mit.edu/contact/">contact us</a>.</footer>

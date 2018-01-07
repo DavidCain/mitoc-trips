@@ -31,6 +31,7 @@ from ws.templatetags.trip_tags import annotated_for_trip_list
 
 from ws.utils.dates import (local_date, local_now, is_winter_school, ws_year,
                             itinerary_available_at)
+from ws.utils.itinerary import get_cars
 from ws.utils.model_dates import ws_lectures_complete
 import ws.utils.perms as perm_utils
 import ws.utils.ratings as ratings_utils
@@ -1528,28 +1529,12 @@ class LotteryPreferencesView(TemplateView, LotteryPairingMixin):
 
 
 class TripMedical(ItineraryInfoFormMixin):
-    def get_cars(self, trip):
-        """ Return cars of specified drivers, otherwise all drivers' cars.
-
-        If a trip leader says who's driving in the trip itinerary, then
-        only return those participants' cars. Otherwise, gives all cars.
-        The template will give a note specifying if these were the drivers
-        given by the leader, of if they're all possible drivers.
-        """
-        signups = trip.signup_set.filter(on_trip=True)
-        par_on_trip = (Q(participant__in=trip.leaders.all()) |
-                       Q(participant__signup__in=signups))
-        cars = models.Car.objects.filter(par_on_trip).distinct()
-        if trip.info:
-            cars = cars.filter(participant__in=trip.info.drivers.all())
-        return cars.select_related('participant__lotteryinfo')
-
     def get_trip_info(self, trip):
         participants = trip.signed_up_participants.filter(signup__on_trip=True)
         participants = participants.select_related('emergency_info')
         signups = trip.signup_set.filter(on_trip=True)
         signups = signups.select_related('participant__emergency_info')
-        return {'trip': trip, 'participants': participants, 'cars': self.get_cars(trip),
+        return {'trip': trip, 'participants': participants, 'cars': get_cars(trip),
                 'info_form': self.get_info_form(trip)}
 
 
