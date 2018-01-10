@@ -167,7 +167,7 @@ CELERYBEAT_SCHEDULE = {
     },
     'run-ws-lottery': {
         'task': 'ws.tasks.run_ws_lottery',
-        'schedule': crontab(minute=0, hour=11, month_of_year=[1, 2], day_of_week=3)
+        'schedule': crontab(minute=0, hour=14, month_of_year=[1, 2], day_of_week=3)
     },
 }
 
