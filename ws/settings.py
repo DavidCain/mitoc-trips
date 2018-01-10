@@ -44,11 +44,11 @@ LOGIN_REDIRECT_URL = '/'
 ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 
 if os.environ.get('WS_TEST_CONFIG'):
-    from conf.test_settings import *
+    from conf.test_settings import *  # NoQA
 elif os.environ.get('WS_DJANGO_LOCAL'):
-    from conf.local_settings import *
+    from conf.local_settings import *  # NoQA
 else:
-    from conf.production_settings import *
+    from conf.production_settings import *  # NoQA
 
 DATABASES = {
     'default': {
@@ -92,9 +92,9 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-if 'debug_toolbar' in INSTALLED_APPS:
+if 'debug_toolbar' in INSTALLED_APPS:  # NoQA
     MIDDLEWARE_CLASSES.append('debug_toolbar.middleware.DebugToolbarMiddleware')
-if 'corsheaders' in INSTALLED_APPS:
+if 'corsheaders' in INSTALLED_APPS:  # NoQA
     MIDDLEWARE_CLASSES.insert(0, 'corsheaders.middleware.CorsMiddleware')
     MIDDLEWARE_CLASSES.append('django.middleware.common.CommonMiddleware')
 
@@ -165,10 +165,10 @@ CELERYBEAT_SCHEDULE = {
         'task': 'ws.tasks.send_sao_itineraries',
         'schedule': crontab(minute=0, hour=4)
     },
-    #'run-ws-lottery': {
-    #    'task': 'ws.tasks.run_ws_lottery',
-    #    'schedule': crontab(minute=0, hour=11)
-    #},
+    'run-ws-lottery': {
+        'task': 'ws.tasks.run_ws_lottery',
+        'schedule': crontab(minute=0, hour=11, month_of_year=[1, 2], day_of_week=3)
+    },
 }
 
 CELERY_TIMEZONE = 'UTC'
