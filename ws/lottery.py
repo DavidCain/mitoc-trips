@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import logging
 import random
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -8,6 +9,9 @@ from django.db.models import Q
 from ws.utils.dates import local_date, closest_wed_at_noon, jan_1
 from ws.utils.signups import add_to_waitlist
 from ws import models
+
+
+logger = logging.getLogger(__name__)
 
 
 def reciprocally_paired(participant):
@@ -31,8 +35,8 @@ def par_is_driver(participant):
 
 def place_on_trip(signup):
     trip = signup.trip
-    print "{} has {} slot(s), adding {}".format(trip, trip.open_slots,
-                                                signup.participant)
+    logger.info("{} has {} slot(s), adding {}".format(trip, trip.open_slots,
+                                                      signup.participant))
     signup.on_trip = True
     signup.save()
 
@@ -162,7 +166,7 @@ class WinterSchoolLotteryRunner(LotteryRunner):
 
         Trips re-open Wednesday at noon, close at midnight on Thursday.
         """
-        print "Making all lottery trips first-come, first-serve"
+        logger.info("Making all lottery trips first-come, first-serve")
         ws_trips = models.Trip.objects.filter(activity='winter_school')
         noon = closest_wed_at_noon()
         for trip in ws_trips.filter(algorithm='lottery'):
@@ -175,11 +179,10 @@ class WinterSchoolLotteryRunner(LotteryRunner):
     def assign_trips(self):
         for participant in self.ranked_participants:
             handling_text = "Handling {}".format(participant)
-            print handling_text
-            print '-' * len(handling_text)
+            logger.debug(handling_text)
+            logger.debug('-' * len(handling_text))
             par_handler = WinterSchoolParticipantHandler(participant, self)
             par_handler.place_participant()
-            print
 
 
 class ParticipantHandler(object):
@@ -247,8 +250,8 @@ class ParticipantHandler(object):
             # A driver may displace somebody else
             # (but a couple with a driver cannot displace two people)
             if self.count_drivers_on_trip(trip) < self.min_drivers:
-                print "{} is full, but doesn't have {} drivers".format(trip, self.min_drivers)
-                print "Adding {} to '{}', as they're a driver".format(signup, trip)
+                logger.info("{} is full, but doesn't have {} drivers".format(trip, self.min_drivers))
+                logger.info("Adding {} to '{}', as they're a driver".format(signup, trip))
                 par_to_bump = self.runner.participant_to_bump(trip)
                 add_to_waitlist(par_to_bump, prioritize=True)
                 signup.on_trip = True
@@ -281,9 +284,9 @@ class SingleTripParticipantHandler(ParticipantHandler):
 
     def place_participant(self):
         if self.paired:
-            print "{} is paired with {}".format(self.participant, self.paired_par)
+            logger.info("{} is paired with {}".format(self.participant, self.paired_par))
             if not self.runner.handled(self.paired_par):
-                print "Will handle signups when {} comes".format(self.paired_par)
+                logger.info("Will handle signups when {} comes".format(self.paired_par))
                 self.runner.mark_handled(self.participant)
                 return
 
@@ -320,13 +323,13 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
 
     def place_participant(self):
         if self.paired:
-            print "{} is paired with {}".format(self.participant, self.paired_par)
+            logger.debug("{} is paired with {}".format(self.participant, self.paired_par))
             if not self.runner.handled(self.paired_par):
-                print "Will handle signups when {} comes".format(self.paired_par)
+                logger.debug("Will handle signups when {} comes".format(self.paired_par))
                 self.runner.mark_handled(self.participant)
                 return
         if not self.future_signups:
-            print "{} did not choose any trips this week".format(self.par_text)
+            logger.debug("{} did not choose any trips this week".format(self.par_text))
             self.runner.mark_handled(self.participant)
             return
 
@@ -335,10 +338,10 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
             if self.try_to_place(signup):
                 break
             else:
-                print "Can't place {} on {}".format(self.par_text, signup.trip)
+                logger.info("Can't place {} on {}".format(self.par_text, signup.trip))
 
         else:  # No trips are open
-            print "None of {}'s trips are open.".format(self.par_text)
+            logger.info("None of {}'s trips are open.".format(self.par_text))
             favorite_trip = self.future_signups.first().trip
             for participant in self.to_be_placed:
                 find_signup = Q(participant=participant, trip=favorite_trip)
