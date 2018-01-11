@@ -422,6 +422,11 @@ class ParticipantView(ParticipantLookupView, SingleObjectMixin,
         can_set_attendance = self.can_set_attendance(participant)
         context['can_set_attendance'] = can_set_attendance
         context['show_attendance'] = is_winter_school() and (ws_lectures_complete() or can_set_attendance)
+        if can_set_attendance:
+            context['attended_lectures'] = models.LectureAttendance.objects.filter(
+                participant=participant,
+                year=ws_year()
+            ).exists()
 
         context['user_viewing'] = user_viewing
         if user_viewing:
