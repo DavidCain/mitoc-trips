@@ -46,10 +46,8 @@
         <li><a href="{% url 'help-example_emails' %}">Example emails</a></li>
         <li><a href="{% url 'help-rideshare' %}">Rideshare template</a></li>
         <li><a href="{% url 'help-rentals' %}">Renting a car</a></li>
-        {% if "WSC" in groups or user.is_superuser %}
-          <li><a href="{% url 'help-itinerary' %}">Itinerary, planning, &amp; WIMP</a>&nbsp;<span class="badge">Missing!</span></li>
-          <li><a href="{% url 'help-ws_gear' %}">Safety gear list</a>&nbsp;<span class="badge">Missing!</span></li>
-        {% endif %}
+        <li><a href="{% url 'help-itinerary' %}">Itinerary, planning, &amp; WIMP</a></li>
+        <li><a href="{% url 'help-ws_gear' %}">Safety gear list</a></li>
         <li><a href="{% url 'help-feedback' %}">Feedback</a></li>
       </ul>
     {% endif %}
