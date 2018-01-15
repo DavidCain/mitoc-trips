@@ -17,6 +17,8 @@ import raven
 
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY',
                        '*this-is-obviously-not-secure-only-use-it-locally*')
+MEMBERSHIP_SECRET_KEY = os.getenv('MEMBERSHIP_SECRET_KEY',
+                                  'secret shared with the mitoc-member repo')
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 PROJECT_ROOT = os.path.normpath(os.path.dirname(os.path.abspath(__file__)))

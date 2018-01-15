@@ -116,6 +116,10 @@ urlpatterns = patterns('',
     # D3-based statistics views
     url(r'^data/trips_by_leader.json', api_views.TripsByLeaderView.as_view(), name='json-trips_by_leader'),
     url(r'^stats/*$', views.StatsView.as_view(), name='stats'),
+
+    # Signature-based routes
+    # Uses a simple query string, but returns JSON
+    url(r'^data/verified_emails', api_views.OtherVerifiedEmailsView.as_view(), name='other_verified_emails'),
 )
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
