@@ -15,6 +15,7 @@ psycopg2
 mysql-python
 markdown2
 mock
+PyJWT
 
 oauth2client
 gspread

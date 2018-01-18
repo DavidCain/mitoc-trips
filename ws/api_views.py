@@ -1,6 +1,8 @@
 from itertools import chain
 import json
 
+from allauth.account.models import EmailAddress
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
 from django.db import transaction
@@ -9,8 +11,7 @@ from django.http import JsonResponse
 from django.views.generic import (DetailView, ListView, View)
 from django.views.generic.detail import SingleObjectMixin
 from django.utils.decorators import method_decorator
-
-from allauth.account.models import EmailAddress
+import jwt
 
 from ws import decorators
 from ws import models
@@ -328,9 +329,21 @@ class UserRentalsView(UserView):
 class OtherVerifiedEmailsView(View):
     def get(self, request, *args, **kwargs):
         """ Return any other verified emails that tie to the same user. """
-        email = request.GET['email']  # Present & signed by HMAC - see decorator
-        addr = EmailAddress.objects.filter(email=email, verified=True).first()
 
+        # Extract JWT from HTTP headers
+        http_auth = self.request.META.get('HTTP_AUTHORIZATION')
+        if not (http_auth and http_auth.startswith('Bearer: ')):
+            return JsonResponse({'message': 'token missing'}, status=401)
+        token = http_auth.split()[1]
+
+        secret = settings.MEMBERSHIP_SECRET_KEY
+        try:
+            payload = jwt.decode(token, secret)
+            email = payload['email']
+        except (jwt.exceptions.InvalidTokenError, KeyError):
+            return JsonResponse({'message': 'invalid token'}, status=401)
+
+        addr = EmailAddress.objects.filter(email=email, verified=True).first()
         if not addr:  # Not in our system, so just return the original
             return JsonResponse({'emails': [email]})
 
@@ -340,10 +353,6 @@ class OtherVerifiedEmailsView(View):
             'primary': addr.user.email,
             'emails': list(verifed_emails.values_list('email', flat=True))
         })
-
-    @method_decorator(decorators.membership_signature_valid)
-    def dispatch(self, request, *args, **kwargs):
-        return super(OtherVerifiedEmailsView, self).dispatch(request, *args, **kwargs)
 
 
 class MembershipStatusesView(View):

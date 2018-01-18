@@ -1,16 +1,11 @@
-import base64
-import hashlib
-import hmac
 from functools import wraps
 
-from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.views import redirect_to_login
 from django.core.urlresolvers import reverse, reverse_lazy
-from django.http import JsonResponse
 from django.shortcuts import resolve_url
 from django.utils.decorators import available_attrs
 from django.utils.html import escape
@@ -100,27 +95,6 @@ def group_required(*group_names, **kwargs):
             path = request.get_full_path()  # All requests share scheme & netloc
             return redirect_to_login(path, next_url, REDIRECT_FIELD_NAME)
         return _wrapped_view
-    return decorator
-
-
-def membership_signature_valid(view_func):
-    """ The request is verified as from the membership processing pipeline. """
-    def decorator(request, *args, **kwargs):
-        # No need for JWT - we're only signing a single attribute
-        # and Python comes built in with HMAC support. Keep it simple.
-        if not (request.GET.get('email') and request.GET.get('signature')):
-            return JsonResponse({'message': 'email or signature missing'}, status=401)
-
-        email = request.GET['email'].encode('utf-8')
-        signature = request.GET['signature'].encode('utf-8')
-        key = settings.MEMBERSHIP_SECRET_KEY
-        msg_hmac = hmac.new(key.encode('utf-8'), email, hashlib.sha256)
-        signed = base64.b64encode(msg_hmac.digest())
-
-        if signature == signed:
-            return view_func(request, *args, **kwargs)
-        else:
-            return JsonResponse({'message': 'invalid signature'}, status=401)
     return decorator
 
 
