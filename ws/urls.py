@@ -88,6 +88,7 @@ urlpatterns = patterns('',
     url(r'^help/participants/ws_rating_assignment/$', TemplateView.as_view(template_name='help/participants/ws_rating_assignment.html'), name='help-ws_rating_assignment'),
 
     # Planning Trips
+    url(r'^help/participants/rentals/$', TemplateView.as_view(template_name='help/leaders/rentals.html'), name='help-rentals'),
     url(r'^help/participants/weather/$', TemplateView.as_view(template_name='help/participants/weather.html'), name='help-weather'),
     url(r'^help/participants/maps/$', TemplateView.as_view(template_name='help/participants/maps.html'), name='help-maps'),
 
@@ -96,7 +97,6 @@ urlpatterns = patterns('',
     url(r'^help/leaders/checklist/$', group_required('leaders', 'WSC')(TemplateView.as_view(template_name='help/leaders/checklist.html')), name='help-checklist'),
     url(r'^help/leaders/example_emails/$', group_required('leaders', 'WSC')(TemplateView.as_view(template_name='help/leaders/example_emails.html')), name='help-example_emails'),
     url(r'^help/leaders/rideshare/$', group_required('leaders', 'WSC')(TemplateView.as_view(template_name='help/leaders/rideshare.html')), name='help-rideshare'),
-    url(r'^help/leaders/rentals/$', group_required('leaders', 'WSC')(TemplateView.as_view(template_name='help/leaders/rentals.html')), name='help-rentals'),
     url(r'^help/leaders/itinerary/$', group_required('leaders', 'WSC')(TemplateView.as_view(template_name='help/leaders/itinerary.html')), name='help-itinerary'),
     url(r'^help/leaders/ws_gear/$', group_required('leaders', 'WSC')(TemplateView.as_view(template_name='help/leaders/ws_gear.html')), name='help-ws_gear'),
     url(r'^help/leaders/feedback/$', group_required('leaders', 'WSC')(TemplateView.as_view(template_name='help/leaders/feedback.html')), name='help-feedback'),
