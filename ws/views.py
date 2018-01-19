@@ -1574,8 +1574,10 @@ class TripMedicalView(DetailView, TripLeadersOnlyView, TripMedical):
     def get_context_data(self, **kwargs):
         """ Get a trip info form for display as readonly. """
         trip = self.get_object()
+        participant = self.request.participant
         context_data = self.get_trip_info(trip)
         context_data['participants'] = trip.signed_up_participants.filter(signup__on_trip=True)
+        context_data['is_trip_leader'] = perm_utils.leader_on_trip(participant, trip),
         context_data['info_form'] = self.get_info_form(trip)
         return context_data
 
