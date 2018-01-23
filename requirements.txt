@@ -8,7 +8,7 @@ django-debug-toolbar>=1.5
 django-pipeline
 django-phonenumber-field
 django-smtp-ssl
-raven>=6.0.0
+raven>=6.5.0
 six
 django-angular==0.8.4
 psycopg2
