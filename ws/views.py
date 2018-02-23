@@ -36,6 +36,7 @@ from ws.utils.model_dates import ws_lectures_complete
 import ws.utils.perms as perm_utils
 import ws.utils.ratings as ratings_utils
 import ws.utils.signups as signup_utils
+from ws.waivers import initiate_waiver
 
 
 class TripLeadersOnlyView(View):
@@ -229,6 +230,21 @@ class EditProfileView(ParticipantEditMixin):
     @property
     def participant(self):
         return self.request.participant
+
+
+class SignWaiverView(View):
+    def get(self, *args, **kwargs):
+        return redirect(reverse('home'))
+
+    def post(self, request, *args, **kwargs):
+        initiate_waiver(request.participant)
+        messages.success(request, "Check your email for a pre-filled waiver! "
+                         "In the future, this will just flow directly.")
+        return redirect(reverse('home'))
+
+    @method_decorator(user_info_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super(SignWaiverView, self).dispatch(request, *args, **kwargs)
 
 
 class ParticipantLookupView(TemplateView, FormView):

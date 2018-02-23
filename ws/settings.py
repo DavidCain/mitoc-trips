@@ -147,6 +147,35 @@ ROOT_URLCONF = 'ws.urls'
 WSGI_APPLICATION = 'ws.wsgi.application'
 
 
+# Docusign
+DOCUSIGN_USERNAME = os.getenv('DOCUSIGN_USERNAME', 'djcain@mit.edu')
+DOCUSIGN_PASSWORD = os.getenv('DOCUSIGN_PASSWORD', 'super-secret')
+DOCUSIGN_INTEGRATOR_KEY = os.getenv('DOCUSIGN_INTEGRATOR_KEY', 'secret-uuid')
+DOCUSIGN_WAIVER_TEMPLATE_ID = os.getenv('DOCUSIGN_WAIVER_TEMPLATE_ID', 'template-uuid')
+
+# Hit endpoints when we successfully complete a waiver
+DOCUSIGN_EVENT_NOTIFICATION = {
+    "url": "https://api.mitoc.org/members/waiver",
+    "loggingEnabled": "true",
+    "requireAcknowledgment": "true",
+    "useSoapInterface": "false",
+    "includeCertificateWithSoap": "false",
+    "signMessageWithX509Cert": "true",
+    "includeDocuments": "false",  # No need
+    "includeCertificateOfCompletion": "false",
+    "includeEnvelopeVoidReason": "true",
+    "includeTimeZone": "true",  # Timestamps aren't in UTC... >:(
+    "includeSenderAccountAsCustomField": "true",
+    "includeDocumentFields": "true",
+    "envelopeEvents": [
+        {"envelopeEventStatusCode": "completed"}
+    ],
+    "recipientEvents": [
+        {"recipientEventStatusCode": "Completed"},
+    ],
+}
+
+
 # Celery settings
 
 BROKER_URL = os.getenv('BROKER_URL', 'amqp://guest:guest@127.0.0.1//')

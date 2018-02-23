@@ -168,6 +168,14 @@ Lookup participant
 
     <div class="row">
       <div class="col-md-12 col-sm-6">
+          {% if viewing_participant.pk == participant.pk %}
+            {% if participant.pk == 1  or participant.pk = 19 %}
+              <form method="POST" action="{% url 'initiate_waiver' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary">Email a Waiver</button>
+              </form>
+            {% endif %}
+          {% endif %}
         <membership-status data-personal="{{ user_viewing|yesno:"true,false" }}" data-user-id="{{ par_user.id }}">
         </membership-status>
       </div>

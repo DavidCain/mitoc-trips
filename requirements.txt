@@ -9,6 +9,7 @@ django-pipeline
 django-phonenumber-field
 django-smtp-ssl
 raven>=6.5.0
+requests
 six
 django-angular==0.8.4
 psycopg2

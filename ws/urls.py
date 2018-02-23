@@ -56,6 +56,7 @@ urlpatterns = patterns('',
     # General views (anyone can view or only participants with info)
     url(r'^profile/edit/$', views.EditProfileView.as_view(), name='edit_profile'),
     url(r'^leaders/apply/$', RedirectView.as_view(url='/winter_school/leaders/apply', permanent=True), name='old_become_leader'),
+    url(r'^profile/waiver/$', views.SignWaiverView.as_view(), name='initiate_waiver'),
     url(r'^(?P<activity>.+)/leaders/apply/$', views.LeaderApplyView.as_view(), name='become_leader'),
     url(r'^trips/(?P<pk>\d+)/$', views.TripView.as_view(), name='view_trip'),
     url(r'^trips.rss$', feeds.UpcomingTripsFeed(), name='rss-upcoming_trips'),
