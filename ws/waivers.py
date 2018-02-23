@@ -32,24 +32,47 @@ def get_base_url():
     return resp.json()['loginAccounts'][0]['baseUrl']
 
 
-def initiate_waiver(participant):
+def prefilled_tabs(participant):
+    """ Return tabs that are prefilled for the Releasor role. """
+    e_contact = participant.emergency_info.emergency_contact
+    return {
+        'textTabs': [
+            {'tabLabel': "Emergency Contact", 'value': e_contact.name},
+            {'tabLabel': "Emergency Contact Relation", 'value': e_contact.relationship},
+        ],
+        'numberTabs': [
+            {'tabLabel': "Emergency Contact's Phone", 'value': str(e_contact.cell_phone)},
+            {'tabLabel': 'Phone number', 'value': str(participant.cell_phone)}
+        ]
+    }
+
+
+def initiate_waiver(participant=None, name=None, email=None):
     """ Create a waiver & email it to the participant.
+
+    If the participant does not exist (i.e. somebody who's just signing with
+    their name and email address, do not attempt to pre-fill the form)
 
     TODO: We can flow straight into the document instead.
     docusign.com/developer-center/explore/features/embedding-docusign
     """
+    if participant is None and not (name or email):
+        raise ValueError("Participant or name/email required!")
     base_url = get_base_url()
+
+    releasor = {
+        'roleName': 'Releasor',
+        'name': name or participant.name,
+        'email': email or participant.email,
+    }
+    if participant:
+        releasor['tabs'] = prefilled_tabs(participant)
 
     # Create a new envelope
     new_env = {
         'status': 'sent',  # This will send an email to the Releasor
         'templateId': settings.DOCUSIGN_WAIVER_TEMPLATE_ID,
-        'templateRoles': [
-            {'name': participant.name,
-             'roleName': 'Releasor',
-             'email': participant.email
-             }
-        ],
+        'templateRoles': [releasor],
         'eventNotification': settings.DOCUSIGN_EVENT_NOTIFICATION
     }
 

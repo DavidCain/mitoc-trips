@@ -232,19 +232,34 @@ class EditProfileView(ParticipantEditMixin):
         return self.request.participant
 
 
-class SignWaiverView(View):
-    def get(self, *args, **kwargs):
-        return redirect(reverse('home'))
+class SignWaiverView(FormView):
+    template_name = 'profile/waiver.html'
+    form_class = forms.WaiverForm
+    success_url = reverse_lazy('home')
+
+    def send_waiver(self, **kwargs):
+        initiate_waiver(**kwargs)
+        messages.success(self.request, "Check your email for a pre-filled waiver! "
+                         "In the future, this will just flow directly.")
+
+    def form_valid(self, form):
+        """ If the user submitted a name and email, use that for a waiver. """
+        name, email = form.cleaned_data['name'], form.cleaned_data['email']
+        self.send_waiver(name=name, email=email)
+        return super(SignWaiverView, self).form_valid()
 
     def post(self, request, *args, **kwargs):
-        initiate_waiver(request.participant)
-        messages.success(request, "Check your email for a pre-filled waiver! "
-                         "In the future, this will just flow directly.")
-        return redirect(reverse('home'))
+        """ Either use participant or a name+email form to submit a waiver. """
+        if request.participant:
+            self.send_waiver(participant=request.participant)
+        else:  # No participant, we're submitted from a form
+            form = self.get_form()
+            if form.is_valid():
+                return self.form_valid(form)
+            else:
+                return self.form_invalid(form)
 
-    @method_decorator(user_info_required)
-    def dispatch(self, request, *args, **kwargs):
-        return super(SignWaiverView, self).dispatch(request, *args, **kwargs)
+        return redirect(self.get_success_url())
 
 
 class ParticipantLookupView(TemplateView, FormView):
