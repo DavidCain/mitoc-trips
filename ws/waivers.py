@@ -32,10 +32,29 @@ def get_base_url():
     return resp.json()['loginAccounts'][0]['baseUrl']
 
 
+def affiliation_to_radio_value(participant):
+    """ Map affiliation to a selectable value in the Docusign template. """
+    # NOTE: Currently, this table just matches the display values in models.py
+    # However, if we ever were to change those labels without updating
+    # the Docusign template, pre-filling tabs would break
+    mapper = {
+        'MU': "MIT undergrad",
+        'NU': "Non-MIT undergrad",
+        'MG': "MIT grad student",
+        'NG': "Non-MIT grad student",
+        'MA': 'MIT affiliate',
+        'NA': 'Non-affiliate',
+        # Deprecated codes ('S' is omitted since we can't map for sure)
+        'M': 'MIT affiliate',
+        'N': 'Non-affiliate',
+    }
+    return mapper.get(participant.affiliation)
+
+
 def prefilled_tabs(participant):
     """ Return tabs that are prefilled for the Releasor role. """
     e_contact = participant.emergency_info.emergency_contact
-    return {
+    tabs = {
         'textTabs': [
             {'tabLabel': "Emergency Contact", 'value': e_contact.name},
             {'tabLabel': "Emergency Contact Relation", 'value': e_contact.relationship},
@@ -45,6 +64,15 @@ def prefilled_tabs(participant):
             {'tabLabel': 'Phone number', 'value': str(participant.cell_phone)}
         ]
     }
+    # Only pre-select affiliation if the participant has a known affiliation
+    # (The 'S' affiliation does not map clearly to a category)
+    docusign_affiliation = affiliation_to_radio_value(participant)
+    if docusign_affiliation:
+        tabs['radioGroupTabs'] = [
+            {'groupName': 'Affiliation',
+             'radios': [{'value': docusign_affiliation, 'selected': True}]}
+        ]
+    return tabs
 
 
 def initiate_waiver(participant=None, name=None, email=None,
