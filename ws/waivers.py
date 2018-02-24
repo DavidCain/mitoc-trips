@@ -47,7 +47,8 @@ def prefilled_tabs(participant):
     }
 
 
-def initiate_waiver(participant=None, name=None, email=None):
+def initiate_waiver(participant=None, name=None, email=None,
+                    guardian_name=None, guardian_email=None):
     """ Create a waiver & email it to the participant.
 
     If the participant does not exist (i.e. somebody who's just signing with
@@ -65,14 +66,22 @@ def initiate_waiver(participant=None, name=None, email=None):
         'name': name or participant.name,
         'email': email or participant.email,
     }
+    guardian = {
+        'roleName': 'Parent or Guardian',
+        'name': guardian_name,
+        'email': guardian_email
+    }
     if participant:
         releasor['tabs'] = prefilled_tabs(participant)
+    roles = [releasor]
+    if guardian_name and guardian_email:
+        roles.append(guardian)
 
     # Create a new envelope
     new_env = {
         'status': 'sent',  # This will send an email to the Releasor
         'templateId': settings.DOCUSIGN_WAIVER_TEMPLATE_ID,
-        'templateRoles': [releasor],
+        'templateRoles': roles,
         'eventNotification': settings.DOCUSIGN_EVENT_NOTIFICATION
     }
 

@@ -384,3 +384,9 @@ class WaiverForm(NgFormValidationMixin, Bootstrap3FormMixin, NgForm):
         super(WaiverForm, self).__init__(*args, **kwargs)
         self.fields['name'].widget.attrs['placeholder'] = 'Tim Beaver'
         self.fields['email'].widget.attrs['placeholder'] = 'tim@mit.edu'
+
+
+class GuardianForm(NgFormValidationMixin, Bootstrap3FormMixin, NgForm):
+    required_css_class = 'required'
+    name = forms.CharField(required=True, label='Parent or Guardian Name')
+    email = forms.EmailField(required=True, label='Parent or Guardian Email')

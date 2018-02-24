@@ -242,16 +242,45 @@ class SignWaiverView(FormView):
         messages.success(self.request, "Check your email for a pre-filled waiver! "
                          "In the future, this will just flow directly.")
 
+    def get_guardian_form(self):
+        post = self.request.POST if self.request.method == "POST" else None
+        return forms.GuardianForm(post, prefix="guardian")
+
+    def get_form_kwargs(self):
+        kwargs = super(SignWaiverView, self).get_form_kwargs()
+        kwargs['prefix'] = 'releasor'
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super(SignWaiverView, self).get_context_data()
+        context['waiver_form'] = self.get_form(self.form_class)
+        context['guardian_form'] = self.get_guardian_form()
+        return context
+
     def form_valid(self, form):
         """ If the user submitted a name and email, use that for a waiver. """
         name, email = form.cleaned_data['name'], form.cleaned_data['email']
-        self.send_waiver(name=name, email=email)
+        self.send_waiver(name=name, email=email, **self.guardian_info)
         return super(SignWaiverView, self).form_valid()
+
+    @property
+    def guardian_info(self):
+        """ Return dictionary of guardian arguments to initiate_waiver.
+
+        If no guardian information was submitted (via an empty or invalid form),
+        this returns an empty dictionary.
+        """
+        guardian_form = self.get_guardian_form()
+        info = {}
+        if guardian_form.is_valid():
+            info['guardian_name'] = guardian_form.cleaned_data['name']
+            info['guardian_email'] = guardian_form.cleaned_data['email']
+        return info
 
     def post(self, request, *args, **kwargs):
         """ Either use participant or a name+email form to submit a waiver. """
         if request.participant:
-            self.send_waiver(participant=request.participant)
+            self.send_waiver(participant=request.participant, **self.guardian_info)
         else:  # No participant, we're submitted from a form
             form = self.get_form()
             if form.is_valid():
