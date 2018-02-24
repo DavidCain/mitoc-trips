@@ -238,9 +238,11 @@ class SignWaiverView(FormView):
     success_url = reverse_lazy('home')
 
     def send_waiver(self, **kwargs):
-        initiate_waiver(**kwargs)
-        messages.success(self.request, "Check your email for a pre-filled waiver! "
-                         "In the future, this will just flow directly.")
+        embedded_url = initiate_waiver(**kwargs)
+        if not embedded_url:  # Will be sent by email
+            email = self.request.participant.email
+            messages.success(self.request, "Waiver sent to {}".format(email))
+        return redirect(embedded_url or self.get_success_url())
 
     def get_guardian_form(self):
         post = self.request.POST if self.request.method == "POST" else None
@@ -260,8 +262,7 @@ class SignWaiverView(FormView):
     def form_valid(self, form):
         """ If the user submitted a name and email, use that for a waiver. """
         name, email = form.cleaned_data['name'], form.cleaned_data['email']
-        self.send_waiver(name=name, email=email, **self.guardian_info)
-        return super(SignWaiverView, self).form_valid()
+        return self.send_waiver(name=name, email=email, **self.guardian_info)
 
     @property
     def guardian_info(self):
@@ -280,15 +281,11 @@ class SignWaiverView(FormView):
     def post(self, request, *args, **kwargs):
         """ Either use participant or a name+email form to submit a waiver. """
         if request.participant:
-            self.send_waiver(participant=request.participant, **self.guardian_info)
-        else:  # No participant, we're submitted from a form
-            form = self.get_form()
-            if form.is_valid():
-                return self.form_valid(form)
-            else:
-                return self.form_invalid(form)
+            return self.send_waiver(participant=request.participant, **self.guardian_info)
 
-        return redirect(self.get_success_url())
+        # If there's no participant, we're just submitting an email and name directly
+        f = self.get_form()
+        return self.form_valid(f) if f.is_valid() else self.form_invalid(f)
 
 
 class ParticipantLookupView(TemplateView, FormView):

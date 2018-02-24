@@ -75,42 +75,91 @@ def prefilled_tabs(participant):
     return tabs
 
 
-def initiate_waiver(participant=None, name=None, email=None,
-                    guardian_name=None, guardian_email=None):
-    """ Create a waiver & email it to the participant.
+def get_roles(participant=None, name=None, email=None,
+              guardian_name=None, guardian_email=None):
+    """ Return the role definitions, with prefilled data if available.
 
-    If the participant does not exist (i.e. somebody who's just signing with
-    their name and email address, do not attempt to pre-fill the form)
-
-    TODO: We can flow straight into the document instead.
-    docusign.com/developer-center/explore/features/embedding-docusign
+    When we create the envelope, the waiver will be sent to the releasor (and a
+    guardian, if one is given).
     """
-    if participant is None and not (name or email):
-        raise ValueError("Participant or name/email required!")
-    base_url = get_base_url()
-
     releasor = {
         'roleName': 'Releasor',
         'name': name or participant.name,
-        'email': email or participant.email,
+        'email': email or participant.email
     }
+
+    # If there's a participant, copy over medical info & such to prefill form
+    if participant:
+        releasor['tabs'] = prefilled_tabs(participant)
+
+    if not (guardian_name and guardian_email):
+        return [releasor]
+
     guardian = {
         'roleName': 'Parent or Guardian',
         'name': guardian_name,
         'email': guardian_email
     }
-    if participant:
-        releasor['tabs'] = prefilled_tabs(participant)
-    roles = [releasor]
-    if guardian_name and guardian_email:
-        roles.append(guardian)
+    return [releasor, guardian]
 
-    # Create a new envelope
+
+def sign_embedded(participant, releasor, envelope_id, base_url=None):
+    """ Take a known user and go straight to the waiver flow.
+
+    Normally, we would rely on a waiver being sent to a user's email address
+    in order to know that they own the email address. However, in this case,
+    we already know that the participant owns the email address, so we can
+    go straight into the waiver flow.
+
+    The releasor object is a standard role definition that has already been
+    configured for use with a template, and has a 'clientUserId' assigned.
+    """
+    base_url = base_url or get_base_url()
+    recipient_url = base_url + '/envelopes/{}/views/recipient'.format(envelope_id)
+    user = {
+        'userName': releasor['name'],
+        'email': releasor['email'],
+        'clientUserId': releasor['clientUserId'],
+        'authenticationMethod': 'email',
+        'returnUrl': 'https://mitoc-trips.mit.edu',
+    }
+    # Fetch a URL that can be used to sign the waiver (expires in 5 minutes)
+    redir_url = requests.post(recipient_url, json=user, headers=HEADERS)
+    return redir_url.json()['url']
+
+
+def initiate_waiver(participant=None, name=None, email=None,
+                    guardian_name=None, guardian_email=None):
+    """ Create a waiver & send it to the participant (releasor).
+
+    If the participant does not exist (i.e. somebody who's just signing with
+    their name and email address), do not attempt to pre-fill the form.
+
+    Returns None (callers should take no action) or a URL for redirection.
+    """
+    if participant is None and not (name or email):
+        raise ValueError("Participant or name/email required!")
+
+    roles = get_roles(participant, name, email, guardian_name, guardian_email)
+    releasor = roles[0]
+
+    # Create a new envelope. By default, this results in an email to each role
     new_env = {
-        'status': 'sent',  # This will send an email to the Releasor
+        'status': 'sent',
         'templateId': settings.DOCUSIGN_WAIVER_TEMPLATE_ID,
         'templateRoles': roles,
         'eventNotification': settings.DOCUSIGN_EVENT_NOTIFICATION
     }
 
-    return requests.post(base_url + '/envelopes', json=new_env, headers=HEADERS)
+    # If their email is already known to us & authenticated, sign right away
+    # (to do embedded signing, we must define user ID at envelope creation)
+    if participant:
+        releasor['clientUserId'] = participant.pk
+
+    base_url = get_base_url()
+    env = requests.post(base_url + '/envelopes', json=new_env, headers=HEADERS)
+    if not participant:  # No embedded signing (just an email will be sent)
+        return
+
+    envelope_id = env.json()['envelopeId']
+    return sign_embedded(participant, releasor, envelope_id, base_url)
