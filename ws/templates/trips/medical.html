@@ -9,9 +9,26 @@
 
 {% include "snippets/phi_omitted_notice.html" %}
 
-<h2>Trip Itinerary for '<a href="{% url 'view_trip' trip.pk %}">{{ trip.name }}</a>'</h2>
+<h2>
+  Trip Itinerary for '<a href="{% url 'view_trip' trip.pk %}">{{ trip.name }}</a>'
+  {% if is_trip_leader %}
+    <a type="button" class="btn btn-default pull-right" href="{% url 'trip_itinerary' trip.pk %}">
+      <i class="fa fa-edit"></i>&nbsp;Edit
+    </a>
+  {% endif %}
+</h2>
 {% if trip.info %}
-    {% readonly_form info_form %}
+  {% readonly_form info_form %}
+{% else %}
+  <div class="alert alert-danger">
+    A
+    {% if is_trip_leader %}
+      <a href="{% url 'trip_itinerary' trip.pk %}">detailed trip itinerary</a>
+    {% else %}
+      detailed trip itinerary
+    {% endif %}
+    has not been submitted for this trip!
+  </div>
 {% endif %}
 
 <hr>
@@ -20,9 +37,9 @@
 
 <h4>Participants</h4>
 {% if participants %}
-{% medical_table participants %}
+  {% medical_table participants %}
 {% else %}
-<p> No participants. </p>
+  <p> No participants. </p>
 {% endif %}
 
 <h4>Leaders</h4>

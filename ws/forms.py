@@ -2,7 +2,7 @@ from django import forms
 from django.db.models.fields import TextField
 from django.core.exceptions import ValidationError
 
-from djng.forms import NgFormValidationMixin
+from djng.forms import NgForm, NgFormValidationMixin
 from djng.forms import NgModelFormMixin, NgModelForm
 from djng.styling.bootstrap3.forms import Bootstrap3FormMixin
 
@@ -365,3 +365,20 @@ def LeaderApplicationForm(*args, **kwargs):
             super().__init__(**kwargs)
 
     return DynamicActivityForm()
+
+
+class WaiverForm(NgFormValidationMixin, Bootstrap3FormMixin, NgForm):
+    required_css_class = 'required'
+    name = forms.CharField(required=True)
+    email = forms.EmailField(required=True)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['name'].widget.attrs['placeholder'] = 'Tim Beaver'
+        self.fields['email'].widget.attrs['placeholder'] = 'tim@mit.edu'
+
+
+class GuardianForm(NgFormValidationMixin, Bootstrap3FormMixin, NgForm):
+    required_css_class = 'required'
+    name = forms.CharField(required=True, label='Parent or Guardian Name')
+    email = forms.EmailField(required=True, label='Parent or Guardian Email')

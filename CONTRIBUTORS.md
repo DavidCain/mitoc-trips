@@ -56,3 +56,7 @@ Special thanks to the following especially dedicated individuals:
  - SIPB's Scripts team
 
  Each of these contributors have been invaluable in shaping this project.
+
+## Documentation
+The following individuals contributed sections to the help pages:
+- Neil Titchener

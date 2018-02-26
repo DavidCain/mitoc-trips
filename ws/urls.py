@@ -56,6 +56,7 @@ urlpatterns = [
     # General views (anyone can view or only participants with info)
     url(r'^profile/edit/$', views.EditProfileView.as_view(), name='edit_profile'),
     url(r'^leaders/apply/$', RedirectView.as_view(url='/winter_school/leaders/apply', permanent=True), name='old_become_leader'),
+    url(r'^profile/waiver/$', views.SignWaiverView.as_view(), name='initiate_waiver'),
     url(r'^(?P<activity>.+)/leaders/apply/$', views.LeaderApplyView.as_view(), name='become_leader'),
     url(r'^trips/(?P<pk>\d+)/$', views.TripView.as_view(), name='view_trip'),
     url(r'^trips.rss$', feeds.UpcomingTripsFeed(), name='rss-upcoming_trips'),
@@ -73,13 +74,35 @@ urlpatterns = [
     url(r'^contact/$', TemplateView.as_view(template_name='contact.html'), name='contact'),
     url(r'^help/$', TemplateView.as_view(template_name='help/home.html'), name='help-home'),
     url(r'^help/about/$', TemplateView.as_view(template_name='help/about.html'), name='help-about'),
+
+    url(r'^help/participants/wimp/$', TemplateView.as_view(template_name='help/participants/wimp_guide.html'), name='help-wimp_guide'),
+
+    # Participating on Trips
     url(r'^help/participants/personal_info/$', TemplateView.as_view(template_name='help/participants/personal_info.html'), name='help-personal_info'),
     url(r'^help/participants/lottery/$', TemplateView.as_view(template_name='help/participants/lottery.html'), name='help-lottery'),
+    url(r'^help/participants/personal_gear/$', TemplateView.as_view(template_name='help/participants/personal_gear.html'), name='help-personal_gear'),
     url(r'^help/participants/signups/$', TemplateView.as_view(template_name='help/participants/signups.html'), name='help-signups'),
-    url(r'^help/participants/leading_trips/$', TemplateView.as_view(template_name='help/participants/leading_trips.html'), name='help-leading_trips'),
-    url(r'^help/leaders/feedback/$', group_required('leaders', 'WSC')(TemplateView.as_view(template_name='help/leaders/feedback.html')), name='help-feedback'),
+
+    # Leading Trips
+    url(r'^help/participants/become_ws_leader/$', TemplateView.as_view(template_name='help/participants/become_ws_leader.html'), name='help-become_ws_leader'),
+    url(r'^help/participants/ws_ratings/$', TemplateView.as_view(template_name='help/participants/ws_ratings.html'), name='help-ws_ratings'),
+    url(r'^help/participants/ws_rating_assignment/$', TemplateView.as_view(template_name='help/participants/ws_rating_assignment.html'), name='help-ws_rating_assignment'),
+
+    # Planning Trips
+    url(r'^help/participants/rentals/$', TemplateView.as_view(template_name='help/leaders/rentals.html'), name='help-rentals'),
+    url(r'^help/participants/weather/$', TemplateView.as_view(template_name='help/participants/weather.html'), name='help-weather'),
+    url(r'^help/participants/maps/$', TemplateView.as_view(template_name='help/participants/maps.html'), name='help-maps'),
+
+    # Trip Logistics (for leaders)
     url(r'^help/leaders/trip_admin/$', group_required('leaders', 'WSC')(TemplateView.as_view(template_name='help/leaders/trip_admin.html')), name='help-trip_admin'),
-    url(r'^help/leaders/ws_ratings/$', group_required('leaders', 'WSC')(TemplateView.as_view(template_name='help/leaders/ws_ratings.html')), name='help-ws_ratings'),
+    url(r'^help/leaders/checklist/$', group_required('leaders', 'WSC')(TemplateView.as_view(template_name='help/leaders/checklist.html')), name='help-checklist'),
+    url(r'^help/leaders/example_emails/$', group_required('leaders', 'WSC')(TemplateView.as_view(template_name='help/leaders/example_emails.html')), name='help-example_emails'),
+    url(r'^help/leaders/rideshare/$', group_required('leaders', 'WSC')(TemplateView.as_view(template_name='help/leaders/rideshare.html')), name='help-rideshare'),
+    url(r'^help/leaders/itinerary/$', group_required('leaders', 'WSC')(TemplateView.as_view(template_name='help/leaders/itinerary.html')), name='help-itinerary'),
+    url(r'^help/leaders/ws_gear/$', group_required('leaders', 'WSC')(TemplateView.as_view(template_name='help/leaders/ws_gear.html')), name='help-ws_gear'),
+    url(r'^help/leaders/feedback/$', group_required('leaders', 'WSC')(TemplateView.as_view(template_name='help/leaders/feedback.html')), name='help-feedback'),
+
+    # WSC Administration (for the Winter Safety Committee)
     url(r'^help/wsc/wsc/$', group_required('WSC')(TemplateView.as_view(template_name='help/wsc/wsc.html')), name='help-wsc'),
 
     # API (must have account in system)
@@ -94,6 +117,10 @@ urlpatterns = [
     # D3-based statistics views
     url(r'^data/trips_by_leader.json', api_views.TripsByLeaderView.as_view(), name='json-trips_by_leader'),
     url(r'^stats/*$', views.StatsView.as_view(), name='stats'),
+
+    # JSON-returning routes that depend on HTTP authorization
+    # Tokens accepted via Authorization header (standard 'Bearer' format)
+    url(r'^data/verified_emails/$', api_views.OtherVerifiedEmailsView.as_view(), name='other_verified_emails'),
 ]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

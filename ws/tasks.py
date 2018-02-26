@@ -1,3 +1,4 @@
+from datetime import timedelta
 import random
 
 from celery import group, shared_task
@@ -5,6 +6,8 @@ from django.core.cache import cache
 from django.db.models import Q
 
 from ws import models
+from ws.sao import send_email_to_funds
+from ws.utils import dates as date_utils
 from ws.utils import member_sheets
 from ws.lottery import SingleTripLotteryRunner, WinterSchoolLotteryRunner
 
@@ -53,6 +56,19 @@ def update_discount_sheet(self, discount_id):
 def update_all_discount_sheets():
     discount_pks = models.Discount.objects.values_list('pk', flat=True)
     group([update_discount_sheet.s(pk) for pk in discount_pks])()
+
+
+@shared_task
+def send_sao_itineraries():
+    """ Email trip itineraries to the Student Activities Office.
+
+    This task should be run daily, so that it will always send SAO
+    this information _before_ the trip actually starts.
+    """
+    tomorrow = date_utils.local_date() + timedelta(days=1)
+    trips = models.Trip.objects.filter(trip_date=tomorrow, info__isnull=False)
+    for trip in trips.select_related('info').prefetch_related('leaders'):
+        send_email_to_funds(trip)
 
 
 @shared_task

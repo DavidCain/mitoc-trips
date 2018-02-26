@@ -1,6 +1,8 @@
 from itertools import chain
 import json
 
+from allauth.account.models import EmailAddress
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
 from django.db import transaction
@@ -9,12 +11,11 @@ from django.http import JsonResponse
 from django.views.generic import (DetailView, ListView, View)
 from django.views.generic.detail import SingleObjectMixin
 from django.utils.decorators import method_decorator
+import jwt
 
-from allauth.account.models import EmailAddress
-
+from ws import decorators
 from ws import models
 from ws.views import AllLeadersView, TripLeadersOnlyView
-from ws.decorators import chairs_only, group_required, user_info_required
 from ws.templatetags.gravatar import gravatar_url
 
 from ws.utils.model_dates import missed_lectures
@@ -49,7 +50,7 @@ class SimpleSignupsView(DetailView):
             },
         })
 
-    @method_decorator(user_info_required)
+    @method_decorator(decorators.user_info_required)
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
@@ -232,7 +233,7 @@ class JsonAllParticipantsView(ListView):
         top_matches = participants[:20].values('name', 'email', 'id')
         return JsonResponse({'participants': list(top_matches)})
 
-    @method_decorator(user_info_required)
+    @method_decorator(decorators.user_info_required)
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
@@ -291,7 +292,7 @@ class ApproveTripView(SingleObjectMixin, View):
         trip.save()
         return JsonResponse({'approved': trip.chair_approved})
 
-    @method_decorator(chairs_only())
+    @method_decorator(decorators.chairs_only())
     def dispatch(self, request, *args, **kwargs):
         trip = self.get_object()
         if not perm_utils.is_chair(request.user, trip.activity, False):
@@ -325,6 +326,35 @@ class UserRentalsView(UserView):
         return JsonResponse({'rentals': geardb_utils.user_rentals(user)})
 
 
+class OtherVerifiedEmailsView(View):
+    def get(self, request, *args, **kwargs):
+        """ Return any other verified emails that tie to the same user. """
+
+        # Extract JWT from HTTP headers
+        http_auth = self.request.META.get('HTTP_AUTHORIZATION')
+        if not (http_auth and http_auth.startswith('Bearer: ')):
+            return JsonResponse({'message': 'token missing'}, status=401)
+        token = http_auth.split()[1]
+
+        secret = settings.MEMBERSHIP_SECRET_KEY
+        try:
+            payload = jwt.decode(token, secret)
+            email = payload['email']
+        except (jwt.exceptions.InvalidTokenError, KeyError):
+            return JsonResponse({'message': 'invalid token'}, status=401)
+
+        addr = EmailAddress.objects.filter(email=email, verified=True).first()
+        if not addr:  # Not in our system, so just return the original
+            return JsonResponse({'emails': [email]})
+
+        # Normal case: Email is verified. Return all other verified emails
+        verifed_emails = addr.user.emailaddress_set.filter(verified=True)
+        return JsonResponse({
+            'primary': addr.user.email,
+            'emails': list(verifed_emails.values_list('email', flat=True))
+        })
+
+
 class MembershipStatusesView(View):
     def post(self, request, *args, **kwargs):
         """ Return a mapping of participant IDs to membership statuses. """
@@ -336,7 +366,7 @@ class MembershipStatusesView(View):
         # Span databases to map from participants -> users -> email addresses
         participants = models.Participant.objects.filter(pk__in=par_pks)
         user_to_par = dict(participants.values_list('user_id', 'pk'))
-        email_addresses = EmailAddress.objects.filter(user_id__in=user_to_par)
+        email_addresses = EmailAddress.objects.filter(user_id__in=user_to_par, verified=True)
         email_to_user = dict(email_addresses.values_list('email', 'user_id'))
 
         # Gives email -> membership info for all matches
@@ -356,7 +386,7 @@ class MembershipStatusesView(View):
 
         return JsonResponse({'memberships': participant_memberships})
 
-    @method_decorator(group_required('leaders'))
+    @method_decorator(decorators.group_required('leaders'))
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 

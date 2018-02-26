@@ -24,7 +24,9 @@ from ws.utils.perms import activity_name, is_chair
 
 scope = ['https://spreadsheets.google.com/feeds']
 credfile = os.getenv('OAUTH_JSON_CREDENTIALS')
-if settings.DEBUG and not credfile:  # Allow local environments to skip
+
+if settings.DEBUG and not (credfile and os.path.exists(credfile)):
+    # Allow local environments to skip
     credentials = None  # Exceptions will be raised if any methods are tried
     gc = None
 else:

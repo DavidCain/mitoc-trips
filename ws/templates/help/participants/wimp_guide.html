@@ -1,0 +1,75 @@
+{% extends "help/home.html" %}
+{% block head_title %}Help - Guide to WIMPing{% endblock head_title %}
+
+{% block faq %}
+<h2>How to be the WIMP</h2>
+
+<div class="well" id="responsibilities">
+  <h4>Responsibilities of the WIMP</h4>
+  <p>
+    As the "Worry if Missing Person," it is the job of the WIMP to ensure that
+    all trips return safely, and to coordinate an emergency response if a trip
+    is unaccounted for. During Winter School, the WIMP is a volunteer position
+    filled each week by a volunteer MITOCer.
+  </p>
+</div>
+
+<div class="well" id="expectations">
+  <h4>Expectations</h4>
+  <p>
+    In order to serve as the WIMP, you must not be a participant on any other
+    trips for the weekend. You should be easily reached by phone at any time
+    over the weekend. You must also being willing to coordinate a rescue if
+    needed.
+  </p>
+</div>
+
+
+<div class="well" id="timeline">
+  <h4>Timeline</h4>
+  <p>
+    <ol>
+      <li>Distribute your contact information to the leaders by Thursday.</li>
+      <li>As the WIMP, you are able to see a <a href="{% url 'all_trips_medical' %}">summary of trip itineraries</a> on the "WIMP" tab.</li>
+      <li>On Friday, make sure all trips have submitted itineraries and driver information, and send reminder emails to the leaders if necessary.</li>
+      <li>
+          Make a list of all the trips out and their worry times, preferably in chronological order. Keep this list handy for the weekend.
+          <ul>
+            <li>
+              You can also print the
+              <a href="{% url 'all_trips_medical' %}">summary of trip itineraries</a>,
+              but note that medical information will automatically be omitted.
+            </li>
+            <li>
+              <strong>Do not print or email participant medical information.</strong>
+            </li>
+          </ul>
+      </li>
+      <li>Check off trips as they report back.</li>
+      <li>When all of the day's trips are back safely, consider sending an email to <a href="mailto:mitoc-wsc@mit.edu">the WSC</a>.</li>
+    </ol>
+  </p>
+</div>
+
+<div class="well" id="emergency_response">
+  <h4>What to do if a trip does not report back before its worry time</h4>
+  <p>
+    <ol>
+      <li>Try calling the leaders.</li>
+      <li>Wait 30 minutes, then call the leaders again. If they don't respond, call each of the participants.</li>
+      <li>Repeat every 30 minutes.</li>
+      <li>Also try calling someone at each of the cabins to see if the trip has returned but failed to inform the WIMP.</li>
+    </ol>
+  </p>
+  <p>
+    If no contact is made <strong>2 hours after the worry time</strong> (5 hours
+    after the expected return time), then call the appropriate emergency number.
+    <ul>
+        <li>For trips in NH, contact the NH State Police at 800-525-5555 or 911.</li>
+        <li>For trips in VT, contact the VT State Police by calling the <a href="http://vsp.vermont.gov/stations">nearest state police station</a> or 911.</li>
+        <li>For trips in ME, contact the ME State Police by calling the <a href="http://www.maine.gov/dps/msp/">nearest state police station</a> or 911.</li>
+        <li>For trips in MA, contact the MA State Police by calling the <a href="http://www.mass.gov/eopss/agencies/msp/phone-listings.html">nearest regional dispatch</a> or 911.</p></li>
+    </ul>
+  </p>
+</div>
+{% endblock faq %}

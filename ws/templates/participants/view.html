@@ -33,6 +33,18 @@ Lookup participant
 
 {% if participant %}
 
+{# If it's Winter School and the participant has not attended lectures, we     #}
+{# want the 'mark attendance' button to appear at the top of the viewport.     #}
+{# The usual Bootstrap grid push/pull methods can't bring this div to the top. #}
+{# On mobile/tablet, show in its own row (it's already top right on desktop).  #}
+{% if show_attendance and can_set_attendance and not attended_lectures %}
+  <div class="row">
+    <div class="visible-sm visible-xs col-sm-12">
+      {% lecture_attendance participant user_viewing can_set_attendance %}
+    </div>
+  </div>
+{% endif %}
+
 <div class="row">
   <div class="col-md-8">
     <div class="row">
@@ -138,7 +150,11 @@ Lookup participant
 
   <div class="col-md-4">
     {% if show_attendance %}
-      {% lecture_attendance participant user_viewing can_set_attendance %}
+      {# Move this to the top of mobile/tablet viewports when the participant has #}
+      {# not yet attended, but can indicate that they have #}
+      <div {% if can_set_attendance and not attended_lectures %}class="hidden-sm hidden-xs"{% endif %}>
+        {% lecture_attendance participant user_viewing can_set_attendance %}
+      </div>
     {% endif %}
 
     {% if user_viewing and messages %}
@@ -152,6 +168,11 @@ Lookup participant
 
     <div class="row">
       <div class="col-md-12 col-sm-6">
+          {% if viewing_participant.pk == participant.pk %}
+            {% if participant.pk == 1  or participant.pk = 19 %}
+              <a href="{% url 'initiate_waiver' %}" type="button" class="btn btn-primary">Sign Waiver</a>
+            {% endif %}
+          {% endif %}
         <membership-status data-personal="{{ user_viewing|yesno:"true,false" }}" data-user-id="{{ par_user.id }}">
         </membership-status>
       </div>

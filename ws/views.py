@@ -29,10 +29,12 @@ from ws.templatetags.trip_tags import annotated_for_trip_list
 
 from ws.utils.dates import (local_date, local_now, is_winter_school, ws_year,
                             itinerary_available_at)
+from ws.utils.itinerary import get_cars
 from ws.utils.model_dates import ws_lectures_complete
 import ws.utils.perms as perm_utils
 import ws.utils.ratings as ratings_utils
 import ws.utils.signups as signup_utils
+from ws.waivers import initiate_waiver
 
 
 class TripLeadersOnlyView(View):
@@ -228,6 +230,62 @@ class EditProfileView(ParticipantEditMixin):
         return self.request.participant
 
 
+class SignWaiverView(FormView):
+    template_name = 'profile/waiver.html'
+    form_class = forms.WaiverForm
+    success_url = reverse_lazy('home')
+
+    def send_waiver(self, **kwargs):
+        embedded_url = initiate_waiver(**kwargs)
+        if not embedded_url:  # Will be sent by email
+            email = self.request.participant.email
+            messages.success(self.request, "Waiver sent to {}".format(email))
+        return redirect(embedded_url or self.get_success_url())
+
+    def get_guardian_form(self):
+        post = self.request.POST if self.request.method == "POST" else None
+        return forms.GuardianForm(post, prefix="guardian")
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['prefix'] = 'releasor'
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data()
+        context['waiver_form'] = self.get_form(self.form_class)
+        context['guardian_form'] = self.get_guardian_form()
+        return context
+
+    def form_valid(self, form):
+        """ If the user submitted a name and email, use that for a waiver. """
+        name, email = form.cleaned_data['name'], form.cleaned_data['email']
+        return self.send_waiver(name=name, email=email, **self.guardian_info)
+
+    @property
+    def guardian_info(self):
+        """ Return dictionary of guardian arguments to initiate_waiver.
+
+        If no guardian information was submitted (via an empty or invalid form),
+        this returns an empty dictionary.
+        """
+        guardian_form = self.get_guardian_form()
+        info = {}
+        if guardian_form.is_valid():
+            info['guardian_name'] = guardian_form.cleaned_data['name']
+            info['guardian_email'] = guardian_form.cleaned_data['email']
+        return info
+
+    def post(self, request, *args, **kwargs):
+        """ Either use participant or a name+email form to submit a waiver. """
+        if request.participant:
+            return self.send_waiver(participant=request.participant, **self.guardian_info)
+
+        # If there's no participant, we're just submitting an email and name directly
+        f = self.get_form()
+        return self.form_valid(f) if f.is_valid() else self.form_invalid(f)
+
+
 class ParticipantLookupView(TemplateView, FormView):
     template_name = 'participants/view.html'
     form_class = forms.ParticipantLookupForm
@@ -418,7 +476,12 @@ class ParticipantView(ParticipantLookupView, SingleObjectMixin,
 
         can_set_attendance = self.can_set_attendance(participant)
         context['can_set_attendance'] = can_set_attendance
-        context['show_attendance'] = can_set_attendance or (is_winter_school() and ws_lectures_complete())
+        context['show_attendance'] = is_winter_school() and (ws_lectures_complete() or can_set_attendance)
+        if can_set_attendance:
+            context['attended_lectures'] = models.LectureAttendance.objects.filter(
+                participant=participant,
+                year=ws_year()
+            ).exists()
 
         context['user_viewing'] = user_viewing
         if user_viewing:
@@ -1530,28 +1593,12 @@ class LotteryPreferencesView(TemplateView, LotteryPairingMixin):
 
 
 class TripMedical(ItineraryInfoFormMixin):
-    def get_cars(self, trip):
-        """ Return cars of specified drivers, otherwise all drivers' cars.
-
-        If a trip leader says who's driving in the trip itinerary, then
-        only return those participants' cars. Otherwise, gives all cars.
-        The template will give a note specifying if these were the drivers
-        given by the leader, of if they're all possible drivers.
-        """
-        signups = trip.signup_set.filter(on_trip=True)
-        par_on_trip = (Q(participant__in=trip.leaders.all()) |
-                       Q(participant__signup__in=signups))
-        cars = models.Car.objects.filter(par_on_trip).distinct()
-        if trip.info:
-            cars = cars.filter(participant__in=trip.info.drivers.all())
-        return cars.select_related('participant__lotteryinfo')
-
     def get_trip_info(self, trip):
         participants = trip.signed_up_participants.filter(signup__on_trip=True)
         participants = participants.select_related('emergency_info')
         signups = trip.signup_set.filter(on_trip=True)
         signups = signups.select_related('participant__emergency_info')
-        return {'trip': trip, 'participants': participants, 'cars': self.get_cars(trip),
+        return {'trip': trip, 'participants': participants, 'cars': get_cars(trip),
                 'info_form': self.get_info_form(trip)}
 
 
@@ -1585,8 +1632,10 @@ class TripMedicalView(DetailView, TripLeadersOnlyView, TripMedical):
     def get_context_data(self, **kwargs):
         """ Get a trip info form for display as readonly. """
         trip = self.get_object()
+        participant = self.request.participant
         context_data = self.get_trip_info(trip)
         context_data['participants'] = trip.signed_up_participants.filter(signup__on_trip=True)
+        context_data['is_trip_leader'] = perm_utils.leader_on_trip(participant, trip),
         context_data['info_form'] = self.get_info_form(trip)
         return context_data
 
@@ -1674,7 +1723,7 @@ class TripItineraryView(UpdateView, TripLeadersOnlyView, ItineraryInfoFormMixin)
         return form
 
     def form_valid(self, form):
-        if not self.info_form_available(self.trip):
+        if local_now() < itinerary_available_at(self.trip.trip_date):
             form.errors['__all__'] = ErrorList(["Form not yet available!"])
             return self.form_invalid(form)
         self.trip.info = form.save()

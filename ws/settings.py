@@ -17,6 +17,8 @@ import raven
 
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY',
                        '*this-is-obviously-not-secure-only-use-it-locally*')
+MEMBERSHIP_SECRET_KEY = os.getenv('MEMBERSHIP_SECRET_KEY',
+                                  'secret shared with the mitoc-member repo')
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 PROJECT_ROOT = os.path.normpath(os.path.dirname(os.path.abspath(__file__)))
@@ -44,10 +46,12 @@ LOGIN_REDIRECT_URL = '/'
 ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 
 INSTALLED_APPS = []  # Must be defined by respective configs
-if os.environ.get('WS_DJANGO_LOCAL'):
-    from .conf.local_settings import *  # noQA
+if os.environ.get('WS_TEST_CONFIG'):
+    from .conf.test_settings import *  # NoQA
+elif os.environ.get('WS_DJANGO_LOCAL'):
+    from .conf.local_settings import *  # NoQA
 else:
-    from .conf.production_settings import *  # noQA
+    from .conf.production_settings import *  # NoQA
 
 DATABASES = {
     'default': {
@@ -147,6 +151,35 @@ ROOT_URLCONF = 'ws.urls'
 WSGI_APPLICATION = 'ws.wsgi.application'
 
 
+# Docusign
+DOCUSIGN_USERNAME = os.getenv('DOCUSIGN_USERNAME', 'djcain@mit.edu')
+DOCUSIGN_PASSWORD = os.getenv('DOCUSIGN_PASSWORD', 'super-secret')
+DOCUSIGN_INTEGRATOR_KEY = os.getenv('DOCUSIGN_INTEGRATOR_KEY', 'secret-uuid')
+DOCUSIGN_WAIVER_TEMPLATE_ID = os.getenv('DOCUSIGN_WAIVER_TEMPLATE_ID', 'template-uuid')
+
+# Hit endpoints when we successfully complete a waiver
+DOCUSIGN_EVENT_NOTIFICATION = {
+    "url": "https://api.mitoc.org/members/waiver",
+    "loggingEnabled": "true",
+    "requireAcknowledgment": "true",
+    "useSoapInterface": "false",
+    "includeCertificateWithSoap": "false",
+    "signMessageWithX509Cert": "true",
+    "includeDocuments": "false",  # No need
+    "includeCertificateOfCompletion": "false",
+    "includeEnvelopeVoidReason": "true",
+    "includeTimeZone": "true",  # Timestamps aren't in UTC... >:(
+    "includeSenderAccountAsCustomField": "true",
+    "includeDocumentFields": "true",
+    "envelopeEvents": [
+        {"envelopeEventStatusCode": "completed"}
+    ],
+    "recipientEvents": [
+        {"recipientEventStatusCode": "Completed"},
+    ],
+}
+
+
 # Celery settings
 
 BROKER_URL = os.getenv('BROKER_URL', 'amqp://guest:guest@127.0.0.1//')
@@ -163,10 +196,14 @@ CELERYBEAT_SCHEDULE = {
         'task': 'ws.tasks.update_all_discount_sheets',
         'schedule': crontab(minute=0, hour=3)
     },
-    #'run-ws-lottery': {
-    #    'task': 'ws.tasks.run_ws_lottery',
-    #    'schedule': crontab(minute=0, hour=11)
-    #},
+    'send-sao-itineraries': {
+        'task': 'ws.tasks.send_sao_itineraries',
+        'schedule': crontab(minute=0, hour=4)
+    },
+    'run-ws-lottery': {
+        'task': 'ws.tasks.run_ws_lottery',
+        'schedule': crontab(minute=0, hour=14, month_of_year=[1, 2], day_of_week=3)
+    },
 }
 
 CELERY_TIMEZONE = 'UTC'

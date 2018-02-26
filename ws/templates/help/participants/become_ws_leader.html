@@ -1,0 +1,56 @@
+{% extends "help/home.html" %}
+{% block head_title %}Help - Leading trips{% endblock head_title %}
+
+{% block faq %}
+<h2>Becoming a Winter School Leader</h2>
+<div class="well" id="qualifications">
+  <h4>What qualifications do I need to become a Winter School leader?</h4>
+  <p>
+    A Winter School rating provided by the Winter Safety Committe is required
+    to lead a trip during Winter School. These ratings control what kinds of
+    trips leaders are permitted to create. Each Winter School trip must have a
+    minimum of two leaders, at least one of whom is rated as a "primary/full"
+    leader. A first aid certification: WFA or higher is required to obtain a B
+    or C primary leader rating.
+  </p>
+  <p>
+    The qualifications for each of the three catagories &mdash; hiking, ice-climbing
+    and skiing &mdash; include a combination of outdoor experience and leadership
+    related to that activity. It is possible to beome a winter hiking leader
+    with minimal winter hiking experience, as long as you are a current MITOC
+    three-season hiking leader or equivalent.
+  </p>
+
+</div>
+
+<div class="well" id="coleaders">
+  <h4>What are co-leaders?</h4>
+
+  <p>
+      People are often given co-ratings by the Winter Safety Committee. This
+      rating is given to those who show promise in an area but have not
+      demonstrated the specific outdoor experience/leadership/group management
+      necessary for a full rating. Co-leaders require a primary leader to be
+      present in the group in order to lead a trip. The co-leader position
+      promotes experience building under the supervision of an experienced
+      leader. Co-leaders are encouraged to use the earlier weeks of Winter
+      School to demonstrate the skill set necessary to be "upgraded" to primary
+      leader prior to the close of IAP.
+  </p>
+</div>
+
+<div class="well" id="apply">
+  <h4>How do I become a leader / co-leader?</h4>
+  <p>If you're interested in leading trips, fill out a leader application form:
+  <ul>
+    <li><a href="{% url 'become_leader' 'winter_school' %}">Winter School</a>
+  </ul>
+</div>
+
+<div class="well" id="benefits">
+  <h4>What benefits come with being a leader?</h4>
+  As a trip leader, you receive free gear rentals and a course subsidy for
+  Wilderness First Aid certification (WFA, WAFA, WFR, WEMT).
+</div>
+
+{% endblock faq %}
