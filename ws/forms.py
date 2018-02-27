@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 
 from djng.forms import NgForm, NgFormValidationMixin
 from djng.forms import NgModelFormMixin, NgModelForm
+from djng.forms.fields import CharField, EmailField, BooleanField, RegexField
 from djng.styling.bootstrap3.forms import Bootstrap3FormMixin
 
 from localflavor.us.us_states import US_STATES
@@ -43,8 +44,8 @@ class DiscountForm(forms.ModelForm):
 
 
 class ParticipantForm(DjangularRequiredModelForm):
-    name = forms.RegexField(regex=r'^.* ',
-                            error_messages={"invalid": "Please use your full name"})
+    name = RegexField(regex=r'^.* ',
+                      error_messages={"invalid": "Please use your full name"})
 
     class Meta:
         model = models.Participant
@@ -122,7 +123,7 @@ class ApplicationLeaderForm(DjangularRequiredModelForm):
     Since the participant and activity are given by the application itself,
     we need not include those an options in the form.
     """
-    recommendation = forms.BooleanField(required=False, label="Is a recommendation")
+    recommendation = BooleanField(required=False, label="Is a recommendation")
 
     class Meta:
         model = models.LeaderRating
@@ -150,7 +151,7 @@ class LeaderForm(DjangularRequiredModelForm):
 
 
 class TripInfoForm(DjangularRequiredModelForm):
-    accurate = forms.BooleanField(required=True, label='I affirm that all participant and driver information is correct')
+    accurate = BooleanField(required=True, label='I affirm that all participant and driver information is correct')
 
     class Meta:
         model = models.TripInfo
@@ -283,8 +284,8 @@ class LeaderSignUpForm(SignUpForm):
 
 class LeaderParticipantSignUpForm(RequiredModelForm):
     """ For leaders to sign up participants. Notes aren't required. """
-    top_spot = forms.BooleanField(required=False, label='Move to top spot',
-                                  help_text='Move the participant above other prioritized waitlist spots (e.g. participants previously added with this form, or those who were bumped off to allow a driver on)')
+    top_spot = BooleanField(required=False, label='Move to top spot',
+                            help_text='Move the participant above other prioritized waitlist spots (e.g. participants previously added with this form, or those who were bumped off to allow a driver on)')
 
     class Meta:
         model = models.SignUp
@@ -369,8 +370,8 @@ def LeaderApplicationForm(*args, **kwargs):
 
 class WaiverForm(NgFormValidationMixin, Bootstrap3FormMixin, NgForm):
     required_css_class = 'required'
-    name = forms.CharField(required=True)
-    email = forms.EmailField(required=True)
+    name = CharField(required=True)
+    email = EmailField(required=True)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -380,5 +381,5 @@ class WaiverForm(NgFormValidationMixin, Bootstrap3FormMixin, NgForm):
 
 class GuardianForm(NgFormValidationMixin, Bootstrap3FormMixin, NgForm):
     required_css_class = 'required'
-    name = forms.CharField(required=True, label='Parent or Guardian Name')
-    email = forms.EmailField(required=True, label='Parent or Guardian Email')
+    name = CharField(required=True, label='Parent or Guardian Name')
+    email = EmailField(required=True, label='Parent or Guardian Email')

@@ -84,6 +84,10 @@ DATABASES = {
 }
 DATABASE_ROUTERS = ['ws.routers.AuthRouter']
 
+
+FORM_RENDERER = 'djng.forms.renderers.DjangoAngularBootstrap3Templates'
+
+
 MIDDLEWARE = [
     'django.middleware.gzip.GZipMiddleware',
     'pipeline.middleware.MinifyHTMLMiddleware',
