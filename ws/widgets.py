@@ -61,23 +61,24 @@ class LeaderSelect(dj_widgets.SelectMultiple):
         self.attrs['activity'] = 'activity'
         if value:
             attrs['leader-ids'] = json.dumps(value)
-        final_attrs = self.build_attrs(attrs, name=name)
+        final_attrs = self.build_attrs(attrs, extra_attrs=self.attrs)
         output = [format_html('<leader-select {}></leader-select>', flatatt(final_attrs))]
         return mark_safe('\n'.join(output))
 
 
 class ParticipantSelect(dj_widgets.Select):
     def render(self, name, value, attrs=None, choices=()):
-        final_attrs = self.build_attrs(attrs, name=name)
+        self.attrs['name'] = name
+        final_attrs = self.build_attrs(attrs, extra_attrs=self.attrs)
         output = [format_html('<participant-select {}></participant-select>', flatatt(final_attrs))]
         return mark_safe('\n'.join(output))
 
 
 class PhoneInput(dj_widgets.Input):
     def render(self, name, value, attrs=None):
-        attrs['default-country'] = 'us'
-        attrs['preferred-countries'] = 'us ca'
-        final_attrs = self.build_attrs(attrs, name=name)
+        self.attrs['default-country'] = 'us'
+        self.attrs['preferred-countries'] = 'us ca'
+        final_attrs = self.build_attrs(attrs, extra_attrs=self.attrs)
         # Use a hack to init ng-model
         ng_model_init = {'ng-model': final_attrs['ng-model'], 'value': value}
         return format_html('<input type="hidden" {}/>' +

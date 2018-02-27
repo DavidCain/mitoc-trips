@@ -5,6 +5,10 @@ angular.module('ws.stats', [])
     scope: {},
     templateUrl: '/static/template/trips-by-leader.html',
     link: function (scope, element, attrs) {
+      scope.openDatePicker = function() {
+        scope.datepickerOpen = true;
+      };
+
       // We'll fetch once, then they're available top-level
       var filteredLeaders, allLeaders, allLeadersByPk;
 
