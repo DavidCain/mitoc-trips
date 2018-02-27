@@ -858,7 +858,10 @@ class LeaderApplyView(LeaderApplicationMixin, CreateView):
 
     def get_queryset(self):
         """ For looking up if any recent applications have been completed. """
-        return self.model.objects
+        applications = self.model.objects
+        if self.activity == models.LeaderRating.WINTER_SCHOOL:
+            return applications.filter(year=self.application_year)
+        return applications
 
     @property
     def par(self):
