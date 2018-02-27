@@ -169,7 +169,7 @@ Lookup participant
     <div class="row">
       <div class="col-md-12 col-sm-6">
           {% if viewing_participant.pk == participant.pk %}
-            {% if participant.pk == 1  or participant.pk = 19 %}
+            {% if 'waiver_testers' in groups %}
               <a href="{% url 'initiate_waiver' %}" type="button" class="btn btn-primary">Sign Waiver</a>
             {% endif %}
           {% endif %}

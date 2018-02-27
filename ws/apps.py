@@ -27,6 +27,7 @@ class TripsConfig(AppConfig):
         # Groups don't need Django permissions defined.
         # Their ability to modify models is controlled by access to views
         try:
+            Group.objects.get_or_create(name='waiver_testers')
             Group.objects.get_or_create(name='leaders')
             Group.objects.get_or_create(name='users_with_info')
             Group.objects.get_or_create(name='WSC')
