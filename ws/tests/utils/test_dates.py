@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
-import mock
+import unittest.mock
+
 from django.test import SimpleTestCase  # No need for database
 
 from ws.utils import dates as date_utils
@@ -26,7 +27,7 @@ class DateUtilTests(SimpleTestCase):
             else:
                 self.assertGreater(test_dt, avail_datetime)
 
-    @mock.patch('ws.utils.dates.local_now')
+    @unittest.mock.patch('ws.utils.dates.local_now')
     def test_nearest_sat(self, local_now):
         for test_dt in self.test_datetimes:
             local_now.return_value = test_dt
@@ -39,7 +40,7 @@ class DateUtilTests(SimpleTestCase):
             else:
                 self.assertGreater(nearest_sat, test_date)
 
-    @mock.patch('ws.utils.dates.local_now')
+    @unittest.mock.patch('ws.utils.dates.local_now')
     def test_closest_wednesday(self, local_now):
         for test_dt in self.test_datetimes:
             local_now.return_value = test_dt
@@ -59,7 +60,7 @@ class DateUtilTests(SimpleTestCase):
         self.assertEqual(wed_noon.hour, 12)
         self.assertEqual(wed_noon.minute, 0)
 
-    @mock.patch('ws.utils.dates.local_now')
+    @unittest.mock.patch('ws.utils.dates.local_now')
     def test_is_winter_school(self, local_now):
         for day, expected in [(datetime(2016, 12, 28), False),
                               (datetime(2017, 1, 1), True),

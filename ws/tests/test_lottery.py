@@ -1,4 +1,4 @@
-import mock
+from unittest.mock import MagicMock, PropertyMock, patch
 import itertools
 
 from ws import lottery
@@ -78,13 +78,13 @@ class FlakeFactorTests(SimpleTestCase):
         """ Mock participant.feedback_set.filter(trip=trip). """
         trip = kwargs.get('trip')
         feedback_objects = self.trip_mapper[trip.name]['feedback']
-        feedback = mock.MagicMock()
+        feedback = MagicMock()
         feedback.__iter__.return_value = feedback_objects
         feedback.exists.return_value = len(feedback_objects)
         return feedback
 
-    @mock.patch('ws.models.Participant.feedback_set', new_callable=mock.PropertyMock)
-    @mock.patch('ws.lottery.WinterSchoolParticipantRanker.past_ws_trips')
+    @patch('ws.models.Participant.feedback_set', new_callable=PropertyMock)
+    @patch('ws.lottery.WinterSchoolParticipantRanker.past_ws_trips')
     def test_flake_score(self, past_ws_trips, feedback_set):
         """ Check flake factor scoring participant showed up for all trips. """
         par = models.Participant()
@@ -122,8 +122,8 @@ class FlakeFactorTests(SimpleTestCase):
             self.trip_mapper[name]['feedback'] = [flaked]
             self.assertEqual(self.ranker.get_flake_factor(par), i * 5)
 
-    @mock.patch('ws.models.Participant.feedback_set', new_callable=mock.PropertyMock)
-    @mock.patch('ws.lottery.WinterSchoolParticipantRanker.past_ws_trips')
+    @patch('ws.models.Participant.feedback_set', new_callable=PropertyMock)
+    @patch('ws.lottery.WinterSchoolParticipantRanker.past_ws_trips')
     def test_disagreement(self, past_ws_trips, feedback_set):
         """ If only one leader reports them as flaking, that's a flake. """
         par = models.Participant()
@@ -146,8 +146,8 @@ class FlakeFactorTests(SimpleTestCase):
 class ParticipantRankingTests(SimpleTestCase):
     """ Test the logic by which we determine users with "first pick" status. """
     def setUp(self):
-        number_ws_trips = mock.patch('ws.lottery.WinterSchoolParticipantRanker.number_ws_trips')
-        get_flake_factor = mock.patch('ws.lottery.WinterSchoolParticipantRanker.get_flake_factor')
+        number_ws_trips = patch('ws.lottery.WinterSchoolParticipantRanker.number_ws_trips')
+        get_flake_factor = patch('ws.lottery.WinterSchoolParticipantRanker.get_flake_factor')
 
         number_ws_trips.start()
         get_flake_factor.start()
@@ -246,7 +246,7 @@ class ParticipantRankingTests(SimpleTestCase):
 
 
 class SingleTripLotteryTests(SimpleTestCase):
-    @mock.patch.object(models.Trip, 'save')
+    @patch.object(models.Trip, 'save')
     def test_fcfs_not_run(self, save_trip):
         """ If a trip's algorithm is not 'lottery', nothing happens. """
         trip = models.Trip(algorithm='fcfs')

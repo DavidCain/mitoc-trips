@@ -1,4 +1,4 @@
-import mock
+from unittest.mock import patch, PropertyMock
 from datetime import datetime
 
 from django.test import SimpleTestCase
@@ -16,8 +16,8 @@ class MissedLectureTests(SimpleTestCase):
         self.assertFalse(utils.missed_lectures(participant, 2014))
         self.assertFalse(utils.missed_lectures(participant, 2015))
 
-    @mock.patch('ws.utils.model_dates.ws_lectures_complete')
-    @mock.patch('ws.utils.dates.ws_year')
+    @patch('ws.utils.model_dates.ws_lectures_complete')
+    @patch('ws.utils.dates.ws_year')
     def test_lectures_incomplete(self, ws_year, ws_lectures_complete):
         """ If this year's lectures haven't completed, nobody can be absent. """
         ws_lectures_complete.return_value = False
@@ -25,9 +25,9 @@ class MissedLectureTests(SimpleTestCase):
         ws_year.return_value = current_year = 2525
         self.assertFalse(utils.missed_lectures(participant, current_year))
 
-    @mock.patch('ws.models.Participant.lectureattendance_set', new_callable=mock.PropertyMock)
-    @mock.patch('ws.utils.model_dates.ws_lectures_complete')
-    @mock.patch('ws.utils.dates.ws_year')
+    @patch('ws.models.Participant.lectureattendance_set', new_callable=PropertyMock)
+    @patch('ws.utils.model_dates.ws_lectures_complete')
+    @patch('ws.utils.dates.ws_year')
     def test_current_year(self, ws_year, ws_lectures_complete, lecture_attendance):
         """ Check attendance in current year, after lectures complete.
 
@@ -53,7 +53,7 @@ class MissedLectureTests(SimpleTestCase):
 
 class LecturesCompleteTests(SimpleTestCase):
     """ Test the method that tries to infer when lectures are over. """
-    @mock.patch('ws.utils.model_dates.ws_trips_this_year')
+    @patch('ws.utils.model_dates.ws_trips_this_year')
     def test_no_trips_yet(self, ws_trips):
         """ When there are no trips (past or planned), lectures aren't complete.
 
@@ -64,7 +64,7 @@ class LecturesCompleteTests(SimpleTestCase):
         ws_trips.return_value.filter.return_value = []
         self.assertFalse(utils.ws_lectures_complete())
 
-    @mock.patch('ws.utils.model_dates.ws_trips_this_year')
+    @patch('ws.utils.model_dates.ws_trips_this_year')
     def test_past_trips(self, ws_trips):
         """ When trips have already completed, lectures are definitely over. """
         def past_only(**kwargs):
@@ -76,8 +76,8 @@ class LecturesCompleteTests(SimpleTestCase):
         ws_trips.return_value.filter.side_effect = past_only
         self.assertTrue(utils.ws_lectures_complete())
 
-    @mock.patch('ws.utils.dates.local_now')
-    @mock.patch('ws.utils.model_dates.ws_trips_this_year')
+    @patch('ws.utils.dates.local_now')
+    @patch('ws.utils.model_dates.ws_trips_this_year')
     def test_future_trips(self, ws_trips, local_now):
         """ When there are no past trips, but there are upcoming trips. """
 

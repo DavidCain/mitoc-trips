@@ -1,6 +1,5 @@
 from urllib.parse import urlparse, parse_qs
-
-import mock
+import unittest.mock
 
 from django.test import Client, TestCase
 from django.urls import reverse
@@ -98,7 +97,7 @@ class AuthTests(PermHelpers, TestCase):
         response = self.client.get(desired_page)
         self.assertProfileRedirectedTo(response, desired_page)
 
-    @mock.patch('ws.decorators.profile_needs_update')
+    @unittest.mock.patch('ws.decorators.profile_needs_update')
     def test_participant_pages(self, profile_needs_update):
         """ Participants are allowed to view certain pages. """
         par_only_page = reverse('discounts')
@@ -115,7 +114,7 @@ class AuthTests(PermHelpers, TestCase):
         par_response = self.client.get(par_only_page)
         self.assertEqual(par_response.status_code, 200)
 
-    @mock.patch('ws.decorators.profile_needs_update')
+    @unittest.mock.patch('ws.decorators.profile_needs_update')
     def test_leader_pages(self, profile_needs_update):
         """ Participants are given forbidden messages on leader-only pages.
 

@@ -15,7 +15,6 @@ django-angular==2.0.1
 psycopg2-binary
 mysqlclient
 markdown2
-mock
 PyJWT
 
 oauth2client
