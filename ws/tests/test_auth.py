@@ -70,7 +70,7 @@ class AuthTests(PermHelpers, TestCase):
         """ Anonymous users can browse a number of pages. """
         for open_url in ['contact',
                          'help-home', 'help-about', 'help-personal_info',
-                         'help-lottery', 'help-signups', 'help-leading_trips',
+                         'help-lottery', 'help-signups',
                          'all_trips', 'upcoming_trips',
                          'stats', 'json-trips_by_leader']:
             response = self.client.get(reverse(open_url))
