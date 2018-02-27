@@ -1,6 +1,7 @@
 def label_is_both(label):
     return label in {'contenttypes'}
 
+
 def label_is_auth(label):
     """ Return if the label belongs exclusively to the auth_db. """
     return label in {'auth', 'account', 'admin', 'sessions'}
@@ -10,7 +11,7 @@ def is_auth(obj):
     return label_is_auth(obj._meta.app_label)
 
 
-class AuthRouter(object):
+class AuthRouter:
     """
     A router to control all database operations on models in the
     auth application.

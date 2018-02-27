@@ -643,9 +643,11 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
         return _.every(_.map(viewValue, 'canLead'));
       };
 
-      scope.$watch('activity', filterForActivity);
-      scope.$watch('activity', checkSelectedLeaders);
-      scope.$watch('activity', ngModelCtrl.$validate);
+      scope.$watch('activity', function(activity) {
+        filterForActivity();
+        checkSelectedLeaders();
+        ngModelCtrl.$validate();
+      });
 
       scope.$watch('selected.leaders', function() {
         ngModelCtrl.$setViewValue(scope.selected.leaders);

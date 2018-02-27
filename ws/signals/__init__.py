@@ -1,2 +1,2 @@
-import auth_signals
-import signup_signals
+from . import auth_signals
+from . import signup_signals

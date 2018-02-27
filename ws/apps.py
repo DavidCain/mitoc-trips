@@ -1,5 +1,4 @@
 from django.apps import AppConfig
-from django.contrib.auth.models import Group
 from django.db.utils import OperationalError, ProgrammingError
 
 
@@ -19,13 +18,14 @@ class TripsConfig(AppConfig):
 
     def load_signals(self):
         try:
-            import signals
+            from . import signals  # noQA
         except:
             pass  # Database initialization, etc.
 
     def create_groups(self):
         # Groups don't need Django permissions defined.
         # Their ability to modify models is controlled by access to views
+        from django.contrib.auth.models import Group
         try:
             Group.objects.get_or_create(name='waiver_testers')
             Group.objects.get_or_create(name='leaders')
@@ -41,8 +41,8 @@ class TripsConfig(AppConfig):
             Group.objects.get_or_create(name='climbing_chair')
             Group.objects.get_or_create(name='hiking_chair')
         except (OperationalError, ProgrammingError):
-            print "Can't create groups"
-            print "Django tables likely not created yet (run migrate)."
+            print("Can't create groups")
+            print("Django tables likely not created yet (run migrate).")
 
     def ready(self):
         self.load_signals()

@@ -9,6 +9,7 @@ from ws.sentry import client
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ws.settings')
 
+
 class Celery(celery.Celery):
     def on_configure(self):
         if not client:
@@ -19,6 +20,7 @@ class Celery(celery.Celery):
 
         # hook into the Celery error handler
         register_signal(client)
+
 
 app = Celery('ws')
 

@@ -1,9 +1,8 @@
-from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import User
 from ws import models
 
 
-class PrefetchGroupsMiddleware(object):
+class PrefetchGroupsMiddleware:
     """ Prefetch the user's groups for use in the requset.
 
     We do a lot of group-centric logic - if the user's groups aren't
@@ -15,20 +14,30 @@ class PrefetchGroupsMiddleware(object):
     method to do the prefetching (we would obviously extend all-auth).
     For now, this cuts down on query time and execution.
     """
-    def process_request(self, request):
-        if request.user.is_authenticated():
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        if request.user.is_authenticated:
             filtered_user = User.objects.filter(pk=request.user.pk)
             request.user = filtered_user.prefetch_related('groups').get()
+        return self.get_response(request)
 
 
-class ParticipantMiddleware(object):
+class ParticipantMiddleware:
     """ Include the user's participant (used in most views) """
-    def process_request(self, request):
-        user = request.user
-        if user.is_anonymous():
-            request.participant = None
-        else:
-            try:
-                request.participant = models.Participant.objects.get(user_id=user.id)
-            except ObjectDoesNotExist:
-                request.participant = None
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        request.participant = participant_from_user(request.user)
+        return self.get_response(request)
+
+
+def participant_from_user(user):
+    if user.is_anonymous:
+        return None
+    try:
+        return models.Participant.objects.get(user_id=user.id)
+    except models.Participant.DoesNotExist:
+        return None

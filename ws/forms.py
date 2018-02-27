@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 
 from djng.forms import NgForm, NgFormValidationMixin
 from djng.forms import NgModelFormMixin, NgModelForm
+from djng.forms.fields import CharField, EmailField, BooleanField, RegexField
 from djng.styling.bootstrap3.forms import Bootstrap3FormMixin
 
 from localflavor.us.us_states import US_STATES
@@ -25,7 +26,7 @@ class RequiredModelForm(forms.ModelForm):
 class DiscountForm(forms.ModelForm):
     def clean(self):
         """ Ensure the participant meets the requirements for the discount. """
-        super(DiscountForm, self).clean()
+        super().clean()
         participant = self.instance
         discounts = self.cleaned_data['discounts']
 
@@ -43,8 +44,8 @@ class DiscountForm(forms.ModelForm):
 
 
 class ParticipantForm(DjangularRequiredModelForm):
-    name = forms.RegexField(regex=r'^.* ',
-                            error_messages={"invalid": "Please use your full name"})
+    name = RegexField(regex=r'^.* ',
+                      error_messages={"invalid": "Please use your full name"})
 
     class Meta:
         model = models.Participant
@@ -59,7 +60,7 @@ class ParticipantForm(DjangularRequiredModelForm):
         # (Will properly trigger a "complete this field" warning)
         if kwargs.get('instance') and len(kwargs['instance'].affiliation) == 1:
             kwargs['instance'].affiliation = ''
-        super(ParticipantForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         verified_emails = user.emailaddress_set.filter(verified=True)
         choices = [email * 2 for email in verified_emails.values_list('email')]
@@ -71,7 +72,7 @@ class ParticipantLookupForm(forms.Form):
     participant = forms.ModelChoiceField(queryset=models.Participant.objects.all())
 
     def __init__(self, *args, **kwargs):
-        super(ParticipantLookupForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         participant_field = self.fields['participant']
         participant_field.help_text = None  # Disable "Hold command..."
         participant_field.label = ''
@@ -122,7 +123,7 @@ class ApplicationLeaderForm(DjangularRequiredModelForm):
     Since the participant and activity are given by the application itself,
     we need not include those an options in the form.
     """
-    recommendation = forms.BooleanField(required=False, label="Is a recommendation")
+    recommendation = BooleanField(required=False, label="Is a recommendation")
 
     class Meta:
         model = models.LeaderRating
@@ -134,13 +135,13 @@ class LeaderForm(DjangularRequiredModelForm):
     """ Allows assigning a rating to participants in any allowed activity. """
     def __init__(self, *args, **kwargs):
         allowed_activities = kwargs.pop("allowed_activities", None)
-        super(LeaderForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         all_par = models.Participant.objects.all()
         self.fields['participant'].queryset = all_par
         self.fields['participant'].empty_label = 'Nobody'
         if allowed_activities is not None:
-            activities = filter(lambda (val, label): val in allowed_activities,
-                                self.fields['activity'].choices)
+            activities = [activity for activity in self.fields['activity'].choices
+                          if activity[0] in allowed_activities]
             self.fields['activity'].choices = activities
 
     class Meta:
@@ -150,7 +151,7 @@ class LeaderForm(DjangularRequiredModelForm):
 
 
 class TripInfoForm(DjangularRequiredModelForm):
-    accurate = forms.BooleanField(required=True, label='I affirm that all participant and driver information is correct')
+    accurate = BooleanField(required=True, label='I affirm that all participant and driver information is correct')
 
     class Meta:
         model = models.TripInfo
@@ -158,7 +159,7 @@ class TripInfoForm(DjangularRequiredModelForm):
                   'return_time', 'worry_time', 'itinerary']
 
     def __init__(self, *args, **kwargs):
-        super(TripInfoForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
 
 class TripForm(DjangularRequiredModelForm):
@@ -211,7 +212,7 @@ class TripForm(DjangularRequiredModelForm):
         want ValidationErrors when trying to modify old trips where a
         leader rating may have lapsed.
         """
-        super(TripForm, self).clean()
+        super().clean()
         activity = self.cleaned_data['activity']
         leaders = self.cleaned_data['leaders']
 
@@ -232,7 +233,7 @@ class TripForm(DjangularRequiredModelForm):
 
     def __init__(self, *args, **kwargs):
         allowed_activities = kwargs.pop("allowed_activities", None)
-        super(TripForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fields['leaders'].queryset = models.Participant.leaders.get_queryset()
         self.fields['leaders'].help_text = None  # Disable "Hold command..."
 
@@ -242,17 +243,9 @@ class TripForm(DjangularRequiredModelForm):
         self.fields['level'].required = activity == 'winter_school' or not activity
 
         if allowed_activities is not None:
-            activities = filter(lambda (val, label): val in allowed_activities,
-                                self.fields['activity'].choices)
+            activities = [vl for vl in self.fields['activity'].choices
+                          if vl[0] in allowed_activities]
             self.fields['activity'].choices = activities
-
-
-class SummaryTripForm(forms.ModelForm):
-    """ Intended to be read-only, summarize key elements about a trip."""
-    class Meta:
-        model = models.Trip
-        fields = ['name', 'trip_date', 'description', 'maximum_participants',
-                  'algorithm', 'difficulty_rating']
 
 
 class SignUpForm(DjangularRequiredModelForm):
@@ -274,7 +267,7 @@ class SignUpForm(DjangularRequiredModelForm):
         Trips should always be given via initial. We can check if the trip
         has a notes field this way.
         """
-        super(SignUpForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         trip = self.initial.get('trip')
         if trip and trip.notes:
             notes = self.fields['notes']
@@ -291,8 +284,8 @@ class LeaderSignUpForm(SignUpForm):
 
 class LeaderParticipantSignUpForm(RequiredModelForm):
     """ For leaders to sign up participants. Notes aren't required. """
-    top_spot = forms.BooleanField(required=False, label='Move to top spot',
-                                  help_text='Move the participant above other prioritized waitlist spots (e.g. participants previously added with this form, or those who were bumped off to allow a driver on)')
+    top_spot = BooleanField(required=False, label='Move to top spot',
+                            help_text='Move the participant above other prioritized waitlist spots (e.g. participants previously added with this form, or those who were bumped off to allow a driver on)')
 
     class Meta:
         model = models.SignUp
@@ -300,7 +293,7 @@ class LeaderParticipantSignUpForm(RequiredModelForm):
         widgets = {'notes': forms.Textarea(attrs={'rows': 4})}
 
     def __init__(self, trip, *args, **kwargs):
-        super(LeaderParticipantSignUpForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         non_trip = non_trip_participants(trip)
         self.fields['participant'].queryset = non_trip
         self.fields['participant'].help_text = None  # Disable "Hold command..."
@@ -317,7 +310,7 @@ class LotteryPairForm(DjangularRequiredModelForm):
     def __init__(self, *args, **kwargs):
         participant = kwargs.pop('participant')
         exclude_self = kwargs.pop('exclude_self', False)
-        super(LotteryPairForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         participants = models.Participant.objects.all()
         all_but_user = participants.exclude(pk=participant.pk)
 
@@ -369,24 +362,24 @@ def LeaderApplicationForm(*args, **kwargs):
 
         def __init__(self):
             # TODO: Errors on args, where args is a single tuple of the view
-            #super(DynamicActivityForm, self).__init__(*args, **kwargs)
-            super(DynamicActivityForm, self).__init__(**kwargs)
+            #super().__init__(*args, **kwargs)
+            super().__init__(**kwargs)
 
     return DynamicActivityForm()
 
 
 class WaiverForm(NgFormValidationMixin, Bootstrap3FormMixin, NgForm):
     required_css_class = 'required'
-    name = forms.CharField(required=True)
-    email = forms.EmailField(required=True)
+    name = CharField(required=True)
+    email = EmailField(required=True)
 
     def __init__(self, *args, **kwargs):
-        super(WaiverForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fields['name'].widget.attrs['placeholder'] = 'Tim Beaver'
         self.fields['email'].widget.attrs['placeholder'] = 'tim@mit.edu'
 
 
 class GuardianForm(NgFormValidationMixin, Bootstrap3FormMixin, NgForm):
     required_css_class = 'required'
-    name = forms.CharField(required=True, label='Parent or Guardian Name')
-    email = forms.EmailField(required=True, label='Parent or Guardian Email')
+    name = CharField(required=True, label='Parent or Guardian Name')
+    email = EmailField(required=True, label='Parent or Guardian Email')

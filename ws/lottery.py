@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import logging
 import random
 
@@ -41,7 +39,7 @@ def place_on_trip(signup):
     signup.save()
 
 
-class WinterSchoolParticipantRanker(object):
+class WinterSchoolParticipantRanker:
     def __init__(self):
         self.today = local_date()
         self.jan_1st = jan_1()
@@ -111,7 +109,7 @@ class WinterSchoolParticipantRanker(object):
         return max(non_drivers, key=lambda signup: self.priority_key(signup.participant))
 
 
-class LotteryRunner(object):
+class LotteryRunner:
     def __init__(self):
         self.participants_handled = {}  # Key: primary keys, gives boolean if handled
 
@@ -136,10 +134,12 @@ class LotteryRunner(object):
 
 class SingleTripLotteryRunner(LotteryRunner):
     def __init__(self, trip):
-        random_signups = trip.signup_set.order_by('?')
-        self.ranked_participants = [s.participant for s in random_signups]
         self.trip = trip
-        super(SingleTripLotteryRunner, self).__init__()
+        super().__init__()
+
+    @property
+    def ranked_participants(self):
+        return [s.participant for s in self.trip.signup_set.order_by('?')]
 
     def __call__(self):
         if self.trip.algorithm != 'lottery':
@@ -155,7 +155,7 @@ class SingleTripLotteryRunner(LotteryRunner):
 class WinterSchoolLotteryRunner(LotteryRunner):
     def __init__(self):
         self.ranked_participants = WinterSchoolParticipantRanker()
-        super(WinterSchoolLotteryRunner, self).__init__()
+        super().__init__()
 
     def __call__(self):
         self.assign_trips()
@@ -185,7 +185,7 @@ class WinterSchoolLotteryRunner(LotteryRunner):
             par_handler.place_participant()
 
 
-class ParticipantHandler(object):
+class ParticipantHandler:
     """ Class to handle placement of a single participant or pair. """
     is_driver_q = Q(participant__lotteryinfo__car_status__in=['own', 'rent'])
 
@@ -221,7 +221,7 @@ class ParticipantHandler(object):
 
     @property
     def par_text(self):
-        return " + ".join(map(unicode, self.to_be_placed))
+        return " + ".join(map(str, self.to_be_placed))
 
     def place_all_on_trip(self, signup):
         place_on_trip(signup)
@@ -269,8 +269,7 @@ class SingleTripParticipantHandler(ParticipantHandler):
     def __init__(self, participant, runner, trip):
         self.trip = trip
         allow_pairs = trip.honor_participant_pairing
-        parent = super(SingleTripParticipantHandler, self)
-        parent.__init__(participant, runner, allow_pairs=allow_pairs)
+        return super().__init__(participant, runner, allow_pairs=allow_pairs)
 
     @property
     def paired(self):
@@ -306,8 +305,7 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
         :param runner: An instance of LotteryRunner
         """
         self.today = local_date()
-        parent = super(WinterSchoolParticipantHandler, self)
-        parent.__init__(participant, runner, min_drivers=2, allow_pairs=True)
+        return super().__init__(participant, runner, min_drivers=2, allow_pairs=True)
 
     @property
     def future_signups(self):

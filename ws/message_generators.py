@@ -1,4 +1,3 @@
-from __future__ import unicode_literals
 """
 Functions that take a request, create messages if applicable.
 """
@@ -6,7 +5,7 @@ Functions that take a request, create messages if applicable.
 from datetime import timedelta
 
 from django.contrib import messages
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import escape
 
@@ -15,7 +14,7 @@ from ws.utils.dates import local_date, is_winter_school
 import ws.utils.perms
 
 
-class LotteryMessages(object):
+class LotteryMessages:
     """ Supply messages relating to lottery status of one participant. """
     WARN_AFTER_DAYS_OLD = 5  # After these days, remind of lottery status
 
@@ -101,7 +100,7 @@ class LotteryMessages(object):
 
 def warn_if_needs_update(request):
     """ Create message if Participant info needs update. Otherwise, do nothing. """
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         return
 
     participant = request.participant

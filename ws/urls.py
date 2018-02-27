@@ -1,7 +1,7 @@
-from django.conf.urls import include, patterns, url
+from django.conf.urls import include, url
 from django.contrib import admin
 from django.conf.urls.static import static
-from django.core.urlresolvers import reverse_lazy
+from django.urls import reverse_lazy
 from django.views.generic import RedirectView, TemplateView
 
 from ws import feeds
@@ -12,7 +12,7 @@ from ws.decorators import group_required
 
 
 # Access is controlled in views, but URLs are roughly grouped by access
-urlpatterns = patterns('',
+urlpatterns = [
     url(r'^$', views.ProfileView.as_view(), name='home'),
     url(r'^profile/*$', RedirectView.as_view(url=reverse_lazy('home'), permanent=True), name='profile'),
 
@@ -21,7 +21,7 @@ urlpatterns = patterns('',
     url(r'^accounts/', include('allauth.urls')),
 
     # Administrator views
-    url(r'^admin/', include(admin.site.urls)),
+    url(r'^admin/', admin.site.urls),
     url(r'^participants/(?P<pk>\d+)/edit/$', views.EditParticipantView.as_view(), name='edit_participant'),
     url(r'^participants/(?P<pk>\d+)/delete/$', views.DeleteParticipantView.as_view(), name='delete_participant'),
 
@@ -121,12 +121,12 @@ urlpatterns = patterns('',
     # JSON-returning routes that depend on HTTP authorization
     # Tokens accepted via Authorization header (standard 'Bearer' format)
     url(r'^data/verified_emails/$', api_views.OtherVerifiedEmailsView.as_view(), name='other_verified_emails'),
-)
+]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 if settings.DEBUG:
     import debug_toolbar
-    urlpatterns += patterns('',
+    urlpatterns = [
         url(r'^__debug__/', include(debug_toolbar.urls)),
-    )
+    ] + urlpatterns

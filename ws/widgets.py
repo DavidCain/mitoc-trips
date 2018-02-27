@@ -17,7 +17,7 @@ class MarkdownTextarea(dj_widgets.Textarea):
             attrs.update({'rows': max(4, example_text.count('\n') + 1),
                           'placeholder': example_text})
 
-        super(dj_widgets.Textarea, self).__init__(attrs)
+        return super().__init__(attrs)
 
 
 class BootstrapDateInput(dj_widgets.DateInput):
@@ -42,7 +42,7 @@ class BootstrapDateInput(dj_widgets.DateInput):
         self._set_datepicker_settings()
         self.attrs['data-ng-init'] = "{}=false".format(self.attrs[is_open])
 
-        date_input = super(BootstrapDateInput, self).render(name, value, attrs)
+        date_input = super().render(name, value, attrs)
         return format_html(
             '''<span class="input-group">
                   <span class="input-group-btn">
@@ -61,23 +61,24 @@ class LeaderSelect(dj_widgets.SelectMultiple):
         self.attrs['activity'] = 'activity'
         if value:
             attrs['leader-ids'] = json.dumps(value)
-        final_attrs = self.build_attrs(attrs, name=name)
+        final_attrs = self.build_attrs(attrs, extra_attrs=self.attrs)
         output = [format_html('<leader-select {}></leader-select>', flatatt(final_attrs))]
         return mark_safe('\n'.join(output))
 
 
 class ParticipantSelect(dj_widgets.Select):
     def render(self, name, value, attrs=None, choices=()):
-        final_attrs = self.build_attrs(attrs, name=name)
+        self.attrs['name'] = name
+        final_attrs = self.build_attrs(attrs, extra_attrs=self.attrs)
         output = [format_html('<participant-select {}></participant-select>', flatatt(final_attrs))]
         return mark_safe('\n'.join(output))
 
 
 class PhoneInput(dj_widgets.Input):
     def render(self, name, value, attrs=None):
-        attrs['default-country'] = 'us'
-        attrs['preferred-countries'] = 'us ca'
-        final_attrs = self.build_attrs(attrs, name=name)
+        self.attrs['default-country'] = 'us'
+        self.attrs['preferred-countries'] = 'us ca'
+        final_attrs = self.build_attrs(attrs, extra_attrs=self.attrs)
         # Use a hack to init ng-model
         ng_model_init = {'ng-model': final_attrs['ng-model'], 'value': value}
         return format_html('<input type="hidden" {}/>' +

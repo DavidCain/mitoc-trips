@@ -17,7 +17,7 @@ def deactivate_ratings(participant, activity):
         existing.save()
 
 
-class LeaderApplicationMixin(object):
+class LeaderApplicationMixin:
     """ Some common tools for interacting with LeaderApplication objects.
 
     Requires self.activity
@@ -71,7 +71,7 @@ class LeaderApplicationMixin(object):
                                              'participant__leaderrating_set')
 
 
-class RatingsRecommendationsMixin(object):
+class RatingsRecommendationsMixin:
     """ Query tools for counting ratings & recs for LeaderApplications.
 
     Requires self.chair to to be a Participant object (that chairs the activity).
@@ -115,7 +115,7 @@ class ApplicationManager(LeaderApplicationMixin, RatingsRecommendationsMixin):
         if 'activity' in kwargs:
             self.activity = kwargs.pop('activity')
 
-        super(ApplicationManager, self).__init__(*args, **kwargs)
+        return super().__init__(*args, **kwargs)
 
     def sorted_applications(self, just_this_year=False):
         """ Sort all applications by order of attention they need. """

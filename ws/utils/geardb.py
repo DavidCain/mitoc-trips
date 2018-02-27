@@ -14,14 +14,14 @@ from ws.utils.dates import local_now, local_date
 
 
 def verified_emails(user):
-    if not user or user.is_anonymous():
+    if not user or user.is_anonymous:
         return []
     emails = user.emailaddress_set
     return emails.filter(verified=True).values_list('email', flat=True)
 
 
 def user_membership_expiration(user):
-    if not user or user.is_anonymous():
+    if not user or user.is_anonymous:
         return None
     return membership_expiration(verified_emails(user))
 
@@ -40,9 +40,11 @@ def membership_expiration(emails):
 
     It also calculates whether or not the membership has expired.
     """
-    # First membership matching will be the most current
-    matches = matching_memberships(emails)
-    return matches.values()[-1] if matches else repr_blank_membership()
+    def expiration_date(membership_info):
+        return membership_info['membership']['expires']
+
+    return max(matching_memberships(emails).values(), key=expiration_date,
+               default=repr_blank_membership())
 
 
 def format_membership(email, membership_expires, waiver_expires):
@@ -76,10 +78,10 @@ def matching_memberships(emails):
 
     Newer memberships will appear earlier in the results.
     """
-    cursor = connections['geardb'].cursor()
-
     if not emails:  # Passing an empty tuple will cause a SQL error
         return OrderedDict()
+
+    cursor = connections['geardb'].cursor()
 
     # Get the most recent membership and most recent waiver per email
     # It's possible the user has a newer waiver under another email address,

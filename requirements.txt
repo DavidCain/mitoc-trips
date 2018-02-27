@@ -1,8 +1,8 @@
-Django>=1.8.3,<1.9
+Django==1.11
 pytz
-celery==3.1.23
+celery==3.1.25
 django-allauth
-django-localflavor<2.0
+django-localflavor
 django-cors-headers
 django-debug-toolbar>=1.5
 django-pipeline
@@ -11,11 +11,10 @@ django-smtp-ssl
 raven>=6.5.0
 requests
 six
-django-angular==0.8.4
-psycopg2
-mysql-python
+django-angular==2.0.1
+psycopg2-binary
+mysqlclient
 markdown2
-mock
 PyJWT
 
 oauth2client

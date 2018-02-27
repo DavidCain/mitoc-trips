@@ -1,5 +1,5 @@
 from django.contrib.syndication.views import Feed
-from django.core.urlresolvers import reverse, reverse_lazy
+from django.urls import reverse, reverse_lazy
 
 from ws.models import Trip
 from ws.utils.dates import local_date

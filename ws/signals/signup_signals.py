@@ -1,7 +1,6 @@
 """
 Handle aspects of trip creation/modification when receiving signup changes.
 """
-from __future__ import unicode_literals
 
 from django.core.mail import send_mail
 from django.db.models.signals import pre_save, post_save
