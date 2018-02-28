@@ -11,7 +11,7 @@ class UpcomingTripsFeed(Feed):
     description = "Upcoming trips by the MIT Outing Club"
 
     def items(self):
-        upcoming_trips = Trip.objects.filter(trip_date__gte=local_date)
+        upcoming_trips = Trip.objects.filter(trip_date__gte=local_date())
         return upcoming_trips.order_by('-trip_date')
 
     def item_title(self, trip):
