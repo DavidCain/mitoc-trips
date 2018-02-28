@@ -5,10 +5,47 @@ MITOC's volunteer leaders craft trips to take participants climbing, hiking,
 biking, skiing, mountaineering, rafting, canoeing, and surfing. All trips are
 open to MITOC members - a community of thousands.
 
+
 # Deployment
 It takes a single command and a few minutes to deploy this software.
 Clone the [mitoc-ansible][mitoc-ansible] repository and follow the instructions
 there to easily launch an instance.
+
+
+# Screenshots
+## Profile page
+![Profile page][screenshots-profile]
+
+## Account management
+![Email address management][screenshots-email_address_management]
+
+## Member discounts
+![MITOC members can receive discounts][screenshots-discounts]
+
+## Leader application
+![Submitted application][screenshots-leader_application_submitted]
+
+## Pending applications
+![Activity chairs can review applications][screenshots-leader_application_queue]
+
+## Reviewing applications
+![Application under review][screenshots-leader_application]
+
+## Trip view
+![An activity chair's view of a trip][screenshots-trip_activity_chair]
+
+## Administering a trip
+![Trip administration view][screenshots-trip_admin]
+
+## Adding a participant
+![Participant being added to a trip][screenshots-trip_add_participant]
+
+## Interactive leaderboard
+![Interactive D3-based widget showing active leaders][screenshots-leaderboard]
+
+## Help pages
+![Help pages guide users][screenshots-help]
+
 
 # [History][about]
 This site was created in 2014 to improve MITOC's Winter School program. It has
@@ -31,6 +68,19 @@ first-come, first-serve, but we use lottery-based signups for other popular
 trip formats once subject to same problems as Winter School.
 
 
+
   [mitoc]: mitoc.org
   [about]: https://mitoc-trips.mit.edu/help/about/
   [mitoc-ansible]: https://github.com/DavidCain/mitoc-ansible
+
+  [screenshots-profile]: https://s3.amazonaws.com/mitoc-trips/screenshots/profile.png
+  [screenshots-email_address_management]: https://s3.amazonaws.com/mitoc-trips/screenshots/email_address_management.png
+  [screenshots-discounts]: https://s3.amazonaws.com/mitoc-trips/screenshots/discounts.png
+  [screenshots-leader_application_submitted]: https://s3.amazonaws.com/mitoc-trips/screenshots/leader_application_submitted.png
+  [screenshots-leader_application_queue]: https://s3.amazonaws.com/mitoc-trips/screenshots/leader_application_queue.png
+  [screenshots-leader_application]: https://s3.amazonaws.com/mitoc-trips/screenshots/leader_application.png
+  [screenshots-trip_activity_chair]: https://s3.amazonaws.com/mitoc-trips/screenshots/trip_activity_chair.png
+  [screenshots-trip_admin]: https://s3.amazonaws.com/mitoc-trips/screenshots/trip_admin.png
+  [screenshots-trip_add_participant]: https://s3.amazonaws.com/mitoc-trips/screenshots/trip_add_participant.png
+  [screenshots-leaderboard]: https://s3.amazonaws.com/mitoc-trips/screenshots/leaderboard.png
+  [screenshots-help]: https://s3.amazonaws.com/mitoc-trips/screenshots/help.png
