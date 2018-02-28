@@ -1,11 +1,16 @@
+import functools
+
 from django.contrib.auth.models import Group, User
+
 from ws import models
 
 
 # This is technically only accurate when starting the web server,
 # but that's okay (new groups are created extremely rarely)
 # This allows us to avoid repeatedly querying groups.
-all_group_names = set(Group.objects.values_list('name', flat=True))
+@functools.lru_cache(maxsize=None)
+def all_group_names():
+    return set(Group.objects.values_list('name', flat=True))
 
 
 def is_leader(user):
@@ -46,7 +51,7 @@ def in_any_group(user, group_names, allow_superusers=True):
         return False
 
     if allow_superusers and user.is_superuser:
-        search_groups = all_group_names
+        search_groups = all_group_names()
     else:
         search_groups = user.groups.values_list('name', flat=True)
     return any(g in group_names for g in search_groups)
