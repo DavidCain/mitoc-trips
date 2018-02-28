@@ -10,7 +10,7 @@ from datetime import timedelta
 
 from django.db import connections
 
-from ws.utils.dates import local_now, local_date
+from ws.utils.dates import local_date
 
 
 def verified_emails(user):
@@ -117,18 +117,19 @@ def outstanding_items(emails):
         return []
     cursor = connections['geardb'].cursor()
     cursor.execute(
-        """
-        select g.id, gt.type_name, gt.rental_amount, r.checkedout
-        from rentals  r
-          join gear g on g.id = r.gear_id
-          join gear_types gt on gt.id = g.type
-        where returned is null
-          and person_id in (select id from people where email in %s)
-        """, [tuple(emails)])
+        '''
+        select g.id, gt.type_name, gt.rental_amount,
+               date(convert_tz(r.checkedout, '+00:00', '-05:00')) as checkedout
+          from rentals  r
+               join gear g on g.id = r.gear_id
+               join gear_types gt on gt.id = g.type
+         where returned is null
+           and person_id in (select id from people where email in %s)
+        ''', [tuple(emails)])
     items = [{'id': gear_id, 'name': name, 'cost': cost, 'checkedout': checkedout}
              for gear_id, name, cost, checkedout in cursor.fetchall()]
     for item in items:
-        item['overdue'] = local_now() - item['checkedout'] > timedelta(weeks=10)
+        item['overdue'] = local_date() - item['checkedout'] > timedelta(weeks=10)
     return items
 
 
