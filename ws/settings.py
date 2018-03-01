@@ -156,6 +156,7 @@ WSGI_APPLICATION = 'ws.wsgi.application'
 
 
 # Docusign
+DOCUSIGN_API_BASE = os.getenv('DOCUSIGN_API_BASE', 'https://demo.docusign.net/restapi/v2/')
 DOCUSIGN_USERNAME = os.getenv('DOCUSIGN_USERNAME', 'djcain@mit.edu')
 DOCUSIGN_PASSWORD = os.getenv('DOCUSIGN_PASSWORD', 'super-secret')
 DOCUSIGN_INTEGRATOR_KEY = os.getenv('DOCUSIGN_INTEGRATOR_KEY', 'secret-uuid')

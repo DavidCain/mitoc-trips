@@ -26,7 +26,7 @@ def get_base_url():
     DocuSign does not guarantee that this URL remains static, so query
     it every time we intend to use the API.
     """
-    v2_base = 'https://demo.docusign.net/restapi/v2/'
+    v2_base = settings.DOCUSIGN_API_BASE  # (Demo or production)
     resp = requests.get(v2_base + 'login_information', headers=HEADERS)
 
     return resp.json()['loginAccounts'][0]['baseUrl']
