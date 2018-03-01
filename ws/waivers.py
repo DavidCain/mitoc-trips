@@ -87,20 +87,25 @@ def get_roles(participant=None, name=None, email=None,
         'name': name or participant.name,
         'email': email or participant.email
     }
+    desk = {
+        'roleName': 'MITOC Desk',
+        'name': 'MITOC Desk',
+        'email': 'mitocdesk@gmail.com'
+    }
 
     # If there's a participant, copy over medical info & such to prefill form
     if participant:
         releasor['tabs'] = prefilled_tabs(participant)
 
     if not (guardian_name and guardian_email):
-        return [releasor]
+        return [releasor, desk]
 
     guardian = {
         'roleName': 'Parent or Guardian',
         'name': guardian_name,
         'email': guardian_email
     }
-    return [releasor, guardian]
+    return [releasor, guardian, desk]
 
 
 def sign_embedded(participant, releasor, envelope_id, base_url=None):
