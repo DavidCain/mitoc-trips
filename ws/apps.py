@@ -27,7 +27,6 @@ class TripsConfig(AppConfig):
         # Their ability to modify models is controlled by access to views
         from django.contrib.auth.models import Group
         try:
-            Group.objects.get_or_create(name='waiver_testers')
             Group.objects.get_or_create(name='leaders')
             Group.objects.get_or_create(name='users_with_info')
             Group.objects.get_or_create(name='WSC')

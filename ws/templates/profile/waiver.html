@@ -56,7 +56,7 @@ Sign waiver
           {{ waiver_form.as_div }}
         {% endif %}
         <div>
-          <button type="button" class="btn btn-default" ng-click="under_18 = !under_18"><i class="fa fa-child"></i>&nbsp;Under 18?</button>
+          <a role="button" class="btn btn-default" data-ng-click="under_18 = !under_18"><i class="fa fa-child"></i>&nbsp;Under 18?</a>
           <div data-ng-cloak data-ng-if="under_18">
             <p>
               Please instruct your parent or guardian to leave a voice message

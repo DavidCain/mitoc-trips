@@ -11,13 +11,14 @@
   <div data-ng-switch="status" data-ng-if="personal">
     <div data-ng-switch-when="Missing Waiver">
       <p>
-        Please <a href="https://rightsignature.com/forms/Liability-Waiver--97a3de/token/39c17d4086f">sign a waiver</a>
+
+        Please <a href="/profile/waiver">sign a waiver</a>
         with your account email, <span data-ng-bind="::membership.email"></span>.
       </p>
     </div>
     <div data-ng-switch-when="Waiver Expired">
       <p>
-        Please <a href="https://rightsignature.com/forms/Liability-Waiver--97a3de/token/39c17d4086f">sign a new waiver</a>
+        Please <a href="/profile/waiver">sign a new waiver</a>
         with your account email, <span data-ng-bind="::membership.email"></span>.
       </p>
     </div>
@@ -42,7 +43,8 @@
       </p>
 
       <p>
-        You must <a href="http://mitoc.mit.edu/#join">become a member and sign the waiver</a>
+        You must <a href="http://mitoc.mit.edu/#join">become a member</a>
+        and <a href="/profile/waiver">sign a new waiver</a>
         in order to participate on trips, rent gear, or use cabins.
       </p>
     </div>
@@ -115,7 +117,7 @@
       <div data-ng-show="status === 'Missing Waiver' || status === 'Waiver Expired'" class="well">
         <h5>Why isn't my waiver showing up?</h5>
         <p>
-          First, ensure you <a href="https://rightsignature.com/forms/Liability-Waiver--97a3de/token/39c17d4086f">signed the waiver</a>
+          First, ensure you <a href="/profile/waiver">signed the waiver</a>
           under the same email address as your membership:
           <span data-ng-bind="::membership.email"></span>.
         </p>
@@ -124,9 +126,8 @@
       <div class="well">
         <h5>But I'm positive that my account is under one of these email addresses!</h5>
         <p>
-          Sometimes our system can be a little slow to update. If it's been at least 24
-          hours since you paid your membership dues and/or signed a waiver,
-          please <a href="/contact">contact us</a>.
+          If you've paid your membership dues, signed the waiver, and are still not
+          seeing that you're an active member, please <a href="/contact">contact us</a>.
         </p>
       </div>
 

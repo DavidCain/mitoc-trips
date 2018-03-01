@@ -168,11 +168,6 @@ Lookup participant
 
     <div class="row">
       <div class="col-md-12 col-sm-6">
-          {% if viewing_participant.pk == participant.pk %}
-            {% if 'waiver_testers' in groups %}
-              <a href="{% url 'initiate_waiver' %}" type="button" class="btn btn-primary">Sign Waiver</a>
-            {% endif %}
-          {% endif %}
         <membership-status data-personal="{{ user_viewing|yesno:"true,false" }}" data-user-id="{{ par_user.id }}">
         </membership-status>
       </div>
