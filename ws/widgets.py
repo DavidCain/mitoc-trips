@@ -3,7 +3,6 @@ import json
 from django.forms import widgets as dj_widgets
 from django.utils.html import format_html
 from django.forms.utils import flatatt
-from django.utils.safestring import mark_safe
 
 
 class MarkdownTextarea(dj_widgets.Textarea):
@@ -58,27 +57,27 @@ class BootstrapDateInput(dj_widgets.DateInput):
 
 class LeaderSelect(dj_widgets.SelectMultiple):
     def render(self, name, value, attrs=None, choices=()):
-        self.attrs['activity'] = 'activity'
+        attrs.update(activity='activity', name=name)
         if value:
             attrs['leader-ids'] = json.dumps(value)
-        final_attrs = self.build_attrs(attrs, extra_attrs=self.attrs)
-        output = [format_html('<leader-select {}></leader-select>', flatatt(final_attrs))]
-        return mark_safe('\n'.join(output))
+        final_attrs = flatatt(self.build_attrs(self.attrs, attrs))
+        return format_html('<leader-select {}></leader-select>', final_attrs)
 
 
 class ParticipantSelect(dj_widgets.Select):
     def render(self, name, value, attrs=None, choices=()):
-        self.attrs['name'] = name
-        final_attrs = self.build_attrs(attrs, extra_attrs=self.attrs)
-        output = [format_html('<participant-select {}></participant-select>', flatatt(final_attrs))]
-        return mark_safe('\n'.join(output))
+        final_attrs = self.build_attrs(self.attrs, attrs.update(name=name))
+        return format_html('<participant-select {}></participant-select>', final_attrs)
 
 
 class PhoneInput(dj_widgets.Input):
     def render(self, name, value, attrs=None):
-        self.attrs['default-country'] = 'us'
-        self.attrs['preferred-countries'] = 'us ca'
-        final_attrs = self.build_attrs(attrs, extra_attrs=self.attrs)
+        attrs.update({
+            'default-country': 'us',
+            'preferred-countries': 'us ca',
+            'name': name
+        })
+        final_attrs = self.build_attrs(self.attrs, attrs)
         # Use a hack to init ng-model
         ng_model_init = {'ng-model': final_attrs['ng-model'], 'value': value}
         return format_html('<input type="hidden" {}/>' +
