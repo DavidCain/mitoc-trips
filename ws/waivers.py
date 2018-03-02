@@ -140,7 +140,8 @@ def initiate_waiver(participant=None, name=None, email=None,
     If the participant does not exist (i.e. somebody who's just signing with
     their name and email address), do not attempt to pre-fill the form.
 
-    Returns None (callers should take no action) or a URL for redirection.
+    Returns the email address of the releasor, and an optional URL for
+    embedded signing redirection (if None, callers should take no action).
     """
     if participant is None and not (name or email):
         raise ValueError("Participant or name/email required!")
@@ -163,8 +164,11 @@ def initiate_waiver(participant=None, name=None, email=None,
 
     base_url = get_base_url()
     env = requests.post(base_url + '/envelopes', json=new_env, headers=HEADERS)
-    if not participant:  # No embedded signing (just an email will be sent)
-        return
 
-    envelope_id = env.json()['envelopeId']
-    return sign_embedded(participant, releasor, envelope_id, base_url)
+    if participant:  # We need a participant to do embedded signing
+        envelope_id = env.json()['envelopeId']
+        redir_url = sign_embedded(participant, releasor, envelope_id, base_url)
+    else:  # An email will be sent. No need to redirect
+        redir_url = None
+
+    return releasor['email'], redir_url

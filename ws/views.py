@@ -237,9 +237,8 @@ class SignWaiverView(FormView):
     success_url = reverse_lazy('home')
 
     def send_waiver(self, **kwargs):
-        embedded_url = initiate_waiver(**kwargs)
+        email, embedded_url = initiate_waiver(**kwargs)
         if not embedded_url:  # Will be sent by email
-            email = self.request.participant.email
             messages.success(self.request, "Waiver sent to {}".format(email))
         return redirect(embedded_url or self.get_success_url())
 
