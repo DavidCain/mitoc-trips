@@ -21,7 +21,8 @@ from allauth.account.views import PasswordChangeView
 
 from ws import forms
 from ws import models
-from ws.decorators import group_required, user_info_required, admin_only, chairs_only
+from ws.decorators import (group_required, user_info_required, admin_only,
+                           chairs_only, participant_or_anon)
 from ws.lottery import SingleTripLotteryRunner
 from ws import message_generators
 from ws import tasks
@@ -284,6 +285,10 @@ class SignWaiverView(FormView):
         # If there's no participant, we're just submitting an email and name directly
         f = self.get_form()
         return self.form_valid(f) if f.is_valid() else self.form_invalid(f)
+
+    @method_decorator(participant_or_anon)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
 
 
 class ParticipantLookupView(TemplateView, FormView):

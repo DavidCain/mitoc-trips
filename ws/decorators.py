@@ -71,6 +71,9 @@ def group_required(*group_names, **kwargs):
     # Be careful about redirect loops here!
     redir_url = kwargs.get('redir_url', None)
 
+    # If the user is anonymous, allow them to view the page anyway
+    allow_anonymous = kwargs.get('allow_anonymous', False)
+
     def in_groups(user):
         allow_superusers = kwargs.get('allow_superusers', True)
         if ws.utils.perms.in_any_group(user, group_names, allow_superusers):
@@ -83,6 +86,8 @@ def group_required(*group_names, **kwargs):
     def decorator(view_func):
         @wraps(view_func, assigned=available_attrs(view_func))
         def _wrapped_view(request, *args, **kwargs):
+            if request.user.is_anonymous and allow_anonymous:
+                return view_func(request, *args, **kwargs)
             if profile_needs_update(request):
                 next_url = resolve_url(reverse('edit_profile'))
             elif request.user.is_authenticated and in_groups(request.user):
@@ -98,6 +103,9 @@ def group_required(*group_names, **kwargs):
 
 user_info_required = group_required('users_with_info', allow_superusers=False,
                                     redir_url=reverse_lazy('edit_profile'))
+participant_or_anon = group_required('users_with_info', allow_superusers=False,
+                                     allow_anonymous=True,
+                                     redir_url=reverse_lazy('edit_profile'))
 
 admin_only = user_passes_test(lambda u: u.is_superuser,
                               login_url=reverse_lazy('account_login'))
