@@ -345,7 +345,7 @@ class OtherVerifiedEmailsView(View):
 
         addr = EmailAddress.objects.filter(email=email, verified=True).first()
         if not addr:  # Not in our system, so just return the original
-            return JsonResponse({'emails': [email]})
+            return JsonResponse({'primary': email, 'emails': [email]})
 
         # Normal case: Email is verified. Return all other verified emails
         verifed_emails = addr.user.emailaddress_set.filter(verified=True)
