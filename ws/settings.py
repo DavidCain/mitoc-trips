@@ -164,7 +164,7 @@ DOCUSIGN_WAIVER_TEMPLATE_ID = os.getenv('DOCUSIGN_WAIVER_TEMPLATE_ID', 'template
 
 # Hit endpoints when we successfully complete a waiver
 DOCUSIGN_EVENT_NOTIFICATION = {
-    "url": "https://api.mitoc.org/members/waiver",
+    "url": "https://docusign.mitoc.org/members/waiver",
     "loggingEnabled": "true",
     "requireAcknowledgment": "true",
     "useSoapInterface": "false",
