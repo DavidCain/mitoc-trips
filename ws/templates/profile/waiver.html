@@ -69,10 +69,16 @@ Sign waiver
           </div>
           <hr>
         </div>
-        {% if viewing_participant %}
-          <a type="button" class="btn btn-default" href="{% url 'edit_profile' %}"><i class="fa fa-edit"></i>&nbsp;Edit Information</a>
-        {% endif %}
-        <button type="submit" class="btn btn-primary" href="{% url 'edit_profile' %}"><i class="fa fa-file-text"></i>&nbsp;Sign Waiver</button>
+        <div class="btn-group">
+          {% if viewing_participant %}
+            <a type="button" class="btn btn-default" href="{% url 'edit_profile' %}?next={% url 'initiate_waiver' %}">
+                <i class="fa fa-edit"></i>&nbsp;Edit Information
+            </a>
+          {% endif %}
+          <button type="submit" class="btn btn-primary">
+            <i class="fa fa-file-text"></i>&nbsp;Sign Waiver
+          </button>
+        </div>
       </form>
     </div>
   </div>

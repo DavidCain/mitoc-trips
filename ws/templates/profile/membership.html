@@ -43,12 +43,16 @@ Membership dues
           {{ form.as_div }}
         </div>
 
-        {% if viewing_participant %}
-          <a type="button" class="btn btn-default" href="{% url 'edit_profile' %}"><i class="fa fa-edit"></i>&nbsp;Edit Information</a>
-        {% endif %}
-        <button type="submit" class="btn btn-primary" href="{% url 'edit_profile' %}">
-          <i class="fa fa-credit-card"></i>&nbsp;Pay $<span data-ng-bind="amount"></span> {{ viewing_participant.get_affiliation_display }} dues
-        </button>
+        <div class="btn-group">
+          {% if viewing_participant %}
+            <a type="button" class="btn btn-default" href="{% url 'edit_profile' %}?next={% url 'pay_dues' %}">
+              <i class="fa fa-edit"></i>&nbsp;Edit Information
+            </a>
+          {% endif %}
+          <button type="submit" class="btn btn-primary" href="{% url 'edit_profile' %}">
+            <i class="fa fa-credit-card"></i>&nbsp;Pay $<span data-ng-bind="amount"></span> {{ viewing_participant.get_affiliation_display }} dues
+          </button>
+        </div>
       </form>
     </div>
   </div>
