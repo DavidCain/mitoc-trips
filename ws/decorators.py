@@ -21,7 +21,7 @@ def chairs_only(*activity_types, **kwargs):
 
 
 def profile_needs_update(request):
-    """ Return if the user's profile is missing or in need of correction.
+    """ Return if the user's profile is missing, dated, or in need of correction.
 
     Create messages indicating the required changes so that the user may
     correct them.
@@ -55,6 +55,9 @@ def profile_needs_update(request):
     if len(par.affiliation) == 1:
         messages.info(request, 'Please update your MIT affiliation.')
         has_problems = True
+
+    if (has_problems is False and not par.info_current):
+        return True  # No "problems" but info is dated (template will give message)
 
     return has_problems
 
