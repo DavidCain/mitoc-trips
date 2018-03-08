@@ -18,38 +18,42 @@ Sign waiver
     </p>
   {% endif %}
 
-  {% if viewing_participant %}
-    <div class="alert alert-info">
-      Please ensure that all this information is accurate
-      (it will be used to pre-fill your waiver).
-    </div>
-
-    <h3><i class="fa fa-user"></i> Personal </h3>
-    <dl class="dl-horizontal">
-      <dt>Name</dt>
-      <dd>{{ viewing_participant.name }}</dd>
-      <dt>Email</dt>
-      <dd>{{ viewing_participant.email }}</dd>
-      <dt>Phone</dt>
-      <dd>{{ viewing_participant.cell_phone }}</dd>
-      <dt>Affiliation</dt>
-      <dd>{{ viewing_participant.get_affiliation_display }}</dd>
-    </dl>
-
-    <h3><i class="fa fa-medkit"></i> Emergency Contact </h3>
-    <dl class="dl-horizontal">
-      <dt>Name</dt>
-      <dd>{{ viewing_participant.emergency_info.emergency_contact.name }}</dd>
-      <dt>Relationship</dt>
-      <dd>{{ viewing_participant.emergency_info.emergency_contact.relationship }}</dd>
-      <dt>Phone</dt>
-      <dd>{{ viewing_participant.emergency_info.emergency_contact.cell_phone }}</dd>
-    </dl>
-  {% endif %}
-
-
   <div class="row">
-    <div class="col-sm-8 col-md-6">
+    <div class="col-sm-12 col-md-6 col-md-push-6">
+      {% if user.is_authenticated %}
+        <membership-status data-show-full-faq="true" data-personal="true" data-user-id="{{ user.id }}">
+        </membership-status>
+      {% endif %}
+    </div>
+    <div class="col-md-6 col-md-pull-6">
+      {% if viewing_participant %}
+        <h3><i class="fa fa-user"></i> Personal </h3>
+        <dl class="dl-horizontal">
+          <dt>Name</dt>
+          <dd>{{ viewing_participant.name }}</dd>
+          <dt>Email</dt>
+          <dd>{{ viewing_participant.email }}</dd>
+          <dt>Phone</dt>
+          <dd>{{ viewing_participant.cell_phone }}</dd>
+          <dt>Affiliation</dt>
+          <dd>{{ viewing_participant.get_affiliation_display }}</dd>
+        </dl>
+
+        <h3><i class="fa fa-medkit"></i> Emergency Contact </h3>
+        <dl class="dl-horizontal">
+          <dt>Name</dt>
+          <dd>{{ viewing_participant.emergency_info.emergency_contact.name }}</dd>
+          <dt>Relationship</dt>
+          <dd>{{ viewing_participant.emergency_info.emergency_contact.relationship }}</dd>
+          <dt>Phone</dt>
+          <dd>{{ viewing_participant.emergency_info.emergency_contact.cell_phone }}</dd>
+        </dl>
+
+        <div class="alert alert-info">
+          Please ensure the above information is accurate
+          (it will pre-fill your waiver).
+        </div>
+      {% endif %}
       <form method="POST" action="{% url 'initiate_waiver' %}">
         {% csrf_token %}
         {% if not viewing_participant %}
@@ -67,8 +71,8 @@ Sign waiver
             </p>
             {{ guardian_form.as_div }}
           </div>
-          <hr>
         </div>
+        <hr>
         <div class="btn-group">
           {% if viewing_participant %}
             <a type="button" class="btn btn-default" href="{% url 'edit_profile' %}?next={% url 'initiate_waiver' %}">

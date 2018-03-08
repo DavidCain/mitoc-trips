@@ -8,6 +8,17 @@ Membership dues
 {% block content %}
   <h1>Pay MITOC membership dues</h1>
 
+  <p class="lead">
+    To make the most of MITOC, you must be an active member.
+  </p>
+  <p>
+    Membership lasts for a full calendar year, and enables you to rent gear
+    from the office, participate in <a href="{% url 'upcoming_trips' %}">upcoming trips</a>,
+    and stay at MITOC's cabins.
+  </p>
+
+  <hr>
+
   {% if user.is_anonymous %}
     <p class="lead">
       Already a member?
@@ -17,27 +28,26 @@ Membership dues
       for easier completion.
     </p>
   {% endif %}
-
-  {% if viewing_participant %}
-    <div class="alert alert-info">
-      Please ensure that all this information is accurate
-      (it will be used to complete your membership).
-    </div>
-
-    <h3><i class="fa fa-user"></i> Personal </h3>
-    <dl class="dl-horizontal">
-      <dt>Name</dt>
-      <dd>{{ viewing_participant.name }}</dd>
-      <dt>Email</dt>
-      <dd>{{ viewing_participant.email }}</dd>
-      <dt>Affiliation</dt>
-      <dd>{{ viewing_participant.get_affiliation_display }}</dd>
-    </dl>
-  {% endif %}
-
-
   <div class="row">
-    <div class="col-sm-6">
+    <div class="col-sm-6 col-sm-push-6">
+      {% if user.is_authenticated %}
+        <membership-status data-show-full-faq="true" data-personal="true" data-user-id="{{ user.id }}">
+        </membership-status>
+      {% endif %}
+    </div>
+    <div class="col-sm-6 col-sm-pull-6">
+      {% if viewing_participant %}
+        <h3><i class="fa fa-user"></i> Personal </h3>
+        <dl class="dl-horizontal">
+          <dt>Name</dt>
+          <dd>{{ viewing_participant.name }}</dd>
+          <dt>Email</dt>
+          <dd>{{ viewing_participant.email }}</dd>
+          <dt>Affiliation</dt>
+          <dd>{{ viewing_participant.get_affiliation_display }}</dd>
+        </dl>
+      {% endif %}
+
       <form action="https://shopmitprd.mit.edu/controller/index.php" method="POST">
         <div {% if viewing_participant %}class="hidden"{% endif %}>
           {{ form.as_div }}
