@@ -4,13 +4,14 @@ from django.core.exceptions import ValidationError
 
 from djng.forms import NgForm, NgFormValidationMixin
 from djng.forms import NgModelFormMixin, NgModelForm
-from djng.forms.fields import CharField, EmailField, BooleanField, RegexField
+from djng.forms.fields import CharField, ChoiceField, EmailField, BooleanField, RegexField
 from djng.styling.bootstrap3.forms import Bootstrap3FormMixin
 
 from localflavor.us.us_states import US_STATES
 
 from ws import models
 from ws import widgets
+from ws.membership import MEMBERSHIP_LEVELS, MERCHANT_ID, PAYMENT_TYPE
 from ws.utils.signups import non_trip_participants
 
 
@@ -366,6 +367,29 @@ def LeaderApplicationForm(*args, **kwargs):
             super().__init__(**kwargs)
 
     return DynamicActivityForm()
+
+
+class DuesForm(NgFormValidationMixin, Bootstrap3FormMixin, NgForm):
+    required_css_class = 'required'
+
+    merchantDefinedData3 = EmailField(required=True, label='Email')
+    amount = ChoiceField(label='Affiliation', required=True,
+                         choices=[(amount, '{} (${})'.format(label, amount))
+                                  for label, amount in MEMBERSHIP_LEVELS])
+    merchant_id = CharField(widget=forms.HiddenInput(), initial=MERCHANT_ID)
+    description = CharField(widget=forms.HiddenInput(), initial='membership fees.')
+    merchantDefinedData1 = CharField(widget=forms.HiddenInput(), initial=PAYMENT_TYPE)
+
+    def __init__(self, *args, **kwargs):
+        participant = kwargs.pop('participant')
+
+        super().__init__(*args, **kwargs)
+        email = self.fields['merchantDefinedData3']
+        if participant:
+            email.initial = participant.email
+            self.fields['amount'].initial = participant.annual_dues
+        else:
+            email.widget.attrs['placeholder'] = 'tim@mit.edu'
 
 
 class WaiverForm(NgFormValidationMixin, Bootstrap3FormMixin, NgForm):

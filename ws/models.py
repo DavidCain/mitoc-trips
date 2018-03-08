@@ -15,6 +15,7 @@ from localflavor.us.models import USStateField
 from phonenumber_field.modelfields import PhoneNumberField
 
 from ws.fields import OptionalOneToOneField
+from ws.membership import STUDENT, AFFILIATE, GENERAL
 import ws.utils.dates as dateutils
 
 
@@ -150,6 +151,16 @@ class Participant(models.Model):
     STUDENT_AFFILIATIONS = {'MU', 'NU', 'MG', 'NG'}
 
     discounts = models.ManyToManyField(Discount, blank=True)
+
+    @property
+    def annual_dues(self):
+        if self.is_student:
+            label, price = STUDENT
+        elif self.affiliation == 'MA':
+            label, price = AFFILIATE
+        else:
+            label, price = GENERAL
+        return price
 
     @property
     def is_student(self):

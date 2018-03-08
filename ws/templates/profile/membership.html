@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load messages_tags %}
+
+{% block head_title %}
+Membership dues
+{% endblock head_title %}
+
+{% block content %}
+  <h1>Pay MITOC membership dues</h1>
+
+  {% if user.is_anonymous %}
+    <p class="lead">
+      Already a member?
+      <a href="{% url 'account_signup' %}?next={% url 'pay_dues' %}">Sign up</a>
+      or
+      <a href="{% url 'account_login' %}?next={% url 'pay_dues' %}">log in</a>
+      for easier completion.
+    </p>
+  {% endif %}
+
+  {% if viewing_participant %}
+    <div class="alert alert-info">
+      Please ensure that all this information is accurate
+      (it will be used to complete your membership).
+    </div>
+
+    <h3><i class="fa fa-user"></i> Personal </h3>
+    <dl class="dl-horizontal">
+      <dt>Name</dt>
+      <dd>{{ viewing_participant.name }}</dd>
+      <dt>Email</dt>
+      <dd>{{ viewing_participant.email }}</dd>
+      <dt>Affiliation</dt>
+      <dd>{{ viewing_participant.get_affiliation_display }}</dd>
+    </dl>
+  {% endif %}
+
+
+  <div class="row">
+    <div class="col-sm-6">
+      <form action="https://shopmitprd.mit.edu/controller/index.php" method="POST">
+        <div {% if viewing_participant %}class="hidden"{% endif %}>
+          {{ form.as_div }}
+        </div>
+
+        {% if viewing_participant %}
+          <a type="button" class="btn btn-default" href="{% url 'edit_profile' %}"><i class="fa fa-edit"></i>&nbsp;Edit Information</a>
+        {% endif %}
+        <button type="submit" class="btn btn-primary" href="{% url 'edit_profile' %}">
+          <i class="fa fa-credit-card"></i>&nbsp;Pay $<span data-ng-bind="amount"></span> {{ viewing_participant.get_affiliation_display }} dues
+        </button>
+      </form>
+    </div>
+  </div>
+{% endblock content %}

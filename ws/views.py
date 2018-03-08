@@ -231,6 +231,20 @@ class EditProfileView(ParticipantEditMixin):
         return self.request.participant
 
 
+class PayDuesView(FormView):
+    template_name = 'profile/membership.html'
+    form_class = forms.DuesForm
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['participant'] = self.request.participant
+        return kwargs
+
+    @method_decorator(participant_or_anon)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+
 class SignWaiverView(FormView):
     template_name = 'profile/waiver.html'
     form_class = forms.WaiverForm
