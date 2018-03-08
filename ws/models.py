@@ -130,6 +130,7 @@ class Participant(models.Model):
     name = models.CharField(max_length=255)
     cell_phone = PhoneNumberField(blank=True)  # Hi, Sheep.
     last_updated = models.DateTimeField(auto_now=True)
+    profile_last_updated = models.DateTimeField(auto_now_add=True)  # _Must_ be done by participant
     emergency_info = models.OneToOneField(EmergencyInfo, on_delete=models.CASCADE)
     email = models.EmailField(unique=True, help_text=string_concat("This will be shared with leaders & other participants. <a href='",
                                                                    reverse_lazy('account_email'),
@@ -238,7 +239,7 @@ class Participant(models.Model):
 
     @property
     def info_current(self):
-        since_last_update = timezone.now() - self.last_updated
+        since_last_update = timezone.now() - self.profile_last_updated
         return since_last_update.days < settings.MUST_UPDATE_AFTER_DAYS
 
     def __str__(self):

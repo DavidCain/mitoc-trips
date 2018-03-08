@@ -194,6 +194,8 @@ class ParticipantEditMixin(TemplateView):
         else:
             participant.car = car
 
+        if participant == self.request.participant:
+            participant.profile_last_updated = local_now()
         participant.save()
         if del_car:
             car.delete()

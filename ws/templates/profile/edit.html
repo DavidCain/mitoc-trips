@@ -101,9 +101,9 @@ Edit profile
     <button type="submit" class="btn btn-primary">Submit</button>
 </form>
 
-{% if viewing_participant.last_updated %}
+{% if viewing_participant.profile_last_updated %}
   <div id="last_updated" class="text-center">
-    <small>Last updated on {{ viewing_participant.last_updated }}</small>
+    <small>Last updated on {{ viewing_participant.profile_last_updated }}</small>
   </div>
 {% endif %}
 
