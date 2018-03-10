@@ -85,7 +85,7 @@
                                     {% endif %}
                                 </a>
                                 <ul class="dropdown-menu">
-                                    <li> <a href="{% url 'manage_leaders' %}">Leader ratings</a> </li>
+                                    <li> <a href="{% url 'activity_leaders' activity %}">Manage leaders</a> </li>
                                     <li> <a href="{% url 'manage_applications' activity %}"> Leader applications <span class="badge">{{ num_pending_apps }}</span> </a> </li>
                                     <li> <a href="{% url 'manage_trips' activity %}"> Approve trips <span class="badge">{{ activity|unapproved_trip_count }}</span> </a> </li>
 

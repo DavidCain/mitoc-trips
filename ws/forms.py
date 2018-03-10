@@ -136,19 +136,28 @@ class LeaderForm(DjangularRequiredModelForm):
     """ Allows assigning a rating to participants in any allowed activity. """
     def __init__(self, *args, **kwargs):
         allowed_activities = kwargs.pop("allowed_activities", None)
+        hide_activity = kwargs.pop('hide_activity', False)
+
         super().__init__(*args, **kwargs)
+
         all_par = models.Participant.objects.all()
         self.fields['participant'].queryset = all_par
         self.fields['participant'].empty_label = 'Nobody'
+
         if allowed_activities is not None:
             activities = [activity for activity in self.fields['activity'].choices
                           if activity[0] in allowed_activities]
             self.fields['activity'].choices = activities
+            if activities:
+                self.fields['activity'].initial = activities[0]
+        if hide_activity:
+            self.fields['activity'].widget = forms.HiddenInput()
 
     class Meta:
         model = models.LeaderRating
         fields = ['participant', 'activity', 'rating', 'notes']
-        widgets = {'notes': forms.Textarea(attrs={'rows': 4})}
+        widgets = {'notes': forms.Textarea(attrs={'rows': 4}),
+                   'participant': widgets.ParticipantSelect}
 
 
 class TripInfoForm(DjangularRequiredModelForm):

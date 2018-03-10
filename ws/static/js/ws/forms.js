@@ -79,7 +79,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
 .controller('leaderRating', function($scope, $http, djangoUrl) {
   $scope.$watchGroup(['participant', 'activity'], function() {
     if ($scope.participant && $scope.activity) {
-      var args = [$scope.participant, $scope.activity];
+      var args = [$scope.participant.id, $scope.activity];
       var getRatingUrl = djangoUrl.reverse('json-ratings', args);
       $http.get(getRatingUrl).then(function (response) {
         $scope.rating = response.data.rating;

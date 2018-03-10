@@ -7,7 +7,9 @@ which will entitle them to create trips, view participant information, and more.
 For views relating to the leader application process, see ws.views.applications
 """
 from django.contrib import messages
-from django.urls import reverse_lazy
+from django.core.exceptions import PermissionDenied
+from django.db.models import Max
+from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.generic import CreateView, ListView
 
@@ -42,10 +44,9 @@ class AllLeadersView(ListView):
         return super().dispatch(request, *args, **kwargs)
 
 
-class ManageLeadersView(CreateView):
+class CreateRatingView(CreateView):
+    """ Should be inhereted to provide a template. """
     form_class = forms.LeaderForm
-    template_name = 'chair/leaders.html'
-    success_url = reverse_lazy('manage_leaders')
 
     @property
     def allowed_activities(self):
@@ -55,13 +56,6 @@ class ManageLeadersView(CreateView):
         kwargs = super().get_form_kwargs()
         kwargs['allowed_activities'] = self.allowed_activities
         return kwargs
-
-    def get_initial(self):
-        initial = super().get_initial().copy()
-        allowed_activities = self.allowed_activities
-        if len(allowed_activities) == 1:
-            initial['activity'] = allowed_activities[0]
-        return initial
 
     def form_valid(self, form):
         """ Ensure the leader can assign ratings, then apply assigned rating.
@@ -85,6 +79,55 @@ class ManageLeadersView(CreateView):
         msg = "Gave {} rating of '{}'".format(participant, rating.rating)
         messages.success(self.request, msg)
         return super().form_valid(form)
+
+
+class ActivityLeadersView(CreateRatingView):
+    """ Manage the leaders of a single activity. """
+    template_name = 'leaders/by_activity.html'
+
+    @property
+    def activity(self):
+        """ The activity, should be verified by the dispatch method. """
+        return self.kwargs['activity']
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['hide_activity'] = True
+        return kwargs
+
+    def get_initial(self):
+        initial = super().get_initial().copy()
+        initial['activity'] = self.activity
+        return initial
+
+    def get_ratings(self):
+        """ Returns all leaders with active ratings. """
+        ratings = models.LeaderRating.objects.filter(activity=self.activity, active=True)
+        ratings = ratings.prefetch_related('participant__trips_led')
+        return ratings.annotate(last_trip_date=Max('participant__trips_led__trip_date'))
+
+    def get_context_data(self, **kwargs):
+        context_data = super().get_context_data(**kwargs)
+        context_data['activity'] = self.activity
+        context_data['ratings'] = self.get_ratings()
+        return context_data
+
+    @method_decorator(chairs_only())
+    def dispatch(self, request, *args, **kwargs):
+        activity = kwargs.get('activity')
+        if not perm_utils.chair_or_admin(request.user, activity):
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_success_url(self):
+        return reverse('activity_leaders', args=(self.activity,))
+
+
+class ManageLeadersView(CreateRatingView):
+    """ A view to update the rating of any leader across all ratings. """
+    form_class = forms.LeaderForm
+    template_name = 'chair/leaders.html'
+    success_url = reverse_lazy('manage_leaders')
 
     @method_decorator(chairs_only())
     def dispatch(self, request, *args, **kwargs):

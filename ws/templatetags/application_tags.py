@@ -16,6 +16,7 @@ def application_summary(application):
 
     return {'application': application, 'previous_ratings': previous_ratings}
 
+
 @register.inclusion_tag('for_templatetags/application_details.html')
 def application_details(application):
     all_fields = application._meta.fields

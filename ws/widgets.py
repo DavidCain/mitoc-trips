@@ -67,7 +67,8 @@ class LeaderSelect(dj_widgets.SelectMultiple):
 class ParticipantSelect(dj_widgets.Select):
     def render(self, name, value, attrs=None, choices=()):
         final_attrs = self.build_attrs(self.attrs, attrs.update(name=name))
-        return format_html('<participant-select {}></participant-select>', final_attrs)
+        return format_html('<participant-select {}></participant-select>',
+                           flatatt(final_attrs))
 
 
 class PhoneInput(dj_widgets.Input):

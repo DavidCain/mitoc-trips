@@ -1,0 +1,48 @@
+{% extends "messages_page.html" %}
+{% load trip_tags %}
+
+{% block head_title %}Leaders{% endblock head_title %}
+
+{% block content %}
+{{ block.super }}
+
+<div class="row">
+  <div class="col-md-8">
+    {% if not ratings %}
+      <h2> Leaders </h2>
+      <p>No active leaders!</p>
+    {% else %}
+      <h2> {{ ratings.0.get_activity_display }} Leaders </h2>
+      <table class="footable">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>{{ ratings.0.get_activity_display }} Rating</th>
+            <th>Rating given</th>
+            <th>Last trip (any type) led </th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for rating in ratings %}
+          <tr>
+            <td><a href="{% url 'view_participant' rating.participant.pk %}">{{ rating.participant.name }}</a></td>
+            <td> {{ rating.rating }}</td>
+            <td>{{ rating.time_created|date:"Y-m-d" }}</td>
+            <td>{{ rating.last_trip_date|date:"Y-m-d" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+
+      </table>
+    {% endif %}
+  </div>
+  <div class="col-md-4">
+    <h2> Create or Update Ratings</h2>
+    <form ng-controller="leaderRating" name="{{ form.form_name }}" method="post" action="." novalidate data-submit-if-valid>
+      {% csrf_token %}
+      {{ form.as_div }}
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+  </div>
+</div>
+{% endblock content %}
