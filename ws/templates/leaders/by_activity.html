@@ -27,7 +27,7 @@
           </thead>
           <tbody>
             {% for rating in ratings %}
-            <tr>
+            <tr data-ng-class="{'alert-danger': deactivate_ratings_{{ rating.pk }}}">
               <td><a href="{% url 'view_participant' rating.participant.pk %}">{{ rating.participant.name }}</a></td>
               <td> {{ rating.rating }}</td>
               <td>{{ rating.time_created|date:"Y-m-d" }}</td>
@@ -38,9 +38,9 @@
                        id="deactivate_{{ rating.pk }}"
                        name="deactivate"
                        value="{{ rating.pk }}"
-                       {# Actual `deactivate_ratings` array is unused. #}
-                       {# The `input` directive gives the same ng-model to all checkboxes otherwise #}
-                       data-ng-model="deactivate_ratings[{{ rating.pk }}]"
+                       {# Note: An ng-model is essential, or the `input` directive #}
+                       {# will give the same ng-model to all checkboxes. #}
+                       data-ng-model="deactivate_ratings_{{ rating.pk }}"
                        >
                 </input>
               </td>
