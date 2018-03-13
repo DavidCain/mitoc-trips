@@ -72,11 +72,6 @@ def signup_table(signups, has_notes=False, show_drivers=False, all_participants=
             'show_drivers': show_drivers}
 
 
-@register.inclusion_tag('for_templatetags/editable_signup_table.html')
-def editable_signup_table(formset):
-    return {'formset': formset}
-
-
 @register.inclusion_tag('for_templatetags/trip_summary.html', takes_context=True)
 def trip_summary(context, trip):
     return {'show_emails': context['user'].is_authenticated, 'trip': trip}
