@@ -28,6 +28,7 @@ urlpatterns = [
     # Activity Chair views
     url(r'^chair/leaders/$', views.ManageLeadersView.as_view(), name='manage_leaders'),
     url(r'^(?P<activity>.+)/leaders/$', views.ActivityLeadersView.as_view(), name='activity_leaders'),
+    url(r'^(?P<activity>.+)/leaders/deactivate$', views.DeactivateLeaderRatingsView.as_view(), name='deactivate_leaders'),
     url(r'^(?P<activity>.+)/applications/$', views.AllLeaderApplicationsView.as_view(), name='manage_applications'),
     url(r'^(?P<activity>.+)/applications/(?P<pk>\d+)/$', views.LeaderApplicationView.as_view(), name='view_application'),
     url(r'^(?P<activity>.+)/trips/$', views.ApproveTripsView.as_view(), name='manage_trips'),

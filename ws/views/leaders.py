@@ -9,9 +9,10 @@ For views relating to the leader application process, see ws.views.applications
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.db.models import Max
+from django.shortcuts import redirect
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
-from django.views.generic import CreateView, ListView
+from django.views.generic import CreateView, ListView, View
 
 from ws import forms
 from ws import models
@@ -81,14 +82,55 @@ class CreateRatingView(CreateView):
         return super().form_valid(form)
 
 
-class ActivityLeadersView(CreateRatingView):
-    """ Manage the leaders of a single activity. """
-    template_name = 'leaders/by_activity.html'
-
+class OnlyForActivityChair(View):
     @property
     def activity(self):
         """ The activity, should be verified by the dispatch method. """
         return self.kwargs['activity']
+
+    @method_decorator(chairs_only())
+    def dispatch(self, request, *args, **kwargs):
+        activity = kwargs.get('activity')
+        if not perm_utils.chair_or_admin(request.user, activity):
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_success_url(self):
+        return reverse('activity_leaders', args=(self.activity,))
+
+
+class DeactivateLeaderRatingsView(OnlyForActivityChair):
+    def _success(self):
+        return redirect(self.get_success_url())
+
+    def get(self, request, *args, **kwargs):
+        return self._success()
+
+    def post(self, request, *args, **kwargs):
+        rating_pks = request.POST.getlist('deactivate', [])
+        #if not rating_pks:
+        #    return self._success()
+        ratings = models.LeaderRating.objects.filter(pk__in=rating_pks)
+        ratings = ratings.select_related('participant')
+        if any(r.activity != self.activity for r in ratings):
+            # The route is only for deactivating ratings for one activity
+            # (an activity for which the requester is a chair)
+            raise PermissionDenied
+
+        # Iterate each rating and save individually
+        # (Not the most efficient, but in enables leader management signals)
+        for rating in ratings:
+            rating.active = False
+            rating.save()  # Do a single update (not bulk) to trigger signals
+        removed_names = ','.join(rating.participant.name for rating in ratings)
+        msg = "Removed {} rating for {}".format(self.activity, removed_names)
+        messages.success(request, msg)
+        return self._success()
+
+
+class ActivityLeadersView(CreateRatingView, OnlyForActivityChair):
+    """ Manage the leaders of a single activity. """
+    template_name = 'leaders/by_activity.html'
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -111,16 +153,6 @@ class ActivityLeadersView(CreateRatingView):
         context_data['activity'] = self.activity
         context_data['ratings'] = self.get_ratings()
         return context_data
-
-    @method_decorator(chairs_only())
-    def dispatch(self, request, *args, **kwargs):
-        activity = kwargs.get('activity')
-        if not perm_utils.chair_or_admin(request.user, activity):
-            raise PermissionDenied
-        return super().dispatch(request, *args, **kwargs)
-
-    def get_success_url(self):
-        return reverse('activity_leaders', args=(self.activity,))
 
 
 class ManageLeadersView(CreateRatingView):

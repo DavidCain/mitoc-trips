@@ -1,4 +1,3 @@
-from django.contrib import messages
 from django.contrib.auth.models import Group
 from django.db.models.signals import post_save, pre_delete, post_delete
 from django.dispatch import receiver
@@ -17,16 +16,27 @@ def update_leader_status(participant):
 
 
 @receiver(post_save, sender=LeaderRating)
-def add_leader_perms(sender, instance, created, raw, using, update_fields,
-                     **kwargs):
+def modify_leader_perms(sender, instance, created, raw, using, update_fields,
+                        **kwargs):
+    """ When creating/updating leader permissions, update leader status.
+
+    Participants belong to the 'leaders' group when they have an active
+    leader rating. This signal exists so that modifications to LeaderRating
+    objects
+    """
     if created:
         leaders_group.user_set.add(instance.participant.user)
-    else:
+    else:  # Updating (maybe to inactive!)
         update_leader_status(instance.participant)
 
 
 @receiver(post_delete, sender=LeaderRating)
 def remove_leader_perms(sender, instance, using, **kwargs):
+    """ After a rating is removed, check if the participant is still a leader.
+
+    In most cases, we'll probably just want to set the old rating as inactiive.
+    However, this signal exists in case we wish to hard delete a rating.
+    """
     update_leader_status(instance.participant)
 
 
