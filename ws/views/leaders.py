@@ -108,8 +108,8 @@ class DeactivateLeaderRatingsView(OnlyForActivityChair):
 
     def post(self, request, *args, **kwargs):
         rating_pks = request.POST.getlist('deactivate', [])
-        #if not rating_pks:
-        #    return self._success()
+        if not rating_pks:
+            return self._success()
         ratings = models.LeaderRating.objects.filter(pk__in=rating_pks)
         ratings = ratings.select_related('participant')
         if any(r.activity != self.activity for r in ratings):
@@ -128,7 +128,7 @@ class DeactivateLeaderRatingsView(OnlyForActivityChair):
         return self._success()
 
 
-class ActivityLeadersView(CreateRatingView, OnlyForActivityChair):
+class ActivityLeadersView(OnlyForActivityChair, CreateRatingView):
     """ Manage the leaders of a single activity. """
     template_name = 'leaders/by_activity.html'
 
