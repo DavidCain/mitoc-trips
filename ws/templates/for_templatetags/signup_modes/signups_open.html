@@ -1,0 +1,28 @@
+{% load signup_tags %}
+
+<div class="alert alert-info">
+  Signups are open!
+</div>
+
+{% if not user.is_authenticated %}
+  {% anonymous_signup trip %}
+{% elif not participant.info_current %}
+  <div class="alert alert-warning">
+    You cannot sign up for trips without current
+    <a href="{% url 'edit_profile' %}">personal information</a>.
+  </div>
+{% else %}
+  <form name="{{ signup_form.form_name }}"
+        action="{% url leader_signup_allowed|yesno:'leader_trip_signup,trip_signup' %}"
+        method="post"
+        data-submit-if-valid
+        novalidate>
+    {% csrf_token %}
+    {{ signup_form.as_div }}
+    {% if leader_signup_allowed %}
+      <button type="submit" class="btn btn-success">Leader Sign Up</button>
+    {% else %}
+      <button type="submit" class="btn btn-primary">Sign Up</button>
+    {% endif %}
+  </form>
+{% endif %}

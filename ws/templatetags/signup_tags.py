@@ -48,6 +48,39 @@ def signup_for_trip(context, trip, participant, existing_signup=None):
     return context
 
 
+@register.inclusion_tag('for_templatetags/signup_modes/anonymous_signup.html')
+def anonymous_signup(trip):
+    """ What to display in the signup section for anonymous users. """
+    return {'trip': trip}
+
+
+@register.inclusion_tag('for_templatetags/signup_modes/already_signed_up.html')
+def already_signed_up(trip, signup):
+    """ What to display in the signup section when a SignUp object exists. """
+    return {'trip': trip, 'existing_signup': signup}
+
+
+@register.inclusion_tag('for_templatetags/signup_modes/signups_open.html')
+def signups_open(user, participant, trip, signup_form, leader_signup_allowed):
+    """ What to display when signups are open for a trip.
+
+    (Participant is logged in, has current info, etc. This is the normal case.
+    """
+    return {'user': user,
+            'trip': trip,
+            'participant': participant,
+            'signup_form': signup_form,
+            'leader_signup_allowed': leader_signup_allowed}
+
+
+@register.inclusion_tag('for_templatetags/signup_modes/not_yet_open.html')
+def not_yet_open(participant, signup_form, leader_signup_allowed):
+    """ What to display in the signup section when trip signups aren't open (yet). """
+    return {'participant': participant,
+            'signup_form': signup_form,
+            'leader_signup_allowed': leader_signup_allowed}
+
+
 @register.inclusion_tag('for_templatetags/drop_off_trip.html')
 def drop_off_trip(trip, existing_signup):
     return {'trip': trip, 'existing_signup': existing_signup}

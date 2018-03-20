@@ -7,107 +7,12 @@
   </div>
 {% elif trip.signups_open %}
   {% if existing_signup %}
-    {% if trip.algorithm == 'fcfs' and not existing_signup.on_trip and not existing_signup.waitlistsignup %}
-      <div class="panel panel-primary">
-        <div class="panel-heading">
-          You've already signed up for this trip, but are neither a participant
-          nor on the waitlist.
-        </div>
-        <div class="panel-body">
-          <p>
-            Most likely, this is because you were
-            <a href="{% url 'home' %}">placed on another trip</a>.
-          </p>
-          <p>
-            If you can attend this trip and it does not conflict with any of your
-            other trips (<strong>confirm this with your leaders</strong>), you're
-            free to join this trip.
-          </p>
-        </div>
-        <div class="panel-footer">
-          <form action="{% url 'view_trip' trip.pk %}" method="post">
-            {% csrf_token %}
-            {% if trip.open_slots %}
-                This trip has empty slots. Do you want to be added to this trip?
-                <button type="submit" class="btn btn-primary">Join trip</button>
-            {% else %}
-                The trip is full. Do you want to be added to the waitlist?
-                <button type="submit" class="btn btn-primary">Join waitlist</button>
-            {% endif %}
-          </form>
-        </div>
-      </div>
-    {% endif %}
+    {% already_signed_up trip existing_signup %}
   {% else %}
-    <div class="alert alert-info">
-      Signups are open!
-    </div>
-
-    {% if not user.is_authenticated %}
-      <div class="panel panel-primary">
-        <div class="panel-heading">
-          Want to join this trip?
-        </div>
-        <div class="panel-body">
-          {% if trip.activity == 'winter_school' %}
-            <p>This trip is part of our annual <a href="http://mitoc.mit.edu/#winter-school">Winter School</a> program. In order to participate, you must have attended mandatory safety lectures.<p>
-            <p>If you attended this year's lectures, you'll need to <strong><a href="{% url 'account_login' %}?next={% url 'view_trip' trip.pk %}"><i class="fa fa-sign-in"></i> sign in</a></strong> to participate!</p>
-          {% else %}
-            <p>It's easy!</p>
-            <ol>
-              <li><a href="{% url 'account_signup' %}">Make an account</a></li>
-              <li><a href="http://mitoc.mit.edu/#join">Become a member</a> (anyone can join)</li>
-              <li><a href="{% url 'view_trip' trip.pk %}">Sign up!</a></li>
-            </ol>
-            <p>
-              Already have an account? <a href="{% url 'account_login' %}?next={% url 'view_trip' trip.pk %}"><i class="fa fa-sign-in"></i> Sign in!</a>
-            </p>
-          {% endif %}
-        </div>
-      </div>
-    {% elif not participant.info_current %}
-      <div class="alert alert-warning">
-        You cannot sign up for trips without current
-        <a href="{% url 'edit_profile' %}">personal information</a>.
-      </div>
-    {% else %}
-      <form name="{{ signup_form.form_name }}"
-            action="{% url leader_signup_allowed|yesno:'leader_trip_signup,trip_signup' %}"
-            method="post"
-            data-submit-if-valid
-            novalidate>
-        {% csrf_token %}
-        {{ signup_form.as_div }}
-        {% if leader_signup_allowed %}
-          <button type="submit" class="btn btn-success">Leader Sign Up</button>
-        {% else %}
-          <button type="submit" class="btn btn-primary">Sign Up</button>
-        {% endif %}
-      </form>
-    {% endif %}
+    {% signups_open user participant trip signup_form leader_signup_allowed %}
   {% endif %}
-
 {% elif trip.signups_not_yet_open %}
-  <div class="alert alert-info">
-    Signups for this trip are not yet open.
-  </div>
-  {% if leader_signup_allowed %}
-    <div class="alert alert-success">
-      However, you can sign up early as a leader!
-    </div>
-    {% if not participant.info_current %}
-      <div class="alert alert-warning">
-        You cannot sign up for trips without current
-        <a href="{% url 'edit_profile' %}">personal information</a>.
-      </div>
-    {% else %}
-      <form name="{{ signup_form.form_name }}" action="{% url 'leader_trip_signup' %}" method="post" novalidate data-submit-if-valid>
-        {% csrf_token %}
-        {{ signup_form.as_div }}
-        <button type="submit" class="btn btn-success">Leader Sign Up</button>
-      </form>
-    {% endif %}
-  {% endif %}
+  {% not_yet_open participant signup_form leader_signup_allowed %}
 {% endif %} {# No else - these states should cover all cases #}
 
 

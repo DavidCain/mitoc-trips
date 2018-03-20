@@ -1,0 +1,28 @@
+<div class="panel panel-primary">
+  <div class="panel-heading">
+    Want to join this trip?
+  </div>
+  <div class="panel-body">
+    {% if trip.activity == 'winter_school' %}
+      <p>
+        This trip is part of our annual
+        <a href="http://mitoc.mit.edu/#winter-school">Winter School</a> program.
+        In order to participate, you must have attended mandatory safety lectures.
+      <p>
+      <p>
+        If you attended this year's lectures, you'll need to
+        <strong><a href="{% url 'account_login' %}?next={% url 'view_trip' trip.pk %}"><i class="fa fa-sign-in"></i> sign in</a></strong> to participate!
+      </p>
+    {% else %}
+      <p>It's easy!</p>
+      <ol>
+        <li><a href="{% url 'account_signup' %}">Make an account</a></li>
+        <li><a href="http://mitoc.mit.edu/#join">Become a member</a> (anyone can join)</li>
+        <li><a href="{% url 'view_trip' trip.pk %}">Sign up!</a></li>
+      </ol>
+      <p>
+        Already have an account? <a href="{% url 'account_login' %}?next={% url 'view_trip' trip.pk %}"><i class="fa fa-sign-in"></i> Sign in!</a>
+      </p>
+    {% endif %}
+  </div>
+</div>
