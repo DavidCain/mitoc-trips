@@ -3,7 +3,9 @@
 
 {% trip_summary trip %}
 
-{% signup_for_trip trip viewing_participant par_signup %}
+{% if not is_trip_leader %}
+  {% signup_for_trip trip viewing_participant par_signup %}
+{% endif %}
 
 {% if user.is_authenticated %}
   <hr>

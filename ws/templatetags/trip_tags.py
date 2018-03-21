@@ -104,6 +104,7 @@ def view_trip(trip, participant, user):
 
     context = {
         'trip': trip,
+        'is_trip_leader': perm_utils.leader_on_trip(participant, trip),
         'viewing_participant': participant,
         'user': user
     }
