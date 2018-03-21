@@ -12,17 +12,28 @@
     <a href="{% url 'edit_profile' %}">personal information</a>.
   </div>
 {% else %}
+
+  {% if leader_signup_allowed %}
+    {# By using the same form name, the ng-model on comments fields will be shared! #}
+    <form name="{{ signup_form.form_name }}"
+          action="{% url 'leader_trip_signup' %}"
+          method="post"
+          novalidate>
+      {% csrf_token %}
+      {{ signup_form.as_div }}
+      <button type="submit" class="btn btn-success optional-leader-signup">Sign up as leader</button>
+    </form>
+  {% endif %}
+
   <form name="{{ signup_form.form_name }}"
-        action="{% url leader_signup_allowed|yesno:'leader_trip_signup,trip_signup' %}"
+        action="{% url 'trip_signup' %}"
         method="post"
         data-submit-if-valid
         novalidate>
     {% csrf_token %}
-    {{ signup_form.as_div }}
-    {% if leader_signup_allowed %}
-      <button type="submit" class="btn btn-success">Leader Sign Up</button>
-    {% else %}
-      <button type="submit" class="btn btn-primary">Sign Up</button>
-    {% endif %}
+    <div {% if leader_signup_allowed %}class="hidden"{% endif %}>
+      {{ signup_form.as_div }}
+    </div>
+    <button type="submit" class="btn btn-primary">Sign up {% if leader_signup_allowed %}as participant{% endif %}</button>
   </form>
 {% endif %}
