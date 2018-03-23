@@ -37,6 +37,27 @@ class BaseSignUpView(CreateView, LotteryPairingMixin):
         signup_form.fields['trip'].widget = HiddenInput()
         return signup_form
 
+    def form_valid(self, form):
+        signup = form.save(commit=False)
+        signup.participant = self.request.participant
+
+        errors = self.get_errors(signup)
+        if errors:
+            form.errors['__all__'] = ErrorList(errors)
+            return self.form_invalid(form)
+        return super().form_valid(form)
+
+    def get_errors(self, signup):
+        """ Take a signup (saved, but not committed), and validate. """
+        errors = []
+        if signup.participant == signup.trip.wimp:
+            errors.append("You can't go on a trip for which you are the WIMP.")
+        if signup.trip in signup.participant.trip_set.all():
+            errors.append("Already a participant on this trip!")
+        if signup.participant in signup.trip.leaders.all():
+            errors.append("Already a leader on this trip!")
+        return errors
+
     def get_success_url(self):
         trip = self.object.trip
         msg = "Signed up!"
@@ -60,23 +81,11 @@ class LeaderSignUpView(BaseSignUpView):
     model = models.LeaderSignUp
     form_class = forms.LeaderSignUpForm
 
-    def form_valid(self, form):
-        """ After is_valid() and some checks, assign participant. """
-        signup = form.save(commit=False)
-        signup.participant = self.request.participant
-
-        errors = []
+    def get_errors(self, signup):
+        errors = super().get_errors(signup)
         if not signup.participant.can_lead(signup.trip.activity):
             errors.append("Can't lead {} trips!".format(signup.trip.activity))
-        if signup.trip in signup.participant.trip_set.all():
-            errors.append("Already a participant on this trip!")
-        if signup.participant in signup.trip.leaders.all():
-            errors.append("Already a leader on this trip!")
-
-        if errors:
-            form.errors['__all__'] = ErrorList(errors)
-            return self.form_invalid(form)
-        return super().form_valid(form)
+        return errors
 
     @method_decorator(group_required('leaders'))
     def dispatch(self, request, *args, **kwargs):
@@ -94,22 +103,11 @@ class SignUpView(BaseSignUpView):
     model = models.SignUp
     form_class = forms.SignUpForm
 
-    def form_valid(self, form):
-        """ After is_valid() and some checks, assign participant from User.
-
-        If the participant has signed up before, halt saving, and return
-        a form with errors (this shouldn't happen, as a template should
-        prevent the form from being displayed in the first place).
-        """
-        signup = form.save(commit=False)
-        signup.participant = self.request.participant
-        if signup.trip in signup.participant.trip_set.all():
-            form.errors['__all__'] = ErrorList(["Already signed up!"])
-            return self.form_invalid(form)
-        elif not signup.trip.signups_open:  # Guards against direct POST
-            form.errors['__all__'] = ErrorList(["Signups aren't open!"])
-            return self.form_invalid(form)
-        return super().form_valid(form)
+    def get_errors(self, signup):
+        errors = super().get_errors(signup)
+        if not signup.trip.signups_open:  # Guards against direct POST
+            errors.append("Signups aren't open!")
+        return errors
 
     @method_decorator(user_info_required)
     def dispatch(self, request, *args, **kwargs):

@@ -9,7 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.forms.utils import ErrorList
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.generic import DetailView, ListView, UpdateView
@@ -136,9 +136,23 @@ class AllTripsMedicalView(ListView, TripMedical):
         return super().dispatch(request, *args, **kwargs)
 
 
-class TripMedicalView(DetailView, TripLeadersOnlyView, TripMedical):
+class TripMedicalView(DetailView, TripMedical):
     queryset = models.Trip.objects.all()
     template_name = 'trips/medical.html'
+
+    def _can_view(self, trip, request):
+        """ Leaders, chairs, and a trip WIMP can view this page. """
+        return (perm_utils.chair_or_admin(request.user, trip.activity) or
+                perm_utils.leader_on_trip(request.participant, trip, True) or
+                request.participant == trip.wimp)
+
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        """ Only allow creator, leaders of the trip, WIMP, and chairs. """
+        trip = self.get_object()
+        if not self._can_view(trip, request):
+            return render(request, 'not_your_trip.html', {'trip': trip})
+        return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         """ Get a trip info form for display as readonly. """
@@ -146,7 +160,7 @@ class TripMedicalView(DetailView, TripLeadersOnlyView, TripMedical):
         participant = self.request.participant
         context_data = self.get_trip_info(trip)
         context_data['participants'] = trip.signed_up_participants.filter(signup__on_trip=True)
-        context_data['is_trip_leader'] = perm_utils.leader_on_trip(participant, trip),
+        context_data['is_trip_leader'] = perm_utils.leader_on_trip(participant, trip)
         context_data['info_form'] = self.get_info_form(trip)
         return context_data
 

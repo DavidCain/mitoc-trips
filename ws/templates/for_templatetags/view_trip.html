@@ -7,6 +7,16 @@
   {% signup_for_trip trip viewing_participant par_signup %}
 {% endif %}
 
+{% if viewing_participant == trip.wimp %}
+  {% if par_signup or is_trip_leader %}
+    <div class="alert alert-danger">
+      You are currently this trip's WIMP!
+      For safety reasons, you should neither be a leader or a participant on this trip.
+      Either drop off, or ensure that another MITOCer acts as WIMP.
+    </div>
+  {% endif %}
+{% endif %}
+
 {% if user.is_authenticated %}
   <hr>
 

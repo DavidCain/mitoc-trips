@@ -157,13 +157,17 @@ Lookup participant
       </div>
     {% endif %}
 
-    {% if user_viewing and messages %}
-      <div class="row">
-        <div class="col-md-12">
-          <h3>Notifications</h3>
-          {% messages_alerts %}
+    {% if user_viewing %}
+      {% if messages %}
+        <div class="row">
+          <div class="col-md-12">
+            <h3>Notifications</h3>
+            {% messages_alerts %}
+          </div>
         </div>
-      </div>
+      {% endif %}
+
+      {% wimp_trips participant user %}
     {% endif %}
 
     <div class="row">

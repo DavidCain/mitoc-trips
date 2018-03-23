@@ -9,7 +9,7 @@
 {% if trip %}
   <h3>Signup for <a href="{% url 'view_trip' trip.pk %}">{{ trip }}</a></h3>
 
-  <label>Notes:</label> {{ trip.notes }}
+  {% if trip.notes %}<label>Trip notes:</label> {{ trip.notes }}{% endif %}
 <form name="{{ form.form_name }}" action="" method="post" novalidate data-submit-if-valid>
   {% csrf_token %}
   {{ form.as_div }}

@@ -1,8 +1,9 @@
+from datetime import timedelta
+
 from django import template
 from django.db.models import Case, Count, IntegerField, Sum, When
 
 from ws import models
-
 import ws.utils.dates as date_utils
 import ws.utils.ratings as ratings_utils
 import ws.utils.perms as perm_utils
@@ -75,6 +76,11 @@ def unapproved_trip_count(activity):
     ).count()
 
 
+@register.inclusion_tag('for_templatetags/wimp_toolbar.html')
+def wimp_toolbar(trip):
+    return {'trip': trip}
+
+
 @register.inclusion_tag('for_templatetags/trip_edit_buttons.html')
 def trip_edit_buttons(trip, participant, user, hide_approve=False):
     available_at = date_utils.itinerary_available_at(trip.trip_date)
@@ -123,3 +129,20 @@ def view_trip(trip, participant, user):
                             any(s.notes for s in signups) or
                             any(s.notes for s in context['signups']['leader']))
     return context
+
+
+@register.inclusion_tag('for_templatetags/wimp_trips.html')
+def wimp_trips(participant, user):
+    """ Give a quick list of the trips that the participant is a WIMP for. """
+    today = date_utils.local_date()
+    next_week = today + timedelta(days=7)
+    wimp_all = user.groups.filter(name='WIMP').exists()
+
+    wimp_trips = models.Trip.objects if wimp_all else participant.wimp_trips
+    upcoming_trips = wimp_trips.filter(trip_date__gte=today,
+                                       trip_date__lte=next_week)
+
+    return {
+        'can_wimp_all_trips': wimp_all,
+        'upcoming_trips': upcoming_trips.order_by('trip_date', 'name')
+    }

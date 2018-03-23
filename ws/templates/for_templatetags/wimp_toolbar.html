@@ -1,0 +1,22 @@
+{% if not trip.in_past %}
+  <div class="alert alert-warning">
+    You are the WIMP for this trip. It's your responsibility to ensure that
+    the trip returns safely within the stated "worry window." If this does
+    not happen, you must alert the authorities.
+  </div>
+{% endif %}
+
+<h4>
+  WIMP Tools
+</h4>
+
+<div class="btn-group" role="group">
+  <a type="button"
+     class="btn btn-default {{ trip.info|yesno:",btn-danger" }}"
+     href="{% url 'trip_medical' trip.pk %}"
+      {% if not trip.info %}
+        uib-tooltip="Itinerary not yet completed"
+      {% endif %}
+  ><i class="fa fa-medkit"></i>&nbsp;WIMP Info</a>
+  <a type="button" class="btn btn-default" href="{% url 'help-wimp_guide' %}"><i class="fa fa-info-circle"></i>&nbsp;WIMP Guide</a>
+</div>

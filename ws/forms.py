@@ -176,7 +176,7 @@ class TripForm(DjangularRequiredModelForm):
 
     class Meta:
         model = models.Trip
-        fields = ['activity', 'name', 'leaders',
+        fields = ['activity', 'name', 'leaders', 'wimp',
                   'allow_leader_signups',
                   'description', 'trip_date',
                   'algorithm', 'signups_open_at', 'signups_close_at',
@@ -201,6 +201,7 @@ class TripForm(DjangularRequiredModelForm):
                               ])
 
         widgets = {'leaders': widgets.LeaderSelect,
+                   'wimp': widgets.ParticipantSelect,
                    'description': widgets.MarkdownTextarea(ex_descr),
                    'notes': widgets.MarkdownTextarea(ex_notes),
                    'trip_date': widgets.BootstrapDateInput()}
@@ -241,6 +242,16 @@ class TripForm(DjangularRequiredModelForm):
             return None
         return self.cleaned_data.get('level', '').strip()
 
+    def _init_wimp(self):
+        """ Configure the WIMP widget, load saved participant if applicable. """
+        wimp = self.fields['wimp'].widget
+        wimp.attrs['msg'] = "'Nobody'"
+        wimp.attrs['exclude_self'] = 'true'
+
+        if self.instance.wimp:
+            wimp.attrs['selected-id'] = self.instance.wimp.pk
+            wimp.attrs['selected-name'] = self.instance.wimp.name
+
     def __init__(self, *args, **kwargs):
         allowed_activities = kwargs.pop("allowed_activities", None)
         super().__init__(*args, **kwargs)
@@ -256,6 +267,8 @@ class TripForm(DjangularRequiredModelForm):
             activities = [vl for vl in self.fields['activity'].choices
                           if vl[0] in allowed_activities]
             self.fields['activity'].choices = activities
+
+        self._init_wimp()
 
 
 class SignUpForm(DjangularRequiredModelForm):

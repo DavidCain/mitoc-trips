@@ -1,0 +1,32 @@
+{% if upcoming_trips %}
+<h3>WIMP Trips
+  {% if can_wimp_all_trips %}
+    <a type="button" class="btn btn-default pull-right" href="{% url 'all_trips_medical' %}"><i class="fa fa-medkit"></i>&nbsp;All trip itineraries</a>
+  {% endif %}
+</h3>
+  <div class="row">
+    <div class="col-md-12">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for trip in upcoming_trips %}
+            <tr>
+              <td>
+                {% if not trip.info %}
+                  <i class="fa fa-exclamation-triangle text-danger" data-uib-tooltip="No itinerary submitted!"></i>&nbsp;
+                {% endif %}
+                <a href="{% url 'view_trip' trip.pk %}">{{ trip.name }}</a>
+              </td>
+              <td class="nowrap">{{ trip.trip_date|date:"D, M j" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endif %}

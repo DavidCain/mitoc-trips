@@ -107,7 +107,7 @@ def signup_table(signups, has_notes=False, show_drivers=False, all_participants=
 
 @register.inclusion_tag('for_templatetags/trip_summary.html', takes_context=True)
 def trip_summary(context, trip):
-    return {'show_emails': context['user'].is_authenticated, 'trip': trip}
+    return {'show_contacts': context['user'].is_authenticated, 'trip': trip}
 
 
 @register.inclusion_tag('for_templatetags/medical_table.html')

@@ -7,17 +7,27 @@
       <dt>Leaders</dt>
       <dd>
         {% for leader in trip.leaders.all %}
-          {% if show_emails %}<a href="mailto:{{ leader.email }}">{% endif %}
-          {{ leader|name_with_rating:trip }}{% if show_emails %}</a>{% endif %}{% if not forloop.last %}, {% endif %}
+          {% if show_contacts %}<a href="mailto:{{ leader.email }}">{% endif %}
+          {{ leader|name_with_rating:trip }}{% if show_contacts %}</a>{% endif %}{% if not forloop.last %}, {% endif %}
         {% endfor %}
       </dd>
     {% else %}
       <dt>Creator</dt>
       <dd>
-        {% if show_emails %}<a href="mailto:{{ trip.creator.email }}">{% endif %}
+        {% if show_contacts %}<a href="mailto:{{ trip.creator.email }}">{% endif %}
         {{ trip.creator|name_with_rating:trip }}
-        {% if show_emails %}</a>{% endif %}
+        {% if show_contacts %}</a>{% endif %}
       </dd>
+    {% endif %}
+
+    {% if trip.wimp %}
+        <dt>WIMP</dt>
+        <dd>
+          {% if show_contacts %}<a href="mailto:{{ trip.wimp.email }}">{% endif %}
+          {{ trip.wimp.name }}
+          {% if show_contacts %}</a>{% endif %}
+          {% if show_contacts and trip.wimp.cell_phone %}({{ trip.wimp.cell_phone }}){% endif %}
+        </dd>
     {% endif %}
 
     {% if trip.level %}

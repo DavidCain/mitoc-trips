@@ -432,6 +432,10 @@ class Trip(models.Model):
     # Leaders should be privileged at time of trip creation, but may no longer
     # be leaders later (and we don't want to break the relation)
     leaders = models.ManyToManyField(Participant, related_name='trips_led', blank=True)
+    wimp = models.ForeignKey(Participant, null=True, blank=True,
+                             related_name='wimp_trips', verbose_name='WIMP',
+                             on_delete=models.CASCADE,
+                             help_text="Ensures the trip returns safely. Can view trip itinerary, participant medical info.")
     allow_leader_signups = models.BooleanField(default=False,
                                                help_text="Allow leaders to sign themselves up as trip leaders. (Leaders can always sign up as participants). Recommended for Circuses!")
     name = models.CharField(max_length=127)
