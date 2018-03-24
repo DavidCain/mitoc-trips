@@ -50,6 +50,7 @@ class BaseSignUpView(CreateView, LotteryPairingMixin):
     def get_errors(self, signup):
         """ Take a signup (saved, but not committed), and validate. """
         errors = []
+        # (user_info_required ensures that participant is present & not None)
         if signup.participant == signup.trip.wimp:
             errors.append("You can't go on a trip for which you are the WIMP.")
         if signup.trip in signup.participant.trip_set.all():

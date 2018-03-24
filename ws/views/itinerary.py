@@ -144,7 +144,7 @@ class TripMedicalView(DetailView, TripMedical):
         """ Leaders, chairs, and a trip WIMP can view this page. """
         return (perm_utils.chair_or_admin(request.user, trip.activity) or
                 perm_utils.leader_on_trip(request.participant, trip, True) or
-                request.participant == trip.wimp)
+                (trip.wimp and request.participant == trip.wimp))
 
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):

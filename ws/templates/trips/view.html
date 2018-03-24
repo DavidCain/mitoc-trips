@@ -35,7 +35,7 @@
     </uib-tab>
   </uib-tabset>
 {% else %}
-  {% if trip.wimp == viewing_participant %}
+  {% if trip.wimp and viewing_participant == trip.wimp %}
     {% wimp_toolbar trip %}
   {% endif %}
 

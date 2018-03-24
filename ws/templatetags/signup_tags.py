@@ -68,6 +68,7 @@ def signups_open(user, participant, trip, signup_form, leader_signup_allowed):
     """
     return {'user': user,
             'trip': trip,
+            'is_wimp': trip.wimp and trip.wimp == participant,
             'participant': participant,
             'signup_form': signup_form,
             'leader_signup_allowed': leader_signup_allowed}

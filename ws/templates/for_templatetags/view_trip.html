@@ -7,7 +7,7 @@
   {% signup_for_trip trip viewing_participant par_signup %}
 {% endif %}
 
-{% if viewing_participant == trip.wimp %}
+{% if trip.wimp and viewing_participant == trip.wimp %}
   {% if par_signup or is_trip_leader %}
     <div class="alert alert-danger">
       You are currently this trip's WIMP!

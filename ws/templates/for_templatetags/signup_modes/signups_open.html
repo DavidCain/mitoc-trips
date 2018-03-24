@@ -2,14 +2,14 @@
 
 <div class="alert alert-info">
   Signups are open!
-  {% if participant == trip.wimp %}
+  {% if is_wimp %}
     However, you cannot sign up as you're currently the WIMP.
   {% endif %}
 </div>
 
 {% if not user.is_authenticated %}
   {% anonymous_signup trip %}
-{% elif participant == trip.wimp %}
+{% elif is_wimp %}
   {# Display nothing: WIMP should not be allowed to be on the trip. #}
 {% elif not participant.info_current %}
   <div class="alert alert-warning">
