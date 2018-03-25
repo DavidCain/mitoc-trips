@@ -136,11 +136,13 @@ def wimp_trips(participant, user):
     """ Give a quick list of the trips that the participant is a WIMP for. """
     today = date_utils.local_date()
     next_week = today + timedelta(days=7)
-    wimp_all = user.groups.filter(name='WIMP').exists()
+    # Use Python to avoid an extra query into groups
+    wimp_all = any(g.name == 'WIMP' for g in user.groups.all())
 
     wimp_trips = models.Trip.objects if wimp_all else participant.wimp_trips
     upcoming_trips = wimp_trips.filter(trip_date__gte=today,
                                        trip_date__lte=next_week)
+    upcoming_trips = upcoming_trips.select_related('info')
 
     return {
         'can_wimp_all_trips': wimp_all,

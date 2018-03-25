@@ -225,8 +225,10 @@ class ParticipantView(ParticipantLookupView, SingleObjectMixin,
     context_object_name = 'participant'
 
     def get_queryset(self):
-        participant = super().get_queryset()
-        return participant.select_related('emergency_info__emergency_contact')
+        """ Select related fields that will be displayed on the page. """
+        par = super().get_queryset()
+        return par.select_related('emergency_info__emergency_contact',
+                                  'car', 'lotteryinfo')
 
     def get_trips(self):
         participant = self.object or self.get_object()

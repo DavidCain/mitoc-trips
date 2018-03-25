@@ -47,13 +47,20 @@ def activity_name(activity):
 
 
 def in_any_group(user, group_names, allow_superusers=True):
+    """ Return if the user belongs to any of the passed groups.
+
+    Group access control is used a lot in the app, so attempt to
+    use groups already present on the `user` object, or a cached list of all
+    group names. This will reduce needless queries.
+    """
     if user.is_anonymous:
         return False
 
     if allow_superusers and user.is_superuser:
         search_groups = all_group_names()
     else:
-        search_groups = user.groups.values_list('name', flat=True)
+        # Do this in raw Python to avoid n+1 queries
+        search_groups = {g.name for g in user.groups.all()}
     return any(g in group_names for g in search_groups)
 
 
