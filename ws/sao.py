@@ -1,5 +1,4 @@
 from django.core.mail import EmailMultiAlternatives
-from django.template import Context
 from django.template.loader import get_template
 
 from ws.utils import itinerary
@@ -13,11 +12,11 @@ def send_email_to_funds(trip, recipient='funds@mit.edu'):
     For optimum efficiency, the `trip` should prefetch 'leaders' and select 'info'.
     """
     on_trip = trip.signup_set.filter(on_trip=True).select_related('participant')
-    context = Context({
+    context = {
         'trip': trip,
         'signups_on_trip': on_trip,
         'cars': itinerary.get_cars(trip)
-    })
+    }
 
     text_content = get_template('sao/funds_email.txt').render(context)
     html_content = get_template('sao/funds_email.html').render(context)
