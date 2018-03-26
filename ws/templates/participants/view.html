@@ -23,7 +23,7 @@ Lookup participant
     </div>
     {% if user.is_superuser and participant %}
       <div class="col-sm-4 text-right">
-        <a type="button" class="btn btn-default" href="{% url 'edit_participant' participant.id %}"><i class="fa fa-edit"></i>&nbsp;Edit</a>
+        <a type="button" class="btn btn-default" href="{% url 'edit_participant' participant.id %}"><i class="fas fa-edit"></i>&nbsp;Edit</a>
         <delete data-api-slug="participants" data-obj-id="{{ participant.id }}"></delete>
       </div>
     {% endif %}
@@ -81,9 +81,9 @@ Lookup participant
       </div>
       <div class="col-md-12">
         <ul class="list-unstyled">
-          <li><i class="fa fa-fw fa-envelope"></i><a href="mailto:{{ participant.email }}">{{ participant.email }}</a></li>
+          <li><i class="fas fa-fw fa-envelope"></i><a href="mailto:{{ participant.email }}">{{ participant.email }}</a></li>
           {% if participant.cell_phone %}
-            <li><i class="fa fa-fw fa-mobile"></i>{{ participant.cell_phone }}</li>
+            <li><i class="fas fa-fw fa-mobile-alt"></i>{{ participant.cell_phone }}</li>
           {% endif %}
         </ul>
       </div>
@@ -92,7 +92,7 @@ Lookup participant
     {% if trips.current.on_trip or trips.current.waitlisted or trips.current.leader or trips.current.creator %}
     <div class="row">
       <div class="col-md-12">
-        <h3><i class="fa fa-suitcase"></i> Upcoming Trips </h3>
+        <h3><i class="fas fa-suitcase"></i> Upcoming Trips </h3>
         {% if trips.current.on_trip %}
           {% simple_trip_list trips.current.on_trip %}
         {% endif %}
@@ -115,7 +115,7 @@ Lookup participant
     <div class="row">
       {% if user_viewing %}
         <div class="col-sm-6">
-          <h3><i class="fa fa-medkit"></i> Medical </h3>
+          <h3><i class="fas fa-notes-medical"></i> Medical </h3>
           {% readonly_form emergency_info_form %}
 
           <h4> Emergency Contact </h4>
@@ -124,7 +124,7 @@ Lookup participant
       {% endif %}
 
       <div class="col-sm-6">
-        <h3><i class="fa fa-car"></i> Car </h3>
+        <h3><i class="fas fa-car"></i> Car </h3>
         {% if car_form %}
           {% readonly_form car_form %}
         {% elif user_viewing %}
@@ -195,7 +195,7 @@ Lookup participant
               '"
               data-popover-placement="bottom"
               data-popover-title="Account emails">
-              <i class="fa fa-question-circle-o"></i>
+              <i class="fas fa-info-circle"></i>
             </a>
           </h3>
 
@@ -232,7 +232,7 @@ Lookup participant
           {% if paired_par %}
             {% if reciprocally_paired %}
               <div class="alert alert-success">
-                <p><i class="fa fa-link"></i> Paired with {{ paired_par.name }}</p>
+                <p><i class="fas fa-link"></i> Paired with {{ paired_par.name }}</p>
               </div>
               {% if user_viewing %}
                 <p>
@@ -282,7 +282,7 @@ Lookup participant
 
   <div class="row">
     <div class="col-md-12">
-      <h3><i class="fa fa-suitcase"></i> Past Trips </h3>
+      <h3><i class="fas fa-suitcase"></i> Past Trips </h3>
       {% if trips.past.on_trip %}
         <h4 class="text-center">As a Participant</h4>
         {% simple_trip_list trips.past.on_trip 90 300 %}

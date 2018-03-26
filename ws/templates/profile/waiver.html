@@ -27,7 +27,7 @@ Sign waiver
     </div>
     <div class="col-md-6 col-md-pull-6">
       {% if viewing_participant %}
-        <h3><i class="fa fa-user"></i> Personal </h3>
+        <h3><i class="fas fa-user"></i> Personal </h3>
         <dl class="dl-horizontal">
           <dt>Name</dt>
           <dd>{{ viewing_participant.name }}</dd>
@@ -39,7 +39,7 @@ Sign waiver
           <dd>{{ viewing_participant.get_affiliation_display }}</dd>
         </dl>
 
-        <h3><i class="fa fa-medkit"></i> Emergency Contact </h3>
+        <h3><i class="fas fa-medkit"></i> Emergency Contact </h3>
         <dl class="dl-horizontal">
           <dt>Name</dt>
           <dd>{{ viewing_participant.emergency_info.emergency_contact.name }}</dd>
@@ -60,7 +60,7 @@ Sign waiver
           {{ waiver_form.as_div }}
         {% endif %}
         <div>
-          <a role="button" class="btn btn-default" data-ng-click="under_18 = !under_18"><i class="fa fa-child"></i>&nbsp;Under 18?</a>
+          <a role="button" class="btn btn-default" data-ng-click="under_18 = !under_18"><i class="fas fa-child"></i>&nbsp;Under 18?</a>
           <div data-ng-cloak data-ng-if="under_18">
             <p>
               Please instruct your parent or guardian to leave a voice message
@@ -76,11 +76,11 @@ Sign waiver
         <div class="btn-group">
           {% if viewing_participant %}
             <a type="button" class="btn btn-default" href="{% url 'edit_profile' %}?next={% url 'initiate_waiver' %}">
-                <i class="fa fa-edit"></i>&nbsp;Edit Information
+                <i class="fas fa-edit"></i>&nbsp;Edit Information
             </a>
           {% endif %}
           <button type="submit" class="btn btn-primary">
-            <i class="fa fa-file-text"></i>&nbsp;Sign Waiver
+            <i class="fas fa-file-alt"></i>&nbsp;Sign Waiver
           </button>
         </div>
       </form>

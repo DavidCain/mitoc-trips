@@ -9,7 +9,7 @@
 <h2>Approve upcoming trips
   {% if first_unapproved_trip %}
     <a role="button" href="{% url 'view_trip_for_approval' first_unapproved_trip.activity first_unapproved_trip.pk %}" class="btn btn-primary pull-right">
-      <i class="fa fa-check"></i>
+      <i class="fas fa-check"></i>
       Start
     </a>
   {% endif %}

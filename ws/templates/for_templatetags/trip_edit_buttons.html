@@ -12,8 +12,8 @@
   </h4>
 
   <div class="btn-group" role="group">
-    <a type="button" class="btn btn-default" href="{% url 'edit_trip' trip.pk %}"   ><i class="fa fa-edit"  ></i>&nbsp;Edit</a>
-    <a type="button" class="btn btn-default" href="{% url 'trip_medical' trip.pk %}"><i class="fa fa-medkit"></i>&nbsp;WIMP info</a>
+    <a type="button" class="btn btn-default" href="{% url 'edit_trip' trip.pk %}"   ><i class="fas fa-edit"  ></i>&nbsp;Edit</a>
+    <a type="button" class="btn btn-default" href="{% url 'trip_medical' trip.pk %}"><i class="fas fa-medkit"></i>&nbsp;WIMP info</a>
 
     <a type="button"
        class="btn btn-default {{ trip.info|yesno:",btn-danger" }}"
@@ -21,10 +21,10 @@
         {% if not trip.info %}
           uib-tooltip="Not yet completed"
         {% endif %}
-    ><i class="fa fa-list-alt"></i>&nbsp;Itinerary</a>
+    ><i class="fas fa-list-alt"></i>&nbsp;Itinerary</a>
 
     {% if is_trip_leader %}
-      <a type="button" class="btn btn-default" href="{% url 'review_trip' trip.pk %}"><i class="fa fa-comments"></i>&nbsp;Feedback</a>
+      <a type="button" class="btn btn-default" href="{% url 'review_trip' trip.pk %}"><i class="fas fa-comments"></i>&nbsp;Feedback</a>
     {% endif %}
 
     {# Approval is a chair-only function #}

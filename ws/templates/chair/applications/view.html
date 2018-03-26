@@ -114,7 +114,7 @@
       </div>
     </div>
 
-    <h3><i class="fa fa-book"></i> Application</h3>
+    <h3><i class="fas fa-book"></i> Application</h3>
     {% application_summary application %}
     {% application_details application %}
   </div>
@@ -122,7 +122,7 @@
   <div class="col-md-6">
     {% messages_alerts %}
     {% if recommendations %}
-    <h3><i class="fa fa-thumbs-up"></i> Recommendations</h3>
+    <h3><i class="fas fa-thumbs-up"></i> Recommendations</h3>
       <table class="table">
         <thead>
           <tr>
@@ -147,7 +147,7 @@
     {% feedback_table all_feedback %}
 
     {% if trips_led %}
-      <h3><i class="fa fa-suitcase"></i> Trips Led</h3>
+      <h3><i class="fas fa-suitcase"></i> Trips Led</h3>
       {% simple_trip_list trips_led 50 150 True %}
     {% endif %}
   </div>

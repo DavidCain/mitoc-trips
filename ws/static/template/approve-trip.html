@@ -2,6 +2,11 @@
    class="btn btn-default"
    data-ng-class="approved ? 'btn-success' : 'btn-default'"
    data-ng-click="toggleApproval()">
-  <i class="fa fa-fw" data-ng-class="approved ? 'fa-check-square-o' : 'fa-square-o'"></i>&nbsp;
+  <span data-ng-show="approved">
+    <i class="fas fa-fw fa-check-square"></i>
+  </span>
+  <span data-ng-hide="approved">
+    <i class="fas fa-fw fa-square"></i>
+  </span>
   Approved
 </a>

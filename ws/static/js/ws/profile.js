@@ -5,7 +5,7 @@ angular.module('ws.profile', [])
     scope: {
       participantEmail: '@?'
     },
-    template: "<button data-ng-click='openModal()' class='btn btn-default btn-xs'><i class='fa fa-lg fa-pencil'></i></button>",
+    template: "<button data-ng-click='openModal()' class='btn btn-default btn-xs'><i class='fas fa-lg fa-pencil-alt'></i></button>",
     link: function (scope, element, attrs) {
       scope.openModal = function() {
         $uibModal.open({

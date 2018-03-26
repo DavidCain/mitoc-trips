@@ -11,7 +11,7 @@
       <p>
       <p>
         If you attended this year's lectures, you'll need to
-        <strong><a href="{% url 'account_login' %}?next={% url 'view_trip' trip.pk %}"><i class="fa fa-sign-in"></i> sign in</a></strong> to participate!
+        <strong><a href="{% url 'account_login' %}?next={% url 'view_trip' trip.pk %}"><i class="fas fa-sign-in-alt"></i> sign in</a></strong> to participate!
       </p>
     {% else %}
       <p>It's easy!</p>
@@ -21,7 +21,7 @@
         <li><a href="{% url 'view_trip' trip.pk %}">Sign up!</a></li>
       </ol>
       <p>
-        Already have an account? <a href="{% url 'account_login' %}?next={% url 'view_trip' trip.pk %}"><i class="fa fa-sign-in"></i> Sign in!</a>
+        Already have an account? <a href="{% url 'account_login' %}?next={% url 'view_trip' trip.pk %}"><i class="fas fa-sign-in-alt"></i> Sign in!</a>
       </p>
     {% endif %}
   </div>

@@ -37,7 +37,7 @@
         Needs Recommendation
         {% if needs_rec %}
           <a role="button" href="{% url 'view_application' activity needs_rec.0.id %}" class="btn btn-primary pull-right">
-            <i class="fa fa-thumbs-up"></i>
+            <i class="fas fa-thumbs-up"></i>
             Start
           </a>
         {% endif %}
@@ -80,7 +80,7 @@
         Needs Rating
         {% if needs_rating %}
           <a role="button" href="{% url 'view_application' activity needs_rating.0.id %}" class="btn btn-success pull-right">
-            <i class="fa fa-star-half-o"></i>
+            <i class="fas fa-star-half"></i>
             Start
           </a>
         {% endif %}

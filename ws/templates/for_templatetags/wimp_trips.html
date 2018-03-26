@@ -1,7 +1,7 @@
 {% if upcoming_trips %}
 <h3>WIMP Trips
   {% if can_wimp_all_trips %}
-    <a type="button" class="btn btn-default pull-right" href="{% url 'all_trips_medical' %}"><i class="fa fa-medkit"></i>&nbsp;All trip itineraries</a>
+    <a type="button" class="btn btn-default pull-right" href="{% url 'all_trips_medical' %}"><i class="fas fa-medkit"></i>&nbsp;All trip itineraries</a>
   {% endif %}
 </h3>
   <div class="row">
@@ -18,7 +18,7 @@
             <tr>
               <td>
                 {% if not trip.info %}
-                  <i class="fa fa-exclamation-triangle text-danger" data-uib-tooltip="No itinerary submitted!"></i>&nbsp;
+                  <i class="fas fa-exclamation-triangle text-danger" data-uib-tooltip="No itinerary submitted!"></i>&nbsp;
                 {% endif %}
                 <a href="{% url 'view_trip' trip.pk %}">{{ trip.name }}</a>
               </td>

@@ -2,18 +2,12 @@
   <div class="row">
 
     <div class="col-md-3 col-sm-12 col-xs-8">
-      <h3>Participants <span data-ng-bind="onTripCount + '/' + maximumParticipants"></span>
-        <button ng-hide="true" class="btn btn-sm btn-default pull-right"
-                data-ng-click="signups.feedbackHidden = !signups.feedbackHidden">
-          <i class="fa fa-plus"></i>
-          Add
-        </button>
-      </h3>
+      <h3>Participants <span data-ng-bind="onTripCount + '/' + maximumParticipants"></span></h3>
     </div>
 
     <div class="col-md-2 col-md-push-7 col-sm-4 col-sm-push-8 col-xs-4">
       <div class="input-group input-group-sm signup-controls" data-ng-show="!maximumParticipants || signups.onTrip.length">
-        <span class="input-group-addon" title="Maximum participants"><i class="fa fa-users"></i></span>
+        <span class="input-group-addon" title="Maximum participants"><i class="fas fa-users"></i></span>
         <input class="form-control"
                id="id_maximum_participants"
                type="number"
@@ -28,7 +22,7 @@
         <span class="btn-group">
           <button class="btn btn-sm btn-primary"
                   data-ng-click="addParticipant()">
-            <i class="fa fa-plus"></i>
+            <i class="fas fa-user-plus"></i>
             Add participant
           </button>
           <button class="btn btn-sm btn-default"

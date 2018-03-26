@@ -37,7 +37,7 @@ Membership dues
     </div>
     <div class="col-sm-6 col-sm-pull-6">
       {% if viewing_participant %}
-        <h3><i class="fa fa-user"></i> Personal </h3>
+        <h3><i class="fas fa-user"></i> Personal </h3>
         <dl class="dl-horizontal">
           <dt>Name</dt>
           <dd>{{ viewing_participant.name }}</dd>
@@ -56,11 +56,11 @@ Membership dues
         <div class="btn-group">
           {% if viewing_participant %}
             <a type="button" class="btn btn-default" href="{% url 'edit_profile' %}?next={% url 'pay_dues' %}">
-              <i class="fa fa-edit"></i>&nbsp;Edit Information
+              <i class="fas fa-edit"></i>&nbsp;Edit Information
             </a>
           {% endif %}
           <button type="submit" class="btn btn-primary" href="{% url 'edit_profile' %}">
-            <i class="fa fa-credit-card"></i>&nbsp;Pay $<span data-ng-bind="amount"></span> {{ viewing_participant.get_affiliation_display }} dues
+            <i class="fas fa-credit-card"></i>&nbsp;Pay $<span data-ng-bind="amount"></span> {{ viewing_participant.get_affiliation_display }} dues
           </button>
         </div>
       </form>

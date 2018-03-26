@@ -13,7 +13,7 @@
 
 <h3>
   Upcoming trips
-  <a role="button" class="btn btn-default pull-right" href="{% url 'rss-upcoming_trips' %}"><i class="fa fa-rss"></i> Subscribe</a>
+  <a role="button" class="btn btn-default pull-right" href="{% url 'rss-upcoming_trips' %}"><i class="fas fa-rss"></i> Subscribe</a>
 </h3>
 
 {% if current_trips %}
@@ -31,7 +31,7 @@
   {% trip_list_table past_trips %}
 {% else %}
   <hr>
-  <p><a href="{% url 'all_trips' %}"><i class="fa fa-history"></i> View past trips</a></p>
+  <p><a href="{% url 'all_trips' %}"><i class="fas fa-history"></i> View past trips</a></p>
 {% endif %}
 
 {% endblock content %}

@@ -32,7 +32,7 @@
           <span data-ng-bind="signup.notes"></span>
         </p>
         <div data-ng-if="signup.feedback.length && !hideFeedback">
-          <label>Feedback <i class="fa"></i></label>
+          <label><i class="fas fa-comment"></i>&nbsp;Feedback</label>
           <ul class="list-unstyled" data-ng-repeat="feedback in signup.feedback">
             <li>{{ feedback.comments }} - <small>{{ feedback.leader }} on <a data-ng-href="/trips/{{feedback.trip.id}}/" data-ng-bind="feedback.trip.name"></a></small></li>
           </ul>

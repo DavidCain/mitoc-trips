@@ -23,7 +23,7 @@ MEMBERSHIP_SECRET_KEY = os.getenv('MEMBERSHIP_SECRET_KEY',
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 PROJECT_ROOT = os.path.normpath(os.path.dirname(os.path.abspath(__file__)))
 
-BOWER_COMPONENTS = os.path.join(BASE_DIR, 'bower_components')
+NODE_MODULES = os.path.join(BASE_DIR, 'node_modules')
 
 # Settings may override these defaults (easily defined here due to BASE_DIR)
 STATIC_URL = '/static/'
@@ -32,7 +32,7 @@ STATIC_ROOT = os.getenv('STATIC_ROOT', os.path.join(BASE_DIR, 'static'))
 STATICFILES_STORAGE = 'ws.storage.CachedStorage'
 
 STATICFILES_DIRS = [
-    BOWER_COMPONENTS
+    NODE_MODULES
 ]
 
 STATICFILES_FINDERS = (
@@ -234,11 +234,12 @@ MUST_UPDATE_AFTER_DAYS = 180
 # Break packages up based on how they'll be served
 
 # CDN libraries are for basic, commonplace libraries (and are loaded first)
-cdn_libs = ['jquery/dist/jquery.min.js', 'angular/angular.js', 'd3/d3.min.js']
+cdn_libs = ['jquery/dist/jquery.min.js', 'angular/angular.js', 'd3/d3.min.js',
+            '@fortawesome/fontawesome-free/js/all.js']
 
 
-other_libs = ['lodash/dist/lodash.js',
-              'bootstrap/dist/js/bootstrap.min.js',
+other_libs = ['lodash/lodash.js',
+              'bootstrap/dist/js/bootstrap.js',
               'footable/js/footable.js',
               'footable/js/footable.sort.js',
               'jquery-ui/ui/core.js',
@@ -246,12 +247,12 @@ other_libs = ['lodash/dist/lodash.js',
               'jquery-ui/ui/mouse.js',
               'jquery-ui/ui/sortable.js',
               'jquery-ui/jquery-ui.js',
-              'jqueryui-touch-punch/jquery.ui.touch-punch.js',
+              'jquery-ui-touch-punch/jquery.ui.touch-punch.js',
               'djng/js/django-angular.js',
-              'angular-ui-select/dist/select.js',
-              'angular-gravatar/build/angular-gravatar.min.js',
+              'ui-select/dist/select.js',
+              'angular-gravatar/build/angular-gravatar.js',
               'angular-sanitize/angular-sanitize.js',
-              'angular-ui-sortable/sortable.js',
+              'angular-ui-sortable/dist/sortable.js',
               'js/ui-bootstrap-tpls-0.14.3.js',
 
               # Libraries to support international phone numbers
@@ -288,8 +289,7 @@ PIPELINE = {
                 'css/footable.core.css',  # Forked... =(
                 'css/footable.standalone.css',
                 'bootstrap/dist/css/bootstrap.min.css',
-                'angular-ui-select/dist/select.min.css',
-                'font-awesome/css/font-awesome.min.css',
+                'ui-select/dist/select.min.css',
                 'bc-phone-number/dist/css/bc-phone-number.css',
                 # Flags are an optional enhancement to the country picker
                 'bc-css-flags/dist/css/bc-css-flags.css',
