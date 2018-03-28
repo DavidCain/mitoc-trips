@@ -130,6 +130,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.messages.context_processors.messages",
                 "ws.context_processors.participant_and_groups",
+                "ws.context_processors.angular_templates",
             ],
         },
     },

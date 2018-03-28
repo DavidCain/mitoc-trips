@@ -26,11 +26,18 @@
       {% cdn_fallback "angular" "https://ajax.googleapis.com/ajax/libs/angularjs/1.4.10/angular.min.js" "angular/angular.min.js"    %}
       {% production_js user viewing_participant %}
       {% javascript 'app' %}
+
     {% endblock js %}
 {% endblock head %}
 </head>
 
 <body ng-app="ws">
+    {# Pre-populate `$templateCache` for faster interaction with directives #}
+    {% for filename, contents in angular_templates.items %}
+      <script type="text/ng-template" id="{{ filename }}">
+        {{ contents|safe }}
+      </script>
+    {% endfor %}
 
     <nav class="navbar navbar-inverse navbar-fixed-top">
         <div class="container">
