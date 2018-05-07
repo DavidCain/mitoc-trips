@@ -191,7 +191,7 @@ class CreateTripView(CreateView):
         trip.creator = creator
         return super().form_valid(form)
 
-    @method_decorator(group_required('WSC', 'leaders'))
+    @method_decorator(group_required('leaders'))
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 

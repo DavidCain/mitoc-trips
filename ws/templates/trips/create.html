@@ -2,12 +2,5 @@
 {% block head_title %}Create trip{% endblock head_title %}
 
 {% block content %}
-
-{% if not "leaders" in groups %}  {# Only WSC/admins will see this #}
-  <p> A Leader record must be associated with the trip creator in order to create a trip.
-  <a href="{% url 'add_leader' %}">Add a leader</a> record for yourself, then try again.</p>
-{% else %}
-  {{ block.super }}
-{% endif %}
-
+{{ block.super }}
 {% endblock content %}
