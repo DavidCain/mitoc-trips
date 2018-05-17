@@ -201,16 +201,21 @@ class Participant(models.Model):
         return User.objects.prefetch_related('groups').get(pk=self.user_id)
 
     @classmethod
-    def from_email(cls, email):
+    def from_email(cls, email, join_membership=False):
         addr = EmailAddress.objects.filter(email=email, verified=True).first()
-        return cls.from_user(addr.user) if addr else None
+        return cls.from_user(addr.user, join_membership) if addr else None
 
     @classmethod
-    def from_user(cls, user):
+    def from_user(cls, user, join_membership=False):
         if user.is_anonymous:
             return None
+
+        one_or_none = cls.objects.filter(user_id=user.id)
+        if join_membership:
+            one_or_none = one_or_none.select_related('membership')
+
         try:
-            return cls.objects.get(user_id=user.id)
+            return one_or_none.get()
         except cls.DoesNotExist:
             return None
 
