@@ -11,6 +11,7 @@ from datetime import timedelta
 from django.db import connections
 
 from ws.utils.dates import local_date
+from ws import models
 
 
 def verified_emails(user):
@@ -43,8 +44,24 @@ def membership_expiration(emails):
     def expiration_date(membership_info):
         return membership_info['membership']['expires']
 
-    return max(matching_memberships(emails).values(), key=expiration_date,
-               default=repr_blank_membership())
+    # Find all memberships under one or more of the participant's emails
+    memberships_by_email = matching_memberships(emails)
+    if not memberships_by_email:
+        return repr_blank_membership()
+
+    # The most recent account should be considered as their one membership
+    most_recent = max(memberships_by_email.values(), key=expiration_date)
+
+    # Since we fetched the most current information from the db, update cache
+    email = most_recent['membership']['email']
+    participant = models.Participant.from_email(email)
+    if participant:
+        participant.update_membership(
+            membership_expires=most_recent['membership']['expires'],
+            waiver_expires=most_recent['waiver']['expires']
+        )
+
+    return most_recent
 
 
 def format_membership(email, membership_expires, waiver_expires):
