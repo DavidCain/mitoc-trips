@@ -20,6 +20,7 @@ from ws.templatetags.gravatar import gravatar_url
 
 from ws.utils.api import jwt_token_from_headers
 from ws.utils.model_dates import missed_lectures
+from ws.utils.dates import date_from_iso
 import ws.utils.perms as perm_utils
 import ws.utils.signups as signup_utils
 import ws.utils.geardb as geardb_utils
@@ -352,6 +353,22 @@ class JWTView(View):
             return JsonResponse({'message': 'invalid token'}, status=401)
 
         return super().dispatch(request, *args, **kwargs)
+
+
+class UpdateMembershipView(JWTView):
+    def post(self, request, *args, **kwargs):
+        """ Receive a message that the user's membership was updated. """
+
+        participant = models.Participant.from_email(self.payload['email'])
+        if not participant:  # Not in our system, nothing to do
+            return JsonResponse()
+
+        keys = ('membership_expires', 'waiver_expires')
+        update_fields = {key: date_from_iso(self.payload[key]) for key in keys
+                         if self.payload.get(key)}
+        membership, created = participant.update_membership(**update_fields)
+
+        return JsonResponse({}, status=201 if created else 200)
 
 
 class OtherVerifiedEmailsView(JWTView):

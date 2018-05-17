@@ -7,6 +7,10 @@ from django.utils import timezone
 from django.conf import settings
 
 
+def date_from_iso(datestring):
+    return datetime.strptime(datestring, '%Y-%m-%d').date()
+
+
 def localize(dt_time):
     pytz_timezone = timezone.get_default_timezone()
     return pytz_timezone.localize(dt_time)

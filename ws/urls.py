@@ -124,6 +124,7 @@ urlpatterns = [
     # JSON-returning routes that depend on HTTP authorization
     # Tokens accepted via Authorization header (standard 'Bearer' format)
     url(r'^data/verified_emails/$', api_views.OtherVerifiedEmailsView.as_view(), name='other_verified_emails'),
+    url(r'^data/membership/$', api_views.UpdateMembershipView.as_view(), name='update_membership'),
 ]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
