@@ -11,6 +11,7 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import string_concat
 
+from allauth.account.models import EmailAddress
 from localflavor.us.models import USStateField
 from phonenumber_field.modelfields import PhoneNumberField
 
@@ -170,6 +171,11 @@ class Participant(models.Model):
     @property
     def user(self):
         return User.objects.prefetch_related('groups').get(pk=self.user_id)
+
+    @classmethod
+    def from_email(cls, email):
+        addr = EmailAddress.objects.filter(email=email, verified=True).first()
+        return cls.from_user(addr.user) if addr else None
 
     @classmethod
     def from_user(cls, user):
