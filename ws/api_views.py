@@ -18,6 +18,7 @@ from ws import models
 from ws.views import AllLeadersView, TripLeadersOnlyView
 from ws.templatetags.gravatar import gravatar_url
 
+from ws.utils.api import jwt_token_from_headers
 from ws.utils.model_dates import missed_lectures
 import ws.utils.perms as perm_utils
 import ws.utils.signups as signup_utils
@@ -326,22 +327,30 @@ class UserRentalsView(UserView):
         return JsonResponse({'rentals': geardb_utils.user_rentals(user)})
 
 
-class OtherVerifiedEmailsView(View):
-    def get(self, request, *args, **kwargs):
-        """ Return any other verified emails that tie to the same user. """
+class JWTView(View):
+    """ Superclass for views that use JWT's for auth & signed payloads. """
 
-        # Extract JWT from HTTP headers
-        http_auth = self.request.META.get('HTTP_AUTHORIZATION')
-        if not (http_auth and http_auth.startswith('Bearer: ')):
+    def dispatch(self, request, *args, **kwargs):
+        """ Verify & decode JWT, storing its payload. """
+        try:
+            token = jwt_token_from_headers(request)
+        except ValueError:
             return JsonResponse({'message': 'token missing'}, status=401)
-        token = http_auth.split()[1]
 
         secret = settings.MEMBERSHIP_SECRET_KEY
         try:
-            payload = jwt.decode(token, secret)
-            email = payload['email']
+            self.payload = jwt.decode(token, secret)
         except (jwt.exceptions.InvalidTokenError, KeyError):
             return JsonResponse({'message': 'invalid token'}, status=401)
+
+        return super().dispatch(request, *args, **kwargs)
+
+
+class OtherVerifiedEmailsView(JWTView):
+    def get(self, request, *args, **kwargs):
+        """ Return any other verified emails that tie to the same user. """
+
+        email = self.payload['email']
 
         addr = EmailAddress.objects.filter(email=email, verified=True).first()
         if not addr:  # Not in our system, so just return the original
