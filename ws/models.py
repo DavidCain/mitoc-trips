@@ -119,6 +119,32 @@ class Discount(models.Model):
         return self.name
 
 
+class Membership(models.Model):
+    """ Cached data about a participant's MITOC membership.
+
+    The gear database is the ultimate authority about a given participant's
+    membership. However, since paying dues and signing waivers happens so
+    rarely (once a year), we can cache this information locally for faster access.
+
+    `membership_expires` and `waiver_expires` should be regarded as the
+    _minimum_ date after which the membership/waiver expire. It's possible that
+    the gear database actually has a newer membership/waiver, so if we need to
+    authoritatively state expiration date, the gear database should be
+    consulted.
+
+    Waivers and membership dues that are completed in the usual way trigger
+    updates on this model, but it's possible for desk workers to manually
+    update membership accounts, and that does not (currently) automatically
+    notify this system.
+    """
+    membership_expires = models.DateField(null=True, blank=True, help_text="Last day that annual membership dues are valid")
+    waiver_expires = models.DateField(null=True, blank=True, help_text="Day after which liability waiver is no longer valid")
+    last_cached = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return "{}, membership: {}, waiver: {}".format(self.participant.name, self.membership_expires, self.waiver_expires)
+
+
 class Participant(models.Model):
     """ Anyone going on a trip needs WIMP info, and info about their car.
 
@@ -137,6 +163,8 @@ class Participant(models.Model):
                                                                    reverse_lazy('account_email'),
                                                                    "'>Manage email addresses</a>."))
     car = OptionalOneToOneField(Car, on_delete=models.CASCADE)
+
+    membership = OptionalOneToOneField(Membership, on_delete=models.CASCADE)
 
     # We used to not collect level of student + MIT affiliation
     # Any participants with single-digit affiliation codes have dated status
@@ -185,6 +213,18 @@ class Participant(models.Model):
             return cls.objects.get(user_id=user.id)
         except cls.DoesNotExist:
             return None
+
+    def update_membership(self, membership_expires=None, waiver_expires=None):
+        acct, created = Membership.objects.get_or_create(participant=self)
+        if membership_expires:
+            acct.membership_expires = membership_expires
+        if waiver_expires:
+            acct.waiver_expires = waiver_expires
+        acct.save()
+        if created:
+            self.membership = acct
+            self.save()
+        return acct, created
 
     def ratings(self, rating_active=True, at_time=None, after_time=None):
         """ Return all ratings matching the supplied filters.
