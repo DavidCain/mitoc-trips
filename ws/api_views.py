@@ -316,9 +316,17 @@ class UserView(DetailView):
 
 
 class UserMembershipView(UserView):
+    """ Fetch the user's membership information.
+
+    By default, this checks the gear database for the most current information,
+    but the `try_cache` query arg can be passed to first consult the cache
+    instead.
+    """
     def get(self, request, *args, **kwargs):
         user = self.get_object()
-        return JsonResponse(geardb_utils.user_membership_expiration(user))
+        try_cache = bool(request.GET.get('try_cache'))
+        membership = geardb_utils.user_membership_expiration(user, try_cache)
+        return JsonResponse(membership)
 
 
 class UserRentalsView(UserView):

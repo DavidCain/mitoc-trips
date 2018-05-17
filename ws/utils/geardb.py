@@ -21,9 +21,19 @@ def verified_emails(user):
     return emails.filter(verified=True).values_list('email', flat=True)
 
 
-def user_membership_expiration(user):
+def user_membership_expiration(user, try_cache=False):
+    """ Return membership information for the user.
+
+    If `try_cache` is True, then we'll first attempt to locate cached
+    membership information. if any information exists, that will be returned.
+    """
     if not user or user.is_anonymous:
         return None
+    if try_cache:
+        participant = models.Participant.from_user(user, join_membership=True)
+        if participant and participant.membership:
+            return format_cached_membership(participant)
+
     return membership_expiration(verified_emails(user))
 
 
@@ -62,6 +72,13 @@ def membership_expiration(emails):
         )
 
     return most_recent
+
+
+def format_cached_membership(participant):
+    """ Format a ws.models.Membership object as a server response. """
+    mem = participant.membership
+    return format_membership(participant.email,
+                             mem.membership_expires, mem.waiver_expires)
 
 
 def format_membership(email, membership_expires, waiver_expires):
