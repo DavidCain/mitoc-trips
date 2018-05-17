@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User
-from ws import models
+from ws.models import Participant
 
 
 class PrefetchGroupsMiddleware:
@@ -30,14 +30,5 @@ class ParticipantMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        request.participant = participant_from_user(request.user)
+        request.participant = Participant.from_user(request.user)
         return self.get_response(request)
-
-
-def participant_from_user(user):
-    if user.is_anonymous:
-        return None
-    try:
-        return models.Participant.objects.get(user_id=user.id)
-    except models.Participant.DoesNotExist:
-        return None

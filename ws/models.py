@@ -171,6 +171,15 @@ class Participant(models.Model):
     def user(self):
         return User.objects.prefetch_related('groups').get(pk=self.user_id)
 
+    @classmethod
+    def from_user(cls, user):
+        if user.is_anonymous:
+            return None
+        try:
+            return cls.objects.get(user_id=user.id)
+        except cls.DoesNotExist:
+            return None
+
     def ratings(self, rating_active=True, at_time=None, after_time=None):
         """ Return all ratings matching the supplied filters.
 
