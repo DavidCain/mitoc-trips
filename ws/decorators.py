@@ -82,7 +82,7 @@ def group_required(*group_names, **kwargs):
         if ws.utils.perms.in_any_group(user, group_names, allow_superusers):
             return True
         if not redir_url:  # No possible way to gain access, so 403
-            raise PermissionDenied()
+            raise PermissionDenied
 
     # This is a simplified version of the user_passes_test decorator
     # We extended it to allow `redir_url` to depend on authentication

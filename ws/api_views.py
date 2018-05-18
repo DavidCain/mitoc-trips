@@ -3,7 +3,7 @@ import json
 from allauth.account.models import EmailAddress
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.db.models import Q
 from django.http import JsonResponse
@@ -12,7 +12,6 @@ from django.views.generic.detail import SingleObjectMixin
 from django.utils.decorators import method_decorator
 import jwt
 
-from ws import decorators
 from ws import models
 from ws.views import AllLeadersView, TripLeadersOnlyView
 from ws.templatetags.gravatar import gravatar_url
@@ -51,8 +50,10 @@ class SimpleSignupsView(DetailView):
             },
         })
 
-    @method_decorator(decorators.user_info_required)
     def dispatch(self, request, *args, **kwargs):
+        """ Participant object must exist, but it need not be current. """
+        if not self.request.participant:
+            return JsonResponse({}, status=403)
         return super().dispatch(request, *args, **kwargs)
 
 
@@ -254,8 +255,10 @@ class JsonAllParticipantsView(ListView):
         top_matches = participants[:20].values('name', 'email', 'id')
         return JsonResponse({'participants': list(top_matches)})
 
-    @method_decorator(decorators.user_info_required)
     def dispatch(self, request, *args, **kwargs):
+        """ Participant object must exist, but it need not be current. """
+        if not self.request.participant:
+            return JsonResponse({}, status=403)
         return super().dispatch(request, *args, **kwargs)
 
 
@@ -313,11 +316,10 @@ class ApproveTripView(SingleObjectMixin, View):
         trip.save()
         return JsonResponse({'approved': trip.chair_approved})
 
-    @method_decorator(decorators.chairs_only())
     def dispatch(self, request, *args, **kwargs):
         trip = self.get_object()
         if not perm_utils.is_chair(request.user, trip.activity, False):
-            raise PermissionDenied
+            return JsonResponse({}, status=403)
         return super().dispatch(request, *args, **kwargs)
 
 
@@ -439,8 +441,9 @@ class MembershipStatusesView(View):
 
         return JsonResponse({'memberships': participant_memberships})
 
-    @method_decorator(decorators.group_required('leaders'))
     def dispatch(self, request, *args, **kwargs):
+        if not perm_utils.is_leader(request.user):
+            return JsonResponse({}, status=403)
         return super().dispatch(request, *args, **kwargs)
 
 
