@@ -53,7 +53,7 @@ def in_any_group(user, group_names, allow_superusers=True):
     use groups already present on the `user` object, or a cached list of all
     group names. This will reduce needless queries.
     """
-    if user.is_anonymous:
+    if not (user and user.is_authenticated):
         return False
 
     if allow_superusers and user.is_superuser:

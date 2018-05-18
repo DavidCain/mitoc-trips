@@ -19,7 +19,7 @@ def cdn_fallback(lib_name, cdn_url, npm_path):
 def production_js(context, user, participant):
     """ Include JavaScript that should only be present in production. """
     user_context = {}
-    if user.is_authenticated:
+    if user and user.is_authenticated:
         user_context['email'] = user.email
         if participant:
             user_context['participant_id'] = participant.pk
