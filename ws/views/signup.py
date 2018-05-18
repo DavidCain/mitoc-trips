@@ -106,8 +106,13 @@ class SignUpView(BaseSignUpView):
 
     def get_errors(self, signup):
         errors = super().get_errors(signup)
+
+        # Guard against direct POST
+        # (Form is normally hidden by display logic, but this enforces rules)
         if not signup.trip.signups_open:  # Guards against direct POST
             errors.append("Signups aren't open!")
+        if not self.request.participant.can_attend(signup.trip):
+            errors.append("Active membership/waiver required to attend")
         return errors
 
     @method_decorator(user_info_required)

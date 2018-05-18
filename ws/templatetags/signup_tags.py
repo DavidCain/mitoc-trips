@@ -5,8 +5,14 @@ from django.forms import HiddenInput
 
 from ws.forms import SignUpForm
 from ws.utils.dates import local_date
+from ws.utils.membership import can_attend_trip
 
 register = template.Library()
+
+
+@register.filter
+def can_attend(user, trip):
+    return can_attend_trip(user, trip)
 
 
 def leader_signup_allowed(trip, participant):

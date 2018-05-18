@@ -11,10 +11,21 @@
   {% anonymous_signup trip %}
 {% elif is_wimp %}
   {# Display nothing: WIMP should not be allowed to be on the trip. #}
+{% elif not user|can_attend:trip %}
+  <div class="alert alert-danger">
+    In order to participate on this trip, you must have
+    {% if trip.membership_required %}
+      an active membership and
+    {% endif %}
+    a waiver that's valid until at least {{ trip.trip_date|date:"F jS" }}.
+  </div>
+
+  <membership-status data-personal="true" data-user-id="{{ user.id }}">
+  </membership-status>
 {% elif not participant.info_current %}
-  <div class="alert alert-warning">
+  <div class="alert alert-danger">
     You cannot sign up for trips without current
-    <a href="{% url 'edit_profile' %}">personal information</a>.
+    <a href="{% url 'edit_profile' %}?next={% url 'view_trip' trip.pk %}">personal information</a>.
   </div>
 {% else %}
 

@@ -142,6 +142,14 @@ class Membership(models.Model):
     waiver_expires = models.DateField(null=True, blank=True, help_text="Day after which liability waiver is no longer valid")
     last_cached = models.DateTimeField(auto_now=True)
 
+    @property
+    def membership_active(self):
+        expires = self.membership_expires
+        return expires and expires >= dateutils.local_date()
+
+    def waiver_active_until(self, day):
+        return self.waiver_expires and self.waiver_expires >= day
+
     def __str__(self):
         return "{}, membership: {}, waiver: {}".format(self.participant.name, self.membership_expires, self.waiver_expires)
 
@@ -219,6 +227,18 @@ class Participant(models.Model):
             return one_or_none.get()
         except cls.DoesNotExist:
             return None
+
+    def can_attend(self, trip):
+        """ Can this participant attend the trip? (based off cached membership)
+
+        NOTE: If the method returns False, it's important that the caller
+        refresh the cache (`update_membership_cache()`) and try again.
+        """
+        if not self.membership:
+            return False
+        if trip.membership_required and not self.membership.membership_active:
+            return False
+        return self.membership.waiver_active_until(trip.trip_date)
 
     def update_membership(self, membership_expires=None, waiver_expires=None):
         acct, created = Membership.objects.get_or_create(participant=self)
