@@ -1,4 +1,3 @@
-from itertools import chain
 import json
 
 from allauth.account.models import EmailAddress
@@ -58,8 +57,12 @@ class SimpleSignupsView(DetailView):
 
 
 class FormatSignupMixin:
-    def describe_signup(self, signup):
-        """ Yield everything used in the participant-selecting modal."""
+    def describe_signup(self, signup, other_signups_by_participant):
+        """ Yield everything used in the participant-selecting modal.
+
+        The signup object should come with related models already selected,
+        or this could result in a _lot_ of extra queries.
+        """
         par = signup.participant
 
         # In rare cases, a trip creator can be a participant on their own trip
@@ -80,6 +83,8 @@ class FormatSignupMixin:
         else:
             no_lectures = False  # Don't show warning for other activities
 
+        other_signups = other_signups_by_participant[par.pk]
+
         return {'id': signup.id,
                 'participant': {'id': par.id,
                                 'name': par.name,
@@ -91,7 +96,7 @@ class FormatSignupMixin:
                               'trip': {'id': f.trip.id, 'name': f.trip.name},
                               } for f in feedback],
                 'also_on': [{'id': s.trip.id, 'name': s.trip.name}
-                            for s in signup.other_signups],
+                            for s in other_signups],
                 'car_status': car_status,
                 'number_of_passengers': num_passengers,
                 'notes': signup.notes}
@@ -100,9 +105,6 @@ class FormatSignupMixin:
 class AdminTripSignupsView(SingleObjectMixin, FormatSignupMixin,
                            TripLeadersOnlyView):
     model = models.Trip
-
-    # TODO: Select related fields
-    #def get_queryset(self):
 
     def post(self, request, *args, **kwargs):
         trip = self.object = self.get_object()
@@ -161,16 +163,31 @@ class AdminTripSignupsView(SingleObjectMixin, FormatSignupMixin,
                 signup = models.SignUp(participant=par, trip=self.object)
             yield signup, remove
 
+    def get_signups(self):
+        """ Trip signups with selected models for use in describe_signup. """
+        trip = self.get_object()
+        return (
+            trip.signup_set
+            .filter(Q(on_trip=True) | Q(waitlistsignup__isnull=False))
+            .select_related('participant', 'participant__lotteryinfo')
+            .prefetch_related('participant__feedback_set',
+                              'participant__feedback_set__leader',
+                              'participant__feedback_set__trip')
+            .order_by('-on_trip', 'waitlistsignup', 'last_updated')
+        )
+
     def get(self, request, *args, **kwargs):
         """ Get information about a trip's signups. """
         trip = self.get_object()
-        signups = trip.signup_set.filter(on_trip=True)
+        signups = self.get_signups()
 
-        signups = [self.describe_signup(signup)
-                   for signup in chain(signups, trip.waitlist.signups)]
+        other_signups_by_par = {s.participant.pk: [] for s in signups}
+        for other_signup in trip.other_signups.select_related('trip'):
+            other_signups_by_par[other_signup.participant.pk].append(other_signup)
 
         return JsonResponse({
-            'signups': signups,
+            'signups': [self.describe_signup(s, other_signups_by_par)
+                        for s in self.get_signups()],
             'leaders': list(trip.leaders.values('name', 'email')),
             'creator': {
                 'name': trip.creator.name,
@@ -210,10 +227,12 @@ class LeaderParticipantSignupView(SingleObjectMixin, FormatSignupMixin,
         signup.notes = postdata.get('notes', '')
         signup = signup_utils.trip_or_wait(signup)
 
+        other_signups = {par.pk: trip.other_signups.filter(participant=par)}
+
         # signup: descriptor, agnostic of presence on the trip or waiting list
         # on_trip: a boolean to place this signup in the right place
         #          (either at the bottom of the trip list or waiting list)
-        return JsonResponse({'signup': self.describe_signup(signup),
+        return JsonResponse({'signup': self.describe_signup(signup, other_signups),
                              'on_trip': signup.on_trip}, status=201)
 
 

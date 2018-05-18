@@ -8,6 +8,7 @@ from django.urls import reverse_lazy
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.validators import RegexValidator
 from django.db import models
+from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import string_concat
 
@@ -439,19 +440,6 @@ class SignUp(BaseSignUp):
 
     on_trip = models.BooleanField(default=False)
 
-    @property
-    def other_signups(self):
-        """ Return other relevant signups for this participant.
-
-        The point of this property is to help leaders coordinate driving.
-        """
-        on_trips = self.__class__.objects.filter(on_trip=True,
-                                                 participant=self.participant)
-        others = on_trips.exclude(trip=self.trip)
-        within_three_days = (self.trip.trip_date - timedelta(days=3),
-                             self.trip.trip_date + timedelta(days=3))
-        return others.filter(trip__trip_date__range=within_three_days)
-
     def save(self, **kwargs):
         """ Assert that the Participant is not signing up twice.
 
@@ -532,6 +520,25 @@ class Trip(models.Model):
 
     def __str__(self):
         return self.name
+
+    @property
+    def other_signups(self):
+        """ Return participant signups for trips happening around this time.
+
+        Specifically, for each participant that is signed up for this trip,
+        find all other trips that they're on.
+
+        The point of this property is to help leaders coordinate driving.
+        """
+        on_trip_or_waitlisted = (Q(on_trip=True) | Q(waitlistsignup__isnull=False))
+        signups = self.signup_set.filter(on_trip_or_waitlisted)
+
+        par_pks = [s.participant_id for s in signups]
+        on_trips = SignUp.objects.filter(on_trip=True, participant_id__in=par_pks)
+        others = on_trips.exclude(trip=self)
+        within_three_days = (self.trip_date - timedelta(days=3),
+                             self.trip_date + timedelta(days=3))
+        return others.filter(trip__trip_date__range=within_three_days)
 
     @property
     def single_trip_pairing(self):
