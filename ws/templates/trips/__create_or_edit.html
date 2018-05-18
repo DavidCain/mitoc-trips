@@ -39,13 +39,19 @@
 
       <h2>Signup</h2>
 
-      <div data-ng-if="activity !== 'winter_school'">
-        {% form_group form.allow_leader_signups True %}
+      <div class="row">
+        <div class="col-sm-6" data-ng-if="activity !== 'winter_school'">
+          {% form_group form.membership_required True %}
+          {% form_group form.allow_leader_signups True %}
+        </div>
+        <div class="col-sm-6">
+          <div data-ng-if="(algorithm === 'lottery') && (activity !== 'winter_school')">
+            {% form_group form.honor_participant_pairing True %}
+          </div>
+          {% form_group form.let_participants_drop True %}
+        </div>
       </div>
-      {% form_group form.let_participants_drop True %}
-      <div data-ng-if="(algorithm === 'lottery') && (activity !== 'winter_school')">
-        {% form_group form.honor_participant_pairing True %}
-      </div>
+
       {% form_group form.trip_date %}
 
       {% form_group form.algorithm %}

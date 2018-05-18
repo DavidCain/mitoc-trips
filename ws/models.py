@@ -507,6 +507,7 @@ class Trip(models.Model):
                                                 help_text="Allow participants to remove themselves from the trip any time before its start date.")
     honor_participant_pairing = models.BooleanField(default=True,
                                                     help_text="Try to place paired participants together on the trip.")
+    membership_required = models.BooleanField(default=True, help_text="Require an active MITOC membership to participate. If disabled, only waivers will be mandated.")
 
     info = OptionalOneToOneField(TripInfo, on_delete=models.CASCADE)
 
