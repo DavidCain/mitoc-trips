@@ -2,10 +2,16 @@
   <div class="list-group-item" data-ng-repeat="signup in signups" data-ng-class="{'disabled': signup.deleted}">
     <div class="row">
       <div class="col-md-3">
+        <i data-ng-if="signup.paired_with" class="fas fa-link"></i>
         <label data-ng-bind="signup.participant.name"></label>
         <car-badge data-car-status="signup.car_status"
                    data-number-of-passengers="signup.number_of_passengers">
         </car-badge>
+        <div data-ng-if="signup.paired_with">
+          <small>
+            Paired with <span data-ng-bind="signup.paired_with.name"></span>
+          </small>
+        </div>
         <div data-ng-if="signup.also_on.length">
           <small>
             Also on:

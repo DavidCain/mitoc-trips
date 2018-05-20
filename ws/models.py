@@ -722,6 +722,20 @@ class LotteryInfo(models.Model):
                                     related_name='paired_by', on_delete=models.CASCADE)
 
     @property
+    def reciprocally_paired_with(self):
+        """ Return requested partner if they also requested to be paired. """
+        if not self.paired_with:
+            return None
+
+        try:
+            other_paired_id = self.paired_with.lotteryinfo.paired_with_id
+        except self.DoesNotExist:  # Paired participant has no lottery info
+            return None
+
+        reciprocal = other_paired_id == self.participant_id
+        return self.paired_with if reciprocal else None
+
+    @property
     def is_driver(self):
         return self.car_status in ['own', 'rent']
 

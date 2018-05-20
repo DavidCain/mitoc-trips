@@ -58,11 +58,16 @@ class SimpleSignupsView(DetailView):
 
 
 class FormatSignupMixin:
-    def describe_signup(self, signup, other_signups_by_participant):
+    def describe_signup(self, signup, trip_participants, other_signups_by_par):
         """ Yield everything used in the participant-selecting modal.
 
         The signup object should come with related models already selected,
         or this could result in a _lot_ of extra queries.
+
+        :param signup: An models.SignUp instance (either on trip or waitlisted)
+        :param trip_participants: All Participants that are on the same trip
+        :param other_signups_by_par: For each participant on this trip,
+                                     other trips they're on this weekend(ish)
         """
         par = signup.participant
 
@@ -73,34 +78,42 @@ class FormatSignupMixin:
 
         try:
             lotteryinfo = par.lotteryinfo
-        except:
-            car_status = num_passengers = None
-        else:
-            car_status = lotteryinfo.car_status
-            num_passengers = lotteryinfo.number_of_passengers
+        except models.LotteryInfo.DoesNotExist:
+            lotteryinfo = None
+
+        num_passengers = lotteryinfo and lotteryinfo.number_of_passengers
+
+        # Show 'paired with' only if that user is also on the trip
+        paired_with = lotteryinfo and lotteryinfo.reciprocally_paired_with
+        if paired_with not in trip_participants:  # Includes waitlist!
+            paired_with = None
 
         if signup.trip.activity == 'winter_school':
             no_lectures = missed_lectures(par, signup.trip.trip_date.year)
         else:
             no_lectures = False  # Don't show warning for other activities
 
-        other_signups = other_signups_by_participant[par.pk]
+        other_signups = other_signups_by_par[par.pk]
 
-        return {'id': signup.id,
-                'participant': {'id': par.id,
-                                'name': par.name,
-                                'email': par.email},
-                'missed_lectures': no_lectures,
-                'feedback': [{'showed_up': f.showed_up,
-                              'leader': f.leader.name,
-                              'comments': f.comments,
-                              'trip': {'id': f.trip.id, 'name': f.trip.name},
-                              } for f in feedback],
-                'also_on': [{'id': s.trip.id, 'name': s.trip.name}
-                            for s in other_signups],
-                'car_status': car_status,
-                'number_of_passengers': num_passengers,
-                'notes': signup.notes}
+        return {
+            'id': signup.id,
+            'participant': {'id': par.id, 'name': par.name, 'email': par.email},
+            'missed_lectures': no_lectures,
+            'feedback': [
+                {
+                    'showed_up': f.showed_up,
+                    'leader': f.leader.name,
+                    'comments': f.comments,
+                    'trip': {'id': f.trip.id, 'name': f.trip.name}
+                } for f in feedback
+            ],
+            'also_on': [{'id': s.trip.id, 'name': s.trip.name} for s in other_signups],
+            'paired_with': ({'id': paired_with.pk, 'name': paired_with.name}
+                            if paired_with else None),
+            'car_status': lotteryinfo and lotteryinfo.car_status,
+            'number_of_passengers': num_passengers,
+            'notes': signup.notes
+        }
 
 
 class AdminTripSignupsView(SingleObjectMixin, FormatSignupMixin,
@@ -170,31 +183,36 @@ class AdminTripSignupsView(SingleObjectMixin, FormatSignupMixin,
         return (
             trip.signup_set
             .filter(Q(on_trip=True) | Q(waitlistsignup__isnull=False))
-            .select_related('participant', 'participant__lotteryinfo')
+            .select_related('participant',
+                            'participant__lotteryinfo__paired_with__lotteryinfo')
             .prefetch_related('participant__feedback_set',
                               'participant__feedback_set__leader',
                               'participant__feedback_set__trip')
             .order_by('-on_trip', 'waitlistsignup', 'last_updated')
         )
 
-    def get(self, request, *args, **kwargs):
-        """ Get information about a trip's signups. """
+    def describe_all_signups(self):
+        """ Get information about the trip's signups. """
         trip = self.get_object()
         signups = self.get_signups()
 
+        trip_participants = {s.participant for s in signups}
         other_signups_by_par = {s.participant.pk: [] for s in signups}
         for other_signup in trip.other_signups.select_related('trip'):
             other_signups_by_par[other_signup.participant.pk].append(other_signup)
 
-        return JsonResponse({
-            'signups': [self.describe_signup(s, other_signups_by_par)
+        return {
+            'signups': [self.describe_signup(s, trip_participants, other_signups_by_par)
                         for s in self.get_signups()],
             'leaders': list(trip.leaders.values('name', 'email')),
             'creator': {
                 'name': trip.creator.name,
                 'email': trip.creator.email,
             },
-        })
+        }
+
+    def get(self, request, *args, **kwargs):
+        return JsonResponse(self.describe_all_signups())
 
 
 class LeaderParticipantSignupView(SingleObjectMixin, FormatSignupMixin,

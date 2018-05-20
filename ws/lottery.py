@@ -14,14 +14,10 @@ logger = logging.getLogger(__name__)
 
 def reciprocally_paired(participant):
     try:
-        paired_par = participant.lotteryinfo.paired_with
-    except ObjectDoesNotExist:  # No lottery info (paired_with default is None)
+        lotteryinfo = participant.lotteryinfo
+    except models.LotteryInfo.DoesNotExist:
         return False
-
-    try:
-        return paired_par and paired_par.lotteryinfo.paired_with == participant
-    except ObjectDoesNotExist:  # No lottery info for paired participant
-        return False
+    return bool(lotteryinfo.reciprocally_paired_with)
 
 
 def par_is_driver(participant):
