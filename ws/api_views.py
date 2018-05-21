@@ -7,6 +7,7 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.db.models import Q
 from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import (DetailView, ListView, View)
 from django.views.generic.detail import SingleObjectMixin
 from django.utils.decorators import method_decorator
@@ -378,8 +379,13 @@ class UserRentalsView(UserView):
 class JWTView(View):
     """ Superclass for views that use JWT's for auth & signed payloads. """
 
+    @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
-        """ Verify & decode JWT, storing its payload. """
+        """ Verify & decode JWT, storing its payload.
+
+        Disable CSRF validation on these requests, since they will be
+        all be cross-origin, and validation is done entirely by JWT.
+        """
         try:
             token = jwt_token_from_headers(request)
         except ValueError:
