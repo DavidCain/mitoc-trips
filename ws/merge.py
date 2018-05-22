@@ -150,7 +150,7 @@ def migrate_participant(old_pk, new_pk):
     cursor = connections['default'].cursor()
 
     expected = {
-        'ws_trip': {'creator_id'},
+        'ws_trip': {'creator_id', 'wimp_id'},
         'ws_leaderrating': {'participant_id', 'creator_id'},
         'ws_feedback': {'participant_id', 'leader_id'},
         'ws_lotteryinfo': {'participant_id', 'paired_with_id'},
