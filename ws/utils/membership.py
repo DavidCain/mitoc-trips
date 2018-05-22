@@ -1,9 +1,27 @@
+from datetime import timedelta
+
 from django.db.utils import OperationalError
+from django.db.models import Q
 
 from ws import models
 from ws import sentry
 from ws.utils.dates import local_now
 from ws.utils.geardb import membership_expiration, verified_emails
+
+
+def refresh_all_membership_cache():
+    """ Refresh all membership caches in the system.
+
+    After this is run, every participant in the system will have membership
+    information that is no more than a week old.
+    """
+    last_week = local_now() - timedelta(weeks=1)
+    needs_update = (Q(membership__isnull=True) |
+                    Q(membership__last_cached__lt=last_week))
+
+    all_participants = models.Participant.objects.select_related('membership')
+    for par in all_participants.filter(needs_update):
+        update_membership_cache(par)
 
 
 def update_membership_cache(participant):
