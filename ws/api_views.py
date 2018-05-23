@@ -183,6 +183,7 @@ class AdminTripSignupsView(SingleObjectMixin, FormatSignupMixin,
             trip.signup_set.filter(pk__in=normal_signups)
                            .extra(select={'ordering': f'case {ordering} end'},
                                   order_by=('ordering',))
+                           .select_related('waitlistsignup')
         )
         to_delete = trip.signup_set.filter(pk__in=deletions)
 

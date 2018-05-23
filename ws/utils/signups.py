@@ -38,7 +38,7 @@ def add_to_waitlist(signup, request=None, prioritize=False, top_spot=False):
     signup.save()
 
     try:
-        wl_signup = models.WaitListSignup.objects.get(signup=signup)
+        wl_signup = signup.waitlistsignup
     except models.WaitListSignup.DoesNotExist:
         wl_signup = models.WaitListSignup.objects.create(signup=signup,
                                                          waitlist=signup.trip.waitlist)
@@ -65,7 +65,7 @@ def trip_or_wait(signup, request=None, prioritize=False, top_spot=False,
         return signup
     if trip.algorithm == 'fcfs' and (trip.signups_open or not trip_must_be_open):
         try:
-            wl_signup = models.WaitListSignup.objects.get(signup=signup)
+            wl_signup = signup.waitlistsignup
         except models.WaitListSignup.DoesNotExist:
             wl_signup = None
 
