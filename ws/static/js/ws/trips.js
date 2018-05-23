@@ -1,11 +1,5 @@
 angular.module('ws.trips', [])
-.controller('tripTabManager', function($scope, $window) {
-  $scope.refreshIfStale = function() {
-    if ($scope.stale) {
-      $window.location.reload();
-    }
-  };
-
+.controller('tripTabManager', function($scope) {
   $scope.$on('tripModified', function() {
     $scope.stale = true;
   });

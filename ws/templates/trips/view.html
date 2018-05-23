@@ -13,16 +13,21 @@
   <div data-ng-controller="tripTabManager">
     <uib-tabset id="admin-trip-tabs">
       <uib-tab heading="Trip" data-select="refreshIfStale()">
-        <div data-ng-show="stale" data-ng-cloak>
-          <h2> {{ trip.name }} </h2>
-          <div class="alert alert-warning">
-            <i class="fas fa-spinner fa-pulse"></i>
-            <span>This trip was modified! Reloading the page to get updates.</span>
-          </div>
-        </div>
 
+        <div data-ng-show="stale" data-ng-cloak>
+          <br>
+          <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span>This trip was modified! <a href=".">Reload the page</a> to get updates.</span>
+          </div>
+          {% trip_summary trip %}
+        </div>
         <div data-ng-hide="stale">
           {% view_trip trip viewing_participant user %}
+        </div>
+        <div data-ng-show="stale" data-ng-cloak class="alert alert-warning">
+          <i class="fas fa-exclamation-triangle"></i>
+          <span>This trip was modified! <a href=".">Reload the page</a> to get the list of participants.</span>
         </div>
 
       </uib-tab>
