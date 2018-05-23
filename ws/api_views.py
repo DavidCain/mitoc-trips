@@ -121,69 +121,99 @@ class AdminTripSignupsView(SingleObjectMixin, FormatSignupMixin,
                            TripLeadersOnlyView):
     model = models.Trip
 
+    def get(self, request, *args, **kwargs):
+        return JsonResponse(self.describe_all_signups())
+
     def post(self, request, *args, **kwargs):
+        """ Take a list of exactly how signups should be ordered and apply it.
+
+        To avoid dealing with concurrency, calculating diffs, etc. we just
+        assume that the leader posting these changes has the authoritative say
+        on who gets to be on the trip, and in what order.
+
+        There are some basic checks in place to stop them from making
+        modifications after the trip substantially changes (e.g. new
+        participants sign up, but they don't see that). Otherwise, though,
+        their ordering overrides any other.
+        """
         trip = self.object = self.get_object()
-        bad_request = JsonResponse({'message': 'Bad request'}, status=400)
 
         postdata = json.loads(self.request.body)
-        signups = postdata.get('signups', [])
+        signup_list = postdata.get('signups', [])
         maximum_participants = postdata.get('maximum_participants')
-        try:
-            signups = list(self.to_objects(signups))
-        except (KeyError, ObjectDoesNotExist):
-            return bad_request
 
         # Any non-validation errors will trigger rollback
         with transaction.atomic():
             try:
-                self.update(trip, signups, maximum_participants)
+                self.update(trip, signup_list, maximum_participants)
             except ValidationError:
-                return bad_request
+                return JsonResponse({'message': 'Bad request'}, status=400)
             else:
                 return JsonResponse({})
 
-    def update(self, trip, signups, maximum_participants):
+    def update(self, trip, signup_list, maximum_participants):
         """ Take parsed input data and apply the changes. """
         if maximum_participants:
             trip.maximum_participants = maximum_participants
             trip.full_clean()  # Raises ValidationError
             trip.save()
-        self.update_signups(signups, trip)  # Anything already on should be waitlisted
+        self.update_signups(signup_list, trip)  # Anything already on should be waitlisted
 
-    def update_signups(self, signups, trip):
+    def signups_to_update(self, signup_list, trip):
+        """ From the payload, break signups into deletion & those that stay.
+
+        All signups are given (in order) in `signup_list`. If the `deleted` key
+        is true, then we should remove the signup. Otherwise, we'll add signups
+        in order. This method breaks the signups into two groups: those that
+        need to be added to the trip in order, and those that must be removed.
+        """
+        # Handle weird edge cases: new signup was created
+        if trip.on_trip_or_waitlisted.count() != len(signup_list):
+            raise ValueError("There are signups not handled by this request!")
+
+        deletions = [s['id'] for s in signup_list if s.get('deleted')]
+        normal_signups = [s['id'] for s in signup_list if not s.get('deleted')]
+
+        # Use raw SQL to maintain the original list order in our QuerySet
+        ordering = ' '.join(f'when ws_signup.id={pk} then {i}'
+                            for i, pk in enumerate(normal_signups))
+
+        # Return unevaluated QuerySet objects (allows update() and all() calls)
+        keep_on_trip = (
+            trip.signup_set.filter(pk__in=normal_signups)
+                           .extra(select={'ordering': f'case {ordering} end'},
+                                  order_by=('ordering',))
+        )
+        to_delete = trip.signup_set.filter(pk__in=deletions)
+
+        if keep_on_trip.count() != len(normal_signups):
+            raise ValidationError("At least one passed ID no longer exists!")
+
+        return (keep_on_trip, to_delete)
+
+    def update_signups(self, signup_list, trip):
         """ Mark all signups as not on trip, then add signups in order. """
-        for signup, remove in signups:
-            signup.on_trip = False
-            signup.skip_signals = True  # Skip the waitlist-bumping behavior
-            signup.save()
+        keep_on_trip, to_delete = self.signups_to_update(signup_list, trip)
 
-        for order, (signup, remove) in enumerate(signups):
-            if remove:
-                signup.delete()
-            else:
-                signup_utils.trip_or_wait(signup, trip_must_be_open=False)
-                signup_utils.next_in_order(signup, order)
+        # Clear the trip first (delete removals, set others to not on trip)
+        # Both methods (update and skip_signals) ignore waitlist-bumping
+        keep_on_trip.update(on_trip=False)
+        for kill_signup in to_delete:
+            kill_signup.skip_signals = True
+            kill_signup.delete()
 
-    def to_objects(self, signups):
-        """ Convert POSTed JSON to an array of its corresponding objects. """
-        for signup_dict in signups:
-            remove = bool(signup_dict.get('deleted'))
-            if signup_dict['id']:
-                signup = models.SignUp.objects.get(pk=signup_dict['id'])
-            elif remove:
-                continue  # No point creating signup, only to remove later
-            else:
-                par_id = signup['participant']['id']
-                par = models.Participant.objects.get(pk=par_id)
-                signup = models.SignUp(participant=par, trip=self.object)
-            yield signup, remove
+        # `all()` hits the db, will fetch current (`on_trip=False`) signups
+        ordered_signups = keep_on_trip.all()
+
+        for order, signup in enumerate(ordered_signups):
+            signup_utils.trip_or_wait(signup, trip_must_be_open=False)
+            signup_utils.next_in_order(signup, order)
 
     def get_signups(self):
         """ Trip signups with selected models for use in describe_signup. """
         trip = self.get_object()
         return (
-            trip.signup_set
-            .filter(Q(on_trip=True) | Q(waitlistsignup__isnull=False))
+            trip.on_trip_or_waitlisted
             .select_related('participant',
                             'participant__lotteryinfo__paired_with__lotteryinfo')
             .prefetch_related('participant__feedback_set',
@@ -211,9 +241,6 @@ class AdminTripSignupsView(SingleObjectMixin, FormatSignupMixin,
                 'email': trip.creator.email,
             },
         }
-
-    def get(self, request, *args, **kwargs):
-        return JsonResponse(self.describe_all_signups())
 
 
 class LeaderParticipantSignupView(SingleObjectMixin, FormatSignupMixin,

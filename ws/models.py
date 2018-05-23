@@ -543,6 +543,12 @@ class Trip(models.Model):
         return self.name
 
     @property
+    def on_trip_or_waitlisted(self):
+        """ All signups for participants either on the trip or waitlisted. """
+        on_trip_or_waitlisted = (Q(on_trip=True) | Q(waitlistsignup__isnull=False))
+        return self.signup_set.filter(on_trip_or_waitlisted)
+
+    @property
     def other_signups(self):
         """ Return participant signups for trips happening around this time.
 
@@ -551,10 +557,7 @@ class Trip(models.Model):
 
         The point of this property is to help leaders coordinate driving.
         """
-        on_trip_or_waitlisted = (Q(on_trip=True) | Q(waitlistsignup__isnull=False))
-        signups = self.signup_set.filter(on_trip_or_waitlisted)
-
-        par_pks = [s.participant_id for s in signups]
+        par_pks = [s.participant_id for s in self.on_trip_or_waitlisted]
         on_trips = SignUp.objects.filter(on_trip=True, participant_id__in=par_pks)
         others = on_trips.exclude(trip=self)
         within_three_days = (self.trip_date - timedelta(days=3),
