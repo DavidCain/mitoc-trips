@@ -336,6 +336,12 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
         });
       };
 
+      scope.cancel = function() {
+        scope.pending = false;
+        scope.error = '';
+        scope.modal.dismiss('');
+      };
+
       scope.submit = function() {
         scope.pending = true;
         var signups = scope.allSignups.map(function(signup) {
@@ -350,7 +356,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
           updateSignups(true);  // Remove the deleted signups
           scope.pending = false;
         }, function(response) {
-          scope.error = "A server error occurred. Please contact the administrator";
+          scope.error = response.data.message || "A server error occurred. Please contact the administrator";
           scope.pending = false;
         });
       };

@@ -117,6 +117,17 @@ class FormatSignupMixin:
         }
 
 
+class SignupsChanged(Exception):
+    """ An exception to be raised when a trip's signups have changed.
+
+    If a particular signup wasn't known to be on the trip when loading trip
+    data, race conditions could arise. The leader may later request some trip
+    modifications (based off their stale data), and we don't define a way of
+    dealing with that unknown signup. This exception should then be raised.
+    """
+    pass
+
+
 class AdminTripSignupsView(SingleObjectMixin, FormatSignupMixin,
                            TripLeadersOnlyView):
     model = models.Trip
@@ -142,12 +153,18 @@ class AdminTripSignupsView(SingleObjectMixin, FormatSignupMixin,
         signup_list = postdata.get('signups', [])
         maximum_participants = postdata.get('maximum_participants')
 
+        def error(msg):
+            return JsonResponse({'message': msg}, status=400)
+
         # Any non-validation errors will trigger rollback
         with transaction.atomic():
             try:
                 self.update(trip, signup_list, maximum_participants)
             except ValidationError:
-                return JsonResponse({'message': 'Bad request'}, status=400)
+                return error(f"Couldn't change trip size to {maximum_participants}")
+            except SignupsChanged:
+                return error("Signups were recently added or removed. "
+                             "Unable to modify trip without current data.")
             else:
                 return JsonResponse({})
 
@@ -169,7 +186,7 @@ class AdminTripSignupsView(SingleObjectMixin, FormatSignupMixin,
         """
         # Handle weird edge cases: new signup was created
         if trip.on_trip_or_waitlisted.count() != len(signup_list):
-            raise ValueError("There are signups not handled by this request!")
+            raise SignupsChanged("There are signups not included in the request")
 
         deletions = [s['id'] for s in signup_list if s.get('deleted')]
         normal_signups = [s['id'] for s in signup_list if not s.get('deleted')]
