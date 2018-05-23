@@ -10,30 +10,43 @@
 {% if can_admin %}
   {% trip_edit_buttons trip viewing_participant user %}
 
-  <uib-tabset id="admin-trip-tabs">
-    <uib-tab heading="Trip">
-      {% view_trip trip viewing_participant user %}
-    </uib-tab>
+  <div data-ng-controller="tripTabManager">
+    <uib-tabset id="admin-trip-tabs">
+      <uib-tab heading="Trip" data-select="refreshIfStale()">
+        <div data-ng-show="stale" data-ng-cloak>
+          <h2> {{ trip.name }} </h2>
+          <div class="alert alert-warning">
+            <i class="fas fa-spinner fa-pulse"></i>
+            <span>This trip was modified! Reloading the page to get updates.</span>
+          </div>
+        </div>
 
-    <uib-tab heading="Admin">
-      {% if trip.algorithm == 'fcfs' %}
-        <admin-trip-signups data-trip-id="{{ trip.pk }}" data-maximum_participants="{{ trip.maximum_participants }}"></admin-trip-signups>
-      {% else %}
-        <h3>Trip still in lottery mode</h3>
-        <p>Once this trip's lottery completes, you can manage participants here.</p>
+        <div data-ng-hide="stale">
+          {% view_trip trip viewing_participant user %}
+        </div>
 
-        {# Temporarily disable this control for non-admins #}
-        {% if user.is_superuser %}
-        {% if trip.algorithm == 'lottery' and trip.activity != 'winter_school' %}
-          <form method="POST" action="{% url 'run_lottery' trip.pk %}">
-            {% csrf_token %}
-            <button class="btn btn-success" type="submit">Run Lottery Now</button>
-          </form>
+      </uib-tab>
+
+      <uib-tab heading="Admin">
+        {% if trip.algorithm == 'fcfs' %}
+          <admin-trip-signups data-trip-id="{{ trip.pk }}" data-maximum_participants="{{ trip.maximum_participants }}"></admin-trip-signups>
+        {% else %}
+          <h3>Trip still in lottery mode</h3>
+          <p>Once this trip's lottery completes, you can manage participants here.</p>
+
+          {# Temporarily disable this control for non-admins #}
+          {% if user.is_superuser %}
+          {% if trip.algorithm == 'lottery' and trip.activity != 'winter_school' %}
+            <form method="POST" action="{% url 'run_lottery' trip.pk %}">
+              {% csrf_token %}
+              <button class="btn btn-success" type="submit">Run Lottery Now</button>
+            </form>
+          {% endif %}
+          {% endif %}
         {% endif %}
-        {% endif %}
-      {% endif %}
-    </uib-tab>
-  </uib-tabset>
+      </uib-tab>
+    </uib-tabset>
+  </div>
 {% else %}
   {% if trip.wimp and viewing_participant == trip.wimp %}
     {% wimp_toolbar trip %}

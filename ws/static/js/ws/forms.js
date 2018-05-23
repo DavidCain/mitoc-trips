@@ -355,6 +355,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
           scope.modal.dismiss('success');
           updateSignups(true);  // Remove the deleted signups
           scope.pending = false;
+          scope.$emit('tripModified');  // Tell parents that we made changes
         }, function(response) {
           scope.error = response.data.message || "A server error occurred. Please contact the administrator";
           scope.pending = false;

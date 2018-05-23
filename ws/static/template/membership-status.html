@@ -58,7 +58,8 @@
       </p>
     </div>
     <p data-ng-switch-default>
-      Querying MITOC servers for membership status...
+      <i class="fas fa-spinner fa-pulse"></i>
+      <span>Querying MITOC servers for membership status...</span>
     </p>
   </div>
 
@@ -86,7 +87,8 @@
       Membership for <span data-ng-bind="::membership.email"></span>  expired on <span data-ng-bind="::membership.expires | date"></span>.
     </p>
     <p data-ng-switch-default>
-      Querying MITOC servers for membership status...
+      <i class="fas fa-spinner fa-pulse"></i>
+      <span>Querying MITOC servers for membership status...</span>
     </p>
   </div>
 

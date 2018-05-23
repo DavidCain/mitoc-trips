@@ -4,7 +4,7 @@
   var dependencies = ['ui.gravatar',
                       'ui.bootstrap', 'ui.bootstrap.tpls', 'djng.forms',
                       'bcPhoneNumber',
-                      'ws.ajax', 'ws.auth', 'ws.profile', 'ws.forms', 'ws.lottery', 'ws.stats', 'ws.widgets'];
+                      'ws.ajax', 'ws.auth', 'ws.profile', 'ws.forms', 'ws.lottery', 'ws.stats', 'ws.trips', 'ws.widgets'];
   if (typeof Raven !== 'undefined') {
     dependencies.unshift('ngRaven');
   }
