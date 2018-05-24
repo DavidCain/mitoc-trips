@@ -451,7 +451,7 @@ class UpdateMembershipView(JWTView):
 
         participant = models.Participant.from_email(self.payload['email'])
         if not participant:  # Not in our system, nothing to do
-            return JsonResponse()
+            return JsonResponse({})
 
         keys = ('membership_expires', 'waiver_expires')
         update_fields = {key: date_from_iso(self.payload[key]) for key in keys
