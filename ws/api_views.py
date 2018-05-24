@@ -292,13 +292,18 @@ class LeaderParticipantSignupView(SingleObjectMixin, FormatSignupMixin,
         signup.notes = postdata.get('notes', '')
         signup = signup_utils.trip_or_wait(signup)
 
+        trip_signups = trip.on_trip_or_waitlisted.select_related('participant')
         other_signups = {par.pk: trip.other_signups.filter(participant=par)}
+        trip_participants = {s.participant for s in trip_signups}
 
         # signup: descriptor, agnostic of presence on the trip or waiting list
         # on_trip: a boolean to place this signup in the right place
         #          (either at the bottom of the trip list or waiting list)
-        return JsonResponse({'signup': self.describe_signup(signup, other_signups),
-                             'on_trip': signup.on_trip}, status=201)
+        payload = {
+            'signup': self.describe_signup(signup, trip_participants, other_signups),
+            'on_trip': signup.on_trip
+        }
+        return JsonResponse(payload, status=201)
 
 
 class JsonAllParticipantsView(ListView):
