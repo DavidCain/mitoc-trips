@@ -1,0 +1,65 @@
+{% extends "messages_page.html" %}
+{% block head_title %}Download participant information{% endblock head_title %}
+
+{% block content %}
+{{ block.super }}
+
+<h2>Participant Data Export</h2>
+
+{% if not viewing_participant %}
+  <div class="alert alert-warning">
+    {% if user.is_authenticated %}
+      You have an active account under {{ user.email }}, but we don't know anything else
+      about you. <a href="{% url 'edit_profile' %}?next={% url 'privacy_download' %}">Complete your profile</a>?
+    {% else %}
+    You are either not <a href="{% url 'account_login' %}?next={% url 'privacy_download' %}">logged in</a>, or don't have an account with MITOC.
+    {% endif %}
+  </div>
+{% endif %}
+
+<p class="lead">
+  MITOC <a href="{% url 'help-personal_info' %}">collects some information</a>
+  about you in order to provide this service. This page lets you download a
+  machine-readable export of your data.
+</p>
+
+
+{% if viewing_participant %}
+  <a href="{% url 'json-data_dump' %}"><i class="fas fa-download"></i>&nbsp;Download JSON export</a>
+{% endif %}
+
+<hr>
+<h3>Notes about the Export</h3>
+<p>
+  <h4>Feedback</h4>
+  <ul>
+    <li>
+      <strong>Missing comments:</strong>
+      This dump might show feedback that trip leaders have given about you. To
+      keep feedback confidential, leaders' comments are not shown.
+    </li>
+    <li>
+      <strong>Old feedback:</strong>
+      If you're a trip leader, we show a complete history of participant
+      feedback that you've supplied. Note that all feedback is hidden from the
+      system after 13 months. If you have feedback that's older than 13 months,
+      nobody but you and the activity chairs can see it.
+    </li>
+  </ul>
+
+  <h4>Timestamps</h4>
+  <ul>
+    <li>
+      <strong>Confusing timestamps:</strong>
+      Some entries may have timestamps that don't make sense.
+      For instance, your attendance at 2016's Winter School lectures might have been created in January of 2017.
+      In these cases, the record was created (or timestamped) after the actual event occurred.
+    </li>
+    <li>
+      <strong>Time zones:</strong>
+      All timestamps are in UTC, not Eastern Standard Time.
+    </li>
+  </ul>
+</p>
+
+{% endblock content %}

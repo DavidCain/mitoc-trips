@@ -62,6 +62,21 @@ def profile_needs_update(request):
     return has_problems
 
 
+def participant_required(view_func):
+    @wraps(view_func, assigned=available_attrs(view_func))
+    def _wrapped_view(request, *args, **kwargs):
+        if request.participant:
+            return view_func(request, *args, **kwargs)
+        elif request.user.is_authenticated:
+            next_url = resolve_url(reverse('edit_profile'))
+        else:
+            next_url = None
+
+        path = request.get_full_path()  # All requests share scheme & netloc
+        return redirect_to_login(path, next_url, REDIRECT_FIELD_NAME)
+    return _wrapped_view
+
+
 def group_required(*group_names, **kwargs):
     """ Requires user membership in at least one of the groups passed in.
 

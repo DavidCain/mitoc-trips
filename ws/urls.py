@@ -79,6 +79,8 @@ urlpatterns = [
     url(r'^help/about/$', TemplateView.as_view(template_name='help/about.html'), name='help-about'),
 
     # Privacy views
+    url(r'^privacy/download$', views.PrivacyDownloadView.as_view(), name='privacy_download'),
+    url(r'^privacy/download.json$', views.JsonDataDumpView.as_view(), name='json-data_dump'),
     url(r'^privacy/settings$', views.PrivacySettingsView.as_view(), name='privacy_settings'),
 
     url(r'^help/participants/wimp/$', TemplateView.as_view(template_name='help/participants/wimp_guide.html'), name='help-wimp_guide'),
