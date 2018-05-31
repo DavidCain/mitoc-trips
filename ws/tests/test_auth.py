@@ -15,7 +15,6 @@ login_required_routes = [
     #'manage_applications',
     #'manage_trips',
     'participant_lookup',
-    'json-membership_statuses',
     'trip_signup',
     'leader_trip_signup',
     'discounts',
