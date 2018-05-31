@@ -1,0 +1,128 @@
+{% extends "messages_page.html" %}
+{% block head_title %}Privacy{% endblock head_title %}
+
+{% block content %}
+<div class="row">
+  <div class="col-md-3 col-md-push-9">
+      <h2>Privacy Controls</h2>
+      <ul class="list-unstyled">
+        <li><a href="{% url 'privacy_settings' %}">Manage the data you share</a></li>
+        <li><a href="{% url 'privacy_download' %}">Download data MITOC stores about you</a></li>
+      </ul>
+  </div>
+  <div class="col-md-9 col-md-pull-3">
+    <h3>Your Right to Privacy</h3>
+    <p class="lead">
+      At MITOC, we take privacy very seriously.
+    </p>
+    <p>
+      We strive to collect the least amount of information necessary and give you
+      control over how that data is used.
+      <br>
+      <strong>
+        We do not sell your data.
+        We do not share your information without informed consent.
+        We do not track you.
+      </strong>
+    </p>
+    <hr>
+
+    <h3>Cookies</h3>
+    <p>
+      We place a very small cookie in your browser when you use this site.
+      The cookie is used only to manage your session. This cookie keeps you logged
+      in and protects you against
+      <a href="https://en.wikipedia.org/wiki/Cross-site_request_forgery">CSRF attacks</a>
+      (somebody else pretending to be you on this site).
+    </p>
+    <p>
+      <ul>
+        <li><strong>We do not use cookies to track your activity in any way.</strong></li>
+        <li><strong>We do not use third-party cookies.</strong></li>
+      </ul>
+    </p>
+
+
+    <h3>Sharing Information</h3>
+    <p>
+      Related: <a href="{% url 'help-personal_info' %}">Personal Information, Privacy</a>
+    </p>
+
+    <p>
+      We will occasionally share your name, email address, and car description with
+      other participants for trip-planning purposes. Your name and email address
+      are displayed ubiquitously throughout the system, but never on a
+      public-facing page.
+    </p>
+    <p>In the event of an emergency, your medical information may be used to:
+      <ul>
+        <li>Render first aid</li>
+        <li>Notify an emergency contact</li>
+        <li>Describe a missing trip's cars to search-and-rescue teams</li>
+      </ul>
+    </p>
+    <p>
+      We are required to share your name, email address, and cell phone number with MIT's
+      <a href="https://studentlife.mit.edu/sao">Student Activities Office</a>
+      for official club trips.
+    </p>
+    <p>
+      Only trip leaders can see your medical information. No other participants can see your medical information.
+    </p>
+
+
+    <h3>Third Parties</h3>
+    By using this site, you share some information with the following
+    companies/services:
+
+    <h4>Sentry</h4>
+    <p>
+      Any time something goes wrong while you're using this site,
+      <a href="https://sentry.io/">Sentry</a> notifies us of the circumstances
+      surrounding the error. Some personal details are shared as part of the error
+      report. For example, Sentry stores what kind of browser you were using
+      and which page you were viewing at the time of the unexpected error. This
+      information helps us understand of the issue and resolve the underlying
+      problem. You are encouraged to read about your rights in
+      <a href="https://sentry.io/privacy/">Sentry's privacy policy</a>.
+    </p>
+
+    <h4>Gravatar</h4>
+    <p>
+      We make use of <a href="https://gravatar.com">Gravatar</a> to show a profile
+      image for users in our system. When you use this service, we share an MD5 hash of your
+      email address (<em>not</em> your actual email) with Gravatar. If you have an
+      account with Gravatar, your chosen profile image will then be displayed.
+
+      See <a href="https://automattic.com/privacy/">Gravatar's privacy policy</a> for
+      more information.
+    </p>
+    <p>
+      You can
+      <a href="{% url "privacy_settings" %}">opt out of sharing your hashed email with Gravatar</a>
+      at any time.
+    </p>
+
+    <h4>DocuSign &amp; CyberSource</h4>
+    <p>
+      When you <a href="{% url "initiate_waiver" %}">sign a waiver</a> or
+      <a href="{% url "pay_dues" %}">pay your membership dues</a> each year, you
+      use DocuSign and Cybersource, respectively. Both these services are
+      provided by the Massachusetts Institute of Technology (MIT).
+
+      <ul>
+        <li><a href="https://www.docusign.com/company/privacy-policy">DocuSign Privacy Policy</a></li>
+        <li><a href="https://www.cybersource.com/privacy/">CyberSource Privacy Policy</a></li>
+      </ul>
+    </p>
+
+    <hr>
+
+    <h3>Questions?</h3>
+    <p>
+      <a href="{% url 'contact' %}">Contact us</a>.
+    </p>
+  </div>
+</div>
+
+{% endblock content %}
