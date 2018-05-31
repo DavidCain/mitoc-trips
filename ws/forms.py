@@ -430,3 +430,9 @@ class GuardianForm(NgFormValidationMixin, Bootstrap3FormMixin, NgForm):
     required_css_class = 'required'
     name = CharField(required=True, label='Parent or Guardian Name')
     email = EmailField(required=True, label='Parent or Guardian Email')
+
+
+class PrivacySettingsForm(DjangularRequiredModelForm):
+    class Meta:
+        model = models.Participant
+        fields = ['gravatar_opt_out']

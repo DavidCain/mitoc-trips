@@ -78,6 +78,9 @@ urlpatterns = [
     url(r'^help/$', TemplateView.as_view(template_name='help/home.html'), name='help-home'),
     url(r'^help/about/$', TemplateView.as_view(template_name='help/about.html'), name='help-about'),
 
+    # Privacy views
+    url(r'^privacy/settings$', views.PrivacySettingsView.as_view(), name='privacy_settings'),
+
     url(r'^help/participants/wimp/$', TemplateView.as_view(template_name='help/participants/wimp_guide.html'), name='help-wimp_guide'),
 
     # Participating on Trips

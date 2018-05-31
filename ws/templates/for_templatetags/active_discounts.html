@@ -1,0 +1,18 @@
+{% if participant.discounts.count %}
+  <h2>Active Discounts</h2>
+  <p>
+    You are sharing your name, email address, and membership status with the
+    following companies:
+  </p>
+
+  <ul>
+    {% for discount in participant.discounts.all %}
+      <li><a href="{{ discount.url }}">{{ discount.name }}</a></li>
+    {% endfor %}
+  </ul>
+
+  <p>
+    You can change this at any time by modifying your
+    <a href="{% url "discounts" %}">discount preferences</a>.
+  </p>
+{% endif %}
