@@ -3,7 +3,8 @@ angular.module('ws.profile', [])
   return {
     restrict: 'E',
     scope: {
-      participantEmail: '@?'
+      participantEmail: '@?',
+      gravatarOptedOut: '='
     },
     template: "<button data-ng-click='openModal()' class='btn btn-default btn-xs'><i class='fas fa-lg fa-pencil-alt'></i></button>",
     link: function (scope, element, attrs) {

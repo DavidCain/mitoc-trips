@@ -56,7 +56,9 @@ Lookup participant
               <div class="profile-photo">
                 {{ participant|avatar:200 }}
                 {% if user_viewing %}
-                  <edit-profile-photo data-participant-email="{{ participant.email }}">
+                  <edit-profile-photo
+                    data-participant-email="{{ participant.email }}"
+                    data-gravatar-opted-out="{{ participant.gravatar_opt_out|yesno:'true,false' }}">
                   </edit-profile-photo>
                 {% endif %}
               </div>

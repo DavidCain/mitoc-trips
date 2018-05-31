@@ -2,10 +2,23 @@
   <h3 class="modal-title"><i class="fas fa-user-circle"></i>&nbsp;Edit Profile Photo</h3>
 </div>
 <div class="modal-body">
-  <p>To add or modify your profile photo, <a href="http://gravatar.com/emails">sign into Gravatar</a>
-  and upload an image to match {{ participantEmail }}.
+  <div data-ng-show="gravatarOptedOut">
+    <div class="alert alert-info">
+      You have opted out of using Gravatar to display a profile photo.
+    </div>
+    <p>
+      If you wish to have a profile photo displayed by Gravatar,
+      <a href="/privacy/settings">modify your privacy settings</a>.
+    </p>
+  </div>
+  <p data-ng-hide="gravatarOptedOut">
+    To add or modify your profile photo,
+    <a href="http://gravatar.com/emails">sign into Gravatar</a>
+    and upload an image to match <span ng-bind="::participantEmail"></span>.
+    If you'd like, you can <a href="/privacy/settings">opt out</a> of Gravatar entirely.
   </p>
 </div>
 <div class="modal-footer">
-  <button class="btn btn-default" ng-click="$dismiss()">Close</button>
+  <a href="/profile/edit" role="button" class="btn btn-default"><i class="fas fa-user"></i>&nbsp;Edit Profile</a>
+  <button class="btn btn-primary" ng-click="$dismiss()">Close</button>
 </div>
