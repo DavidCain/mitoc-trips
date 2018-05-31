@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load application_tags %}
 {% load messages_tags %}
-{% load gravatar %}
+{% load avatar_tags %}
 {% load trip_tags %}
 
 {% block head_title %}{{ application.participant.name }} leader application{% endblock head_title %}
@@ -92,7 +92,7 @@
       <div class="media-left">
         <div class="media-object">
           <div class="profile-photo">
-            {{ application.participant.email|gravatar:150 }}
+            {{ application.participant|avatar:150 }}
           </div>
         </div>
       </div>

@@ -20,6 +20,12 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY',
 MEMBERSHIP_SECRET_KEY = os.getenv('MEMBERSHIP_SECRET_KEY',
                                   'secret shared with the mitoc-member repo')
 
+# URL to an avatar image that is self-hosted
+# (Users who opt out of Gravatar would prefer to not have requests made to
+#  Gravatar to fetch the "mystery man" image)
+PRIVACY_AVATAR_URL = os.getenv('PRIVACY_AVATAR_URL',
+                               "https://s3.amazonaws.com/mitoc-trips/privacy/avatar.svg")
+
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 PROJECT_ROOT = os.path.normpath(os.path.dirname(os.path.abspath(__file__)))
 
@@ -250,7 +256,6 @@ other_libs = ['lodash/lodash.js',
               'jquery-ui-touch-punch/jquery.ui.touch-punch.js',
               'djng/js/django-angular.js',
               'ui-select/dist/select.js',
-              'angular-gravatar/build/angular-gravatar.js',
               'angular-sanitize/angular-sanitize.js',
               'angular-ui-sortable/dist/sortable.js',
               'js/ui-bootstrap-tpls-0.14.3.js',

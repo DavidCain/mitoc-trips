@@ -15,7 +15,7 @@ import jwt
 
 from ws import models
 from ws.views import AllLeadersView, TripLeadersOnlyView
-from ws.templatetags.gravatar import gravatar_url
+from ws.templatetags.avatar_tags import avatar_url
 
 from ws.utils.api import jwt_token_from_headers
 from ws.utils.model_dates import missed_lectures
@@ -309,20 +309,30 @@ class LeaderParticipantSignupView(SingleObjectMixin, FormatSignupMixin,
 class JsonAllParticipantsView(ListView):
     model = models.Participant
 
-    def render_to_response(self, context, **response_kwargs):
+    def top_matches(self, search=None, exclude_self=False, max_results=20):
         participants = self.get_queryset()
-        search = self.request.GET.get('search')
         if search:
             # This search is not indexed, or particularly advanced
             # TODO: Use Postgres FTS, either in raw SQL or through ORM
             # (Django 1.10 introduces support for full-text search)
-            match = (Q(name__icontains=search) |
-                     Q(email__icontains=search))
+            match = (Q(name__icontains=search) | Q(email__icontains=search))
             participants = participants.filter(match)
-        if self.request.GET.get('exclude_self'):
+        if exclude_self:
             participants = participants.exclude(pk=self.request.participant.pk)
-        top_matches = participants[:20].values('name', 'email', 'id')
-        return JsonResponse({'participants': list(top_matches)})
+
+        for participant in participants[:max_results]:
+            yield {
+                'id': participant.pk,
+                'name': participant.name,
+                'email': participant.email,
+                'avatar': participant.avatar_url(100)
+            }
+
+    def render_to_response(self, context, **response_kwargs):
+        search = self.request.GET.get('search')
+        exclude_self = self.request.GET.get('exclude_self')
+        matches = self.top_matches(search, exclude_self)
+        return JsonResponse({'participants': list(matches)})
 
     def dispatch(self, request, *args, **kwargs):
         """ Participant object must exist, but it need not be current. """
@@ -349,7 +359,7 @@ class JsonAllLeadersView(AllLeadersView):
                 'id': leader.id,
                 'name': leader.name,
                 # Use 200x200 for Retina display at 100x100 on mitoc.mit.edu
-                'gravatar': gravatar_url(leader.email, 200)
+                'gravatar': avatar_url(leader, 200)
             }
 
             # Full roster of leaders by rating is not meant to be public

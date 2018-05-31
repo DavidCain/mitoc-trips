@@ -1,6 +1,6 @@
 {% load pipeline %}
 {% load staticfiles %}
-{% load gravatar %}
+{% load avatar_tags %}
 {% load perm_tags %}
 {% load trip_tags %}
 {% load content_tags %}
@@ -132,7 +132,7 @@
                            data-toggle="dropdown"
                            aria-haspopup="true"
                            aria-expanded="false">
-                            {{ user.email|gravatar_square }}
+                            {{ viewing_participant|avatar_square }}
                           <span class="caret"></span>
                         </a>
                         <ul class="dropdown-menu" data-ng-controller="authController">

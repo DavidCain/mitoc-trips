@@ -18,7 +18,6 @@
   "dependencies": {
     "@fortawesome/fontawesome-free": "5.1.0-8",
     "angular": "1.4.13",
-    "angular-gravatar": "^0.4.2",
     "angular-raven": "^0.6.2",
     "angular-sanitize": "1.4.13",
     "angular-ui-bootstrap": "^1.3.2",

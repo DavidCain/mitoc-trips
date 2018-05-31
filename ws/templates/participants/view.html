@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load form_tags %}
-{% load gravatar %}
+{% load avatar_tags %}
 {% load messages_tags %}
 {% load trip_tags %}
 {% load ws_tags %}
@@ -54,7 +54,7 @@ Lookup participant
           <div class="media-left">
             <div class="media-object">
               <div class="profile-photo">
-                {{ participant.email|gravatar:200 }}
+                {{ participant|avatar:200 }}
                 {% if user_viewing %}
                   <edit-profile-photo data-participant-email="{{ participant.email }}">
                   </edit-profile-photo>

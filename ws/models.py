@@ -19,6 +19,7 @@ from phonenumber_field.modelfields import PhoneNumberField
 from ws.fields import OptionalOneToOneField
 from ws.membership import STUDENT, AFFILIATE, GENERAL
 import ws.utils.dates as dateutils
+from ws.utils.avatar import avatar_url
 
 
 pytz_timezone = timezone.get_default_timezone()
@@ -171,6 +172,7 @@ class Participant(models.Model):
     email = models.EmailField(unique=True, help_text=string_concat("This will be shared with leaders & other participants. <a href='",
                                                                    reverse_lazy('account_email'),
                                                                    "'>Manage email addresses</a>."))
+    gravatar_opt_out = models.BooleanField(default=False, verbose_name="Opt out of Gravatar", help_text="Don't use Gravatar to show an avatar for this account")
     car = OptionalOneToOneField(Car, on_delete=models.CASCADE)
 
     membership = OptionalOneToOneField(Membership, on_delete=models.CASCADE)
@@ -190,6 +192,9 @@ class Participant(models.Model):
     STUDENT_AFFILIATIONS = {'MU', 'NU', 'MG', 'NG'}
 
     discounts = models.ManyToManyField(Discount, blank=True)
+
+    def avatar_url(self, size=100):
+        return avatar_url(self, size)
 
     @property
     def annual_dues(self):

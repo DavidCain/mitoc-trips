@@ -1,6 +1,6 @@
 {% extends "messages_page.html" %}
 {% load signup_tags %}
-{% load gravatar %}
+{% load avatar_tags %}
 
 {% block head_title %}Review - {{ trip.name }}{% endblock head_title %}
 
@@ -65,7 +65,7 @@
               <td>
                 <div class="media">
                   <div class="media-left">
-                    {{ participant.email|gravatar:100 }}
+                    {{ participant|avatar:100 }}
                   </div>
                   <div class="media-body">
                     <h4 class="media-heading"> {{ participant }} </h4>
