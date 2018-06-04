@@ -51,8 +51,11 @@ def membership_expiration(emails):
 
     It also calculates whether or not the membership has expired.
     """
-    def expiration_date(membership_info):
-        return membership_info['membership']['expires']
+    def expiration_date(info):
+        return (info['membership']['expires'], info['waiver']['expires'])
+
+    def waiver_date(info):
+        return info['waiver']['expires']
 
     # Find all memberships under one or more of the participant's emails
     memberships_by_email = matching_memberships(emails)
@@ -61,6 +64,12 @@ def membership_expiration(emails):
 
     # The most recent account should be considered as their one membership
     most_recent = max(memberships_by_email.values(), key=expiration_date)
+
+    # If there's an older membership with an active waiver, use that!
+    if not most_recent['membership']['active']:
+        last_waiver = max(memberships_by_email.values(), key=waiver_date)
+        if last_waiver['waiver']['active']:
+            most_recent = last_waiver
 
     # Since we fetched the most current information from the db, update cache
     email = most_recent['membership']['email']
@@ -121,19 +130,17 @@ def matching_memberships(emails):
     # It's possible the user has a newer waiver under another email address,
     # but this is what the gear database reports (and we want consistency)
     cursor.execute(
-        """
+        '''
         select lower(p.email),
                max(pm.expires)  as membership_expires,
           date(max(pw.expires)) as waiver_expires
-        from people_memberships pm
-               join people p          on p.id = pm.person_id
-          left join people_waivers pw on p.id = pw.person_id
-        where p.email in %s
-        group by p.email
-        -- importantly, we put most current memberships last in the query
-        -- (other areas of the app will assume this)
-        order by membership_expires
-        """, [tuple(emails)]
+          from people p
+               left join people_memberships pm on p.id = pm.person_id
+               left join people_waivers     pw on p.id = pw.person_id
+         where p.email in %s
+         group by p.email
+         order by membership_expires, waiver_expires
+        ''', [tuple(emails)]
     )
 
     # Email capitalization in the database may differ from what users report

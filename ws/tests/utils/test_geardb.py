@@ -23,10 +23,32 @@ class NoUserTests(SimpleTestCase):
 
 
 class MembershipTests(TransactionTestCase):
+    @property
+    def cursor(self):
+        return connections['geardb'].cursor()
+
     def test_no_people_record(self):
         """ Without a match, nothing is returned. """
         matches = geardb.matching_memberships(['not.in.database@example.com'])
         self.assertEqual(matches, OrderedDict())
+
+    def test_no_membership_waiver(self):
+        """ People records can still be returned without a membership or waiver. """
+        with self.cursor as cursor:
+            cursor.execute(
+                '''
+                insert into people (firstname, lastname, email, desk_credit, date_inserted)
+                values (%(first)s, %(last)s, %(email)s, 0, now())
+                ''', {'first': 'Tim', 'last': 'Beaver', 'email': 'tim@mit.edu'}
+            )
+        matches = geardb.matching_memberships(['tim@mit.edu'])
+        self.assertEqual(len(matches), 1)
+        membership = matches['tim@mit.edu']
+        self.assertEqual(membership, {
+            'membership': {'expires': None, 'active': False, 'email': 'tim@mit.edu'},
+            'waiver': {'expires': None, 'active': False},
+            'status': 'Expired'
+        })
 
 
 class MembershipFormattingTests(SimpleTestCase):
