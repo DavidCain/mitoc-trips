@@ -51,6 +51,8 @@ STATICFILES_FINDERS = (
 LOGIN_REDIRECT_URL = '/'
 ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 
+TEST_RUNNER = 'ws.tests.runner.SetupGearDbTestRunner'
+
 INSTALLED_APPS = []  # Must be defined by respective configs
 if os.environ.get('WS_TEST_CONFIG'):
     from .conf.test_settings import *  # NoQA

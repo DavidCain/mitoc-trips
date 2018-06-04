@@ -1,7 +1,9 @@
+from collections import OrderedDict
 from datetime import timedelta
 
 from django.contrib.auth.models import AnonymousUser
-from django.test import SimpleTestCase
+from django.db import connections
+from django.test import SimpleTestCase, TransactionTestCase
 
 from ws.utils.dates import local_date
 from ws.utils import geardb
@@ -18,6 +20,13 @@ class NoUserTests(SimpleTestCase):
         """ Test users with no email addresses. """
         self.assertEqual(geardb.verified_emails(AnonymousUser()), [])
         self.assertEqual(geardb.verified_emails(None), [])
+
+
+class MembershipTests(TransactionTestCase):
+    def test_no_people_record(self):
+        """ Without a match, nothing is returned. """
+        matches = geardb.matching_memberships(['not.in.database@example.com'])
+        self.assertEqual(matches, OrderedDict())
 
 
 class MembershipFormattingTests(SimpleTestCase):
