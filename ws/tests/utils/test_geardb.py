@@ -23,9 +23,39 @@ class NoUserTests(SimpleTestCase):
 
 
 class MembershipTests(TransactionTestCase):
+    """ Test the underlying SQL that drives membership queries. """
+    def tearDown(self):
+        """ Because of MySQL, each test's insertions aren't reverted. """
+        with self.cursor as cursor:
+            cursor.execute('delete from gear_peopleemails;')
+            cursor.execute('delete from people_waivers;')
+            cursor.execute('delete from people_memberships;')
+            cursor.execute('delete from people;')
+
     @property
     def cursor(self):
         return connections['geardb'].cursor()
+
+    @property
+    def one_year_later(self):
+        return local_date() + timedelta(days=365)
+
+    def create_tim(self):
+        with self.cursor as cursor:
+            cursor.execute(
+                '''
+                insert into people (firstname, lastname, email, desk_credit, date_inserted)
+                values (%(first)s, %(last)s, %(email)s, 0, now())
+                ''', {'first': 'Tim', 'last': 'Beaver', 'email': 'tim@mit.edu'}
+            )
+            return cursor.lastrowid
+
+    @property
+    def just_tim(self):
+        """ Return the membership record for the user we've created. """
+        matches = geardb.matching_memberships(['tim@mit.edu'])
+        self.assertEqual(len(matches), 1)
+        return matches['tim@mit.edu']
 
     def test_no_people_record(self):
         """ Without a match, nothing is returned. """
@@ -34,24 +64,50 @@ class MembershipTests(TransactionTestCase):
 
     def test_no_membership_waiver(self):
         """ People records can still be returned without a membership or waiver. """
-        with self.cursor as cursor:
-            cursor.execute(
-                '''
-                insert into people (firstname, lastname, email, desk_credit, date_inserted)
-                values (%(first)s, %(last)s, %(email)s, 0, now())
-                ''', {'first': 'Tim', 'last': 'Beaver', 'email': 'tim@mit.edu'}
-            )
-        matches = geardb.matching_memberships(['tim@mit.edu'])
-        self.assertEqual(len(matches), 1)
-        membership = matches['tim@mit.edu']
-        self.assertEqual(membership, {
+        self.create_tim()
+        self.assertEqual(self.just_tim, {
             'membership': {'expires': None, 'active': False, 'email': 'tim@mit.edu'},
             'waiver': {'expires': None, 'active': False},
             'status': 'Expired'
         })
 
+    def test_just_waiver(self):
+        """ Participants can sign waivers without paying for a membership. """
+        person_id = self.create_tim()
+        with self.cursor as cursor:
+            cursor.execute(
+                '''
+                insert into people_waivers (person_id, date_signed, expires)
+                values (%(person_id)s, now(), %(expires)s)
+                ''', {'person_id': person_id, 'expires': self.one_year_later}
+            )
+        self.assertEqual(self.just_tim, {
+            'membership': {'expires': None, 'active': False, 'email': 'tim@mit.edu'},
+            'waiver': {'expires': self.one_year_later, 'active': True},
+            'status': 'Missing Membership'
+        })
+
+    def test_just_membership(self):
+        """ Participants can have memberships without waivers. """
+        person_id = self.create_tim()
+        with self.cursor as cursor:
+            cursor.execute(
+                '''
+                insert into people_memberships (
+                  person_id, price_paid, membership_type, date_inserted, expires
+                )
+                values (%(person_id)s, 15, 'student', now(), %(expires)s)
+                ''', {'person_id': person_id, 'expires': self.one_year_later}
+            )
+        self.assertEqual(self.just_tim, {
+            'membership': {'expires': self.one_year_later, 'active': True, 'email': 'tim@mit.edu'},
+            'waiver': {'expires': None, 'active': False},
+            'status': 'Missing Waiver'
+        })
+
 
 class MembershipFormattingTests(SimpleTestCase):
+    """ Test formatting of membership records, independent of the SQL. """
     email = 'foo@example.com'
 
     @classmethod
