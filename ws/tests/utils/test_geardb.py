@@ -22,8 +22,7 @@ class NoUserTests(SimpleTestCase):
         self.assertEqual(geardb.verified_emails(None), [])
 
 
-class MembershipTests(TransactionTestCase):
-    """ Test the underlying SQL that drives membership queries. """
+class MembershipSQLHelpers:
     def tearDown(self):
         """ Because of MySQL, each test's insertions aren't reverted. """
         with self.cursor as cursor:
@@ -50,13 +49,28 @@ class MembershipTests(TransactionTestCase):
             )
             return cursor.lastrowid
 
+    def record_alternate_email(self, person_id, email):
+        with self.cursor as cursor:
+            cursor.execute(
+                '''
+                insert into gear_peopleemails (person_id, alternate_email)
+                values (%(person_id)s, %(email)s)
+                ''', {'person_id': person_id, 'email': email}
+            )
+            return cursor.lastrowid
+
+    def one_match(self, email):
+        matches = geardb.matching_memberships([email])
+        self.assertEqual(len(matches), 1)
+        return matches[email]
+
     @property
     def just_tim(self):
-        """ Return the membership record for the user we've created. """
-        matches = geardb.matching_memberships(['tim@mit.edu'])
-        self.assertEqual(len(matches), 1)
-        return matches['tim@mit.edu']
+        return self.one_match('tim@mit.edu')
 
+
+class MembershipTests(MembershipSQLHelpers, TransactionTestCase):
+    """ Test the underlying SQL that drives membership queries. """
     def test_no_people_record(self):
         """ Without a match, nothing is returned. """
         matches = geardb.matching_memberships(['not.in.database@example.com'])
@@ -104,6 +118,51 @@ class MembershipTests(TransactionTestCase):
             'waiver': {'expires': None, 'active': False},
             'status': 'Missing Waiver'
         })
+
+
+class AlternateEmailTests(MembershipSQLHelpers, TransactionTestCase):
+    def expect_under_email(self, email, lookup=None):
+        expected = self.just_tim
+        expected['membership']['email'] = email
+        lookup_emails = lookup or [email]
+        results = geardb.matching_memberships(lookup_emails)  # (OrderedDict)
+        self.assertEqual({email: expected}, dict(results))
+
+    def test_just_one_record(self):
+        """ When requesting records under many emails, just one is returned.
+
+        (Provided that the primary email is included in the lookup list)
+        """
+        person_id = self.create_tim()
+        alternate_emails = [f'tim@{i}.example.com' for i in range(3)]
+        for email in alternate_emails:
+            self.record_alternate_email(person_id, email)
+
+        # When we request just the alternate emails, it returns one for each
+        self.assertEqual(len(geardb.matching_memberships(alternate_emails)), 3)
+
+        # However, so long as the primary is included, we'll just have one
+        all_emails = ['tim@mit.edu'] + alternate_emails
+        self.expect_under_email('tim@mit.edu', lookup=all_emails)
+
+    def test_alternate_email(self):
+        """ We can look up participants by other emails. """
+        person_id = self.create_tim()
+
+        # First, there is no known membership for the other email
+        self.assertEqual(geardb.matching_memberships(['tim@mitoc.org']),
+                         OrderedDict())
+
+        # Then, after tying the alternate email to the main account, results!
+        self.record_alternate_email(person_id, 'tim@mitoc.org')
+        self.expect_under_email('tim@mitoc.org')
+
+        # Importantly, we can still look up by the main email address!
+        self.expect_under_email('tim@mit.edu')
+
+        # If looking up by both emails, the primary email is reported
+        # (Importantly, only one membership is returned)
+        self.expect_under_email('tim@mit.edu', lookup=['tim@mit.edu', 'tim@mitoc.org'])
 
 
 class MembershipFormattingTests(SimpleTestCase):

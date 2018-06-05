@@ -116,13 +116,14 @@ def format_membership(email, membership_expires, waiver_expires):
     return person
 
 
-def matching_memberships(emails):
-    """ Return the most current membership found for each email in the list.
+def get_matches(emails):
+    """ For each given email, yield a record about the person (if found).
 
-    Newer memberships will appear earlier in the results.
+    - The email addresses may or may not correspond to the same person.
+    - Some email addresses may return the same membership record
     """
     if not emails:  # Passing an empty tuple will cause a SQL error
-        return OrderedDict()
+        raise StopIteration
 
     cursor = connections['geardb'].cursor()
 
@@ -132,25 +133,44 @@ def matching_memberships(emails):
     cursor.execute(
         '''
         select lower(p.email),
+               lower(pe.alternate_email),
                max(pm.expires)  as membership_expires,
           date(max(pw.expires)) as waiver_expires
           from people p
+               left join gear_peopleemails  pe on p.id = pe.person_id
                left join people_memberships pm on p.id = pm.person_id
                left join people_waivers     pw on p.id = pw.person_id
-         where p.email in %s
-         group by p.email
+         where p.email in %(emails)s
+            or pe.alternate_email in %(emails)s
+         group by p.email, pe.alternate_email
          order by membership_expires, waiver_expires
-        ''', [tuple(emails)]
+        ''', {'emails': tuple(emails)}
     )
 
     # Email capitalization in the database may differ from what users report
     # Map back to the case supplied in arguments for easier mapping
-    original_case = {email.lower(): email for email in emails}
-    matches = ((original_case[email], m_expires, w_expires)
-               for (email, m_expires, w_expires) in cursor.fetchall())
+    to_original_case = {email.lower(): email for email in emails}
 
-    return OrderedDict((email, format_membership(email, m_expires, w_expires))
-                       for (email, m_expires, w_expires) in matches)
+    for main, alternate, m_expires, w_expires in cursor.fetchall():
+        # We know that the either the main or alternate email was requested
+        # (It's possible that membership records were requested for _both_ emails)
+        # In case the alternate email was given alongside the primary email,
+        # always give preference to the primary email.
+        email = main if main in to_original_case else alternate
+        case_corrected_email = to_original_case[email]
+
+        formatted = format_membership(case_corrected_email, m_expires, w_expires)
+        yield case_corrected_email, formatted
+
+
+def matching_memberships(emails):
+    """ Return the most current membership found for each email in the list.
+
+    This method is used in two key ways:
+    - Look up membership records for a single person, under all their emails
+    - Look up memberships for many participants, under all their emails
+    """
+    return OrderedDict(get_matches(emails))
 
 
 def outstanding_items(emails):
