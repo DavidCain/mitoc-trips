@@ -23,6 +23,7 @@ angular.module('ws.profile', [])
     'Waiver Expired':     'label-warning',
     'Missing Waiver':     'label-warning',
     'Missing Membership': 'label-warning',
+    'Expiring Soon':      'label-info',  // Special front-end only status
     'Expired':            'label-danger',
     'Missing':            'label-danger',
   }
@@ -38,11 +39,31 @@ angular.module('ws.profile', [])
     templateUrl: '/static/template/membership-status.html',
     link: function (scope, element, attrs) {
       scope.labelClass = membershipStatusLabels;
+
+      // Return if the membership expires soon enough for renewal
+      var expiringSoon = function(expiresOn) {
+        var now = new Date();
+        var msTilExpiry = expiresOn - now;
+        return (msTilExpiry > 0) && (msTilExpiry < 2592000000);
+      };
+
       $http.get('/users/' + scope.userId + '/membership.json')
         .then(function(resp) {
           scope.membership = resp.data.membership;
           scope.waiver = resp.data.waiver;
           scope.status = resp.data.status;
+
+          return new Date(scope.membership.expires);
+        })
+        .then(function(expiresOn) {
+          // If personally viewing, allow a special status for "you should renew soon"
+          if (scope.personal && (scope.status === 'Active') && expiringSoon(expiresOn)) {
+            scope.status = 'Expiring Soon';  // Some time in next 30 days
+
+            // Add one year (setFullYear actually handles leap years!)
+            scope.renewalValidUntil = new Date(expiresOn.valueOf());
+            scope.renewalValidUntil.setFullYear(expiresOn.getFullYear() + 1);
+          }
         });
     },
   };

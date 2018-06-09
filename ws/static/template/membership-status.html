@@ -22,6 +22,17 @@
         with your account email, <span data-ng-bind="::membership.email"></span>.
       </p>
     </div>
+    <div data-ng-switch-when="Expiring Soon">
+      <div class="alert alert-warning">
+        <p>
+          Your membership is expiring soon.
+          <a href="/profile/membership/">Renew today</a>
+          to keep your membership valid until
+          <span data-ng-bind="::renewalValidUntil | date : 'MMM d, yyyy' : 'UTC' "></span>.
+        </p>
+      </div>
+      <p>Your waiver will expire on <span data-ng-bind="::waiver.expires | date"></span>. <a href="/profile/waiver/">Sign another?</a></p>
+    </div>
     <div data-ng-switch-when="Active">
       <p>Your membership is active, and expires on <span data-ng-bind="::membership.expires | date"></span>.</p>
       <p>Your waiver will expire on <span data-ng-bind="::waiver.expires | date"></span>.</p>
@@ -92,7 +103,7 @@
     </p>
   </div>
 
-  <div data-ng-if="status && status !== 'Active'">
+  <div data-ng-if="status && status !== 'Active' && status !== 'Expiring Soon'">
     <div data-ng-show="personal && !showFullFaq">
       <div class="alert alert-warning">
         <a href="/accounts/email/">Problems or questions</a> about your membership?
