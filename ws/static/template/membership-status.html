@@ -12,13 +12,13 @@
     <div data-ng-switch-when="Missing Waiver">
       <p>
 
-        Please <a href="/profile/waiver">sign a waiver</a>
+        Please <a href="/profile/waiver/">sign a waiver</a>
         with your account email, <span data-ng-bind="::membership.email"></span>.
       </p>
     </div>
     <div data-ng-switch-when="Waiver Expired">
       <p>
-        Please <a href="/profile/waiver">sign a new waiver</a>
+        Please <a href="/profile/waiver/">sign a new waiver</a>
         with your account email, <span data-ng-bind="::membership.email"></span>.
       </p>
     </div>
@@ -32,7 +32,7 @@
       </p>
       <p>
         You can still participate in mini-trips, but you'll need
-        <a href="/profile/membership">a full MITOC membership</a>
+        <a href="/profile/membership/">a full MITOC membership</a>
         in order to rent gear, use cabins, or join other trips.
       </p>
     </div>
@@ -43,8 +43,8 @@
       </p>
 
       <p>
-        You must <a href="/profile/membership">become a member</a>
-        and <a href="/profile/waiver">sign a new waiver</a>
+        You must <a href="/profile/membership/">become a member</a>
+        and <a href="/profile/waiver/">sign a new waiver</a>
         in order to participate on trips, rent gear, or use cabins.
       </p>
     </div>
@@ -53,8 +53,8 @@
         Your membership expired on <span data-ng-bind="::membership.expires | date"></span>.
       </p>
       <p>
-        Please <a href="/profile/membership">renew your membership</a>
-        and <a href="/profile/waiver">sign a new waiver</a>.
+        Please <a href="/profile/membership/">renew your membership</a>
+        and <a href="/profile/waiver/">sign a new waiver</a>.
       </p>
     </div>
     <p data-ng-switch-default>
@@ -119,7 +119,7 @@
       <div data-ng-show="status === 'Missing Waiver' || status === 'Waiver Expired'" class="well">
         <h5>Why isn't my waiver showing up?</h5>
         <p>
-          First, ensure you <a href="/profile/waiver">signed the waiver</a>
+          First, ensure you <a href="/profile/waiver/">signed the waiver</a>
           under the same email address as your membership:
           <span data-ng-bind="::membership.email"></span>.
         </p>
@@ -129,7 +129,7 @@
         <h5>But I'm positive that my account is under one of these email addresses!</h5>
         <p>
           If you've paid your membership dues, signed the waiver, and are still not
-          seeing that you're an active member, please <a href="/contact">contact us</a>.
+          seeing that you're an active member, please <a href="/contact/">contact us</a>.
         </p>
       </div>
 

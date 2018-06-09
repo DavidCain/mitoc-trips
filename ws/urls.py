@@ -28,13 +28,13 @@ urlpatterns = [
     # Activity Chair views
     url(r'^chair/leaders/$', views.ManageLeadersView.as_view(), name='manage_leaders'),
     url(r'^(?P<activity>.+)/leaders/$', views.ActivityLeadersView.as_view(), name='activity_leaders'),
-    url(r'^(?P<activity>.+)/leaders/deactivate$', views.DeactivateLeaderRatingsView.as_view(), name='deactivate_leaders'),
+    url(r'^(?P<activity>.+)/leaders/deactivate/$', views.DeactivateLeaderRatingsView.as_view(), name='deactivate_leaders'),
     url(r'^(?P<activity>.+)/applications/$', views.AllLeaderApplicationsView.as_view(), name='manage_applications'),
     url(r'^(?P<activity>.+)/applications/(?P<pk>\d+)/$', views.LeaderApplicationView.as_view(), name='view_application'),
     url(r'^(?P<activity>.+)/trips/$', views.ApproveTripsView.as_view(), name='manage_trips'),
     url(r'^winter_school/settings/$', views.WinterSchoolSettingsView.as_view(), name='ws_settings'),
     url(r'^(?P<activity>.+)/trips/(?P<pk>\d+)/$', views.ChairTripView.as_view(), name='view_trip_for_approval'),
-    url(r'^trips/(?P<pk>\d+)/approve$', api_views.ApproveTripView.as_view(), name='json-approve_trip'),
+    url(r'^trips/(?P<pk>\d+)/approve/$', api_views.ApproveTripView.as_view(), name='json-approve_trip'),
 
     # Activity Chairs or WIMP views
     url(r'^trips/medical/$', views.AllTripsMedicalView.as_view(), name='all_trips_medical'),
@@ -47,7 +47,7 @@ urlpatterns = [
     url(r'^trips/(?P<pk>\d+)/admin/$', RedirectView.as_view(pattern_name='view_trip', permanent=True), name='admin_trip'),
     url(r'^trips/(?P<pk>\d+)/admin/signups/$', api_views.AdminTripSignupsView.as_view(), name='json-admin_trip_signups'),
     url(r'^trips/(?P<pk>\d+)/admin/lottery/$', views.RunTripLotteryView.as_view(), name='run_lottery'),
-    url(r'^trips/(?P<pk>\d+)/signup$', api_views.LeaderParticipantSignupView.as_view(), name='json-leader_participant_signup'),
+    url(r'^trips/(?P<pk>\d+)/signup/$', api_views.LeaderParticipantSignupView.as_view(), name='json-leader_participant_signup'),
     url(r'^trips/(?P<pk>\d+)/itinerary/$', views.TripItineraryView.as_view(), name='trip_itinerary'),
     url(r'^trips/(?P<pk>\d+)/medical/$', views.TripMedicalView.as_view(), name='trip_medical'),
     url(r'^trips/(?P<pk>\d+)/review/$', views.ReviewTripView.as_view(), name='review_trip'),
@@ -66,7 +66,7 @@ urlpatterns = [
     url(r'^trips/$', views.UpcomingTripsView.as_view(), name='upcoming_trips'),
     url(r'^trips/all/$', views.AllTripsView.as_view(), name='all_trips'),
     url(r'^trips/signup/$', views.SignUpView.as_view(), name='trip_signup'),
-    url(r'^trips/signup/leader$', views.LeaderSignUpView.as_view(), name='leader_trip_signup'),
+    url(r'^trips/signup/leader/$', views.LeaderSignUpView.as_view(), name='leader_trip_signup'),
     url(r'^preferences/discounts/$', views.DiscountsView.as_view(), name='discounts'),
     url(r'^preferences/lottery/$', views.LotteryPreferencesView.as_view(), name='lottery_preferences'),
     url(r'^preferences/lottery/pairing/$', views.LotteryPairingView.as_view(), name='lottery_pairing'),
@@ -80,9 +80,9 @@ urlpatterns = [
 
     # Privacy views
     url(r'^privacy/$', views.PrivacyView.as_view(), name='privacy'),
-    url(r'^privacy/download$', views.PrivacyDownloadView.as_view(), name='privacy_download'),
+    url(r'^privacy/download/$', views.PrivacyDownloadView.as_view(), name='privacy_download'),
     url(r'^privacy/download.json$', views.JsonDataDumpView.as_view(), name='json-data_dump'),
-    url(r'^privacy/settings$', views.PrivacySettingsView.as_view(), name='privacy_settings'),
+    url(r'^privacy/settings/$', views.PrivacySettingsView.as_view(), name='privacy_settings'),
 
     url(r'^help/participants/wimp/$', TemplateView.as_view(template_name='help/participants/wimp_guide.html'), name='help-wimp_guide'),
 
