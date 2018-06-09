@@ -41,19 +41,30 @@ angular.module('ws.profile', [])
     link: function (scope, element, attrs) {
       scope.labelClass = membershipStatusLabels;
 
+      var daysUntil = function(dateString) {
+        var msDiff = (new Date(dateString)) - (new Date());
+        return Math.floor(msDiff / 86400000);
+      };
+
       // Return if the membership expires soon enough for renewal
       var expiringSoon = function(expiresOn) {
-        var now = new Date();
-        var msTilExpiry = expiresOn - now;
-        return (msTilExpiry > 0) && (msTilExpiry < 2592000000);
+        var daysLeft = daysUntil(expiresOn);
+        return (daysLeft > 0) && (daysLeft < 30);
       };
 
       var queriesPerformed = 0;  // Count queries made in attempt to get updated status
+      var maxQueries = 8;
 
-      // Spawns a membership check & returns true if participant just signed a waiver
-      // (and the waiver status has not yet come in as active)
-      var queryingAgain = function(waiverActive) {
-        if (scope.justSigned && !waiverActive && queriesPerformed < 8) {
+      // If the waiver is valid for a year, we know a recent one was received
+      // (less than a year to be sure leap days and tz conversion are irrelevant)
+      var waiverUpdateReceived = function(waiverExpires) {
+        return waiverExpires && daysUntil(waiverExpires) >= 363;
+      };
+
+      // Spawns a membership check & returns true if still waiting on the update
+      var queryingAgain = function(waiverExpires) {
+        var updateReceived = waiverUpdateReceived(waiverExpires);
+        if (scope.justSigned && !updateReceived && queriesPerformed < maxQueries) {
           queriesPerformed++;
           $timeout(queryStatus, 500 * queriesPerformed);
           return true;
@@ -63,10 +74,11 @@ angular.module('ws.profile', [])
       var queryStatus = function() {
         return $http.get('/users/' + scope.userId + '/membership.json')
           .then(function(resp) {
-            if (queryingAgain(resp.data.waiver.active)) {
+            var waiverExpires = resp.data.waiver.expires;
+            if (queryingAgain(waiverExpires)) {
               return;  // Stop here - continuing would populate scope
             } else if (scope.justSigned) {
-              scope.waiverUpdateSucceeded = resp.data.waiver.active;
+              scope.waiverUpdateSucceeded = waiverUpdateReceived(waiverExpires);
             }
 
             scope.membership = resp.data.membership;
