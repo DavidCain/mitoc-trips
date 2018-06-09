@@ -35,6 +35,14 @@ def update_membership_cache(participant):
                                       waiver_expires=None)
 
 
+def cached_membership_active(user):
+    participant = models.Participant.from_user(user, True)
+    try:
+        return participant.membership.membership_active
+    except models.Membership.DoesNotExist:
+        return False
+
+
 def can_attend_trip(user, trip):
     """ Return whether the user's membership allows them to attend the trip.
 
