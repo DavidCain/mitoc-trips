@@ -28,13 +28,14 @@ angular.module('ws.profile', [])
     'Missing':            'label-danger',
   }
 )
-.directive('membershipStatus', function($http, $filter, membershipStatusLabels) {
+.directive('membershipStatus', function($http, $filter, $timeout, membershipStatusLabels) {
   return {
     restrict: 'E',
     scope: {
       userId: '=',
       personal: '=?', // Give helpful messages, intended for when viewing own status
       showFullFaq: '=?',
+      justSigned: '=?'  // Participant just finished signing a waiver
     },
     templateUrl: '/static/template/membership-status.html',
     link: function (scope, element, attrs) {
@@ -47,24 +48,43 @@ angular.module('ws.profile', [])
         return (msTilExpiry > 0) && (msTilExpiry < 2592000000);
       };
 
-      $http.get('/users/' + scope.userId + '/membership.json')
-        .then(function(resp) {
-          scope.membership = resp.data.membership;
-          scope.waiver = resp.data.waiver;
-          scope.status = resp.data.status;
+      var queriesPerformed = 0;  // Count queries made in attempt to get updated status
 
-          return new Date(scope.membership.expires);
-        })
-        .then(function(expiresOn) {
-          // If personally viewing, allow a special status for "you should renew soon"
-          if (scope.personal && (scope.status === 'Active') && expiringSoon(expiresOn)) {
-            scope.status = 'Expiring Soon';  // Some time in next 30 days
+      // Spawns a membership check & returns true if participant just signed a waiver
+      // (and the waiver status has not yet come in as active)
+      var queryingAgain = function(waiverActive) {
+        if (scope.justSigned && !waiverActive && queriesPerformed < 8) {
+          queriesPerformed++;
+          $timeout(queryStatus, 500 * queriesPerformed);
+          return true;
+        }
+      };
 
-            // Add one year (setFullYear actually handles leap years!)
-            scope.renewalValidUntil = new Date(expiresOn.valueOf());
-            scope.renewalValidUntil.setFullYear(expiresOn.getFullYear() + 1);
-          }
-        });
+      var queryStatus = function() {
+        return $http.get('/users/' + scope.userId + '/membership.json')
+          .then(function(resp) {
+            if (queryingAgain(resp.data.waiver.active)) {
+              return;  // Stop here - continuing would populate scope
+            } else if (scope.justSigned) {
+              scope.waiverUpdateSucceeded = resp.data.waiver.active;
+            }
+
+            scope.membership = resp.data.membership;
+            scope.waiver = resp.data.waiver;
+            scope.status = resp.data.status;
+
+            // If personally viewing, allow a special status for "you should renew soon"
+            var expiresOn = Date(scope.membership.expires);
+            if (scope.personal && (scope.status === 'Active') && expiringSoon(expiresOn)) {
+              scope.status = 'Expiring Soon';  // Some time in next 30 days
+
+              // Add one year (setFullYear actually handles leap years!)
+              scope.renewalValidUntil = new Date(expiresOn.valueOf());
+              scope.renewalValidUntil.setFullYear(expiresOn.getFullYear() + 1);
+            }
+          });
+      };
+      queryStatus();
     },
   };
 })

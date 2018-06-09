@@ -8,6 +8,14 @@
     </span>
   </h3>
 
+  <div class="alert alert-success" data-ng-if="waiverUpdateSucceeded">
+    Successfully updated waiver.
+  </div>
+  <div class="alert alert-danger" data-ng-if="waiverUpdateSucceeded === false">
+    Failed to update waiver status. Try refreshing the page,
+    or signing another waiver. If that fails, please <a href="/contact/">contact us</a>.
+  </div>
+
   <div data-ng-switch="status" data-ng-if="personal">
     <div data-ng-switch-when="Missing Waiver">
       <p>
@@ -68,10 +76,13 @@
         and <a href="/profile/waiver/">sign a new waiver</a>.
       </p>
     </div>
-    <p data-ng-switch-default>
-      <i class="fas fa-spinner fa-pulse"></i>
-      <span>Querying MITOC servers for membership status...</span>
-    </p>
+    <div data-ng-switch-default data-ng-class="{'alert alert-success': justSigned}">
+      <p>
+        <i class="fas fa-spinner fa-pulse"></i>
+        <span data-ng-hide="justSigned">Querying MITOC servers for membership status...</span>
+        <span data-ng-show="justSigned">We're currently processing your waiver...</span>
+      </p>
+    </div>
   </div>
 
   <div data-ng-switch="status" data-ng-if="!personal" class="text-muted">

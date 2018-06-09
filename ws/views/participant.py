@@ -355,12 +355,13 @@ class ParticipantDetailView(ParticipantView, FormView, DetailView):
 
 
 class ProfileView(ParticipantView):
-    def get(self, request, *args, **kwargs):
-        # This argument is used when redirecting from a completed waiver
-        if request.GET.get('event') == 'signing_complete':
-            msg = "Success! We're currently processing your waiver. "
-            messages.success(request, msg)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        args = self.request.GET
+        context['just_signed'] = args.get('event') == 'signing_complete'
+        return context
 
+    def get(self, request, *args, **kwargs):
         if request.user.is_anonymous:
             today = local_date()
             current_trips = models.Trip.objects.filter(trip_date__gte=today)
