@@ -47,6 +47,43 @@ class MembershipExpirationTests(TransactionTestCase):
         self.assertEqual(geardb.membership_expiration(list(memberships_by_email)),
                          memberships_by_email['active_membership@example.com'])
 
+    @unittest.mock.patch('ws.utils.geardb.matching_memberships')
+    def test_newest_waiver_taken(self, matching_memberships):
+        """ If an old membership has an active waiver, use it! """
+        one_month_later = local_date() + timedelta(days=30)
+        memberships_by_email = {
+            '1@example.com': {
+                'membership': {'expires': date(2011, 1, 1), 'active': False, 'email': '1@example.com'},
+                'waiver': {'expires': None, 'active': False},
+                'status': 'Expired'
+            },
+            '2@example.com': {
+                'membership': {'expires': date(2012, 2, 2), 'active': False, 'email': '2@example.com'},
+                'waiver': {'expires': None, 'active': False},
+                'status': 'Expired'
+            },
+            '3@example.com': {
+                'membership': {'expires': date(2013, 3, 3), 'active': False, 'email': '3@example.com'},
+                'waiver': {'expires': None, 'active': False},
+                'status': 'Expired'
+            },
+        }
+        matching_memberships.return_value = memberships_by_email
+
+        # All waivers are expired or missing, so we take the newest membership
+        self.assertEqual(geardb.membership_expiration(list(memberships_by_email)),
+                         memberships_by_email['3@example.com'])
+
+        # Give the middle membership an active waiver, even though it's not the newest
+        middle = memberships_by_email['2@example.com']
+        middle['waiver'].update(expires=one_month_later, active=True)
+        middle['status'] = 'Membership Expired'
+
+        # '2@example.com' is not the newest membership, but it has an active waiver
+        # (and all other memberships do not have an active waiver)
+        self.assertEqual(geardb.membership_expiration(list(memberships_by_email)),
+                         memberships_by_email['2@example.com'])
+
 
 class MembershipSQLHelpers:
     def tearDown(self):
