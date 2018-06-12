@@ -52,10 +52,12 @@ def membership_expiration(emails):
     It also calculates whether or not the membership has expired.
     """
     def expiration_date(info):
-        return (info['membership']['expires'], info['waiver']['expires'])
+        mem_expires = info['membership']['expires']
+        return (mem_expires is not None, mem_expires, *waiver_date(info))
 
     def waiver_date(info):
-        return info['waiver']['expires']
+        waiver_expires = info['waiver']['expires']
+        return (waiver_expires is not None, waiver_expires)
 
     # Find all memberships under one or more of the participant's emails
     memberships_by_email = matching_memberships(emails)

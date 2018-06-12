@@ -1,5 +1,6 @@
 from collections import OrderedDict
-from datetime import timedelta
+from datetime import date, timedelta
+import unittest.mock
 
 from django.contrib.auth.models import AnonymousUser
 from django.db import connections
@@ -20,6 +21,31 @@ class NoUserTests(SimpleTestCase):
         """ Test users with no email addresses. """
         self.assertEqual(geardb.verified_emails(AnonymousUser()), [])
         self.assertEqual(geardb.verified_emails(None), [])
+
+
+class MembershipExpirationTests(TransactionTestCase):
+    @unittest.mock.patch('ws.utils.geardb.matching_memberships')
+    def test_split_membership(self, matching_memberships):
+        """ We handle a membership and waiver split across two emails. """
+        memberships_by_email = {
+            'active_waiver@example.com': {
+                'membership': {'expires': None, 'active': False,
+                               'email': 'active_waiver@example.com'},
+                'waiver': {'expires': date(2019, 6, 12), 'active': True},
+                'status': 'Missing Membership'
+            },
+            'active_membership@example.com': {
+                'membership': {'expires': date(2019, 1, 5), 'active': True,
+                               'email': 'active_membership@example.com'},
+                'waiver': {'expires': None, 'active': False},
+                'status': 'Missing Waiver'
+            }
+        }
+
+        # All else held equal, most recent memberships are returned first
+        matching_memberships.return_value = memberships_by_email
+        self.assertEqual(geardb.membership_expiration(list(memberships_by_email)),
+                         memberships_by_email['active_membership@example.com'])
 
 
 class MembershipSQLHelpers:
