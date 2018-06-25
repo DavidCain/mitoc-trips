@@ -52,7 +52,7 @@ class WinterSchoolParticipantRanker:
 
     def priority_key(self, participant):
         """ Return tuple for sorting participants. """
-        flake_factor = self.get_flake_factor(participant)
+        flake_factor = self.flake_factor(participant)
         # If we use raw flake factor, participants who've been on trips
         # will have an advantage over those who've been on none
         flaky_or_neutral = max(flake_factor, 0)
@@ -66,7 +66,7 @@ class WinterSchoolParticipantRanker:
         # Random float faily resolves ties without using database order
         return (flaky_or_neutral, number_of_trips, affiliation, random.random())
 
-    def get_flake_factor(self, participant):
+    def flake_factor(self, participant):
         """ Return a number indicating past "flakiness".
 
         A lower score indicates a more reliable participant.

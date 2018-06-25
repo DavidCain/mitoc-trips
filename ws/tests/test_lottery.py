@@ -100,7 +100,7 @@ class FlakeFactorTests(SimpleTestCase):
 
         # Final score is -2 for each trip
         perfect_score = -2 * len(self.trip_mapper)
-        self.assertEqual(self.ranker.get_flake_factor(par), perfect_score)
+        self.assertEqual(self.ranker.flake_factor(par), perfect_score)
 
         # We looked at each of the participant's past trips
         past_ws_trips.assert_called_with(par)
@@ -109,18 +109,18 @@ class FlakeFactorTests(SimpleTestCase):
         for name, lookup in self.trip_mapper.items():
             lookup['feedback'] = []
             break
-        self.assertEqual(self.ranker.get_flake_factor(par), perfect_score + 2)
+        self.assertEqual(self.ranker.flake_factor(par), perfect_score + 2)
 
         # If none of the trips have feedback, that's a score of 0
         for name, lookup in self.trip_mapper.items():
             lookup['feedback'] = []
-        self.assertEqual(self.ranker.get_flake_factor(par), 0)
+        self.assertEqual(self.ranker.flake_factor(par), 0)
 
         # Each flake is an additional 5 points (trips with no feedback still ignored)
         for i, name in enumerate(self.trip_mapper, start=1):
             flaked = models.Feedback(trip=trip, participant=par, showed_up=False)
             self.trip_mapper[name]['feedback'] = [flaked]
-            self.assertEqual(self.ranker.get_flake_factor(par), i * 5)
+            self.assertEqual(self.ranker.flake_factor(par), i * 5)
 
     @patch('ws.models.Participant.feedback_set', new_callable=PropertyMock)
     @patch('ws.lottery.WinterSchoolParticipantRanker.past_ws_trips')
@@ -140,7 +140,7 @@ class FlakeFactorTests(SimpleTestCase):
             lookup['feedback'] = [showed_up, showed_up2, flaked]
 
         # Each trip counts as 5 points (a flake on each)
-        self.assertEqual(self.ranker.get_flake_factor(par), 5 * len(self.trip_mapper))
+        self.assertEqual(self.ranker.flake_factor(par), 5 * len(self.trip_mapper))
 
 
 class ParticipantRankingTests(SimpleTestCase):
@@ -188,13 +188,13 @@ class ParticipantRankingTests(SimpleTestCase):
                 return -10
 
         self.ranker.number_ws_trips.side_effect = mock_trip_count
-        self.ranker.get_flake_factor.side_effect = mock_flake_factor
+        self.ranker.flake_factor.side_effect = mock_flake_factor
 
         self.expect_ranking(reliable, flaked_once, serial_flaker)
 
     def test_affiliation(self):
         """ All else held equal, priority is given to MIT affiliates. """
-        self.ranker.get_flake_factor.return_value = 0
+        self.ranker.flake_factor.return_value = 0
         self.ranker.number_ws_trips.return_value = 2
 
         mit_undergrad = models.Participant(affiliation='MU')
@@ -220,7 +220,7 @@ class ParticipantRankingTests(SimpleTestCase):
         # Both participants are MIT undergraduates, equally likely to flake
         novice = models.Participant(affiliation='MU')
         veteran = models.Participant(affiliation='MU')
-        self.ranker.get_flake_factor.return_value = 0
+        self.ranker.flake_factor.return_value = 0
 
         # Key difference: novice has been on fewer trips
         def mock_trip_count(participant):
@@ -235,7 +235,7 @@ class ParticipantRankingTests(SimpleTestCase):
         tweedle_dee = models.Participant(affiliation='NG')
         tweedle_dum = models.Participant(affiliation='NG')
 
-        self.ranker.get_flake_factor.return_value = -2
+        self.ranker.flake_factor.return_value = -2
         self.ranker.number_ws_trips.return_value = 3
 
         dee_key = self.ranker.priority_key(tweedle_dee)
