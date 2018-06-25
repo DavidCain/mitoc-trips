@@ -56,7 +56,9 @@ class WinterSchoolParticipantRanker:
         # If we use raw flake factor, participants who've been on trips
         # will have an advantage over those who've been on none
         flaky_or_neutral = max(flake_factor, 0)
-        number_of_trips = self.number_ws_trips(participant)
+
+        # If the leader led more trips, give them a bump
+        leader_bump = -self.trips_led_balance(participant)
 
         # First preference first (single-letter codes are old)
         ranked_affiliations = ['MU', 'MG', 'MA', 'M', 'NU', 'NG', 'S', 'NA', 'N']
@@ -64,7 +66,7 @@ class WinterSchoolParticipantRanker:
 
         # Lower = higher in the list
         # Random float faily resolves ties without using database order
-        return (flaky_or_neutral, number_of_trips, affiliation, random.random())
+        return (flaky_or_neutral, leader_bump, affiliation, random.random())
 
     def flake_factor(self, participant):
         """ Return a number indicating past "flakiness".
@@ -87,15 +89,25 @@ class WinterSchoolParticipantRanker:
                                            trip_date__lt=self.today,
                                            activity='winter_school')
 
-    def number_ws_trips(self, participant):
-        """ Number of trips the participant has been on this year.
+    def number_trips_led(self, participant):
+        """ Return the number of trips the participant has recently led.
 
-        Leaders who've led more trips are given priority over others.
-        (A dedicated MITOC leader should be given priority)
+        (If we considered all the trips the participant has ever led,
+        participants could easily jump the queue every Winter School if they
+        just lead a few trips once and then stop).
         """
+        last_year = local_date() - timedelta(days=365)
+        return participant.trips_led.filter(trip_date__gt=last_year).count()
+
+    def number_ws_trips(self, participant):
         past_trips = self.past_ws_trips(participant)
         signups = participant.signup_set.filter(trip__in=past_trips, on_trip=True)
-        return signups.count() - participant.trips_led.count()
+        return signups.count()
+
+    def trips_led_balance(self, par):
+        """ Especially active leaders get priority. """
+        surplus = self.number_trips_led(par) - self.number_ws_trips(par)
+        return max(surplus, 0)  # Don't penalize anybody for a negative balance
 
     def lowest_non_driver(self, trip):
         """ Return the lowest priority non-driver on the trip. """

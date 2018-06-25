@@ -145,14 +145,16 @@ class FlakeFactorTests(SimpleTestCase):
 
 class ParticipantRankingTests(SimpleTestCase):
     """ Test the logic by which we determine users with "first pick" status. """
-    def setUp(self):
-        number_ws_trips = patch('ws.lottery.WinterSchoolParticipantRanker.number_ws_trips')
-        get_flake_factor = patch('ws.lottery.WinterSchoolParticipantRanker.get_flake_factor')
+    mocked_par_methods = ['number_trips_led', 'number_ws_trips', 'flake_factor']
 
-        number_ws_trips.start()
-        get_flake_factor.start()
-        self.addCleanup(number_ws_trips.stop)
-        self.addCleanup(get_flake_factor.stop)
+    def setUp(self):
+        base = 'ws.lottery.WinterSchoolParticipantRanker'
+        patches = [patch(f'{base}.{name}') for name in self.mocked_par_methods]
+
+        for patched in patches:
+            patched.start()
+        for patched in reversed(patches):
+            self.addCleanup(patched.stop)
 
         # (Mocked-out methods accessible at self.ranker.<method_name>)
         self.ranker = lottery.WinterSchoolParticipantRanker()
@@ -170,31 +172,35 @@ class ParticipantRankingTests(SimpleTestCase):
         flaked_once = models.Participant(affiliation='MG')
         reliable = models.Participant(affiliation='NA')
 
-        def mock_trip_count(participant):
-            """ Reliable participant has been on more trips, but is reliable. """
-            if participant is flaked_once:
-                return 1
-            elif participant is serial_flaker:
-                return 3
-            elif participant is reliable:
-                return 5
+        # NOTE: Must use id since these objects have no pk (they're unhashable)
+        mocked_counts = {
+            id(flaked_once): {
+                'number_trips_led': 8,
+                'number_ws_trips': 2,
+                'flake_factor': 5  # Flaked on one of the two trips
+            },
+            id(serial_flaker): {
+                'number_trips_led': 4,
+                'number_ws_trips': 3,
+                'flake_factor': 15  # Flaked on all three!
+            },
+            id(reliable): {
+                'number_trips_led': 0,
+                'number_ws_trips': 4,
+                'flake_factor': -8  # Showed up for all four trips
+            },
+        }
 
-        def mock_flake_factor(participant):
-            if participant is flaked_once:
-                return 5
-            elif participant is serial_flaker:
-                return 15
-            elif participant is reliable:
-                return -10
-
-        self.ranker.number_ws_trips.side_effect = mock_trip_count
-        self.ranker.flake_factor.side_effect = mock_flake_factor
+        for attr in self.mocked_par_methods:
+            method = getattr(self.ranker, attr)
+            method.side_effect = lambda par: mocked_counts[id(par)][attr]
 
         self.expect_ranking(reliable, flaked_once, serial_flaker)
 
     def test_affiliation(self):
         """ All else held equal, priority is given to MIT affiliates. """
         self.ranker.flake_factor.return_value = 0
+        self.ranker.number_trips_led.return_value = 0
         self.ranker.number_ws_trips.return_value = 2
 
         mit_undergrad = models.Participant(affiliation='MU')
@@ -215,34 +221,48 @@ class ParticipantRankingTests(SimpleTestCase):
         self.expect_ranking(mit_undergrad, mit_grad, mit_affiliate,
                             harvard_undergrad, harvard_grad, non_affiliate)
 
-    def test_more_trips(self):
-        """ All else held equal, participants with fewer trips get priority. """
+    def test_leader_bump(self):
+        """ All else held equal, the most active leaders get priority. """
         # Both participants are MIT undergraduates, equally likely to flake
-        novice = models.Participant(affiliation='MU')
-        veteran = models.Participant(affiliation='MU')
+        novice = models.Participant(affiliation='MU', name='New Leader')
+        veteran = models.Participant(affiliation='MU', name='Veteran Leader')
         self.ranker.flake_factor.return_value = 0
 
-        # Key difference: novice has been on fewer trips
-        def mock_trip_count(participant):
-            return 5 if participant is veteran else 1
-        self.ranker.number_ws_trips.side_effect = mock_trip_count
+        # Key difference: the veteran leader has a greater balance of led trips
+        mocked_counts = {
+            id(veteran): {'number_trips_led': 4, 'number_ws_trips': 1},  # Net 3
+            id(novice):  {'number_trips_led': 2, 'number_ws_trips': 3}  # Net -1
+        }
 
-        # Novice is given higher ranking
-        self.expect_ranking(novice, veteran)
+        def by_participant(attribute):
+            """ Quick closure for looking up the count. """
+            return lambda par: mocked_counts[id(par)][attribute]
+
+        for attr in ['number_ws_trips', 'number_trips_led']:
+            getattr(self.ranker, attr).side_effect = by_participant(attr)
+
+        # Sanity check that our net trips led balance works properly
+        self.assertEqual(self.ranker.trips_led_balance(veteran), 3)
+        self.assertEqual(self.ranker.trips_led_balance(novice), 0)
+
+        # Veteran is given higher ranking
+        self.expect_ranking(veteran, novice)
 
     def test_sort_key_randomness(self):
         """ We break ties with a random value. """
         tweedle_dee = models.Participant(affiliation='NG')
         tweedle_dum = models.Participant(affiliation='NG')
 
+        # All other ranking factors are equal
+        self.ranker.number_trips_led.return_value = 0
         self.ranker.flake_factor.return_value = -2
         self.ranker.number_ws_trips.return_value = 3
 
+        # Despite their equality, some randomness distinguishes keys
         dee_key = self.ranker.priority_key(tweedle_dee)
         dum_key = self.ranker.priority_key(tweedle_dum)
         self.assertNotEqual(dee_key, dum_key)
-
-        self.assertEqual(dee_key[:-1], dum_key[:-1])
+        self.assertEqual(dee_key[:-1], dum_key[:-1])  # (last item is random)
 
 
 class SingleTripLotteryTests(SimpleTestCase):
