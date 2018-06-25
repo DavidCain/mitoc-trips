@@ -1,3 +1,4 @@
+from datetime import timedelta
 import logging
 import random
 
@@ -33,6 +34,22 @@ def place_on_trip(signup):
                                                       signup.participant))
     signup.on_trip = True
     signup.save()
+
+
+def affiliation_weighted_rand(participant):
+    """ Return a float that's meant to rank participants by affiliation.
+
+    A lower number is a "preferable" affiliation. That is to say, ranking
+    participants by the result of this function will put MIT students towards
+    the beginning of the list more often than not.
+    """
+    weights = {
+        'MU': 0.3, 'MG': 0.2, 'MA': 0.1,  # (MIT undergrads, grads, affiliates)
+        'NU': 0.0, 'NG': 0.0, 'NA': 0.0,  # (non-MIT students, general public)
+        # Old, deprecated status codes
+        'M': 0.1, 'N': 0.0, 'S': 0.0
+    }
+    return random.random() - weights[participant.affiliation]
 
 
 class WinterSchoolParticipantRanker:
@@ -111,9 +128,9 @@ class WinterSchoolParticipantRanker:
 
     def lowest_non_driver(self, trip):
         """ Return the lowest priority non-driver on the trip. """
-        accepted_signups = trip.signup_set.filter(on_trip=True)
-        non_driver_kwargs = {'participant__lotteryinfo__car_status': 'none'}
-        non_drivers = accepted_signups.filter(**non_driver_kwargs)
+        no_car = (Q(participant__lotteryinfo__isnull=True) |
+                  Q(participant__lotteryinfo__car_status='none'))
+        non_drivers = trip.signup_set.filter(no_car, on_trip=True)
         return max(non_drivers, key=lambda signup: self.priority_key(signup.participant))
 
 
@@ -147,7 +164,8 @@ class SingleTripLotteryRunner(LotteryRunner):
 
     @property
     def ranked_participants(self):
-        return [s.participant for s in self.trip.signup_set.order_by('?')]
+        participants = (s.participant for s in self.trip.signup_set)
+        return sorted(participants, key=affiliation_weighted_rand)
 
     def __call__(self):
         if self.trip.algorithm != 'lottery':
