@@ -197,30 +197,6 @@ class ParticipantRankingTests(SimpleTestCase):
 
         self.expect_ranking(reliable, flaked_once, serial_flaker)
 
-    def test_affiliation(self):
-        """ All else held equal, priority is given to MIT affiliates. """
-        self.ranker.flake_factor.return_value = 0
-        self.ranker.number_trips_led.return_value = 0
-        self.ranker.number_ws_trips.return_value = 2
-
-        mit_undergrad = models.Participant(affiliation='MU')
-        mit_grad = models.Participant(affiliation='MG')
-        mit_affiliate = models.Participant(affiliation='MA')
-
-        # Within MIT, preference is given to students
-        self.expect_ranking(mit_undergrad, mit_grad, mit_affiliate)
-
-        harvard_undergrad = models.Participant(affiliation='NU')
-        harvard_grad = models.Participant(affiliation='NG')
-        non_affiliate = models.Participant(affiliation='NA')
-
-        # Outside MIT, preference is still given to students
-        self.expect_ranking(harvard_undergrad, harvard_grad, non_affiliate)
-
-        # Test the full hierarchy
-        self.expect_ranking(mit_undergrad, mit_grad, mit_affiliate,
-                            harvard_undergrad, harvard_grad, non_affiliate)
-
     def test_leader_bump(self):
         """ All else held equal, the most active leaders get priority. """
         # Both participants are MIT undergraduates, equally likely to flake

@@ -77,13 +77,12 @@ class WinterSchoolParticipantRanker:
         # If the leader led more trips, give them a bump
         leader_bump = -self.trips_led_balance(participant)
 
-        # First preference first (single-letter codes are old)
-        ranked_affiliations = ['MU', 'MG', 'MA', 'M', 'NU', 'NG', 'S', 'NA', 'N']
-        affiliation = ranked_affiliations.index(participant.affiliation)
+        # Ties are resolved by a random number
+        # (MIT students/affiliates are more likely to come first)
+        affiliation_weight = affiliation_weighted_rand(participant)
 
         # Lower = higher in the list
-        # Random float faily resolves ties without using database order
-        return (flaky_or_neutral, leader_bump, affiliation, random.random())
+        return (flaky_or_neutral, leader_bump, affiliation_weight)
 
     def flake_factor(self, participant):
         """ Return a number indicating past "flakiness".
