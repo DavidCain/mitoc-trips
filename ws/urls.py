@@ -89,7 +89,6 @@ urlpatterns = [
     # Participating on Trips
     url(r'^help/participants/personal_info/$', TemplateView.as_view(template_name='help/participants/personal_info.html'), name='help-personal_info'),
     url(r'^help/participants/lottery/$', TemplateView.as_view(template_name='help/participants/lottery.html'), name='help-lottery'),
-    url(r'^help/participants/personal_gear/$', TemplateView.as_view(template_name='help/participants/personal_gear.html'), name='help-personal_gear'),
     url(r'^help/participants/signups/$', TemplateView.as_view(template_name='help/participants/signups.html'), name='help-signups'),
 
     # Leading Trips

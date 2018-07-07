@@ -16,9 +16,6 @@
     <ul class="list-unstyled" id='participating'>
       <li><a href="{% url 'help-personal_info' %}">Personal information, privacy</a></li>
       <li><a href="{% url 'help-lottery' %}">The signup lottery</a></li>
-      {% if "WSC" in groups or user.is_superuser %}
-        <li><a href="{% url 'help-personal_gear' %}">Personal gear list</a>&nbsp;<span class="badge">Missing!</span></li>
-      {% endif %}
       <li><a href="{% url 'help-signups' %}">Signing up for trips</a></li>
     </ul>
 
