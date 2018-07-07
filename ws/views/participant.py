@@ -263,29 +263,37 @@ class ParticipantView(ParticipantLookupView, SingleObjectMixin,
                 'waitlisted': waitlisted.filter(in_future),
                 'leader': trips_led.filter(in_future),
                 'creator': created_but_not_on.filter(in_future),
+                'wimp': participant.wimp_trips.filter(in_future),
             },
             'past': {
                 'on_trip': accepted.filter(in_past),
                 'leader': trips_led.filter(in_past),
                 'creator': created_but_not_on.filter(in_past),
+                'wimp': participant.wimp_trips.filter(in_past),
             },
         }
 
     def get_stats(self, trips):
-        num_attended = len(trips['past']['on_trip'])
-        num_led = len(trips['past']['leader'])
-        num_created = len(trips['past']['creator'])
-        if not (num_attended or num_led):
+        if not any(trips['past'].values()):
             return []
 
-        def pluralize(count):
-            return '' if count == 1 else 's'
+        def count(key):
+            num = len(trips['past'][key])
+            plural = '' if num == 1 else 's'
+            return f"{num} trip{plural}"
 
-        stats = ["Attended {} trip".format(num_attended) + pluralize(num_attended),
-                 "Led {} trip".format(num_led) + pluralize(num_led)]
-        if num_created:
-            label = "Created (but wasn't on) {} trip".format(num_created)
-            stats.append(label + pluralize(num_created))
+        # Stats that are always reported for leaders
+        stats = [
+            f"Attended {count('on_trip')}",
+            f"Led {count('leader')}",
+        ]
+
+        # Optional stats
+        if trips['past']['wimp']:
+            stats.append(f"WIMPed {count('wimp')}")
+        if trips['past']['creator']:
+            stats.append(f"Created (but wasn't on) {count('creator')}")
+
         return stats
 
     def include_pairing(self, context):

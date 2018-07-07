@@ -1,12 +1,13 @@
 {% extends "base.html" %}
+{% load perm_tags %}
 {% block head_title %}Help{% endblock head_title %}
 
 {% block content %}
 <div class="row">
   <div class="col-md-3 hidden-print">
-    {% if 'WIMP' in groups or user.is_superuser %}
-    {# This page is technically visible to everyone, but is only needed for the WIMP #}
-    <h3>Being the WIMP</h3>
+    {% if user|is_the_wimp:viewing_participant %}
+      {# This page is technically visible to everyone, but is only needed for the WIMP #}
+      <h3>Being the WIMP</h3>
       <ul class="list-unstyled" id='wimp'>
         <li><a href="{% url 'help-wimp_guide' %}">WIMP guide</a></li>
       </ul>
