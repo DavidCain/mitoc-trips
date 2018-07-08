@@ -50,6 +50,14 @@
           {% endif %}
         {% endif %}
       </uib-tab>
+
+      {% if trip.lottery_log %}
+        <uib-tab heading="Lottery">
+          <h3>Lottery Log</h3>
+          <pre>{{ trip.lottery_log }}</pre>
+        </uib-tab>
+      {% endif %}
+
     </uib-tabset>
   </div>
 {% else %}

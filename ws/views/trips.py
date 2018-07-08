@@ -322,6 +322,9 @@ class ApproveTripsView(UpcomingTripsView):
 class RunTripLotteryView(DetailView, TripLeadersOnlyView):
     model = models.Trip
 
+    def get(self, *args, **kwargs):
+        return redirect(reverse('view_trip', kwargs=self.kwargs))
+
     def post(self, request, *args, **kwargs):
         trip = self.get_object()
         runner = SingleTripLotteryRunner(trip)
