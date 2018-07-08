@@ -163,7 +163,7 @@ class SingleTripLotteryRunner(LotteryRunner):
 
     @property
     def ranked_participants(self):
-        participants = (s.participant for s in self.trip.signup_set)
+        participants = (s.participant for s in self.trip.signup_set.all())
         return sorted(participants, key=affiliation_weighted_rand)
 
     def __call__(self):
