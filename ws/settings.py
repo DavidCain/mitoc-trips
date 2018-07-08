@@ -19,6 +19,7 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY',
                        '*this-is-obviously-not-secure-only-use-it-locally*')
 MEMBERSHIP_SECRET_KEY = os.getenv('MEMBERSHIP_SECRET_KEY',
                                   'secret shared with the mitoc-member repo')
+WS_LOTTERY_LOG_DIR = os.getenv('WS_LOTTERY_LOG_DIR', '/tmp/')
 
 # URL to an avatar image that is self-hosted
 # (Users who opt out of Gravatar would prefer to not have requests made to

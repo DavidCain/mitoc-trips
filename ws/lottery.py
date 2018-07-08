@@ -1,14 +1,16 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 import io
 import logging
+from pathlib import Path
 import random
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 
-from ws.utils.dates import local_date, closest_wed_at_noon, jan_1
-from ws.utils.signups import add_to_waitlist
 from ws import models
+from ws.utils.dates import local_now, local_date, closest_wed_at_noon, jan_1
+from ws.utils.signups import add_to_waitlist
+from ws import settings
 
 
 def reciprocally_paired(participant):
@@ -214,10 +216,20 @@ class WinterSchoolLotteryRunner(LotteryRunner):
     def __init__(self):
         self.ranked_participants = WinterSchoolParticipantRanker()
         super().__init__()
+        self.configure_logger()
+
+    def configure_logger(self):
+        """ Configure a stream to save the log to the trip. """
+        datestring = datetime.strftime(local_now(), "%Y-%m-%dT:%H:%M:%S")
+        filename = Path(settings.WS_LOTTERY_LOG_DIR, f"ws_{datestring}.log")
+        self.handler = logging.FileHandler(filename)
+        self.handler.setLevel(logging.DEBUG)
+        self.logger.addHandler(self.handler)
 
     def __call__(self):
         self.assign_trips()
         self.free_for_all()
+        self.handler.close()
 
     def free_for_all(self):
         """ Make trips first-come, first-serve.
@@ -317,6 +329,8 @@ class ParticipantHandler:
                 self.logger.info(f"Adding {signup} to '{trip}', as they're a driver")
                 par_to_bump = self.runner.participant_to_bump(trip)
                 add_to_waitlist(par_to_bump, prioritize=True)
+                self.logger.info(f"Moved {par_to_bump} to the top of the waitlist")
+                # TODO: Try to move the bumped participant to a preferred, open trip!
                 signup.on_trip = True
                 signup.save()
                 return True
@@ -410,5 +424,6 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
                 find_signup = Q(participant=participant, trip=favorite_trip)
                 favorite_signup = models.SignUp.objects.get(find_signup)
                 add_to_waitlist(favorite_signup)
+                self.logger.info(f"Waitlisted {self.par_text} on {favorite_signup.trip.name}")
 
         self.runner.mark_handled(self.participant)
