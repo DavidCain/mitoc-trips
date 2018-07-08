@@ -64,7 +64,12 @@ class WinterSchoolParticipantRanker:
         2. affiliation (MIT affiliated is higher priority)
         3. 'flakiness' (more flakes -> lower priority
         """
-        participants = models.Participant.objects.all()
+        # For simplicity, only look at participants who actually have signups
+        participants = models.Participant.objects.filter(
+            signup__trip__trip_date__gt=self.today,
+            signup__trip__algorithm='lottery',
+            signup__trip__activity='winter_school'
+        )
         return iter(sorted(participants, key=self.priority_key))
 
     def priority_key(self, participant):
