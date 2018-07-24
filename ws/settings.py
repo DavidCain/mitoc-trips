@@ -165,7 +165,7 @@ ROOT_URLCONF = 'ws.urls'
 WSGI_APPLICATION = 'ws.wsgi.application'
 
 
-# Docusign
+# DocuSign
 DOCUSIGN_API_BASE = os.getenv('DOCUSIGN_API_BASE', 'https://demo.docusign.net/restapi/v2/')
 DOCUSIGN_USERNAME = os.getenv('DOCUSIGN_USERNAME', 'djcain@mit.edu')
 DOCUSIGN_PASSWORD = os.getenv('DOCUSIGN_PASSWORD', 'super-secret')
@@ -196,7 +196,6 @@ DOCUSIGN_EVENT_NOTIFICATION = {
 
 
 # Celery settings
-
 BROKER_URL = os.getenv('BROKER_URL', 'amqp://guest:guest@127.0.0.1//')
 CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'amqp')
 CELERY_TASK_SERIALIZER = 'json'
@@ -224,29 +223,21 @@ CELERYBEAT_SCHEDULE = {
 CELERY_TIMEZONE = 'UTC'
 
 # Internationalization
-# https://docs.djangoproject.com/en/1.8/topics/i18n/
-
+# https://docs.djangoproject.com/en/1.11/topics/i18n/
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'America/New_York'
-
 USE_I18N = True
-
 USE_L10N = True
-
 USE_TZ = True
 
-
-# Project-specific settings
+# Participants must update their profile information every ~6 months
 MUST_UPDATE_AFTER_DAYS = 180
 
-# Break packages up based on how they'll be served
-
+# -- Break packages up based on how they'll be served -- #
 # CDN libraries are for basic, commonplace libraries (and are loaded first)
 cdn_libs = ['jquery/dist/jquery.min.js', 'angular/angular.js', 'd3/d3.min.js',
             '@fortawesome/fontawesome-free/js/all.js']
-
-
+# All other libraries are bundled together
 other_libs = ['lodash/lodash.js',
               'bootstrap/dist/js/bootstrap.js',
               'footable/js/footable.js',
