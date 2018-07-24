@@ -22,24 +22,29 @@ from ws.utils import geardb
 from ws.utils.perms import activity_name, is_chair
 
 
-scope = ['https://spreadsheets.google.com/feeds']
-credfile = os.getenv('OAUTH_JSON_CREDENTIALS')
+def connect_to_sheets():
+    """ Returns a Google Sheets client and the creds used by that client. """
+    scope = ['https://spreadsheets.google.com/feeds']
+    credfile = os.getenv('OAUTH_JSON_CREDENTIALS')
 
-if settings.DEBUG and not (credfile and os.path.exists(credfile)):
-    # Allow local environments to skip
-    credentials = None  # Exceptions will be raised if any methods are tried
-    gc = None
-else:
+    if not (credfile and os.path.exists(credfile)):
+        if settings.DEBUG:  # Automated Celery jobs won't be running in debug
+            return None, None  # (Exceptions will be raised if 'client' is used)
+        raise KeyError("Specify OAUTH_JSON_CREDENTIALS to update Google Sheets")
+
     credentials = ServiceAccountCredentials.from_json_keyfile_name(credfile, scope)
-    gc = gspread.authorize(credentials)
+    return gspread.authorize(credentials), credentials
+
+
+client, credentials = connect_to_sheets()
 
 
 def with_refreshed_token(func):
     """ By default, tokens are limited to 60 minutes. Refresh if expired. """
     def func_wrapper(*args, **kwargs):
         if credentials.access_token_expired:
-            credentials.refresh(httplib2.Http())
-            gc.login()  # Client stored credentials, so log in again to refresh
+            credentials.refresh(httplib2.Http())  # (`client` points to this)
+            client.login()  # Log in again to refresh credentials
         func(*args, **kwargs)
     return func_wrapper
 
@@ -170,7 +175,7 @@ def update_participant(discount, participant):
     Much more efficient than updating the entire sheet.
     """
     user = models.User.objects.get(pk=participant.user_id)
-    wks = gc.open_by_key(discount.ga_key).sheet1
+    wks = client.open_by_key(discount.ga_key).sheet1
     writer = SheetWriter(discount)
 
     # Attempt to find existing row, update it if found
@@ -198,7 +203,7 @@ def update_discount_sheet(discount):
     For individual updates, this approach should be avoided (instead, opting to
     update individual cells in the spreadsheet).
     """
-    wks = gc.open_by_key(discount.ga_key).sheet1
+    wks = client.open_by_key(discount.ga_key).sheet1
     participants = list(discount.participant_set.order_by('name'))
 
     users = models.User.objects.filter(pk__in=[p.user_id for p in participants])
