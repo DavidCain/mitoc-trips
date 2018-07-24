@@ -1,4 +1,5 @@
 from datetime import timedelta
+import logging
 import random
 
 from celery import group, shared_task
@@ -6,10 +7,14 @@ from django.core.cache import cache
 from django.db.models import Q
 
 from ws import models
+from ws import settings
 from ws.sao import send_email_to_funds
 from ws.utils import dates as date_utils
 from ws.utils import member_sheets
 from ws.lottery import SingleTripLotteryRunner, WinterSchoolLotteryRunner
+
+
+logger = logging.getLogger(__name__)
 
 
 def acquire_lock(discount, lock_expires_after=300):
@@ -43,6 +48,12 @@ def update_discount_sheet(self, discount_id):
     wish to share their information, so it should be run periodically.
     """
     discount = models.Discount.objects.get(pk=discount_id)
+
+    if settings.DISABLE_GSHEETS:
+        logger.warning("Google Sheets functionality is disabled, "
+                       f"not updating sheet for '{discount.name}'")
+        return
+
     if acquire_lock(discount):
         try:
             member_sheets.update_discount_sheet(discount)
@@ -100,6 +111,11 @@ def update_participant(self, discount_id, participant_id):
     """ Lock the sheet and add/update a single participant. """
     discount = models.Discount.objects.get(pk=discount_id)
     participant = models.Participant.objects.get(pk=participant_id)
+
+    if settings.DISABLE_GSHEETS:
+        logger.warning("Google Sheets functionality is disabled, not updating "
+                       f"'{discount.name}' for {participant.name}")
+        return
 
     if acquire_lock(discount):
         try:

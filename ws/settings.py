@@ -194,6 +194,9 @@ DOCUSIGN_EVENT_NOTIFICATION = {
     ],
 }
 
+# Google Sheet (discount roster) settings
+OAUTH_JSON_CREDENTIALS = os.getenv('OAUTH_JSON_CREDENTIALS')
+DISABLE_GSHEETS = bool(os.getenv('DISABLE_GSHEETS'))
 
 # Celery settings
 BROKER_URL = os.getenv('BROKER_URL', 'amqp://guest:guest@127.0.0.1//')

@@ -11,7 +11,8 @@ import bisect
 from collections import OrderedDict, namedtuple
 from itertools import zip_longest
 import httplib2
-import os
+import logging
+import os.path
 
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
@@ -22,14 +23,36 @@ from ws.utils import geardb
 from ws.utils.perms import activity_name, is_chair
 
 
-def connect_to_sheets():
-    """ Returns a Google Sheets client and the creds used by that client. """
-    scope = ['https://spreadsheets.google.com/feeds']
-    credfile = os.getenv('OAUTH_JSON_CREDENTIALS')
+logger = logging.getLogger(__name__)
 
-    if not (credfile and os.path.exists(credfile)):
-        if settings.DEBUG:  # Automated Celery jobs won't be running in debug
-            return None, None  # (Exceptions will be raised if 'client' is used)
+
+def connect_to_sheets():
+    """ Returns a Google Sheets client and the creds used by that client.
+
+    If intentionally disabling Google Sheets functionality, `None` will be
+    returned as both the client and client credentials. This occurs even if the
+    proper credential file is present.
+
+    If missing credentials while in DEBUG mode, a "soft failure" will occur:
+    the logger will note the missing credentials file and will return `None` in
+
+    This allows us to run a webserver in a development environment that will
+    never actually update Google spreadsheets. We can go through the flow of
+    modifying discounts without running a Celery job to update the spreadsheet.
+    """
+    scope = ['https://spreadsheets.google.com/feeds']
+    credfile = settings.OAUTH_JSON_CREDENTIALS
+    creds_present = credfile and os.path.exists(credfile)
+
+    # Avoid unnecessary handshake with a service we'll never use
+    if settings.DISABLE_GSHEETS:
+        return None, None
+
+    if not creds_present:
+        if settings.DEBUG:
+            logger.error("OAUTH_JSON_CREDENTIALS is missing!"
+                         "Unable to update Google Sheets.")
+            return None, None
         raise KeyError("Specify OAUTH_JSON_CREDENTIALS to update Google Sheets")
 
     credentials = ServiceAccountCredentials.from_json_keyfile_name(credfile, scope)
