@@ -5,7 +5,11 @@ import os
 
 DEBUG = False
 TEMPLATE_DEBUG = False
-ALLOWED_HOSTS = ['trips.mitoc.org', 'mitoc-trips.mit.edu']
+
+# In true production, 'mitoc-trips.mit.edu'
+# Running in Vagrant, this is set to 'mitoc-trips.local'
+ALLOWED_HOSTS = [os.getenv('DJANGO_ALLOWED_HOST')]
+
 if os.getenv('EC2_IP'):
     ALLOWED_HOSTS.append(os.environ['EC2_IP'])
 
