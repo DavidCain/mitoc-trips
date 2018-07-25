@@ -1,5 +1,7 @@
 /node_modules
 /static
+/env
+/scripts
 *.py[cod]
 oauth_credentials.json
 celerybeat-schedule
