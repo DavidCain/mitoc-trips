@@ -1,6 +1,6 @@
 language: python
 python: "3.6"
-install: pip install -r requirements.txt
+install: pip install -r requirements-dev.txt
 env:
   - GEAR_DATABASE_USER='travis' GEAR_DATABASE_PASSWORD='' DISABLE_GSHEETS=1
 services:
