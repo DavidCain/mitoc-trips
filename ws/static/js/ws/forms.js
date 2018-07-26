@@ -290,6 +290,11 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
         });
       };
 
+      scope.dismissModal = function(reason) {
+        scope.modal.dismiss(reason);
+        scope.error = null;
+      };
+
       scope.$watch('allSignups', function(allSignups) {
         scope.anyFeedbackPresent = _.some(allSignups, 'feedback.length');
       });
@@ -306,7 +311,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
             scope.signups[destList].push(signup);
             updateSignups();
             updateSignupMemberships();  // Could check just this participant
-            scope.modal.dismiss('success');
+            scope.dismissModal('success');
           },
           function error(response) {
             scope.error = response.data.message;
@@ -334,12 +339,6 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
           templateUrl: '/static/template/admin-trip-signups-modal.html',
           scope: scope
         });
-      };
-
-      scope.cancel = function() {
-        scope.pending = false;
-        scope.error = '';
-        scope.modal.dismiss('');
       };
 
       scope.submit = function() {

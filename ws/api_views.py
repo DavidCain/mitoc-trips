@@ -283,11 +283,17 @@ class LeaderParticipantSignupView(SingleObjectMixin, FormatSignupMixin,
 
         trip = self.get_object()
         signup, created = models.SignUp.objects.get_or_create(trip=trip, participant=par)
-        if signup.on_trip and not created:
-            # Other cases: Exists but not on trip, or exists but on waitlist
-            # (trip_or_wait will handle both of those cases)
-            msg = "{} is already signed up".format(signup.participant.name)
-            return JsonResponse({'message': msg}, status=409)
+
+        if not created:  # (SignUp exists, but participant may not be on trip)
+            try:
+                already_on_trip = signup.on_trip or signup.waitlistsignup
+            except models.WaitListSignup.DoesNotExist:
+                already_on_trip = False
+
+            if already_on_trip:
+                queue = "trip" if signup.on_trip else "waitlist"
+                msg = f"{par.name} is already on the {queue}"
+                return JsonResponse({'message': msg}, status=409)
 
         signup.notes = postdata.get('notes', '')
         signup = signup_utils.trip_or_wait(signup)
