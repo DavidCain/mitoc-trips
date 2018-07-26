@@ -50,7 +50,7 @@ def connect_to_sheets():
 
     if not creds_present:
         if settings.DEBUG:
-            logger.error("OAUTH_JSON_CREDENTIALS is missing!"
+            logger.error("OAUTH_JSON_CREDENTIALS is missing! "
                          "Unable to update Google Sheets.")
             return None, None
         raise KeyError("Specify OAUTH_JSON_CREDENTIALS to update Google Sheets")

@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/DavidCain/mitoc-trips.svg?branch=master)](https://travis-ci.org/DavidCain/mitoc-trips)
+
 # About
 This is a Django-based trip management system for the [MIT Outing Club][mitoc].
 

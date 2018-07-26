@@ -1,0 +1,17 @@
+language: python
+python: "3.6"
+install: pip install -r requirements.txt
+env:
+  - GEAR_DATABASE_USER='travis' GEAR_DATABASE_PASSWORD='' DISABLE_GSHEETS=1
+services:
+  - mysql
+  - postgresql
+addons:
+  postgresql: "9.6"
+before_script:
+  - npm install
+  - npm install -g uglify-js yuglify
+  - python manage.py collectstatic --verbosity=0
+  - psql postgres -c 'create role ws login'
+  - psql postgres -c 'alter user ws createdb'
+script: python manage.py test
