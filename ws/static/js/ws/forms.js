@@ -299,8 +299,8 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
         scope.anyFeedbackPresent = _.some(allSignups, 'feedback.length');
       });
 
-      scope.signUp = function(participant) {
-        var payload = {participant_id: participant.id, notes: scope.notes};
+      scope.signUp = function(participant, notes) {
+        var payload = {participant_id: participant.id, notes: notes};
         var tripSignup = djangoUrl.reverse('json-leader_participant_signup',
                                            [scope.tripId]);
         $http.post(tripSignup, payload).then(
