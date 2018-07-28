@@ -69,7 +69,7 @@ class WinterSchoolParticipantRanker:
             signup__trip__trip_date__gt=self.today,
             signup__trip__algorithm='lottery',
             signup__trip__activity='winter_school'
-        )
+        ).distinct()
         return iter(sorted(participants, key=self.priority_key))
 
     def priority_key(self, participant):
