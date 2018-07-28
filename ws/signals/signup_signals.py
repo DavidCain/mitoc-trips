@@ -2,15 +2,13 @@
 Handle aspects of trip creation/modification when receiving signup changes.
 """
 
-from django.core.mail import send_mail
 from django.db.models.signals import pre_save, post_save
 from django.db.models.signals import pre_delete, post_delete
 from django.db.models.signals import m2m_changed
 from django.dispatch import receiver
 
 from ws.celery_config import app
-from ws.models import LeaderSignUp, SignUp, WaitList, WaitListSignup, Trip
-from ws.utils.dates import local_date
+from ws.models import LeaderSignUp, SignUp, WaitList, Trip
 from ws import sentry
 from ws.utils.signups import trip_or_wait, update_queues_if_trip_open
 from ws import tasks
@@ -36,8 +34,7 @@ def empty_waitlist(sender, instance, using, **kwargs):
     trip (only to see the trip removed).
     """
     try:
-        for signup in instance.waitlist.signups.all():
-            signup.delete()
+        instance.waitlist.signups.delete()
     except WaitList.DoesNotExist:  # Not all trips will have waitlists
         pass
 
@@ -58,38 +55,6 @@ def leader_signup(sender, instance, created, raw, using, update_fields, **kwargs
         trip.maximum_participants -= 1
         trip.save()
     trip.leaders.add(instance.participant)
-
-
-@receiver(post_delete, sender=WaitListSignup)
-def bumped_from_waitlist(sender, instance, using, **kwargs):
-    """ Notify previously waitlisted participants if they're on trip.
-
-    If the trip happened in the past, it's safe to assume it's just the
-    leader modifying the participant list. Don't notify in this case.
-
-    When a waitlist signup is deleted, it generally means the participant
-    is on the trip. The only other case is a complete trip deletion,
-    or a manual signup deletion. In either case, these actions are only
-    triggered by admins. Notifications will only be sent out if the
-    corresponding signup is now on the trip.
-    """
-    wl_signup, signup = instance, instance.signup
-    if getattr(signup, 'skip_signals', False):
-        return
-
-    if not wl_signup.signup.on_trip:
-        return  # Could just be deleted, don't want to falsely notify
-    trip = signup.trip
-    if trip.trip_date < local_date():
-        return  # Trip was yesterday or earlier, no point notifying
-    trip_link = get_trip_link(trip)
-    return  # TODO: There are issues with this going out incorrectly
-    send_mail("You're signed up for {}".format(trip),
-              "You're on {}! If you can't make it, please remove yourself "
-              "from the trip so others can join.".format(trip_link),
-              trip.creator.email,
-              [signup.participant.email],
-              fail_silently=True)
 
 
 def get_trip_link(trip):
