@@ -124,21 +124,14 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
 
         A lower score indicates a more reliable participant.
         """
-        score = 0
-        for trip in self.past_ws_trips(participant):
-            trip_feedback = participant.feedback_set.filter(trip=trip)
-            if not trip_feedback.exists():
-                continue
-            # If any leader says they flaked, then assume a flake
-            showed_up = all(feedback.showed_up for feedback in trip_feedback)
-            score += 5 if not showed_up else -2
-        return score
+        num_trips_flaked = participant.feedback_set.filter(
+            showed_up=False, trip__activity='winter_school'
+        ).values('trip').distinct().count()
 
-    def past_ws_trips(self, participant):
-        """ Past Winter School trips participant has been on this year. """
-        return participant.trip_set.filter(trip_date__gt=self.jan_1st,
-                                           trip_date__lt=self.today,
-                                           activity='winter_school')
+        # Assume present for any trip they attended but were not marked flaked
+        num_trips_present = self.number_ws_trips(participant) - num_trips_flaked
+
+        return (num_trips_flaked * 5) - (2 * num_trips_present)
 
     def number_trips_led(self, participant):
         """ Return the number of trips the participant has recently led.
@@ -151,9 +144,9 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
         return participant.trips_led.filter(trip_date__gt=last_year).count()
 
     def number_ws_trips(self, participant):
-        past_trips = self.past_ws_trips(participant)
-        signups = participant.signup_set.filter(trip__in=past_trips, on_trip=True)
-        return signups.count()
+        return participant.trip_set.filter(trip_date__gt=self.jan_1st,
+                                           trip_date__lt=self.today,
+                                           activity='winter_school').count()
 
     def trips_led_balance(self, par):
         """ Especially active leaders get priority. """
