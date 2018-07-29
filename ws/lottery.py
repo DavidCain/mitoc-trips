@@ -5,20 +5,12 @@ from pathlib import Path
 import random
 
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Q
+from django.db.models import F, Q, Case, When, IntegerField
 
 from ws import models
 from ws.utils.dates import local_now, local_date, closest_wed_at_noon, jan_1
 from ws.utils.signups import add_to_waitlist
 from ws import settings
-
-
-def reciprocally_paired(participant):
-    try:
-        lotteryinfo = participant.lotteryinfo
-    except models.LotteryInfo.DoesNotExist:
-        return False
-    return bool(lotteryinfo.reciprocally_paired_with)
 
 
 def par_is_driver(participant):
@@ -52,11 +44,7 @@ def affiliation_weighted_rand(participant):
     return random.random() - weights[participant.affiliation]
 
 
-class WinterSchoolParticipantRanker:
-    def __init__(self):
-        self.today = local_date()
-        self.jan_1st = jan_1()
-
+class ParticipantRanker:
     def __iter__(self):
         """ Ordered list of participants, ranked by:
 
@@ -64,13 +52,55 @@ class WinterSchoolParticipantRanker:
         2. affiliation (MIT affiliated is higher priority)
         3. 'flakiness' (more flakes -> lower priority
         """
+        return iter(self.ranked_participants())
+
+    def participants_to_handle(self):
+        raise NotImplementedError
+
+    def priority_key(self, participant):
+        """ Return a key that can be used to sort the participant. """
+        raise NotImplementedError
+
+    def ranked_participants(self):
+        """ Participants in the order they should be placed.
+
+        Each participant is decorated with an attribute that says if they've
+        reciprocally paired themselves with another participant.
+        """
+        is_reciprocally_paired = (
+            Q(pk=F('lotteryinfo__paired_with__'
+                   'lotteryinfo__paired_with__pk'))
+        )
+
+        participants = self.participants_to_handle().annotate(
+            reciprocally_paired=Case(
+                When(is_reciprocally_paired, then=1),
+                default=0,
+                output_field=IntegerField()
+            )
+        )
+        return sorted(participants, key=self.priority_key)
+
+
+class SingleTripParticipantRanker(ParticipantRanker):
+    priority_key = affiliation_weighted_rand
+
+    def participants_to_handle(self):
+        return models.Participant.objects.filter(signup__trip=self.trip)
+
+
+class WinterSchoolParticipantRanker(ParticipantRanker):
+    def __init__(self):
+        self.today = local_date()
+        self.jan_1st = jan_1()
+
+    def participants_to_handle(self):
         # For simplicity, only look at participants who actually have signups
-        participants = models.Participant.objects.filter(
+        return models.Participant.objects.filter(
             signup__trip__trip_date__gt=self.today,
             signup__trip__algorithm='lottery',
             signup__trip__activity='winter_school'
         ).distinct()
-        return iter(sorted(participants, key=self.priority_key))
 
     def priority_key(self, participant):
         """ Return tuple for sorting participants. """
@@ -189,17 +219,13 @@ class SingleTripLotteryRunner(LotteryRunner):
         self.handler.setLevel(logging.DEBUG)
         self.logger.addHandler(self.handler)
 
-    def ranked_participants(self):
-        participants = (s.participant for s in self.trip.signup_set.all())
-        return sorted(participants, key=affiliation_weighted_rand)
-
     def __call__(self):
         if self.trip.algorithm != 'lottery':
             self.log_stream.close()
             return
 
         self.logger.info("Randomly ordering (preference to MIT affiliates)...")
-        ranked_participants = self.ranked_participants()
+        ranked_participants = SingleTripParticipantRanker()
         self.logger.info("Participants will be handled in the following order:")
         max_len = max(len(par.name) for par in ranked_participants)
         for i, par in enumerate(ranked_participants, start=1):
@@ -219,7 +245,7 @@ class SingleTripLotteryRunner(LotteryRunner):
 
 class WinterSchoolLotteryRunner(LotteryRunner):
     def __init__(self):
-        self.ranked_participants = WinterSchoolParticipantRanker()
+        self.ranker = WinterSchoolParticipantRanker()
         super().__init__()
         self.configure_logger()
 
@@ -249,10 +275,10 @@ class WinterSchoolLotteryRunner(LotteryRunner):
             trip.save()
 
     def participant_to_bump(self, trip):
-        return self.ranked_participants.lowest_non_driver(trip)
+        return self.ranker.lowest_non_driver(trip)
 
     def assign_trips(self):
-        for participant in self.ranked_participants:
+        for participant in self.ranker:
             handling_text = f"Handling {participant}"
             self.logger.debug(handling_text)
             self.logger.debug('-' * len(handling_text))
@@ -283,7 +309,7 @@ class ParticipantHandler:
 
     @property
     def paired(self):
-        return reciprocally_paired(self.participant)
+        return self.participant.reciprocally_paired
 
     @property
     def paired_par(self):
@@ -294,7 +320,7 @@ class ParticipantHandler:
 
     @property
     def to_be_placed(self):
-        if self.paired and self.allow_pairs:
+        if self.allow_pairs and self.paired:
             return (self.participant, self.paired_par)
         else:
             return (self.participant,)
@@ -356,8 +382,7 @@ class SingleTripParticipantHandler(ParticipantHandler):
 
     @property
     def paired(self):
-        # Obviously, participants must mark each other as in the pair
-        if not reciprocally_paired(self.participant):
+        if not self.participant.reciprocally_paired:
             return False
 
         # A participant is only paired if both signed up for this trip

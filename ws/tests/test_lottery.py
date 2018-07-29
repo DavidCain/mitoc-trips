@@ -7,37 +7,6 @@ from ws import models
 from django.test import SimpleTestCase
 
 
-class LotteryPairingTests(SimpleTestCase):
-    """ Test "pairing" of participants. """
-    def test_no_reciprocal_pairing(self):
-        """ User has not requested to be paired with anybody. """
-        par = models.Participant()  # No LotteryInfo
-        self.assertFalse(lottery.reciprocally_paired(par))
-
-        # LotteryInfo exists, but paired participant is None
-        par.lotteryinfo = models.LotteryInfo(paired_with=None)
-        self.assertFalse(lottery.reciprocally_paired(par))
-
-    def test_unrequited(self):
-        """ One half of the pair wants to be paired with the other. """
-        stalker = models.Participant()
-        target = models.Participant()
-        stalker.lotteryinfo = models.LotteryInfo(paired_with=target)
-
-        self.assertFalse(lottery.reciprocally_paired(stalker))
-        self.assertFalse(lottery.reciprocally_paired(target))
-
-    def test_reciprocation(self):
-        """ Both participants want to be paired with one another. """
-        romeo = models.Participant()
-        juliet = models.Participant()
-        romeo.lotteryinfo = models.LotteryInfo(paired_with=juliet)
-        juliet.lotteryinfo = models.LotteryInfo(paired_with=romeo)
-
-        self.assertTrue(lottery.reciprocally_paired(romeo))
-        self.assertTrue(lottery.reciprocally_paired(juliet))
-
-
 class DriverTests(SimpleTestCase):
     def test_no_lotteryinfo(self):
         """ Don't regard anybody as a driver if they didn't submit prefs. """
