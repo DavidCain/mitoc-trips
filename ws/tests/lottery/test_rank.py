@@ -1,28 +1,10 @@
-from unittest.mock import patch
 import itertools
-
-from ws import lottery
-from ws import models
+from unittest.mock import patch
 
 from django.test import SimpleTestCase
 
-
-class DriverTests(SimpleTestCase):
-    def test_no_lotteryinfo(self):
-        """ Don't regard anybody as a driver if they didn't submit prefs. """
-        par = models.Participant()
-        self.assertFalse(lottery.par_is_driver(par))
-
-    def test_lotteryinfo(self):
-        """ Drivers are based off car status from that week. """
-        par = models.Participant()
-        par.lotteryinfo = models.LotteryInfo(car_status=None)
-        self.assertFalse(lottery.par_is_driver(par))
-
-        par.lotteryinfo = models.LotteryInfo(car_status='own')
-        self.assertTrue(lottery.par_is_driver(par))
-        par.lotteryinfo = models.LotteryInfo(car_status='rent')
-        self.assertTrue(lottery.par_is_driver(par))
+from ws.lottery import rank
+from ws import models
 
 
 class ParticipantRankingTests(SimpleTestCase):
@@ -30,7 +12,7 @@ class ParticipantRankingTests(SimpleTestCase):
     mocked_par_methods = ['number_trips_led', 'number_ws_trips', 'flake_factor']
 
     def setUp(self):
-        base = 'ws.lottery.WinterSchoolParticipantRanker'
+        base = 'ws.lottery.run.WinterSchoolParticipantRanker'
         patches = [patch(f'{base}.{name}') for name in self.mocked_par_methods]
 
         for patched in patches:
@@ -39,7 +21,7 @@ class ParticipantRankingTests(SimpleTestCase):
             self.addCleanup(patched.stop)
 
         # (Mocked-out methods accessible at self.ranker.<method_name>)
-        self.ranker = lottery.WinterSchoolParticipantRanker()
+        self.ranker = rank.WinterSchoolParticipantRanker()
 
     def expect_ranking(self, *participants):
         """ Any permutation of participant ordering results in the same output. """
@@ -121,15 +103,3 @@ class ParticipantRankingTests(SimpleTestCase):
         dum_key = self.ranker.priority_key(tweedle_dum)
         self.assertNotEqual(dee_key, dum_key)
         self.assertEqual(dee_key[:-1], dum_key[:-1])  # (last item is random)
-
-
-class SingleTripLotteryTests(SimpleTestCase):
-    @patch.object(models.Trip, 'save')
-    def test_fcfs_not_run(self, save_trip):
-        """ If a trip's algorithm is not 'lottery', nothing happens. """
-        trip = models.Trip(algorithm='fcfs')
-        runner = lottery.SingleTripLotteryRunner(trip)
-
-        trip.algorithm = 'fcfs'
-        runner()  # Early exits because it's not a lottery trip
-        save_trip.assert_not_called()

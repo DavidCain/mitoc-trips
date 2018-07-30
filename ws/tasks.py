@@ -11,7 +11,7 @@ from ws import settings
 from ws.sao import send_email_to_funds
 from ws.utils import dates as date_utils
 from ws.utils import member_sheets
-from ws.lottery import SingleTripLotteryRunner, WinterSchoolLotteryRunner
+from ws.lottery.run import SingleTripLotteryRunner, WinterSchoolLotteryRunner
 
 
 logger = logging.getLogger(__name__)

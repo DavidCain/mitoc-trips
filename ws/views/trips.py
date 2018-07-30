@@ -16,7 +16,7 @@ from django.views.generic import CreateView, DetailView, DeleteView, ListView, U
 from ws import forms
 from ws import models
 from ws.decorators import group_required
-from ws.lottery import SingleTripLotteryRunner
+from ws.lottery.run import SingleTripLotteryRunner
 from ws.mixins import TripLeadersOnlyView
 from ws.templatetags.trip_tags import annotated_for_trip_list
 import ws.utils.perms as perm_utils
