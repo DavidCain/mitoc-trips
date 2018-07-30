@@ -1,6 +1,11 @@
 # How to run tests
 
-    source <venv>/bin/activate && ./manage.py test
+```bash
+python3 -m venv test_env
+source test_env/bin/activate
+pip install -r requirements-dev.txt
+python manage.py test
+```
 
 # Common gotchas
 ## Use `TestCase.multi_db == True` for authentication & geardb tests

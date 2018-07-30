@@ -1,6 +1,7 @@
 /node_modules
 /static
 /env
+/test_env
 /scripts
 *.py[cod]
 oauth_credentials.json
