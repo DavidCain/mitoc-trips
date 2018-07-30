@@ -1,3 +1,4 @@
+from collections import namedtuple
 from datetime import timedelta
 import random
 
@@ -62,6 +63,9 @@ class SingleTripParticipantRanker(ParticipantRanker):
         return models.Participant.objects.filter(signup__trip=self.trip)
 
 
+TripCounts = namedtuple('TripCounts', ['attended', 'flaked', 'total'])
+
+
 class WinterSchoolParticipantRanker(ParticipantRanker):
     def __init__(self):
         self.today = local_date()
@@ -102,12 +106,8 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
 
         A lower score indicates a more reliable participant.
         """
-        trips_flaked = self.trips_flaked(participant)
-        num_trips_flaked = trips_flaked.count()
-        # Assume present for any trip they attended but were not marked flaked
-        num_trips_present = self.number_ws_trips(participant) - num_trips_flaked
-
-        return (num_trips_flaked * 5) - (2 * num_trips_present)
+        attended, flaked, total = self.number_ws_trips(participant)
+        return (flaked * 5) - (2 * attended)
 
     def trips_flaked(self, participant):
         """ Return a QuerySet of trip pk's on which the participant flaked. """
@@ -126,7 +126,7 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
         return participant.trips_led.filter(trip_date__gt=last_year).count()
 
     def number_ws_trips(self, participant):
-        """ Return the total number of Winter School trips the participant was placed on.
+        """ Count trips the participant attended, flaked, and the total.
 
         More specifically, this returns the total number of trips where the participant
         signed up and was expected to attend.
@@ -136,17 +136,24 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
         - Participant flaked, so leader removed them & left feedback
         - Participant flaked. Leader left feedback, but left them on the trip
         """
-        attended = set(participant.trip_set
+        marked_on_trip = set(participant.trip_set
             .filter(activity='winter_school')
             .filter(trip_date__gt=self.jan_1st, trip_date__lt=self.today)
             .values_list('pk', flat=True)
         )
-        # Make sure to union, since some leaders mark flakes, but don't remove participants
-        return len(attended.union(self.trips_flaked(participant)))
+        flaked = set(self.trips_flaked(participant))
 
-    def trips_led_balance(self, par):
+        # Some leaders mark flakes, but don't remove participants
+        # To calculate total, we can't double-count trips
+        total = marked_on_trip.union(flaked)
+        attended = total - flaked  # Only count if `on_trip` _and_ didn't flake
+
+        return TripCounts(len(attended), len(flaked), len(total))
+
+    def trips_led_balance(self, participant):
         """ Especially active leaders get priority. """
-        surplus = self.number_trips_led(par) - self.number_ws_trips(par)
+        _, _, total = self.number_ws_trips(participant)
+        surplus = self.number_trips_led(participant) - total
         return max(surplus, 0)  # Don't penalize anybody for a negative balance
 
     def lowest_non_driver(self, trip):

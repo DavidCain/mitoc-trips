@@ -12,7 +12,7 @@ from ws.tests.factories import ParticipantFactory, FeedbackFactory, TripFactory
 
 class ParticipantRankingTests(SimpleTestCase):
     """ Test the logic by which we determine users with "first pick" status. """
-    mocked_par_methods = ['number_trips_led', 'number_ws_trips', 'flake_factor']
+    mocked_par_methods = ['number_trips_led', 'number_ws_trips']
 
     def setUp(self):
         base = 'ws.lottery.run.WinterSchoolParticipantRanker'
@@ -35,32 +35,28 @@ class ParticipantRankingTests(SimpleTestCase):
     def test_flaking(self):
         """ Those who flake on trips always come last. """
         # Flaking participant is an MIT undergrad (would normally get priority)
-        serial_flaker = models.Participant(affiliation='MU')
-        flaked_once = models.Participant(affiliation='MG')
-        reliable = models.Participant(affiliation='NA')
+        serial_flaker = models.Participant(affiliation='MU', name='Serial Flaker')
+        flaked_once = models.Participant(affiliation='MG', name='One-time Flaker')
+        reliable = models.Participant(affiliation='NA', name='Reliable')
 
         # NOTE: Must use id since these objects have no pk (they're unhashable)
         mocked_counts = {
             id(flaked_once): {
                 'number_trips_led': 8,
-                'number_ws_trips': 2,
-                'flake_factor': 5  # Flaked on one of the two trips
+                'number_ws_trips': rank.TripCounts(attended=0, flaked=1, total=1)
             },
             id(serial_flaker): {
                 'number_trips_led': 4,
-                'number_ws_trips': 3,
-                'flake_factor': 15  # Flaked on all three!
+                'number_ws_trips': rank.TripCounts(attended=0, flaked=3, total=3)
             },
             id(reliable): {
                 'number_trips_led': 0,
-                'number_ws_trips': 4,
-                'flake_factor': -8  # Showed up for all four trips
+                'number_ws_trips': rank.TripCounts(attended=4, flaked=0, total=4)
             },
         }
 
-        for attr in self.mocked_par_methods:
-            method = getattr(self.ranker, attr)
-            method.side_effect = lambda par: mocked_counts[id(par)][attr]
+        self.ranker.number_trips_led.side_effect = lambda par: mocked_counts[id(par)]['number_trips_led']
+        self.ranker.number_ws_trips.side_effect = lambda par: mocked_counts[id(par)]['number_ws_trips']
 
         self.expect_ranking(reliable, flaked_once, serial_flaker)
 
@@ -69,12 +65,14 @@ class ParticipantRankingTests(SimpleTestCase):
         # Both participants are MIT undergraduates, equally likely to flake
         novice = models.Participant(affiliation='MU', name='New Leader')
         veteran = models.Participant(affiliation='MU', name='Veteran Leader')
-        self.ranker.flake_factor.return_value = 0
+
+        def attended_all(num):
+            return rank.TripCounts(attended=num, flaked=0, total=num)
 
         # Key difference: the veteran leader has a greater balance of led trips
         mocked_counts = {
-            id(veteran): {'number_trips_led': 4, 'number_ws_trips': 1},  # Net 3
-            id(novice):  {'number_trips_led': 2, 'number_ws_trips': 3}  # Net -1
+            id(veteran): {'number_trips_led': 4, 'number_ws_trips': attended_all(1)},  # Net 3
+            id(novice):  {'number_trips_led': 2, 'number_ws_trips': attended_all(3)}  # Net -1
         }
 
         def by_participant(attribute):
@@ -98,8 +96,8 @@ class ParticipantRankingTests(SimpleTestCase):
 
         # All other ranking factors are equal
         self.ranker.number_trips_led.return_value = 0
-        self.ranker.flake_factor.return_value = -2
-        self.ranker.number_ws_trips.return_value = 3
+        solid_record = rank.TripCounts(attended=3, flaked=0, total=3)
+        self.ranker.number_ws_trips.return_value = solid_record
 
         # Despite their equality, some randomness distinguishes keys
         dee_key = self.ranker.priority_key(tweedle_dee)
@@ -140,18 +138,18 @@ class FlakeFactorTests(TestCase):
         for trip in self.three_trips:
             models.SignUp.objects.create(trip=trip, **par_on_trip).save()
 
-        self.assertEqual(3, self.ranker.number_ws_trips(self.participant))
+        self.assertEqual(self.ranker.number_ws_trips(self.participant),
+                         rank.TripCounts(attended=3, flaked=0, total=3))
 
     def test_each_trip_counted_once(self):
         """ Multiple trip leaders declaring a participant a flake is no worse than 1. """
-        print('test_each_trip_counted_once')
         flaked = {'participant': self.participant, 'showed_up': False}
         for trip in self.three_trips:
             for i in range(3):
                 FeedbackFactory.create(trip=trip, **flaked)
 
-        self.assertEqual(3, self.ranker.number_ws_trips(self.participant))
-        self.assertEqual(3, self.ranker.trips_flaked(self.participant).count())
+        self.assertEqual(self.ranker.number_ws_trips(self.participant),
+                         rank.TripCounts(attended=0, flaked=3, total=3))
 
     def test_no_attendance(self):
         """ The flake factor is set to zero for participants with no trips. """
@@ -167,7 +165,8 @@ class FlakeFactorTests(TestCase):
             FeedbackFactory.create(participant=self.participant, trip=trip,
                                    showed_up=False, comments="No show")
 
-        self.assertEqual(3, self.ranker.trips_flaked(self.participant).count())
+        self.assertEqual(self.ranker.number_ws_trips(self.participant),
+                         rank.TripCounts(attended=0, flaked=3, total=3))
         self.assertEqual(15, self.ranker.flake_factor(self.participant))
 
     def test_perfect_attendance(self):
@@ -195,8 +194,8 @@ class FlakeFactorTests(TestCase):
         # One leader says the participant didn't show
         FeedbackFactory.create(showed_up=False, comments="No show", **subject)
 
-        self.assertEqual(1, self.ranker.trips_flaked(self.participant).count())
-        self.assertEqual(1, self.ranker.number_ws_trips(self.participant))
+        self.assertEqual(self.ranker.number_ws_trips(self.participant),
+                         rank.TripCounts(attended=0, flaked=1, total=1))
         self.assertEqual(5, self.ranker.flake_factor(self.participant))
 
         # Co-leaders didn't note person a flake (most likely, didn't know how)
@@ -204,5 +203,6 @@ class FlakeFactorTests(TestCase):
         FeedbackFactory.create(showed_up=True, **subject)
 
         # However, we still consider them to have flaked on the first trip
-        self.assertEqual(1, self.ranker.trips_flaked(self.participant).count())
+        self.assertEqual(self.ranker.number_ws_trips(self.participant),
+                         rank.TripCounts(attended=0, flaked=1, total=1))
         self.assertEqual(5, self.ranker.flake_factor(self.participant))
