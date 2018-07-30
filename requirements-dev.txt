@@ -1,3 +1,8 @@
 -r requirements.txt
 
 django-debug-toolbar==1.9.1
+factory-boy==2.11.1
+Faker==0.8.17
+python-dateutil==2.7.3
+sqlparse==0.2.4
+text-unidecode==1.2

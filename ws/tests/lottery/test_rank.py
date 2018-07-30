@@ -1,10 +1,11 @@
 import itertools
 from unittest.mock import patch
 
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, TestCase
 
 from ws.lottery import rank
 from ws import models
+from ws.tests.factories import ParticipantFactory, FeedbackFactory, TripFactory
 
 
 class ParticipantRankingTests(SimpleTestCase):
@@ -103,3 +104,15 @@ class ParticipantRankingTests(SimpleTestCase):
         dum_key = self.ranker.priority_key(tweedle_dum)
         self.assertNotEqual(dee_key, dum_key)
         self.assertEqual(dee_key[:-1], dum_key[:-1])  # (last item is random)
+
+
+class FlakeFactorTests(TestCase):
+    def setUp(self):
+        self.participant = ParticipantFactory.create()
+        self.ranker = rank.WinterSchoolParticipantRanker()
+
+    def test_no_attendance(self):
+        """ The flake factor is set to zero for participants with no trips. """
+        self.assertFalse(self.participant.trip_set.exists())
+        self.assertFalse(self.participant.feedback_set.exists())
+        self.assertEqual(0, self.ranker.flake_factor(self.participant))
