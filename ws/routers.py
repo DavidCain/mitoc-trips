@@ -7,7 +7,9 @@ def label_is_auth(label):
     return label in {'auth', 'account', 'admin', 'sessions'}
 
 
-def is_auth(obj):
+def is_auth(obj, **hints):
+    if hints.get('target_db') == 'auth_db':
+        return True
     return label_is_auth(obj._meta.app_label)
 
 
@@ -20,7 +22,7 @@ class AuthRouter:
         """
         Attempts to read auth models go to auth_db.
         """
-        if is_auth(model):
+        if is_auth(model, **hints):
             return 'auth_db'
         return None
 
@@ -28,7 +30,7 @@ class AuthRouter:
         """
         Attempts to write auth models go to auth_db.
         """
-        if is_auth(model):
+        if is_auth(model, **hints):
             return 'auth_db'
         return None
 
@@ -36,7 +38,7 @@ class AuthRouter:
         """
         Allow relations if a model in the auth app is involved.
         """
-        if is_auth(obj1) or is_auth(obj2):
+        if is_auth(obj1, **hints) or is_auth(obj2, **hints):
             return True
         return None
 
@@ -44,6 +46,9 @@ class AuthRouter:
         """
         Make sure the auth app only appears in the 'auth_db' database.
         """
+        if 'target_db' in hints:
+            return db == hints['target_db']
+
         if label_is_both(app_label):
             return True
 
