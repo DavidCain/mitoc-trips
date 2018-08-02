@@ -53,6 +53,12 @@ class ParticipantFactory(DjangoModelFactory):
         return super()._create(model_class, *args, **kwargs)
 
 
+class LotteryInfoFactory(DjangoModelFactory):
+    class Meta:
+        model = models.LotteryInfo
+    participant = SubFactory(ParticipantFactory)
+
+
 class TripFactory(DjangoModelFactory):
     class Meta:
         model = models.Trip

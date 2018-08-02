@@ -29,6 +29,7 @@ class ParticipantRanker:
         return iter(self.ranked_participants())
 
     def participants_to_handle(self):
+        """ QuerySet of participants to be ranked. """
         raise NotImplementedError
 
     def priority_key(self, participant):

@@ -7,7 +7,75 @@ from freezegun import freeze_time
 
 from ws.lottery import rank
 from ws import models
-from ws.tests.factories import ParticipantFactory, FeedbackFactory, TripFactory
+from ws.tests.factories import (
+    FeedbackFactory, LotteryInfoFactory, ParticipantFactory, TripFactory
+)
+
+
+class TestRanker(rank.ParticipantRanker):
+    def __init__(self, participant_pks):
+        self.participant_pks = participant_pks
+
+    def priority_key(self, participant):
+        return participant.pk  # (Doesn't matter how they're ordered)
+
+    def participants_to_handle(self):
+        return models.Participant.objects.filter(pk__in=self.participant_pks)
+
+
+class ParticipantPairingTests(TestCase):
+    """ Test the logic on reciprocal participant pairing. """
+    def expect_pairing(self, expected):
+        """ Run noted participants through ranking, expect pairing results. """
+        par_pks = set(par.pk for par in expected)
+        ranker = TestRanker(participant_pks=par_pks)
+        actual = {par: bool(par.reciprocally_paired) for par in ranker}
+        self.assertEqual(expected, actual)
+
+    def test_no_lotteryinfo(self):
+        """ No lottery info still counts as not being paired. """
+        no_lotteryinfo = ParticipantFactory.create(lotteryinfo=None)
+        self.expect_pairing({no_lotteryinfo: False})
+
+    def test_on_their_own(self):
+        """ Participants who don't request pairing aren't paired. """
+        alone = LotteryInfoFactory.create(paired_with=None)
+        self.expect_pairing({alone.participant: False})
+
+    def test_unrequited_pairing(self):
+        """ Pairing must be bidirectional to be acted upon. """
+        wants_to_fly_solo = LotteryInfoFactory.create(paired_with=None)
+        wants_to_be_together = LotteryInfoFactory.create(
+            paired_with=wants_to_fly_solo.participant
+        )
+        self.expect_pairing({wants_to_fly_solo.participant: False,
+                             wants_to_be_together.participant: False})
+
+    def test_nulls_do_not_mean_equal(self):
+        """ Participants that want no pairing aren't accidentallly paired.
+
+        This checks an implementation detail, ensuring that null==null doesn't
+        amount to the SQL query mistakenly regarding participants as paired.
+        """
+        no_lotteryinfo_1 = ParticipantFactory.create(lotteryinfo=None)
+        no_lotteryinfo_2 = ParticipantFactory.create(lotteryinfo=None)
+        alone_1 = LotteryInfoFactory.create(paired_with=None)
+        alone_2 = LotteryInfoFactory.create(paired_with=None)
+
+        self.expect_pairing({
+            no_lotteryinfo_1: False,
+            no_lotteryinfo_2: False,
+            alone_1.participant: False,
+            alone_2.participant: False,
+        })
+
+    def test_reciprocal_pairing(self):
+        """ Two participants who request each other are reciprocally paired. """
+        bonnie = ParticipantFactory.create()
+        clyde = ParticipantFactory.create()
+        LotteryInfoFactory.create(participant=bonnie, paired_with=clyde)
+        LotteryInfoFactory.create(participant=clyde, paired_with=bonnie)
+        self.expect_pairing({bonnie: True, clyde: True})
 
 
 class ParticipantRankingTests(SimpleTestCase):
