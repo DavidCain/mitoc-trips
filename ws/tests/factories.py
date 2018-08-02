@@ -28,8 +28,8 @@ class UserFactory(DjangoModelFactory):
     class Meta:
         model = models.User
 
-    username = Sequence(lambda n: f"participant{n + 1}")
-    email = Sequence(lambda n: f"participant{n + 1}@example.com")
+    username = Sequence(lambda n: f"user{n + 1}")
+    email = Sequence(lambda n: f"user{n + 1}@example.com")
 
 
 class ParticipantFactory(DjangoModelFactory):
