@@ -42,6 +42,12 @@ class ParticipantFactory(DjangoModelFactory):
     emergency_info = SubFactory(EmergencyInfoFactory)
 
     @classmethod
+    def create(cls, *args, **kwargs):
+        if 'user_id' in kwargs:
+            kwargs['_disable_auto_user_creation'] = True
+        return super().create(*args, **kwargs)
+
+    @classmethod
     def _create(cls, model_class, *args, **kwargs):
         """ Create a corresponding user whenever we make a Participant.
 
@@ -49,7 +55,9 @@ class ParticipantFactory(DjangoModelFactory):
         foreign key, since the row resides in another database. Accordingly,
         we cannot use a SubFactory for the User object.
         """
-        UserFactory.create(id=kwargs['user_id'], email=kwargs['email'])
+        if not kwargs.pop('_disable_auto_user_creation', False):
+            UserFactory.create(id=kwargs['user_id'], email=kwargs['email'])
+
         return super()._create(model_class, *args, **kwargs)
 
 

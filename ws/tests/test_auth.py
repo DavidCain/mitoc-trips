@@ -1,11 +1,12 @@
 from urllib.parse import urlparse, parse_qs
 import unittest.mock
 
+from django.contrib.auth.models import User
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from ws import models
 from ws.tests.helpers import PermHelpers
+from ws.tests.factories import TripFactory
 
 
 login_required_routes = [
@@ -23,7 +24,7 @@ login_required_routes = [
 ]
 
 
-class AuthTests(PermHelpers, TestCase):
+class AuthTests(TestCase):
     """ Test user authentication and authorization.
 
     These tests hit a lot of major routes in checking our access control system,
@@ -44,16 +45,22 @@ class AuthTests(PermHelpers, TestCase):
          privileges are based on groups. Some participants belong to the
          leaders group, others are activity chairs
     """
+    multi_db = True  # Roll back changes in _all_ databases
+
     def setUp(self):
         self.client = Client()
         super().setUp()
 
     @classmethod
     def setUpTestData(cls):
-        cls.user = PermHelpers.create_user()
+        cls.user = User.objects.create_user(
+            email='fake@example.com',
+            password='password',
+            username='username'
+        )
 
     def login(self):
-        return self.client.login(email=self.user.email, password=PermHelpers.password)
+        return self.client.login(email=self.user.email, password='password')
 
     def assertProfileRedirectedTo(self, response, desired_page):
         """ Check for edit profile redirect on a given response. """
@@ -74,10 +81,10 @@ class AuthTests(PermHelpers, TestCase):
             response = self.client.get(reverse(open_url))
             self.assertEqual(response.status_code, 200)
 
-    def xxtest_viewing_trips(self):
+    def test_viewing_trips(self):
         """ Anonymous users can view trips (they just can't sign up). """
         # Note: This test requires fixtures or other test data
-        trip = models.Trip.objects.first()
+        trip = TripFactory.create()
         view_trip = self.client.get(reverse('view_trip', kwargs={'pk': trip.pk}))
         self.assertEqual(view_trip.status_code, 200)
 
@@ -106,7 +113,7 @@ class AuthTests(PermHelpers, TestCase):
         no_par_response = self.client.get(par_only_page)
         self.assertProfileRedirectedTo(no_par_response, par_only_page)
 
-        self.mark_participant()
+        PermHelpers.mark_participant(self.user)
         profile_needs_update.return_value = False
 
         # When authenticated and a participant: success
@@ -123,7 +130,7 @@ class AuthTests(PermHelpers, TestCase):
 
         # Membership in participant group is sufficient to validate participant
         # (Making profile_needs_update return False skips participant checks)
-        self.mark_participant()
+        PermHelpers.mark_participant(self.user)
         profile_needs_update.return_value = False
 
         # leader-only GET pages that don't require pks
@@ -135,7 +142,7 @@ class AuthTests(PermHelpers, TestCase):
             self.assertEqual(response.status_code, 403)
 
         # HTTP OK when the user is marked as a leader
-        self.mark_leader()
+        PermHelpers.mark_leader(self.user)
         for leader_page in leader_pages:
             response = self.client.get(reverse(leader_page))
             self.assertEqual(response.status_code, 200)

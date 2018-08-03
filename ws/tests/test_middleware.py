@@ -1,13 +1,15 @@
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 from django.contrib.auth.models import AnonymousUser
 from django.test import TestCase
 
 from ws.middleware import ParticipantMiddleware
-from ws.tests.helpers import PermHelpers
+from ws.tests.factories import UserFactory, ParticipantFactory
 
 
 class TestParticipantMiddleware(TestCase):
+    multi_db = True
+
     def setUp(self):
         def get_response(request):
             return None
@@ -16,7 +18,7 @@ class TestParticipantMiddleware(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.user = PermHelpers.create_user()
+        cls.user = UserFactory.create()
 
     def test_anonymous_user(self):
         """ When the user is anonymous, request.participant is None. """
@@ -30,19 +32,10 @@ class TestParticipantMiddleware(TestCase):
         self.pm(self.request)
         self.assertEqual(self.request.participant, None)
 
-    @patch('ws.models.Participant.from_user')
-    def test_user_with_participant(self, from_user):
+    def test_user_with_participant(self):
         """ When the user has created a participant, it's injected into the request."""
         self.request.user = self.user
-
-        participant = Mock('Participant')
-
-        def mock_from_user(request_user):
-            if request_user.id != self.user.id:
-                raise ValueError("Unexpected user was passed!")
-            return participant
-
-        from_user.side_effect = mock_from_user
+        participant = ParticipantFactory.create(user_id=self.user.pk)
 
         self.pm(self.request)
-        self.assertIs(self.request.participant, participant)
+        self.assertEqual(self.request.participant, participant)
