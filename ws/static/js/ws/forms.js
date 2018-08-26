@@ -255,6 +255,9 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
        */
       var updateSignupMemberships = function() {
         var participantIds = _.map(scope.allSignups, 'participant.id');
+        if (participantIds.length === 0) {
+          return;
+        }
         var url = djangoUrl.reverse("json-membership_statuses");
         $http.post(url, {participant_ids: participantIds}).then(function(response) {
           var memberships = response.data.memberships;
