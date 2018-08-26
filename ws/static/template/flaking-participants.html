@@ -8,18 +8,19 @@
 
   <table class="table">
     <tbody>
-      <tr ng-repeat="participant in participants.flakes track by participant.id">
+      <tr data-ng-repeat="participant in participants.flakes track by participant.id">
         <td>
           <div class="media">
             <div class="media-left">
               <img class="img-rounded"
+                   alt="Participant avatar"
                    data-ng-src="{{ participant.avatar }}"
                    width="100"
                    height="100" />
             </div>
             <div class="media-body">
               <h4 class="media-heading">
-                <span ng-bind="participant.name"></span>
+                <span data-ng-bind="participant.name"></span>
                 <button data-ng-click="removeFlake(participant)" class="btn btn-default btn-xs pull-right">Remove</button>
               </h4>
               <textarea data-ng-model="participant.comments"

@@ -14,11 +14,11 @@
   <p data-ng-hide="gravatarOptedOut">
     To add or modify your profile photo,
     <a href="http://gravatar.com/emails">sign into Gravatar</a>
-    and upload an image to match <span ng-bind="::participantEmail"></span>.
+    and upload an image to match <span data-ng-bind="::participantEmail"></span>.
     If you'd like, you can <a href="/privacy/settings/">opt out</a> of Gravatar entirely.
   </p>
 </div>
 <div class="modal-footer">
   <a href="/profile/edit/" role="button" class="btn btn-default"><i class="fas fa-user"></i>&nbsp;Edit Profile</a>
-  <button class="btn btn-primary" ng-click="$dismiss()">Close</button>
+  <button class="btn btn-primary" data-ng-click="$dismiss()">Close</button>
 </div>

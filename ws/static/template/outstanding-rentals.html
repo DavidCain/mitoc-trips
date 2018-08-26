@@ -34,7 +34,7 @@
         <tr data-ng-repeat="item in rentals track by item.id">
           <td>
             <a role="button"
-              ng-if="item.overdue"
+              data-ng-if="item.overdue"
               data-uib-popover="Please return this item."
               data-popover-title="Overdue!">
               <i class="fas fa-exclamation-triangle" data-ng-class="{'text-danger': item.overdue}"></i>

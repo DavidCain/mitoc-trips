@@ -34,7 +34,7 @@
 {% endblock head %}
 </head>
 
-<body ng-app="ws">
+<body data-ng-app="ws">
     {# Pre-populate `$templateCache` for faster interaction with directives #}
     {% for filename, contents in angular_templates.items %}
       <script type="text/ng-template" id="{{ filename }}">
