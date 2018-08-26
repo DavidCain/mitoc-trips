@@ -30,7 +30,7 @@
     "jquery-ui": "git+https://github.com/components/jqueryui.git#1.11.4",
     "jquery-ui-touch-punch": "^0.2.3",
     "lodash": "^4.17.5",
-    "raven-js": "^3.22.4",
+    "raven-js": "^3.26.4",
     "ui-select": "^0.16.1"
   }
 }
