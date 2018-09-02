@@ -3,6 +3,7 @@ Views are broken up, loosely grouped by purpose.
 """
 from .account import *  # NoQA
 from .applications import *  # NoQA
+from .duplicates import *  # NoQA
 from .itinerary import *  # NoQA
 from .leaders import *  # NoQA
 from .membership import *  # NoQA

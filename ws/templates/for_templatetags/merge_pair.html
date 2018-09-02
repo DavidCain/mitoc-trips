@@ -1,0 +1,93 @@
+<div class="row">
+  <div class="col-xs-6">
+    <form method="post" action="{% url 'distinct_participants' old.pk new.pk %}">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-default">
+        <i class="fas fa-clipboard-check"></i> Unrelated
+      </button>
+    </form>
+    <h1>
+  </div>
+
+  <div class="col-xs-6">
+    <form method="post" action="{% url 'merge_participants' old.pk new.pk %}">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-primary pull-right">
+        <i class="fas fa-exclamation-triangle"></i> Merge!
+      </button>
+    </form>
+  </div>
+</div>
+
+<div class="row">
+  {% for par in participants %}
+    <div class="col-sm-6">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <div class="row">
+            <div class="col-sm-9">
+              <h3>
+                <a href="{% url 'view_participant' par.pk %}">
+                  {% if forloop.last %}
+                    {{ par.name }}
+                  {% else %}
+                    <s>{{ par.name }}</s>
+                  {% endif %}
+                </a>
+                <span class="label label-default">#{{ par.pk }}</span>
+              </h3>
+            </div>
+            <div class="col-sm-3 text-right">
+              <a type="button"
+                class="btn btn-default"
+                href="{% url 'edit_participant' par.pk %}">
+                <i class="fas fa-edit"></i>&nbsp;Edit
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-body">
+          <div class="row">
+            <div class="col-sm-9">
+              <ul class="list-unstyled">
+                <li><i class="fas fa-fw fa-envelope"></i><a href="mailto:{{ par.email }}">{{ par.email }}</a></li>
+                {% if par.cell_phone %}
+                    <li><i class="fas fa-fw fa-mobile-alt"></i>{{ par.cell_phone }}</li>
+                {% endif %}
+                <li>
+                  <i class="fas fa-fw fa-car"></i>
+                  {% if par.car %}
+                    {{ par.car.color }} {{ par.car.year }} {{ par.car.make }} {{ par.car.model }} {{ par.car.license_plate }} ({{ par.car.state }})
+                  {% else %}
+                    None
+                  {% endif %}
+              </ul>
+            </div>
+            <div class="col-sm-3 text-right">
+              <label>Last updated </label> {{ par.profile_last_updated|date:"Y-m-d" }}
+            </div>
+          </div>
+          <hr>
+          <h4>Medical info</h4>
+          <dl class="dl-horizontal">
+            <dt>Allergies:</dt><dd>{{ par.emergency_info.allergies }}</dd>
+            <dt>Medications:</dt><dd>{{ par.emergency_info.medications }}</dd>
+            <dt>History:</dt><dd>{{ par.emergency_info.medical_history }}</dd>
+          </dl>
+          <h4>Emergency contact</h4>
+          <dl class="dl-horizontal">
+            <dt>Name:</dt>
+            <dd>
+              {{ par.emergency_info.emergency_contact.name }}
+              ({{ par.emergency_info.emergency_contact.relationship }})
+            </dd>
+            <dt>Phone:</dt><dd>{{ par.emergency_info.emergency_contact.cell_phone }}</dd>
+            <dt>Email:</dt><dd>{{ par.emergency_info.emergency_contact.email }}</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+  {% endfor %}
+</div>

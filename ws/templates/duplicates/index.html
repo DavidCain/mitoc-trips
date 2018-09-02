@@ -1,0 +1,19 @@
+{% extends "messages_page.html" %}
+{% load merge_tags %}
+
+{% block head_title %}Merge participants{% endblock head_title %}
+
+{% block content %}
+  {{ block.super }}
+  {% for old, new in potential_duplicates %}
+    {% merge_pair old new %}
+    {% if not forloop.last %}
+      <hr>
+    {% endif %}
+  {% empty %}
+    <div class="alert alert-info">
+      No potential duplicates found!
+    </div>
+  {% endfor %}
+
+{% endblock content %}

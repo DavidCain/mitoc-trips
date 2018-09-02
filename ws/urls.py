@@ -24,6 +24,9 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^participants/(?P<pk>\d+)/edit/$', views.EditParticipantView.as_view(), name='edit_participant'),
     url(r'^participants/(?P<pk>\d+)/delete/$', views.DeleteParticipantView.as_view(), name='delete_participant'),
+    url(r'^participants/potential_duplicates/$', views.PotentialDuplicatesView.as_view(), name='potential_duplicates'),
+    url(r'^participants/(?P<old>\d+)/merge/(?P<new>\d+)$', views.MergeParticipantsView.as_view(), name='merge_participants'),
+    url(r'^participants/(?P<left>\d+)/distinct/(?P<right>\d+)$', views.DistinctParticipantsView.as_view(), name='distinct_participants'),
 
     # Activity Chair views
     url(r'^chair/leaders/$', views.ManageLeadersView.as_view(), name='manage_leaders'),

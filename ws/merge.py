@@ -165,6 +165,7 @@ def migrate_participant(old_pk, new_pk):
         'ws_winterschoolsettings': {'last_updated_by_id'},
         'ws_discount_administrators': {'participant_id'},
 
+        'ws_distinctaccounts': {'left_id', 'right_id'},
 
         # All these should only have one participant each
         # (In practice, we should rarely see the old & the new on the same object)

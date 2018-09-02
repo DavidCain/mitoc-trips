@@ -968,3 +968,9 @@ class ClimbingLeaderApplication(LeaderApplication):
     favorite_route = models.TextField(blank=True, help_text="Do you have a favorite route? If so, what is it and why?")
 
     extra_info = models.TextField(blank=True, help_text="Is there anything else you would like us to know?")
+
+
+class DistinctAccounts(models.Model):
+    """ Pairs of participants that are cleared as potential duplicates. """
+    left = models.ForeignKey(Participant, on_delete=models.CASCADE, related_name='distinctions_left')
+    right = models.ForeignKey(Participant, on_delete=models.CASCADE, related_name='distinctions_right')
