@@ -75,14 +75,14 @@ trip formats once subject to same problems as Winter School.
   [about]: https://mitoc-trips.mit.edu/help/about/
   [mitoc-ansible]: https://github.com/DavidCain/mitoc-ansible
 
-  [screenshots-profile]: https://s3.amazonaws.com/mitoc-trips/screenshots/profile.png
-  [screenshots-email_address_management]: https://s3.amazonaws.com/mitoc-trips/screenshots/email_address_management.png
-  [screenshots-discounts]: https://s3.amazonaws.com/mitoc-trips/screenshots/discounts.png
-  [screenshots-leader_application_submitted]: https://s3.amazonaws.com/mitoc-trips/screenshots/leader_application_submitted.png
-  [screenshots-leader_application_queue]: https://s3.amazonaws.com/mitoc-trips/screenshots/leader_application_queue.png
-  [screenshots-leader_application]: https://s3.amazonaws.com/mitoc-trips/screenshots/leader_application.png
-  [screenshots-trip_activity_chair]: https://s3.amazonaws.com/mitoc-trips/screenshots/trip_activity_chair.png
-  [screenshots-trip_admin]: https://s3.amazonaws.com/mitoc-trips/screenshots/trip_admin.png
-  [screenshots-trip_add_participant]: https://s3.amazonaws.com/mitoc-trips/screenshots/trip_add_participant.png
-  [screenshots-leaderboard]: https://s3.amazonaws.com/mitoc-trips/screenshots/leaderboard.png
-  [screenshots-help]: https://s3.amazonaws.com/mitoc-trips/screenshots/help.png
+  [screenshots-profile]: https://dcain.me/static/images/mitoc-trips/profile.png
+  [screenshots-email_address_management]: https://dcain.me/static/images/mitoc-trips/email_address_management.png
+  [screenshots-discounts]: https://dcain.me/static/images/mitoc-trips/discounts.png
+  [screenshots-leader_application_submitted]: https://dcain.me/static/images/mitoc-trips/leader_application_submitted.png
+  [screenshots-leader_application_queue]: https://dcain.me/static/images/mitoc-trips/leader_application_queue.png
+  [screenshots-leader_application]: https://dcain.me/static/images/mitoc-trips/leader_application.png
+  [screenshots-trip_activity_chair]: https://dcain.me/static/images/mitoc-trips/trip_activity_chair.png
+  [screenshots-trip_admin]: https://dcain.me/static/images/mitoc-trips/trip_admin.png
+  [screenshots-trip_add_participant]: https://dcain.me/static/images/mitoc-trips/trip_add_participant.png
+  [screenshots-leaderboard]: https://dcain.me/static/images/mitoc-trips/leaderboard.png
+  [screenshots-help]: https://dcain.me/static/images/mitoc-trips/help.png
