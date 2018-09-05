@@ -22,14 +22,11 @@
     {% endblock css %}
 
     {% block js %}
-      {% cdn_fallback "jQuery"  "https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"      "jquery/dist/jquery.min.js" %}
-      {% cdn_fallback "angular" "https://ajax.googleapis.com/ajax/libs/angularjs/1.4.10/angular.min.js" "angular/angular.min.js"    %}
-      {# NOTE! 5.0.9 is the CDN version, the 'free' version is a pre-release of 5.1.0 #}
-      {# When 5.1.0 is public, both should be aligned #}
-      {% production_js user viewing_participant %}
+      {% javascript 'vendor' %}
+      {# Configure Raven first before loading application JS #}
+      {% raven_user_context user viewing_participant %}
+
       {% javascript 'app' %}
-
-
     {% endblock js %}
 {% endblock head %}
 </head>
@@ -177,9 +174,7 @@
             </div>
         </div>
     </footer>
-
-    {# We want this async, but we also want to be able to fall back if the CDN is down #}
-    {# Rather than passing 'defer', just load it after the rest of the body #}
-    {% cdn_fallback "fontawesome" "https://use.fontawesome.com/releases/v5.0.9/js/all.js" "@fortawesome/fontawesome-free/js/all.js" %}
+    {# Load font data asynchronously after the rest of the page #}
+    {% javascript 'fontawesome' %}
 </body>
 </html>

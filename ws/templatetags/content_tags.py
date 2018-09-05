@@ -15,8 +15,8 @@ def cdn_fallback(lib_name, cdn_url, npm_path):
             'npm_path': npm_path}
 
 
-@register.inclusion_tag('for_templatetags/production_js.html', takes_context=True)
-def production_js(context, user, participant):
+@register.inclusion_tag('for_templatetags/raven_user_context.html', takes_context=True)
+def raven_user_context(context, user, participant):
     """ Include JavaScript that should only be present in production. """
     user_context = {}
     if user and user.is_authenticated:

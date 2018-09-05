@@ -235,52 +235,70 @@ USE_TZ = True
 # Participants must update their profile information every ~6 months
 MUST_UPDATE_AFTER_DAYS = 180
 
-# -- Break packages up based on how they'll be served -- #
-# CDN libraries are for basic, commonplace libraries (and are loaded first)
-cdn_libs = ['jquery/dist/jquery.min.js', 'angular/angular.js', 'd3/d3.min.js',
-            '@fortawesome/fontawesome-free/js/all.js']
 # All other libraries are bundled together
-other_libs = ['lodash/lodash.js',
-              'bootstrap/dist/js/bootstrap.js',
-              'footable/js/footable.js',
-              'footable/js/footable.sort.js',
-              'jquery-ui/ui/core.js',
-              'jquery-ui/ui/widget.js',
-              'jquery-ui/ui/mouse.js',
-              'jquery-ui/ui/sortable.js',
-              'jquery-ui/jquery-ui.js',
-              'jquery-ui-touch-punch/jquery.ui.touch-punch.js',
-              'djng/js/django-angular.js',
-              'ui-select/dist/select.js',
-              'angular-sanitize/angular-sanitize.js',
-              'angular-ui-sortable/dist/sortable.js',
-              'js/ui-bootstrap-tpls-0.14.3.js',
+raven_js = [
+    'raven-js/dist/raven.min.js',
+    'angular-raven/angular-raven.min.js',
+]
+if DEBUG is False:  # NoQA
+    raven_js.append('js/raven/config.js')
 
-              # Libraries to support international phone numbers
-              'google-libphonenumber/dist/browser/libphonenumber.js',
-              'digits-trie/dist/digits-trie.js',
-              'bc-countries/dist/bc-countries.js',
-              'bc-phone-number/dist/js/bc-phone-number.js'
-              ]
+base_deps = [
+    'jquery/dist/jquery.min.js',
+    'angular/angular.js',
+]
 
-local_js = ['js/ws/*.js', 'js/footable_breakpoints.js']
+vendor_js = base_deps + raven_js + [
+    'lodash/lodash.js',
+    'bootstrap/dist/js/bootstrap.js',
+    'footable/js/footable.js',
+    'footable/js/footable.sort.js',
+    'jquery-ui/ui/core.js',
+    'jquery-ui/ui/widget.js',
+    'jquery-ui/ui/mouse.js',
+    'jquery-ui/ui/sortable.js',
+    'jquery-ui/jquery-ui.js',
+    'jquery-ui-touch-punch/jquery.ui.touch-punch.js',
+    'djng/js/django-angular.js',
+    'ui-select/dist/select.js',
+    'angular-sanitize/angular-sanitize.js',
+    'angular-ui-sortable/dist/sortable.js',
+    'js/ui-bootstrap-tpls-0.14.3.js',
+
+    # Libraries to support international phone numbers
+    'google-libphonenumber/dist/browser/libphonenumber.js',
+    'digits-trie/dist/digits-trie.js',
+    'bc-countries/dist/bc-countries.js',
+    'bc-phone-number/dist/js/bc-phone-number.js'
+]
+
+local_js = [
+    'js/ws/*.js',
+    'js/footable_breakpoints.js'
+]
 
 PIPELINE = {
     'JS_COMPRESSOR': 'pipeline.compressors.uglifyjs.UglifyJSCompressor',
     'CSS_COMPRESSOR': 'pipeline.compressors.yuglify.YuglifyCompressor',
     'JAVASCRIPT': {
-        # With jQuery and Angular served via CDN, this is everything
+        # Vendor assets change very rarely, we can keep the cache a long time
+        'vendor': {
+            'source_filenames': vendor_js,
+            'output_filename': 'js/vendor.js',
+        },
         'app': {
-            'source_filenames': other_libs + local_js,
+            'source_filenames': local_js,
             'output_filename': 'js/app.js',
         },
-        # Must be served before the application (to catch any errors)
-        'raven': {
-            'source_filenames': [
-                'raven-js/dist/raven.min.js',
-                'angular-raven/angular-raven.min.js',
-            ],
-            'output_filename': 'js/raven.js',
+        # D3 is only needed on one page - don't waste the bytes on others
+        'd3': {
+            'source_filenames': ['d3/d3.min.js'],
+            'output_filename': 'js/d3.js',
+        },
+        # FontAwesome should be loaded async
+        'fontawesome': {
+            'source_filenames': ['@fortawesome/fontawesome-free/js/all.js'],
+            'output_filename': 'js/fontawesome.js',
         },
     },
     'STYLESHEETS': {

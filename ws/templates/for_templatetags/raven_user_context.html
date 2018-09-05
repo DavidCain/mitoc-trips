@@ -1,0 +1,5 @@
+{% if not DEBUG %}
+  <script>
+    Raven.setUserContext({{ user_context|safe }});
+  </script>
+{% endif %}

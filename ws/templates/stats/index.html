@@ -1,25 +1,18 @@
 {% extends "messages_page.html" %}
-{% load content_tags %}
+{% load pipeline %}
 {% block head_title %}Leaderboard{% endblock head_title %}
 
 {% block js %}
-  {% cdn_fallback "d3" "https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js" "d3/d3.min.js" %}
   {{ block.super }}
+  {% javascript 'd3' %}
 {% endblock js %}
 
 
 {% block content %}
-{{ block.super }}
+  {{ block.super }}
 
-<h1>Leaderboard</h1>
-<div class="alert alert-info">
-  This page is currently in beta!
-  {% if user.is_authenticated %}
-    More features are on the way. In the meantime, I'd welcome any <a href="mailto:davidjosephcain@gmail.com">feedback</a>.<br>
-  {% endif %}
-</div>
-
-<trips-by-leader>
-</trips-by-leader>
+  <h1>Leaderboard</h1>
+  <trips-by-leader>
+  </trips-by-leader>
 
 {% endblock content %}
