@@ -50,9 +50,9 @@ participants. </p>
   </p>
 {% endif %}
 
-  <div style="display:none">{{ lottery_form.car_status }}</div>
+  <div class="hidden">{{ lottery_form.car_status }}</div>
 
-  <div class="btn-group" style="margin-bottom:10px" data-ng-cloak>
+  <div class="btn-group" data-ng-cloak>
     <label class="btn btn-default" data-ng-model="car_status" uib-btn-radio="'none'"><i class="fas fa-times"></i>&nbsp;Not driving</label>
     <label class="btn btn-default" data-ng-model="car_status" uib-btn-radio="'rent'"><i class="fas fa-taxi"></i>&nbsp;Willing to rent</label>
     <label class="btn btn-default" data-ng-model="car_status" uib-btn-radio="'own'" ><i class="fas fa-car"></i>&nbsp;Can drive own car</label>
