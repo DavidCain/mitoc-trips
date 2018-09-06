@@ -16,7 +16,7 @@
   },
   "homepage": "https://mitoc-trips.mit.edu",
   "dependencies": {
-    "@fortawesome/fontawesome-free": "^5.1.0-8",
+    "@fortawesome/fontawesome-free": "^5.3.1",
     "angular": "1.4.13",
     "angular-raven": "^0.6.2",
     "angular-sanitize": "1.4.13",

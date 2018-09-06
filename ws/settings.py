@@ -295,15 +295,16 @@ PIPELINE = {
             'source_filenames': ['d3/d3.min.js'],
             'output_filename': 'js/d3.js',
         },
-        # FontAwesome should be loaded async
+        # FontAwesome is served separately to use a data attribute hack
+        # (Note that the hack relies on the filename containing 'fontawesome')
         'fontawesome': {
             'source_filenames': ['@fortawesome/fontawesome-free/js/all.js'],
-            'output_filename': 'js/fontawesome.js',
+            'output_filename': 'js/fontawesome.js',  # WARNING: don't change.
         },
     },
     'STYLESHEETS': {
         'app': {
-            'source_filenames': (
+            'source_filenames': [
                 'css/layout.css',
                 'css/footable.core.css',  # Forked... =(
                 'css/footable.standalone.css',
@@ -312,9 +313,11 @@ PIPELINE = {
                 'bc-phone-number/dist/css/bc-phone-number.css',
                 # Flags are an optional enhancement to the country picker
                 'bc-css-flags/dist/css/bc-css-flags.css',
-            ),
+                # Could be deferred separately, but it's only a few KB
+                '@fortawesome/fontawesome-free/css/svg-with-js.css',
+            ],
             'output_filename': 'css/app.css',
-        }
+        },
     },
 }
 
