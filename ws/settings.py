@@ -235,20 +235,21 @@ USE_TZ = True
 # Participants must update their profile information every ~6 months
 MUST_UPDATE_AFTER_DAYS = 180
 
-# All other libraries are bundled together
-raven_js = [
+# Required in most assets, but they're strictly needed for Raven
+# (Load them synchronously)
+base_deps = [
+    'jquery/dist/jquery.min.js',
+    'angular/angular.js',
+]
+
+raven_js = base_deps + [
     'raven-js/dist/raven.min.js',
     'angular-raven/angular-raven.min.js',
 ]
 if DEBUG is False:  # NoQA
     raven_js.append('js/raven/config.js')
 
-base_deps = [
-    'jquery/dist/jquery.min.js',
-    'angular/angular.js',
-]
-
-vendor_js = base_deps + raven_js + [
+vendor_js = [
     'lodash/lodash.js',
     'bootstrap/dist/js/bootstrap.js',
     'footable/js/footable.js',
@@ -281,25 +282,48 @@ PIPELINE = {
     'JS_COMPRESSOR': 'pipeline.compressors.uglifyjs.UglifyJSCompressor',
     'CSS_COMPRESSOR': 'pipeline.compressors.yuglify.YuglifyCompressor',
     'JAVASCRIPT': {
+        # Bundle Raven separately so it can catch errors in bundling other assets
+        'raven': {
+            'source_filenames': raven_js,
+            'output_filename': 'js/raven.js',
+            'extra_context': {
+                # Should be loaded synchronously _first_ to catch errors
+                # (other bundles may have issues)
+                'defer': False,
+                'async': False,
+            },
+        },
         # Vendor assets change very rarely, we can keep the cache a long time
         'vendor': {
             'source_filenames': vendor_js,
             'output_filename': 'js/vendor.js',
+            'extra_context': {
+                'defer': True,
+            },
         },
         'app': {
             'source_filenames': local_js,
             'output_filename': 'js/app.js',
+            'extra_context': {
+                'defer': True,
+            },
         },
         # D3 is only needed on one page - don't waste the bytes on others
         'd3': {
             'source_filenames': ['d3/d3.min.js'],
             'output_filename': 'js/d3.js',
+            'extra_context': {
+                'defer': True,
+            },
         },
         # FontAwesome is served separately to use a data attribute hack
         # (Note that the hack relies on the filename containing 'fontawesome')
         'fontawesome': {
             'source_filenames': ['@fortawesome/fontawesome-free/js/all.js'],
             'output_filename': 'js/fontawesome.js',  # WARNING: don't change.
+            'extra_context': {
+                'defer': True,
+            },
         },
     },
     'STYLESHEETS': {
