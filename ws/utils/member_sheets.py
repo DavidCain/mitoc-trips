@@ -9,6 +9,7 @@ discount, so that they can verify membership status.
 """
 import bisect
 from collections import OrderedDict, namedtuple
+import functools
 from itertools import zip_longest
 import httplib2
 import logging
@@ -26,6 +27,8 @@ from ws.utils.perms import activity_name, is_chair
 logger = logging.getLogger(__name__)
 
 
+# Initialize just one client, which can be re-used & refreshed
+@functools.lru_cache(maxsize=None)
 def connect_to_sheets():
     """ Returns a Google Sheets client and the creds used by that client.
 
@@ -34,7 +37,8 @@ def connect_to_sheets():
     proper credential file is present.
 
     If missing credentials while in DEBUG mode, a "soft failure" will occur:
-    the logger will note the missing credentials file and will return `None` in
+    the logger will note the missing credentials file and will return `None`
+    for both client and credentials.
 
     This allows us to run a webserver in a development environment that will
     never actually update Google spreadsheets. We can go through the flow of
@@ -59,12 +63,10 @@ def connect_to_sheets():
     return gspread.authorize(credentials), credentials
 
 
-client, credentials = connect_to_sheets()
-
-
 def with_refreshed_token(func):
     """ By default, tokens are limited to 60 minutes. Refresh if expired. """
     def func_wrapper(*args, **kwargs):
+        client, credentials = connect_to_sheets()
         if credentials.access_token_expired:
             credentials.refresh(httplib2.Http())  # (`client` points to this)
             client.login()  # Log in again to refresh credentials
@@ -198,6 +200,7 @@ def update_participant(discount, participant):
     Much more efficient than updating the entire sheet.
     """
     user = models.User.objects.get(pk=participant.user_id)
+    client, _ = connect_to_sheets()
     wks = client.open_by_key(discount.ga_key).sheet1
     writer = SheetWriter(discount)
 
@@ -226,6 +229,7 @@ def update_discount_sheet(discount):
     For individual updates, this approach should be avoided (instead, opting to
     update individual cells in the spreadsheet).
     """
+    client, _ = connect_to_sheets()
     wks = client.open_by_key(discount.ga_key).sheet1
     participants = list(discount.participant_set.order_by('name'))
 
