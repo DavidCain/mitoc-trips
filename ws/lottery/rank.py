@@ -58,7 +58,11 @@ class ParticipantRanker:
 
 
 class SingleTripParticipantRanker(ParticipantRanker):
-    priority_key = affiliation_weighted_rand
+    def __init__(self, trip):
+        self.trip = trip
+
+    def priority_key(self, participant):
+        return affiliation_weighted_rand(participant)
 
     def participants_to_handle(self):
         return models.Participant.objects.filter(signup__trip=self.trip)

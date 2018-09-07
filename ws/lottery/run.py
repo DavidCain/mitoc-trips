@@ -67,7 +67,7 @@ class SingleTripLotteryRunner(LotteryRunner):
             return
 
         self.logger.info("Randomly ordering (preference to MIT affiliates)...")
-        ranked_participants = SingleTripParticipantRanker()
+        ranked_participants = SingleTripParticipantRanker(self.trip)
         self.logger.info("Participants will be handled in the following order:")
         max_len = max(len(par.name) for par in ranked_participants)
         for i, par in enumerate(ranked_participants, start=1):
