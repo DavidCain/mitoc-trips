@@ -27,6 +27,6 @@ def instances_and_widgets(bound_field):
            <p>{{ instance }}: {{ widget }}</p>
        {% endfor %}
     """
-    # Source: http://stackoverflow.com/a/27545910/815632
+    # Source: https://stackoverflow.com/a/27545910/815632
     for i, instance in enumerate(bound_field.field.queryset.all()):
         yield (instance, copy(bound_field[i]))
