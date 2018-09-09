@@ -110,7 +110,7 @@ angular.module('ws.profile', [])
     link: function (scope, element, attrs) {
       scope.rentalMsg = '<p>All MITOC members are able to rent club gear at low prices.</p>' +
                         '<p>Want to learn more? Stop by during office hours or ' +
-                        '<a href="http://mitoc.mit.edu/#rental">read about renting gear</a>.</p>';
+                        '<a href="https://mitoc.mit.edu/#rental">read about renting gear</a>.</p>';
       $http.get('/users/' + scope.userId + '/rentals.json')
         .then(function(resp) {
           scope.rentals = resp.data.rentals;

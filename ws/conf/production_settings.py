@@ -46,5 +46,5 @@ INSTALLED_APPS = (
     'corsheaders',
 )
 
-CORS_ORIGIN_WHITELIST = ('mitoc.mit.edu')
+CORS_ORIGIN_WHITELIST = ('https://mitoc.mit.edu')
 CORS_ALLOW_METHODS = ('GET')
