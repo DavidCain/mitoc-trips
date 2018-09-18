@@ -453,6 +453,7 @@ class LeaderSignUp(BaseSignUp):
     """ Represents a leader who has signed up to join a trip. """
     class Meta:
         ordering = ["time_created"]
+        unique_together = ('participant', 'trip')
 
 
 class SignUp(BaseSignUp):
@@ -480,6 +481,7 @@ class SignUp(BaseSignUp):
         # When ordering for an individual, should order by priority (i.e. 'order')
         # When ordering for many, should go by time created.
         ordering = ["manual_order", "last_updated"]
+        unique_together = ('participant', 'trip')
 
 
 class TripInfo(models.Model):
