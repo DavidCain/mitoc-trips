@@ -22,7 +22,7 @@ Drivers:
 
 Approval
 
-Financial signatory: Aaron Buikema
+Financial signatory: {{ bursar_name }}
 Travel expenses approved: $0.00
 Cost object: 2720209
 

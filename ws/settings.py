@@ -159,6 +159,8 @@ ACCOUNT_CONFIRM_EMAIL_ON_GET = True
 # Always "remember me"
 ACCOUNT_SESSION_REMEMBER = True
 
+BURSAR_NAME = os.getenv('BURSAR_NAME', 'MITOC Bursar')
+
 ROOT_URLCONF = 'ws.urls'
 
 WSGI_APPLICATION = 'ws.wsgi.application'

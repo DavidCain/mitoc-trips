@@ -2,6 +2,7 @@ from django.core.mail import EmailMultiAlternatives
 from django.template.loader import get_template
 
 from ws.utils import itinerary
+from ws.settings import BURSAR_NAME
 
 
 def send_email_to_funds(trip, recipient='funds@mit.edu'):
@@ -15,7 +16,8 @@ def send_email_to_funds(trip, recipient='funds@mit.edu'):
     context = {
         'trip': trip,
         'signups_on_trip': on_trip,
-        'cars': itinerary.get_cars(trip)
+        'cars': itinerary.get_cars(trip),
+        'bursar_name': BURSAR_NAME,
     }
 
     text_content = get_template('sao/funds_email.txt').render(context)
