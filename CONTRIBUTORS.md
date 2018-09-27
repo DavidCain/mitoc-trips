@@ -60,3 +60,4 @@ Special thanks to the following especially dedicated individuals:
 ## Documentation
 The following individuals contributed sections to the help pages:
 - Neil Titchener
+- Hannah Varner
