@@ -122,7 +122,7 @@ class DeactivateLeaderRatingsView(OnlyForActivityChair):
         for rating in ratings:
             rating.active = False
             rating.save()  # Do a single update (not bulk) to trigger signals
-        removed_names = ','.join(rating.participant.name for rating in ratings)
+        removed_names = ', '.join(rating.participant.name for rating in ratings)
         msg = "Removed {} rating for {}".format(self.activity, removed_names)
         messages.success(request, msg)
         return self._success()
