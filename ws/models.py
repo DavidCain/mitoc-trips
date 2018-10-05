@@ -550,6 +550,10 @@ class Trip(models.Model):
         return self.name
 
     @property
+    def feedback_window_passed(self):
+        return self.trip_date < (dateutils.local_date() - timedelta(30))
+
+    @property
     def on_trip_or_waitlisted(self):
         """ All signups for participants either on the trip or waitlisted. """
         on_trip_or_waitlisted = (Q(on_trip=True) | Q(waitlistsignup__isnull=False))

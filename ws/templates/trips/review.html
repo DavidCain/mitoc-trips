@@ -16,26 +16,32 @@
     Please check back on {{ trip.trip_date|date:"F jS" }} or later!
   </div>
 {% else %}
-<ol>
-  <li>
-    <strong>Everyone on this list should have attended the trip.</strong>
-    If there are participants here who didn't attend, <a href="{% url 'view_trip' trip.pk %}">remove them</a>.
-  </li>
-  <li>
-    {% if feedback_required %}
-      Since reviews are critical to the safety process,
-      <strong>we ask that you review everyone</strong>.
-    {% else %}
-      You don't have to review every participant, but please give feedback for as many as you can.
-      <br>
-      Even basic feedback (e.g. "no problems, came prepared") is helpful.
-    {% endif %}
-  </li>
-  <li>
-    Not sure what to say? Other questions? See the <a href="{% url 'help-feedback'%}">help pages</a>.
-  </li>
-</ol>
-
+  {% if feedback_window_passed %}
+    <div class="alert alert-info">
+      This trip occurred over a month ago - you may not edit any feedback, but
+      you may view anything that you submitted here.
+    </div>
+  {% else %}
+    <ol>
+      <li>
+        <strong>Everyone on this list should have attended the trip.</strong>
+        If there are participants here who didn't attend, <a href="{% url 'view_trip' trip.pk %}">remove them</a>.
+      </li>
+      <li>
+        {% if feedback_required %}
+          Since reviews are critical to the safety process,
+          <strong>we ask that you review everyone</strong>.
+        {% else %}
+          You don't have to review every participant, but please give feedback for as many as you can.
+          <br>
+          Even basic feedback (e.g. "no problems, came prepared") is helpful.
+        {% endif %}
+      </li>
+      <li>
+        Not sure what to say? Other questions? See the <a href="{% url 'help-feedback'%}">help pages</a>.
+      </li>
+    </ol>
+  {% endif %}
 
   {% if not feedback_list %}
     <div class="alert alert-warning">
@@ -47,17 +53,19 @@
     <form action="" method="post">
       {% csrf_token %}
 
-      <h4>Flaking participants</h4>
+      {% if not feedback_window_passed %}
+        <h4>Flaking participants</h4>
 
-      <p>
-        Include any participants who were expected to attend the trip, but bailed
-        at the last minute.
-      </p>
+        <p>
+          Include any participants who were expected to attend the trip, but bailed
+          at the last minute.
+        </p>
 
-      <flaking-participants>
-      </flaking-participants>
+        <flaking-participants>
+        </flaking-participants>
+      {% endif %}
 
-      <h4>Trip participants</h4>
+      <h3>Trip participants</h3>
       <table class="table">
         <tbody>
           {% for participant, comments in feedback_list %}
@@ -70,9 +78,8 @@
                   <div class="media-body">
                     <h4 class="media-heading"> {{ participant }} </h4>
                     <textarea data-ng-model="par_{{ participant.pk }}"
-                              {% if feedback_required %}
-                              required
-                              {% endif %}
+                              {% if feedback_required %} required {% endif %}
+                              {% if feedback_window_passed %} disabled {% endif %}
                               name="par_{{ participant.pk }}"
                               class="form-control"
                               rows="3">{{ comments }}</textarea>
@@ -84,7 +91,10 @@
         </tbody>
       </table>
 
-      <input class="btn btn-primary" type="submit" value="Submit feedback" />
+
+      {% if not feedback_window_passed %}
+        <input class="btn btn-primary" type="submit" value="Submit feedback" />
+      {% endif %}
     </form>
   {% endif %}
 {% endif %}

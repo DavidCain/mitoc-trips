@@ -89,6 +89,11 @@ class ReviewTripView(DetailView):
     def post(self, request, *args, **kwargs):
         """ Create or update all feedback passed along in form data. """
         trip = self.object = self.get_object()
+        if trip.feedback_window_passed:
+            messages.warning(self.request, "Trip feedback window has passed. "
+                                           "Feedback may not be updated.")
+            return redirect(reverse('review_trip', args=(trip.pk,)))
+
         leader = self.request.participant
 
         try:
@@ -141,7 +146,9 @@ class ReviewTripView(DetailView):
     def get_context_data(self, **kwargs):
         today = local_date()
         trip = self.object = self.get_object()
-        return {"trip": trip, "trip_completed": today >= trip.trip_date,
+        return {"trip": trip,
+                "feedback_window_passed": trip.feedback_window_passed,
+                "trip_completed": today >= trip.trip_date,
                 "feedback_required": trip.activity == 'winter_school',
                 "feedback_list": self.feedback_list}
 
