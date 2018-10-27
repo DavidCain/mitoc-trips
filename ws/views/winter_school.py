@@ -22,7 +22,7 @@ class LectureAttendanceView(FormView, LectureAttendanceMixin):
 
     form_class = forms.AttendedLecturesForm
 
-    def get(self, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         return redirect(reverse('home'))  # (View lacks its own template)
 
     def form_valid(self, form):

@@ -55,12 +55,14 @@ ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 TEST_RUNNER = 'ws.tests.runner.SetupGearDbTestRunner'
 
 INSTALLED_APPS = []  # Must be defined by respective configs
+
+# pylint: disable=wildcard-import,unused-wildcard-import
 if os.environ.get('WS_TEST_CONFIG'):
-    from .conf.test_settings import *  # NoQA
+    from .conf.test_settings import *  # pylint: disable=no-name-in-module,import-error
 elif os.environ.get('WS_DJANGO_LOCAL'):
-    from .conf.local_settings import *  # NoQA
+    from .conf.local_settings import *
 else:
-    from .conf.production_settings import *  # NoQA
+    from .conf.production_settings import *
 
 DATABASES = {
     'default': {
@@ -248,7 +250,7 @@ raven_js = base_deps + [
     'raven-js/dist/raven.min.js',
     'angular-raven/angular-raven.min.js',
 ]
-if DEBUG is False:  # NoQA
+if DEBUG is False:
     raven_js.append('js/raven/config.js')
 
 vendor_js = [

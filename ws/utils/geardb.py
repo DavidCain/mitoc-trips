@@ -125,7 +125,7 @@ def get_matches(emails):
     - Some email addresses may return the same membership record
     """
     if not emails:  # Passing an empty tuple will cause a SQL error
-        raise StopIteration
+        return
 
     cursor = connections['geardb'].cursor()
 

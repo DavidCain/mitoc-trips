@@ -23,7 +23,7 @@ import ws.utils.perms as perm_utils
 from ws.utils.itinerary import get_cars
 
 
-class ApprovedTripsMixin(object):
+class ApprovedTripsMixin:
     model = models.Trip
 
     @property
@@ -44,7 +44,7 @@ class ApprovedTripsMixin(object):
         return context
 
 
-class ItineraryInfoFormMixin(object):
+class ItineraryInfoFormMixin:
     def get_info_form(self, trip):
         """ Return a stripped form for read-only display.
 

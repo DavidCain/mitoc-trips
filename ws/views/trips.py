@@ -207,7 +207,7 @@ class DeleteTripView(DeleteView, TripLeadersOnlyView):
     model = models.Trip
     success_url = reverse_lazy('upcoming_trips')
 
-    def get(self, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         """ Request is valid, but method is not (use POST). """
         messages.warning(self.request, "Use delete button to remove trips.")
         return redirect(reverse('view_trip', kwargs=self.kwargs))
@@ -294,10 +294,6 @@ class UpcomingTripsView(TripListView):
         queryset = super().get_queryset()
         return queryset.filter(trip_date__gte=local_date())
 
-    def get_context_data(self, **kwargs):
-        # No point sorting into current, past (queryset already handles)
-        return super().get_context_data(**kwargs)
-
 
 class AllTripsView(TripListView):
     """ View all trips, past and present. """
@@ -329,7 +325,7 @@ class ApproveTripsView(UpcomingTripsView):
 class RunTripLotteryView(DetailView, TripLeadersOnlyView):
     model = models.Trip
 
-    def get(self, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         return redirect(reverse('view_trip', kwargs=self.kwargs))
 
     def post(self, request, *args, **kwargs):

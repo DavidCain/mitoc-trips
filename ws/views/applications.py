@@ -182,11 +182,12 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):
             prev_app = app
         else:
             return None, None  # Could be from another (past) year
+        last_app = app  # pylint: disable=undefined-loop-variable
 
         def if_valid(other_app):
             mismatch = (not other_app or
-                        bool(other_app.num_recs) != bool(app.num_recs) or
-                        bool(other_app.num_ratings) != bool(app.num_ratings))
+                        bool(other_app.num_recs) != bool(last_app.num_recs) or
+                        bool(other_app.num_ratings) != bool(last_app.num_ratings))
             return None if mismatch else other_app
 
         return if_valid(prev_app), if_valid(next_app)

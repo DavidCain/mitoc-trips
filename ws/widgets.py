@@ -16,7 +16,7 @@ class MarkdownTextarea(dj_widgets.Textarea):
             attrs.update({'rows': max(4, example_text.count('\n') + 1),
                           'placeholder': example_text})
 
-        return super().__init__(attrs)
+        super().__init__(attrs)
 
 
 class BootstrapDateInput(dj_widgets.DateInput):

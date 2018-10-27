@@ -1,0 +1,35 @@
+[MESSAGES CONTROL]
+
+disable=
+  attribute-defined-outside-init,
+  fixme,
+  invalid-name,
+  locally-disabled,
+  locally-enabled,
+  missing-docstring,
+  no-init,
+  no-else-return,
+  no-member,
+  no-self-use,
+  protected-access,
+  relative-import,
+  too-few-public-methods,
+  too-many-ancestors,
+  too-many-arguments,
+  too-many-branches,
+  too-many-instance-attributes,
+  too-many-locals,
+  too-many-nested-blocks,
+  too-many-public-methods,
+  too-many-return-statements,
+  # Currently quite common in method strings
+  unused-argument,
+
+[REPORTS]
+
+reports=no
+score=no
+
+[FORMAT]
+
+max-module-lines=2000

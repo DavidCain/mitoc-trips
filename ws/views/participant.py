@@ -68,7 +68,7 @@ class ParticipantEditMixin(TemplateView):
     def prefix(self, base, **kwargs):
         return dict(prefix=base, scope_prefix=base + '_scope', **kwargs)
 
-    def get_context_data(self, *args, **kwargs):
+    def get_context_data(self, **kwargs):
         """ Return a dictionary primarily of forms to for template rendering.
         Also includes a value for the "I have a car" checkbox.
 
@@ -97,8 +97,10 @@ class ParticipantEditMixin(TemplateView):
             'currently_has_car': bool(car),
             'participant_form': forms.ParticipantForm(post, **par_kwargs),
             'car_form': forms.CarForm(post, instance=car, **self.prefix('car')),
-            'emergency_info_form': forms.EmergencyInfoForm(post, instance=e_info, **self.prefix('einfo')),
-            'emergency_contact_form': forms.EmergencyContactForm(post, instance=e_contact, **self.prefix('econtact')),
+            'emergency_info_form': forms.EmergencyInfoForm(post, instance=e_info,
+                                                           **self.prefix('einfo')),
+            'emergency_contact_form': forms.EmergencyContactForm(post, instance=e_contact,
+                                                                 **self.prefix('econtact')),
         }
 
         # Boolean: Already responded to question.
@@ -210,8 +212,8 @@ class ParticipantLookupView(TemplateView, FormView):
         context['lookup_form'] = self.get_form(self.form_class)
         return context
 
-    def form_valid(self, lookup_form):
-        participant = lookup_form.cleaned_data['participant']
+    def form_valid(self, form):
+        participant = form.cleaned_data['participant']
         return redirect(reverse('view_participant', args=(participant.id,)))
 
     @method_decorator(group_required('leaders'))
@@ -311,7 +313,9 @@ class ParticipantView(ParticipantLookupView, SingleObjectMixin,
 
         can_set_attendance = self.can_set_attendance(participant)
         context['can_set_attendance'] = can_set_attendance
-        context['show_attendance'] = is_winter_school() and (ws_lectures_complete() or can_set_attendance)
+        context['show_attendance'] = (
+            is_winter_school() and (ws_lectures_complete() or can_set_attendance)
+        )
         if can_set_attendance:
             context['attended_lectures'] = models.LectureAttendance.objects.filter(
                 participant=participant,
@@ -385,9 +389,9 @@ class ProfileView(ParticipantView):
         lottery_messages.supply_all_messages()
         return super().get(request, *args, **kwargs)
 
-    def get_object(self):
+    def get_object(self, queryset=None):
         self.kwargs['pk'] = self.request.participant.id
-        return super().get_object()
+        return super().get_object(queryset)
 
     # Login is not required - we'll handle that in `get()`
     def dispatch(self, request, *args, **kwargs):

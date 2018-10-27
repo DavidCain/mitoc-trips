@@ -20,7 +20,7 @@ def cached_membership_invalid(user):
     return not cached_membership_active(user)
 
 
-def leader_signup_allowed(trip, participant):
+def leader_signup_is_allowed(trip, participant):
     """ Determine whether or not to display the leader signup form.
 
     Note: This is not validation - the user's ultimate ability to sign
@@ -49,7 +49,7 @@ def signup_for_trip(context, trip, participant, existing_signup=None):
         'trip': trip,
         'participant': participant,
         'existing_signup': existing_signup,
-        'leader_signup_allowed': leader_signup_allowed(trip, participant),
+        'leader_signup_allowed': leader_signup_is_allowed(trip, participant),
     }
 
     if trip.signups_open or context['leader_signup_allowed']:

@@ -97,8 +97,8 @@ class DiscountsView(FormView):
             available &= Q(student_required=False)
         return models.Discount.objects.filter(available)
 
-    def get_form(self, *args, **kwargs):
-        form = super().get_form(*args, **kwargs)
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
         form.fields['discounts'].queryset = self.get_queryset()
         return form
 
@@ -107,15 +107,15 @@ class DiscountsView(FormView):
         kwargs['instance'] = self.request.participant
         return kwargs
 
-    def form_valid(self, discount_form):
-        discount_form.save()
-        participant = discount_form.save()
+    def form_valid(self, form):
+        form.save()
+        participant = form.save()
         for discount in participant.discounts.all():
             tasks.update_participant.delay(discount.pk, participant.pk)
         msg = ("Discounts updated! Ensure your membership "
                "is active for continued access to discounts.")
         messages.success(self.request, msg)
-        return super().form_valid(discount_form)
+        return super().form_valid(form)
 
     @method_decorator(user_info_required)
     def dispatch(self, request, *args, **kwargs):
@@ -158,7 +158,7 @@ class LotteryPreferencesView(TemplateView, LotteryPairingMixin):
             lottery_info = None
         return forms.LotteryInfoForm(self.post_data, instance=lottery_info)
 
-    def get_context_data(self):
+    def get_context_data(self, **kwargs):
         self.participant = self.request.participant
         return {'is_winter_school': is_winter_school(),
                 'ranked_signups': json.dumps(self.ranked_signups_dict),

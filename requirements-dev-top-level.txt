@@ -4,3 +4,4 @@ django-debug-toolbar>=1.5
 factory_boy>=2.9.0
 freezegun>=0.3.9
 ipdb
+pylint

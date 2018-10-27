@@ -198,9 +198,9 @@ class AdminTripSignupsView(SingleObjectMixin, FormatSignupMixin,
         # Return unevaluated QuerySet objects (allows update() and all() calls)
         keep_on_trip = (
             trip.signup_set.filter(pk__in=normal_signups)
-                           .extra(select={'ordering': f'case {ordering} end'},
-                                  order_by=('ordering',))
-                           .select_related('waitlistsignup')
+            .extra(select={'ordering': f'case {ordering} end'},
+                   order_by=('ordering',))
+            .select_related('waitlistsignup')
         )
         to_delete = trip.signup_set.filter(pk__in=deletions)
 
@@ -378,11 +378,6 @@ class JsonAllLeadersView(AllLeadersView):
 
         return JsonResponse({'leaders': all_leaders})
 
-    # Give leader names and Gravatars to the public
-    # (Gravatar URLs hash the email with MD5)
-    def dispatch(self, request, *args, **kwargs):
-        return super().dispatch(request, *args, **kwargs)
-
 
 @login_required
 def get_rating(request, pk, activity):
@@ -411,8 +406,8 @@ class ApproveTripView(SingleObjectMixin, View):
 class UserView(DetailView):
     model = models.User
 
-    def get_queryset(self, *args, **kwargs):
-        queryset = super().get_queryset(*args, **kwargs)
+    def get_queryset(self):
+        queryset = super().get_queryset()
         if not perm_utils.is_leader(self.request.user):
             return queryset.filter(pk=self.request.user.id)
         return queryset

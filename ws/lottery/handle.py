@@ -113,7 +113,7 @@ class SingleTripParticipantHandler(ParticipantHandler):
         self.trip = trip
         allow_pairs = trip.honor_participant_pairing
         # TODO: Minimum driver requirements should be supported
-        return super().__init__(participant, runner, allow_pairs=allow_pairs, min_drivers=0)
+        super().__init__(participant, runner, allow_pairs=allow_pairs, min_drivers=0)
 
     @property
     def paired(self):
@@ -149,7 +149,7 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
         :param runner: An instance of LotteryRunner
         """
         self.today = local_date()
-        return super().__init__(participant, runner, min_drivers=2, allow_pairs=True)
+        super().__init__(participant, runner, min_drivers=2, allow_pairs=True)
 
     @property
     def future_signups(self):

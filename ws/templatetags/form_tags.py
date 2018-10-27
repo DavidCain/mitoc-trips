@@ -1,5 +1,6 @@
-from django import template
 from copy import copy
+
+from django import template
 
 register = template.Library()
 

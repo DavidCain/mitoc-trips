@@ -15,7 +15,8 @@ from ws.membership import MEMBERSHIP_LEVELS, MERCHANT_ID, PAYMENT_TYPE
 from ws.utils.signups import non_trip_participants
 
 
-class DjangularRequiredModelForm(NgFormValidationMixin, NgModelFormMixin, Bootstrap3FormMixin, NgModelForm):
+class DjangularRequiredModelForm(NgFormValidationMixin, NgModelFormMixin,
+                                 Bootstrap3FormMixin, NgModelForm):
     required_css_class = 'required'
 
 
@@ -161,15 +162,15 @@ class LeaderForm(DjangularRequiredModelForm):
 
 
 class TripInfoForm(DjangularRequiredModelForm):
-    accurate = BooleanField(required=True, label='I affirm that all participant and driver information is correct')
+    accurate = BooleanField(
+        required=True, label=('I affirm that all participant '
+                              'and driver information is correct')
+    )
 
     class Meta:
         model = models.TripInfo
         fields = ['drivers', 'start_location', 'start_time', 'turnaround_time',
                   'return_time', 'worry_time', 'itinerary']
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
 
 
 class TripForm(DjangularRequiredModelForm):
@@ -187,19 +188,20 @@ class TripForm(DjangularRequiredModelForm):
         ex_notes = (" 1. Do you have any dietary restrictions?\n"
                     " 2. What's your experience level?\n"
                     " 3. What are you most excited about?\n")
-        ex_descr = '\n'.join(["We'll be heading up into the [Whites][whites] "
-                              "for a ~~day~~ weekend of exploring!",
-                              "",
-                              "### Why?",
-                              "Because it's _fun_!",
-                              "",
-                              "Prerequisites:",
-                              " - Enthusiastic attitude",
-                              " - Prior experience",
-                              " - **Proper clothing**",
-                              "",
-                              "[whites]: https://wikipedia.org/wiki/White_Mountains_(New_Hampshire)",
-                              ])
+        ex_descr = '\n'.join([
+            "We'll be heading up into the [Whites][whites] "
+            "for a ~~day~~ weekend of exploring!",
+            "",
+            "### Why?",
+            "Because it's _fun_!",
+            "",
+            "Prerequisites:",
+            " - Enthusiastic attitude",
+            " - Prior experience",
+            " - **Proper clothing**",
+            "",
+            "[whites]: https://wikipedia.org/wiki/White_Mountains_(New_Hampshire)",
+        ])
 
         widgets = {'leaders': widgets.LeaderSelect,
                    'wimp': widgets.ParticipantSelect,
@@ -308,8 +310,12 @@ class LeaderSignUpForm(SignUpForm):
 
 class LeaderParticipantSignUpForm(RequiredModelForm):
     """ For leaders to sign up participants. Notes aren't required. """
-    top_spot = BooleanField(required=False, label='Move to top spot',
-                            help_text='Move the participant above other prioritized waitlist spots (e.g. participants previously added with this form, or those who were bumped off to allow a driver on)')
+    top_spot = BooleanField(
+        required=False, label='Move to top spot',
+        help_text=('Move the participant above other prioritized waitlist '
+                   'spots (e.g. participants previously added with this form, '
+                   'or those who were bumped off to allow a driver on)')
+    )
 
     class Meta:
         model = models.SignUp

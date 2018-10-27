@@ -11,11 +11,11 @@ import bisect
 from collections import OrderedDict, namedtuple
 import functools
 from itertools import zip_longest
-import httplib2
 import logging
 import os.path
 
 import gspread
+import httplib2
 from oauth2client.service_account import ServiceAccountCredentials
 
 from ws import models

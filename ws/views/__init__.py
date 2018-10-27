@@ -1,16 +1,17 @@
 """
 Views are broken up, loosely grouped by purpose.
 """
-from .account import *  # NoQA
-from .applications import *  # NoQA
-from .duplicates import *  # NoQA
-from .itinerary import *  # NoQA
-from .leaders import *  # NoQA
-from .membership import *  # NoQA
-from .participant import *  # NoQA
-from .preferences import *  # NoQA
-from .privacy import *  # NoQA
-from .signup import *  # NoQA
-from .stats import *  # NoQA
-from .trips import *  # NoQA
-from .winter_school import *  # NoQA
+# pylint: disable=wildcard-import
+from .account import *
+from .applications import *
+from .duplicates import *
+from .itinerary import *
+from .leaders import *
+from .membership import *
+from .participant import *
+from .preferences import *
+from .privacy import *
+from .signup import *
+from .stats import *
+from .trips import *
+from .winter_school import *

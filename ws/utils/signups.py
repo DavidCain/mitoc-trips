@@ -24,12 +24,13 @@ def next_in_order(signup, manual_order=None):
         wl = signup.waitlistsignup
     except models.WaitListSignup.DoesNotExist:
         return
+
+    if manual_order:
+        # pylint: disable=invalid-unary-operand-type
+        wl.manual_order = -manual_order  # See WaitlistSignup.meta
     else:
-        if manual_order:
-            wl.manual_order = -manual_order  # See WaitlistSignup.meta
-        else:
-            wl.manual_order = wl.waitlist.last_of_priority
-        wl.save()
+        wl.manual_order = wl.waitlist.last_of_priority
+    wl.save()
 
 
 def add_to_waitlist(signup, request=None, prioritize=False, top_spot=False):
@@ -42,7 +43,8 @@ def add_to_waitlist(signup, request=None, prioritize=False, top_spot=False):
     except models.WaitListSignup.DoesNotExist:
         wl_signup = models.WaitListSignup.objects.create(signup=signup,
                                                          waitlist=signup.trip.waitlist)
-        request and messages.success(request, "Added to waitlist.")
+        if request:
+            messages.success(request, "Added to waitlist.")
 
     if prioritize:
         prioritize_wl_signup(wl_signup, top_spot)
@@ -72,13 +74,15 @@ def trip_or_wait(signup, request=None, prioritize=False, top_spot=False,
         if trip.open_slots > 0:  # There's room, sign them up!
             signup.on_trip = True
             signup.save()
-            request and messages.success(request, "Signed up!")
-            wl_signup and wl_signup.delete()  # Remove (if applicable)
+            if request:
+                messages.success(request, "Signed up!")
+            if wl_signup:
+                wl_signup.delete()  # Remove (if applicable)
         else:  # If no room, add them to the waiting list
             add_to_waitlist(signup, request, prioritize, top_spot)
     elif request:
         trip_not_eligible = "Trip is not an open first-come, first-serve trip"
-        request and messages.error(request, trip_not_eligible)
+        messages.error(request, trip_not_eligible)
     return signup
 
 

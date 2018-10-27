@@ -124,7 +124,7 @@ class DeleteSignupView(DeleteView):
     model = models.SignUp
     success_url = reverse_lazy('upcoming_trips')
 
-    def get(self, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         """ Request is valid, but method is not (use POST). """
         messages.warning(self.request, "Use delete button to remove signups.")
         trip = self.get_object().trip

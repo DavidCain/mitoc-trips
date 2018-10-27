@@ -8,6 +8,7 @@ from ws import settings
 def get_headers():
     """ Get standard headers to be used with every DocuSign API request. """
     creds = ET.Element('DocuSignCredentials')
+    # pylint: disable=bad-whitespace
     ET.SubElement(creds,      'Username').text = settings.DOCUSIGN_USERNAME
     ET.SubElement(creds,      'Password').text = settings.DOCUSIGN_PASSWORD
     ET.SubElement(creds, 'IntegratorKey').text = settings.DOCUSIGN_INTEGRATOR_KEY

@@ -14,12 +14,15 @@ class UpcomingTripsFeed(Feed):
         upcoming_trips = Trip.objects.filter(trip_date__gte=local_date())
         return upcoming_trips.order_by('-trip_date')
 
+    # pylint: disable=arguments-differ
     def item_title(self, trip):
         return trip.name
 
+    # pylint: disable=arguments-differ
     def item_description(self, trip):
         return trip.description
 
+    # pylint: disable=arguments-differ
     def item_link(self, trip):
         return reverse('view_trip', args=[trip.pk])
 

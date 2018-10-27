@@ -77,7 +77,7 @@ def next_lottery():
 def next_wednesday():
     now = local_now()
     days_til_wed = timedelta((9 - now.weekday()) % 7)
-    return (now + days_til_wed)
+    return now + days_til_wed
 
 
 def wed_morning():

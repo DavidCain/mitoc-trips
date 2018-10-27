@@ -33,10 +33,12 @@ class SingletonModel(models.Model):
     class Meta:
         abstract = True
 
+    # pylint: disable=arguments-differ
     def save(self, *args, **kwargs):
         self.pk = 1
         super().save(*args, **kwargs)
 
+    # pylint: disable=arguments-differ
     def delete(self, *args, **kwargs):
         pass
 
@@ -475,6 +477,7 @@ class SignUp(BaseSignUp):
 
     on_trip = models.BooleanField(default=False)
 
+    # pylint: disable=arguments-differ
     def save(self, **kwargs):
         """ Assert that the Participant is not signing up twice.
 

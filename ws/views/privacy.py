@@ -46,9 +46,9 @@ class PrivacyDownloadView(TemplateView):
 
 
 class JsonDataDumpView(NeedsParticipant, TemplateView, SingleObjectMixin):
-    def get_object(self):
+    def get_object(self, queryset=None):
         self.kwargs['pk'] = self.request.participant.pk
-        return super().get_object()
+        return super().get_object(queryset)
 
     def get_queryset(self):
         joins = ['emergency_info__emergency_contact', 'car', 'lotteryinfo']
@@ -268,7 +268,7 @@ class JsonDataDumpView(NeedsParticipant, TemplateView, SingleObjectMixin):
 
         return data
 
-    def get(self, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         response = JsonResponse(self.all_data, json_dumps_params={'indent': 2})
         response['Content-Disposition'] = 'attachment; filename=data_export.json'
         return response

@@ -54,14 +54,14 @@ def fk_tables(cursor, src_table, col):
     return cursor.fetchall()
 
 
-def check_fk_tables(cursor, src_table, col, expected):
+def check_fk_tables(cursor, src_table, column, expected):
     """ Check that the foreign keys are what we expect them to be.
 
     Useful as a canary that things may go wrong if we've since added
     more foreign keys.
     """
     non_handled = []
-    for table, col, ftable in fk_tables(cursor, src_table, col):
+    for table, col, ftable in fk_tables(cursor, src_table, column):
         if col not in expected.get(table, {}):
             non_handled.append((table, col))
     if non_handled:

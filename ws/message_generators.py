@@ -87,8 +87,8 @@ class LotteryMessages:
         """ If the participant hasn't updated information in a while, remind
         them of their status as a driver. """
         if self.lotteryinfo:
-            timedelta = timezone.now() - self.lotteryinfo.last_updated
-            days_old = timedelta.days
+            time_diff = timezone.now() - self.lotteryinfo.last_updated
+            days_old = time_diff.days
 
             if days_old >= self.WARN_AFTER_DAYS_OLD:
                 msg = ("You haven't updated your {} in {} days. "
