@@ -44,6 +44,8 @@ def affiliation_to_radio_value(participant):
         'NG': "Non-MIT grad student",
         'MA': 'MIT affiliate',
         'NA': 'Non-affiliate',
+        # MIT alumni are still tracked as non-affiliates on our waiver
+        'ML': 'Non-affiliate',
         # Deprecated codes ('S' is omitted since we can't map for sure)
         'M': 'MIT affiliate',
         'N': 'Non-affiliate',

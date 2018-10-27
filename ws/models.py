@@ -183,9 +183,18 @@ class Participant(models.Model):
     affiliation = models.CharField(
         max_length=2,
         choices=[
-            ('Undergraduate student', [('MU', "MIT undergrad"), ('NU', "Non-MIT undergrad")]),
-            ('Graduate student', [('MG', "MIT grad student"), ('NG', "Non-MIT grad student")]),
-            ('MA', 'MIT affiliate'),
+            ('Undergraduate student', [
+                ('MU', "MIT undergrad"),
+                ('NU', "Non-MIT undergrad"),
+            ]),
+            ('Graduate student', [
+                ('MG', "MIT grad student"),
+                ('NG', "Non-MIT grad student"),
+            ]),
+            ('MIT', [
+                ('ML', "MIT Alum (former student)"),
+                ('MA', 'MIT affiliate (staff, faculty, etc.)'),
+            ]),
             ('NA', 'Non-affiliate'),
         ]
     )
