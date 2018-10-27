@@ -2,6 +2,18 @@ body {
   padding-top: 50px;
 }
 
+#main-menu a.btn-primary {
+  background-color: #337ab7;
+  color: #fff;
+  padding: 8px;
+  margin-left: 15px;
+  margin-right: 15px;
+  margin-top: 5px;
+}
+#main-menu a.btn-primary:focus {
+  background-color: #286090
+}
+
 .main-content {
   margin-top: 20px;
 }

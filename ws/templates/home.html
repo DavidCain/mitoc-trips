@@ -2,7 +2,7 @@
 {% load trip_tags %}
 
 {% block meta %}
-  <meta name="description" content="Come hiking, climbing, skiing, paddling, and more with the MIT Outing Club. Trips are open to all members, and anyone can join!"/>
+  <meta name="description" content="Come hiking, climbing, skiing, paddling, and more with the MIT Outing Club. Trips are open to all members!"/>
   {{ block.super }}
 {% endblock meta %}
 
@@ -11,10 +11,6 @@
 {% block content %}
 <h1>MITOC Trips</h1>
 <p class="lead">Come hiking, climbing, skiing, paddling, biking, and surfing with the MIT Outing Club!</p>
-<p>The club is open to everyone, and it's easy to join.</p>
-<p>
-  <a role="button" class="btn btn-primary" href="{% url 'account_signup' %}">Sign up</a>
-</p>
 
 {{ block.super }}
 
