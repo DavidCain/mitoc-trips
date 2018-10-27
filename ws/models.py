@@ -225,7 +225,7 @@ class Participant(models.Model):
 
     @classmethod
     def from_email(cls, email, join_membership=False):
-        addr = EmailAddress.objects.filter(email=email, verified=True).first()
+        addr = EmailAddress.objects.filter(email__iexact=email, verified=True).first()
         return cls.from_user(addr.user, join_membership) if addr else None
 
     @classmethod
