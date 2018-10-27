@@ -1,15 +1,16 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import Q
 from django.utils import timezone
+from django.utils.html import escape
 from django.utils.translation import string_concat
 
 from allauth.account.models import EmailAddress
@@ -194,7 +195,7 @@ class Participant(models.Model):
                 ('NG', "Non-MIT grad student"),
             ]),
             ('MIT', [
-                ('ML', "MIT Alum (former student)"),
+                ('ML', "MIT alum (former student)"),
                 ('MA', 'MIT affiliate (staff, faculty, etc.)'),
             ]),
             ('NA', 'Non-affiliate'),
@@ -220,6 +221,67 @@ class Participant(models.Model):
     @property
     def is_student(self):
         return self.affiliation in self.STUDENT_AFFILIATIONS
+
+    @property
+    def profile_allows_trip_attendance(self):
+        """ The participant's profile provides no obstacles to their trip attendance.
+
+        This does NOT include checks like active membership & waiver, etc.
+        """
+        return self.info_current and not self.problems_with_profile
+
+    @property
+    def problems_with_profile(self):
+        """ Return any serious profile errors needing immediate correction.
+
+        If passed to messages, errors are safe for rendering as-is.
+        """
+        safe_messages = []
+
+        if not self.emergency_info.emergency_contact.cell_phone:
+            safe_messages.append("Please supply a valid number for your emergency contact.")
+        if ' ' not in self.name:  # pylint: disable=unsupported-membership-test
+            safe_messages.append("Please supply your full legal name.")
+
+        emails = self.user.emailaddress_set
+        if not emails.filter(email=self.email, verified=True).exists():
+            manage_emails = reverse('account_email')
+            email = escape(self.email)  # Protect against XSS
+            safe_messages.append(
+                f'Please <a href="{manage_emails}">verify that you own {email}</a>'
+                ', or set your email address to one of your verified addresses.'
+            )
+
+        if self.affiliation_dated:
+            safe_messages.append("Please update your MIT affiliation.")
+
+        return safe_messages
+
+    @property
+    def info_current(self):
+        """ Whether the participant has recently updated their information.
+
+        This attribute must be true in order to participate on trips, but we
+        do allow some browsing of the site before we collect information.
+
+        By contrast, `affiliation_dated` being false will trigger an immediate
+        redirect.
+        """
+        since_last_update = timezone.now() - self.profile_last_updated
+        return since_last_update.days < settings.MUST_UPDATE_AFTER_DAYS
+
+    @property
+    def affiliation_dated(self):
+        """ The affiliation we have on file is too general/dated.
+
+        For the purposes of better record-keeping, we really need an updated
+        affiliation. Redirect the participant urgently.
+        """
+        if len(self.affiliation) == 1:  # Old one-letter affiliation
+            return True
+
+        force_reset = dateutils.localize(datetime(2018, 10, 27, 4, 30))
+        return self.profile_last_updated < force_reset
 
     @property
     def user(self):
@@ -333,11 +395,6 @@ class Participant(models.Model):
     @property
     def email_addr(self):
         return '"{}" <{}>'.format(self.name, self.email)
-
-    @property
-    def info_current(self):
-        since_last_update = timezone.now() - self.profile_last_updated
-        return since_last_update.days < settings.MUST_UPDATE_AFTER_DAYS
 
     def __str__(self):
         return self.name

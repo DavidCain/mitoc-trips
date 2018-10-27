@@ -22,7 +22,7 @@
 
   <membership-status data-personal="true" data-user-id="{{ user.id }}">
   </membership-status>
-{% elif not participant.info_current %}
+{% elif not participant.profile_allows_trip_attendance %}
   <div class="alert alert-danger">
     You cannot sign up for trips without current
     <a href="{% url 'edit_profile' %}?next={% url 'view_trip' trip.pk %}">personal information</a>.

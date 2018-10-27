@@ -92,6 +92,9 @@ class ParticipantEditMixin(TemplateView):
         par_kwargs["user"] = self.user
         if not participant:
             par_kwargs["initial"] = {'email': self.user.email}
+        elif participant.affiliation_dated or not participant.info_current:
+            # Nulling this out forces the user to consciously choose an accurate value
+            par_kwargs["initial"] = {'affiliation': None}
 
         context = {
             'currently_has_car': bool(car),
@@ -200,6 +203,13 @@ class EditProfileView(ParticipantEditMixin):
     @property
     def participant(self):
         return self.request.participant
+
+    def get(self, request, *args, **kwargs):
+        par = request.participant
+        safe_messages = par.problems_with_profile if par else []
+        for msg in safe_messages:
+            messages.info(request, msg, extra_tags='safe')
+        return super().get(request, *args, **kwargs)
 
 
 class ParticipantLookupView(TemplateView, FormView):
@@ -379,7 +389,13 @@ class ProfileView(ParticipantView):
             current_trips = models.Trip.objects.filter(trip_date__gte=today)
             trips = annotated_for_trip_list(current_trips)
             return render(request, 'home.html', {'current_trips': trips})
-        elif not request.participant:
+
+        if not request.participant:
+            return redirect(reverse('edit_profile'))
+
+        # We _really_ want accurate information on affiliation.
+        # Immediately redirect people so we can get updated affiliation
+        if request.participant.affiliation_dated:
             return redirect(reverse('edit_profile'))
 
         message_generators.warn_if_needs_update(request)

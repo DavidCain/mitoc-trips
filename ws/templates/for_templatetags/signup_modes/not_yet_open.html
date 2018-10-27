@@ -5,7 +5,7 @@
   <div class="alert alert-success">
     However, you can sign up early as a leader!
   </div>
-  {% if not participant.info_current %}
+  {% if not participant.profile_allows_trip_attendance %}
     <div class="alert alert-warning">
       You cannot sign up for trips without current
       <a href="{% url 'edit_profile' %}">personal information</a>.

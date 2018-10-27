@@ -1,14 +1,12 @@
 from functools import wraps
 
 from django.core.exceptions import PermissionDenied
-from django.contrib import messages
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.views import redirect_to_login
 from django.urls import reverse, reverse_lazy
 from django.shortcuts import resolve_url
 from django.utils.decorators import available_attrs
-from django.utils.html import escape
 
 import ws.utils.perms
 
@@ -21,45 +19,12 @@ def chairs_only(*activity_types, **kwargs):
 
 
 def profile_needs_update(request):
-    """ Return if the user's profile is missing, dated, or in need of correction.
-
-    Create messages indicating the required changes so that the user may
-    correct them.
-    """
+    """ Return if we need to redirect to 'edit_profile' for changes. """
     if request.user.is_anonymous:
         return False  # We can't be sure until the user logs in
-
-    par = request.participant
-    if not par:
+    if not request.participant:
         return True
-
-    has_problems = False
-
-    if not par.emergency_info.emergency_contact.cell_phone:
-        messages.info(request, "Please supply a valid number for your emergency contact.")
-        has_problems = True
-    if ' ' not in par.name:
-        messages.info(request, "Please supply your full legal name.")
-        has_problems = True
-
-    emails = request.user.emailaddress_set
-    if not emails.filter(email=par.email, verified=True).exists():
-        messages.info(request,
-                      'Please <a href="{}">'.format(reverse('account_email')) +
-                      'verify that you own {}</a>, or set your system '
-                      'email address to one of your already verified email '
-                      'addresses.'.format(escape(par.email)),
-                      extra_tags='safe')
-        has_problems = True
-
-    if len(par.affiliation) == 1:
-        messages.info(request, 'Please update your MIT affiliation.')
-        has_problems = True
-
-    if (has_problems is False and not par.info_current):
-        return True  # No "problems" but info is dated (template will give message)
-
-    return has_problems
+    return not request.participant.profile_allows_trip_attendance
 
 
 def participant_required(view_func):
