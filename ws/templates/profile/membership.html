@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load form_tags %}
 {% load messages_tags %}
 
 {% block head_title %}
@@ -50,8 +51,46 @@ Membership dues
 
       <form action="https://shopmitprd.mit.edu/controller/index.php" method="POST">
         <div {% if viewing_participant %}class="hidden"{% endif %}>
-          {{ form.as_div }}
+          {# CyberSource fields, always hidden #}
+          {{ form.merchant_id }}
+          {{ form.description }}
+
+          {% form_group form.merchantDefinedData3 %}  {# Email #}
+          {% form_group form.merchantDefinedData2 %}  {# Affiliation #}
+
+          {% if form.amount.initial %}
+            {# Amount is set server-side already. Render it (will still be hidden for participants) #}
+            {% form_group form.amount %}
+          {% else %}
+            {# Amount must be set by choosing the right affiliation #}
+
+            {# Automatically sets amount from the affiliation that's chosen #}
+            <amount-from-affiliation data-affiliation="merchantDefinedData2" data-amount="amount">
+            </amount-from-affiliation>
+
+            {# Make amount selection (mostly) work on clients without JavaScript! #}
+            <noscript>
+              {% form_group form.amount %}
+              <div class="alert alert-warning">
+                <p>
+                  While this form is designed to work without JavaScript,
+                  CyberSource (our payment processor) appears to require scripts.
+                </p>
+                <p>
+                  You may want to enable JavaScript on their domain(s), otherwise we
+                  will be unable to process your payment.
+                </p>
+              </div>
+              <div class="alert alert-info">
+                <p>
+                  <strong>MITOC is always happy to accept personal checks for membership payment.</strong>
+                </p>
+              </div>
+            </noscript>
+          {% endif %}
+
         </div>
+
 
         <div class="btn-group">
           {% if viewing_participant %}
@@ -59,8 +98,8 @@ Membership dues
               <i class="fas fa-edit"></i>&nbsp;Edit Information
             </a>
           {% endif %}
-          <button type="submit" class="btn btn-primary" href="{% url 'edit_profile' %}">
-            <i class="fas fa-credit-card"></i>&nbsp;Pay $<span data-ng-bind="amount"></span> {{ viewing_participant.get_affiliation_display }} dues
+          <button type="submit" class="btn btn-primary" data-ng-disabled="!amount">
+            <i class="fas fa-credit-card"></i>&nbsp;Pay <span data-ng-bind="amount ? '$' + amount: ''"></span> {{ viewing_participant.get_affiliation_display }} dues
           </button>
         </div>
       </form>

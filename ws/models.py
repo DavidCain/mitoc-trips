@@ -18,7 +18,7 @@ from localflavor.us.models import USStateField
 from phonenumber_field.modelfields import PhoneNumberField
 
 from ws.fields import OptionalOneToOneField
-from ws.membership import STUDENT, AFFILIATE, GENERAL
+from ws.membership import MIT_STUDENT, NON_MIT_STUDENT, AFFILIATE, MIT_ALUM, GENERAL
 import ws.utils.dates as dateutils
 from ws.utils.avatar import avatar_url
 
@@ -180,27 +180,25 @@ class Participant(models.Model):
 
     membership = OptionalOneToOneField(Membership, on_delete=models.CASCADE)
 
+    AFFILIATION_CHOICES = [
+        ('Undergraduate student', [
+            ('MU', "MIT undergrad"),
+            ('NU', "Non-MIT undergrad"),
+        ]),
+        ('Graduate student', [
+            ('MG', "MIT grad student"),
+            ('NG', "Non-MIT grad student"),
+        ]),
+        ('MIT', [
+            ('MA', 'MIT affiliate (staff, faculty, etc.)'),
+            ('ML', "MIT alum (former student)"),
+        ]),
+        ('NA', 'Non-affiliate'),
+    ]
     # We used to not collect level of student + MIT affiliation
     # Any participants with single-digit affiliation codes have dated status
     # Old codes were: S (student), M (MIT affiliate), and N (non-affiliated)
-    affiliation = models.CharField(
-        max_length=2,
-        choices=[
-            ('Undergraduate student', [
-                ('MU', "MIT undergrad"),
-                ('NU', "Non-MIT undergrad"),
-            ]),
-            ('Graduate student', [
-                ('MG', "MIT grad student"),
-                ('NG', "Non-MIT grad student"),
-            ]),
-            ('MIT', [
-                ('ML', "MIT alum (former student)"),
-                ('MA', 'MIT affiliate (staff, faculty, etc.)'),
-            ]),
-            ('NA', 'Non-affiliate'),
-        ]
-    )
+    affiliation = models.CharField(max_length=2, choices=AFFILIATION_CHOICES)
     STUDENT_AFFILIATIONS = {'MU', 'NU', 'MG', 'NG'}
 
     discounts = models.ManyToManyField(Discount, blank=True)
@@ -208,15 +206,23 @@ class Participant(models.Model):
     def avatar_url(self, size=100):
         return avatar_url(self, size)
 
+    @staticmethod
+    def affiliation_to_membership_price(affiliation):
+        affiliation_to_option = {
+            'MU': MIT_STUDENT,
+            'MG': MIT_STUDENT,
+            'NU': NON_MIT_STUDENT,
+            'NG': NON_MIT_STUDENT,
+            'ML': MIT_ALUM,
+            'MA': AFFILIATE,
+            'NA': GENERAL,
+        }
+        label, price = affiliation_to_option.get(affiliation, GENERAL)
+        return price
+
     @property
     def annual_dues(self):
-        if self.is_student:
-            label, price = STUDENT
-        elif self.affiliation == 'MA':
-            label, price = AFFILIATE
-        else:
-            label, price = GENERAL
-        return price
+        return self.affiliation_to_membership_price(self.affiliation)
 
     @property
     def is_student(self):

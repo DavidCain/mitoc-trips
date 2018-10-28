@@ -11,7 +11,7 @@ from localflavor.us.us_states import US_STATES
 
 from ws import models
 from ws import widgets
-from ws.membership import MEMBERSHIP_LEVELS, MERCHANT_ID, PAYMENT_TYPE
+from ws.membership import MERCHANT_ID, PAYMENT_TYPE
 from ws.utils.signups import non_trip_participants
 
 
@@ -398,16 +398,41 @@ def LeaderApplicationForm(*args, **kwargs):
     return DynamicActivityForm()
 
 
+def amount_choices(value_is_amount=False):
+    """ Yield all affiliation choices with the price in the label.
+
+    if `value_is_amount` is True, we'll replace the two-letter affiliation
+    with the price as the choice's value.
+    """
+    def include_amount_in_label(affiliation, label):
+        amount = models.Participant.affiliation_to_membership_price(affiliation)
+        value = amount if value_is_amount else affiliation
+        return (value, f"{label} (${amount})")
+
+    for label, option in models.Participant.AFFILIATION_CHOICES:
+        if isinstance(option, list):
+            yield label, [include_amount_in_label(*choice) for choice in option]
+        else:
+            yield include_amount_in_label(label, option)
+
+
 class DuesForm(NgFormValidationMixin, Bootstrap3FormMixin, NgForm):
     required_css_class = 'required'
 
-    merchantDefinedData3 = EmailField(required=True, label='Email')
-    amount = ChoiceField(label='Affiliation', required=True,
-                         choices=[(amount, '{} (${})'.format(label, amount))
-                                  for label, amount in MEMBERSHIP_LEVELS])
     merchant_id = CharField(widget=forms.HiddenInput(), initial=MERCHANT_ID)
     description = CharField(widget=forms.HiddenInput(), initial='membership fees.')
+
     merchantDefinedData1 = CharField(widget=forms.HiddenInput(), initial=PAYMENT_TYPE)
+    merchantDefinedData2 = ChoiceField(required=True, label='Affiliation',
+                                       choices=list(amount_choices()))
+    merchantDefinedData3 = EmailField(required=True, label='Email')
+
+    # For Participant-less users with JS enabled, this will be hidden & silently
+    # set by an Angular directive that updates the amount based on the affiliation.
+    # For users _without_ JavaScript, it will display as a Select widget.
+    amount = ChoiceField(label='Please confirm membership level', required=True,
+                         help_text="(We're showing this because you have scripts disabled)",
+                         choices=list(amount_choices(value_is_amount=True)))
 
     def __init__(self, *args, **kwargs):
         participant = kwargs.pop('participant')
@@ -416,9 +441,13 @@ class DuesForm(NgFormValidationMixin, Bootstrap3FormMixin, NgForm):
         email = self.fields['merchantDefinedData3']
         if participant:
             email.initial = participant.email
+            self.fields['merchantDefinedData2'].initial = participant.affiliation
             self.fields['amount'].initial = participant.annual_dues
         else:
             email.widget.attrs['placeholder'] = 'tim@mit.edu'
+            # Without this, the default choice is 'Undergraduate student'.
+            # This heading doesn't render as a choice, but it behaves like one.
+            self.fields['amount'].initial = ''
 
 
 class WaiverForm(NgFormValidationMixin, Bootstrap3FormMixin, NgForm):

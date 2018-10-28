@@ -670,4 +670,46 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
       });
     }
   };
+})
+.directive('amountFromAffiliation', function() {
+    /* Store the membership amount from the selected affiliation.
+     *
+     * The form that we submit to CyberSource has two named inputs:
+     * - amount (how much to pay, dependent on affiliation)
+     * - affiliation (stored in 'merchantDefinedData2')
+     *
+     * To the user, selecting these two is the same operation. However,
+     * to create two form inputs, we need to sneak in another hidden input
+     * with the amount to charge.
+     *
+     * When paying dues as a Participant, this directive is not needed (we can
+     * just load a value for `amount` when rendering the form server-side).
+     * However, when paying dues as an anonymous participant, this allows
+     * us to avoid making the participant make a selection twice.
+     */
+  return {
+    restrict: 'E',
+    replace: true,
+    scope: {
+      affiliation: '=',
+      amount: '=',
+    },
+    //templateUrl: '/static/template/amount-from-affiliation.html',
+    template: '<input name="amount" type="hidden" data-ng-value="amount" />',
+    link: function (scope, element, attrs) {
+      var affiliationToAmount = {
+        'MU': 15,
+        'MG': 15,
+        'NU': 20,
+        'NG': 20,
+        'MA': 30,
+        'ML': 35,
+        'NA': 40,
+      };
+
+      scope.$watch('affiliation', function(affiliation) {
+        scope.amount = affiliationToAmount[affiliation];
+      });
+    }
+  };
 });
