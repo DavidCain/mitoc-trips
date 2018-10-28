@@ -700,11 +700,11 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
       var affiliationToAmount = {
         'MU': 15,
         'MG': 15,
-        'NU': 20,
-        'NG': 20,
-        'MA': 30,
-        'ML': 35,
-        'NA': 40,
+        'NU': 15,
+        'NG': 15,
+        'MA': 20,
+        'ML': 25,
+        'NA': 25,
       };
 
       scope.$watch('affiliation', function(affiliation) {
