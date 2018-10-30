@@ -11,7 +11,7 @@ django-allauth==0.38.0
 django-angular==2.0.1
 django-cors-headers==2.4.0
 django-localflavor==2.1
-django-phonenumber-field==2.0.1
+django-phonenumber-field==2.1.0
 django-pipeline==1.6.14
 django-smtp-ssl==1.0
 gspread==0.6.2
@@ -28,9 +28,9 @@ pyasn1==0.4.4
 pyasn1-modules==0.2.2
 PyJWT==1.6.4
 python3-openid==3.1.0
-pytz==2018.5
+pytz==2018.7
 raven==6.9.0
-requests==2.19.1
+requests==2.20.0
 requests-oauthlib==1.0.0
 rsa==4.0
 six==1.11.0
