@@ -215,7 +215,7 @@ class FlakeFactorTests(TestCase):
         """ Multiple trip leaders declaring a participant a flake is no worse than 1. """
         flaked = {'participant': self.participant, 'showed_up': False}
         for trip in self.three_trips:
-            for i in range(3):
+            for _ in range(3):
                 FeedbackFactory.create(trip=trip, **flaked)
 
         self.assertEqual(self.ranker.number_ws_trips(self.participant),

@@ -17,6 +17,7 @@ def affiliation_weighted_rand(participant):
     """
     weights = {
         'MU': 0.3, 'MG': 0.2, 'MA': 0.1,  # (MIT undergrads, grads, affiliates)
+        'ML': 0.1,  # (MIT alumni - former students)
         'NU': 0.0, 'NG': 0.0, 'NA': 0.0,  # (non-MIT students, general public)
         # Old, deprecated status codes
         'M': 0.1, 'N': 0.0, 'S': 0.0
@@ -111,7 +112,7 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
 
         A lower score indicates a more reliable participant.
         """
-        attended, flaked, total = self.number_ws_trips(participant)
+        attended, flaked, _ = self.number_ws_trips(participant)
         return (flaked * 5) - (2 * attended)
 
     def trips_flaked(self, participant):
