@@ -61,29 +61,39 @@ class SingleTripLotteryRunner(LotteryRunner):
         self.handler.setLevel(logging.DEBUG)
         self.logger.addHandler(self.handler)
 
+    def _make_fcfs(self):
+        """ After lottery execution, mark the trip FCFS & write out the log. """
+        self.trip.algorithm = 'fcfs'
+        self.trip.lottery_log = self.log_stream.getvalue()
+        self.log_stream.close()
+        self.trip.save()
+
     def __call__(self):
         if self.trip.algorithm != 'lottery':
             self.log_stream.close()
             return
 
         self.logger.info("Randomly ordering (preference to MIT affiliates)...")
-        ranked_participants = SingleTripParticipantRanker(self.trip)
+        ranked_participants = list(SingleTripParticipantRanker(self.trip))
+
+        if not ranked_participants:
+            self.logger.info("No participants signed up.")
+            self.logger.info("Converting trip to first-come, first-serve.")
+            self._make_fcfs()
+            return
+
         self.logger.info("Participants will be handled in the following order:")
         max_len = max(len(par.name) for par in ranked_participants)
         for i, par in enumerate(ranked_participants, start=1):
             affiliation = par.get_affiliation_display()
+            # pylint: disable=logging-fstring-interpolation
             self.logger.info(f"{i:3}. {par.name:{max_len + 3}} ({affiliation})")
 
         self.logger.info(50 * '-')
         for participant in ranked_participants:
             par_handler = SingleTripParticipantHandler(participant, self, self.trip)
             par_handler.place_participant()
-
-        self.trip.algorithm = 'fcfs'
-        self.trip.lottery_log = self.log_stream.getvalue()
-        self.log_stream.close()
-        self.trip.save()
-
+        self._make_fcfs()
 
 class WinterSchoolLotteryRunner(LotteryRunner):
     def __init__(self):
