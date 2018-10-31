@@ -48,11 +48,13 @@
             </div>
 
             <div class="navbar-header navbar-right pull-right">
-                {% if not user.is_authenticated %}
-                    <ul class="nav pull-left">
-                        <li><a role="button" class="btn btn-primary" href="{% url 'account_login' %}">Log in</a></li>
-                    </ul>
-                {% endif %}
+                {% block login_button %}
+                    {% if not user.is_authenticated %}
+                        <ul class="nav pull-left">
+                            <li><a role="button" class="btn btn-primary" href="{% url 'account_login' %}">Log in</a></li>
+                        </ul>
+                    {% endif %}
+                {% endblock login_button %}
                 <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse" aria-expanded="false" aria-controls="navbar">
                     <span class="sr-only">Toggle navigation</span>
                     {# Navicon #}<span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span>

@@ -1,44 +1,41 @@
 {% extends "account/base.html" %}
 
-{% load i18n %}
 {% load account %}
 
-{% block head_title %}{% trans "Log In" %}{% endblock %}
+{% block head_title %}Log In{% endblock head_title %}
+{% block login_button %}{% endblock login_button%}
 
 {% block content %}
 
-<h1>{% trans "Log In" %}</h1>
+<h1>Log In</h1>
 
-<p>{% blocktrans %}If you have not created an account yet, then please
-<a href="{{ signup_url }}">sign up</a> first.{% endblocktrans %}</p>
+<p>If you have not created an account yet, then please <a href="{{ signup_url }}">sign up</a> first.</p>
 
-<div class="narrow">
-    <form class="login" method="POST" action="{% url 'account_login' %}">
-        {% csrf_token %}
-        <table>
-            {{ form.non_field_errors }}
-            <tr>
-                <th>{{ form.login.label_tag }}</th>
-                <td>{{ form.login.errors }}{{ form.login }}</td>
-            </tr>
-            <tr>
-                <th>{{ form.password.label_tag }}</th>
-                <td>{{ form.password.errors }}{{ form.password }}</td>
-            </tr>
-            <tr>
-                <th></th>
-                <td>
-                    <input type="submit" value="{% trans "Log In" %}" />
-                    <small><a href="{% url 'account_reset_password' %}">{% trans "Forgot your password?" %}</a></small>
-                </td>
-            </tr>
-        </table>
+<form class="login" method="POST" action="{% url 'account_login' %}">
+    {% csrf_token %}
+    <table>
+        {{ form.non_field_errors }}
+        <tr>
+            <th>{{ form.login.label_tag }}</th>
+            <td>{{ form.login.errors }}{{ form.login }}</td>
+        </tr>
+        <tr>
+            <th>{{ form.password.label_tag }}</th>
+            <td>{{ form.password.errors }}{{ form.password }}</td>
+        </tr>
+        <tr>
+            <th></th>
+            <td>
+                <input type="submit" value="Log In" />
+                <small><a href="{% url 'account_reset_password' %}">Forgot your password?</a></small>
+            </td>
+        </tr>
+    </table>
 
-        {% if redirect_field_value %}
+    {% if redirect_field_value %}
         <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
-        {% endif %}
+    {% endif %}
 
-    </form>
-</div>
+</form>
 
-{% endblock %}
+{% endblock content %}
