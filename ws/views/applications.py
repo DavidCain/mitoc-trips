@@ -67,6 +67,13 @@ class LeaderApplyView(LeaderApplicationMixin, CreateView):
         """ Pass the needed "activity" paramater for dynamic form construction. """
         kwargs = super().get_form_kwargs()
         kwargs['activity'] = self.activity
+
+        # Prefill the most-recently held rating, if not currently active
+        # (Most commonly, this occurs with the annual renewal for WS leaders)
+        curr_rating = self.par.activity_rating(self.activity, rating_active=True)
+        prev_rating = self.par.activity_rating(self.activity, rating_active=False)
+        if not curr_rating:
+            kwargs['initial'] = {'desired_rating': prev_rating}
         return kwargs
 
     def get_queryset(self):

@@ -390,12 +390,12 @@ def LeaderApplicationForm(*args, **kwargs):
                        for field in model._meta.fields
                        if isinstance(field, TextField)}
 
-        def __init__(self):
+        def __init__(self, *args, **kwargs):
             # TODO: Errors on args, where args is a single tuple of the view
             #super().__init__(*args, **kwargs)
             super().__init__(**kwargs)
 
-    return DynamicActivityForm()
+    return DynamicActivityForm(*args, **kwargs)
 
 
 def amount_choices(value_is_amount=False):
