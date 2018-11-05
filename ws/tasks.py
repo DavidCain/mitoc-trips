@@ -10,7 +10,7 @@ from ws import models
 from ws import settings
 from ws.sao import send_email_to_funds
 from ws.utils import dates as date_utils
-from ws.utils import member_sheets
+from ws.utils import geardb, member_sheets
 from ws.lottery.run import SingleTripLotteryRunner, WinterSchoolLotteryRunner
 
 
@@ -67,6 +67,13 @@ def update_discount_sheet(self, discount_id):
 def update_all_discount_sheets():
     discount_pks = models.Discount.objects.values_list('pk', flat=True)
     group([update_discount_sheet.s(pk) for pk in discount_pks])()
+
+
+@shared_task
+def update_participant_affiliation(participant_id):
+    """ Use the participant's affiliation to update the gear database. """
+    participant = models.Participant.objects.get(pk=participant_id)
+    geardb.update_affiliation(participant)
 
 
 @shared_task

@@ -18,6 +18,7 @@ from django.views.generic import (DeleteView, DetailView, FormView,
 from ws import forms
 from ws import message_generators
 from ws import models
+from ws import tasks
 from ws.decorators import admin_only, group_required, user_info_required
 from ws.mixins import LotteryPairingMixin, LectureAttendanceMixin
 from ws.templatetags.trip_tags import annotated_for_trip_list
@@ -133,9 +134,17 @@ class ParticipantEditMixin(TemplateView):
             context['car_form'] = forms.CarForm()  # Avoid validation errors
 
         if all(form.is_valid() for form in required_dict.values()):
-            self._save_forms(self.user, required_dict)
-            if self.participant == self.request.participant:
+            orig_affiliation = self.participant and self.participant.affiliation
+            participant = self._save_forms(self.user, required_dict)
+            updating_self = participant == self.request.participant
+            if updating_self:
                 messages.success(request, self.update_msg)
+
+            # We always store current affiliation when self-editing (even if
+            # unchanged in the trips db) because affiliation could have changed
+            # in the gear database via waivers, membership dues, etc.
+            if updating_self or participant.affiliation != orig_affiliation:
+                tasks.update_participant_affiliation.delay(participant.pk)
             return self.success_redirect()
         else:
             return render(request, self.template_name, context)
@@ -144,6 +153,8 @@ class ParticipantEditMixin(TemplateView):
         """ Given completed, validated forms, handle saving all.
 
         If no CarForm is supplied, a participant's existing car will be removed.
+
+        Returns the saved Participant object.
 
         :param post_forms: Dictionary of <template_name>: <form>
         """
@@ -173,6 +184,7 @@ class ParticipantEditMixin(TemplateView):
         participant.save()
         if del_car:
             car.delete()
+        return participant
 
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
