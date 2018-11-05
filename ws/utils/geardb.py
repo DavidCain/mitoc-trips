@@ -6,12 +6,32 @@ integrate with this one). In the meantime, communicate with an
 externally-hosted MySQL database instead of using Django models.
 """
 from collections import OrderedDict
-from datetime import timedelta
+from datetime import datetime, timedelta
+import logging
 
 from django.db import connections
 
 from ws.utils.dates import local_date
 from ws import models
+
+
+logger = logging.getLogger(__name__)
+# In all cases, we should use the MITOC Trips affiliation instead
+DEPRECATED_GEARDB_AFFILIATIONS = {'Student'}
+
+
+AFFILIATION_MAPPING = {
+    'MU': "MIT undergrad",
+    'NU': "Non-MIT undergrad",
+    'MG': "MIT grad student",
+    'NG': "Non-MIT grad student",
+    'MA': "MIT affiliate",
+    'ML': "MIT alum",
+    'NA': "Non-affiliate",
+    # Deprecated statuses, but we can still map them
+    'M': "MIT affiliate",
+    'N': "Non-affiliate",
+}
 
 
 def verified_emails(user):
@@ -118,11 +138,12 @@ def format_membership(email, membership_expires, waiver_expires):
     return person
 
 
-def get_matches(emails):
-    """ For each given email, yield a record about the person (if found).
+def matching_info_for(emails):
+    """ Return all matching memberships under the email addresses.
 
-    - The email addresses may or may not correspond to the same person.
-    - Some email addresses may return the same membership record
+    Most participants will have just one membership, but some people may have
+    multiple memberships! These memberships should be merged on the gear
+    database side, but we must handle them all the same.
     """
     if not emails:  # Passing an empty tuple will cause a SQL error
         return
@@ -134,7 +155,10 @@ def get_matches(emails):
     # but this is what the gear database reports (and we want consistency)
     cursor.execute(
         '''
-        select lower(p.email),
+        select p.id as person_id,
+               p.affiliation,
+          date(p.date_inserted) as date_inserted,
+               lower(p.email),
                lower(pe.alternate_email),
                max(pm.expires)  as membership_expires,
           date(max(pw.expires)) as waiver_expires
@@ -144,7 +168,7 @@ def get_matches(emails):
                left join people_waivers     pw on p.id = pw.person_id
          where p.email in %(emails)s
             or pe.alternate_email in %(emails)s
-         group by p.email, pe.alternate_email
+         group by p.id, p.affiliation, p.email, pe.alternate_email
          order by membership_expires, waiver_expires
         ''', {'emails': tuple(emails)}
     )
@@ -153,16 +177,34 @@ def get_matches(emails):
     # Map back to the case supplied in arguments for easier mapping
     to_original_case = {email.lower(): email for email in emails}
 
-    for main, alternate, m_expires, w_expires in cursor.fetchall():
+    for person_id, affiliation, date_inserted, main, alternate, m_expires, w_expires in cursor:
         # We know that the either the main or alternate email was requested
         # (It's possible that membership records were requested for _both_ emails)
         # In case the alternate email was given alongside the primary email,
         # always give preference to the primary email.
         email = main if main in to_original_case else alternate
-        case_corrected_email = to_original_case[email]
 
-        formatted = format_membership(case_corrected_email, m_expires, w_expires)
-        yield case_corrected_email, formatted
+        yield {
+            'person_id': person_id,
+            'affiliation': affiliation,
+            'date_inserted': date_inserted,
+            'email': to_original_case[email],
+            'membership_expires': m_expires,
+            'waiver_expires': w_expires,
+        }
+
+
+def get_matches(emails):
+    """ For each given email, yield a record about the person (if found).
+
+    - The email addresses may or may not correspond to the same person.
+    - Some email addresses may return the same membership record
+    """
+    for info in matching_info_for(emails):
+        formatted = format_membership(info['email'],
+                                      info['membership_expires'],
+                                      info['waiver_expires'])
+        yield info['email'], formatted
 
 
 def matching_memberships(emails):
@@ -183,9 +225,9 @@ def outstanding_items(emails):
         '''
         select g.id, gt.type_name, gt.rental_amount,
                date(convert_tz(r.checkedout, '+00:00', '-05:00')) as checkedout
-          from rentals  r
-               join gear g on g.id = r.gear_id
-               join gear_types gt on gt.id = g.type
+          from rentals          r
+               join gear        g on g.id = r.gear_id
+               join gear_types gt on g.type = gt.id
          where returned is null
            and person_id in (select id from people where email in %s)
         ''', [tuple(emails)])
@@ -198,3 +240,84 @@ def outstanding_items(emails):
 
 def user_rentals(user):
     return outstanding_items(verified_emails(user))
+
+
+def update_affiliation(participant):
+    """ Update the gear db if the affiliation of a participant has changed.
+
+    This is useful in three scenarios:
+    - Affiliation changes via a self-reported update
+    - A participant states their affiliation without a membership
+    - We have affiliation data in the trips db that the gear db lacks
+
+    The Trips database collects affiliations from its users more often than the
+    gear database. We request that participants update their information at least
+    once every 6 months (settings.MUST_UPDATE_AFTER_DAYS), but the gear database
+    only gets affiliation information every time a participant renews their
+    membership.
+
+    At time of writing, we also allow MIT students to go on some trips with
+    just a waiver (and no membership). For tracking purposes, we still want to
+    know their affiliation, but we'll have no data from membership renewals.
+
+    Finally, the gear database has not always collected affiliation data at
+    the same level of granularity as the trips database. This method can sync
+    affiliation data to the gear database that it previously lacked.
+    """
+    if participant.affiliation == 'S':
+        # Deprecated status, participant hasn't logged on in years
+        return
+
+    emails = (
+        models.EmailAddress.objects
+        .filter(verified=True, user_id=participant.user_id)
+        .values_list('email', flat=True)
+    )
+    matches = list(matching_info_for(emails))
+    if not matches:
+        return
+
+    def last_updated_dates(info):
+        """ Yield the date (not timestamp!) of various updates. """
+        if info['membership_expires']:
+            yield info['membership_expires'] - timedelta(days=365)
+        if info['waiver_expires']:
+            yield info['waiver_expires'] - timedelta(days=365)
+        if info['date_inserted']:  # Null for a few users!
+            yield info['date_inserted']
+
+    def last_updated(info):
+        """ Use the membership that was most recently updated. """
+        dates = list(last_updated_dates(info))
+        return max(dates) if dates else datetime.min.date()
+
+    most_recent = max(matches, key=last_updated)
+
+    geardb_affiliation = AFFILIATION_MAPPING[participant.affiliation]
+
+    # If the database already has the same affiliation, no need to update
+    if geardb_affiliation == most_recent['affiliation']:
+        return
+
+    # We update in a few conditions:
+    # - the person has an affiliation that's less specific than this one
+    # - the gear database has no known affiliation
+    # - the affiliation was updated more recently than the gear database
+    should_update = (
+        most_recent['affiliation'] in DEPRECATED_GEARDB_AFFILIATIONS or
+        not most_recent['affiliation'] or
+        participant.profile_last_updated.date() >= last_updated(most_recent)
+    )
+
+    if should_update:
+        cursor = connections['geardb'].cursor()
+        logger.info("Updating affiliation for %s from %s to %s",
+                    participant.name, most_recent['affiliation'], geardb_affiliation)
+        cursor.execute(
+            '''
+            update people
+               set affiliation = %(affiliation)s
+             where id = %(person_id)s
+            ''', {'affiliation': geardb_affiliation,
+                  'person_id': most_recent['person_id']}
+        )
