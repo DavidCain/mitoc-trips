@@ -66,7 +66,7 @@ else:
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv('DATABASE_NAME', 'ws'),
         'USER': os.getenv('DATABASE_USER', 'ws'),
         'PASSWORD': os.getenv('DATABASE_PASSWORD', 'password'),
@@ -74,7 +74,7 @@ DATABASES = {
         'PORT': os.getenv('DATABASE_PORT', '5432'),
     },
     'auth_db': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv('AUTH_DATABASE_NAME', 'auth_db'),
         'USER': os.getenv('DATABASE_USER', 'ws'),
         'PASSWORD': os.getenv('DATABASE_PASSWORD', 'password'),
