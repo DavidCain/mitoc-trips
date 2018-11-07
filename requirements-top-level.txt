@@ -10,7 +10,6 @@ phonenumberslite
 django-smtp-ssl
 raven
 requests
-six
 django-angular ~= 2.1
 psycopg2-binary
 mysqlclient
