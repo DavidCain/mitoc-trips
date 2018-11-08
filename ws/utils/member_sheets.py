@@ -204,19 +204,20 @@ def update_participant(discount, participant):
     wks = client.open_by_key(discount.ga_key).sheet1
     writer = SheetWriter(discount)
 
+    new_row = writer.get_row(participant, user)
+
     # Attempt to find existing row, update it if found
-    for cell in wks.findall(user.email):
+    last_col = len(writer.header)
+    for cell in wks.findall(participant.email):
         if cell.col == 2:  # (Participants _could_ name themselves an email...)
-            start_cell = wks.get_addr_int(cell.row, 1)
-            end_cell = wks.get_addr_int(cell.row, len(writer.header))
-            cells = wks.range('{}:{}'.format(start_cell, end_cell))
-            assign(cells, writer.get_row(participant, user))
+            row_cells = wks.range(cell.row, cell.col, cell.row, last_col)
+            assign(row_cells, new_row)
             return
 
     # Insert a new row if no existing row found
     sorted_names = wks.col_values(1)[1:]
     row_index = bisect.bisect(sorted_names, participant.name) + 1
-    wks.insert_row(writer.get_row(participant, user), row_index + 1)
+    wks.insert_row(new_row, row_index + 1)
 
 
 @with_refreshed_token
@@ -241,12 +242,12 @@ def update_discount_sheet(discount):
     # Resize sheet to exact size, select all cells
     num_rows, num_cols = len(participants) + 1, len(writer.header)
     wks.resize(num_rows, num_cols)
-    all_cells = wks.range('A1:{}'.format(wks.get_addr_int(num_rows, num_cols)))
+    all_cells = wks.range(1, 1, num_rows, num_cols)
     rows = grouper(all_cells, len(writer.header))
 
     assign(next(rows), writer.header)
 
-    # Update each cell with current membership information
+    # Update each row with current membership information
     for participant, row in zip(participants, rows):
         user = user_by_id[participant.user_id]
         assign(row, writer.get_row(participant, user))

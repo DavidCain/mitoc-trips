@@ -17,4 +17,4 @@ markdown2
 PyJWT
 
 oauth2client
-gspread==0.6.2
+gspread>=3.0.1

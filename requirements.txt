@@ -14,7 +14,7 @@ django-localflavor==2.1
 django-phonenumber-field==2.1.0
 django-pipeline==1.6.14
 django-smtp-ssl==1.0
-gspread==0.6.2
+gspread==3.0.1
 httplib2==0.11.3
 idna==2.7
 kombu==3.0.37
