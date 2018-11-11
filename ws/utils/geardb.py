@@ -11,6 +11,8 @@ import logging
 
 from django.db import connections
 
+from mitoc_const import affiliations
+
 from ws.utils.dates import local_date
 from ws import models
 
@@ -20,18 +22,10 @@ logger = logging.getLogger(__name__)
 DEPRECATED_GEARDB_AFFILIATIONS = {'Student'}
 
 
-AFFILIATION_MAPPING = {
-    'MU': "MIT undergrad",
-    'NU': "Non-MIT undergrad",
-    'MG': "MIT grad student",
-    'NG': "Non-MIT grad student",
-    'MA': "MIT affiliate",
-    'ML': "MIT alum",
-    'NA': "Non-affiliate",
-    # Deprecated statuses, but we can still map them
-    'M': "MIT affiliate",
-    'N': "Non-affiliate",
-}
+AFFILIATION_MAPPING = {aff.CODE: aff.VALUE for aff in affiliations.ALL}
+# Deprecated statuses, but we can still map them
+AFFILIATION_MAPPING['M'] = affiliations.MIT_AFFILIATE.VALUE
+AFFILIATION_MAPPING['N'] = affiliations.NON_AFFILIATE.VALUE
 
 
 def verified_emails(user):

@@ -2,7 +2,16 @@ import xml.etree.cElementTree as ET
 
 import requests
 
+from mitoc_const import affiliations
+
 from ws import settings
+
+
+AFFILIATION_MAPPING = {aff.CODE: aff.VALUE for aff in affiliations.ALL}
+
+# Deprecated codes ('S' is omitted since we can't map for sure)
+AFFILIATION_MAPPING['M'] = affiliations.MIT_AFFILIATE.VALUE
+AFFILIATION_MAPPING['N'] = affiliations.NON_AFFILIATE.VALUE
 
 
 def get_headers():
@@ -34,23 +43,8 @@ def get_base_url():
 
 
 def affiliation_to_radio_value(participant):
-    """ Map affiliation to a selectable value in the Docusign template. """
-    # NOTE: Currently, this table just matches the display values in models.py
-    # However, if we ever were to change those labels without updating
-    # the Docusign template, pre-filling tabs would break
-    mapper = {
-        'MU': "MIT undergrad",
-        'NU': "Non-MIT undergrad",
-        'MG': "MIT grad student",
-        'NG': "Non-MIT grad student",
-        'MA': 'MIT affiliate',
-        'NA': 'Non-affiliate',
-        'ML': 'MIT alum',
-        # Deprecated codes ('S' is omitted since we can't map for sure)
-        'M': 'MIT affiliate',
-        'N': 'Non-affiliate',
-    }
-    return mapper.get(participant.affiliation)
+    """ Map affiliation to a selectable value in the DocuSign template. """
+    return AFFILIATION_MAPPING.get(participant.affiliation)
 
 
 def prefilled_tabs(participant):

@@ -17,8 +17,9 @@ from allauth.account.models import EmailAddress
 from localflavor.us.models import USStateField
 from phonenumber_field.modelfields import PhoneNumberField
 
+from mitoc_const import affiliations
+
 from ws.fields import OptionalOneToOneField
-from ws.membership import MIT_STUDENT, NON_MIT_STUDENT, AFFILIATE, MIT_ALUM, GENERAL
 import ws.utils.dates as dateutils
 from ws.utils.avatar import avatar_url
 
@@ -182,24 +183,29 @@ class Participant(models.Model):
 
     AFFILIATION_CHOICES = [
         ('Undergraduate student', [
-            ('MU', "MIT undergrad"),
-            ('NU', "Non-MIT undergrad"),
+            (affiliations.MIT_UNDERGRAD.CODE, "MIT undergrad"),
+            (affiliations.NON_MIT_UNDERGRAD.CODE, "Non-MIT undergrad"),
         ]),
         ('Graduate student', [
-            ('MG', "MIT grad student"),
-            ('NG', "Non-MIT grad student"),
+            (affiliations.MIT_GRAD_STUDENT.CODE, "MIT grad student"),
+            (affiliations.NON_MIT_GRAD_STUDENT.CODE, "Non-MIT grad student"),
         ]),
         ('MIT', [
-            ('MA', 'MIT affiliate (staff, faculty, etc.)'),
-            ('ML', "MIT alum (former student)"),
+            (affiliations.MIT_AFFILIATE.CODE, 'MIT affiliate (staff or faculty)'),
+            (affiliations.MIT_ALUM.CODE, "MIT alum (former student)"),
         ]),
-        ('NA', 'Non-affiliate'),
+        (affiliations.NON_AFFILIATE.CODE, 'Non-affiliate'),
     ]
     # We used to not collect level of student + MIT affiliation
     # Any participants with single-digit affiliation codes have dated status
     # Old codes were: S (student), M (MIT affiliate), and N (non-affiliated)
     affiliation = models.CharField(max_length=2, choices=AFFILIATION_CHOICES)
-    STUDENT_AFFILIATIONS = {'MU', 'NU', 'MG', 'NG'}
+    STUDENT_AFFILIATIONS = {
+        affiliations.MIT_UNDERGRAD.CODE,
+        affiliations.NON_MIT_UNDERGRAD.CODE,
+        affiliations.MIT_GRAD_STUDENT.CODE,
+        affiliations.NON_MIT_GRAD_STUDENT.CODE,
+    }
 
     discounts = models.ManyToManyField(Discount, blank=True)
 
@@ -208,17 +214,8 @@ class Participant(models.Model):
 
     @staticmethod
     def affiliation_to_membership_price(affiliation):
-        affiliation_to_option = {
-            'MU': MIT_STUDENT,
-            'MG': MIT_STUDENT,
-            'NU': NON_MIT_STUDENT,
-            'NG': NON_MIT_STUDENT,
-            'ML': MIT_ALUM,
-            'MA': AFFILIATE,
-            'NA': GENERAL,
-        }
-        label, price = affiliation_to_option.get(affiliation, GENERAL)
-        return price
+        prices = {aff.CODE: aff.ANNUAL_DUES for aff in affiliations.ALL}
+        return prices.get(affiliation, affiliations.NON_AFFILIATE.ANNUAL_DUES)
 
     @property
     def annual_dues(self):

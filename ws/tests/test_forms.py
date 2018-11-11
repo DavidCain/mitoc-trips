@@ -15,7 +15,7 @@ class FormTests(SimpleTestCase):
                 ('NG', 'Non-MIT grad student ($15)'),
             ]),
             ('MIT', [
-                ('MA', 'MIT affiliate (staff, faculty, etc.) ($20)'),
+                ('MA', 'MIT affiliate (staff or faculty) ($20)'),
                 ('ML', 'MIT alum (former student) ($25)'),
             ]),
             ('NA', 'Non-affiliate ($25)'),
@@ -34,7 +34,7 @@ class FormTests(SimpleTestCase):
                 (15, 'Non-MIT grad student ($15)'),
             ]),
             ('MIT', [
-                (20, 'MIT affiliate (staff, faculty, etc.) ($20)'),
+                (20, 'MIT affiliate (staff or faculty) ($20)'),
                 (25, 'MIT alum (former student) ($25)'),
             ]),
             (25, 'Non-affiliate ($25)'),

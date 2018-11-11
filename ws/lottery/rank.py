@@ -4,8 +4,27 @@ import random
 
 from django.db.models import F, Q, Case, When, IntegerField
 
+from mitoc_const import affiliations
+
 from ws import models
 from ws.utils.dates import local_date, jan_1
+
+
+WEIGHTS = {
+    affiliations.MIT_UNDERGRAD.CODE:    0.3,
+    affiliations.MIT_GRAD_STUDENT.CODE: 0.2,
+    affiliations.MIT_AFFILIATE.CODE:    0.1,
+    affiliations.MIT_ALUM.CODE:         0.1,
+    affiliations.NON_MIT_UNDERGRAD.CODE:    0.0,
+    affiliations.NON_MIT_GRAD_STUDENT.CODE: 0.0,
+    affiliations.NON_AFFILIATE.CODE:        0.0,
+}
+assert set(WEIGHTS) == {aff.CODE for aff in affiliations.ALL}
+
+# Old, deprecated status codes
+WEIGHTS['M'] = WEIGHTS[affiliations.MIT_AFFILIATE.CODE]
+WEIGHTS['N'] = WEIGHTS[affiliations.NON_AFFILIATE.CODE]
+WEIGHTS['S'] = 0.0
 
 
 def affiliation_weighted_rand(participant):
@@ -15,14 +34,7 @@ def affiliation_weighted_rand(participant):
     participants by the result of this function will put MIT students towards
     the beginning of the list more often than not.
     """
-    weights = {
-        'MU': 0.3, 'MG': 0.2, 'MA': 0.1,  # (MIT undergrads, grads, affiliates)
-        'ML': 0.1,  # (MIT alumni - former students)
-        'NU': 0.0, 'NG': 0.0, 'NA': 0.0,  # (non-MIT students, general public)
-        # Old, deprecated status codes
-        'M': 0.1, 'N': 0.0, 'S': 0.0
-    }
-    return random.random() - weights[participant.affiliation]
+    return random.random() - WEIGHTS[participant.affiliation]
 
 
 class ParticipantRanker:
