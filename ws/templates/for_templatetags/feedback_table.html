@@ -23,12 +23,17 @@
         </td>
         <td>
           <span class="nowrap">
-          <a href="{% url 'view_participant' feedback.leader.id %}">{{ feedback.leader|name_with_rating:feedback.trip }}</a>
+              <a href="{% url 'view_participant' feedback.leader.id %}">
+                {{ feedback|leader_display:relevant_activity }}
+              </a>
           </span>
           {% if feedback.trip %}
           <div class="text-right">
             <small>
               <em><a href="{% url 'view_trip' feedback.trip.id %}">{{ feedback.trip }}</a></em>
+              <div>
+              {{ feedback.display_date|date:"M j, Y" }}
+              </div>
             </small>
           </div>
           {% endif %}

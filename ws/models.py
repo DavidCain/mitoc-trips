@@ -352,7 +352,11 @@ class Participant(models.Model):
         return ratings
 
     def name_with_rating(self, trip):
-        """ Give the leader's name plus rating at the time of the trip.
+        """ Give the leader's name plus rating at the time of the trip. """
+        return self.name_with_activity_rating_on(trip.activity, trip.trip_date)
+
+    def name_with_activity_rating_on(self, activity, query_date):
+        """ Give the leader's name plus rating the day before the query date.
 
         Note: Some leaders from Winter School 2014 or 2015 may not have any
         ratings. In those years, we deleted all Winter School ratings at the
@@ -361,8 +365,10 @@ class Participant(models.Model):
 
         If no rating is found, simply the name will be given.
         """
-        kwargs = {'at_time': trip.midnight_before, 'rating_active': False}
-        rating = self.activity_rating(trip.activity, **kwargs)
+        day_before = query_date - timedelta(days=1)
+        at_time = pytz_timezone.localize(dateutils.late_at_night(day_before))
+        kwargs = {'at_time': at_time, 'rating_active': False}
+        rating = self.activity_rating(activity, **kwargs)
         return "{} ({})".format(self.name, rating) if rating else self.name
 
     def activity_rating(self, activity, **kwargs):

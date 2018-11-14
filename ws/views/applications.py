@@ -11,6 +11,8 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
+from django.db.models.fields import DateField
+from django.db.models.functions import Cast, Least
 from django.forms.models import model_to_dict
 from django.http import Http404
 from django.shortcuts import render
@@ -64,11 +66,11 @@ class LeaderApplyView(LeaderApplicationMixin, CreateView):
         return reverse('become_leader', kwargs={'activity': self.activity})
 
     def get_form_kwargs(self):
-        """ Pass the needed "activity" paramater for dynamic form construction. """
+        """ Pass the needed "activity" parameter for dynamic form construction. """
         kwargs = super().get_form_kwargs()
         kwargs['activity'] = self.activity
 
-        # Prefill the most-recently held rating, if not currently active
+        # Pre-fill the most-recently held rating, if not currently active
         # (Most commonly, this occurs with the annual renewal for WS leaders)
         curr_rating = self.par.activity_rating(self.activity, rating_active=True)
         prev_rating = self.par.activity_rating(self.activity, rating_active=False)
@@ -259,7 +261,7 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):
 
         Only show recommendations that were made for this application. That is,
         don't show recommendations made before the application was created (they must
-        have pertained to a previous appplication), or those created after a
+        have pertained to a previous application), or those created after a
         rating was assigned (those belong to a future application).
         """
         match = Q(participant=self.object.participant, activity=self.activity)
@@ -272,14 +274,20 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):
         """ Return all feedback for the participant.
 
         Activity chairs see the complete history of feedback (without the normal
-        "clean slate" period. The only exception is that activity chairs cannot
+        "clean slate" period). The only exception is that activity chairs cannot
         see their own feedback.
         """
-        feedback = models.Feedback.everything.filter(
-            Q(participant=self.object.participant) & ~Q(participant=self.chair)
-        ).select_related('leader', 'trip')
-
-        return feedback.prefetch_related('leader__leaderrating_set')
+        return (
+            models.Feedback.everything
+            .filter(participant=self.object.participant)
+            .exclude(participant=self.chair)
+            .select_related('leader', 'trip')
+            .prefetch_related('leader__leaderrating_set')
+            .annotate(display_date=Least('trip__trip_date',
+                                         Cast('time_created', DateField()))
+                      )
+            .order_by('-display_date')
+        )
 
     def get_context_data(self, **kwargs):
         # Super calls DetailView's `get_context_data` so we'll manually add form
