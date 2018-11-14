@@ -214,11 +214,15 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):
     @property
     def existing_rec(self):
         """ Load an existing recommendation for the viewing participant. """
+        if hasattr(self, '_existing_rec'):
+            # pylint: disable=access-member-before-definition
+            return self._existing_rec
         find_rec = Q(creator=self.chair,
                      participant=self.object.participant,
                      activity=self.activity,
                      time_created__gte=self.object.time_created)
-        return models.LeaderRecommendation.objects.filter(find_rec).first()
+        self._existing_rec = models.LeaderRecommendation.objects.filter(find_rec).first()
+        return self._existing_rec
 
     def default_to_recommendation(self):
         """ Whether to default the form to a recommendation or not. """
@@ -301,9 +305,10 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):
 
         participant = self.object.participant
         context['active_ratings'] = list(participant.ratings(rating_active=True))
+        participant_chair_activities = set(perm_utils.chair_activities(participant.user))
         context['chair_activities'] = [
             label for (activity, label) in models.LeaderRating.ACTIVITY_CHOICES
-            if activity in set(perm_utils.chair_activities(participant.user))
+            if activity in participant_chair_activities
         ]
         context['existing_rating'] = self.existing_rating
         context['existing_rec'] = self.existing_rec
