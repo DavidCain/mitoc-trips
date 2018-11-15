@@ -122,26 +122,28 @@
   <div class="col-md-6">
     {% messages_alerts %}
     {% if recommendations %}
-    <h3><i class="fas fa-thumbs-up"></i> Recommendations</h3>
-      <table class="table">
-        <thead>
-          <tr>
-            <th>Leader</th>
-            <th>Rating</th>
-            <th>Notes</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for rec in recommendations %}
+      <div id="leader_recommandations">
+        <h3><i class="fas fa-thumbs-up"></i> Recommendations</h3>
+        <table class="table">
+          <thead>
             <tr>
-              <td>{{ rec.creator }}</td>
-              <td>{{ rec.rating }}</td>
-              <td>{{ rec.notes }}</td>
+              <th>Leader</th>
+              <th>Rating</th>
+              <th>Notes</th>
             </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      <hr>
+          </thead>
+          <tbody>
+            {% for rec in recommendations %}
+              <tr>
+                <td>{{ rec.creator }}</td>
+                <td>{{ rec.rating }}</td>
+                <td>{{ rec.notes }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <hr>
+      </div>
     {% endif %}
 
     {% feedback_table all_feedback activity %}
