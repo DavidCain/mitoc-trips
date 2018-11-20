@@ -4,6 +4,8 @@ Trip views.
 A "trip" is any official trip registered in the system - created by leaders, to be
 attended by any interested participants.
 """
+from collections import defaultdict
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
@@ -22,6 +24,7 @@ from ws.templatetags.trip_tags import annotated_for_trip_list
 import ws.utils.perms as perm_utils
 import ws.utils.signups as signup_utils
 from ws.utils.dates import local_date, is_winter_school
+from ws.utils.geardb import outstanding_items
 
 
 class TripView(DetailView):
@@ -46,13 +49,42 @@ class TripView(DetailView):
         trip = trip or self.get_object()
         return self.request.participant.signup_set.filter(trip=trip).first()
 
+    def rentals_by_participant(self, trip):
+        """ Yield all items rented by leaders & participants on this trip. """
+        on_trip = trip.signup_set.filter(on_trip=True).select_related('participant')
+        trip_participants = [s.participant for s in on_trip]
+        leaders = [leader for leader in trip.leaders.all()]
+
+        par_by_user_id = {par.user_id: par for par in trip_participants + leaders}
+        if not par_by_user_id:  # No leaders or participants on the trip
+            return
+
+        emails = models.EmailAddress.objects.filter(verified=True,
+                                                    user_id__in=par_by_user_id)
+        participant_by_email = {
+            addr.email: par_by_user_id[addr.user_id] for addr in emails
+        }
+        gear_per_participant = defaultdict(list)
+        for item in outstanding_items(participant_by_email, rented_on_or_before=trip.trip_date):
+            participant = participant_by_email[item['email']]
+            gear_per_participant[participant].append(item)
+
+        # Yield in order of leaders & default signup ordering
+        for par in leaders + trip_participants:
+            if par in gear_per_participant:
+                yield par, gear_per_participant[par]
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data()
         trip = self.object
+
+        context['leader_on_trip'] = perm_utils.leader_on_trip(self.request.participant, trip, True)
         context['can_admin'] = (
-            perm_utils.chair_or_admin(self.request.user, trip.activity) or
-            perm_utils.leader_on_trip(self.request.participant, trip, True)
+            context['leader_on_trip'] or
+            perm_utils.chair_or_admin(self.request.user, trip.activity)
         )
+        if context['can_admin'] or perm_utils.is_leader(self.request.user):
+            context['rentals_by_par'] = list(self.rentals_by_participant(trip))
         return context
 
     def post(self, request, *args, **kwargs):

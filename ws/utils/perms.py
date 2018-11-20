@@ -23,6 +23,11 @@ def is_leader(user):
 
 
 def leader_on_trip(participant, trip, creator_allowed=False):
+    """ Return if the participant is leading this trip.
+
+    Optionally, the trip creator can be included even if they are not
+    leading the trip.
+    """
     if not participant:
         return False
     return (participant in trip.leaders.all() or

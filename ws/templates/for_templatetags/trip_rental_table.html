@@ -1,0 +1,84 @@
+<h3>MITOC gear rented by leaders and participants</h3>
+{% if leader_on_trip %}
+  {% if trip.upcoming %}
+    <div class="alert alert-info">
+      Please ensure that you have all
+      {% if trip.activity == 'winter_school' %}
+        <a href="{% url 'help-ws_gear' %}">required safety gear</a>
+      {% else %}
+        required safety gear
+      {% endif %}
+      before departing on your trip!
+    </div>
+  {% elif trip.in_past and items_by_par %}
+    <div class="alert alert-warning">
+      Please ensure that leaders and participants return trip gear after the
+      trip has completed.
+    </div>
+  {% endif %}
+{% endif %}
+
+{% if items_by_par %}
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Participant</th>
+        {% if show_serial %}
+          <th>Serial #</th>
+        {% endif %}
+        <th>Item</th>
+        <th>Daily Cost
+          <a role="button"
+            data-uib-popover="Members are charged a minimum of one day per week an item is checked out."
+            data-popover-title="Charge per day of use">
+            <i class="fas fa-info-circle"></i>
+          </a>
+        </th>
+        <th>Checked out</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for par, items in items_by_par %}
+        {% for item in items %}
+          <tr>
+            {# Show participant name for the first row they're in the table #}
+            <td {% if not forloop.first %}class="empty-cell"{% endif %}>
+              {% if forloop.first %}
+                <a href="{% url 'view_participant' par.pk %}">{{ par.name }}</a>
+              {% endif %}
+            </td>
+            {% if show_serial %}
+              <td>{{ item.id }}</td>
+            {% endif %}
+            <td>
+              {% if item.overdue %}
+                <a role="button"
+                  data-uib-popover="Item must be returned to the office"
+                  data-popover-title="Overdue!">
+                  <i class="fas fa-exclamation-triangle text-danger"></i>
+                </a>
+              {% endif %}
+              <span>{{ item.name }}</span>
+            </td>
+            <td>${{ item.cost }}</td>
+            <td>{{ item.checkedout|date:'M j, Y' }}</td>
+          </tr>
+        {% endfor %}
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <p class="well">
+    <strong>Note</strong>: This table shows all items that were rented by
+    leaders and participants on or before the trip date.
+    {% if trip.in_past %}
+      Not all items are necessarily due back to the office after trip completion.
+    {% else %}
+      Some of these items may not necessarily be used on this trip.
+    {% endif %}
+  </p>
+{% else %}
+  <p class="lead">
+    No open rentals for this trip.
+  </p>
+{% endif %}

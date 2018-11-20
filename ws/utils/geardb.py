@@ -213,29 +213,62 @@ def matching_memberships(emails):
     return OrderedDict(get_matches(emails))
 
 
-def outstanding_items(emails):
+def outstanding_items(emails, rented_on_or_before=None):
+    """ Yield all items that are currently checked out to the members.
+
+    This method supports listing items for an individual participant (who may
+    have multiple emails/gear accounts) as well as all participants on a trip.
+    """
     if not emails:
-        return []
+      return
+
+    # Email capitalization in the database may differ from what users report
+    # Map back to the case supplied in arguments for easier mapping
+    to_original_case = {email.lower(): email for email in emails}
+
     cursor = connections['geardb'].cursor()
+
+    rental_date_clause = ''
+    if rented_on_or_before:
+        rental_date_clause = 'and checkedout <= %(rented_on_or_before)s'
+
     cursor.execute(
-        '''
-        select g.id, gt.type_name, gt.rental_amount,
+        f'''
+        select lower(p.email),
+               lower(pe.alternate_email),
+               g.id,
+               gt.type_name,
+               gt.rental_amount,
                date(convert_tz(r.checkedout, '+00:00', '-05:00')) as checkedout
           from rentals          r
+               join people      p on p.id = r.person_id
                join gear        g on g.id = r.gear_id
                join gear_types gt on g.type = gt.id
-         where returned is null
-           and person_id in (select id from people where email in %s)
-        ''', [tuple(emails)])
-    items = [{'id': gear_id, 'name': name, 'cost': cost, 'checkedout': checkedout}
-             for gear_id, name, cost, checkedout in cursor.fetchall()]
-    for item in items:
-        item['overdue'] = local_date() - item['checkedout'] > timedelta(weeks=10)
-    return items
+               left join gear_peopleemails pe on p.id = pe.person_id
+         where r.returned is null
+           {rental_date_clause}
+           and (p.email in %(emails)s or pe.alternate_email in %(emails)s)
+         group by p.email, pe.alternate_email, g.id, gt.type_name, gt.rental_amount, r.checkedout
+        ''', {
+            'emails': tuple(emails),
+            'rented_on_or_before': rented_on_or_before,
+        })
+
+    for main, alternate, gear_id, name, cost, checkedout in cursor.fetchall():
+        email = main if main in to_original_case else alternate
+
+        yield {
+            'email': to_original_case[email],
+            'id': gear_id,
+            'name': name,
+            'cost': cost,
+            'checkedout': checkedout,
+            'overdue': (local_date() - checkedout > timedelta(weeks=10)),
+        }
 
 
 def user_rentals(user):
-    return outstanding_items(verified_emails(user))
+    return list(outstanding_items(verified_emails(user)))
 
 
 def update_affiliation(participant):

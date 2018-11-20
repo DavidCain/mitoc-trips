@@ -259,3 +259,9 @@ dd ul {
 .panel-heading h3 {
   margin-top: 10px;
 }
+
+table.table tbody td.empty-cell {
+  /* Disable borders on empty cells in Bootstrap tables */
+  border-top: 0;
+
+}
