@@ -10,6 +10,8 @@ from datetime import datetime, timedelta
 import logging
 
 from django.db import connections
+from django.db.models import Case, Count, IntegerField, Sum, When
+from django.db.models.functions import Lower
 
 from mitoc_const import affiliations
 
@@ -315,3 +317,129 @@ def update_affiliation(participant):
             ''', {'affiliation': geardb_affiliation,
                   'person_id': most_recent['person_id']}
         )
+
+
+def all_active_members():
+    """ Yield emails and rental activity for all members with current dues. """
+    cursor = connections['geardb'].cursor()
+    cursor.execute(
+        '''
+        -- NOTE: Will have one or more rows per active member
+        select p.id as person_id,
+               coalesce(p.affiliation, 'Unknown') as last_known_affiliation,
+               lower(p.email) as email,
+               lower(pe.alternate_email) as alternate_email,
+               count(r.id) as num_rentals
+          from people p
+               join people_memberships     pm on p.id = pm.person_id
+               left join gear_peopleemails pe on p.id = pe.person_id
+               left join rentals           r  on p.id = r.person_id
+         where pm.expires > now()
+         group by p.id, p.affiliation, p.email, pe.alternate_email
+        '''
+    )
+
+    for person_id, affiliation, main, alternate_email, num_rentals in cursor.fetchall():
+        known_emails = (e for e in (main, alternate_email) if e)
+        for email in known_emails:
+            info = {
+                # NOTE: Anyone with >1 alternate email will have multiple rows!
+                # (We'll use multiple emails to look up). Ensure we enforce uniqueness
+                'person_id': person_id,
+                'last_known_affiliation': affiliation,
+                'num_rentals': num_rentals,
+            }
+            yield email, info
+
+
+def trips_information():
+    """ Give important counts, indexed by user IDs.
+
+    Each participant has a singular underlying user. This user has one or more
+    email addresses, which form the link back to the gear database.
+    The user database lives separately from the participant database, so we'll
+    need to make a separate query for user information anyway.
+    """
+    # TODO: Last year only?
+    signup_on_trip = Case(
+        When(signup__on_trip=True, then=1),
+        default=0,
+        output_field=IntegerField()
+    )
+
+    trips_per_participant = dict(
+        models.Participant.objects.all()
+        .annotate(
+            # NOTE: Adding other annotations results in double-counting signups
+            # (We do multiple JOINs, and can't easily pass a DISTINCT to the Sum)
+            num_trips_attended=Sum(signup_on_trip),
+        )
+        .values_list('pk', 'num_trips_attended')
+    )
+
+    additional_stats = (
+        models.Participant.objects.all()
+        .annotate(
+            num_discounts=Count('discounts', distinct=True),
+            num_trips_led=Count('trips_led', distinct=True),
+        )
+        .values_list('pk', 'user_id', 'num_discounts', 'num_trips_led')
+    )
+
+    for (pk, user_id, num_discounts, num_trips_led) in additional_stats:
+        info = {
+            'num_trips_attended': trips_per_participant[pk],
+            'num_trips_led': num_trips_led,
+            'num_discounts': num_discounts,
+        }
+        yield user_id, info
+
+
+def membership_information():
+    """ All current active members, annotated with additional info.
+
+    For each paying member, we also mark if they:
+    - have attended any trips
+    - have led any trips
+    - have rented gear
+    - make use MITOC discounts
+    """
+    # Get trips information indexed by Trips user ID's
+    info_by_user_id = dict(trips_information())
+
+    # Bridge from a lowercase email address to a Trips user ID
+    email_to_user_id = dict(
+        models.EmailAddress.objects.filter(verified=True)
+        .annotate(lower_email=Lower('email'))
+        .values_list('lower_email', 'user_id')
+    )
+
+    def trips_info_for(email):
+        try:
+            user_id = email_to_user_id[email]
+        except KeyError:  # No Trips account
+            return {}
+
+        try:
+            return info_by_user_id[user_id]
+        except KeyError:  # User, but no corresponding Participant
+            return {}
+
+    # Map from the gear database's person ID to stats about the member
+    all_members = {}
+
+    for email, info in all_active_members():
+        existing_record = all_members.get(info['person_id'])
+
+        if existing_record:
+            # We already recorded them as a member, don't report twice
+            # However, we might only have trips info under an alternate email
+            existing_record.update(trips_info_for(email))
+            continue
+
+        all_members[info['person_id']] = {
+            'last_known_affiliation': info['last_known_affiliation'],
+            'num_rentals': info['num_rentals'],
+            **trips_info_for(email)
+        }
+    return all_members

@@ -127,7 +127,10 @@ urlpatterns = [
 
     # D3-based statistics views
     url(r'^data/trips_by_leader.json', api_views.TripsByLeaderView.as_view(), name='json-trips_by_leader'),
-    url(r'^stats/*$', views.StatsView.as_view(), name='stats'),
+    url(r'^stats/$', views.StatsView.as_view(), name='stats'),
+    url(r'^stats/leaderboard/$', views.LeaderboardView.as_view(), name='leaderboard'),
+    url(r'^stats/membership/$', views.MembershipStatsView.as_view(), name='membership_stats'),
+    url(r'^stats/membership.json$', api_views.RawMembershipStatsView.as_view(), name='json-membership_stats'),
 
     # JSON-returning routes that depend on HTTP authorization
     # Tokens accepted via Authorization header (standard 'Bearer' format)

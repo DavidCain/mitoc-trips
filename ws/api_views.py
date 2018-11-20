@@ -17,6 +17,7 @@ from ws import models
 from ws.views import AllLeadersView, TripLeadersOnlyView
 from ws.templatetags.avatar_tags import avatar_url
 
+from ws.decorators import group_required
 from ws.utils.api import jwt_token_from_headers
 from ws.utils.model_dates import missed_lectures
 from ws.utils.dates import date_from_iso
@@ -593,3 +594,15 @@ class TripsByLeaderView(View):
         most_trips_first = sorted(ret, key=leader_sort, reverse=True)
 
         return JsonResponse({'leaders': most_trips_first})
+
+
+class RawMembershipStatsView(View):
+    def get(self, request, *args, **kwargs):
+        return JsonResponse({
+            'members': list(geardb_utils.membership_information().values())
+        })
+
+    @method_decorator(group_required('leaders'))
+    def dispatch(self, request, *args, **kwargs):
+        # TODO: Restrict to BOD only
+        return super().dispatch(request, *args, **kwargs)

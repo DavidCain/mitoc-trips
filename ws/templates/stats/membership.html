@@ -1,0 +1,266 @@
+{% extends "messages_page.html" %}
+{% load pipeline %}
+{% block head_title %}MITOC membership{% endblock head_title %}
+
+{% block js %}
+  {{ block.super }}
+  {# For now, use the Vega charting library for fast-and-easy charts #}
+  {# I may substitute this later for raw D3 #}
+  <script src="https://cdn.jsdelivr.net/npm/vega@4.3.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-embed@3"></script>
+  <script>
+    var possibleAffiliations = [
+      "MIT undergrad",
+      "MIT grad student",
+      "Non-MIT undergrad",
+      "Non-MIT grad student",
+      "MIT alum",
+      "MIT affiliate",
+      "Non-affiliate",
+      "Student",
+      "Unknown",
+    ];
+
+    var barChartTemplate = {
+      "$schema": "https://vega.github.io/schema/vega/v4.json",
+      "width": 900,
+      "height": 300,
+      "padding": 5,
+
+      "data": [
+        {
+          "name": "table",
+          "values": [
+            // Populate with affiliation values!
+          ]
+        }
+      ],
+
+      "signals": [
+        {
+          "name": "tooltip",
+          "value": {},
+          "on": [
+            {"events": "rect:mouseover", "update": "datum"},
+            {"events": "rect:mouseout",  "update": "{}"}
+          ]
+        }
+      ],
+
+      "scales": [
+        {
+          "name": "xscale",
+          "type": "band",
+          "domain": possibleAffiliations,
+          "range": "width",
+          "padding": 0.05,
+          "round": true
+        },
+        {
+          "name": "yscale",
+          "domain": {"data": "table", "field": "amount"},
+          "nice": true,
+          "range": "height"
+        },
+        {
+          "name": "color",
+          "type": "ordinal",
+          "range": {"scheme": "tableau10"},
+          "domain": possibleAffiliations,
+        }
+      ],
+
+      "axes": [
+        { "orient": "bottom", "scale": "xscale" },
+        { "orient": "left", "scale": "yscale" }
+      ],
+
+      "marks": [
+        {
+          "type": "rect",
+          "from": {"data":"table"},
+          "encode": {
+            "enter": {
+              "x": {"scale": "xscale", "field": "affiliation"},
+              "width": {"scale": "xscale", "band": 1},
+              "y": {"scale": "yscale", "field": "amount"},
+              "y2": {"scale": "yscale", "value": 0}
+            },
+            "update": {
+              "fill": {"scale": "color", "field": "affiliation"},
+              "fillOpacity": {"value": 1.0}
+            },
+            "hover": {
+              "fillOpacity": {"value": 0.5}
+            }
+          }
+        },
+        {
+          "type": "text",
+          "encode": {
+            "enter": {
+              "align": {"value": "center"},
+              "baseline": {"value": "bottom"},
+              "fill": {"value": "#333"}
+            },
+            "update": {
+              "x": {"scale": "xscale", "signal": "tooltip.affiliation", "band": 0.5},
+              "y": {"scale": "yscale", "signal": "tooltip.amount", "offset": -2},
+              "text": {"signal": "tooltip.amount"},
+              "fillOpacity": [
+                {"test": "datum === tooltip", "value": 0},
+                {"value": 1}
+              ]
+            }
+          }
+        }
+      ]
+    };
+
+    var categoryMapper = {
+      'MIT undergrad': 'MIT student',
+      'MIT grad student': 'MIT student',
+      'MIT affiliate': 'MIT affiliate & alumni',
+      'MIT alum': 'MIT affiliate & alumni',
+      'Non-affiliate': 'Non-affiliate',
+      // Everybody else is regarded as a non-affiliate
+    };
+
+    var allAffiliationCategories = ["MIT student", "MIT affiliate & alumni", "Non-affiliate"];
+
+    var getChart = function(memberRows) {
+      var counts = _.countBy(memberRows, 'last_known_affiliation');
+      var chartValues = _.map(counts, function(count, affiliation) {
+        var affiliationCategory = categoryMapper[affiliation] || 'Non-affiliate';
+        return {
+          "affiliation": affiliation,
+          "affiliationCategory": affiliationCategory,
+          "amount": count
+        };
+      });
+
+      var chartData = {
+        name: 'table',
+        values: _.sortBy(chartValues, function(row) {return -row.amount;}),
+      };
+
+      return _.merge({}, barChartTemplate, {data: [chartData]});
+    };
+
+    var stackChartByCategory = function(memberRows) {
+      var stackedChart = getChart(_.merge(memberRows));
+      stackedChart.data[0].transform = [{
+        "type": "stack",
+        "groupby": ["affiliationCategory"],
+        "sort": {"field": "affiliation"},
+        "field": "amount"
+      }];
+
+      stackedChart.marks[0].encode.enter.x.field = 'affiliationCategory';
+      stackedChart.marks[0].encode.enter.y.field = 'y0';
+      stackedChart.marks[0].encode.enter.y2.field = 'y1';
+
+      // Remove the tooltip marks, since they don't work as-is with stacked bar charts
+      stackedChart.marks = stackedChart.marks[0];
+
+      _.find(stackedChart.scales, {name: 'xscale'}).domain = allAffiliationCategories;
+      _.find(stackedChart.scales, {name: 'yscale'}).range = 'height';
+      _.find(stackedChart.scales, {name: 'yscale'}).domain.field = 'y1';
+
+      return stackedChart;
+    };
+
+    var renderChart = function(selector, memberRows, optionalExtraData) {
+      var chart = getChart(memberRows);
+      vegaEmbed(selector, chart, {'defaultStyle': true});
+    };
+
+    vega.loader()
+      .load("{% url 'json-membership_stats' %}")
+      .then(function(data) {
+        var allMembers = JSON.parse(data).members;
+        renderChart("#paid_dues", allMembers);
+
+        var newDefinitionMembers = _.filter(allMembers, function(info) {
+          if (info.num_trips_attended) {
+            return true;
+          }
+          return _.includes(['MIT undergrad', 'MIT grad student'], info.last_known_affiliation);
+        });
+        renderChart("#just_members", newDefinitionMembers);
+
+        var stackedChart = stackChartByCategory(newDefinitionMembers);
+        vegaEmbed("#stacked", stackedChart, {'defaultStyle': true});
+
+        var justRenters = _.filter(allMembers, function(info) {
+          return info.num_rentals && !info.num_trips_attended;
+        });
+        renderChart("#renters", justRenters);
+
+        var justLeaders = _.filter(allMembers, 'num_trips_led');
+        renderChart("#leaders", justLeaders);
+
+        var justDiscounts = _.filter(allMembers, function(info) {
+          return (info.num_discounts && !info.num_rentals && !info.num_trips_attended);
+        });
+        renderChart("#discounts", justDiscounts);
+
+      });
+
+  </script>
+{% endblock js %}
+
+
+{% block content %}
+  {{ block.super }}
+
+  <h1>Membership Statistics</h1>
+  <p class="lead">
+    These visualizations are meant to give quick insights. Feel free to
+    download the <a href="{% url 'json-membership_stats' %}">raw data</a> to
+    explore further.
+  </p>
+
+  <hr>
+
+  <h3>MITOC members</h3>
+  <p>
+    MITOC members are defined as those who:
+    <ul>
+      <li>Have paid current annual dues</li>
+      <li>Are MIT students, or have ever participated on a trip</li>
+    </ul>
+    (This excludes people who only use the club for rentals or MITOC discounts)
+  </p>
+  <div id="just_members"></div>
+
+  <h4>MITOC members grouped</h4>
+  <p>
+    This is the same member definition as above, but with affiliations grouped
+    for easy visualization of the key "groups" in MITOC.
+  </p>
+  <div id="stacked"></div>
+
+  <h3>Leaders</h3>
+  <p>Current affiliation of people who have ever led a trip.</p>
+  <div id="leaders"></div>
+
+
+  <h3>All dues-paying members</h3>
+  <p>This is a count of all MITOCers who've paid their dues (but may not have
+    rented gear, participated on trips, or otherwise made use of the club).
+  </p>
+  <div id="paid_dues"></div>
+
+  <h3>Just renters</h3>
+  <p>People who pay dues and rent gear, but have never been on a trip.</p>
+  <div id="renters"></div>
+
+  <h3>Just discounts</h3>
+  <p>
+    People who use <a href="{% url 'discounts' %}">MITOC discounts</a>, but
+    have never rented gear or been on a trip.
+  </p>
+  <div id="discounts"></div>
+
+{% endblock content %}

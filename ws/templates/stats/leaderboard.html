@@ -1,0 +1,18 @@
+{% extends "messages_page.html" %}
+{% load pipeline %}
+{% block head_title %}Leaderboard{% endblock head_title %}
+
+{% block js %}
+  {{ block.super }}
+  {% javascript 'd3' %}
+{% endblock js %}
+
+
+{% block content %}
+  {{ block.super }}
+
+  <h1>Leaderboard</h1>
+  <trips-by-leader>
+  </trips-by-leader>
+
+{% endblock content %}

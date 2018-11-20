@@ -1,18 +1,28 @@
 {% extends "messages_page.html" %}
-{% load pipeline %}
-{% block head_title %}Leaderboard{% endblock head_title %}
-
-{% block js %}
-  {{ block.super }}
-  {% javascript 'd3' %}
-{% endblock js %}
-
+{% block head_title %}Statistics{% endblock head_title %}
 
 {% block content %}
   {{ block.super }}
 
-  <h1>Leaderboard</h1>
-  <trips-by-leader>
-  </trips-by-leader>
+  <h2>
+    <a href="{% url 'leaderboard' %}">
+      Leaderboard
+    </a>
+  </h2>
+  <p class="lead">
+    An interactive chart showing which trips have been led over time by
+    leaders.
+  </p>
+
+  {% if 'leaders' in groups %}
+    <h2>
+      <a href="{% url 'membership_stats' %}">
+        MITOC members
+      </a>
+    </h2>
+    <p class="lead">
+      Bar charts of affiliations of current MITOC members.
+    </p>
+  {% endif %}
 
 {% endblock content %}
