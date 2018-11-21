@@ -97,6 +97,7 @@ class RatingsRecommendationsMixin:
         )
 
     def sum_annotation(self, selector):
+        # Django 2.0: Use conditional aggregation instead
         return Sum(
             Case(When(selector, then=1),
                  default=0,

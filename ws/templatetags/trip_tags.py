@@ -16,6 +16,7 @@ def annotated_for_trip_list(trips):
     # Each trip will need information about its leaders, so prefetch models
     trips = trips.prefetch_related('leaders', 'leaders__leaderrating_set')
 
+    # Django 2.0: Use conditional aggregation instead!
     signup_on_trip = Case(
         When(signup__on_trip=True, then=1),
         default=0,

@@ -61,6 +61,7 @@ class ParticipantRanker:
         )
 
         participants = self.participants_to_handle().annotate(
+            # Django 2.0: Use conditional aggregation instead!
             reciprocally_paired=Case(
                 When(is_reciprocally_paired, then=1),
                 default=0,
