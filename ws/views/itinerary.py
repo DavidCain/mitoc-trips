@@ -62,11 +62,15 @@ class ItineraryInfoFormMixin:
 class TripMedical(ItineraryInfoFormMixin):
     def get_trip_info(self, trip):
         participants = trip.signed_up_participants.filter(signup__on_trip=True)
-        participants = participants.select_related('emergency_info')
+        participants = participants.select_related('emergency_info__emergency_contact')
         signups = trip.signup_set.filter(on_trip=True)
         signups = signups.select_related('participant__emergency_info')
-        return {'trip': trip, 'participants': participants, 'cars': get_cars(trip),
-                'info_form': self.get_info_form(trip)}
+        return {
+            'trip': trip,
+            'participants': participants,
+            'cars': get_cars(trip),
+            'info_form': self.get_info_form(trip),
+        }
 
 
 class TripItineraryView(UpdateView, TripLeadersOnlyView, ItineraryInfoFormMixin):
@@ -199,7 +203,7 @@ class ChairTripView(ApprovedTripsMixin, TripMedical, DetailView):
     def post(self, request, *args, **kwargs):
         """ Mark the trip approved and move to the next one. """
         trip = self.get_object()
-        prev_trip, next_trip = self.get_other_trips()  # Do this before saving trip
+        _, next_trip = self.get_other_trips()  # Do this before saving trip
         trip.chair_approved = True
         trip.save()
         if next_trip:
