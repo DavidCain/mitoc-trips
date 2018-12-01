@@ -9,7 +9,6 @@ import json
 
 from django.contrib import messages
 from django.db.models import Q
-from django.core.exceptions import ObjectDoesNotExist
 from django.http import JsonResponse
 from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
@@ -40,11 +39,11 @@ class LotteryPairingView(CreateView, LotteryPairingMixin):
     def get_form_kwargs(self):
         """ Edit existing instance, prevent user from pairing with self. """
         kwargs = super().get_form_kwargs()
-        kwargs['participant'] = self.request.participant
+        kwargs['participant'] = participant = self.request.participant
         kwargs['exclude_self'] = True
         try:
-            kwargs['instance'] = self.request.participant.lotteryinfo
-        except ObjectDoesNotExist:
+            kwargs['instance'] = participant.lotteryinfo
+        except models.LotteryInfo.DoesNotExist:
             pass
         return kwargs
 
@@ -152,9 +151,10 @@ class LotteryPreferencesView(TemplateView, LotteryPairingMixin):
         return forms.CarForm(post, instance=car, scope_prefix=self.car_prefix)
 
     def get_lottery_form(self):
+        participant = self.request.participant
         try:
-            lottery_info = self.request.participant.lotteryinfo
-        except ObjectDoesNotExist:
+            lottery_info = participant.lotteryinfo
+        except models.LotteryInfo.DoesNotExist:
             lottery_info = None
         return forms.LotteryInfoForm(self.post_data, instance=lottery_info)
 
@@ -217,7 +217,7 @@ class LotteryPreferencesView(TemplateView, LotteryPairingMixin):
             try:
                 pair_signup = models.SignUp.objects.get(participant=paired_par,
                                                         trip=trip)
-            except ObjectDoesNotExist:
+            except models.SignUp.DoesNotExist:
                 msg = "{} hasn't signed up for {}.".format(paired_par, trip)
                 messages.warning(self.request, msg)
             else:

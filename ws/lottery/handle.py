@@ -1,4 +1,3 @@
-from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 
 from ws.utils.dates import local_date
@@ -9,7 +8,7 @@ from ws import models
 def par_is_driver(participant):
     try:
         return participant.lotteryinfo.is_driver
-    except AttributeError:  # No lottery form submission
+    except models.LotteryInfo.DoesNotExist:
         return False
 
 
@@ -44,13 +43,22 @@ class ParticipantHandler:
 
     @property
     def paired(self):
+        """ Efficiently return if this participant is reciprocally paired.
+
+        Other methods (in models.py, and mixins.py, among other places) can
+        figure out if a participant was reciprocally paired. However, these
+        methods generally assume that we're only interested in a single participant.
+        When running across the entire WS lottery, this results in a _lot_ of queries.
+
+        This method accesses an annotated property defined in the ParticipantRanker.
+        """
         return self.participant.reciprocally_paired
 
     @property
     def paired_par(self):
         try:
             return self.participant.lotteryinfo.paired_with
-        except ObjectDoesNotExist:
+        except models.LotteryInfo.DoesNotExist:
             return None
 
     @property

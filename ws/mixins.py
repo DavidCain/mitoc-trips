@@ -2,7 +2,6 @@
 Mixins used across multiple views.
 """
 from django.contrib.auth.decorators import login_required
-from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.utils.decorators import method_decorator
 from django.shortcuts import render
@@ -27,7 +26,7 @@ class LotteryPairingMixin:
     def paired_par(self):
         try:
             return self.participant.lotteryinfo.paired_with
-        except ObjectDoesNotExist:  # No lottery info for paired participant
+        except models.LotteryInfo.DoesNotExist:
             return None
 
     @property
@@ -37,7 +36,7 @@ class LotteryPairingMixin:
         if paired_par:
             try:
                 return paired_par.lotteryinfo.paired_with == self.participant
-            except ObjectDoesNotExist:
+            except models.LotteryInfo.DoesNotExist:
                 return False
         return False
 

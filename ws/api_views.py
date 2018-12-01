@@ -3,7 +3,7 @@ import json
 from allauth.account.models import EmailAddress
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Q
 from django.http import JsonResponse
@@ -279,7 +279,7 @@ class LeaderParticipantSignupView(SingleObjectMixin, FormatSignupMixin,
 
         try:
             par = models.Participant.objects.get(pk=par_pk)
-        except ObjectDoesNotExist:
+        except models.Participant.DoesNotExist:
             return JsonResponse({'message': "No participant found"}, status=404)
 
         trip = self.get_object()
