@@ -18,7 +18,9 @@
             <tr>
               <td>
                 {% if not trip.info %}
-                  <i class="fas fa-exclamation-triangle text-danger" data-uib-tooltip="No itinerary submitted!"></i>&nbsp;
+                  <a  data-uib-tooltip="No itinerary submitted!">
+                    <i class="fas fa-exclamation-triangle text-danger"></i>
+                  </a>&nbsp;
                 {% endif %}
                 <a href="{% url 'view_trip' trip.pk %}">{{ trip.name }}</a>
               </td>
