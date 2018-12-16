@@ -1,8 +1,13 @@
+import logging
+
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import get_template
 
 from ws.utils import itinerary
 from ws.settings import BURSAR_NAME
+
+
+logger = logging.getLogger(__name__)
 
 
 def send_email_to_funds(trip, recipient='funds@mit.edu'):
@@ -29,3 +34,5 @@ def send_email_to_funds(trip, recipient='funds@mit.edu'):
                                  cc=[bursar], reply_to=[bursar])
     msg.attach_alternative(html_content, "text/html")
     msg.send()
+    logger.info("Sent itinerary for trip #%d to %s, CCing %s",
+                trip.pk, recipient, bursar)

@@ -48,6 +48,7 @@ def update_discount_sheet(self, discount_id):
     wish to share their information, so it should be run periodically.
     """
     discount = models.Discount.objects.get(pk=discount_id)
+    logger.info("Updating the discount sheet for %s", discount.name)
 
     if settings.DISABLE_GSHEETS:
         logger.warning("Google Sheets functionality is disabled, "
@@ -65,6 +66,7 @@ def update_discount_sheet(self, discount_id):
 
 @shared_task
 def update_all_discount_sheets():
+    logger.info("Updating the member roster for all discount sheets")
     discount_pks = models.Discount.objects.values_list('pk', flat=True)
     group([update_discount_sheet.s(pk) for pk in discount_pks])()
 
@@ -85,12 +87,15 @@ def send_sao_itineraries():
     """
     tomorrow = date_utils.local_date() + timedelta(days=1)
     trips = models.Trip.objects.filter(trip_date=tomorrow, info__isnull=False)
+    logger.info("Sending itineraries for %d trips taking place tomorrow, %s",
+                trips.count(), tomorrow)
     for trip in trips.select_related('info').prefetch_related('leaders'):
         send_email_to_funds(trip)
 
 
 @shared_task
 def run_ws_lottery():
+    logger.info("Commencing Winter School lottery run")
     runner = WinterSchoolLotteryRunner()
     runner()
 
@@ -103,6 +108,7 @@ def purge_non_student_discounts():
     a student at the time of enrolling but is no longer a student, we should
     unenroll them.
     """
+    logger.info("Purging non-students from student-only discounts")
     stu_discounts = models.Discount.objects.filter(student_required=True)
     not_student = ~Q(affiliation__in=models.Participant.STUDENT_AFFILIATIONS)
 
@@ -140,6 +146,7 @@ def run_lottery(trip_id, lottery_config=None):
     If running on a trip that isn't in lottery mode, this won't make
     any changes (making this task idempotent).
     """
+    logger.info("Running lottery for trip #%d", trip_id)
     trip = models.Trip.objects.get(pk=trip_id)
     runner = SingleTripLotteryRunner(trip)
     runner()
