@@ -353,15 +353,20 @@ LOGGING = {
     'disable_existing_loggers': False,
     'handlers': {
         'file': {
-            'level': 'ERROR',
+            'level': 'INFO',
             'class': 'logging.FileHandler',
-            'filename': os.getenv('DJANGO_ERROR_FILE', '/tmp/django_errors.log'),
+            'filename': os.getenv('DJANGO_LOG_FILE', '/tmp/django.log'),
         },
     },
     'loggers': {
         'django': {
             'handlers': ['file'],
             'level': 'ERROR',
+            'propagate': True,
+        },
+        'ws': {
+            'handlers': ['file'],
+            'level': 'INFO',
             'propagate': True,
         },
     },
