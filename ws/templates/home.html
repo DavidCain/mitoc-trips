@@ -20,9 +20,14 @@
     <a role="button" class="btn btn-default pull-right" href="{% url 'rss-upcoming_trips' %}"><i class="fas fa-rss"></i> Subscribe</a>
   </h3>
   {% trip_list_table current_trips %}
-  <hr>
 {% endif %}
 
-<p><a href="{% url 'all_trips' %}"><i class="fas fa-history"></i> View past trips</a></p>
+{% if recent_trips %}
+  <h3>Recent trips</h3>
+  {% trip_list_table recent_trips %}
+  <hr>
+  <p><a href="{% url 'all_trips' %}"><i class="fas fa-history"></i> View all past trips</a></p>
+{% endif %}
+
 
 {% endblock content %}

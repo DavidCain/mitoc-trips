@@ -397,13 +397,24 @@ class ProfileView(ParticipantView):
         context['just_signed'] = args.get('event') == 'signing_complete'
         return context
 
+    def render_landing_page(self, request):
+        today = local_date()
+        current_trips = models.Trip.objects.filter(trip_date__gte=today)
+        context = {'current_trips': annotated_for_trip_list(current_trips)}
+
+        num_trips = len(context['current_trips'])  # Use len to avoid extra query
+
+        # If we don't have many upcoming trips, show some recent ones
+        if num_trips < 8:
+            extra_trips = max(2, 8 - num_trips)
+            recent_trips = models.Trip.objects.filter(trip_date__lt=today)[:extra_trips]
+            context['recent_trips'] = annotated_for_trip_list(recent_trips)
+
+        return render(request, 'home.html', context)
+
     def get(self, request, *args, **kwargs):
         if request.user.is_anonymous:
-            today = local_date()
-            current_trips = models.Trip.objects.filter(trip_date__gte=today)
-            trips = annotated_for_trip_list(current_trips)
-            return render(request, 'home.html', {'current_trips': trips})
-
+            return self.render_landing_page(request)
         if not request.participant:
             return redirect(reverse('edit_profile'))
 
