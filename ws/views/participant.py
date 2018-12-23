@@ -18,6 +18,7 @@ from django.views.generic import (DeleteView, DetailView, FormView,
 from ws import forms
 from ws import message_generators
 from ws import models
+from ws import sentry
 from ws import tasks
 from ws.decorators import admin_only, group_required, user_info_required
 from ws.mixins import LotteryPairingMixin, LectureAttendanceMixin
@@ -144,7 +145,14 @@ class ParticipantEditMixin(TemplateView):
             # unchanged in the trips db) because affiliation could have changed
             # in the gear database via waivers, membership dues, etc.
             if updating_self or participant.affiliation != orig_affiliation:
-                tasks.update_participant_affiliation.delay(participant.pk)
+                try:
+                    tasks.update_participant_affiliation.delay(participant.pk)
+                except OSError:
+                    sentry.message("Unable to update participant affiliation", {
+                        'pk': participant.pk,
+                        'affiliation': participant.affiliation,
+                    })
+
             return self.success_redirect()
         else:
             return render(request, self.template_name, context)

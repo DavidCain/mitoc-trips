@@ -106,8 +106,13 @@ def revoke_existing_task(sender, instance, raw, using, update_fields, **kwargs):
     new_close_time = instance.signups_close_at != trip.signups_close_at
     needs_revoke = new_close_time or trip.algorithm != 'lottery'
     if trip.lottery_task_id and needs_revoke:
-        app.control.revoke(trip.lottery_task_id)
-        instance.lottery_task_id = None
+        try:
+            app.control.revoke(trip.lottery_task_id)
+        except OSError:
+            # Log the exception, but don't raise exceptions, preventing trip saving
+            sentry.message("Failed to revoke lottery task", {'trip_pk': trip.pk})
+        else:
+            instance.lottery_task_id = None
 
 
 @receiver(post_save, sender=Trip)
