@@ -1,3 +1,5 @@
+{% load misc_tags %}
+
 <table class="footable" data-sort="false">
 <thead>
     <tr>
@@ -14,13 +16,13 @@
     {% for participant in participants %}
     <tr>
         <td class="nowrap"><a href="{% url 'view_participant' participant.id %}">{{ participant.name }}</a></td>
-        <td class="nowrap">{{ participant.cell_phone }}</td>
+        <td class="nowrap">{{ participant.cell_phone|format_phone_number }}</td>
         <td class="hidden-print">{{ participant.emergency_info.allergies }}</td>
         <td class="hidden-print">{{ participant.emergency_info.medications }}</td>
         <td class="hidden-print">{{ participant.emergency_info.medical_history }}</td>
         {% with ec=participant.emergency_info.emergency_contact %}
         <td><a href="mailto:{{ ec.email }}" class="nowrap">{{ ec.name }}</a> ({{ ec.relationship }})</td>
-        <td class="nowrap">{{ ec.cell_phone }}</td>
+        <td class="nowrap">{{ ec.cell_phone|format_phone_number }}</td>
         {% endwith %}
     </tr>
 </tbody>

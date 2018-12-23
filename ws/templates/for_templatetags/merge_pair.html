@@ -1,3 +1,5 @@
+{% load misc_tags %}
+
 <div class="row">
   <div class="col-xs-6">
     <form method="post" action="{% url 'distinct_participants' old.pk new.pk %}">
@@ -53,7 +55,7 @@
               <ul class="list-unstyled">
                 <li><i class="fas fa-fw fa-envelope"></i><a href="mailto:{{ par.email }}">{{ par.email }}</a></li>
                 {% if par.cell_phone %}
-                    <li><i class="fas fa-fw fa-mobile-alt"></i>{{ par.cell_phone }}</li>
+                  <li><i class="fas fa-fw fa-mobile-alt"></i>{{ par.cell_phone|format_phone_number }}</li>
                 {% endif %}
                 <li>
                   <i class="fas fa-fw fa-car"></i>
@@ -82,7 +84,7 @@
               {{ par.emergency_info.emergency_contact.name }}
               ({{ par.emergency_info.emergency_contact.relationship }})
             </dd>
-            <dt>Phone:</dt><dd>{{ par.emergency_info.emergency_contact.cell_phone }}</dd>
+            <dt>Phone:</dt><dd>{{ par.emergency_info.emergency_contact.cell_phone|format_phone_number }}</dd>
             <dt>Email:</dt><dd>{{ par.emergency_info.emergency_contact.email }}</dd>
           </dl>
         </div>

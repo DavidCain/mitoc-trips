@@ -1,4 +1,5 @@
 {% extends "messages_page.html" %}
+{% load misc_tags %}
 {% load trip_tags %}
 
 {% block head_title %}All leaders{% endblock head_title %}
@@ -27,7 +28,7 @@
             {% for activity, label in activities %}
               <td> {{ leader|activity_rating:activity }}</td>
             {% endfor %}
-            <td>{{ leader.cell_phone }}</td>
+            <td class="nowrap">{{ leader.cell_phone|format_phone_number }}</td>
         </tr>
         {% endfor %}
     </tbody>

@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load messages_tags %}
+{% load misc_tags %}
 
 {% block head_title %}
 Sign waiver
@@ -34,7 +35,7 @@ Sign waiver
           <dt>Email</dt>
           <dd>{{ viewing_participant.email }}</dd>
           <dt>Phone</dt>
-          <dd>{{ viewing_participant.cell_phone }}</dd>
+          <dd>{{ viewing_participant.cell_phone|format_phone_number }}</dd>
           <dt>Affiliation</dt>
           <dd>{{ viewing_participant.get_affiliation_display }}</dd>
         </dl>
@@ -46,7 +47,7 @@ Sign waiver
           <dt>Relationship</dt>
           <dd>{{ viewing_participant.emergency_info.emergency_contact.relationship }}</dd>
           <dt>Phone</dt>
-          <dd>{{ viewing_participant.emergency_info.emergency_contact.cell_phone }}</dd>
+          <dd>{{ viewing_participant.emergency_info.emergency_contact.cell_phone|format_phone_number }}</dd>
         </dl>
 
         <div class="alert alert-info">

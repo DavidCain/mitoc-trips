@@ -1,7 +1,8 @@
 {% extends "base.html" %}
-{% load form_tags %}
 {% load avatar_tags %}
+{% load form_tags %}
 {% load messages_tags %}
+{% load misc_tags %}
 {% load trip_tags %}
 {% load ws_tags %}
 
@@ -85,7 +86,11 @@
         <ul class="list-unstyled">
           <li><i class="fas fa-fw fa-envelope"></i><a href="mailto:{{ participant.email }}">{{ participant.email }}</a></li>
           {% if participant.cell_phone %}
-            <li><i class="fas fa-fw fa-mobile-alt"></i>{{ participant.cell_phone }}</li>
+            <li><i class="fas fa-fw fa-mobile-alt"></i>
+              <a href="tel:{{ participant.cell_phone}}">
+                {{ participant.cell_phone|format_phone_number }}
+              </a>
+            </li>
           {% endif %}
         </ul>
       </div>
@@ -121,7 +126,16 @@
           {% readonly_form emergency_info_form %}
 
           <h4> Emergency Contact </h4>
-          {% readonly_form emergency_contact_form %}
+          <dl class="dl-horizontal">
+            <dt>{{ emergency_contact_form.name.label }}:</dt>
+            <dd>{{ emergency_contact_form.name.value }}</dd>
+            <dt>{{ emergency_contact_form.email.label }}:</dt>
+            <dd>{{ emergency_contact_form.email.value }}</dd>
+            <dt>{{ emergency_contact_form.cell_phone.label }}:</dt>
+            <dd>{{ emergency_contact_form.cell_phone.value|format_phone_number }}</dd>
+            <dt>{{ emergency_contact_form.relationship.label }}:</dt>
+            <dd>{{ emergency_contact_form.relationship.value }}</dd>
+          </dl>
         </div>
       {% endif %}
 

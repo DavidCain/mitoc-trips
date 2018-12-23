@@ -1,5 +1,6 @@
-{% load trip_tags %}
 {% load markdown_tags %}
+{% load misc_tags %}
+{% load trip_tags %}
 <h2> {{ trip.name }} </h2>
 
 <dl class="dl-horizontal">
@@ -26,7 +27,7 @@
           {% if show_contacts %}<a href="mailto:{{ trip.wimp.email }}">{% endif %}
           {{ trip.wimp.name }}
           {% if show_contacts %}</a>{% endif %}
-          {% if show_contacts and trip.wimp.cell_phone %}({{ trip.wimp.cell_phone }}){% endif %}
+          {% if show_contacts and trip.wimp.cell_phone %}({{ trip.wimp.cell_phone|format_phone_number }}){% endif %}
         </dd>
     {% endif %}
 
