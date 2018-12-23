@@ -31,7 +31,10 @@
   {% trip_list_table past_trips %}
 {% else %}
   <hr>
-  <p><a href="{% url 'all_trips' %}"><i class="fas fa-history"></i> View past trips</a></p>
+  <p>
+    <a href="{% url 'all_trips' %}"><i class="fas fa-history"></i> View past trips</a>
+    <a class="pull-right" href="https://mitoc.mit.edu"><i class="fas fa-external-link-alt"></i>&nbsp;MITOC home page</a>
+  </p>
 {% endif %}
 
 {% endblock content %}

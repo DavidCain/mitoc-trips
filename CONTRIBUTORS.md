@@ -44,6 +44,9 @@ much-needed testing and detailed feedback.
 ## Bug fixes
 - Gal Shenar
 
+## Design suggestions
+- Bjorn Poonen
+
 Special thanks to the following especially dedicated individuals:
  - Adam Rosenfield
  - Chris Saulnier
