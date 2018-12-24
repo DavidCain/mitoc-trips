@@ -1,3 +1,4 @@
+from collections import defaultdict
 import json
 
 from allauth.account.models import EmailAddress
@@ -358,26 +359,38 @@ class JsonAllLeadersView(AllLeadersView):
                                      leaderrating__active=True).distinct()
         return leaders
 
-    def render_to_response(self, context, **response_kwargs):
-        user_is_leader = perm_utils.is_leader(self.request.user)
-        all_leaders = []
+    def all_active_ratings(self):
+        """ Return all active ratings per leader, indexed by pk. """
+        ratings = models.LeaderRating.objects.filter(active=True)
+        by_leader = defaultdict(list)
+        for rating in ratings.values("participant_id", "activity", "rating"):
+            by_leader[rating.pop('participant_id')].append(rating)
+        return dict(by_leader)
+
+    def describe_leaders(self, with_ratings=False):
+        if with_ratings:
+            ratings_by_leader = self.all_active_ratings()
+
         for leader in self.get_queryset():
             json_leader = {
-                'id': leader.id,
+                'id': leader.pk,
                 'name': leader.name,
                 # Use 200x200 for Retina display at 100x100 on mitoc.mit.edu
-                'gravatar': avatar_url(leader, 200)
+                'gravatar': avatar_url(leader, 200),
             }
 
             # Full roster of leaders by rating is not meant to be public
-            if user_is_leader:
-                active_ratings = leader.leaderrating_set.filter(active=True)
-                select_fields = active_ratings.values("activity", "rating")
-                json_leader['ratings'] = list(select_fields)
+            if with_ratings:
+                json_leader['ratings'] = ratings_by_leader[leader.pk]
+            yield json_leader
 
-            all_leaders.append(json_leader)
-
-        return JsonResponse({'leaders': all_leaders})
+    def render_to_response(self, context, **response_kwargs):
+        user_is_leader = perm_utils.is_leader(self.request.user)
+        return JsonResponse({
+            'leaders': [
+                leader for leader in self.describe_leaders(with_ratings=user_is_leader)
+            ]
+        })
 
 
 @login_required
