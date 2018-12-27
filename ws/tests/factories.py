@@ -1,6 +1,8 @@
 from factory import SubFactory, Sequence
 from factory.django import DjangoModelFactory
 
+from mitoc_const import affiliations
+
 from ws import models
 
 
@@ -36,16 +38,17 @@ class ParticipantFactory(DjangoModelFactory):
     class Meta:
         model = models.Participant
 
+    affiliation = affiliations.NON_AFFILIATE.CODE
     user_id = Sequence(lambda n: n + 1)
     email = Sequence(lambda n: f"participant{n + 1}@example.com")
     name = "Test Participant"
     emergency_info = SubFactory(EmergencyInfoFactory)
 
     @classmethod
-    def create(cls, *args, **kwargs):
+    def create(cls, **kwargs):
         if 'user_id' in kwargs:
             kwargs['_disable_auto_user_creation'] = True
-        return super().create(*args, **kwargs)
+        return super().create(**kwargs)
 
     @classmethod
     def _create(cls, model_class, *args, **kwargs):
@@ -87,3 +90,15 @@ class FeedbackFactory(DjangoModelFactory):
     leader = SubFactory(ParticipantFactory)
     trip = SubFactory(TripFactory)
     comments = "Participant did a great job."
+
+
+class SignUpFactory(DjangoModelFactory):
+    class Meta:
+        model = models.SignUp
+
+    participant = SubFactory(ParticipantFactory)
+    trip = SubFactory(TripFactory)
+    notes = ""
+    order = None
+    manual_order = None
+    on_trip = False

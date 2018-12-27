@@ -7,6 +7,7 @@ from django.db.models import F, Q, Case, When, IntegerField
 from mitoc_const import affiliations
 
 from ws import models
+from ws import settings
 from ws.utils.dates import local_date, jan_1
 
 
@@ -27,13 +28,61 @@ WEIGHTS['N'] = WEIGHTS[affiliations.NON_AFFILIATE.CODE]
 WEIGHTS['S'] = 0.0
 
 
-def affiliation_weighted_rand(participant):
+def seed_for(participant, lottery_key):
+    """ Return a seed to deterministically fetch pseudo-random numbers.
+
+    We want participants to be ranked based on (mostly) random criteria, but we
+    also want the ability to deterministically figure the results of a lottery
+    run in a test run. This method enables us to do both.
+
+    The seed must have the following properties:
+
+    1. Cannot be reasonably guessed or inferred by any malicious participants.
+        - If a participant can deduce their seed for a given lottery, they
+          could feasibly take action to obtain a "better" seed by changing
+          something about their participant record (e.g. obtaining a new PK by
+          making a new account).
+    2. Is deterministic for a given lottery run
+        - Before running Winter School lotteries, it's standard practice to
+          perform a test run locally. Because there was some randomness inherent
+          in ranking, we could never be confident that the "real" run would return
+          the same results. Introducing determinism allows us to ensure that our
+          test run will have the same properties as the real run.
+    3. Is unique for every participant, every lottery run
+        - Participants deserve a fresh seed on each lottery run. If, for
+          example, they had the same seed for a whole day, that would give them
+          either consistently favorable or consistently unfavorably keys. For
+          fairness, each lottery (single trip lotteries, or the WS lottery), must
+          have their own seed.
+        - Participants must have their own seed, for obvious reasons (they'd all be
+          ranked exactly the same otherwise!)
+    4. NOT be cryptographically secure
+        - CPRNG's are, by design, not deterministic from a given seed. This is an
+          unacceptable trait, since we're aiming for reproducibility. Because this
+          seed is not used for security purposes, it's okay to use Python's
+          Mersenne Twister algorithm (which is not a CPRNG) with this seed.
+
+    Params:
+        participant: Person the seed is being generated for
+        lottery_key: Some key that is unique to this lottery run
+            WARNING: If reused with a previous lottery run, the participant will
+                     have the exact same random rank, which may affect lottery outcome.
+    """
+    if not participant.pk:
+        raise ValueError("Can only get seed for participants saved to db!")
+    return f"{participant.pk}-{lottery_key}-{settings.PRNG_SEED_SECRET}"
+
+
+def affiliation_weighted_rand(participant, lottery_key):
     """ Return a float that's meant to rank participants by affiliation.
 
     A lower number is a "preferable" affiliation. That is to say, ranking
     participants by the result of this function will put MIT students towards
     the beginning of the list more often than not.
+
+    See `seed_for` for a full explanation of `lottery_key`.
     """
+    random.seed(seed_for(participant, lottery_key))
     return random.random() - WEIGHTS[participant.affiliation]
 
 
@@ -76,7 +125,8 @@ class SingleTripParticipantRanker(ParticipantRanker):
         self.trip = trip
 
     def priority_key(self, participant):
-        return affiliation_weighted_rand(participant)
+        lottery_key = f"trip-{self.trip.pk}"
+        return affiliation_weighted_rand(participant, lottery_key)
 
     def participants_to_handle(self):
         return models.Participant.objects.filter(signup__trip=self.trip)
@@ -86,9 +136,11 @@ TripCounts = namedtuple('TripCounts', ['attended', 'flaked', 'total'])
 
 
 class WinterSchoolParticipantRanker(ParticipantRanker):
-    def __init__(self):
+    def __init__(self, execution_date=None):
         self.today = local_date()
+        execution_date = execution_date or self.today
         self.jan_1st = jan_1()
+        self.lottery_key = f"ws-{execution_date.isoformat()}"
 
     def participants_to_handle(self):
         # For simplicity, only look at participants who actually have signups
@@ -115,7 +167,7 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
 
         # Ties are resolved by a random number
         # (MIT students/affiliates are more likely to come first)
-        affiliation_weight = affiliation_weighted_rand(participant)
+        affiliation_weight = affiliation_weighted_rand(participant, self.lottery_key)
 
         # Lower = higher in the list
         return (flaky_or_neutral, leader_bump, affiliation_weight)

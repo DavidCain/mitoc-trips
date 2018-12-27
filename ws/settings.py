@@ -17,6 +17,10 @@ import raven
 
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY',
                        '*this-is-obviously-not-secure-only-use-it-locally*')
+# This secret is used as part of a complete seed for a pseudo-random number generator
+# Since random.random is not suitable for cryptographic applications, we use
+# a separate secret key rather than re-use SECRET_KEY
+PRNG_SEED_SECRET = os.getenv('PRNG_SEED_SECRET', 'some-key-unknown-to-participants')
 MEMBERSHIP_SECRET_KEY = os.getenv('MEMBERSHIP_SECRET_KEY',
                                   'secret shared with the mitoc-member repo')
 WS_LOTTERY_LOG_DIR = os.getenv('WS_LOTTERY_LOG_DIR', '/tmp/')

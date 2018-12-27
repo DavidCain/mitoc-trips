@@ -1,5 +1,7 @@
 from datetime import date
 import itertools
+import random
+import unittest
 from unittest.mock import patch
 
 from django.test import SimpleTestCase, TestCase
@@ -7,8 +9,9 @@ from freezegun import freeze_time
 
 from ws.lottery import rank
 from ws import models
+from ws import settings
 from ws.tests.factories import (
-    FeedbackFactory, LotteryInfoFactory, ParticipantFactory, TripFactory
+    FeedbackFactory, LotteryInfoFactory, ParticipantFactory, SignUpFactory, TripFactory
 )
 
 
@@ -80,6 +83,62 @@ class ParticipantPairingTests(TestCase):
         self.expect_pairing({bonnie: True, clyde: True})
 
 
+class SeedTests(unittest.TestCase):
+    def test_participant_must_be_saved_to_db(self):
+        """ We can't come up with a fair seed for a participant that lacks a pk. """
+        with self.assertRaises(ValueError):
+            rank.seed_for(models.Participant(name='Not Saved'), lottery_key='hi')
+
+    def test_seed_contains_secret(self):
+        """ The seed should contain the secret that participant's don't know. """
+        seed = rank.seed_for(models.Participant(pk=33), 'some extra seed')
+        self.assertIn(settings.PRNG_SEED_SECRET, seed)
+
+    def test_uniqueness(self):
+        """ Seeds should be different from one another. """
+        seeds = [
+            rank.seed_for(models.Participant(pk=33), '22'),
+            rank.seed_for(models.Participant(pk=22), '33'),
+            rank.seed_for(models.Participant(pk=22), '22'),
+        ]
+        self.assertEqual(len(seeds), len(set(seeds)))
+
+    def test_deterministic(self):
+        """ Affiliation-weighted random numbers are deterministic with the same seed.
+
+        This enables us to have repeatable lottery results.
+        """
+        participant = models.Participant(pk=12, affiliation='MU')
+        self.assertEqual(
+            rank.affiliation_weighted_rand(participant, 'trip-542'),
+            rank.affiliation_weighted_rand(participant, 'trip-542')
+        )
+
+    def test_weight_subtraction(self):
+        """ Test the definition of affiliation-weighted randomness.
+
+        Specifically, we take a random float from a particular seed, and
+        subtract a known offset according to the participant's affiliation.
+        """
+        # MIT undergraduates get an advantage: their number is more likely to be lower
+        mit_undergrad = models.Participant(pk=12, affiliation='MU')
+        seed = rank.seed_for(mit_undergrad, 'trip-142')
+        random.seed(seed)
+        self.assertEqual(
+            random.random() - 0.3,
+            rank.affiliation_weighted_rand(mit_undergrad, 'trip-142')
+        )
+
+        # Non-affiliates are just a random number
+        non_affiliate = models.Participant(pk=24, affiliation='NA')
+        seed = rank.seed_for(non_affiliate, 'trip-142')
+        random.seed(seed)
+        self.assertEqual(
+            random.random(),
+            rank.affiliation_weighted_rand(non_affiliate, 'trip-142')
+        )
+
+
 class ParticipantRankingTests(SimpleTestCase):
     """ Test the logic by which we determine users with "first pick" status. """
     mocked_par_methods = ['number_trips_led', 'number_ws_trips']
@@ -105,9 +164,9 @@ class ParticipantRankingTests(SimpleTestCase):
     def test_flaking(self):
         """ Those who flake on trips always come last. """
         # Flaking participant is an MIT undergrad (would normally get priority)
-        serial_flaker = models.Participant(affiliation='MU', name='Serial Flaker')
-        flaked_once = models.Participant(affiliation='MG', name='One-time Flaker')
-        reliable = models.Participant(affiliation='NA', name='Reliable')
+        serial_flaker = models.Participant(pk=1, affiliation='MU', name='Serial Flaker')
+        flaked_once = models.Participant(pk=2, affiliation='MG', name='One-time Flaker')
+        reliable = models.Participant(pk=3, affiliation='NA', name='Reliable')
 
         # NOTE: Must use id since these objects have no pk (they're unhashable)
         mocked_counts = {
@@ -125,6 +184,7 @@ class ParticipantRankingTests(SimpleTestCase):
             },
         }
 
+        # pylint: disable=line-too-long
         self.ranker.number_trips_led.side_effect = lambda par: mocked_counts[id(par)]['number_trips_led']
         self.ranker.number_ws_trips.side_effect = lambda par: mocked_counts[id(par)]['number_ws_trips']
 
@@ -133,8 +193,8 @@ class ParticipantRankingTests(SimpleTestCase):
     def test_leader_bump(self):
         """ All else held equal, the most active leaders get priority. """
         # Both participants are MIT undergraduates, equally likely to flake
-        novice = models.Participant(affiliation='MU', name='New Leader')
-        veteran = models.Participant(affiliation='MU', name='Veteran Leader')
+        novice = models.Participant(pk=1024, affiliation='MU', name='New Leader')
+        veteran = models.Participant(pk=256, affiliation='MU', name='Veteran Leader')
 
         def attended_all(num):
             return rank.TripCounts(attended=num, flaked=0, total=num)
@@ -161,8 +221,8 @@ class ParticipantRankingTests(SimpleTestCase):
 
     def test_sort_key_randomness(self):
         """ We break ties with a random value. """
-        tweedle_dee = models.Participant(affiliation='NG')
-        tweedle_dum = models.Participant(affiliation='NG')
+        tweedle_dee = models.Participant(pk=5, affiliation='NG')
+        tweedle_dum = models.Participant(pk=6, affiliation='NG')
 
         # All other ranking factors are equal
         self.ranker.number_trips_led.return_value = 0
@@ -174,6 +234,26 @@ class ParticipantRankingTests(SimpleTestCase):
         dum_key = self.ranker.priority_key(tweedle_dum)
         self.assertNotEqual(dee_key, dum_key)
         self.assertEqual(dee_key[:-1], dum_key[:-1])  # (last item is random)
+
+
+class SingleTripParticipantRankerTests(TestCase):
+    def test_deterministic_ranking(self):
+        """ Ranking of a particular single trip is based on its pk. """
+        trip = TripFactory.create(activity='hiking', pk=822)
+
+        # TODO: This test relies pretty heavily on the database and is very slow
+        participants = []
+        for i in range(5):
+            par = ParticipantFactory.create(name=f"Participant Num{i}")
+            SignUpFactory.create(participant=par, trip=trip)
+            participants.append(par)
+
+        ranker_1 = rank.SingleTripParticipantRanker(trip)
+        ranker_2 = rank.SingleTripParticipantRanker(trip)
+        self.assertEqual(
+            ranker_1.ranked_participants(),
+            ranker_2.ranked_participants()
+        )
 
 
 @freeze_time("Wed, 24 Jan 2018 09:00:00 EST")  # Scheduled after 2nd week of WS
