@@ -18,7 +18,7 @@ CREATE TABLE `people` (
   `last_paid` int(11) NOT NULL DEFAULT '0',
   `date_inserted` datetime DEFAULT NULL,
   `user_id` int(11) DEFAULT NULL,
-  `desk_credit` int(11) NOT NULL,
+  `mitoc_credit` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`),
   UNIQUE KEY `user_id` (`user_id`)

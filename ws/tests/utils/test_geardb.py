@@ -106,7 +106,7 @@ class MembershipSQLHelpers:
         with self.cursor as cursor:
             cursor.execute(
                 '''
-                insert into people (firstname, lastname, email, desk_credit, date_inserted)
+                insert into people (firstname, lastname, email, mitoc_credit, date_inserted)
                 values (%(first)s, %(last)s, %(email)s, 0, now())
                 ''', {'first': 'Tim', 'last': 'Beaver', 'email': 'tim@mit.edu'}
             )
