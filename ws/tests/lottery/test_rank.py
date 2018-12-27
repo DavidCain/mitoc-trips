@@ -168,25 +168,24 @@ class ParticipantRankingTests(SimpleTestCase):
         flaked_once = models.Participant(pk=2, affiliation='MG', name='One-time Flaker')
         reliable = models.Participant(pk=3, affiliation='NA', name='Reliable')
 
-        # NOTE: Must use id since these objects have no pk (they're unhashable)
         mocked_counts = {
-            id(flaked_once): {
+            flaked_once: {
                 'number_trips_led': 8,
                 'number_ws_trips': rank.TripCounts(attended=0, flaked=1, total=1)
             },
-            id(serial_flaker): {
+            serial_flaker: {
                 'number_trips_led': 4,
                 'number_ws_trips': rank.TripCounts(attended=0, flaked=3, total=3)
             },
-            id(reliable): {
+            reliable: {
                 'number_trips_led': 0,
                 'number_ws_trips': rank.TripCounts(attended=4, flaked=0, total=4)
             },
         }
 
         # pylint: disable=line-too-long
-        self.ranker.number_trips_led.side_effect = lambda par: mocked_counts[id(par)]['number_trips_led']
-        self.ranker.number_ws_trips.side_effect = lambda par: mocked_counts[id(par)]['number_ws_trips']
+        self.ranker.number_trips_led.side_effect = lambda par: mocked_counts[par]['number_trips_led']
+        self.ranker.number_ws_trips.side_effect = lambda par: mocked_counts[par]['number_ws_trips']
 
         self.expect_ranking(reliable, flaked_once, serial_flaker)
 
@@ -201,13 +200,13 @@ class ParticipantRankingTests(SimpleTestCase):
 
         # Key difference: the veteran leader has a greater balance of led trips
         mocked_counts = {
-            id(veteran): {'number_trips_led': 4, 'number_ws_trips': attended_all(1)},  # Net 3
-            id(novice):  {'number_trips_led': 2, 'number_ws_trips': attended_all(3)}  # Net -1
+            veteran: {'number_trips_led': 4, 'number_ws_trips': attended_all(1)},  # Net 3
+            novice:  {'number_trips_led': 2, 'number_ws_trips': attended_all(3)}  # Net -1
         }
 
         def by_participant(attribute):
             """ Quick closure for looking up the count. """
-            return lambda par: mocked_counts[id(par)][attribute]
+            return lambda par: mocked_counts[par][attribute]
 
         for attr in ['number_ws_trips', 'number_trips_led']:
             getattr(self.ranker, attr).side_effect = by_participant(attr)
