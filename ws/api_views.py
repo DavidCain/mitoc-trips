@@ -392,6 +392,11 @@ class JsonAllLeadersView(AllLeadersView):
             ]
         })
 
+    def dispatch(self, request, *args, **kwargs):
+        # Give leader names and Gravatars to the public
+        # (Gravatar URLs hash the email with MD5)
+        return View.dispatch(self, request, *args, **kwargs)
+
 
 @login_required
 def get_rating(request, pk, activity):
