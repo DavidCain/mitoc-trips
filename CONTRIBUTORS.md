@@ -45,8 +45,9 @@ much-needed testing and detailed feedback.
 - Gal Shenar
 
 ## Design suggestions
-- Nick Alunni
 - Bjorn Poonen
+- Kyle Barron
+- Nick Alunni
 
 Special thanks to the following especially dedicated individuals:
  - Adam Rosenfield

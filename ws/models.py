@@ -11,6 +11,7 @@ from django.db import models
 from django.db.models import Q
 from django.utils import timezone
 from django.utils.html import escape
+from django.utils.safestring import mark_safe
 from django.utils.translation import string_concat
 
 from allauth.account.models import EmailAddress
@@ -592,7 +593,8 @@ class Trip(models.Model):
     allow_leader_signups = models.BooleanField(default=False,
                                                help_text="Allow leaders to sign themselves up as trip leaders. (Leaders can always sign up as participants). Recommended for Circuses!")
     name = models.CharField(max_length=127)
-    description = models.TextField()
+    description = models.TextField(help_text=mark_safe('<a href="https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet">Markdown</a> supported! '
+                                             'Please use HTTPS images sparingly, and only if properly licensed.'))
     maximum_participants = models.PositiveIntegerField(default=8, verbose_name="Max participants")
     difficulty_rating = models.CharField(max_length=63)
     level = models.CharField(max_length=255, help_text="This trip's A, B, or C designation (plus I/S rating if applicable).", null=True, blank=True)
