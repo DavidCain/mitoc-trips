@@ -1,0 +1,148 @@
+{% extends "help/home.html" %}
+{% block head_title %}Help - Trip difficulty{% endblock head_title %}
+
+{% block faq %}
+<h2>Winter School trip difficulties</h2>
+
+<table class="table" id="guidelines">
+  <thead>
+    <tr>
+      <th>Difficulty</th>
+      <th>Distance</th>
+      <th>Gain/Loss</th>
+      <th class="nowrap">Hike Time</th>
+      <th>Suitable for participants with:</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Beginner</td>
+      <td>&lt; 2 mi</td>
+      <td>Almost 0</td>
+      <td>&lt; 1 hr</td>
+      <td>Any fitness level, including those generally new to hiking</td>
+    </tr>
+    <tr>
+      <td>Easy</td>
+      <td>3 - 5 mi</td>
+      <td>&lt; 1500 ft</td>
+      <td>1.5 hr - 3.5 hr</td>
+      <td>Basic experience 3-season hiking</td>
+    </tr>
+
+    <tr>
+      <td>Moderate</td>
+      <td>5 - 8 mi</td>
+      <td>1500 - 3000 ft</td>
+      <td>3.5 hr - 5.5 hr</td>
+      <td>Basic experience winter hiking <em>or</em> extended 3-season winter hiking experience</td>
+    </tr>
+
+    <tr>
+      <td>Difficult</td>
+      <td>8 - 12 mi</td>
+      <td>3000 - 4000 ft</td>
+      <td>5.5 hr - 8 hr</td>
+      <td>Extended winter hiking experience <em>or</em> basic winter hiking experience and seeking to travel above treeline</td>
+    </tr>
+
+    <tr>
+      <td>Advanced</td>
+      <td>&gt; 12 mi</td>
+      <td>&gt; 4000 ft</td>
+      <td>&gt; 8 hr</td>
+      <td>Extended winter hiking experience, looking to refine their skills with the hardest trips above treeline</td>
+    </tr>
+  </tbody>
+</table>
+
+<p class="lead">
+  For more examples, see <a href="https://docs.google.com/spreadsheets/d/11X0gQOuuDJYPKKgog6VtyxCrJi9OAea3uXhuz7t6ahQ">sample trips and suggested difficulties</a>.
+</p>
+
+<div class="well" id="rationale">
+  <h4>Why are there guidelines on trip difficulty?</h4>
+  <p>
+    To help standardize difficulty ratings, we've created a set of guidelines
+    to help leaders advertise their trips. This system also helps participants
+    understand what they are signing up for in a trip.
+  </p>
+  <p>
+    Consistent difficulty ratings allow participants to elect trips which
+    challenge them appropriately and help them grow. For leaders, consistent
+    ratings help attract participants who are well-suited to attend trips.
+  </p>
+</div>
+
+<div class="well" id="distinct-from-ratings">
+  <h4>Does this replace the WSC determining A/B/C trips?</h4>
+  <p>
+    No. The Winter Safety Committee is still in charge of determining what
+    leader rating is appropriate for each trip. Leaders should still provide
+    the rating they believe is appropriate for their trip. However, the WSC is
+    ultimately responsible for approving all trips as well as ensuring that
+    leader-supplied ratings fit the described trip.
+  </p>
+  <p>
+    A trip's difficultly rating is completely separate from the
+    <a href="{% url 'help-ws_ratings' %}">official trip rating system</a>.
+  </p>
+</div>
+
+<div class="well" id="formality">
+  <h4>Are these suggested ratings a formal requirement?</h4>
+  <p>
+    This classification system is a suggestion; there is no formal process to
+    ensure that leaders use these ratings. Leaders that deviate from these
+    guidelines should explain their rationale to participants. Suggestions on
+    how to improve these guidelines are always welcome!
+  </p>
+</div>
+
+<div class="well" id="special-circumstances">
+  <h4>What about trips in between two categories? Overnights, bushwhacking, x-mode trips, etc.?</h4>
+  <p>
+    "Be a grump - bump it up!"
+  </p>
+  <p>
+    These guidelines provide a baseline for difficulty. Additional factors
+    should factor into <em>increasing</em> the difficulty rating. For instance,
+    a difficult trail on an otherwise moderate mountain should be regarded as a
+    difficult trip. Leaders should generally bump up the trip difficulty once
+    for each "special sauce" on the trip.
+  </p>
+  <p>
+    <strong>Examples:</strong>
+
+    <ul>
+      <li>
+        Garfield is a difficult trip from criteria including its long approach.
+        Lugging overnight gear to the summit makes the trip advanced.
+      </li>
+      <li>
+        Lonesome Lake Hut would be an easy trip, since it is a day hike.
+        Lugging overnight gear to the hut makes it moderate.
+        Bushwhacking to the hut first would make the trip difficult.
+      </li>
+      <li>
+        Hale is a difficult hike due to the long approach in the winter.
+        Cross-country skiing the 2.5 mile road walk would make the trip
+        advanced, since participants must know how to ski and hike.
+      </li>
+    </ul>
+  </p>
+</div>
+
+{% if "leaders" in groups or user.is_superuser %}
+<div class="well" id="where">
+<h4>Where do I advertise the difficulty of a new trip?</h4>
+<p>
+  <ol>
+    <li>When you pitch the trip in Winter School lectures</li>
+    <li>In the "difficulty" field when you <a href="{% url 'create_trip' %}">create a new trip</a></li>
+  </ol>
+</p>
+{% endif %}
+
+</div>
+{% endblock faq %}
