@@ -5,67 +5,122 @@
 <h2>Lottery Trips</h2>
 <div class="well" id="general-about">
   <h4>What is a lottery trip?</h4>
-  <p>A lottery trip is one where there are a fixed number of spots and the leaders anticipate high demand. Participants may express interest in a trip while the lottery period is open. Once the lottery period concludes, a randomizing algorithm is run and participants will be placed on the trip.</p>
+  <p>
+    A lottery trip is one where there are a fixed number of spots and the
+    leaders anticipate high demand. Participants may express interest in a trip
+    while the lottery period is open. Once the lottery period concludes, a
+    randomizing algorithm is run and participants will be placed on the trip.
+  </p>
 </div>
 
 <div class="well" id="general-how">
   <h4>How does the lottery work?</h4>
-  <p>If the trip is a Winter School trip, <a href="#about">WS lottery rules apply</a>.</p>
-  <p>Each (non-WS) trip has its own lottery; placement on any one trip does not depend on other trips. When a given trip's lottery is scheduled to run, participants are randomly ordered<sup>*</sup> and placed on the trip one-by-one. If the trip becomes full, participants are added to the waitlist in order. Should anybody drop off the trip, the participant at the top of the waitlist will be automatically added to the trip.</p>
-  <p><small>* Preference is given to MIT students &amp; affiliates. All else held equal, an MIT undergrad will be placed on a trip before a non-undergrad ~75% of the time, an MIT grad would beat out a non-affiliate ~68% of the time, and an MIT affiliate would win out ~60% of the time.</small></p>
+  <p>
+    If the trip is a Winter School trip, <a href="#about">WS lottery rules apply</a>.
+  </p>
+  <p>
+    Each (non-WS) trip has its own lottery; placement on any one trip does not
+    depend on other trips. When a given trip's lottery is scheduled to run,
+    participants are randomly ordered<sup>*</sup> and placed on the trip
+    one-by-one. If the trip becomes full, participants are added to the waitlist
+    in order. Should anybody drop off the trip, the participant at the top of the
+    waitlist will be automatically added to the trip.
+  </p>
+  <p>
+    <small>
+      * Preference is given to MIT students &amp; affiliates. All else
+      held equal, an MIT undergrad will be placed on a trip before a
+      non-undergrad ~75% of the time, an MIT graduate student would beat out a
+      non-affiliate ~68% of the time, and an MIT affiliate would win out ~60%
+      of the time.
+    </small>
+  </p>
 </div>
 
 <h2>Winter School Lottery</h2>
 <div class="well" id="about">
   <h4>Why is there a lottery?</h4>
-  <p>Due to high levels of interest in Winter School trips, we will run a lottery to assign participants to trips. The system prioritizes MIT affiliates and those who have a strong record of trip attendance.</p>
+  <p>
+    Due to high levels of interest in Winter School trips, we will run a
+    lottery to assign participants to trips. The system prioritizes MIT
+    affiliates and those who have a strong record of trip attendance.
+  </p>
 </div>
 
 <div class="well" id="how">
   <h4>How does the Winter School lottery work?</h4>
-  <p>After trips are posted on the signup system, participants may sign up for as many trips as they like, until 6 am on Wednesday morning. After signing up for trips, participants should rank trips from most-preferred, to least preferred. The lottery will try to place each participant on their most preferred trip.</p>
+  <p>
+    After trips are posted on the signup system, participants may sign up for
+    as many trips as they like, until 9 am on Wednesday morning. After signing
+    up for trips, participants should rank trips from most-preferred, to least
+    preferred. The lottery will try to place each participant on their most
+    preferred trip.
+  </p>
 </div>
 
 <div class="well" id="no_preferences">
   <h4>What if I don't submit lottery preferences?</h4>
-  <p>You will be treated as a non-driver, and your trip preferences will be taken as the order in which you selected trips.</p>
+  <p>
+    You will be treated as a non-driver, and your trip preferences will be
+    taken as the order in which you selected trips.
+  </p>
 </div>
 
 <div class="well" id="not_placed">
   <h4>What if I'm not placed on a trip?</h4>
-  <p>You will be placed on the waiting list for your top-ranked trip.</p>
+  <p>
+    You will be placed on the waiting list for your top-ranked trip.
+  </p>
 </div>
 
 <div class="well" id="driver_priority">
   <h4>Do drivers get priority over other participants?</h4>
-  <p>Yes and no. If a trip is full, and a driver has expressed interest in that trip, they can displace the last-added participant, but only if the trip does not have enough drivers. In all other respects, those who own cars or are willing to rent are treated exactly the same as other participants.</p>
+  <p>
+    Yes and no. If a trip is full, and a driver has expressed interest in that
+    trip, they can displace the last-added participant, but only if the trip
+    does not have enough drivers. In all other respects, those who own cars or
+    are willing to rent are treated exactly the same as other participants.
+  </p>
 </div>
 
 <div class="well" id="post_lottery">
   <h4>What do I do after the lottery has run?</h4>
-  <p>You will be notified of which trip (if any) you've been placed on. Wednesday at noon, all trips will be re-opened for signups under a first-come, first-serve system. If you're pulled from the waiting list, you will be notified and contacted by the trip leader.</p>
+  <p>
+    You will be notified of which trip (if any) you've been placed on.
+    Wednesday at noon, all trips will be re-opened for signups under a
+    first-come, first-serve system. If you're pulled from the waiting list, you
+    will be notified and contacted by the trip leader.
+  </p>
 </div>
 
 <div class="well" id="more_than_one_trip">
   <h4>What if I want to go on more than one trip in a weekend?</h4>
-  <p>The algorithm only attempts to place participants on one trip per weekend. After the lottery has completed, you may sign up for other trips as you wish.</p>
+  <p>
+    The algorithm only attempts to place participants on one trip per weekend.
+    After the lottery has completed, you may sign up for other trips as you
+    wish.
+  </p>
 </div>
 
 <div class="well" id="pairs">
   <h4>I'd only like to go on a trip if I can go with my friend/significant other/etc.</h4>
-  <p>You can <a href="{% url 'lottery_pairing' %}">specify another participant</a>
-  that you'd like to go on trips with. When the lottery runs, you will either
-  both be placed on a trip or be placed on your highest ranked trip's
-  waitlist.</p>
+  <p>
+    You can <a href="{% url 'lottery_pairing' %}">specify another participant</a>
+    that you'd like to go on trips with. When the lottery runs, you will either
+    both be placed on a trip or be placed on your highest ranked trip's
+    waitlist.
+  </p>
 </div>
 
 <div class="well" id="pair_split">
   <h4>I signed up as a pair, but one or both of us are on the waiting list!</h4>
-  <p>Sometimes, pairs are "split up" by drivers bumping the last person from a trip.
-  That is, you were both initially placed on the trip, but due to a shortage
-  of drivers for the trip, a driver was allowed on. In rare cases, both of you
-  may end up on the waiting list due to this effect (even when other trips you
-  both would have been happy with have slots). We're planning on improving this
-  behavior.</p>
+  <p>
+    Sometimes, pairs are "split up" by drivers bumping the last person from a trip.
+    That is, you were both initially placed on the trip, but due to a shortage
+    of drivers for the trip, a driver was allowed on. In rare cases, both of you
+    may end up on the waiting list due to this effect (even when other trips you
+    both would have been happy with have slots). We're planning on improving this
+    behavior.
+  </p>
 </div>
 {% endblock faq %}
