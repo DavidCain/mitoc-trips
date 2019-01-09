@@ -203,7 +203,8 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
         just lead a few trips once and then stop).
         """
         last_year = local_date() - timedelta(days=365)
-        return participant.trips_led.filter(trip_date__gt=last_year).count()
+        within_last_year = Q(trip_date__gt=last_year, trip_date__lt=self.today)
+        return participant.trips_led.filter(within_last_year).count()
 
     def number_ws_trips(self, participant):
         """ Count trips the participant attended, flaked, and the total.
