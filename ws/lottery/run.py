@@ -4,13 +4,18 @@ import logging
 from pathlib import Path
 
 from ws import models
-from ws.utils.dates import local_now, closest_wed_at_noon
+from ws.utils.dates import local_date, local_now, closest_wed_at_noon
 from ws import settings
 from ws.lottery.handle import SingleTripParticipantHandler, WinterSchoolParticipantHandler
 from ws.lottery.rank import SingleTripParticipantRanker, WinterSchoolParticipantRanker
 
 
 class LotteryRunner:
+    """ Parent class for a lottery executor.
+
+    Instances of this class may be executed to perform the lottery mechanism
+    for one or more trips.
+    """
     def __init__(self):
         # Get a logger instance that captures activity for _just_ this run
         self.logger = logging.getLogger(self.logger_id)
@@ -43,6 +48,7 @@ class LotteryRunner:
 
 
 class SingleTripLotteryRunner(LotteryRunner):
+    """ Place participants vying for spots on a single trip. """
     def __init__(self, trip):
         self.trip = trip
         super().__init__()
@@ -96,8 +102,9 @@ class SingleTripLotteryRunner(LotteryRunner):
         self._make_fcfs()
 
 class WinterSchoolLotteryRunner(LotteryRunner):
-    def __init__(self):
-        self.ranker = WinterSchoolParticipantRanker()
+    def __init__(self, execution_date=None):
+        self.execution_date = execution_date or local_date()
+        self.ranker = WinterSchoolParticipantRanker(self.execution_date)
         super().__init__()
         self.configure_logger()
 
@@ -110,6 +117,8 @@ class WinterSchoolLotteryRunner(LotteryRunner):
         self.logger.addHandler(self.handler)
 
     def __call__(self):
+        self.logger.info("Running the Winter School lottery for %s",
+                         self.execution_date)
         self.assign_trips()
         self.free_for_all()
         self.handler.close()
@@ -130,8 +139,10 @@ class WinterSchoolLotteryRunner(LotteryRunner):
         return self.ranker.lowest_non_driver(trip)
 
     def assign_trips(self):
-        for participant in self.ranker:
-            handling_text = f"Handling {participant}"
+        num_participants = self.ranker.participants_to_handle().count()
+        self.logger.info("%s participants signed up for trips this week", num_participants)
+        for participant, key in self.ranker:
+            handling_text = f"Handling {participant} ({key})"
             self.logger.debug(handling_text)
             self.logger.debug('-' * len(handling_text))
             par_handler = WinterSchoolParticipantHandler(participant, self)

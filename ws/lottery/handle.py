@@ -197,6 +197,7 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
                 find_signup = Q(participant=participant, trip=favorite_trip)
                 favorite_signup = models.SignUp.objects.get(find_signup)
                 add_to_waitlist(favorite_signup)
-                self.logger.info(f"Waitlisted {self.par_text} on {favorite_signup.trip.name}")
+                with_email = f"{self.par_text} ({participant.email})"
+                self.logger.info(f"Waitlisted {with_email} on {favorite_signup.trip.name}")
 
         self.runner.mark_handled(self.participant)
