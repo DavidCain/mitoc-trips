@@ -34,7 +34,7 @@ class ParticipantPairingTests(TestCase):
         """ Run noted participants through ranking, expect pairing results. """
         par_pks = set(par.pk for par in expected)
         ranker = TestRanker(participant_pks=par_pks)
-        actual = {par: bool(par.reciprocally_paired) for par in ranker}
+        actual = {par: bool(par.reciprocally_paired) for par, _ in ranker}
         self.assertEqual(expected, actual)
 
     def test_no_lotteryinfo(self):
@@ -247,11 +247,9 @@ class SingleTripParticipantRankerTests(TestCase):
             SignUpFactory.create(participant=par, trip=trip)
             participants.append(par)
 
-        ranker_1 = rank.SingleTripParticipantRanker(trip)
-        ranker_2 = rank.SingleTripParticipantRanker(trip)
         self.assertEqual(
-            ranker_1.ranked_participants(),
-            ranker_2.ranked_participants()
+            list(rank.SingleTripParticipantRanker(trip)),
+            list(rank.SingleTripParticipantRanker(trip)),
         )
 
 

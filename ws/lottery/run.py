@@ -3,11 +3,19 @@ import io
 import logging
 from pathlib import Path
 
+from mitoc_const import affiliations
+
 from ws import models
 from ws.utils.dates import local_date, local_now, closest_wed_at_noon
 from ws import settings
 from ws.lottery.handle import SingleTripParticipantHandler, WinterSchoolParticipantHandler
 from ws.lottery.rank import SingleTripParticipantRanker, WinterSchoolParticipantRanker
+
+
+AFFILIATION_MAPPING = {
+    # Excludes the deprecated student code, since new members don't have that
+    aff.CODE: aff.VALUE for aff in affiliations.ALL
+}
 
 
 class LotteryRunner:
@@ -89,14 +97,14 @@ class SingleTripLotteryRunner(LotteryRunner):
             return
 
         self.logger.info("Participants will be handled in the following order:")
-        max_len = max(len(par.name) for par in ranked_participants)
-        for i, par in enumerate(ranked_participants, start=1):
+        max_len = max(len(par.name) for par, _ in ranked_participants)
+        for i, (par, key) in enumerate(ranked_participants, start=1):
             affiliation = par.get_affiliation_display()
             # pylint: disable=logging-fstring-interpolation
-            self.logger.info(f"{i:3}. {par.name:{max_len + 3}} ({affiliation})")
+            self.logger.info(f"{i:3}. {par.name:{max_len + 3}} ({affiliation}, {key})")
 
         self.logger.info(50 * '-')
-        for participant in ranked_participants:
+        for participant, _ in ranked_participants:
             par_handler = SingleTripParticipantHandler(participant, self, self.trip)
             par_handler.place_participant()
         self._make_fcfs()
@@ -142,8 +150,10 @@ class WinterSchoolLotteryRunner(LotteryRunner):
         num_participants = self.ranker.participants_to_handle().count()
         self.logger.info("%s participants signed up for trips this week", num_participants)
         for participant, key in self.ranker:
-            handling_text = f"Handling {participant} ({key})"
-            self.logger.debug(handling_text)
-            self.logger.debug('-' * len(handling_text))
+            # get_affiliation_display() includes extra explanatory text we don't need
+            affiliation = AFFILIATION_MAPPING[participant.affiliation]
+            handling_header = [f"\nHandling {participant}", f"({affiliation}, {key})"]
+            self.logger.debug('\n'.join(handling_header))
+            self.logger.debug('-' * max(len(line) for line in handling_header))
             par_handler = WinterSchoolParticipantHandler(participant, self)
             par_handler.place_participant()

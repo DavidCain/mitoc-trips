@@ -88,18 +88,11 @@ def affiliation_weighted_rand(participant, lottery_key):
 
 class ParticipantRanker:
     def __iter__(self):
-        return iter(self.ranked_participants())
+        """ Participants in the order they should be placed, with their score.
 
-    def participants_to_handle(self):
-        """ QuerySet of participants to be ranked. """
-        raise NotImplementedError
-
-    def priority_key(self, participant):
-        """ Return a key that can be used to sort the participant. """
-        raise NotImplementedError
-
-    def ranked_participants(self):
-        """ Participants in the order they should be placed.
+        We sort participants by a scoring algorithm. The results of this
+        scoring algorithm are useful when investigating the logs of a lottery
+        run.
 
         Each participant is decorated with an attribute that says if they've
         reciprocally paired themselves with another participant.
@@ -117,7 +110,17 @@ class ParticipantRanker:
                 output_field=IntegerField()
             )
         )
-        return sorted(participants, key=self.priority_key)
+        with_keys = ((self.priority_key(par), par) for par in participants)
+        for priority_key, participant in sorted(with_keys):
+            yield participant, priority_key
+
+    def participants_to_handle(self):
+        """ QuerySet of participants to be ranked. """
+        raise NotImplementedError
+
+    def priority_key(self, participant):
+        """ Return a key that can be used to sort the participant. """
+        raise NotImplementedError
 
 
 class SingleTripParticipantRanker(ParticipantRanker):
@@ -133,6 +136,12 @@ class SingleTripParticipantRanker(ParticipantRanker):
 
 
 TripCounts = namedtuple('TripCounts', ['attended', 'flaked', 'total'])
+
+
+WinterSchoolPriorityRank = namedtuple(
+    'WinterSchoolPriorityRank',
+    ['flake_factor', 'leader_bump', 'affiliation_weight']
+)
 
 
 class WinterSchoolParticipantRanker(ParticipantRanker):
@@ -170,7 +179,7 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
         affiliation_weight = affiliation_weighted_rand(participant, self.lottery_key)
 
         # Lower = higher in the list
-        return (flaky_or_neutral, leader_bump, affiliation_weight)
+        return WinterSchoolPriorityRank(flaky_or_neutral, leader_bump, affiliation_weight)
 
     def flake_factor(self, participant):
         """ Return a number indicating past "flakiness".
