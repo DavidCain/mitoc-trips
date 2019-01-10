@@ -344,6 +344,11 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
         });
       };
 
+      scope.cancel = function() {
+        scope.dismissModal('');
+        scope.pending = false;
+      };
+
       scope.submit = function() {
         scope.pending = true;
         var signups = scope.allSignups.map(function(signup) {
