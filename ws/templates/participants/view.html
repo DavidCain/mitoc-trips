@@ -7,10 +7,10 @@
 {% load ws_tags %}
 
 {% block head_title %}
-  {% if not user_viewing and lookup_form %}
-    Lookup participant
-  {% else %}
+  {% if participant %}
     {{ participant.name }}
+  {% elif lookup_form %}
+    Look up participant
   {% endif %}
 {% endblock head_title %}
 
