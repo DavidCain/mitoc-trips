@@ -74,12 +74,23 @@ class LotteryMessages:
             messages.warning(self.request, message, extra_tags='safe')
 
     def warn_if_no_ranked_trips(self):
-        """ Warn the user if there are future signups, and none are ranked. """
-        manager = models.SignUp.objects
-        future_signups = manager.filter(participant=self.request.participant,
-                                        trip__trip_date__gte=dateutils.local_date())
-        some_trips_ranked = future_signups.filter(order__isnull=False).count()
-        if future_signups.count() > 1 and not some_trips_ranked:
+        """ Warn the user if there are future signups, and none are ranked.
+
+        Some participants don't understand the significance of signing up for
+        multiple trips: Namely, they miss the fact that there's an easy way to
+        set which ones are your favorite! This reminder gives them a quick link
+        to let them rank their most preferred trips.
+        """
+        # Only consider signups for lottery trips in the future
+        future_signups = models.SignUp.objects.filter(
+            participant=self.request.participant,
+            on_trip=False,
+            trip__algorithm='lottery',
+            trip__trip_date__gte=dateutils.local_date()
+        ).values_list('order', flat=True)
+        some_trips_ranked = any(order for order in future_signups)
+
+        if len(future_signups) > 1 and not some_trips_ranked:
             msg = "You haven't " + self.prefs_link("ranked upcoming trips.")
             messages.warning(self.request, msg, extra_tags='safe')
 
