@@ -17,6 +17,13 @@ def localize(dt_time):
 
 
 def itinerary_available_at(trip_date):
+    """ Return the date & time at which the trip's itinerary may be submitted.
+
+    We disallow submitting an itinerary too far in advance because weather
+    changes, participants may be added/removed, and drivers may change. Only
+    allowing itineraries to be submitted close to the start of a trip ensures
+    the description is more accurate.
+    """
     trip_dow = trip_date.weekday()
     thursday_before = trip_date - timedelta(days=(trip_dow - 3) % 7)
     thursday_evening = datetime.combine(thursday_before, time(18, 0))

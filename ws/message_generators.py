@@ -10,7 +10,7 @@ from django.utils import timezone
 from django.utils.html import escape
 
 from ws import models
-from ws.utils.dates import local_date, is_winter_school
+import ws.utils.dates as dateutils
 import ws.utils.perms
 
 
@@ -33,7 +33,7 @@ class LotteryMessages:
             return None
 
     def supply_all_messages(self):
-        if not self.request.participant or not is_winter_school():
+        if not self.request.participant or not dateutils.is_winter_school():
             return
         self.warn_if_missing_lottery()
         self.warn_if_car_missing()
@@ -77,7 +77,7 @@ class LotteryMessages:
         """ Warn the user if there are future signups, and none are ranked. """
         manager = models.SignUp.objects
         future_signups = manager.filter(participant=self.request.participant,
-                                        trip__trip_date__gte=local_date())
+                                        trip__trip_date__gte=dateutils.local_date())
         some_trips_ranked = future_signups.filter(order__isnull=False).count()
         if future_signups.count() > 1 and not some_trips_ranked:
             msg = "You haven't " + self.prefs_link("ranked upcoming trips.")
@@ -118,15 +118,38 @@ def warn_if_needs_update(request):
 
 def _feedback_eligible_trips(participant):
     """ Recent completed trips where participants were not given feedback. """
-    today = local_date()
+    today = dateutils.local_date()
     one_month_ago = today - timedelta(days=30)
     recent_trips = participant.trips_led.filter(trip_date__lt=today,
                                                 trip_date__gt=one_month_ago)
     return recent_trips.filter(signup__on_trip=True).distinct()
 
 
+def complain_if_missing_itineraries(request):
+    """ Create messages if the leader needs to complete trip itineraries. """
+    if not ws.utils.perms.is_leader(request.user):
+        return
+
+    now = dateutils.local_now()
+
+    # Most trips require itineraries, but some (TRS, etc.) do not
+    # All WS trips require itineraries, though
+    future_trips_without_info = request.participant.trips_led.filter(
+        trip_date__gte=now.date(),
+        info__isnull=True,
+        activity='winter_school'
+    ).values_list('pk', 'trip_date', 'name')
+
+    for trip_pk, trip_date, name in future_trips_without_info:
+        if now > dateutils.itinerary_available_at(trip_date):
+            trip_url = reverse('trip_itinerary', args=(trip_pk,))
+            msg = (f'Please <a href="{trip_url}">submit an itinerary for '
+                   f'{escape(name)}</a> before departing!')
+            messages.warning(request, msg, extra_tags='safe')
+
+
 def complain_if_missing_feedback(request):
-    """ Create message if a Leader should supply feedback. """
+    """ Create messages if the leader should supply feedback. """
     if not ws.utils.perms.is_leader(request.user):
         return
 
@@ -136,7 +159,6 @@ def complain_if_missing_feedback(request):
     for trip in _feedback_eligible_trips(participant):
         trip_feedback = models.Feedback.objects.filter(leader=participant, trip=trip)
         if not trip_feedback.exists():
-            trip_url = reverse('review_trip', args=(trip.id,))
-            msg = ('Please supply feedback for '
-                   '<a href="{}">{}</a>'.format(trip_url, escape(trip)))
+            trip_url = reverse('review_trip', args=(trip.pk,))
+            msg = f'Please supply feedback for <a href="{trip_url}">{escape(trip)}</a>'
             messages.warning(request, msg, extra_tags='safe')

@@ -24,6 +24,12 @@ that the WIMP has the most up-to-date information regarding your trip.</p>
 {% if info_form_available %}
   <form name="{{ form.form_name }}" action="" method="post" novalidate data-submit-if-valid>
     {% csrf_token %}
+    <div class="alert alert-warning">
+      {# Lots of people got confused about this widget. We really need to replace it with a better one. #}
+      {# For now, give some instructions to hopefully make it less likely that they forget. #}
+      The "Drivers" list below is a multi-select widget (by default, no drivers are selected).
+      Hold Control (Cmd on a Mac) and click different rows to indicate multiple drivers.
+    </div>
     {{ form.as_div }}
     <div class="alert alert-danger"
          data-ng-cloak

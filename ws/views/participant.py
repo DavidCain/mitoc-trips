@@ -433,6 +433,7 @@ class ProfileView(ParticipantView):
 
         message_generators.warn_if_needs_update(request)
         message_generators.complain_if_missing_feedback(request)
+        message_generators.complain_if_missing_itineraries(request)
 
         lottery_messages = message_generators.LotteryMessages(request)
         lottery_messages.supply_all_messages()
