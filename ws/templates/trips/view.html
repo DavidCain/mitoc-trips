@@ -8,6 +8,10 @@
 {% block content %}
 {{ block.super }}
 
+{% if trip.wimp and viewing_participant == trip.wimp %}
+  {% wimp_toolbar trip %}
+{% endif %}
+
 {% if can_admin or viewing_participant.is_leader %}
   {% if can_admin %}
     {% trip_edit_buttons trip viewing_participant user %}
@@ -76,10 +80,6 @@
     </uib-tabset>
   </div>
 {% else %}
-  {% if trip.wimp and viewing_participant == trip.wimp %}
-    {% wimp_toolbar trip %}
-  {% endif %}
-
   {% view_trip trip viewing_participant user %}
 {% endif %}
 
