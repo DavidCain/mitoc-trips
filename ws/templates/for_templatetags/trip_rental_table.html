@@ -27,7 +27,7 @@
           <th>Serial #</th>
         {% endif %}
         <th>Item</th>
-        <th>Daily Cost
+        <th class="hidden-xs">Daily Cost
           <a role="button"
             data-uib-popover="Members are charged a minimum of one day per week an item is checked out."
             data-popover-title="Charge per day of use">
@@ -60,7 +60,7 @@
               {% endif %}
               <span>{{ item.name }}</span>
             </td>
-            <td>${{ item.cost }}</td>
+            <td class="hidden-xs">${{ item.cost }}</td>
             <td>{{ item.checkedout|date:'M j, Y' }}</td>
           </tr>
         {% endfor %}
