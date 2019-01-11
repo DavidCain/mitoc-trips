@@ -8,7 +8,7 @@ from django.urls import reverse, reverse_lazy
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.validators import RegexValidator
 from django.db import models
-from django.db.models import Q
+from django.db.models import F, Q
 from django.utils import timezone
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
@@ -47,7 +47,7 @@ class SingletonModel(models.Model):
 
     @classmethod
     def load(cls):
-        obj, created = cls.objects.get_or_create(pk=1)
+        obj, _created = cls.objects.get_or_create(pk=1)
         return obj
 
 
@@ -594,7 +594,7 @@ class Trip(models.Model):
                                                help_text="Allow leaders to sign themselves up as trip leaders. (Leaders can always sign up as participants). Recommended for Circuses!")
     name = models.CharField(max_length=127)
     description = models.TextField(help_text=mark_safe('<a href="https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet">Markdown</a> supported! '
-                                             'Please use HTTPS images sparingly, and only if properly licensed.'))
+                                                       'Please use HTTPS images sparingly, and only if properly licensed.'))
     maximum_participants = models.PositiveIntegerField(default=8, verbose_name="Max participants")
     difficulty_rating = models.CharField(max_length=63)
     level = models.CharField(max_length=255, help_text="This trip's A, B, or C designation (plus I/S rating if applicable).", null=True, blank=True)
@@ -640,20 +640,60 @@ class Trip(models.Model):
         return self.signup_set.filter(on_trip_or_waitlisted)
 
     @property
-    def other_signups(self):
+    def within_three_days(self):
+        """ Return a date range for use with Django's `range` function. """
+        return (self.trip_date - timedelta(days=3),
+                self.trip_date + timedelta(days=3))
+
+    def other_signups(self, par_pks):
         """ Return participant signups for trips happening around this time.
 
-        Specifically, for each participant that is signed up for this trip,
-        find all other trips that they're on.
-
-        The point of this property is to help leaders coordinate driving.
+        Specifically, for each given participant, find all other trips that
+        they're on in a three day window around this trip.
         """
-        par_pks = [s.participant_id for s in self.on_trip_or_waitlisted]
-        on_trips = SignUp.objects.filter(on_trip=True, participant_id__in=par_pks)
-        others = on_trips.exclude(trip=self)
-        within_three_days = (self.trip_date - timedelta(days=3),
-                             self.trip_date + timedelta(days=3))
-        return others.filter(trip__trip_date__range=within_three_days)
+        return (
+            SignUp.objects.filter(on_trip=True, participant_id__in=par_pks)
+            .exclude(trip=self)
+            .filter(trip__trip_date__range=self.within_three_days)
+            .select_related('trip')
+            .order_by('trip__trip_date')
+        )
+
+    def other_trips_by_participant(self, for_participants=None):
+        """ Identify which other trips this trip's participants are on.
+
+        Specifically, for each participant that is signed up for this trip,
+        find all other trips that they're either leading or participating in
+        within a three-day window. By default, this includes participants who
+        are waitlisted as well: knowing about the other trips a participant is
+        attending can be helpful when considering moving them onto the trip.
+
+        This method helps trip leaders coordinate driving, cabin stays, and the
+        transfer of gear between trips.
+        """
+        if for_participants:
+            par_pks = [participant.pk for participant in for_participants]
+        else:
+            par_pks = [s.participant_id for s in self.on_trip_or_waitlisted]
+        trips_by_par = {pk: [] for pk in par_pks}
+
+        # Start by identifying trips the participants are attending as participants
+        for signup in self.other_signups(par_pks):
+            trips_by_par[signup.participant_id].append(signup.trip)
+
+        # Some participants may also be leading other trips. Include those!
+        trips_led_by_participants = type(self).objects.filter(
+            leaders__in=par_pks,
+            trip_date__range=self.within_three_days
+        ).order_by('trip_date').annotate(leader_pk=F('leaders'))
+        for trip in trips_led_by_participants:
+            trips_by_par[trip.leader_pk].append(trip)
+            del trip.leader_pk  # Remove annotation so it's not accessed elsewhere
+
+        # Combine trips where participants are leading & participating
+        for par_pk in par_pks:
+            trips = trips_by_par[par_pk]
+            yield par_pk, sorted(trips, key=lambda t: t.trip_date)
 
     @property
     def single_trip_pairing(self):

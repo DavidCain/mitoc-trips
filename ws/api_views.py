@@ -61,7 +61,7 @@ class SimpleSignupsView(DetailView):
 
 
 class FormatSignupMixin:
-    def describe_signup(self, signup, trip_participants, other_signups_by_par):
+    def describe_signup(self, signup, trip_participants, other_trips):
         """ Yield everything used in the participant-selecting modal.
 
         The signup object should come with related models already selected,
@@ -69,8 +69,7 @@ class FormatSignupMixin:
 
         :param signup: An models.SignUp instance (either on trip or waitlisted)
         :param trip_participants: All Participants that are on the same trip
-        :param other_signups_by_par: For each participant on this trip,
-                                     other trips they're on this weekend(ish)
+        :param other_trips: Other trips they're on this weekend(ish)
         """
         par = signup.participant
 
@@ -96,8 +95,6 @@ class FormatSignupMixin:
         else:
             no_lectures = False  # Don't show warning for other activities
 
-        other_signups = other_signups_by_par[par.pk]
-
         return {
             'id': signup.id,
             'participant': {'id': par.id, 'name': par.name, 'email': par.email},
@@ -110,7 +107,7 @@ class FormatSignupMixin:
                     'trip': {'id': f.trip.id, 'name': f.trip.name}
                 } for f in feedback
             ],
-            'also_on': [{'id': s.trip.id, 'name': s.trip.name} for s in other_signups],
+            'also_on': [{'id': trip.pk, 'name': trip.name} for trip in other_trips],
             'paired_with': ({'id': paired_with.pk, 'name': paired_with.name}
                             if paired_with else None),
             'car_status': lotteryinfo and lotteryinfo.car_status,
@@ -127,7 +124,6 @@ class SignupsChanged(Exception):
     modifications (based off their stale data), and we don't define a way of
     dealing with that unknown signup. This exception should then be raised.
     """
-    pass
 
 
 class AdminTripSignupsView(SingleObjectMixin, FormatSignupMixin,
@@ -246,15 +242,15 @@ class AdminTripSignupsView(SingleObjectMixin, FormatSignupMixin,
         """ Get information about the trip's signups. """
         trip = self.get_object()
         signups = self.get_signups()
-
         trip_participants = {s.participant for s in signups}
-        other_signups_by_par = {s.participant.pk: [] for s in signups}
-        for other_signup in trip.other_signups.select_related('trip'):
-            other_signups_by_par[other_signup.participant.pk].append(other_signup)
+
+        other_trips_by_par = dict(trip.other_trips_by_participant())
 
         return {
-            'signups': [self.describe_signup(s, trip_participants, other_signups_by_par)
-                        for s in self.get_signups()],
+            'signups': [
+                self.describe_signup(s, trip_participants, other_trips_by_par[s.participant_id])
+                for s in self.get_signups()
+            ],
             'leaders': list(trip.leaders.values('name', 'email')),
             'creator': {
                 'name': trip.creator.name,
@@ -301,14 +297,16 @@ class LeaderParticipantSignupView(SingleObjectMixin, FormatSignupMixin,
         signup = signup_utils.trip_or_wait(signup)
 
         trip_signups = trip.on_trip_or_waitlisted.select_related('participant')
-        other_signups = {par.pk: trip.other_signups.filter(participant=par)}
         trip_participants = {s.participant for s in trip_signups}
+
+        other_trips_by_par = dict(trip.other_trips_by_participant(for_participants=[par]))
+        other_trips = other_trips_by_par[par.pk]
 
         # signup: descriptor, agnostic of presence on the trip or waiting list
         # on_trip: a boolean to place this signup in the right place
         #          (either at the bottom of the trip list or waiting list)
         payload = {
-            'signup': self.describe_signup(signup, trip_participants, other_signups),
+            'signup': self.describe_signup(signup, trip_participants, other_trips),
             'on_trip': signup.on_trip
         }
         return JsonResponse(payload, status=201)
@@ -491,7 +489,7 @@ class UpdateMembershipView(JWTView):
         keys = ('membership_expires', 'waiver_expires')
         update_fields = {key: date_from_iso(self.payload[key]) for key in keys
                          if self.payload.get(key)}
-        membership, created = participant.update_membership(**update_fields)
+        _membership, created = participant.update_membership(**update_fields)
 
         return JsonResponse({}, status=201 if created else 200)
 
