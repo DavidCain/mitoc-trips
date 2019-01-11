@@ -127,15 +127,6 @@ def warn_if_needs_update(request):
     messages.warning(request, msg, extra_tags='safe')
 
 
-def _feedback_eligible_trips(participant):
-    """ Recent completed trips where participants were not given feedback. """
-    today = dateutils.local_date()
-    one_month_ago = today - timedelta(days=30)
-    recent_trips = participant.trips_led.filter(trip_date__lt=today,
-                                                trip_date__gt=one_month_ago)
-    return recent_trips.filter(signup__on_trip=True).distinct()
-
-
 def complain_if_missing_itineraries(request):
     """ Create messages if the leader needs to complete trip itineraries. """
     if not ws.utils.perms.is_leader(request.user):
@@ -160,16 +151,27 @@ def complain_if_missing_itineraries(request):
 
 
 def complain_if_missing_feedback(request):
-    """ Create messages if the leader should supply feedback. """
+    """ Create messages if the leader should supply feedback.
+
+    We request that leaders leave feedback on all trips they've led.
+    """
     if not ws.utils.perms.is_leader(request.user):
         return
 
     participant = request.participant
 
-    # TODO: Could be made more efficient- O(n) queries, where n= number of trips
-    for trip in _feedback_eligible_trips(participant):
-        trip_feedback = models.Feedback.objects.filter(leader=participant, trip=trip)
-        if not trip_feedback.exists():
-            trip_url = reverse('review_trip', args=(trip.pk,))
-            msg = f'Please supply feedback for <a href="{trip_url}">{escape(trip)}</a>'
-            messages.warning(request, msg, extra_tags='safe')
+    today = dateutils.local_date()
+    one_month_ago = today - timedelta(days=30)
+
+    recent_trips_without_feedback = (
+        participant.trips_led.filter(
+            trip_date__lt=today, trip_date__gt=one_month_ago
+        )
+        .exclude(feedback__leader=participant)
+        .values_list('pk', 'name')
+    )
+
+    for trip_pk, name in recent_trips_without_feedback:
+        trip_url = reverse('review_trip', args=(trip_pk,))
+        msg = f'Please supply feedback for <a href="{trip_url}">{escape(name)}</a>'
+        messages.warning(request, msg, extra_tags='safe')
