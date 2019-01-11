@@ -27,7 +27,7 @@ It may not represent who's actually driving for the trip.</p>
 <hr>
 
 
-{% for trip, participants, cars, info_form in all_trips %}
+{% for trip, participants, trip_leaders, cars, info_form in all_trips %}
 <h3><a href="{% url 'view_trip' trip.id %}">{{ trip.name }}</a></h3>
 
 <dl class="dl-horizontal">
@@ -54,7 +54,7 @@ It may not represent who's actually driving for the trip.</p>
 {% endif %}
 
 <h4>Leaders</h4>
-{% medical_table trip.leaders.all %}
+{% medical_table trip_leaders %}
 
 <h4>Drivers</h4>
 {% if not cars %}

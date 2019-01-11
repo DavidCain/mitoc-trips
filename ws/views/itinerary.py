@@ -61,13 +61,16 @@ class ItineraryInfoFormMixin:
 
 class TripMedical(ItineraryInfoFormMixin):
     def get_trip_info(self, trip):
-        participants = trip.signed_up_participants.filter(signup__on_trip=True)
-        participants = participants.select_related('emergency_info__emergency_contact')
-        signups = trip.signup_set.filter(on_trip=True)
-        signups = signups.select_related('participant__emergency_info')
         return {
             'trip': trip,
-            'participants': participants,
+            'participants': (
+                trip.signed_up_participants.filter(signup__on_trip=True)
+                .select_related('emergency_info__emergency_contact')
+            ),
+            'trip_leaders': (
+                trip.leaders
+                .select_related('emergency_info__emergency_contact')
+            ),
             'cars': get_cars(trip),
             'info_form': self.get_info_form(trip),
         }
@@ -130,8 +133,10 @@ class AllTripsMedicalView(ListView, TripMedical):
     def get_context_data(self, **kwargs):
         context_data = super().get_context_data(**kwargs)
         by_trip = (self.get_trip_info(trip) for trip in self.get_queryset())
-        all_trips = [(c['trip'], c['participants'], c['cars'], c['info_form'])
-                     for c in by_trip]
+        all_trips = [
+            (c['trip'], c['participants'], c['trip_leaders'], c['cars'], c['info_form'])
+            for c in by_trip
+        ]
         context_data['all_trips'] = all_trips
         return context_data
 
@@ -146,24 +151,27 @@ class TripMedicalView(DetailView, TripMedical):
 
     def _can_view(self, trip, request):
         """ Leaders, chairs, and a trip WIMP can view this page. """
-        return (perm_utils.chair_or_admin(request.user, trip.activity) or
+        return (perm_utils.in_any_group(request.user, ['WIMP']) or
+                (trip.wimp and request.participant == trip.wimp) or
                 perm_utils.leader_on_trip(request.participant, trip, True) or
-                (trip.wimp and request.participant == trip.wimp))
+                perm_utils.chair_or_admin(request.user, trip.activity))
 
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         """ Only allow creator, leaders of the trip, WIMP, and chairs. """
-        trip = self.get_object()
+        # The normal `dispatch()` will populate self.object
+        normal_response = super().dispatch(request, *args, **kwargs)
+
+        trip = self.object
         if not self._can_view(trip, request):
             return render(request, 'not_your_trip.html', {'trip': trip})
-        return super().dispatch(request, *args, **kwargs)
+        return normal_response
 
     def get_context_data(self, **kwargs):
         """ Get a trip info form for display as readonly. """
-        trip = self.get_object()
+        trip = self.object
         participant = self.request.participant
         context_data = self.get_trip_info(trip)
-        context_data['participants'] = trip.signed_up_participants.filter(signup__on_trip=True)
         context_data['is_trip_leader'] = perm_utils.leader_on_trip(participant, trip)
         context_data['info_form'] = self.get_info_form(trip)
         return context_data
