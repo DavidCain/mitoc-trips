@@ -3,12 +3,85 @@
 
 
 {% block content %}
-<p>If you're having any problems using the site, please refer to the <a href="{% url 'help-home' %}">help pages</a>.</p>
+<h2> Contact us </h2>
+<p class="lead">
+  If you're having any problems using the site, please refer to the
+  <a href="{% url 'help-home' %}">help pages</a>.
+</p>
 
-<h3> Contact us </h3>
-<ul>
-<li>For web site questions, contact <a href="mailto:davidjosephcain@gmail.com">David Cain</a>.</li>
-<li>Please direct other activity-specific questions to the appropriate activity chair.</li>
-<li>General MITOC queries may be directed to <a href="mailto:mitoc-owner@mit.edu">mitoc-owner@mit.edu</a>.</li>
-</ul>
+<div class="well">
+  MITOC has a number of people able to answer any questions you might have.
+  Please consult the following table to ensure your questions are routed to the right resource!
+</div>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th>Topic</th>
+      <th>Best contact</th>
+      <th>Helpful resources</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>General site questions</td>
+      <td><a href="mailto:davidjosephcain@gmail.com">David Cain</a></td>
+      <td><a href="{% url 'help-home' %}">Trips help pages</a></td>
+    </tr>
+    <tr>
+      <td>Membership, dues, waiver</td>
+      <td><a href="mailto:davidjosephcain@gmail.com">David Cain</a></td>
+      <td><a href="{% url 'pay_dues' %}">Membership creation/renewal</a></td>
+    </tr>
+    <tr>
+      <td>General MITOC inquiries</td>
+      <td><a href="mailto:mitoc-owner@mit.edu">MITOC owner</a></td>
+      <td><a href="https://mitoc.mit.edu">MITOC home page</a></td>
+    </tr>
+    <tr>
+      <td>General Winter School inquiries</td>
+      <td><a href="mailto:ws-chair@mit.edu">Winter Safety Chairs</a></td>
+      <td>
+        <a href="https://mitoc.mit.edu/#winter-school">Winter School overview</a>,
+        <a href="{% url 'help-home' %}">trips help pages</a>
+      </td>
+    </tr>
+    <tr>
+      <td>Winter School safety concerns</td>
+      <td><a href="mailto:mitoc-wsc@mit.edu">Winter Safety Committee (WSC)</a></td>
+      <td><a href="{% url 'help-ws_rating_assignment' %}">Guide to trip safety ratings</a></td>
+    </tr>
+    <tr>
+      <td>Gear rental</td>
+      <td><a href="mailto:mitoc-desk@mit.edu">MITOC desk</a></td>
+      <td><a href="https://mitoc.mit.edu/#rental">Rental guide</a></td>
+    </tr>
+    <tr>
+      <td>Cabins (Camelot &amp; Intervale)</td>
+      <td>
+        <a href="mailto:camelot-mgr@mit.edu">Camelot managers</a> or
+        <a href="mailto:intervale-mgr@mit.edu">Intervale managers</a>
+      </td>
+      <td>
+        <a href="https://mitoc.mit.edu/#cabins">MITOC cabins</a>:
+        <a href="https://mitoc.mit.edu/#camelot">Camelot</a> and
+        <a href="https://mitoc.mit.edu/#intervale">Intervale</a>
+      </td>
+    </tr>
+    <tr>
+      <td>Backcountry skiing</td>
+      <td><a href="mailto:bcski-chair@mit.edu">Backcountry skiing chair</a></td>
+      <td><a href="https://mitoc.mit.edu/#skiing">MITOC skiing</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<hr>
+
+<p>
+  If you're unsure of who to contact, feel free to email
+  <a href="mailto:davidjosephcain@gmail.com">David Cain</a> and/or
+  <a href="mailto:mitoc-owner@mit.edu">mitoc-owner@mit.edu</a> and we'll route
+  you to the right people.
+</p>
 {% endblock content %}
