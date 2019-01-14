@@ -152,6 +152,10 @@ admin-trip-signups .signup-list .signup-summary .label {
   margin-right: 5px;
 }
 
+admin-trip-signups .signup-list-feedback {
+  white-space: pre-wrap;
+}
+
 /* Mimick the `img-responsive` class for images produced by the Markdown processor. */
 .trip-description img {
   display: block;
