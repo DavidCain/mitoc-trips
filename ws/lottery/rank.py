@@ -8,7 +8,7 @@ from mitoc_const import affiliations
 
 from ws import models
 from ws import settings
-from ws.utils.dates import local_date, jan_1
+from ws.utils.dates import local_date
 
 
 WEIGHTS = {
@@ -146,10 +146,11 @@ WinterSchoolPriorityRank = namedtuple(
 
 class WinterSchoolParticipantRanker(ParticipantRanker):
     def __init__(self, execution_date=None):
-        self.today = local_date()
-        execution_date = execution_date or self.today
-        self.jan_1st = jan_1()
-        self.lottery_key = f"ws-{execution_date.isoformat()}"
+        # It's important that we be able to simulate the current day with `execution_date`
+        # If test running the lottery in advance, we want the same ranking to be used later
+        self.today = execution_date or local_date()
+        self.jan_1st = self.today.replace(month=1, day=1)
+        self.lottery_key = f"ws-{self.today.isoformat()}"
 
     def participants_to_handle(self):
         # For simplicity, only look at participants who actually have signups
@@ -203,7 +204,7 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
         participants could easily jump the queue every Winter School if they
         just lead a few trips once and then stop).
         """
-        last_year = local_date() - timedelta(days=365)
+        last_year = self.today - timedelta(days=365)
         within_last_year = Q(trip_date__gt=last_year, trip_date__lt=self.today)
         return participant.trips_led.filter(within_last_year).count()
 
