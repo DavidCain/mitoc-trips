@@ -209,6 +209,12 @@ class TripForm(DjangularRequiredModelForm):
                    'notes': widgets.MarkdownTextarea(ex_notes),
                    'trip_date': widgets.BootstrapDateInput()}
 
+    def clean_membership_required(self):
+        """ Ensure that all WS trips require membership. """
+        if self.cleaned_data['activity'] == 'winter_school':
+            return True
+        return self.cleaned_data['membership_required']
+
     def clean_maximum_participants(self):
         trip = self.instance
         new_max = self.cleaned_data['maximum_participants']
