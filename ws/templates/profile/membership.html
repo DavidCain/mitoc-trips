@@ -13,9 +13,10 @@ Membership dues
     To make the most of MITOC, you must be an active member.
   </p>
   <p>
-    Membership lasts for a full calendar year, and enables you to rent gear
-    from the office, participate in <a href="{% url 'upcoming_trips' %}">upcoming trips</a>,
-    and stay at MITOC's cabins.
+    Membership lasts for a full calendar year, and enables you to
+    <a href="https://mitoc.mit.edu/#rental">rent gear</a> from the office,
+    participate in <a href="{% url 'upcoming_trips' %}">upcoming trips</a>,
+    and stay at <a href="https://mitoc.mit.edu/#cabins">MITOC's cabins</a>.
   </p>
 
   <hr>
@@ -102,6 +103,11 @@ Membership dues
           <button type="submit" class="btn btn-primary" data-ng-disabled="!amount">
             <i class="fas fa-credit-card"></i>&nbsp;Pay <span data-ng-bind="amount ? '$' + amount: ''"></span> {{ viewing_participant.get_affiliation_display }} dues
           </button>
+        </div>
+        <div>
+          <small>
+            <em>Membership dues are non-refundable.</em>
+          </small>
         </div>
       </form>
     </div>
