@@ -177,19 +177,35 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
             if not self.runner.handled(self.paired_par):
                 self.logger.info(f"Will handle signups when {self.paired_par} comes")
                 self.runner.mark_handled(self.participant)
-                return
-        if not self.future_signups:
+                return None
+
+        ranked_trips = [signup.trip_id for signup in self.future_signups]
+        self.logger.debug(f"Ranked {len(ranked_trips)} trips: {ranked_trips}")
+
+        # JSON-serializable object we can use to analyze outputs.
+        info = {
+            'participant_pk': self.participant.pk,
+            'paired_with_pk': self.paired_par and self.paired_par.pk,
+            'affiliation': self.participant.affiliation,
+            'is_paired': bool(self.paired),
+            'ranked_trips': ranked_trips,
+            'placed_on_choice': None,  # One-indexed rank
+            'waitlisted': False,
+        }
+
+        if not ranked_trips:
             self.logger.info(f"{self.par_text} did not choose any trips this week")
             self.runner.mark_handled(self.participant)
-            return
+            return info
 
         # Try to place participants on their first choice available trip
-        for signup in self.future_signups:
+        for rank, signup in enumerate(self.future_signups, start=1):
             if self.try_to_place(signup):
+                self.logger.debug(f"Placed on trip #{rank} of {len(self.future_signups)}")
+                info['placed_on_choice'] = rank
                 break
             else:
                 self.logger.info(f"Can't place {self.par_text} on {signup.trip}")
-
         else:  # No trips are open
             self.logger.info(f"None of {self.par_text}'s trips are open.")
             favorite_trip = self.future_signups.first().trip
@@ -199,5 +215,7 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
                 add_to_waitlist(favorite_signup)
                 with_email = f"{self.par_text} ({participant.email})"
                 self.logger.info(f"Waitlisted {with_email} on {favorite_signup.trip.name}")
+                info['waitlisted'] = True
 
         self.runner.mark_handled(self.participant)
+        return info

@@ -1,5 +1,6 @@
 from datetime import datetime
 import io
+import json
 import logging
 from pathlib import Path
 
@@ -149,11 +150,16 @@ class WinterSchoolLotteryRunner(LotteryRunner):
     def assign_trips(self):
         num_participants = self.ranker.participants_to_handle().count()
         self.logger.info("%s participants signed up for trips this week", num_participants)
-        for participant, key in self.ranker:
+        for global_rank, (participant, key) in enumerate(self.ranker, start=1):
             # get_affiliation_display() includes extra explanatory text we don't need
             affiliation = AFFILIATION_MAPPING[participant.affiliation]
             handling_header = [f"\nHandling {participant}", f"({affiliation}, {key})"]
             self.logger.debug('\n'.join(handling_header))
             self.logger.debug('-' * max(len(line) for line in handling_header))
             par_handler = WinterSchoolParticipantHandler(participant, self)
-            par_handler.place_participant()
+
+            json_result = par_handler.place_participant()
+            if json_result is not None:
+                json_result['global_rank'] = global_rank
+                json_result['has_flaked'] = key.flake_factor < 0
+                self.logger.debug("RESULT: %s", json.dumps(json_result))

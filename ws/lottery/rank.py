@@ -162,9 +162,10 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
     def priority_key(self, participant):
         """ Rank participants by:
 
-        1. number of trips (fewer -> higher priority)
-        2. affiliation (MIT affiliated is higher priority)
-        3. 'flakiness' (more flakes -> lower priority
+        1. flakiness (having flaked with offsetting attendence -> lower priority)
+        2. leader activity (active leaders get a boost in the lottery)
+        3. affiliation (MIT affiliated is higher priority)
+        4. randomness (factored into an affiliation weighting, breaks ties)
         """
         flake_factor = self.flake_factor(participant)
         # If we use raw flake factor, participants who've been on trips
