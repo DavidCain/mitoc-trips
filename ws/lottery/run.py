@@ -161,5 +161,5 @@ class WinterSchoolLotteryRunner(LotteryRunner):
             json_result = par_handler.place_participant()
             if json_result is not None:
                 json_result['global_rank'] = global_rank
-                json_result['has_flaked'] = key.flake_factor < 0
+                json_result['has_flaked'] = key.flake_factor > 0
                 self.logger.debug("RESULT: %s", json.dumps(json_result))
