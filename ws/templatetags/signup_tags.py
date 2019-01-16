@@ -123,8 +123,11 @@ def trip_summary(context, trip):
 
 
 @register.inclusion_tag('for_templatetags/medical_table.html')
-def medical_table(participants):
-    return {'participants': participants}
+def medical_table(participants, hide_sensitive_info=False):
+    return {
+        'participants': participants,
+        'hide_sensitive_info': hide_sensitive_info,
+    }
 
 
 @register.inclusion_tag('for_templatetags/driver_table.html')

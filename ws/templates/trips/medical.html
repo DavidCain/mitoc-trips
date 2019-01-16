@@ -34,16 +34,24 @@
 <hr>
 
 <h3>Medical information </h3>
+{% if hide_sensitive_info %}
+  <div class="alert alert-info">
+    This trip occurred on {{ trip.trip_date|date:"D, M j" }}.
+    To preserve participant privacy, sensitive medical information
+    has been redacted from this table. If this is in error, please
+    <a href="{% url 'contact' %}">contact us</a>.
+  </div>
+{% endif %}
 
 <h4>Participants</h4>
 {% if participants %}
-  {% medical_table participants %}
+  {% medical_table participants hide_sensitive_info %}
 {% else %}
   <p> No participants. </p>
 {% endif %}
 
 <h4>Leaders</h4>
-{% medical_table trip_leaders %}
+{% medical_table trip_leaders hide_sensitive_info %}
 
 <h4>Drivers</h4>
 <p>

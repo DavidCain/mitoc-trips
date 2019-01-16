@@ -17,13 +17,18 @@
     <tr>
         <td class="nowrap"><a href="{% url 'view_participant' participant.id %}">{{ participant.name }}</a></td>
         <td class="nowrap">{{ participant.cell_phone|format_phone_number }}</td>
-        <td class="hidden-print">{{ participant.emergency_info.allergies }}</td>
-        <td class="hidden-print">{{ participant.emergency_info.medications }}</td>
-        <td class="hidden-print">{{ participant.emergency_info.medical_history }}</td>
-        {% with ec=participant.emergency_info.emergency_contact %}
-        <td><a href="mailto:{{ ec.email }}" class="nowrap">{{ ec.name }}</a> ({{ ec.relationship }})</td>
-        <td class="nowrap">{{ ec.cell_phone|format_phone_number }}</td>
-        {% endwith %}
+        <td class="hidden-print">{{ participant.emergency_info.allergies|redact:hide_sensitive_info }}</td>
+        <td class="hidden-print">{{ participant.emergency_info.medications|redact:hide_sensitive_info }}</td>
+        <td class="hidden-print">{{ participant.emergency_info.medical_history|redact:hide_sensitive_info }}</td>
+        {% if hide_sensitive_info %}
+          <td>{{ true|redact:hide_sensitive_info }}</td>
+          <td>{{ true|redact:hide_sensitive_info }}</td>
+        {% else %}
+          {% with ec=participant.emergency_info.emergency_contact %}
+          <td><a href="mailto:{{ ec.email }}" class="nowrap">{{ ec.name }}</a> ({{ ec.relationship }})</td>
+          <td class="nowrap">{{ ec.cell_phone|format_phone_number }}</td>
+          {% endwith %}
+        {% endif %}
     </tr>
 </tbody>
 {% endfor %}

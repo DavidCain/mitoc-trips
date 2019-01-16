@@ -5,6 +5,8 @@ Each official trip should have an itinerary completed by trip leaders.
 That itinerary specifies who (if anybody) will be driving for the trip,
 what the intended route will be, when to worry, and more.
 """
+from datetime import timedelta
+
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
@@ -174,6 +176,13 @@ class TripMedicalView(DetailView, TripMedical):
         context_data = self.get_trip_info(trip)
         context_data['is_trip_leader'] = perm_utils.leader_on_trip(participant, trip)
         context_data['info_form'] = self.get_info_form(trip)
+
+        # After a sufficiently long waiting period, hide medical information
+        # (We could need medical info a day or two after a trip was due back)
+        # Some trips last for multiple days (trip date is Friday, return is Sunday)
+        # Because we only record a single trip date, give a few extra days' buffer
+        is_past_trip = local_date() > (trip.trip_date + timedelta(days=5))
+        context_data['hide_sensitive_info'] = is_past_trip
         return context_data
 
 
