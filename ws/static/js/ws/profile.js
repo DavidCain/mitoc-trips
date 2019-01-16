@@ -86,8 +86,8 @@ angular.module('ws.profile', [])
             scope.status = resp.data.status;
 
             // If personally viewing, allow a special status for "you should renew soon"
-            var expiresOn = Date(scope.membership.expires);
-            if (scope.personal && (scope.status === 'Active') && expiringSoon(expiresOn)) {
+            var expiresOn = new Date(scope.membership.expires);
+            if (scope.personal && (scope.status === 'Active') && expiringSoon(expiresOn.valueOf())) {
               scope.status = 'Expiring Soon';  // Some time in next 30 days
 
               // Add one year (setFullYear actually handles leap years!)
