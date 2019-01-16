@@ -5,7 +5,7 @@ from django.forms import HiddenInput
 
 from ws.forms import SignUpForm
 from ws.utils.dates import local_date
-from ws.utils.membership import cached_membership_active, can_attend_trip
+from ws.utils.membership import can_attend_trip
 
 register = template.Library()
 
@@ -16,8 +16,14 @@ def can_attend(user, trip):
 
 
 @register.filter
-def cached_membership_invalid(user):
-    return not cached_membership_active(user)
+def should_renew_for(participant, trip):
+    """ NOTE: This uses the cache, should only be called if cache was updated. """
+    return participant.should_renew_for(trip)
+
+
+@register.filter
+def membership_active(participant):
+    return participant.membership_active
 
 
 def leader_signup_is_allowed(trip, participant):

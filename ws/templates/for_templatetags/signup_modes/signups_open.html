@@ -14,8 +14,13 @@
 {% elif not user|can_attend:trip %}
   <div class="alert alert-danger">
     In order to participate on this trip, you must have
-    {% if trip.membership_required and user|cached_membership_invalid %}
-      an <a href="{% url 'pay_dues' %}">active membership</a> and
+    {% if trip.membership_required and participant|should_renew_for:trip %}
+      {% if not participant|membership_active %}
+        an <a href="{% url 'pay_dues' %}">active membership</a>
+      {% else %}
+        a <a href="{% url 'pay_dues' %}">membership that's valid until at least {{ trip.trip_date|date:"F jS" }}</a>
+      {% endif %}
+      and
     {% endif %}
     a <a href="{% url 'initiate_waiver' %}">waiver that's valid until at least {{ trip.trip_date|date:"F jS" }}</a>.
   </div>

@@ -153,6 +153,30 @@ class Membership(models.Model):
         expires = self.membership_expires
         return expires and expires >= dateutils.local_date()
 
+    def should_renew_for(self, trip):
+        """ Return if membership renewal is required to attend a future trip.
+
+        If a participant's membership will expire on the given date, and it's
+        close enough in the future that they can renew, we should not allow
+        them to sign up for the trip (since they won't be an active member on
+        that day).
+
+        Most MITOC trips are announced just a week or two in advance, very few
+        are more than 30 days out.
+        """
+        if not trip.membership_required:
+            return False
+
+        # We allow renewing membership in the last 40 days of your membership
+        # (If you renew during this period, you get a full year + the remaining days)
+        if trip.trip_date > dateutils.local_date() + timedelta(days=35):
+            # Trip is too far in the future to request a renewal now
+            return False
+
+        expires = self.membership_expires
+        will_be_valid_on_date = expires and expires >= trip.trip_date
+        return not will_be_valid_on_date
+
     def waiver_active_until(self, day):
         return self.waiver_expires and self.waiver_expires >= day
 
@@ -209,6 +233,14 @@ class Participant(models.Model):
     }
 
     discounts = models.ManyToManyField(Discount, blank=True)
+
+    def should_renew_for(self, trip):
+        """ NOTE: This uses the cache, should only be called on a fresh cache. """
+        if not trip.membership_required:
+            return False
+        if not self.membership:
+            return True
+        return self.membership.should_renew_for(trip)
 
     def avatar_url(self, size=100):
         return avatar_url(self, size)
@@ -315,11 +347,14 @@ class Participant(models.Model):
 
         NOTE: If the method returns False, it's important that the caller
         refresh the cache (`update_membership_cache()`) and try again.
+
+        See: utils.membership.can_attend_trip
         """
         if not self.membership:
             return False
-        if trip.membership_required and not self.membership.membership_active:
+        if self.membership.should_renew_for(trip):
             return False
+
         return self.membership.waiver_active_until(trip.trip_date)
 
     def update_membership(self, membership_expires=None, waiver_expires=None):
