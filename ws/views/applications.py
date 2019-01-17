@@ -312,6 +312,7 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):
         ]
         context['existing_rating'] = self.existing_rating
         context['existing_rec'] = self.existing_rec
+        context['hide_recs'] = not (assigned_rating or context['existing_rec'])
 
         all_trips_led = self.object.participant.trips_led
         trips_led = all_trips_led.filter(self.before_rating, activity=self.activity)

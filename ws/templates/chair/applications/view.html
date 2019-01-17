@@ -124,7 +124,11 @@
     {% if recommendations %}
       <div id="leader_recommandations">
         <h3><i class="fas fa-thumbs-up"></i> Recommendations</h3>
-        <table class="table">
+        {% if hide_recs %}
+          <em>Hidden to minimize bias</em>. Make a recommendation to reveal or
+          <a href data-ng-click="showRecs = !showRecs" data-ng-bind="showRecs ? 'hide again' : 'show anyway'"></a>.
+        {% endif %}
+        <table class="table" {% if hide_recs %}data-ng-cloak data-ng-show="showRecs"{% endif %}>
           <thead>
             <tr>
               <th>Leader</th>

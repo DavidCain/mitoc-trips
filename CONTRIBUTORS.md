@@ -46,7 +46,9 @@ much-needed testing and detailed feedback.
 
 ## Design suggestions
 - Bjorn Poonen
+- David Johnson
 - Kyle Barron
+- Neil Titchener
 - Nick Alunni
 
 Special thanks to the following especially dedicated individuals:
