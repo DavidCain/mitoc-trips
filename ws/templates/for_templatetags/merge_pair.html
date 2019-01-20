@@ -59,11 +59,7 @@
                 {% endif %}
                 <li>
                   <i class="fas fa-fw fa-car"></i>
-                  {% if par.car %}
-                    {{ par.car.color }} {{ par.car.year }} {{ par.car.make }} {{ par.car.model }} {{ par.car.license_plate }} ({{ par.car.state }})
-                  {% else %}
-                    None
-                  {% endif %}
+                  {{ par.car }}
               </ul>
             </div>
             <div class="col-sm-3 text-right">

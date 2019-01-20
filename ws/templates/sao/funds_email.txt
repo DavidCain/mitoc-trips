@@ -17,7 +17,7 @@ Drivers:
   Nobody on this trip submitted information for a car.
 {% else %}
   {% for car in cars %}
- - {{ car.participant.name }}: {{ car.color }} {{ car.year }} {{ car.make }} {{ car.model }} {{ car.license_plate }} ({{ car.state }}){% endfor %}
+ - {{ car.participant.name }}: {{ car }}{% endfor %}
 {% endif %}
 
 Approval

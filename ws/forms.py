@@ -88,6 +88,9 @@ class ParticipantLookupForm(forms.Form):
 class CarForm(DjangularRequiredModelForm):
     form_name = 'car_form'
 
+    def clean_license_plate(self):
+        return self.cleaned_data['license_plate'].upper()
+
     class Meta:
         model = models.Car
         fields = ['license_plate', 'state', 'make', 'model', 'year', 'color']

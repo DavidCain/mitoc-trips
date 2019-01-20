@@ -65,9 +65,8 @@ class Car(models.Model):
     color = models.CharField(max_length=63)
 
     def __str__(self):
-        car_info = "{} {} {} {}".format(self.color, self.year, self.make, self.model)
-        registration_info = "-".join([self.license_plate, self.state])
-        return "{} ({})".format(car_info, registration_info)
+        return (f"{self.color} {self.year} {self.make} "
+                f"{self.model} {self.license_plate} ({self.state})")
 
 
 class EmergencyContact(models.Model):
