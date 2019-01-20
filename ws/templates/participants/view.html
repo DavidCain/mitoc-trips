@@ -67,7 +67,10 @@
           </div>
 
           <div class="media-body">
-            <h1 class="media-heading">{{ participant.name }}</h1>
+            <h1 class="media-heading">
+              <div>{{ participant.name }}</div>
+              <small>{{ participant.get_affiliation_display }}</small>
+            </h1>
 
             <div class="leader-titles">
               {% for activity in chair_activities %}

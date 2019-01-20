@@ -1,7 +1,16 @@
 <div class="modal-header">
-  <h3 class="modal-title"><i class="fas fa-user-circle"></i>&nbsp;Edit Profile Photo</h3>
+  <h3 class="modal-title"><i class="fas fa-user-circle"></i>&nbsp;Edit Profile</h3>
 </div>
 <div class="modal-body">
+  <h4>Profile information</h4>
+  <p>
+    Before going on trips, please ensure that your <a href="/profile/edit/">profile</a>
+    is up to date.
+  </p>
+
+  <hr>
+
+  <h4>Profile photo</h4>
   <div data-ng-show="gravatarOptedOut">
     <div class="alert alert-info">
       You have opted out of using Gravatar to display a profile photo.
@@ -11,12 +20,16 @@
       <a href="/privacy/settings/">modify your privacy settings</a>.
     </p>
   </div>
-  <p data-ng-hide="gravatarOptedOut">
-    To add or modify your profile photo,
-    <a href="https://gravatar.com/emails">sign into Gravatar</a>
-    and upload an image to match <span data-ng-bind="::participantEmail"></span>.
-    If you'd like, you can <a href="/privacy/settings/">opt out</a> of Gravatar entirely.
-  </p>
+  <div data-ng-hide="gravatarOptedOut">
+    <p>
+      To create or modify your profile photo,
+      <a href="https://gravatar.com/emails">sign into Gravatar</a>
+      and upload an image to match <span data-ng-bind="::participantEmail"></span>.
+    </p>
+    <p>
+      If you'd like, you can <a href="/privacy/settings/">opt out</a> of Gravatar entirely.
+    </p>
+  </div>
 </div>
 <div class="modal-footer">
   <a href="/profile/edit/" role="button" class="btn btn-default"><i class="fas fa-user"></i>&nbsp;Edit Profile</a>
