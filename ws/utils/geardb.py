@@ -220,7 +220,7 @@ def outstanding_items(emails, rented_on_or_before=None):
     have multiple emails/gear accounts) as well as all participants on a trip.
     """
     if not emails:
-      return
+        return
 
     # Email capitalization in the database may differ from what users report
     # Map back to the case supplied in arguments for easier mapping
@@ -235,7 +235,8 @@ def outstanding_items(emails, rented_on_or_before=None):
     cursor.execute(
         f'''
         select lower(p.email),
-               lower(pe.alternate_email),
+               -- Using proper array types here would be nice, but MySQL lacks them...
+               group_concat(distinct lower(pe.alternate_email) separator ','),
                g.id,
                gt.type_name,
                gt.rental_amount,
@@ -248,14 +249,27 @@ def outstanding_items(emails, rented_on_or_before=None):
          where r.returned is null
            {rental_date_clause}
            and (p.email in %(emails)s or pe.alternate_email in %(emails)s)
-         group by p.email, pe.alternate_email, g.id, gt.type_name, gt.rental_amount, r.checkedout
+           -- It's possible for there to be extra alternate email records matching the primary email
+           -- Omit these so we don't get needless duplicates
+           and p.email != pe.alternate_email
+         group by p.email, g.id, gt.type_name, gt.rental_amount, r.checkedout
         ''', {
             'emails': tuple(emails),
             'rented_on_or_before': rented_on_or_before,
         })
 
-    for main, alternate, gear_id, name, cost, checkedout in cursor.fetchall():
-        email = main if main in to_original_case else alternate
+    for main, alternate_emails, gear_id, name, cost, checkedout in cursor.fetchall():
+        if main in to_original_case:
+            email = main
+        else:
+            # Because either main or alternate email were matched, this should never happen.
+            assert alternate_emails, "Alternate emails were unexpectedly empty!"
+            alternates = alternate_emails.split(',')
+            try:
+                email = next(e for e in alternates if e in to_original_case)
+            except StopIteration:
+                # This method is a generator - raising StopIteration would stop iteration
+                raise ValueError("Expected at least one email to match!")
 
         yield {
             'email': to_original_case[email],
