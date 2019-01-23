@@ -254,7 +254,13 @@
           {% if paired_par %}
             {% if reciprocally_paired %}
               <div class="alert alert-success">
-                <p><i class="fas fa-link"></i> Paired with {{ paired_par.name }}</p>
+                <p><i class="fas fa-link"></i> Paired with
+                  {% if not user_viewing %}
+                    <a href="{% url 'view_participant' paired_par.pk %}">{{ paired_par.name }}</a>
+                  {% else %}
+                    {{ paired_par.name }}
+                  {% endif %}
+                </p>
               </div>
               {% if user_viewing %}
                 <p>
