@@ -8,7 +8,7 @@ from mitoc_const import affiliations
 
 from ws import models
 from ws import settings
-from ws.utils.dates import local_date
+from ws.utils.dates import local_now
 
 
 WEIGHTS = {
@@ -140,17 +140,28 @@ TripCounts = namedtuple('TripCounts', ['attended', 'flaked', 'total'])
 
 WinterSchoolPriorityRank = namedtuple(
     'WinterSchoolPriorityRank',
-    ['flake_factor', 'leader_bump', 'affiliation_weight']
+    ['adjustment', 'flake_factor', 'leader_bump', 'affiliation_weight']
 )
 
 
 class WinterSchoolParticipantRanker(ParticipantRanker):
-    def __init__(self, execution_date=None):
-        # It's important that we be able to simulate the current day with `execution_date`
-        # If test running the lottery in advance, we want the same ranking to be used later
-        self.today = execution_date or local_date()
+    def __init__(self, execution_datetime=None):
+        # It's important that we be able to simulate the future time with `execution_datetime`
+        # If test-running the lottery in advance, we want the same ranking to be used later
+        self.lottery_runtime = execution_datetime or local_now()
+        self.today = self.lottery_runtime.date()
         self.jan_1st = self.today.replace(month=1, day=1)
         self.lottery_key = f"ws-{self.today.isoformat()}"
+
+    def get_rank_override(self, participant):
+        if not hasattr(self, 'adjustments_by_participant'):
+            adjustments = models.LotteryAdjustment.objects.filter(
+                expires__gt=self.lottery_runtime
+            )
+            self.adjustments_by_participant = dict(
+                adjustments.values_list('participant_id', 'adjustment')
+            )
+        return self.adjustments_by_participant.get(participant.pk, 0)
 
     def participants_to_handle(self):
         # For simplicity, only look at participants who actually have signups
@@ -163,11 +174,14 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
     def priority_key(self, participant):
         """ Rank participants by:
 
-        1. flakiness (having flaked with offsetting attendence -> lower priority)
-        2. leader activity (active leaders get a boost in the lottery)
-        3. affiliation (MIT affiliated is higher priority)
-        4. randomness (factored into an affiliation weighting, breaks ties)
+        1. Manual overrides (rare, should not apply for >99% of participants)
+        2. flakiness (having flaked with offsetting attendence -> lower priority)
+        3. leader activity (active leaders get a boost in the lottery)
+        4. affiliation (MIT affiliated is higher priority)
+        5. randomness (factored into an affiliation weighting, breaks ties)
         """
+        override = self.get_rank_override(participant)
+
         flake_factor = self.flake_factor(participant)
         # If we use raw flake factor, participants who've been on trips
         # will have an advantage over those who've been on none
@@ -181,7 +195,7 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
         affiliation_weight = affiliation_weighted_rand(participant, self.lottery_key)
 
         # Lower = higher in the list
-        return WinterSchoolPriorityRank(flaky_or_neutral, leader_bump, affiliation_weight)
+        return WinterSchoolPriorityRank(override, flaky_or_neutral, leader_bump, affiliation_weight)
 
     def flake_factor(self, participant):
         """ Return a number indicating past "flakiness".

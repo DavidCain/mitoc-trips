@@ -141,7 +141,7 @@ class SeedTests(unittest.TestCase):
 
 class ParticipantRankingTests(SimpleTestCase):
     """ Test the logic by which we determine users with "first pick" status. """
-    mocked_par_methods = ['number_trips_led', 'number_ws_trips']
+    mocked_par_methods = ['number_trips_led', 'number_ws_trips', 'get_rank_override']
 
     def setUp(self):
         base = 'ws.lottery.run.WinterSchoolParticipantRanker'
@@ -184,6 +184,7 @@ class ParticipantRankingTests(SimpleTestCase):
         }
 
         # pylint: disable=line-too-long
+        self.ranker.get_rank_override.return_value = 0
         self.ranker.number_trips_led.side_effect = lambda par: mocked_counts[par]['number_trips_led']
         self.ranker.number_ws_trips.side_effect = lambda par: mocked_counts[par]['number_ws_trips']
 
@@ -208,6 +209,7 @@ class ParticipantRankingTests(SimpleTestCase):
             """ Quick closure for looking up the count. """
             return lambda par: mocked_counts[par][attribute]
 
+        self.ranker.get_rank_override.return_value = 0
         for attr in ['number_ws_trips', 'number_trips_led']:
             getattr(self.ranker, attr).side_effect = by_participant(attr)
 
@@ -224,6 +226,7 @@ class ParticipantRankingTests(SimpleTestCase):
         tweedle_dum = models.Participant(pk=6, affiliation='NG')
 
         # All other ranking factors are equal
+        self.ranker.get_rank_override.return_value = 0
         self.ranker.number_trips_led.return_value = 0
         solid_record = rank.TripCounts(attended=3, flaked=0, total=3)
         self.ranker.number_ws_trips.return_value = solid_record

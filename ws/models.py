@@ -973,6 +973,36 @@ class LotteryInfo(models.Model):
         ordering = ["car_status", "number_of_passengers"]
 
 
+class LotteryAdjustment(models.Model):
+    """ A manual adjustment that can be made to the lottery.
+
+    In some exceptional circumstances, a participant may have an extremely
+    unsavory outcome in the lottery. For instance, a driver may drop off a
+    trip, causing another participant to be forced off. There may not be enough
+    gear for the participant to safely attend a trip. Whatever the reason,
+    objects in this class provide a mechanism of righting those wrongs by
+    granting the participants a boost in the next lottery run.
+
+    It's expected that each participant have no more than one adjustment in place
+    at any given time.
+    """
+    time_created = models.DateTimeField(auto_now_add=True)
+    expires = models.DateTimeField(help_text="Time at which this override should no longer apply")
+    creator = models.ForeignKey(
+        Participant, on_delete=models.CASCADE, related_name='adjustments_made')
+    participant = models.ForeignKey(
+        Participant, on_delete=models.CASCADE, related_name='adjustments_received')
+
+    # Lower value: Ranked earlier in the lottery
+    # Higher value: Ranked later in the lottery
+    adjustment = models.IntegerField()
+
+    def __str__(self):
+        effect = "boost" if self.adjustment < 0 else "hinder"
+        expires = datetime.strftime(self.expires, "%Y-%m-%d %H:%M")
+        return f"{effect} {self.participant.name} ({self.adjustment}) until {expires}"
+
+
 class WaitListSignup(models.Model):
     """ Intermediary between initial signup and the trip's waiting list. """
     signup = models.OneToOneField(SignUp, on_delete=models.CASCADE)

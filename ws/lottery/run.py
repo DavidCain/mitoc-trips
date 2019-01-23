@@ -7,7 +7,7 @@ from pathlib import Path
 from mitoc_const import affiliations
 
 from ws import models
-from ws.utils.dates import local_date, local_now, closest_wed_at_noon
+from ws.utils.dates import local_now, closest_wed_at_noon
 from ws import settings
 from ws.lottery.handle import SingleTripParticipantHandler, WinterSchoolParticipantHandler
 from ws.lottery.rank import SingleTripParticipantRanker, WinterSchoolParticipantRanker
@@ -111,9 +111,9 @@ class SingleTripLotteryRunner(LotteryRunner):
         self._make_fcfs()
 
 class WinterSchoolLotteryRunner(LotteryRunner):
-    def __init__(self, execution_date=None):
-        self.execution_date = execution_date or local_date()
-        self.ranker = WinterSchoolParticipantRanker(self.execution_date)
+    def __init__(self, execution_datetime=None):
+        self.execution_datetime = execution_datetime or local_now()
+        self.ranker = WinterSchoolParticipantRanker(self.execution_datetime)
         super().__init__()
         self.configure_logger()
 
@@ -127,7 +127,7 @@ class WinterSchoolLotteryRunner(LotteryRunner):
 
     def __call__(self):
         self.logger.info("Running the Winter School lottery for %s",
-                         self.execution_date)
+                         self.execution_datetime)
         self.assign_trips()
         self.free_for_all()
         self.handler.close()

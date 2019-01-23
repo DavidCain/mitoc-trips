@@ -61,7 +61,7 @@ def check_fk_tables(cursor, src_table, column, expected):
     more foreign keys.
     """
     non_handled = []
-    for table, col, ftable in fk_tables(cursor, src_table, column):
+    for table, col, _ftable in fk_tables(cursor, src_table, column):
         if col not in expected.get(table, {}):
             non_handled.append((table, col))
     if non_handled:
@@ -154,6 +154,7 @@ def migrate_participant(old_pk, new_pk):
         'ws_leaderrating': {'participant_id', 'creator_id'},
         'ws_feedback': {'participant_id', 'leader_id'},
         'ws_lotteryinfo': {'participant_id', 'paired_with_id'},
+        'ws_lotteryadjustment': {'creator_id', 'participant_id'},
 
         'ws_climbingleaderapplication': {'participant_id'},
         'ws_hikingleaderapplication': {'participant_id'},
