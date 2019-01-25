@@ -251,7 +251,7 @@ def outstanding_items(emails, rented_on_or_before=None):
            and (p.email in %(emails)s or pe.alternate_email in %(emails)s)
            -- It's possible for there to be extra alternate email records matching the primary email
            -- Omit these so we don't get needless duplicates
-           and p.email != pe.alternate_email
+           and (pe.alternate_email is null or p.email != pe.alternate_email)
          group by p.email, g.id, gt.type_name, gt.rental_amount, r.checkedout
         ''', {
             'emails': tuple(emails),
