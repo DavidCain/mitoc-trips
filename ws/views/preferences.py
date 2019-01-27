@@ -110,7 +110,7 @@ class DiscountsView(FormView):
         form.save()
         participant = form.save()
         for discount in participant.discounts.all():
-            tasks.update_participant.delay(discount.pk, participant.pk)
+            tasks.update_discount_sheet_for_participant.delay(discount.pk, participant.pk)
         msg = ("Discounts updated! Ensure your membership "
                "is active for continued access to discounts.")
         messages.success(self.request, msg)

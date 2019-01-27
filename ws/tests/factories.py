@@ -6,6 +6,14 @@ from mitoc_const import affiliations
 from ws import models
 
 
+class DiscountFactory(DjangoModelFactory):
+    class Meta:
+        model = models.Discount
+
+    name = "Local Climbing Gym"
+    active = True
+
+
 class EmergencyContactFactory(DjangoModelFactory):
     class Meta:
         model = models.EmergencyContact
@@ -80,6 +88,11 @@ class TripFactory(DjangoModelFactory):
     level = "B"
     activity = "winter_school"
     creator = SubFactory(ParticipantFactory)
+
+
+class TripInfoFactory(DjangoModelFactory):
+    class Meta:
+        model = models.TripInfo
 
 
 class FeedbackFactory(DjangoModelFactory):
