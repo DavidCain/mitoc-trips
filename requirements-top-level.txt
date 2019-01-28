@@ -1,4 +1,4 @@
-Django ~= 1.11.15
+Django ~= 1.11.18
 pytz
 celery==3.1.25
 django-allauth>=0.38.0
@@ -13,7 +13,7 @@ raven
 requests
 django-angular ~= 2.1
 psycopg2-binary
-mysqlclient
+mysqlclient ~= 1.3.14
 markdown2
 PyJWT
 
