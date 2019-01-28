@@ -1,6 +1,6 @@
 Django ~= 1.11.18
 pytz
-celery==3.1.25
+celery >= 4.2
 django-allauth>=0.38.0
 django-localflavor
 django-cors-headers

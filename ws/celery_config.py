@@ -24,7 +24,6 @@ class Celery(celery.Celery):
 
 app = Celery('ws')
 
-app.config_from_object('django.conf:settings')
+app.config_from_object('django.conf:settings', namespace='CELERY')
 
-# Workaround for extracting app names (can do more robustly in Celery 4)
-app.autodiscover_tasks(lambda: [n.name for n in apps.get_app_configs()])
+app.autodiscover_tasks()

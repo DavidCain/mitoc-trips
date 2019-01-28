@@ -205,12 +205,13 @@ OAUTH_JSON_CREDENTIALS = os.getenv('OAUTH_JSON_CREDENTIALS')
 DISABLE_GSHEETS = bool(os.getenv('DISABLE_GSHEETS'))
 
 # Celery settings
-BROKER_URL = os.getenv('BROKER_URL', 'amqp://guest:guest@127.0.0.1//')
-CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'amqp')
+CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'amqp://guest:guest@127.0.0.1//')
+CELERY_RESULT_BACKEND = 'rpc'
+CELERY_RESULT_PERSISTENT = True  # Don't reset messages after broker restart (requires RPC)
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_ACCEPT_CONTENT = ['json']
 
-CELERYBEAT_SCHEDULE = {
+CELERY_BEAT_SCHEDULE = {
     'purge-non-student-discounts': {
         'task': 'ws.tasks.purge_non_student_discounts',
         'schedule': crontab(minute=0, hour=2, day_of_week=1)

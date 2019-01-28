@@ -4,7 +4,10 @@ import random
 import unittest
 from unittest.mock import patch
 
+from django.db.models import signals
 from django.test import SimpleTestCase, TestCase
+
+import factory
 from freezegun import freeze_time
 
 from ws.lottery import rank
@@ -239,6 +242,7 @@ class ParticipantRankingTests(SimpleTestCase):
 
 
 class SingleTripParticipantRankerTests(TestCase):
+    @factory.django.mute_signals(signals.post_save)
     def test_deterministic_ranking(self):
         """ Ranking of a particular single trip is based on its pk. """
         trip = TripFactory.create(activity='hiking', pk=822)
