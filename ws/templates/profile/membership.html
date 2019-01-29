@@ -50,7 +50,7 @@ Membership dues
         </dl>
       {% endif %}
 
-      <form action="https://shopmitprd.mit.edu/controller/index.php" method="POST">
+      <form action="https://shopmitprd.mit.edu/controller/index.php" method="POST" name="membershipform">
         <div {% if viewing_participant %}class="hidden"{% endif %}>
           {# CyberSource fields, always hidden #}
           {{ form.merchant_id }}
@@ -93,6 +93,17 @@ Membership dues
 
         </div>
 
+        <div class="alert alert-warning" data-ng-cloak data-ng-show="membershipform.$valid && ['MU', 'MG'].includes(merchantDefinedData2) && !merchantDefinedData3.endsWith('mit.edu')">
+          <p>
+            <strong>You must own an MIT email address</strong> in order to claim the MIT student rate.
+          </p>
+          <p>
+            Prefer to use your personal email address for your membership?
+            <a href="{% url 'account_signup' %}?next={% url 'pay_dues' %}">Sign up</a>
+            with your MIT email address, then add your personal email to your
+            <a href="{% url 'account_email' %}">verified email addresses</a>.
+          </p>
+        </div>
 
         <div class="btn-group">
           {% if viewing_participant %}
@@ -100,7 +111,11 @@ Membership dues
               <i class="fas fa-edit"></i>&nbsp;Edit Information
             </a>
           {% endif %}
-          <button type="submit" class="btn btn-primary" data-ng-disabled="!amount">
+          <button type="submit" class="btn btn-primary"
+            {% if not viewing_participant %}
+              data-ng-disabled="!amount || ((merchantDefinedData2 === 'MU' || merchantDefinedData2 === 'MG') && !merchantDefinedData3.endsWith('mit.edu'))"
+            {% endif %}
+            >
             <i class="fas fa-credit-card"></i>&nbsp;Pay <span data-ng-bind="amount ? '$' + amount: ''"></span> {{ viewing_participant.get_affiliation_display }} dues
           </button>
         </div>

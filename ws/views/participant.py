@@ -100,7 +100,13 @@ class ParticipantEditMixin(TemplateView):
             if self.request.participant == participant:
                 par_kwargs["initial"] = {'affiliation': None}
 
+        verified_mit_emails = self.user.emailaddress_set.filter(
+            verified=True,
+            email__iendswith='mit.edu'
+        )
+
         context = {
+            'has_mit_email': verified_mit_emails.exists(),
             'currently_has_car': bool(car),
             'participant_form': forms.ParticipantForm(post, **par_kwargs),
             'car_form': forms.CarForm(post, instance=car, **self.prefix('car')),

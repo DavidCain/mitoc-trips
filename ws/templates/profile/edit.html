@@ -32,6 +32,24 @@ Edit profile
             <h3 id="personal_info"><i class="fas fa-user"></i> Personal info</h3>
             {{ participant_form.as_div }}
             {% form_error_list participant_form %}
+
+            {% if not has_mit_email %}
+              {# Form will not submit without an MIT email address on file #}
+              <div class="alert alert-danger"
+                   data-ng-cloak
+                   data-ng-show="['MU', 'MG'].includes(participant_scope['participant.affiliation'])">
+                You must have a <a href="{% url 'account_email' %}">verified MIT email address</a>
+                in order to claim MIT student status.
+              </div>
+
+              {# We allow people to claim MIT affiliation without an MIT email, but warn all the same #}
+              <div class="alert alert-warning"
+                   data-ng-cloak
+                   data-ng-show="participant_scope['participant.affiliation'] === 'MA'">
+                Are you <strong>current</strong> staff or faculty at MIT?
+                You don't appear to have a <a href="{% url 'account_email' %}">verified MIT email address</a>.
+              </div>
+            {% endif %}
         </div>
         <div class="col-sm-6">
             <h3 id="car" class="required">
@@ -103,7 +121,15 @@ Edit profile
     <div class="alert alert-danger" data-ng-cloak data-ng-show="{{ participant_form.form_name }}.$submitted && {{ participant_form.form_name }}.$invalid">
       Please correct the above errors.
     </div>
-    <button type="submit" class="btn btn-primary">Submit</button>
+    <button
+      type="submit"
+      class="btn btn-primary"
+      {% if not has_mit_email %}
+        data-ng-disabled="['MU', 'MG'].includes(participant_scope['participant.affiliation'])"
+      {% endif %}
+      >
+      Submit
+    </button>
 </form>
 
 {% if viewing_participant.profile_last_updated %}

@@ -9,6 +9,8 @@ from djng.styling.bootstrap3.forms import Bootstrap3FormMixin
 
 from localflavor.us.us_states import US_STATES
 
+from mitoc_const import affiliations
+
 from ws import models
 from ws import widgets
 from ws.membership import MERCHANT_ID, PAYMENT_TYPE
@@ -64,9 +66,27 @@ class ParticipantForm(DjangularRequiredModelForm):
             kwargs['instance'].affiliation = ''
         super().__init__(*args, **kwargs)
 
-        verified_emails = user.emailaddress_set.filter(verified=True)
-        choices = [email * 2 for email in verified_emails.values_list('email')]
+        self.verified_emails = (
+            user.emailaddress_set
+            .filter(verified=True)
+            .values_list('email', flat=True)
+        )
+        choices = [(email, email) for email in self.verified_emails]
         self.fields['email'].widget.choices = choices
+
+    def clean_affiliation(self):
+        """ Require a valid MIT email address for MIT student affiliation. """
+        mit_student_codes = {
+            affiliations.MIT_UNDERGRAD.CODE,
+            affiliations.MIT_GRAD_STUDENT.CODE,
+        }
+        affiliation = self.cleaned_data['affiliation']
+        if affiliation not in mit_student_codes:
+            return affiliation  # Nothing extra needs to be done!
+        if not any(email.lower().endswith('mit.edu') for email in self.verified_emails):
+            raise ValidationError("MIT email address required for student affiliation!",
+                                  code="lacks_mit_email")
+        return affiliation
 
 
 class ParticipantLookupForm(forms.Form):
