@@ -5,6 +5,16 @@ from django import template
 register = template.Library()
 
 
+@register.inclusion_tag('for_templatetags/form_error_list.html')
+def form_error_list(form):
+    """ Manually render all form errors.
+
+    Sometimes Djangular has problems rendering form errors. This can be used in
+    cases where loading errors into Angular error lists isn't working.
+    """
+    return {'form': form}
+
+
 @register.inclusion_tag('for_templatetags/form_group.html')
 def form_group(field, use_help_icon=False):
     return {'field': field, 'use_help_icon': use_help_icon}

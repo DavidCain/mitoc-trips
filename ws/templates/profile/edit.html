@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load form_tags %}
 {% load messages_tags %}
 
 {% block head_title %}
@@ -30,6 +31,7 @@ Edit profile
         <div class="col-sm-6">
             <h3 id="personal_info"><i class="fas fa-user"></i> Personal info</h3>
             {{ participant_form.as_div }}
+            {% form_error_list participant_form %}
         </div>
         <div class="col-sm-6">
             <h3 id="car" class="required">
@@ -44,6 +46,7 @@ Edit profile
             <div data-ng-switch="car.owner" data-ng-cloak>
                 <div data-ng-switch-when="true">
                     {{ car_form.as_div }}
+                    {% form_error_list car_form %}
                 </div>
                 <div data-ng-switch-when="false">
                     {% if currently_has_car %}
@@ -83,6 +86,7 @@ Edit profile
           always discuss relevant medical issues with your trip leaders.
         </p>
         {{ emergency_info_form.as_div }}
+        {% form_error_list emergency_info_form %}
       </div>
 
       <div class="col-sm-6">
@@ -92,6 +96,7 @@ Edit profile
           will be on trips with you.
         </p>
         {{ emergency_contact_form.as_div }}
+        {% form_error_list emergency_contact_form %}
       </div>
     </div>
 
