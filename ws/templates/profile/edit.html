@@ -3,8 +3,7 @@
 {% load messages_tags %}
 
 {% block head_title %}
-Edit profile
-{% if viewing_participant %} - {{ viewing_participant.name }} {%endif %}
+Edit profile {% if participant %} - {{ participant.name }}{% endif %}
 {% endblock head_title %}
 
 {% block content %}
@@ -132,9 +131,9 @@ Edit profile
     </button>
 </form>
 
-{% if viewing_participant.profile_last_updated %}
+{% if participant.profile_last_updated %}
   <div id="last_updated" class="text-center">
-    <small>Last updated on {{ viewing_participant.profile_last_updated }}</small>
+    <small>Last updated on {{ participant.profile_last_updated }}</small>
   </div>
 {% endif %}
 

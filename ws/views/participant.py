@@ -106,6 +106,8 @@ class ParticipantEditMixin(TemplateView):
         )
 
         context = {
+            # For everybody but an admin, `participant` is just `viewing_participant`
+            'participant': participant,
             'has_mit_email': verified_mit_emails.exists(),
             'currently_has_car': bool(car),
             'participant_form': forms.ParticipantForm(post, **par_kwargs),
