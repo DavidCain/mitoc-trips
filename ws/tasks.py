@@ -8,8 +8,8 @@ import random
 from celery import group, shared_task
 from celery.five import monotonic
 from django.core.cache import cache
-from django.db.models import Q
 
+from ws import cleanup
 from ws import models
 from ws import settings
 from ws.sao import send_email_to_funds
@@ -166,21 +166,16 @@ def run_ws_lottery():
 
 @mutex_task()
 def purge_non_student_discounts():
-    """ Purge non-students from student-only discounts.
-
-    Student eligibility is enforced at the API and form level. If somebody was
-    a student at the time of enrolling but is no longer a student, we should
-    unenroll them.
-    """
+    """ Purge non-students from student-only discounts. """
     logger.info("Purging non-students from student-only discounts")
-    stu_discounts = models.Discount.objects.filter(student_required=True)
-    not_student = ~Q(affiliation__in=models.Participant.STUDENT_AFFILIATIONS)
+    cleanup.purge_non_student_discounts()
 
-    # Remove student discounts from all non-students who have them
-    participants = models.Participant.objects.all()
-    for par in participants.filter(not_student, discounts__in=stu_discounts):
-        par.discounts = par.discounts.filter(student_required=True)
-        par.save()
+
+@mutex_task()
+def purge_old_medical_data():
+    """ Purge old, dated medical information. """
+    logger.info("Purging outdated medical information")
+    cleanup.purge_old_medical_data()
 
 
 @mutex_task('single_trip_lottery-{trip_id}')

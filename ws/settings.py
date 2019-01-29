@@ -216,6 +216,10 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'ws.tasks.purge_non_student_discounts',
         'schedule': crontab(minute=0, hour=2, day_of_week=1)
     },
+    'purge-old-medical-data': {
+        'task': 'ws.tasks.purge_old_medical_data',
+        'schedule': crontab(minute=0, hour=2, day_of_week=2)
+    },
     'refresh-all-discount-spreadsheets': {
         'task': 'ws.tasks.update_all_discount_sheets',
         'schedule': crontab(minute=0, hour=3)

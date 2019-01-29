@@ -87,6 +87,13 @@ Edit profile {% if participant %} - {{ participant.name }}{% endif %}
 
     <hr>
 
+    {% if viewing_participant == participant and medical_info_scrubbed %}
+      <div class="alert alert-warning">
+        You haven't used our system in a while. To safeguard participant
+        privacy, we routinely delete medical information. Please update the
+        below in order to attend trips!
+      </div>
+    {% endif %}
     <div class="row">
       <div class="col-sm-6">
         <h3 id="emergency_info"><i class="fas fa-notes-medical"></i> Emergency info</h3>
