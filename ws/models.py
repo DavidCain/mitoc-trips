@@ -15,6 +15,7 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import string_concat
 from localflavor.us.models import USStateField
 from mitoc_const import affiliations
+from mitoc_const.membership import RENEWAL_ALLOWED_WITH_DAYS_LEFT
 from phonenumber_field.modelfields import PhoneNumberField
 
 import ws.utils.dates as dateutils
@@ -202,9 +203,15 @@ class Membership(models.Model):
         if not trip.membership_required:
             return False
 
+        today = dateutils.local_date()
+
         # We allow renewing membership in the last 40 days of your membership
         # (If you renew during this period, you get a full year + the remaining days)
-        if trip.trip_date > dateutils.local_date() + timedelta(days=35):
+        # Remove one day to reduce possibility of an "off by one" error in renewal code
+        # (that is, somebody paying their dues, but not getting their remaining time added)
+        future = today + timedelta(days=RENEWAL_ALLOWED_WITH_DAYS_LEFT - 1)
+
+        if trip.trip_date > future:
             # Trip is too far in the future to request a renewal now
             return False
 

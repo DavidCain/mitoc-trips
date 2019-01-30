@@ -18,7 +18,7 @@ httplib2==0.12.1
 idna==2.8
 kombu==4.5.0
 markdown2==2.3.7
-mitoc-const==0.4.0
+mitoc-const==0.4.1
 mysqlclient==1.3.14
 oauth2client==4.1.3
 oauthlib==3.0.1
