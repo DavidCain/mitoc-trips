@@ -132,17 +132,19 @@ class LotteryPreferencesView(TemplateView, LotteryPairingMixin):
 
     @property
     def ranked_signups(self):
-        today = local_date()
-        lotto_signups = Q(participant=self.request.participant,
-                          trip__algorithm='lottery', trip__trip_date__gt=today)
-        future_signups = models.SignUp.objects.filter(lotto_signups)
-        ranked = future_signups.order_by('order', 'time_created')
-        return ranked.select_related('trip')
+        # NOTE: In the future, we may support multi-trip lotteries outside WS
+        # For now, though, this tool is only for ranking WS trips
+        return models.SignUp.objects.filter(
+            participant=self.request.participant,
+            trip__algorithm='lottery',
+            trip__activity='winter_school',
+            trip__trip_date__gt=local_date(),
+        ).order_by('order', 'time_created').select_related('trip')
 
     @property
     def ranked_signups_dict(self):
         """ Used by the Angular trip-ranking widget. """
-        return [{'id': s.id, 'trip': {'id': s.trip.id, 'name': s.trip.name}}
+        return [{'id': s.pk, 'trip': {'id': s.trip.pk, 'name': s.trip.name}}
                 for s in self.ranked_signups]
 
     def get_car_form(self, use_post=True):
