@@ -1,4 +1,4 @@
-Django ~= 1.11.18
+Django ~= 1.11.19
 pytz
 celery >= 4.2
 django-allauth>=0.38.0
