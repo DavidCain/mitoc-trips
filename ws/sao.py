@@ -10,7 +10,7 @@ from ws.settings import BURSAR_NAME
 logger = logging.getLogger(__name__)
 
 
-def send_email_to_funds(trip, recipient='funds@mit.edu'):
+def send_email_to_funds(trip, recipient='sao-desk@mit.edu'):
     """ Register the trip with SAO for insurance & liability reasons.
 
     This automated email is taking the place of SAO's Student Travel Form.
