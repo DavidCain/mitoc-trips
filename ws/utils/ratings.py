@@ -47,7 +47,13 @@ class LeaderApplicationMixin:
 
     @property
     def num_chairs(self):
-        return perm_utils.num_chairs(self.activity)
+        """ Return the number of chairs for this activity. """
+
+        # It's important that this remain a property (dynamically requested, not stored at init)
+        # This way, views that want to get activity from self.kwargs can inheret from the mixin
+        if not hasattr(self, '_num_chairs'):
+            self._num_chairs = perm_utils.num_chairs(self.activity)
+        return self._num_chairs
 
     @property
     def model(self):
@@ -55,9 +61,8 @@ class LeaderApplicationMixin:
 
         The model will be None if no application exists for the activity.
         """
-        if hasattr(self, '_model'):
-            return self._model
-        self._model = models.LeaderApplication.model_from_activity(self.activity)
+        if not hasattr(self, '_model'):
+            self._model = models.LeaderApplication.model_from_activity(self.activity)
         return self._model
 
     def joined_queryset(self):
@@ -109,7 +114,7 @@ class ApplicationManager(LeaderApplicationMixin, RatingsRecommendationsMixin):
     """ Leader applications for an activity, to be displayed to the chair. """
 
     def __init__(self, *args, **kwargs):
-        # Set only if defined (so subclassas can instead define with @property)
+        # Set only if defined (so subclasses can instead define with @property)
         # Also, pop from kwargs so object.__init__ doesn't error out
         if 'chair' in kwargs:
             self.chair = kwargs.pop('chair')  # <Participant>
@@ -118,11 +123,9 @@ class ApplicationManager(LeaderApplicationMixin, RatingsRecommendationsMixin):
 
         super().__init__(*args, **kwargs)
 
-    def sorted_applications(self, just_this_year=False):
+    def sorted_annotated_applications(self):
         """ Sort all applications by order of attention they need. """
         applications = self.joined_queryset()
-        if just_this_year:
-            applications = applications.filter(year=self.application_year)
 
         # Identify which have ratings and/or the leader's recommendation
         applications = applications.annotate(
@@ -131,44 +134,61 @@ class ApplicationManager(LeaderApplicationMixin, RatingsRecommendationsMixin):
         )
         return applications.distinct().order_by('num_ratings', 'num_recs', 'time_created')
 
-    def pending_applications(self, just_this_year=True):
+    def pending_applications(self):
         """ All applications which do not yet have a rating.
+
+        NOTE: This immediately queries the database. If you need to deal with
+        past applications in addition to pending ones, it's recommended to call
+        sorted_annotated_applications() and then do Python-based filtering from
+        there.
 
         Includes applications which should be given a recommendation first as
         well as applications that are merely awaiting a chair rating.
         """
-        # Cache, because we call this twice to identify which need recs/ratings
-        cache_key = '_pending_{}_year'.format('this' if just_this_year else 'any')
+        # Some activities don't actually have an application type defined! (e.g. 'cabin')
+        # Exit early so we don't fail trying to build a database query
         if self.model is None:
             return []
-        if hasattr(self, cache_key):
-            return getattr(self, cache_key)
 
-        pending = self.sorted_applications(just_this_year).filter(num_ratings=0)
-        setattr(self, cache_key, pending)
-        return pending
+        return list(self.sorted_annotated_applications().filter(num_ratings=0))
 
-    def needs_rec(self, just_this_year=True):
+    def _chair_should_recommend(self, app):
+        """ Return if the chair should be expected to recommend this application.
+
+        This determines where the application appears in the queue of pending
+        applications (assuming it's a pending application in the first place!).
+        """
+        if app.num_recs:  # The chair has already made a recommendation
+            return False
+        if app.num_ratings:  # The application received a rating
+            return False
+        return True
+
+    def needs_rec(self, applications):
         """ Applications which need to be given a rating by the viewing chair.
 
         If there's only one chair, then this will be a blank list (it makes no sense
-        for a chair to make recommendations whene there are no co-chairs to heed
+        for a chair to make recommendations when there are no co-chairs to heed
         those recommendations).
         """
         if self.model is None or self.num_chairs < 2:
             return []
 
-        return self.pending_applications(just_this_year).filter(num_recs=0)
+        return [app for app in applications if self._chair_should_recommend(app)]
 
-    def needs_rating(self, just_this_year=True):
+    def _should_rate(self, app):
+        if app.num_ratings:  # The application received a rating
+            return False
+        # If there are multiple chairs, we request recommendations first
+        if self.num_chairs > 1:
+            return bool(app.num_recs)
+        return True
+
+    def needs_rating(self, applications):
         """ Return applications which need a rating, but not a recommendation.
 
         When there are multiple chairs, we count certain applications as
         needing a recommendation first. It's true that these applications need
         a rating as well, but we don't want to double count.
         """
-        pending = self.pending_applications(just_this_year)
-        if self.num_chairs > 1:
-            return pending.filter(num_recs__gt=0)
-        else:
-            return pending
+        return [app for app in applications if self._should_rate(app)]

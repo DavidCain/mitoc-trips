@@ -124,7 +124,18 @@ class AllLeaderApplicationsView(ApplicationManager, ListView):
     template_name = 'chair/applications/all.html'
 
     def get_queryset(self):
-        return self.sorted_applications(just_this_year=False)
+        """ Annotate each application with its number of recs & ratings. """
+        return self.sorted_annotated_applications()
+
+    def _group_applications_by_year(self, applications):
+        apps_by_year = defaultdict(list)
+        for app in applications:
+            if app.num_ratings:
+                apps_by_year[app.year].append(app)
+
+        for year, apps in sorted(apps_by_year.items(), reverse=True):
+            sorted_by_name = sorted(apps, key=lambda app: app.participant.name)
+            yield (year, sorted_by_name)
 
     def get_context_data(self, **kwargs):
         # Super calls DetailView's `get_context_data` so we'll manually add form
@@ -136,13 +147,7 @@ class AllLeaderApplicationsView(ApplicationManager, ListView):
         context['needs_rating'] = self.needs_rating(apps)
         context['pending'] = context['needs_rating'] or context['needs_rec']
 
-        apps_by_year = defaultdict(list)
-        given_rating = apps.filter(num_ratings__gt=0)
-        for application in given_rating.order_by('-year', 'participant__name'):
-            apps_by_year[application.year].append(application)
-        context['apps_by_year'] = [(year, apps_by_year[year])
-                                   for year in sorted(apps_by_year, reverse=True)]
-
+        context['apps_by_year'] = self._group_applications_by_year(apps)
         return context
 
     @method_decorator(login_required)
@@ -179,7 +184,7 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):
 
         Each "queue" is of applications that need recommendations or ratings.
         """
-        ordered_apps = iter(self.sorted_applications(just_this_year=True))
+        ordered_apps = iter(self.pending_applications())
         prev_app = None
         for app in ordered_apps:
             if app.pk == self.object.pk:

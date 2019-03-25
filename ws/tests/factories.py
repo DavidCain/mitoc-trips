@@ -115,3 +115,32 @@ class SignUpFactory(DjangoModelFactory):
     order = None
     manual_order = None
     on_trip = False
+
+
+class ClimbingLeaderApplicationFactory(DjangoModelFactory):
+    class Meta:
+        model = models.ClimbingLeaderApplication
+
+    participant = SubFactory(ParticipantFactory)
+    years_climbing = 9
+    years_climbing_outside = 7
+    outdoor_bouldering_grade = "V3"
+    outdoor_sport_leading_grade = "5.11"
+    outdoor_trad_leading_grade = "Trad is too rad for me"
+
+    # These fields are all choices in a set enum!
+    familiarity_spotting = "none"
+    familiarity_bolt_anchors = "very comfortable"
+    familiarity_gear_anchors = "none"
+    familiarity_sr = "some"
+
+    # Below fields are optional
+    spotting_description = ""
+    tr_anchor_description = ""
+    rappel_description = ""
+    gear_anchor_description = ""
+    formal_training = "Wilderness First Responder"
+    teaching_experience = "Leader in my college outing club"
+    notable_climbs = "The Nose of El Capitan"
+    favorite_route = "Jaws II"
+    extra_info = "An extinct giant sloth is largely responsible for the existence of the avocado."

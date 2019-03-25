@@ -68,14 +68,14 @@ def activity_rating(leader, activity):
 
 
 @register.filter
-def pending_applications_count(chair, activity, just_this_year=True):
+def pending_applications_count(chair, activity):
     """ Count applications where:
 
     - All chairs have given recs, rating is needed
     - Viewing user hasn't given a rec
     """
     manager = ratings_utils.ApplicationManager(chair=chair, activity=activity)
-    return len(manager.pending_applications(just_this_year))
+    return len(manager.pending_applications())
 
 
 @register.filter
