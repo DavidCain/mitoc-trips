@@ -69,6 +69,12 @@ def in_any_group(user, group_names, allow_superusers=True):
     return any(g in group_names for g in search_groups)
 
 
+def make_chair(user, activity_type):
+    """ Make the given user an activity chair! """
+    group_name = chair_group(activity_type)  # Raises ValueError on invalid activity
+    Group.objects.get(name=group_name).user_set.add(user)
+
+
 def is_chair(user, activity_type, allow_superusers=True):
     """ Return if the activity has chairs, and the user is one.
 
@@ -97,11 +103,7 @@ def num_chairs(activity):
     return User.objects.filter(groups__name=group).count()
 
 
-activity_types = models.LeaderRating.CLOSED_ACTIVITIES
-all_chair_groups = {chair_group(activity) for activity in activity_types}
-
-
 def chair_activities(user, allow_superusers=False):
     """ All activities for which the user is the chair. """
-    return [activity for activity in activity_types
+    return [activity for activity in models.LeaderRating.CLOSED_ACTIVITIES
             if is_chair(user, activity, allow_superusers)]

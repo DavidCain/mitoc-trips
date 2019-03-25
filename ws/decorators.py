@@ -8,13 +8,14 @@ from django.urls import reverse, reverse_lazy
 from django.shortcuts import resolve_url
 from django.utils.decorators import available_attrs
 
-import ws.utils.perms
+import ws.utils.perms as perm_utils
+from ws import models
 
 
 def chairs_only(*activity_types, **kwargs):
     if not activity_types:
-        activity_types = ws.utils.perms.activity_types
-    groups = {ws.utils.perms.chair_group(activity) for activity in activity_types}
+        activity_types = models.LeaderRating.CLOSED_ACTIVITIES
+    groups = {perm_utils.chair_group(activity) for activity in activity_types}
     return group_required(*groups, **kwargs)
 
 
@@ -59,7 +60,7 @@ def group_required(*group_names, **kwargs):
 
     def in_groups(user):
         allow_superusers = kwargs.get('allow_superusers', True)
-        if ws.utils.perms.in_any_group(user, group_names, allow_superusers):
+        if perm_utils.in_any_group(user, group_names, allow_superusers):
             return True
         if not redir_url:  # No possible way to gain access, so 403
             raise PermissionDenied
