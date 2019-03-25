@@ -2,9 +2,10 @@ from urllib.parse import urlparse, parse_qs
 import unittest.mock
 
 from django.contrib.auth.models import User
-from django.test import Client, TestCase
+from django.test import Client
 from django.urls import reverse
 
+from ws.tests import TestCase
 from ws.tests.helpers import PermHelpers
 from ws.tests.factories import TripFactory
 
@@ -45,8 +46,6 @@ class AuthTests(TestCase):
          privileges are based on groups. Some participants belong to the
          leaders group, others are activity chairs
     """
-    multi_db = True  # Roll back changes in _all_ databases
-
     def setUp(self):
         self.client = Client()
         super().setUp()

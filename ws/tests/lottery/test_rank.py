@@ -5,12 +5,13 @@ import unittest
 from unittest.mock import patch
 
 from django.db.models import signals
-from django.test import SimpleTestCase, TestCase
+from django.test import SimpleTestCase
 
 import factory
 from freezegun import freeze_time
 
 from ws.lottery import rank
+from ws.tests import TestCase
 from ws import models
 from ws import settings
 from ws.tests.factories import (
@@ -31,8 +32,6 @@ class TestRanker(rank.ParticipantRanker):
 
 class ParticipantPairingTests(TestCase):
     """ Test the logic on reciprocal participant pairing. """
-    multi_db = True  # Roll back changes in _all_ databases
-
     def expect_pairing(self, expected):
         """ Run noted participants through ranking, expect pairing results. """
         par_pks = set(par.pk for par in expected)

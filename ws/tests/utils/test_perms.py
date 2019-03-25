@@ -1,12 +1,10 @@
 from django.contrib.auth.models import AnonymousUser
-from django.test import TestCase
 
+from ws.tests import TestCase
 from ws.utils import perms as perm_utils
 
 
 class PermUtilTests(TestCase):
-    multi_db = True
-
     def test_anonymous_leaders(self):
         """ Anonymous users are never leaders, chairs, etc.. """
         anon = AnonymousUser()

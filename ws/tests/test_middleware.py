@@ -1,15 +1,13 @@
 from unittest.mock import Mock
 
 from django.contrib.auth.models import AnonymousUser
-from django.test import TestCase
 
 from ws.middleware import ParticipantMiddleware
 from ws.tests.factories import UserFactory, ParticipantFactory
+from ws.tests import TestCase
 
 
 class TestParticipantMiddleware(TestCase):
-    multi_db = True
-
     def setUp(self):
         def get_response(request):
             return None
