@@ -108,7 +108,7 @@ def update_signup_queues(trip):
         for waitlist_signup in waitlisted[:diff]:
             trip_or_wait(waitlist_signup.signup)
     elif diff < 0:  # Trip is shrinking, move lowest signups to waitlist
-        for i in range(abs(diff)):
+        for _ in range(abs(diff)):
             last = trip.signup_set.filter(on_trip=True).last()
             trip_or_wait(last, prioritize=True, top_spot=True)
 

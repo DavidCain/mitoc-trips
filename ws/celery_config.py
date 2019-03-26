@@ -1,7 +1,6 @@
 import os
 
 import celery
-from django.apps import apps
 from raven.contrib.celery import register_logger_signal, register_signal
 
 from ws.sentry import client

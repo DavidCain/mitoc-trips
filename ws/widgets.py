@@ -36,7 +36,7 @@ class BootstrapDateInput(dj_widgets.DateInput):
         self.attrs['data-uib-datepicker-popup'] = self.format or 'yyyy-MM-dd'
         self.attrs['show-weeks'] = False
 
-    def render(self, name, value, attrs=None, format=None):
+    def render(self, name, value, attrs=None, renderer=None):
         """ Render normal date text input with a calendar dropdown. """
         for is_open in ['is-open', 'data-is-open']:
             if is_open in self.attrs:

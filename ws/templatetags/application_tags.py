@@ -19,7 +19,7 @@ def application_summary(application):
 
 @register.inclusion_tag('for_templatetags/application_details.html')
 def application_details(application):
-    all_fields = application._meta.fields
+    all_fields = application._meta.fields  # pylint:disable=protected-access
     text_fields = [
         (field, getattr(application, field.name))
         for field in all_fields

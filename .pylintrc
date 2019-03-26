@@ -24,18 +24,6 @@ disable=
   no-self-use,
   too-many-locals,
 
-  #################################
-  # I will remove these very soon #
-  #################################
-  access-member-before-definition,
-  protected-access,
-  ungrouped-imports,
-  unnecessary-pass,
-  redefined-builtin,
-  no-name-in-module,
-  unused-import,
-  unused-variable,
-
   ############################
   # I aspire to remove these #
   ############################

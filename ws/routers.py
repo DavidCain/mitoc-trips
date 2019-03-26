@@ -10,7 +10,7 @@ def label_is_auth(label):
 def is_auth(obj, **hints):
     if hints.get('target_db') == 'auth_db':
         return True
-    return label_is_auth(obj._meta.app_label)
+    return label_is_auth(obj._meta.app_label)  # pylint: disable=protected-access
 
 
 class AuthRouter:

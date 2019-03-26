@@ -222,18 +222,16 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):
     @property
     def existing_rec(self):
         """ Load an existing recommendation for the viewing participant. """
-        if hasattr(self, '_existing_rec'):
-            # pylint: disable=access-member-before-definition
-            return self._existing_rec
-        find_rec = Q(
-            creator=self.chair,
-            participant=self.object.participant,
-            activity=self.activity,
-            time_created__gte=self.object.time_created,
-        )
-        self._existing_rec = models.LeaderRecommendation.objects.filter(
-            find_rec
-        ).first()
+        if not hasattr(self, '_existing_rec'):
+            find_rec = Q(
+                creator=self.chair,
+                participant=self.object.participant,
+                activity=self.activity,
+                time_created__gte=self.object.time_created,
+            )
+            self._existing_rec = models.LeaderRecommendation.objects.filter(
+                find_rec
+            ).first()
         return self._existing_rec
 
     def default_to_recommendation(self):

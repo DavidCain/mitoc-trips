@@ -60,13 +60,10 @@ TEST_RUNNER = 'ws.tests.runner.SetupGearDbTestRunner'
 
 INSTALLED_APPS = []  # Must be defined by respective configs
 
-# pylint: disable=wildcard-import,unused-wildcard-import
-if os.environ.get('WS_TEST_CONFIG'):
-    from .conf.test_settings import *  # pylint: disable=no-name-in-module,import-error
-elif os.environ.get('WS_DJANGO_LOCAL'):
-    from .conf.local_settings import *
+if os.environ.get('WS_DJANGO_LOCAL'):
+    from .conf.local_settings import *  # pylint: disable=wildcard-import,unused-wildcard-import
 else:
-    from .conf.production_settings import *
+    from .conf.production_settings import *  # pylint: disable=wildcard-import,unused-wildcard-import
 
 DATABASES = {
     'default': {

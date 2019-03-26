@@ -462,7 +462,7 @@ def LeaderApplicationForm(*args, **kwargs):
             model = models.LeaderApplication.model_from_activity(activity)
             widgets = {
                 field.name: forms.Textarea(attrs={'rows': 4})
-                for field in model._meta.fields
+                for field in model._meta.fields  # pylint: disable=protected-access
                 if isinstance(field, TextField)
             }
 

@@ -352,8 +352,6 @@ class UpcomingTripsView(TripListView):
 class AllTripsView(TripListView):
     """ View all trips, past and present. """
 
-    pass
-
 
 class ApproveTripsView(UpcomingTripsView):
     template_name = 'trips/all/manage.html'

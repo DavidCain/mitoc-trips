@@ -145,9 +145,10 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
         # It's important that we be able to simulate the future time with `execution_datetime`
         # If test-running the lottery in advance, we want the same ranking to be used later
         self.lottery_runtime = execution_datetime or local_now()
-        self.today = self.lottery_runtime.date()
+        today = self.lottery_runtime.date()
+        self.today = today  # Silences a weird pylint error
         self.jan_1st = self.today.replace(month=1, day=1)
-        self.lottery_key = f"ws-{self.today.isoformat()}"
+        self.lottery_key = f"ws-{today.isoformat()}"
 
     def get_rank_override(self, participant):
         if not hasattr(self, 'adjustments_by_participant'):

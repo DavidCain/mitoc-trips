@@ -6,7 +6,7 @@ from datetime import timedelta
 from functools import wraps
 
 from celery import group, shared_task
-from celery.five import monotonic
+from celery.five import monotonic  # pylint: disable=no-name-in-module
 from django.core.cache import cache
 
 from ws import cleanup, models, settings

@@ -1,7 +1,6 @@
 """
 Views are broken up, loosely grouped by purpose.
 """
-# pylint: disable=wildcard-import
 from .account import *
 from .applications import *
 from .duplicates import *
