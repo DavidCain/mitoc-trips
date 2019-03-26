@@ -15,9 +15,7 @@ def copy_last_edited(apps, schema_editor):
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('ws', '0001_initial'),
-    ]
+    dependencies = [('ws', '0001_initial')]
 
     operations = [
         migrations.AddField(

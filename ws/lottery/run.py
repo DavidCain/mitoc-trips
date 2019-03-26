@@ -9,13 +9,17 @@ from mitoc_const import affiliations
 from ws import models
 from ws.utils.dates import local_now, closest_wed_at_noon
 from ws import settings
-from ws.lottery.handle import SingleTripParticipantHandler, WinterSchoolParticipantHandler
+from ws.lottery.handle import (
+    SingleTripParticipantHandler,
+    WinterSchoolParticipantHandler,
+)
 from ws.lottery.rank import SingleTripParticipantRanker, WinterSchoolParticipantRanker
 
 
 AFFILIATION_MAPPING = {
     # Excludes the deprecated student code, since new members don't have that
-    aff.CODE: aff.VALUE for aff in affiliations.ALL
+    aff.CODE: aff.VALUE
+    for aff in affiliations.ALL
 }
 
 
@@ -25,6 +29,7 @@ class LotteryRunner:
     Instances of this class may be executed to perform the lottery mechanism
     for one or more trips.
     """
+
     def __init__(self):
         # Get a logger instance that captures activity for _just_ this run
         self.logger = logging.getLogger(self.logger_id)
@@ -58,6 +63,7 @@ class LotteryRunner:
 
 class SingleTripLotteryRunner(LotteryRunner):
     """ Place participants vying for spots on a single trip. """
+
     def __init__(self, trip):
         self.trip = trip
         super().__init__()
@@ -110,6 +116,7 @@ class SingleTripLotteryRunner(LotteryRunner):
             par_handler.place_participant()
         self._make_fcfs()
 
+
 class WinterSchoolLotteryRunner(LotteryRunner):
     def __init__(self, execution_datetime=None):
         self.execution_datetime = execution_datetime or local_now()
@@ -126,8 +133,9 @@ class WinterSchoolLotteryRunner(LotteryRunner):
         self.logger.addHandler(self.handler)
 
     def __call__(self):
-        self.logger.info("Running the Winter School lottery for %s",
-                         self.execution_datetime)
+        self.logger.info(
+            "Running the Winter School lottery for %s", self.execution_datetime
+        )
         self.assign_trips()
         self.free_for_all()
         self.handler.close()
@@ -149,7 +157,9 @@ class WinterSchoolLotteryRunner(LotteryRunner):
 
     def assign_trips(self):
         num_participants = self.ranker.participants_to_handle().count()
-        self.logger.info("%s participants signed up for trips this week", num_participants)
+        self.logger.info(
+            "%s participants signed up for trips this week", num_participants
+        )
         for global_rank, (participant, key) in enumerate(self.ranker, start=1):
             # get_affiliation_display() includes extra explanatory text we don't need
             affiliation = AFFILIATION_MAPPING[participant.affiliation]

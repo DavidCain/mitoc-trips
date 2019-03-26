@@ -15,21 +15,24 @@ from celery.schedules import crontab
 import raven
 
 
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY',
-                       '*this-is-obviously-not-secure-only-use-it-locally*')
+SECRET_KEY = os.getenv(
+    'DJANGO_SECRET_KEY', '*this-is-obviously-not-secure-only-use-it-locally*'
+)
 # This secret is used as part of a complete seed for a pseudo-random number generator
 # Since random.random is not suitable for cryptographic applications, we use
 # a separate secret key rather than re-use SECRET_KEY
 PRNG_SEED_SECRET = os.getenv('PRNG_SEED_SECRET', 'some-key-unknown-to-participants')
-MEMBERSHIP_SECRET_KEY = os.getenv('MEMBERSHIP_SECRET_KEY',
-                                  'secret shared with the mitoc-member repo')
+MEMBERSHIP_SECRET_KEY = os.getenv(
+    'MEMBERSHIP_SECRET_KEY', 'secret shared with the mitoc-member repo'
+)
 WS_LOTTERY_LOG_DIR = os.getenv('WS_LOTTERY_LOG_DIR', '/tmp/')
 
 # URL to an avatar image that is self-hosted
 # (Users who opt out of Gravatar would prefer to not have requests made to
 #  Gravatar to fetch the "mystery man" image)
-PRIVACY_AVATAR_URL = os.getenv('PRIVACY_AVATAR_URL',
-                               "https://s3.amazonaws.com/mitoc-trips/privacy/avatar.svg")
+PRIVACY_AVATAR_URL = os.getenv(
+    'PRIVACY_AVATAR_URL', "https://s3.amazonaws.com/mitoc-trips/privacy/avatar.svg"
+)
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 PROJECT_ROOT = os.path.normpath(os.path.dirname(os.path.abspath(__file__)))
@@ -42,9 +45,7 @@ STATIC_ROOT = os.getenv('STATIC_ROOT', os.path.join(BASE_DIR, 'static'))
 
 STATICFILES_STORAGE = 'ws.storage.CachedStorage'
 
-STATICFILES_DIRS = [
-    NODE_MODULES
-]
+STATICFILES_DIRS = [NODE_MODULES]
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
@@ -88,9 +89,7 @@ DATABASES = {
     'geardb': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': os.getenv('GEAR_DATABASE_NAME', 'geardb'),
-        'OPTIONS': {
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-        },
+        'OPTIONS': {'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"},
         'USER': os.getenv('GEAR_DATABASE_USER', 'ws'),
         'PASSWORD': os.getenv('GEAR_DATABASE_PASSWORD', 'password'),
         'HOST': os.getenv('GEAR_DATABASE_HOST', 'localhost'),
@@ -125,7 +124,7 @@ AUTHENTICATION_BACKENDS = (
     # Needed to login by username in Django admin, regardless of `allauth`
     "django.contrib.auth.backends.ModelBackend",
     # `allauth` specific authentication methods, such as login by e-mail
-    "allauth.account.auth_backends.AuthenticationBackend"
+    "allauth.account.auth_backends.AuthenticationBackend",
 )
 
 TEMPLATES = [
@@ -144,9 +143,9 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "ws.context_processors.participant_and_groups",
                 "ws.context_processors.angular_templates",
-            ],
+            ]
         },
-    },
+    }
 ]
 
 # auth and allauth settings
@@ -172,7 +171,9 @@ WSGI_APPLICATION = 'ws.wsgi.application'
 
 
 # DocuSign
-DOCUSIGN_API_BASE = os.getenv('DOCUSIGN_API_BASE', 'https://demo.docusign.net/restapi/v2/')
+DOCUSIGN_API_BASE = os.getenv(
+    'DOCUSIGN_API_BASE', 'https://demo.docusign.net/restapi/v2/'
+)
 DOCUSIGN_USERNAME = os.getenv('DOCUSIGN_USERNAME', 'djcain@mit.edu')
 DOCUSIGN_PASSWORD = os.getenv('DOCUSIGN_PASSWORD', 'super-secret')
 DOCUSIGN_INTEGRATOR_KEY = os.getenv('DOCUSIGN_INTEGRATOR_KEY', 'secret-uuid')
@@ -192,12 +193,8 @@ DOCUSIGN_EVENT_NOTIFICATION = {
     "includeTimeZone": "true",  # Timestamps aren't in UTC... >:(
     "includeSenderAccountAsCustomField": "true",
     "includeDocumentFields": "true",
-    "envelopeEvents": [
-        {"envelopeEventStatusCode": "completed"}
-    ],
-    "recipientEvents": [
-        {"recipientEventStatusCode": "Completed"},
-    ],
+    "envelopeEvents": [{"envelopeEventStatusCode": "completed"}],
+    "recipientEvents": [{"recipientEventStatusCode": "Completed"}],
 }
 
 # Google Sheet (discount roster) settings
@@ -207,30 +204,30 @@ DISABLE_GSHEETS = bool(os.getenv('DISABLE_GSHEETS'))
 # Celery settings
 CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'amqp://guest:guest@127.0.0.1//')
 CELERY_RESULT_BACKEND = 'rpc'
-CELERY_RESULT_PERSISTENT = True  # Don't reset messages after broker restart (requires RPC)
+CELERY_RESULT_PERSISTENT = True  # Don't reset msgs after broker restart (requires RPC)
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_ACCEPT_CONTENT = ['json']
 
 CELERY_BEAT_SCHEDULE = {
     'purge-non-student-discounts': {
         'task': 'ws.tasks.purge_non_student_discounts',
-        'schedule': crontab(minute=0, hour=2, day_of_week=1)
+        'schedule': crontab(minute=0, hour=2, day_of_week=1),
     },
     'purge-old-medical-data': {
         'task': 'ws.tasks.purge_old_medical_data',
-        'schedule': crontab(minute=0, hour=2, day_of_week=2)
+        'schedule': crontab(minute=0, hour=2, day_of_week=2),
     },
     'refresh-all-discount-spreadsheets': {
         'task': 'ws.tasks.update_all_discount_sheets',
-        'schedule': crontab(minute=0, hour=3)
+        'schedule': crontab(minute=0, hour=3),
     },
     'send-sao-itineraries': {
         'task': 'ws.tasks.send_sao_itineraries',
-        'schedule': crontab(minute=0, hour=4)
+        'schedule': crontab(minute=0, hour=4),
     },
     'run-ws-lottery': {
         'task': 'ws.tasks.run_ws_lottery',
-        'schedule': crontab(minute=0, hour=14, month_of_year=[1, 2], day_of_week=3)
+        'schedule': crontab(minute=0, hour=14, month_of_year=[1, 2], day_of_week=3),
     },
 }
 
@@ -249,10 +246,7 @@ MUST_UPDATE_AFTER_DAYS = 180
 
 # Required in most assets, but they're strictly needed for Raven
 # (Load them synchronously)
-base_deps = [
-    'jquery/dist/jquery.min.js',
-    'angular/angular.js',
-]
+base_deps = ['jquery/dist/jquery.min.js', 'angular/angular.js']
 
 raven_js = base_deps + [
     'raven-js/dist/raven.min.js',
@@ -277,18 +271,14 @@ vendor_js = [
     'angular-sanitize/angular-sanitize.js',
     'angular-ui-sortable/dist/sortable.js',
     'js/ui-bootstrap-tpls-0.14.3.js',
-
     # Libraries to support international phone numbers
     'google-libphonenumber/dist/browser/libphonenumber.js',
     'digits-trie/dist/digits-trie.js',
     'bc-countries/dist/bc-countries.js',
-    'bc-phone-number/dist/js/bc-phone-number.js'
+    'bc-phone-number/dist/js/bc-phone-number.js',
 ]
 
-local_js = [
-    'js/ws/*.js',
-    'js/footable_breakpoints.js'
-]
+local_js = ['js/ws/*.js', 'js/footable_breakpoints.js']
 
 PIPELINE = {
     'JS_COMPRESSOR': 'pipeline.compressors.uglifyjs.UglifyJSCompressor',
@@ -309,33 +299,25 @@ PIPELINE = {
         'vendor': {
             'source_filenames': vendor_js,
             'output_filename': 'js/vendor.js',
-            'extra_context': {
-                'defer': True,
-            },
+            'extra_context': {'defer': True},
         },
         'app': {
             'source_filenames': local_js,
             'output_filename': 'js/app.js',
-            'extra_context': {
-                'defer': True,
-            },
+            'extra_context': {'defer': True},
         },
         # D3 is only needed on one page - don't waste the bytes on others
         'd3': {
             'source_filenames': ['d3/d3.min.js'],
             'output_filename': 'js/d3.js',
-            'extra_context': {
-                'defer': True,
-            },
+            'extra_context': {'defer': True},
         },
         # FontAwesome is served separately to use a data attribute hack
         # (Note that the hack relies on the filename containing 'fontawesome')
         'fontawesome': {
             'source_filenames': ['@fortawesome/fontawesome-free/js/all.js'],
             'output_filename': 'js/fontawesome.js',  # WARNING: don't change.
-            'extra_context': {
-                'defer': True,
-            },
+            'extra_context': {'defer': True},
         },
     },
     'STYLESHEETS': {
@@ -353,7 +335,7 @@ PIPELINE = {
                 '@fortawesome/fontawesome-free/css/svg-with-js.css',
             ],
             'output_filename': 'css/app.css',
-        },
+        }
     },
 }
 
@@ -361,14 +343,8 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {message}',
-            'style': '{',
-        },
-        'simple': {
-            'format': '{levelname} {message}',
-            'style': '{',
-        },
+        'verbose': {'format': '{levelname} {asctime} {module} {message}', 'style': '{'},
+        'simple': {'format': '{levelname} {message}', 'style': '{'},
     },
     'handlers': {
         'file': {
@@ -376,19 +352,11 @@ LOGGING = {
             'class': 'logging.FileHandler',
             'filename': os.getenv('DJANGO_LOG_FILE', '/tmp/django.log'),
             'formatter': 'verbose',
-        },
+        }
     },
     'loggers': {
-        'django': {
-            'handlers': ['file'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'ws': {
-            'handlers': ['file'],
-            'level': 'INFO',
-            'propagate': True,
-        },
+        'django': {'handlers': ['file'], 'level': 'ERROR', 'propagate': True},
+        'ws': {'handlers': ['file'], 'level': 'INFO', 'propagate': True},
     },
 }
 

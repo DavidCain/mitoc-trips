@@ -1,8 +1,12 @@
 -r requirements.txt
 
+appdirs==1.4.3
 appnope==0.1.0
 astroid==2.0.4
+attrs==19.1.0
 backcall==0.1.0
+black==19.3b0
+Click==7.0
 decorator==4.3.0
 django-debug-toolbar==1.11
 factory-boy==2.11.1
@@ -25,6 +29,7 @@ pylint==2.2.2
 python-dateutil==2.7.5
 sqlparse==0.2.4
 text-unidecode==1.2
+toml==0.10.0
 traitlets==4.3.2
 typed-ast==1.1.0
 wcwidth==0.1.7

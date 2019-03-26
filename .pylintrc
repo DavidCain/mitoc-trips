@@ -1,29 +1,44 @@
 [MESSAGES CONTROL]
 
 disable=
-  attribute-defined-outside-init,
+  # Handled by black
+  format,
+
+  arguments-differ,
   fixme,
   invalid-name,
-  locally-disabled,
-  locally-enabled,
-  missing-docstring,
-  no-init,
-  no-else-return,
-  no-member,
-  no-self-use,
-  protected-access,
-  relative-import,
   too-few-public-methods,
   too-many-ancestors,
   too-many-arguments,
-  too-many-branches,
-  too-many-instance-attributes,
-  too-many-locals,
-  too-many-nested-blocks,
   too-many-public-methods,
-  too-many-return-statements,
-  # Currently quite common in method strings
-  unused-argument,
+
+  ################################
+  # I might remove some of these #
+  ################################
+  attribute-defined-outside-init,
+  duplicate-code,
+  no-member,
+  no-self-use,
+  too-many-locals,
+
+  #################################
+  # I will remove these very soon #
+  #################################
+  access-member-before-definition,
+  protected-access,
+  ungrouped-imports,
+  unnecessary-pass,
+  redefined-builtin,
+  no-name-in-module,
+  unused-import,
+  unused-variable,
+
+  ############################
+  # I aspire to remove these #
+  ############################
+  missing-docstring,
+  no-else-return,
+  unused-argument,  # Currently quite common in method strings
 
 [REPORTS]
 

@@ -30,9 +30,11 @@ def send_email_to_funds(trip, recipient='sao-desk@mit.edu'):
 
     subject = "MITOC-Trips registration: {}".format(trip.name)
     bursar = 'mitoc-bursar@mit.edu'
-    msg = EmailMultiAlternatives(subject, text_content, to=[recipient],
-                                 cc=[bursar], reply_to=[bursar])
+    msg = EmailMultiAlternatives(
+        subject, text_content, to=[recipient], cc=[bursar], reply_to=[bursar]
+    )
     msg.attach_alternative(html_content, "text/html")
     msg.send()
-    logger.info("Sent itinerary for trip #%d to %s, CCing %s",
-                trip.pk, recipient, bursar)
+    logger.info(
+        "Sent itinerary for trip #%d to %s, CCing %s", trip.pk, recipient, bursar
+    )

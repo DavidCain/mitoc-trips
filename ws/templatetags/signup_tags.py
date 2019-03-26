@@ -36,8 +36,11 @@ def leader_signup_is_allowed(trip, participant):
         return False
     trip_upcoming = local_date() <= trip.trip_date
 
-    return (trip_upcoming and trip.allow_leader_signups and
-            participant.can_lead(trip.activity))
+    return (
+        trip_upcoming
+        and trip.allow_leader_signups
+        and participant.can_lead(trip.activity)
+    )
 
 
 @register.inclusion_tag('for_templatetags/signup_for_trip.html', takes_context=True)
@@ -83,20 +86,24 @@ def signups_open(user, participant, trip, signup_form, leader_signup_allowed):
 
     (Participant is logged in, has current info, etc. This is the normal case.
     """
-    return {'user': user,
-            'trip': trip,
-            'is_wimp': trip.wimp and trip.wimp == participant,
-            'participant': participant,
-            'signup_form': signup_form,
-            'leader_signup_allowed': leader_signup_allowed}
+    return {
+        'user': user,
+        'trip': trip,
+        'is_wimp': trip.wimp and trip.wimp == participant,
+        'participant': participant,
+        'signup_form': signup_form,
+        'leader_signup_allowed': leader_signup_allowed,
+    }
 
 
 @register.inclusion_tag('for_templatetags/signup_modes/not_yet_open.html')
 def not_yet_open(participant, signup_form, leader_signup_allowed):
     """ What to display in the signup section when trip signups aren't open (yet). """
-    return {'participant': participant,
-            'signup_form': signup_form,
-            'leader_signup_allowed': leader_signup_allowed}
+    return {
+        'participant': participant,
+        'signup_form': signup_form,
+        'leader_signup_allowed': leader_signup_allowed,
+    }
 
 
 @register.inclusion_tag('for_templatetags/drop_off_trip.html')
@@ -119,8 +126,7 @@ def signup_table(signups, has_notes=False, show_drivers=False, all_participants=
         no_signup = all_participants.exclude(id__in=signed_up)
         fake_signups = [{'participant': leader} for leader in no_signup]
         signups = chain(fake_signups, signups)
-    return {'signups': signups, 'has_notes': has_notes,
-            'show_drivers': show_drivers}
+    return {'signups': signups, 'has_notes': has_notes, 'show_drivers': show_drivers}
 
 
 @register.inclusion_tag('for_templatetags/trip_summary.html', takes_context=True)
@@ -130,10 +136,7 @@ def trip_summary(context, trip):
 
 @register.inclusion_tag('for_templatetags/medical_table.html')
 def medical_table(participants, hide_sensitive_info=False):
-    return {
-        'participants': participants,
-        'hide_sensitive_info': hide_sensitive_info,
-    }
+    return {'participants': participants, 'hide_sensitive_info': hide_sensitive_info}
 
 
 @register.inclusion_tag('for_templatetags/driver_table.html')
@@ -160,7 +163,10 @@ def not_on_trip(trip, signups_on_trip, signups_off_trip, display_notes):
     if trip.algorithm == 'fcfs' and not signups_off_trip:
         display_table = False
 
-    return {'trip': trip,
-            'signups_on_trip': signups_on_trip,
-            'signups_off_trip': signups_off_trip,
-            'display_table': display_table, 'display_notes': display_notes}
+    return {
+        'trip': trip,
+        'signups_on_trip': signups_on_trip,
+        'signups_off_trip': signups_off_trip,
+        'display_table': display_table,
+        'display_notes': display_notes,
+    }

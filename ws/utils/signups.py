@@ -41,8 +41,9 @@ def add_to_waitlist(signup, request=None, prioritize=False, top_spot=False):
     try:
         wl_signup = signup.waitlistsignup
     except models.WaitListSignup.DoesNotExist:
-        wl_signup = models.WaitListSignup.objects.create(signup=signup,
-                                                         waitlist=signup.trip.waitlist)
+        wl_signup = models.WaitListSignup.objects.create(
+            signup=signup, waitlist=signup.trip.waitlist
+        )
         if request:
             messages.success(request, "Added to waitlist.")
 
@@ -51,8 +52,9 @@ def add_to_waitlist(signup, request=None, prioritize=False, top_spot=False):
     return wl_signup
 
 
-def trip_or_wait(signup, request=None, prioritize=False, top_spot=False,
-                 trip_must_be_open=False):
+def trip_or_wait(
+    signup, request=None, prioritize=False, top_spot=False, trip_must_be_open=False
+):
     """ Given a signup object, attempt to place the participant on the trip.
 
     If the trip is full, instead place that person on the waiting list.
@@ -115,8 +117,7 @@ def non_trip_participants(trip):
     """ All participants not currently on the given trip. """
     all_participants = models.Participant.objects.all()
     signups = trip.signup_set.filter(on_trip=True)
-    par_on_trip = (Q(pk__in=trip.leaders.all()) |
-                   Q(signup__in=signups))
+    par_on_trip = Q(pk__in=trip.leaders.all()) | Q(signup__in=signups)
     return all_participants.exclude(par_on_trip)
 
 

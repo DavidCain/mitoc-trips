@@ -11,6 +11,7 @@ class TestParticipantMiddleware(TestCase):
     def setUp(self):
         def get_response(request):
             return None
+
         self.pm = ParticipantMiddleware(get_response)
         self.request = Mock()
 

@@ -16,6 +16,7 @@ import ws.utils.perms
 
 class LotteryMessages:
     """ Supply messages relating to lottery status of one participant. """
+
     WARN_AFTER_DAYS_OLD = 5  # After these days, remind of lottery status
 
     def __init__(self, request):
@@ -65,8 +66,10 @@ class LotteryMessages:
         if not lottery:
             return
         if lottery.car_status == 'own' and not self.request.participant.car:
-            msg = ("You're a driver in the lottery, but haven't {edit_car}. "
-                   "If you can no longer drive, please update your {prefs}.")
+            msg = (
+                "You're a driver in the lottery, but haven't {edit_car}. "
+                "If you can no longer drive, please update your {prefs}."
+            )
             message = msg.format(
                 edit_car=self.profile_link("submitted car information"),
                 prefs=self.prefs_link(),
@@ -86,7 +89,7 @@ class LotteryMessages:
             participant=self.request.participant,
             on_trip=False,
             trip__algorithm='lottery',
-            trip__trip_date__gte=dateutils.local_date()
+            trip__trip_date__gte=dateutils.local_date(),
         ).values_list('order', flat=True)
         some_trips_ranked = any(order for order in future_signups)
 
@@ -102,8 +105,10 @@ class LotteryMessages:
             days_old = time_diff.days
 
             if days_old >= self.WARN_AFTER_DAYS_OLD:
-                msg = ("You haven't updated your {} in {} days. "
-                       "You will be counted as a {}driver in the next lottery.")
+                msg = (
+                    "You haven't updated your {} in {} days. "
+                    "You will be counted as a {}driver in the next lottery."
+                )
                 driver_prefix = "" if self.lotteryinfo.is_driver else "non-"
                 msg = msg.format(self.prefs_link(), days_old, driver_prefix)
                 messages.info(self.request, msg, extra_tags='safe')
@@ -137,16 +142,16 @@ def complain_if_missing_itineraries(request):
     # Most trips require itineraries, but some (TRS, etc.) do not
     # All WS trips require itineraries, though
     future_trips_without_info = request.participant.trips_led.filter(
-        trip_date__gte=now.date(),
-        info__isnull=True,
-        activity='winter_school'
+        trip_date__gte=now.date(), info__isnull=True, activity='winter_school'
     ).values_list('pk', 'trip_date', 'name')
 
     for trip_pk, trip_date, name in future_trips_without_info:
         if now > dateutils.itinerary_available_at(trip_date):
             trip_url = reverse('trip_itinerary', args=(trip_pk,))
-            msg = (f'Please <a href="{trip_url}">submit an itinerary for '
-                   f'{escape(name)}</a> before departing!')
+            msg = (
+                f'Please <a href="{trip_url}">submit an itinerary for '
+                f'{escape(name)}</a> before departing!'
+            )
             messages.warning(request, msg, extra_tags='safe')
 
 
@@ -164,9 +169,7 @@ def complain_if_missing_feedback(request):
     one_month_ago = today - timedelta(days=30)
 
     recent_trips_without_feedback = (
-        participant.trips_led.filter(
-            trip_date__lt=today, trip_date__gt=one_month_ago
-        )
+        participant.trips_led.filter(trip_date__lt=today, trip_date__gt=one_month_ago)
         .exclude(feedback__leader=participant)
         .values_list('pk', 'name')
     )

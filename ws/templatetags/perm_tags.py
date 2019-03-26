@@ -11,8 +11,11 @@ register = template.Library()
 @register.filter
 def labeled_chair_activities(user):
     chair_activities = set(perm_utils.chair_activities(user, True))
-    return [choice for choice in models.LeaderRating.CLOSED_ACTIVITY_CHOICES
-            if choice[0] in chair_activities]
+    return [
+        choice
+        for choice in models.LeaderRating.CLOSED_ACTIVITY_CHOICES
+        if choice[0] in chair_activities
+    ]
 
 
 @register.filter

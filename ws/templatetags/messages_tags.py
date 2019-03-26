@@ -16,6 +16,7 @@ bootstrap_mappings = {
     'info': 'alert-info',
 }
 
+
 @register.filter
 def alert_classes(message):
     bs_tags = ["alert"]

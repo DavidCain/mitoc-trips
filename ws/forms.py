@@ -4,7 +4,13 @@ from django.core.exceptions import ValidationError
 
 from djng.forms import NgForm, NgFormValidationMixin
 from djng.forms import NgModelFormMixin, NgModelForm
-from djng.forms.fields import CharField, ChoiceField, EmailField, BooleanField, RegexField
+from djng.forms.fields import (
+    CharField,
+    ChoiceField,
+    EmailField,
+    BooleanField,
+    RegexField,
+)
 from djng.styling.bootstrap3.forms import Bootstrap3FormMixin
 
 from localflavor.us.us_states import US_STATES
@@ -17,8 +23,9 @@ from ws.membership import MERCHANT_ID, PAYMENT_TYPE
 from ws.utils.signups import non_trip_participants
 
 
-class DjangularRequiredModelForm(NgFormValidationMixin, NgModelFormMixin,
-                                 Bootstrap3FormMixin, NgModelForm):
+class DjangularRequiredModelForm(
+    NgFormValidationMixin, NgModelFormMixin, Bootstrap3FormMixin, NgModelForm
+):
     required_css_class = 'required'
 
 
@@ -48,14 +55,14 @@ class DiscountForm(forms.ModelForm):
 
 
 class ParticipantForm(DjangularRequiredModelForm):
-    name = RegexField(regex=r'^.* ',
-                      error_messages={"invalid": "Please use your full name"})
+    name = RegexField(
+        regex=r'^.* ', error_messages={"invalid": "Please use your full name"}
+    )
 
     class Meta:
         model = models.Participant
         fields = ['name', 'email', 'cell_phone', 'affiliation']
-        widgets = {'email': forms.Select(),
-                   'cell_phone': widgets.PhoneInput}
+        widgets = {'email': forms.Select(), 'cell_phone': widgets.PhoneInput}
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user')
@@ -66,10 +73,8 @@ class ParticipantForm(DjangularRequiredModelForm):
             kwargs['instance'].affiliation = ''
         super().__init__(*args, **kwargs)
 
-        self.verified_emails = (
-            user.emailaddress_set
-            .filter(verified=True)
-            .values_list('email', flat=True)
+        self.verified_emails = user.emailaddress_set.filter(verified=True).values_list(
+            'email', flat=True
         )
         choices = [(email, email) for email in self.verified_emails]
         self.fields['email'].widget.choices = choices
@@ -84,13 +89,16 @@ class ParticipantForm(DjangularRequiredModelForm):
         if affiliation not in mit_student_codes:
             return affiliation  # Nothing extra needs to be done!
         if not any(email.lower().endswith('mit.edu') for email in self.verified_emails):
-            raise ValidationError("MIT email address required for student affiliation!",
-                                  code="lacks_mit_email")
+            raise ValidationError(
+                "MIT email address required for student affiliation!",
+                code="lacks_mit_email",
+            )
         return affiliation
 
 
 class ParticipantLookupForm(forms.Form):
     """ Perform lookup of a given participant, loading on selection. """
+
     participant = forms.ModelChoiceField(queryset=models.Participant.objects.all())
 
     def __init__(self, *args, **kwargs):
@@ -114,22 +122,22 @@ class CarForm(DjangularRequiredModelForm):
     class Meta:
         model = models.Car
         fields = ['license_plate', 'state', 'make', 'model', 'year', 'color']
-        widgets = {'state': forms.Select(choices=US_STATES),
-                   'year': forms.NumberInput(attrs={'min': model.year_min,
-                                                    'max': model.year_max})}
+        widgets = {
+            'state': forms.Select(choices=US_STATES),
+            'year': forms.NumberInput(
+                attrs={'min': model.year_min, 'max': model.year_max}
+            ),
+        }
 
 
 class EmergencyContactForm(DjangularRequiredModelForm):
-
     class Meta:
         model = models.EmergencyContact
         fields = ['name', 'email', 'cell_phone', 'relationship']
-        widgets = {'email': forms.TextInput(),
-                   'cell_phone': widgets.PhoneInput}
+        widgets = {'email': forms.TextInput(), 'cell_phone': widgets.PhoneInput}
 
 
 class EmergencyInfoForm(DjangularRequiredModelForm):
-
     class Meta:
         model = models.EmergencyInfo
         fields = ['allergies', 'medications', 'medical_history']
@@ -148,6 +156,7 @@ class ApplicationLeaderForm(DjangularRequiredModelForm):
     Since the participant and activity are given by the application itself,
     we need not include those an options in the form.
     """
+
     recommendation = BooleanField(required=False, label="Is a recommendation")
 
     class Meta:
@@ -158,6 +167,7 @@ class ApplicationLeaderForm(DjangularRequiredModelForm):
 
 class LeaderForm(DjangularRequiredModelForm):
     """ Allows assigning a rating to participants in any allowed activity. """
+
     def __init__(self, *args, **kwargs):
         allowed_activities = kwargs.pop("allowed_activities", None)
         hide_activity = kwargs.pop('hide_activity', False)
@@ -169,8 +179,11 @@ class LeaderForm(DjangularRequiredModelForm):
         self.fields['participant'].empty_label = 'Nobody'
 
         if allowed_activities is not None:
-            activities = [activity for activity in self.fields['activity'].choices
-                          if activity[0] in allowed_activities]
+            activities = [
+                activity
+                for activity in self.fields['activity'].choices
+                if activity[0] in allowed_activities
+            ]
             self.fields['activity'].choices = activities
             if activities:
                 self.fields['activity'].initial = activities[0]
@@ -180,57 +193,83 @@ class LeaderForm(DjangularRequiredModelForm):
     class Meta:
         model = models.LeaderRating
         fields = ['participant', 'activity', 'rating', 'notes']
-        widgets = {'notes': forms.Textarea(attrs={'rows': 4}),
-                   'participant': widgets.ParticipantSelect}
+        widgets = {
+            'notes': forms.Textarea(attrs={'rows': 4}),
+            'participant': widgets.ParticipantSelect,
+        }
 
 
 class TripInfoForm(DjangularRequiredModelForm):
     accurate = BooleanField(
-        required=True, label=('I affirm that all participant '
-                              'and driver information is correct')
+        required=True,
+        label=('I affirm that all participant ' 'and driver information is correct'),
     )
 
     class Meta:
         model = models.TripInfo
-        fields = ['drivers', 'start_location', 'start_time', 'turnaround_time',
-                  'return_time', 'worry_time', 'itinerary']
+        fields = [
+            'drivers',
+            'start_location',
+            'start_time',
+            'turnaround_time',
+            'return_time',
+            'worry_time',
+            'itinerary',
+        ]
 
 
 class TripForm(DjangularRequiredModelForm):
-
     class Meta:
         model = models.Trip
-        fields = ['activity', 'name', 'leaders', 'wimp',
-                  'allow_leader_signups',
-                  'description', 'trip_date',
-                  'algorithm', 'signups_open_at', 'signups_close_at',
-                  'let_participants_drop', 'honor_participant_pairing',
-                  'membership_required',
-                  'maximum_participants', 'difficulty_rating', 'level',
-                  'prereqs', 'notes']
-        ex_notes = (" 1. Do you have any dietary restrictions?\n"
-                    " 2. What's your experience level?\n"
-                    " 3. What are you most excited about?\n")
-        ex_descr = '\n'.join([
-            "We'll be heading up into the [Whites][whites] "
-            "for a ~~day~~ weekend of exploring!",
-            "",
-            "### Why?",
-            "Because it's _fun_!",
-            "",
-            "Prerequisites:",
-            " - Enthusiastic attitude",
-            " - Prior experience",
-            " - **Proper clothing**",
-            "",
-            "[whites]: https://wikipedia.org/wiki/White_Mountains_(New_Hampshire)",
-        ])
+        fields = [
+            'activity',
+            'name',
+            'leaders',
+            'wimp',
+            'allow_leader_signups',
+            'description',
+            'trip_date',
+            'algorithm',
+            'signups_open_at',
+            'signups_close_at',
+            'let_participants_drop',
+            'honor_participant_pairing',
+            'membership_required',
+            'maximum_participants',
+            'difficulty_rating',
+            'level',
+            'prereqs',
+            'notes',
+        ]
+        ex_notes = (
+            " 1. Do you have any dietary restrictions?\n"
+            " 2. What's your experience level?\n"
+            " 3. What are you most excited about?\n"
+        )
+        ex_descr = '\n'.join(
+            [
+                "We'll be heading up into the [Whites][whites] "
+                "for a ~~day~~ weekend of exploring!",
+                "",
+                "### Why?",
+                "Because it's _fun_!",
+                "",
+                "Prerequisites:",
+                " - Enthusiastic attitude",
+                " - Prior experience",
+                " - **Proper clothing**",
+                "",
+                "[whites]: https://wikipedia.org/wiki/White_Mountains_(New_Hampshire)",
+            ]
+        )
 
-        widgets = {'leaders': widgets.LeaderSelect,
-                   'wimp': widgets.ParticipantSelect,
-                   'description': widgets.MarkdownTextarea(ex_descr),
-                   'notes': widgets.MarkdownTextarea(ex_notes),
-                   'trip_date': widgets.BootstrapDateInput()}
+        widgets = {
+            'leaders': widgets.LeaderSelect,
+            'wimp': widgets.ParticipantSelect,
+            'description': widgets.MarkdownTextarea(ex_descr),
+            'notes': widgets.MarkdownTextarea(ex_notes),
+            'trip_date': widgets.BootstrapDateInput(),
+        }
 
     def clean_membership_required(self):
         """ Ensure that all WS trips require membership. """
@@ -243,8 +282,10 @@ class TripForm(DjangularRequiredModelForm):
         new_max = self.cleaned_data['maximum_participants']
         accepted_signups = trip.signup_set.filter(on_trip=True).count()
         if self.instance and accepted_signups > new_max:
-            msg = ("Can't shrink trip past number of signed-up participants. "
-                   "To remove participants, admin this trip instead.")
+            msg = (
+                "Can't shrink trip past number of signed-up participants. "
+                "To remove participants, admin this trip instead."
+            )
             raise ValidationError(msg)
         return new_max
 
@@ -296,8 +337,11 @@ class TripForm(DjangularRequiredModelForm):
         self.fields['level'].required = activity == 'winter_school' or not activity
 
         if allowed_activities is not None:
-            activities = [vl for vl in self.fields['activity'].choices
-                          if vl[0] in allowed_activities]
+            activities = [
+                vl
+                for vl in self.fields['activity'].choices
+                if vl[0] in allowed_activities
+            ]
             self.fields['activity'].choices = activities
 
         self._init_wimp()
@@ -339,11 +383,15 @@ class LeaderSignUpForm(SignUpForm):
 
 class LeaderParticipantSignUpForm(RequiredModelForm):
     """ For leaders to sign up participants. Notes aren't required. """
+
     top_spot = BooleanField(
-        required=False, label='Move to top spot',
-        help_text=('Move the participant above other prioritized waitlist '
-                   'spots (e.g. participants previously added with this form, '
-                   'or those who were bumped off to allow a driver on)')
+        required=False,
+        label='Move to top spot',
+        help_text=(
+            'Move the participant above other prioritized waitlist '
+            'spots (e.g. participants previously added with this form, '
+            'or those who were bumped off to allow a driver on)'
+        ),
     )
 
     class Meta:
@@ -362,7 +410,9 @@ class LotteryInfoForm(DjangularRequiredModelForm):
     class Meta:
         model = models.LotteryInfo
         fields = ['car_status', 'number_of_passengers']
-        widgets = {'car_status': forms.RadioSelect(attrs={'onclick': 'handle_driver(this);'})}
+        widgets = {
+            'car_status': forms.RadioSelect(attrs={'onclick': 'handle_driver(this);'})
+        }
 
 
 class LotteryPairForm(DjangularRequiredModelForm):
@@ -415,13 +465,15 @@ def LeaderApplicationForm(*args, **kwargs):
         class Meta:
             exclude = ['year', 'participant', 'previous_rating']
             model = models.LeaderApplication.model_from_activity(activity)
-            widgets = {field.name: forms.Textarea(attrs={'rows': 4})
-                       for field in model._meta.fields
-                       if isinstance(field, TextField)}
+            widgets = {
+                field.name: forms.Textarea(attrs={'rows': 4})
+                for field in model._meta.fields
+                if isinstance(field, TextField)
+            }
 
         def __init__(self, *args, **kwargs):
             # TODO: Errors on args, where args is a single tuple of the view
-            #super().__init__(*args, **kwargs)
+            # super().__init__(*args, **kwargs)
             super().__init__(**kwargs)
 
     return DynamicActivityForm(*args, **kwargs)
@@ -433,6 +485,7 @@ def amount_choices(value_is_amount=False):
     if `value_is_amount` is True, we'll replace the two-letter affiliation
     with the price as the choice's value.
     """
+
     def include_amount_in_label(affiliation, label):
         amount = models.Participant.affiliation_to_membership_price(affiliation)
         value = amount if value_is_amount else affiliation
@@ -452,16 +505,20 @@ class DuesForm(NgFormValidationMixin, Bootstrap3FormMixin, NgForm):
     description = CharField(widget=forms.HiddenInput(), initial='membership fees.')
 
     merchantDefinedData1 = CharField(widget=forms.HiddenInput(), initial=PAYMENT_TYPE)
-    merchantDefinedData2 = ChoiceField(required=True, label='Affiliation',
-                                       choices=list(amount_choices()))
+    merchantDefinedData2 = ChoiceField(
+        required=True, label='Affiliation', choices=list(amount_choices())
+    )
     merchantDefinedData3 = EmailField(required=True, label='Email')
 
     # For Participant-less users with JS enabled, this will be hidden & silently
     # set by an Angular directive that updates the amount based on the affiliation.
     # For users _without_ JavaScript, it will display as a Select widget.
-    amount = ChoiceField(label='Please confirm membership level', required=True,
-                         help_text="(We're showing this because you have scripts disabled)",
-                         choices=list(amount_choices(value_is_amount=True)))
+    amount = ChoiceField(
+        label='Please confirm membership level',
+        required=True,
+        help_text="(We're showing this because you have scripts disabled)",
+        choices=list(amount_choices(value_is_amount=True)),
+    )
 
     def __init__(self, *args, **kwargs):
         participant = kwargs.pop('participant')

@@ -10,11 +10,16 @@ class MarkdownTextarea(dj_widgets.Textarea):
 
     The box will be at least as large as is necessary to display the Markdown.
     """
+
     def __init__(self, example_text=None):
         attrs = {'rows': 4}
         if example_text:
-            attrs.update({'rows': max(4, example_text.count('\n') + 1),
-                          'placeholder': example_text})
+            attrs.update(
+                {
+                    'rows': max(4, example_text.count('\n') + 1),
+                    'placeholder': example_text,
+                }
+            )
 
         super().__init__(attrs)
 
@@ -25,6 +30,7 @@ class BootstrapDateInput(dj_widgets.DateInput):
     If passing in "format," it must comply to Angular's date filter:
         https://docs.angularjs.org/api/ng/filter/date
     """
+
     def _set_datepicker_settings(self):
         """ Configure the datepicker with directive arguments. """
         self.attrs['data-uib-datepicker-popup'] = self.format or 'yyyy-MM-dd'
@@ -51,7 +57,9 @@ class BootstrapDateInput(dj_widgets.DateInput):
                     </button>
                   </span>
                   {}
-               </span>'''.format(self.attrs[is_open], date_input)
+               </span>'''.format(
+                self.attrs[is_open], date_input
+            )
         )
 
 
@@ -68,20 +76,21 @@ class ParticipantSelect(dj_widgets.Select):
     def render(self, name, value, attrs=None, choices=()):
         attrs.update(name=name)
         final_attrs = self.build_attrs(self.attrs, attrs)
-        return format_html('<participant-select {}></participant-select>',
-                           flatatt(final_attrs))
+        return format_html(
+            '<participant-select {}></participant-select>', flatatt(final_attrs)
+        )
 
 
 class PhoneInput(dj_widgets.Input):
     def render(self, name, value, attrs=None):
-        attrs.update({
-            'default-country': 'us',
-            'preferred-countries': 'us ca',
-            'name': name
-        })
+        attrs.update(
+            {'default-country': 'us', 'preferred-countries': 'us ca', 'name': name}
+        )
         final_attrs = self.build_attrs(self.attrs, attrs)
         # Use a hack to init ng-model
         ng_model_init = {'ng-model': final_attrs['ng-model'], 'value': value}
-        return format_html('<input type="hidden" {}/>' +
-                           '<bc-phone-number {}></bc-phone-number>',
-                           flatatt(ng_model_init), flatatt(final_attrs))
+        return format_html(
+            '<input type="hidden" {}/>' + '<bc-phone-number {}></bc-phone-number>',
+            flatatt(ng_model_init),
+            flatatt(final_attrs),
+        )

@@ -7,14 +7,15 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('ws', '0004_cached_membership'),
-    ]
+    dependencies = [('ws', '0004_cached_membership')]
 
     operations = [
         migrations.AddField(
             model_name='trip',
             name='membership_required',
-            field=models.BooleanField(default=True, help_text='Require an active MITOC membership to participate. If disabled, only waivers will be mandated.'),
-        ),
+            field=models.BooleanField(
+                default=True,
+                help_text='Require an active MITOC membership to participate. If disabled, only waivers will be mandated.',
+            ),
+        )
     ]

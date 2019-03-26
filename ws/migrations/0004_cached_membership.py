@@ -9,23 +9,48 @@ import ws.fields
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('ws', '0003_trip_wimp'),
-    ]
+    dependencies = [('ws', '0003_trip_wimp')]
 
     operations = [
         migrations.CreateModel(
             name='Membership',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('membership_expires', models.DateField(blank=True, help_text='Last day that annual membership dues are valid', null=True)),
-                ('waiver_expires', models.DateField(blank=True, help_text='Day after which liability waiver is no longer valid', null=True)),
+                (
+                    'id',
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name='ID',
+                    ),
+                ),
+                (
+                    'membership_expires',
+                    models.DateField(
+                        blank=True,
+                        help_text='Last day that annual membership dues are valid',
+                        null=True,
+                    ),
+                ),
+                (
+                    'waiver_expires',
+                    models.DateField(
+                        blank=True,
+                        help_text='Day after which liability waiver is no longer valid',
+                        null=True,
+                    ),
+                ),
                 ('last_cached', models.DateTimeField(auto_now=True)),
             ],
         ),
         migrations.AddField(
             model_name='participant',
             name='membership',
-            field=ws.fields.OptionalOneToOneField(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='ws.Membership'),
+            field=ws.fields.OptionalOneToOneField(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to='ws.Membership',
+            ),
         ),
     ]

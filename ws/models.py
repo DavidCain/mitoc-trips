@@ -28,8 +28,9 @@ from ws.utils.avatar import avatar_url
 pytz_timezone = timezone.get_default_timezone()
 
 
-alphanum = RegexValidator(r'^[a-zA-Z0-9 ]*$',
-                          "Only alphanumeric characters and spaces allowed")
+alphanum = RegexValidator(
+    r'^[a-zA-Z0-9 ]*$', "Only alphanumeric characters and spaces allowed"
+)
 
 
 class SingletonModel(models.Model):
@@ -60,13 +61,16 @@ class Car(models.Model):
     state = USStateField()
     make = models.CharField(max_length=63)
     model = models.CharField(max_length=63)
-    year = models.PositiveIntegerField(validators=[MaxValueValidator(year_max),
-                                                   MinValueValidator(year_min)])
+    year = models.PositiveIntegerField(
+        validators=[MaxValueValidator(year_max), MinValueValidator(year_min)]
+    )
     color = models.CharField(max_length=63)
 
     def __str__(self):
-        return (f"{self.color} {self.year} {self.make} "
-                f"{self.model} {self.license_plate} ({self.state})")
+        return (
+            f"{self.color} {self.year} {self.make} "
+            f"{self.model} {self.license_plate} ({self.state})"
+        )
 
 
 class EmergencyContact(models.Model):
@@ -84,12 +88,16 @@ class EmergencyInfo(models.Model):
     allergies = models.CharField(max_length=255)
     medications = models.CharField(max_length=255)
     medical_history = models.TextField(
-        max_length=2000, help_text="Anything your trip leader would want to know about.")
+        max_length=2000, help_text="Anything your trip leader would want to know about."
+    )
 
     def __str__(self):
-        return ("Allergies: {} | Medications: {} | History: {} | "
-                "Contact: {}".format(self.allergies, self.medications,
-                                     self.medical_history, self.emergency_contact))
+        return "Allergies: {} | Medications: {} | History: {} | " "Contact: {}".format(
+            self.allergies,
+            self.medications,
+            self.medical_history,
+            self.emergency_contact,
+        )
 
 
 class LeaderManager(models.Manager):
@@ -101,34 +109,48 @@ class LeaderManager(models.Manager):
 
 class Discount(models.Model):
     """ Discount at another company available to MITOC members. """
-    administrators = models.ManyToManyField(
-        'Participant', blank=True, help_text="Persons selected to administer this discount",
-        related_name='discounts_administered')
 
-    active = models.BooleanField(default=True, help_text="Discount is currently open & active")
+    administrators = models.ManyToManyField(
+        'Participant',
+        blank=True,
+        help_text="Persons selected to administer this discount",
+        related_name='discounts_administered',
+    )
+
+    active = models.BooleanField(
+        default=True, help_text="Discount is currently open & active"
+    )
     name = models.CharField(max_length=255)
     summary = models.CharField(max_length=255)
     terms = models.TextField(max_length=4095)
     url = models.URLField(null=True, blank=True)
     ga_key = models.CharField(
-        max_length=63, help_text="key for Google spreadsheet with membership information "
-                                 "(shared as read-only with the company)")
+        max_length=63,
+        help_text="key for Google spreadsheet with membership information "
+        "(shared as read-only with the company)",
+    )
 
     time_created = models.DateTimeField(auto_now_add=True)
     last_updated = models.DateTimeField(auto_now=True)
 
     student_required = models.BooleanField(
-        default=False, help_text="Discount provider requires recipients to be students")
+        default=False, help_text="Discount provider requires recipients to be students"
+    )
 
     report_school = models.BooleanField(
-        default=False, help_text="Report MIT affiliation if participant is a student")
+        default=False, help_text="Report MIT affiliation if participant is a student"
+    )
     report_student = models.BooleanField(
-        default=False, help_text="Report MIT affiliation and student status to discount provider")
+        default=False,
+        help_text="Report MIT affiliation and student status to discount provider",
+    )
     report_leader = models.BooleanField(
-        default=False, help_text="Report MITOC leader status to discount provider")
+        default=False, help_text="Report MITOC leader status to discount provider"
+    )
     report_access = models.BooleanField(
         default=False,
-        help_text="Report if participant should have leader, student, or admin level access")
+        help_text="Report if participant should have leader, student, or admin level access",
+    )
 
     def __str__(self):
         return self.name
@@ -152,10 +174,17 @@ class Membership(models.Model):
     update membership accounts, and that does not (currently) automatically
     notify this system.
     """
+
     membership_expires = models.DateField(
-        null=True, blank=True, help_text="Last day that annual membership dues are valid")
+        null=True,
+        blank=True,
+        help_text="Last day that annual membership dues are valid",
+    )
     waiver_expires = models.DateField(
-        null=True, blank=True, help_text="Day after which liability waiver is no longer valid")
+        null=True,
+        blank=True,
+        help_text="Day after which liability waiver is no longer valid",
+    )
     last_cached = models.DateTimeField(auto_now=True)
 
     @property
@@ -191,9 +220,11 @@ class Membership(models.Model):
         return self.waiver_expires and self.waiver_expires >= day
 
     def __str__(self):
-        return (f"{self.participant.name}, "
-                f"membership: {self.membership_expires}, "
-                f"waiver: {self.waiver_expires}")
+        return (
+            f"{self.participant.name}, "
+            f"membership: {self.membership_expires}, "
+            f"waiver: {self.waiver_expires}"
+        )
 
 
 class Participant(models.Model):
@@ -201,6 +232,7 @@ class Participant(models.Model):
 
     Even leaders will have a Participant record (see docstring of LeaderRating).
     """
+
     user_id = models.IntegerField()  # Technically a FK, but to another DB
 
     objects = models.Manager()
@@ -208,34 +240,48 @@ class Participant(models.Model):
     name = models.CharField(max_length=255)
     cell_phone = PhoneNumberField(blank=True)  # Hi, Sheep.
     last_updated = models.DateTimeField(auto_now=True)
-    profile_last_updated = models.DateTimeField(auto_now_add=True)  # _Must_ be done by participant
+    # `profile_last_updated` is only set when the _participant_ edits their profile
+    profile_last_updated = models.DateTimeField(auto_now_add=True)
     emergency_info = models.OneToOneField(EmergencyInfo, on_delete=models.CASCADE)
     email = models.EmailField(
         unique=True,
-        help_text=string_concat("This will be shared with leaders & other participants. <a href='",
-                                reverse_lazy('account_email'),
-                                "'>Manage email addresses</a>."))
+        help_text=string_concat(
+            "This will be shared with leaders & other participants. <a href='",
+            reverse_lazy('account_email'),
+            "'>Manage email addresses</a>.",
+        ),
+    )
     gravatar_opt_out = models.BooleanField(
         default=False,
         verbose_name="Opt out of Gravatar",
-        help_text="Don't use Gravatar to show an avatar for this account")
+        help_text="Don't use Gravatar to show an avatar for this account",
+    )
     car = OptionalOneToOneField(Car, on_delete=models.CASCADE)
 
     membership = OptionalOneToOneField(Membership, on_delete=models.CASCADE)
 
     AFFILIATION_CHOICES = [
-        ('Undergraduate student', [
-            (affiliations.MIT_UNDERGRAD.CODE, "MIT undergrad"),
-            (affiliations.NON_MIT_UNDERGRAD.CODE, "Non-MIT undergrad"),
-        ]),
-        ('Graduate student', [
-            (affiliations.MIT_GRAD_STUDENT.CODE, "MIT grad student"),
-            (affiliations.NON_MIT_GRAD_STUDENT.CODE, "Non-MIT grad student"),
-        ]),
-        ('MIT', [
-            (affiliations.MIT_AFFILIATE.CODE, 'MIT affiliate (staff or faculty)'),
-            (affiliations.MIT_ALUM.CODE, "MIT alum (former student)"),
-        ]),
+        (
+            'Undergraduate student',
+            [
+                (affiliations.MIT_UNDERGRAD.CODE, "MIT undergrad"),
+                (affiliations.NON_MIT_UNDERGRAD.CODE, "Non-MIT undergrad"),
+            ],
+        ),
+        (
+            'Graduate student',
+            [
+                (affiliations.MIT_GRAD_STUDENT.CODE, "MIT grad student"),
+                (affiliations.NON_MIT_GRAD_STUDENT.CODE, "Non-MIT grad student"),
+            ],
+        ),
+        (
+            'MIT',
+            [
+                (affiliations.MIT_AFFILIATE.CODE, 'MIT affiliate (staff or faculty)'),
+                (affiliations.MIT_ALUM.CODE, "MIT alum (former student)"),
+            ],
+        ),
         (affiliations.NON_AFFILIATE.CODE, 'Non-affiliate'),
     ]
     # We used to not collect level of student + MIT affiliation
@@ -292,7 +338,9 @@ class Participant(models.Model):
         safe_messages = []
 
         if not self.emergency_info.emergency_contact.cell_phone:
-            safe_messages.append("Please supply a valid number for your emergency contact.")
+            safe_messages.append(
+                "Please supply a valid number for your emergency contact."
+            )
         if ' ' not in self.name:  # pylint: disable=unsupported-membership-test
             safe_messages.append("Please supply your full legal name.")
 
@@ -396,8 +444,9 @@ class Participant(models.Model):
         """
         # (We do this in raw Python instead of `filter()` to avoid n+1 queries
         # This method should be called when leaderrating_set was prefetched
-        ratings = (r for r in self.leaderrating_set.all()
-                   if r.active or not rating_active)
+        ratings = (
+            r for r in self.leaderrating_set.all() if r.active or not rating_active
+        )
         if at_time:
             ratings = (r for r in ratings if r.time_created <= at_time)
         if after_time:
@@ -469,10 +518,12 @@ class LectureAttendance(models.Model):
     year = models.PositiveIntegerField(
         validators=[MinValueValidator(2016)],
         default=dateutils.ws_year,
-        help_text="Winter School year when lectures were attended.")
+        help_text="Winter School year when lectures were attended.",
+    )
     participant = models.ForeignKey(Participant, on_delete=models.CASCADE)
     creator = models.ForeignKey(
-        Participant, related_name='lecture_attendances_marked', on_delete=models.CASCADE)
+        Participant, related_name='lecture_attendances_marked', on_delete=models.CASCADE
+    )
     time_created = models.DateTimeField(auto_now_add=True)
 
 
@@ -481,12 +532,15 @@ class WinterSchoolSettings(SingletonModel):
 
     These settings should only be modified by the WS chair.
     """
+
     time_created = models.DateTimeField(auto_now_add=True)
     last_updated = models.DateTimeField(auto_now=True)
     last_updated_by = models.ForeignKey(
-        Participant, null=True, blank=True, on_delete=models.CASCADE)
+        Participant, null=True, blank=True, on_delete=models.CASCADE
+    )
     allow_setting_attendance = models.BooleanField(
-        default=False, verbose_name="Let participants set lecture attendance")
+        default=False, verbose_name="Let participants set lecture attendance"
+    )
 
 
 class MentorActivity(models.Model):
@@ -496,6 +550,7 @@ class MentorActivity(models.Model):
     chairs (and which one might receive a leader rating). These activities
     exist as constants on the BaseRating class.
     """
+
     name = models.CharField(max_length=31, unique=True)
 
     def __str__(self):
@@ -561,14 +616,17 @@ class LeaderRating(BaseRating):
     It also allows leaders to function as participants (e.g. if a "SC" leader
     wants to go ice climbing).
     """
+
     creator = models.ForeignKey(
-        Participant, related_name='ratings_created', on_delete=models.CASCADE)
+        Participant, related_name='ratings_created', on_delete=models.CASCADE
+    )
     active = models.BooleanField(default=True)
 
 
 class LeaderRecommendation(BaseRating):
     creator = models.ForeignKey(
-        Participant, related_name='recommendations_created', on_delete=models.CASCADE)
+        Participant, related_name='recommendations_created', on_delete=models.CASCADE
+    )
 
 
 class BaseSignUp(models.Model):
@@ -587,6 +645,7 @@ class BaseSignUp(models.Model):
 
 class LeaderSignUp(BaseSignUp):
     """ Represents a leader who has signed up to join a trip. """
+
     class Meta:
         ordering = ["time_created"]
         unique_together = ('participant', 'trip')
@@ -597,6 +656,7 @@ class SignUp(BaseSignUp):
 
     The time of creation determines ordering in first-come, first-serve.
     """
+
     order = models.IntegerField(null=True, blank=True)  # As ranked by participant
     manual_order = models.IntegerField(null=True, blank=True)  # Order on trip
 
@@ -623,96 +683,130 @@ class SignUp(BaseSignUp):
 
 class TripInfo(models.Model):
     drivers = models.ManyToManyField(
-        Participant, blank=True,
-        help_text=string_concat("If a trip participant is driving, but is not on this list, "
-                                "they must first submit <a href='",
-                                reverse_lazy('edit_profile'),
-                                "#car'>information about their car</a>. "
-                                "They should then be added here."))
+        Participant,
+        blank=True,
+        help_text=string_concat(
+            "If a trip participant is driving, but is not on this list, "
+            "they must first submit <a href='",
+            reverse_lazy('edit_profile'),
+            "#car'>information about their car</a>. " "They should then be added here.",
+        ),
+    )
     start_location = models.CharField(max_length=127)
     start_time = models.CharField(max_length=63)
     turnaround_time = models.CharField(
-        max_length=63, blank=True,
-        help_text="The time at which you'll turn back and head for your car/starting location")
+        max_length=63,
+        blank=True,
+        help_text="The time at which you'll turn back and head for your car/starting location",
+    )
     return_time = models.CharField(
         max_length=63,
         help_text="When you expect to return to your car/starting location "
-                  "and be able to call the WIMP")
+        "and be able to call the WIMP",
+    )
     worry_time = models.CharField(
         max_length=63,
         help_text="Suggested: return time +3 hours. "
-                  "If the WIMP has not heard from you after this time and is unable "
-                  "to make contact with any leaders or participants, "
-                  "the authorities will be called.")
+        "If the WIMP has not heard from you after this time and is unable "
+        "to make contact with any leaders or participants, "
+        "the authorities will be called.",
+    )
     itinerary = models.TextField(
         help_text="A detailed account of your trip plan. "
-                  "Where will you be going? What route will you be taking? "
-                  "Include trails, peaks, intermediate destinations, back-up plans- "
-                  "anything that would help rescuers find you.")
+        "Where will you be going? What route will you be taking? "
+        "Include trails, peaks, intermediate destinations, back-up plans- "
+        "anything that would help rescuers find you."
+    )
 
 
 class Trip(models.Model):
-    activity = models.CharField(max_length=31,
-                                choices=LeaderRating.ACTIVITY_CHOICES,
-                                default=LeaderRating.WINTER_SCHOOL)
-    creator = models.ForeignKey(Participant, related_name='created_trips', on_delete=models.CASCADE)
+    activity = models.CharField(
+        max_length=31,
+        choices=LeaderRating.ACTIVITY_CHOICES,
+        default=LeaderRating.WINTER_SCHOOL,
+    )
+    creator = models.ForeignKey(
+        Participant, related_name='created_trips', on_delete=models.CASCADE
+    )
     # Leaders should be privileged at time of trip creation, but may no longer
     # be leaders later (and we don't want to break the relation)
     leaders = models.ManyToManyField(Participant, related_name='trips_led', blank=True)
     wimp = models.ForeignKey(
-        Participant, null=True, blank=True,
-        related_name='wimp_trips', verbose_name='WIMP',
+        Participant,
+        null=True,
+        blank=True,
+        related_name='wimp_trips',
+        verbose_name='WIMP',
         on_delete=models.CASCADE,
         help_text="Ensures the trip returns safely. "
-                  "Can view trip itinerary, participant medical info.")
+        "Can view trip itinerary, participant medical info.",
+    )
     allow_leader_signups = models.BooleanField(
         default=False,
         help_text="Allow leaders to sign themselves up as trip leaders. "
-                  "(Leaders can always sign up as participants). Recommended for Circuses!")
+        "(Leaders can always sign up as participants). Recommended for Circuses!",
+    )
     name = models.CharField(max_length=127)
     description = models.TextField(
         help_text=mark_safe(
             '<a href="https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet">'
             "Markdown</a> supported! "
-            'Please use HTTPS images sparingly, and only if properly licensed.'))
-    maximum_participants = models.PositiveIntegerField(default=8, verbose_name="Max participants")
+            'Please use HTTPS images sparingly, and only if properly licensed.'
+        )
+    )
+    maximum_participants = models.PositiveIntegerField(
+        default=8, verbose_name="Max participants"
+    )
     difficulty_rating = models.CharField(max_length=63)
     level = models.CharField(
-        max_length=255, null=True, blank=True,
-        help_text="This trip's A, B, or C designation (plus I/S rating if applicable).")
+        max_length=255,
+        null=True,
+        blank=True,
+        help_text="This trip's A, B, or C designation (plus I/S rating if applicable).",
+    )
     prereqs = models.CharField(max_length=255, blank=True, verbose_name="Prerequisites")
     chair_approved = models.BooleanField(default=False)
     notes = models.TextField(
-        blank=True, max_length=2000,
+        blank=True,
+        max_length=2000,
         help_text="Participants must add notes to their signups if you complete this field. "
-                  "This is a great place to ask important questions.")
+        "This is a great place to ask important questions.",
+    )
 
     time_created = models.DateTimeField(auto_now_add=True)
     last_edited = models.DateTimeField(auto_now=True)
     trip_date = models.DateField(default=dateutils.nearest_sat)
     signups_open_at = models.DateTimeField(default=timezone.now)
-    signups_close_at = models.DateTimeField(default=dateutils.wed_morning, null=True, blank=True)
+    signups_close_at = models.DateTimeField(
+        default=dateutils.wed_morning, null=True, blank=True
+    )
 
     let_participants_drop = models.BooleanField(
         default=False,
         help_text="Allow participants to remove themselves "
-                  "from the trip any time before its start date.")
+        "from the trip any time before its start date.",
+    )
     honor_participant_pairing = models.BooleanField(
-        default=True,
-        help_text="Try to place paired participants together on the trip.")
+        default=True, help_text="Try to place paired participants together on the trip."
+    )
     membership_required = models.BooleanField(
         default=True,
         help_text="Require an active MITOC membership to participate. "
-                  "If disabled, only waivers will be mandated.")
+        "If disabled, only waivers will be mandated.",
+    )
 
     info = OptionalOneToOneField(TripInfo, on_delete=models.CASCADE)
 
     signed_up_participants = models.ManyToManyField(Participant, through=SignUp)
-    algorithm = models.CharField(max_length=31, default='lottery',
-                                 choices=[('lottery', 'lottery'),
-                                          ('fcfs', 'first-come, first-serve')])
+    algorithm = models.CharField(
+        max_length=31,
+        default='lottery',
+        choices=[('lottery', 'lottery'), ('fcfs', 'first-come, first-serve')],
+    )
 
-    lottery_task_id = models.CharField(max_length=36, unique=True, null=True, blank=True)
+    lottery_task_id = models.CharField(
+        max_length=36, unique=True, null=True, blank=True
+    )
     lottery_log = models.TextField(null=True, blank=True)
 
     def __str__(self):
@@ -725,14 +819,13 @@ class Trip(models.Model):
     @property
     def on_trip_or_waitlisted(self):
         """ All signups for participants either on the trip or waitlisted. """
-        on_trip_or_waitlisted = (Q(on_trip=True) | Q(waitlistsignup__isnull=False))
+        on_trip_or_waitlisted = Q(on_trip=True) | Q(waitlistsignup__isnull=False)
         return self.signup_set.filter(on_trip_or_waitlisted)
 
     @property
     def within_three_days(self):
         """ Return a date range for use with Django's `range` function. """
-        return (self.trip_date - timedelta(days=3),
-                self.trip_date + timedelta(days=3))
+        return (self.trip_date - timedelta(days=3), self.trip_date + timedelta(days=3))
 
     def other_signups(self, par_pks):
         """ Return participant signups for trips happening around this time.
@@ -771,10 +864,14 @@ class Trip(models.Model):
             trips_by_par[signup.participant_id].append(signup.trip)
 
         # Some participants may also be leading other trips. Include those!
-        trips_led_by_participants = type(self).objects.filter(
-            leaders__in=par_pks,
-            trip_date__range=self.within_three_days
-        ).order_by('trip_date').annotate(leader_pk=F('leaders'))
+        trips_led_by_participants = (
+            type(self)
+            .objects.filter(
+                leaders__in=par_pks, trip_date__range=self.within_three_days
+            )
+            .order_by('trip_date')
+            .annotate(leader_pk=F('leaders'))
+        )
         for trip in trips_led_by_participants:
             trips_by_par[trip.leader_pk].append(trip)
             del trip.leader_pk  # Remove annotation so it's not accessed elsewhere
@@ -807,8 +904,9 @@ class Trip(models.Model):
         next_lottery = dateutils.next_lottery()
         past_lottery = dateutils.lottery_time(next_lottery - timedelta(days=7))
 
-        return (dateutils.local_now() > past_lottery and
-                self.midnight_before < next_lottery)
+        return (
+            dateutils.local_now() > past_lottery and self.midnight_before < next_lottery
+        )
 
     @property
     def midnight_before(self):
@@ -912,12 +1010,14 @@ class BygonesManager(models.Manager):
 
 class Feedback(models.Model):
     """ Feedback given for a participant on one trip. """
+
     objects = BygonesManager()  # By default, ignore feedback older than ~13 months
     everything = models.Manager()  # But give the option to look at older feedback
 
     participant = models.ForeignKey(Participant, on_delete=models.CASCADE)
     leader = models.ForeignKey(
-        Participant, related_name="authored_feedback", on_delete=models.CASCADE)
+        Participant, related_name="authored_feedback", on_delete=models.CASCADE
+    )
     showed_up = models.BooleanField(default=True)
     comments = models.TextField(max_length=2000)
     # Allows general feedback (i.e. not linked to a trip)
@@ -933,18 +1033,30 @@ class Feedback(models.Model):
 
 class LotteryInfo(models.Model):
     """ Persists from week-to-week, but can be changed. """
+
     participant = models.OneToOneField(Participant, on_delete=models.CASCADE)
-    car_status = models.CharField(max_length=7,
-                                  choices=[("none", "Not driving"),
-                                           ("own", "Can drive own car"),
-                                           ("rent", "Willing to rent")],
-                                  default="none")
+    car_status = models.CharField(
+        max_length=7,
+        choices=[
+            ("none", "Not driving"),
+            ("own", "Can drive own car"),
+            ("rent", "Willing to rent"),
+        ],
+        default="none",
+    )
     number_of_passengers = models.PositiveIntegerField(
-        null=True, blank=True,
-        validators=[MaxValueValidator(13, message="Do you drive a bus?")])
+        null=True,
+        blank=True,
+        validators=[MaxValueValidator(13, message="Do you drive a bus?")],
+    )
     last_updated = models.DateTimeField(auto_now=True)
-    paired_with = models.ForeignKey(Participant, null=True, blank=True,
-                                    related_name='paired_by', on_delete=models.CASCADE)
+    paired_with = models.ForeignKey(
+        Participant,
+        null=True,
+        blank=True,
+        related_name='paired_by',
+        on_delete=models.CASCADE,
+    )
 
     @property
     def reciprocally_paired_with(self):
@@ -986,12 +1098,17 @@ class LotteryAdjustment(models.Model):
     It's expected that each participant have no more than one adjustment in place
     at any given time.
     """
+
     time_created = models.DateTimeField(auto_now_add=True)
-    expires = models.DateTimeField(help_text="Time at which this override should no longer apply")
+    expires = models.DateTimeField(
+        help_text="Time at which this override should no longer apply"
+    )
     creator = models.ForeignKey(
-        Participant, on_delete=models.CASCADE, related_name='adjustments_made')
+        Participant, on_delete=models.CASCADE, related_name='adjustments_made'
+    )
     participant = models.ForeignKey(
-        Participant, on_delete=models.CASCADE, related_name='adjustments_received')
+        Participant, on_delete=models.CASCADE, related_name='adjustments_received'
+    )
 
     # Lower value: Ranked earlier in the lottery
     # Higher value: Ranked later in the lottery
@@ -1005,6 +1122,7 @@ class LotteryAdjustment(models.Model):
 
 class WaitListSignup(models.Model):
     """ Intermediary between initial signup and the trip's waiting list. """
+
     signup = models.OneToOneField(SignUp, on_delete=models.CASCADE)
     waitlist = models.ForeignKey("WaitList", on_delete=models.CASCADE)
     time_created = models.DateTimeField(auto_now_add=True)
@@ -1012,8 +1130,9 @@ class WaitListSignup(models.Model):
     manual_order = models.IntegerField(null=True, blank=True)
 
     def __str__(self):
-        return "{} waitlisted on {}".format(self.signup.participant.name,
-                                            self.signup.trip)
+        return "{} waitlisted on {}".format(
+            self.signup.participant.name, self.signup.trip
+        )
 
     class Meta:
         # None will come after after integer in reverse sorted,
@@ -1023,6 +1142,7 @@ class WaitListSignup(models.Model):
 
 class WaitList(models.Model):
     """ Treat the waiting list as a simple FIFO queue. """
+
     trip = models.OneToOneField(Trip, on_delete=models.CASCADE)
     unordered_signups = models.ManyToManyField(SignUp, through=WaitListSignup)
 
@@ -1053,20 +1173,25 @@ class LeaderApplication(models.Model):
 
        <Activity>LeaderApplication (naming matters, see code comments)
     """
+
     participant = models.ForeignKey(Participant, on_delete=models.CASCADE)
     time_created = models.DateTimeField(auto_now_add=True)
-    previous_rating = models.CharField(max_length=255, blank=True,
-                                       help_text="Previous rating (if any)")
-    #desired_rating = ... (a CharField, but can vary per application)
-    year = models.PositiveIntegerField(validators=[MinValueValidator(2014)],
-                                       default=dateutils.ws_year,
-                                       help_text="Year this application pertains to.")
+    previous_rating = models.CharField(
+        max_length=255, blank=True, help_text="Previous rating (if any)"
+    )
+    # desired_rating = ... (a CharField, but can vary per application)
+    year = models.PositiveIntegerField(
+        validators=[MinValueValidator(2014)],
+        default=dateutils.ws_year,
+        help_text="Year this application pertains to.",
+    )
 
     @property
     def rating_given(self):
         """ Return any activity rating created after this application. """
-        return self.participant.activity_rating(self.activity, rating_active=True,
-                                                after_time=self.time_created)
+        return self.participant.activity_rating(
+            self.activity, rating_active=True, after_time=self.time_created
+        )
 
     @property
     def application_year(self):
@@ -1094,7 +1219,7 @@ class LeaderApplication(models.Model):
         set db_name to be the activity without underscores.
         """
         model_name = ContentType.objects.get_for_model(self).model
-        activity = model_name[:model_name.rfind('leaderapplication')]
+        activity = model_name[: model_name.rfind('leaderapplication')]
         return 'winter_school' if activity == 'winterschool' else activity
 
     @staticmethod
@@ -1122,39 +1247,44 @@ class LeaderApplication(models.Model):
 
     class Meta:
         # Important!!! Child classes must be named: <activity>LeaderApplication
-        abstract = True   # See model_from_activity for more
+        abstract = True  # See model_from_activity for more
         ordering = ["time_created"]
 
 
 class HikingLeaderApplication(LeaderApplication):
     desired_rating = models.CharField(
         max_length=10,
-        choices=[("Leader", "Leader"),
-                 ("Co-Leader", "Co-Leader")],
+        choices=[("Leader", "Leader"), ("Co-Leader", "Co-Leader")],
         help_text="Co-Leader: Can co-lead a 3-season hiking trip with a Leader. "
-                  "Leader: Can run 3-season hiking trips.")
+        "Leader: Can run 3-season hiking trips.",
+    )
 
     mitoc_experience = models.TextField(
         max_length=5000,
         verbose_name="Hiking Experience with MITOC",
         help_text="How long have you been a MITOC member? "
-                  "Please indicate what official MITOC hikes and Circuses you have been on. "
-                  "Include approximate dates and locations, number of participants, "
-                  "trail conditions, type of trip, etc. Give details of whether you participated, "
-                  "led, or co-led these trips. "
-                  "[Optional]: If you like, briefly summarize your experience on unofficial trips "
-                  "or experience outside of New England.")
+        "Please indicate what official MITOC hikes and Circuses you have been on. "
+        "Include approximate dates and locations, number of participants, "
+        "trail conditions, type of trip, etc. Give details of whether you participated, "
+        "led, or co-led these trips. "
+        "[Optional]: If you like, briefly summarize your experience on unofficial trips "
+        "or experience outside of New England.",
+    )
     formal_training = models.TextField(
-        blank=True, max_length=5000,
+        blank=True,
+        max_length=5000,
         help_text="Please give details of any medical training and qualifications, with dates. "
-                  "Also include any other formal outdoor education or qualifications.")
+        "Also include any other formal outdoor education or qualifications.",
+    )
     leadership_experience = models.TextField(
-        blank=True, max_length=5000,
+        blank=True,
+        max_length=5000,
         verbose_name="Group outdoor/leadership experience",
         help_text="If you've been a leader elsewhere, please describe that here. "
-                  "This could include leadership in other collegiate outing clubs, "
-                  "student sports clubs, NOLS, Outward Bound, or AMC; working as a guide, "
-                  "summer camp counselor, or Scout leader; or organizing hikes with friends.")
+        "This could include leadership in other collegiate outing clubs, "
+        "student sports clubs, NOLS, Outward Bound, or AMC; working as a guide, "
+        "summer camp counselor, or Scout leader; or organizing hikes with friends.",
+    )
 
 
 class WinterSchoolLeaderApplication(LeaderApplication):
@@ -1164,49 +1294,62 @@ class WinterSchoolLeaderApplication(LeaderApplication):
 
     taking_wfa = models.CharField(
         max_length=10,
-        choices=[("Yes", "Yes"),
-                 ("No", "No"),
-                 ("Maybe", "Maybe/don't know")],
+        choices=[("Yes", "Yes"), ("No", "No"), ("Maybe", "Maybe/don't know")],
         verbose_name="Do you plan on taking the subsidized WFA at MIT?",
-        help_text="Save $100 on the course fee by leading two or more trips!")
+        help_text="Save $100 on the course fee by leading two or more trips!",
+    )
     training = models.TextField(
-        blank=True, max_length=5000,
+        blank=True,
+        max_length=5000,
         verbose_name="Formal training and qualifications",
         help_text="Details of any medical, technical, or leadership training and qualifications "
-                  "relevant to the winter environment. "
-                  "State the approximate dates of these activities. "
-                  "Leave blank if not applicable.")
+        "relevant to the winter environment. "
+        "State the approximate dates of these activities. "
+        "Leave blank if not applicable.",
+    )
     winter_experience = models.TextField(
-        blank=True, max_length=5000,
+        blank=True,
+        max_length=5000,
         help_text="Details of previous winter outdoors experience. "
-                  "Include the type of trip (x-country skiiing, above treeline, "
-                  "snowshoeing, ice climbing, etc), approximate dates and locations, "
-                  "numbers of participants, notable trail and weather conditions. "
-                  "Please also give details of whether you participated, led, "
-                  "or co-led these trips.")
+        "Include the type of trip (x-country skiiing, above treeline, "
+        "snowshoeing, ice climbing, etc), approximate dates and locations, "
+        "numbers of participants, notable trail and weather conditions. "
+        "Please also give details of whether you participated, led, "
+        "or co-led these trips.",
+    )
     other_experience = models.TextField(
-        blank=True, max_length=5000,
+        blank=True,
+        max_length=5000,
         verbose_name="Other outdoors/leadership experience",
-        help_text="Details about any relevant non-winter experience")
+        help_text="Details about any relevant non-winter experience",
+    )
     notes_or_comments = models.TextField(
-        blank=True, max_length=5000,
+        blank=True,
+        max_length=5000,
         help_text="Any relevant details, such as any limitations on availability on "
-                  "Tue/Thurs nights or weekends during IAP.")
+        "Tue/Thurs nights or weekends during IAP.",
+    )
 
     mentor_activities = models.ManyToManyField(
-        MentorActivity, blank=True, related_name="activities_mentored",
+        MentorActivity,
+        blank=True,
+        related_name="activities_mentored",
         verbose_name='Which activities would you like to mentor?',
-        help_text="Please select at least one.")
+        help_text="Please select at least one.",
+    )
     mentee_activities = models.ManyToManyField(
-        MentorActivity, blank=True, related_name="mentee_activities",
+        MentorActivity,
+        blank=True,
+        related_name="mentee_activities",
         verbose_name='For which activities would you like a mentor?',
-        help_text="Please select at least one.")
+        help_text="Please select at least one.",
+    )
 
 
 class ClimbingLeaderApplication(LeaderApplication):
     FAMILIARITY_CHOICES = [
         ('none', "not at all"),
-        ('some', "some exposure", ),
+        ('some', "some exposure"),
         ('comfortable', "comfortable"),
         ('very comfortable', "very comfortable"),
     ]
@@ -1219,59 +1362,83 @@ class ClimbingLeaderApplication(LeaderApplication):
             ("Multi-pitch", "Multi-pitch"),
             ("Bouldering + Single-pitch", "Bouldering + Single-pitch"),
             ("Bouldering + Multi-pitch", "Bouldering + Multi-pitch"),
-        ])
+        ],
+    )
     years_climbing = models.IntegerField()
     years_climbing_outside = models.IntegerField()
     outdoor_bouldering_grade = models.CharField(
         max_length=255,
-        help_text="At what grade are you comfortable bouldering outside?")
+        help_text="At what grade are you comfortable bouldering outside?",
+    )
     outdoor_sport_leading_grade = models.CharField(
         max_length=255,
-        help_text="At what grade are you comfortable leading outside on sport routes?")
+        help_text="At what grade are you comfortable leading outside on sport routes?",
+    )
     outdoor_trad_leading_grade = models.CharField(
         max_length=255,
-        help_text="At what grade are you comfortable leading outside on trad routes?")
+        help_text="At what grade are you comfortable leading outside on trad routes?",
+    )
 
     # How familiar are you with the following...
     familiarity_spotting = models.CharField(
-        max_length=16, choices=FAMILIARITY_CHOICES,
-        verbose_name="Familarity with spotting boulder problems")
+        max_length=16,
+        choices=FAMILIARITY_CHOICES,
+        verbose_name="Familarity with spotting boulder problems",
+    )
     familiarity_bolt_anchors = models.CharField(
-        max_length=16, choices=FAMILIARITY_CHOICES,
-        verbose_name="Familiarity with 2-bolt 'sport' anchors")
+        max_length=16,
+        choices=FAMILIARITY_CHOICES,
+        verbose_name="Familiarity with 2-bolt 'sport' anchors",
+    )
     familiarity_gear_anchors = models.CharField(
-        max_length=16, choices=FAMILIARITY_CHOICES,
-        verbose_name="Familiarity with trad 'gear' anchors")
+        max_length=16,
+        choices=FAMILIARITY_CHOICES,
+        verbose_name="Familiarity with trad 'gear' anchors",
+    )
     familiarity_sr = models.CharField(
-        max_length=16, choices=FAMILIARITY_CHOICES,
-        verbose_name="Familiarity with multi-pitch self-rescue")
+        max_length=16,
+        choices=FAMILIARITY_CHOICES,
+        verbose_name="Familiarity with multi-pitch self-rescue",
+    )
 
     spotting_description = models.TextField(
         blank=True,
-        help_text="Describe how you would spot a climber on a meandering tall bouldering problem.")
+        help_text="Describe how you would spot a climber on a meandering tall bouldering problem.",
+    )
     tr_anchor_description = models.TextField(
         blank=True,
         verbose_name="Top rope anchor description",
-        help_text="Describe how you would build a top-rope anchor at a sport crag.")
+        help_text="Describe how you would build a top-rope anchor at a sport crag.",
+    )
     rappel_description = models.TextField(
-        blank=True, help_text="Describe how you would set up a safe rappel.")
+        blank=True, help_text="Describe how you would set up a safe rappel."
+    )
     gear_anchor_description = models.TextField(
-        blank=True, help_text="Describe what you look for when building a typical gear anchor.")
+        blank=True,
+        help_text="Describe what you look for when building a typical gear anchor.",
+    )
 
     formal_training = models.TextField(blank=True)
     teaching_experience = models.TextField(blank=True)
     notable_climbs = models.TextField(
-        blank=True, help_text="What are some particularly memorable climbs you have done?")
+        blank=True,
+        help_text="What are some particularly memorable climbs you have done?",
+    )
     favorite_route = models.TextField(
-        blank=True, help_text="Do you have a favorite route? If so, what is it and why?")
+        blank=True, help_text="Do you have a favorite route? If so, what is it and why?"
+    )
 
     extra_info = models.TextField(
-        blank=True, help_text="Is there anything else you would like us to know?")
+        blank=True, help_text="Is there anything else you would like us to know?"
+    )
 
 
 class DistinctAccounts(models.Model):
     """ Pairs of participants that are cleared as potential duplicates. """
+
     left = models.ForeignKey(
-        Participant, on_delete=models.CASCADE, related_name='distinctions_left')
+        Participant, on_delete=models.CASCADE, related_name='distinctions_left'
+    )
     right = models.ForeignKey(
-        Participant, on_delete=models.CASCADE, related_name='distinctions_right')
+        Participant, on_delete=models.CASCADE, related_name='distinctions_right'
+    )

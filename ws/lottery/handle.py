@@ -22,6 +22,7 @@ def place_on_trip(signup, logger):
 
 class ParticipantHandler:
     """ Class to handle placement of a single participant or pair. """
+
     is_driver_q = Q(participant__lotteryinfo__car_status__in=['own', 'rent'])
 
     def __init__(self, participant, runner, min_drivers=2, allow_pairs=True):
@@ -75,15 +76,17 @@ class ParticipantHandler:
     def place_all_on_trip(self, signup):
         place_on_trip(signup, self.logger)
         if self.paired:
-            par_signup = models.SignUp.objects.get(participant=self.paired_par,
-                                                   trip=signup.trip)
+            par_signup = models.SignUp.objects.get(
+                participant=self.paired_par, trip=signup.trip
+            )
             place_on_trip(par_signup, self.logger)
 
     def count_drivers_on_trip(self, trip):
         participant_drivers = trip.signup_set.filter(self.is_driver_q, on_trip=True)
         lottery_leaders = trip.leaders.filter(lotteryinfo__isnull=False)
-        num_leader_drivers = sum(leader.lotteryinfo.is_driver
-                                 for leader in lottery_leaders)
+        num_leader_drivers = sum(
+            leader.lotteryinfo.is_driver for leader in lottery_leaders
+        )
         return participant_drivers.count() + num_leader_drivers
 
     def try_to_place(self, signup):
@@ -99,7 +102,9 @@ class ParticipantHandler:
             # A driver may displace somebody else
             # (but a couple with a driver cannot displace two people)
             if self.count_drivers_on_trip(trip) < self.min_drivers:
-                self.logger.info(f"{trip} is full, but doesn't have {self.min_drivers} drivers")
+                self.logger.info(
+                    f"{trip} is full, but doesn't have {self.min_drivers} drivers"
+                )
                 self.logger.info(f"Adding {signup} to '{trip}', as they're a driver")
                 par_to_bump = self.runner.participant_to_bump(trip)
                 add_to_waitlist(par_to_bump, prioritize=True)
@@ -113,7 +118,7 @@ class ParticipantHandler:
     def place_participant(self):
         raise NotImplementedError()
         # (Place on trip or waitlist, then):
-        #self.runner.mark_handled(self.participant)
+        # self.runner.mark_handled(self.participant)
 
 
 class SingleTripParticipantHandler(ParticipantHandler):
@@ -141,13 +146,13 @@ class SingleTripParticipantHandler(ParticipantHandler):
                 return
 
         # Try to place all participants, otherwise add them to the waitlist
-        signup = models.SignUp.objects.get(participant=self.participant,
-                                           trip=self.trip)
+        signup = models.SignUp.objects.get(participant=self.participant, trip=self.trip)
         if not self.try_to_place(signup):
             for par in self.to_be_placed:
                 self.logger.info(f"Adding {par.name} to the waitlist")
-                add_to_waitlist(models.SignUp.objects.get(trip=self.trip,
-                                                          participant=par))
+                add_to_waitlist(
+                    models.SignUp.objects.get(trip=self.trip, participant=par)
+                )
         self.runner.mark_handled(self.participant)
 
 
@@ -165,7 +170,7 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
         signups = self.participant.signup_set.filter(
             trip__trip_date__gt=self.today,
             trip__algorithm='lottery',
-            trip__activity='winter_school'
+            trip__activity='winter_school',
         )
         if self.paired:  # Restrict signups to those both signed up for
             signups = signups.filter(trip__in=self.paired_par.trip_set.all())
@@ -201,7 +206,9 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
         # Try to place participants on their first choice available trip
         for rank, signup in enumerate(self.future_signups, start=1):
             if self.try_to_place(signup):
-                self.logger.debug(f"Placed on trip #{rank} of {len(self.future_signups)}")
+                self.logger.debug(
+                    f"Placed on trip #{rank} of {len(self.future_signups)}"
+                )
                 info['placed_on_choice'] = rank
                 break
             else:
@@ -214,7 +221,9 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
                 favorite_signup = models.SignUp.objects.get(find_signup)
                 add_to_waitlist(favorite_signup)
                 with_email = f"{self.par_text} ({participant.email})"
-                self.logger.info(f"Waitlisted {with_email} on {favorite_signup.trip.name}")
+                self.logger.info(
+                    f"Waitlisted {with_email} on {favorite_signup.trip.name}"
+                )
                 info['waitlisted'] = True
 
         self.runner.mark_handled(self.participant)

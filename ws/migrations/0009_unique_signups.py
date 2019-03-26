@@ -7,17 +7,13 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('ws', '0008_distinctaccounts'),
-    ]
+    dependencies = [('ws', '0008_distinctaccounts')]
 
     operations = [
         migrations.AlterUniqueTogether(
-            name='leadersignup',
-            unique_together=set([('participant', 'trip')]),
+            name='leadersignup', unique_together=set([('participant', 'trip')])
         ),
         migrations.AlterUniqueTogether(
-            name='signup',
-            unique_together=set([('participant', 'trip')]),
+            name='signup', unique_together=set([('participant', 'trip')])
         ),
     ]

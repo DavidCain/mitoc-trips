@@ -7,14 +7,16 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('ws', '0005_trip_membership_required'),
-    ]
+    dependencies = [('ws', '0005_trip_membership_required')]
 
     operations = [
         migrations.AddField(
             model_name='participant',
             name='gravatar_opt_out',
-            field=models.BooleanField(default=False, verbose_name="Opt out of Gravatar", help_text="Don't use Gravatar to show an avatar for this account"),
-        ),
+            field=models.BooleanField(
+                default=False,
+                verbose_name="Opt out of Gravatar",
+                help_text="Don't use Gravatar to show an avatar for this account",
+            ),
+        )
     ]

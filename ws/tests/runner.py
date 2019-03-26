@@ -19,6 +19,7 @@ class SetupGearDbTestRunner(DiscoverRunner):
     This runner will be obsolete when we move the `utils.geardb` functions to
     instead call an API managed by the gear database itself.
     """
+
     def geardb_cursor(self, config):
         geardb = next(wrapper for (wrapper, name, _) in config if name == 'geardb')
         return geardb.connection.cursor()

@@ -25,7 +25,9 @@ def simple_fk_update(cursor, table, col, old_pk, new_pk):
         update {table}
            set {col} = {new_pk}
          where {col} = {old_pk}
-        """.format(table=table, col=col, new_pk=new_pk, old_pk=old_pk)
+        """.format(
+            table=table, col=col, new_pk=new_pk, old_pk=old_pk
+        )
     )
 
 
@@ -34,7 +36,8 @@ def fk_tables(cursor, src_table, col):
 
     This is useful for ensuring that we migrate over all FKs.
     """
-    cursor.execute("""
+    cursor.execute(
+        """
         select (select r.relname
                   from pg_class r
                  where r.oid = c.conrelid) as table,
@@ -50,7 +53,9 @@ def fk_tables(cursor, src_table, col):
                                from pg_attribute
                               where attname = %s and
                                     attrelid = c.confrelid)
-    """, (src_table, col))
+    """,
+        (src_table, col),
+    )
     return cursor.fetchall()
 
 
@@ -85,7 +90,9 @@ def update_lotteryinfo(cursor, old_pk, new_pk):
             from ws_lotteryinfo
            where participant_id = {new_pk}
         )
-        """.format(new_pk=new_pk)
+        """.format(
+            new_pk=new_pk
+        )
     )
     if cursor.fetchone()[0]:
         sql = "delete from ws_lotteryinfo where participant_id = {}".format(old_pk)
@@ -94,7 +101,9 @@ def update_lotteryinfo(cursor, old_pk, new_pk):
             update ws_lotteryinfo
                set participant_id = {new_pk}
              where participant_id = {old_pk}
-            """.format(new_pk=new_pk, old_pk=old_pk)
+            """.format(
+            new_pk=new_pk, old_pk=old_pk
+        )
     cursor.execute(sql)
 
 
@@ -121,7 +130,9 @@ def migrate_user(old_pk, new_pk):
         update account_emailaddress
            set "primary" = false
          where user_id = {old_pk}
-        """.format(old_pk=old_pk)
+        """.format(
+            old_pk=old_pk
+        )
     )
     for table in ['account_emailaddress', 'django_admin_log']:
         simple_fk_update(cursor, table, 'user_id', old_pk, new_pk)
@@ -138,7 +149,9 @@ def migrate_user(old_pk, new_pk):
            set user_id = {new_pk}
          where user_id = {old_pk} and
               group_id not in (select group_id from existing)
-        """.format(new_pk=new_pk, old_pk=old_pk)
+        """.format(
+            new_pk=new_pk, old_pk=old_pk
+        )
     )
 
     cursor.execute("delete from auth_user_groups where user_id = {}".format(old_pk))
@@ -155,19 +168,14 @@ def migrate_participant(old_pk, new_pk):
         'ws_feedback': {'participant_id', 'leader_id'},
         'ws_lotteryinfo': {'participant_id', 'paired_with_id'},
         'ws_lotteryadjustment': {'creator_id', 'participant_id'},
-
         'ws_climbingleaderapplication': {'participant_id'},
         'ws_hikingleaderapplication': {'participant_id'},
         'ws_winterschoolleaderapplication': {'participant_id'},
         'ws_leaderrecommendation': {'creator_id', 'participant_id'},
-
         'ws_lectureattendance': {'participant_id', 'creator_id'},
-
         'ws_winterschoolsettings': {'last_updated_by_id'},
         'ws_discount_administrators': {'participant_id'},
-
         'ws_distinctaccounts': {'left_id', 'right_id'},
-
         # All these should only have one participant each
         # (In practice, we should rarely see the old & the new on the same object)
         'ws_tripinfo_drivers': {'participant_id'},

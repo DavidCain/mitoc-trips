@@ -18,21 +18,23 @@ def annotated_for_trip_list(trips):
 
     # Django 2.0: Use conditional aggregation instead!
     signup_on_trip = Case(
-        When(signup__on_trip=True, then=1),
-        default=0,
-        output_field=IntegerField()
+        When(signup__on_trip=True, then=1), default=0, output_field=IntegerField()
     )
-    return trips.annotate(num_signups=Count('signup'),
-                          signups_on_trip=Sum(signup_on_trip))
+    return trips.annotate(
+        num_signups=Count('signup'), signups_on_trip=Sum(signup_on_trip)
+    )
 
 
 @register.inclusion_tag('for_templatetags/simple_trip_list.html')
-def simple_trip_list(trip_list, max_title_chars=45, max_description_chars=120,
-                     collapse_date=False):
-    return {'trip_list': trip_list,
-            'max_title_chars': max_title_chars,
-            'max_description_chars': max_description_chars,
-            'collapse_date': collapse_date}
+def simple_trip_list(
+    trip_list, max_title_chars=45, max_description_chars=120, collapse_date=False
+):
+    return {
+        'trip_list': trip_list,
+        'max_title_chars': max_title_chars,
+        'max_description_chars': max_description_chars,
+        'collapse_date': collapse_date,
+    }
 
 
 @register.inclusion_tag('for_templatetags/trip_list_table.html')
@@ -57,8 +59,9 @@ def leader_display(feedback, relevant_activity=None):
     if feedback.trip:
         return feedback.leader.name_with_rating(feedback.trip)
     if relevant_activity:
-        return feedback.leader.name_with_activity_rating_on(relevant_activity,
-                                                            feedback.time_created)
+        return feedback.leader.name_with_activity_rating_on(
+            relevant_activity, feedback.time_created
+        )
     return feedback.leader.name
 
 
@@ -82,9 +85,7 @@ def pending_applications_count(chair, activity):
 def unapproved_trip_count(activity):
     today = date_utils.local_date()
     return models.Trip.objects.filter(
-        trip_date__gte=today,
-        activity=activity,
-        chair_approved=False
+        trip_date__gte=today, activity=activity, chair_approved=False
     ).count()
 
 
@@ -104,7 +105,7 @@ def trip_edit_buttons(trip, participant, user, hide_approve=False):
         'hide_approve': hide_approve,  # Hide approval even if user is a chair
         'itinerary_available_at': available_at,
         'available_today': available_at.date() == date_utils.local_date(),
-        'info_form_available': date_utils.local_now() >= available_at
+        'info_form_available': date_utils.local_now() >= available_at,
     }
 
 
@@ -124,22 +125,25 @@ def view_trip(trip, participant, user):
         'trip': trip,
         'is_trip_leader': perm_utils.leader_on_trip(participant, trip),
         'viewing_participant': participant,
-        'user': user
+        'user': user,
     }
 
     signups = get_signups(models.SignUp)
     context['par_signup'] = signups.filter(participant=participant).first()
-    wl_signups = trip.waitlist.signups.select_related('participant',
-                                                      'participant__lotteryinfo')
+    wl_signups = trip.waitlist.signups.select_related(
+        'participant', 'participant__lotteryinfo'
+    )
     context['signups'] = {
         'waitlist': wl_signups,
         'off_trip': signups.filter(on_trip=False).exclude(pk__in=wl_signups),
         'on_trip': signups.filter(on_trip=True),
-        'leader': get_signups(models.LeaderSignUp)
+        'leader': get_signups(models.LeaderSignUp),
     }
-    context['has_notes'] = (bool(trip.notes) or
-                            any(s.notes for s in signups) or
-                            any(s.notes for s in context['signups']['leader']))
+    context['has_notes'] = (
+        bool(trip.notes)
+        or any(s.notes for s in signups)
+        or any(s.notes for s in context['signups']['leader'])
+    )
     return context
 
 
@@ -152,11 +156,12 @@ def wimp_trips(participant, user):
     wimp_all = any(g.name == 'WIMP' for g in user.groups.all())
 
     all_wimp_trips = models.Trip.objects if wimp_all else participant.wimp_trips
-    upcoming_trips = all_wimp_trips.filter(trip_date__gte=today,
-                                           trip_date__lte=next_week)
+    upcoming_trips = all_wimp_trips.filter(
+        trip_date__gte=today, trip_date__lte=next_week
+    )
     upcoming_trips = upcoming_trips.select_related('info')
 
     return {
         'can_wimp_all_trips': wimp_all,
-        'upcoming_trips': upcoming_trips.order_by('trip_date', 'name')
+        'upcoming_trips': upcoming_trips.order_by('trip_date', 'name'),
     }

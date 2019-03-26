@@ -16,8 +16,7 @@ def refresh_all_membership_cache():
     information that is no more than a week old.
     """
     last_week = local_now() - timedelta(weeks=1)
-    needs_update = (Q(membership__isnull=True) |
-                    Q(membership__last_cached__lt=last_week))
+    needs_update = Q(membership__isnull=True) | Q(membership__last_cached__lt=last_week)
 
     all_participants = models.Participant.objects.select_related('membership')
     for par in all_participants.filter(needs_update):
@@ -31,8 +30,7 @@ def update_membership_cache(participant):
 
     # However, if nothing is found, we'll need to set that ourselves
     if not most_recent['membership']['email']:
-        participant.update_membership(membership_expires=None,
-                                      waiver_expires=None)
+        participant.update_membership(membership_expires=None, waiver_expires=None)
 
 
 def can_attend_trip(user, trip):

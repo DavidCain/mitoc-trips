@@ -9,4 +9,5 @@ class TestCase(DjangoTestCase):
     default database, we must set `multi_db`. This class does that
     automatically (it's very easy to forget).
     """
+
     multi_db = True  # Roll back changes in _all_ databases

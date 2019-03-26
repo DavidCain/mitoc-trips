@@ -8,17 +8,37 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('ws', '0007_add_groups'),
-    ]
+    dependencies = [('ws', '0007_add_groups')]
 
     operations = [
         migrations.CreateModel(
             name='DistinctAccounts',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('left', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='distinctions_left', to='ws.Participant')),
-                ('right', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='distinctions_right', to='ws.Participant')),
+                (
+                    'id',
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name='ID',
+                    ),
+                ),
+                (
+                    'left',
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name='distinctions_left',
+                        to='ws.Participant',
+                    ),
+                ),
+                (
+                    'right',
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name='distinctions_right',
+                        to='ws.Participant',
+                    ),
+                ),
             ],
-        ),
+        )
     ]

@@ -31,19 +31,20 @@ def lapsed_participants():
     today = now.date()
     active_members = (
         # Anybody with a current membership/waiver is active
-        Q(membership__membership_expires__gte=today) |
-        Q(membership__waiver_expires__gte=today) |
+        Q(membership__membership_expires__gte=today)
+        | Q(membership__waiver_expires__gte=today)
+        |
         # Anybody who led or participated in a trip during the last year
-        Q(trips_led__trip_date__gte=one_year_ago) |
-        Q(trip__trip_date__gte=one_year_ago) |
+        Q(trips_led__trip_date__gte=one_year_ago)
+        | Q(trip__trip_date__gte=one_year_ago)
+        |
         # Anybody signed up for a trip in the future
         # (Should be disallowed without a current waiver, but might as well check)
         Q(signup__trip__trip_date__gte=today)
     )
 
     return (
-        models.Participant.objects
-        .filter(lapsed_update)
+        models.Participant.objects.filter(lapsed_update)
         .exclude(active_members)
         .select_related('emergency_info')
     )
@@ -82,13 +83,16 @@ def purge_old_medical_data():
     # We only update participants that have not yet been scrubbed
     needs_scrub = lapsed_participants().exclude(emergency_info__allergies='')
     for par in needs_scrub:
-        logger.info("Purging medical data for %s (%s - %s, last updated %s)",
-                    par.name, par.pk, par.email, par.profile_last_updated.date())
+        logger.info(
+            "Purging medical data for %s (%s - %s, last updated %s)",
+            par.name,
+            par.pk,
+            par.email,
+            par.profile_last_updated.date(),
+        )
 
     # Using update() bypasses normal model validation that these be non-empty
     # SQL constraints prevent `null` values, but we can have empty strings!
     models.EmergencyInfo.objects.filter(participant__in=needs_scrub).update(
-        allergies="",
-        medications="",
-        medical_history="",
+        allergies="", medications="", medical_history=""
     )

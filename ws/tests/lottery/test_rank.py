@@ -15,7 +15,11 @@ from ws.tests import TestCase
 from ws import models
 from ws import settings
 from ws.tests.factories import (
-    FeedbackFactory, LotteryInfoFactory, ParticipantFactory, SignUpFactory, TripFactory
+    FeedbackFactory,
+    LotteryInfoFactory,
+    ParticipantFactory,
+    SignUpFactory,
+    TripFactory,
 )
 
 
@@ -32,6 +36,7 @@ class TestRanker(rank.ParticipantRanker):
 
 class ParticipantPairingTests(TestCase):
     """ Test the logic on reciprocal participant pairing. """
+
     def expect_pairing(self, expected):
         """ Run noted participants through ranking, expect pairing results. """
         par_pks = set(par.pk for par in expected)
@@ -55,8 +60,12 @@ class ParticipantPairingTests(TestCase):
         wants_to_be_together = LotteryInfoFactory.create(
             paired_with=wants_to_fly_solo.participant
         )
-        self.expect_pairing({wants_to_fly_solo.participant: False,
-                             wants_to_be_together.participant: False})
+        self.expect_pairing(
+            {
+                wants_to_fly_solo.participant: False,
+                wants_to_be_together.participant: False,
+            }
+        )
 
     def test_nulls_do_not_mean_equal(self):
         """ Participants that want no pairing aren't accidentallly paired.
@@ -69,12 +78,14 @@ class ParticipantPairingTests(TestCase):
         alone_1 = LotteryInfoFactory.create(paired_with=None)
         alone_2 = LotteryInfoFactory.create(paired_with=None)
 
-        self.expect_pairing({
-            no_lotteryinfo_1: False,
-            no_lotteryinfo_2: False,
-            alone_1.participant: False,
-            alone_2.participant: False,
-        })
+        self.expect_pairing(
+            {
+                no_lotteryinfo_1: False,
+                no_lotteryinfo_2: False,
+                alone_1.participant: False,
+                alone_2.participant: False,
+            }
+        )
 
     def test_reciprocal_pairing(self):
         """ Two participants who request each other are reciprocally paired. """
@@ -113,7 +124,7 @@ class SeedTests(unittest.TestCase):
         participant = models.Participant(pk=12, affiliation='MU')
         self.assertEqual(
             rank.affiliation_weighted_rand(participant, 'trip-542'),
-            rank.affiliation_weighted_rand(participant, 'trip-542')
+            rank.affiliation_weighted_rand(participant, 'trip-542'),
         )
 
     def test_weight_subtraction(self):
@@ -128,7 +139,7 @@ class SeedTests(unittest.TestCase):
         random.seed(seed)
         self.assertEqual(
             random.random() - 0.3,
-            rank.affiliation_weighted_rand(mit_undergrad, 'trip-142')
+            rank.affiliation_weighted_rand(mit_undergrad, 'trip-142'),
         )
 
         # Non-affiliates are just a random number
@@ -136,13 +147,13 @@ class SeedTests(unittest.TestCase):
         seed = rank.seed_for(non_affiliate, 'trip-142')
         random.seed(seed)
         self.assertEqual(
-            random.random(),
-            rank.affiliation_weighted_rand(non_affiliate, 'trip-142')
+            random.random(), rank.affiliation_weighted_rand(non_affiliate, 'trip-142')
         )
 
 
 class ParticipantRankingTests(SimpleTestCase):
     """ Test the logic by which we determine users with "first pick" status. """
+
     mocked_par_methods = ['number_trips_led', 'number_ws_trips', 'get_rank_override']
 
     def setUp(self):
@@ -173,22 +184,25 @@ class ParticipantRankingTests(SimpleTestCase):
         mocked_counts = {
             flaked_once: {
                 'number_trips_led': 8,
-                'number_ws_trips': rank.TripCounts(attended=0, flaked=1, total=1)
+                'number_ws_trips': rank.TripCounts(attended=0, flaked=1, total=1),
             },
             serial_flaker: {
                 'number_trips_led': 4,
-                'number_ws_trips': rank.TripCounts(attended=0, flaked=3, total=3)
+                'number_ws_trips': rank.TripCounts(attended=0, flaked=3, total=3),
             },
             reliable: {
                 'number_trips_led': 0,
-                'number_ws_trips': rank.TripCounts(attended=4, flaked=0, total=4)
+                'number_ws_trips': rank.TripCounts(attended=4, flaked=0, total=4),
             },
         }
 
-        # pylint: disable=line-too-long
         self.ranker.get_rank_override.return_value = 0
-        self.ranker.number_trips_led.side_effect = lambda par: mocked_counts[par]['number_trips_led']
-        self.ranker.number_ws_trips.side_effect = lambda par: mocked_counts[par]['number_ws_trips']
+        self.ranker.number_trips_led.side_effect = lambda par: mocked_counts[par][
+            'number_trips_led'
+        ]
+        self.ranker.number_ws_trips.side_effect = lambda par: mocked_counts[par][
+            'number_ws_trips'
+        ]
 
         self.expect_ranking(reliable, flaked_once, serial_flaker)
 
@@ -203,8 +217,14 @@ class ParticipantRankingTests(SimpleTestCase):
 
         # Key difference: the veteran leader has a greater balance of led trips
         mocked_counts = {
-            veteran: {'number_trips_led': 4, 'number_ws_trips': attended_all(1)},  # Net 3
-            novice:  {'number_trips_led': 2, 'number_ws_trips': attended_all(3)}  # Net -1
+            veteran: {
+                'number_trips_led': 4,
+                'number_ws_trips': attended_all(1),
+            },  # Net 3
+            novice: {
+                'number_trips_led': 2,
+                'number_ws_trips': attended_all(3),
+            },  # Net -1
         }
 
         def by_participant(attribute):
@@ -275,13 +295,13 @@ class FlakeFactorTests(TestCase):
         """
         cls.last_season_trips = [
             TripFactory.create(activity='winter_school', trip_date=date(2017, 1, 15)),
-            TripFactory.create(activity='winter_school', trip_date=date(2017, 1, 22))
+            TripFactory.create(activity='winter_school', trip_date=date(2017, 1, 22)),
         ]
 
         cls.three_trips = [
             TripFactory.create(activity='winter_school', trip_date=date(2018, 1, 13)),
             TripFactory.create(activity='winter_school', trip_date=date(2018, 1, 14)),
-            TripFactory.create(activity='winter_school', trip_date=date(2018, 1, 20))
+            TripFactory.create(activity='winter_school', trip_date=date(2018, 1, 20)),
         ]
         cls.all_trips = cls.last_season_trips + cls.three_trips
 
@@ -291,8 +311,10 @@ class FlakeFactorTests(TestCase):
         for trip in self.three_trips:
             models.SignUp.objects.create(trip=trip, **par_on_trip).save()
 
-        self.assertEqual(self.ranker.number_ws_trips(self.participant),
-                         rank.TripCounts(attended=3, flaked=0, total=3))
+        self.assertEqual(
+            self.ranker.number_ws_trips(self.participant),
+            rank.TripCounts(attended=3, flaked=0, total=3),
+        )
 
     def test_each_trip_counted_once(self):
         """ Multiple trip leaders declaring a participant a flake is no worse than 1. """
@@ -301,8 +323,10 @@ class FlakeFactorTests(TestCase):
             for _ in range(3):
                 FeedbackFactory.create(trip=trip, **flaked)
 
-        self.assertEqual(self.ranker.number_ws_trips(self.participant),
-                         rank.TripCounts(attended=0, flaked=3, total=3))
+        self.assertEqual(
+            self.ranker.number_ws_trips(self.participant),
+            rank.TripCounts(attended=0, flaked=3, total=3),
+        )
 
     def test_no_attendance(self):
         """ The flake factor is set to zero for participants with no trips. """
@@ -315,11 +339,17 @@ class FlakeFactorTests(TestCase):
         # (Each SignUp object was deleted by trip leaders to indicate that the
         # participant never actually went on the trip)
         for trip in self.three_trips:
-            FeedbackFactory.create(participant=self.participant, trip=trip,
-                                   showed_up=False, comments="No show")
+            FeedbackFactory.create(
+                participant=self.participant,
+                trip=trip,
+                showed_up=False,
+                comments="No show",
+            )
 
-        self.assertEqual(self.ranker.number_ws_trips(self.participant),
-                         rank.TripCounts(attended=0, flaked=3, total=3))
+        self.assertEqual(
+            self.ranker.number_ws_trips(self.participant),
+            rank.TripCounts(attended=0, flaked=3, total=3),
+        )
         self.assertEqual(15, self.ranker.flake_factor(self.participant))
 
     def test_perfect_attendance(self):
@@ -334,8 +364,9 @@ class FlakeFactorTests(TestCase):
 
         # When explicitly noted as having attended, they receive the same score
         for trip in self.three_trips:
-            FeedbackFactory.create(participant=self.participant,
-                                   trip=trip, showed_up=True)
+            FeedbackFactory.create(
+                participant=self.participant, trip=trip, showed_up=True
+            )
         self.assertEqual(-6, self.ranker.flake_factor(self.participant))
 
     def test_leader_disagreement(self):
@@ -347,8 +378,10 @@ class FlakeFactorTests(TestCase):
         # One leader says the participant didn't show
         FeedbackFactory.create(showed_up=False, comments="No show", **subject)
 
-        self.assertEqual(self.ranker.number_ws_trips(self.participant),
-                         rank.TripCounts(attended=0, flaked=1, total=1))
+        self.assertEqual(
+            self.ranker.number_ws_trips(self.participant),
+            rank.TripCounts(attended=0, flaked=1, total=1),
+        )
         self.assertEqual(5, self.ranker.flake_factor(self.participant))
 
         # Co-leaders didn't note person a flake (most likely, didn't know how)
@@ -356,6 +389,8 @@ class FlakeFactorTests(TestCase):
         FeedbackFactory.create(showed_up=True, **subject)
 
         # However, we still consider them to have flaked on the first trip
-        self.assertEqual(self.ranker.number_ws_trips(self.participant),
-                         rank.TripCounts(attended=0, flaked=1, total=1))
+        self.assertEqual(
+            self.ranker.number_ws_trips(self.participant),
+            rank.TripCounts(attended=0, flaked=1, total=1),
+        )
         self.assertEqual(5, self.ranker.flake_factor(self.participant))

@@ -9,9 +9,11 @@ import ws.utils.perms as perm_utils
 
 def deactivate_ratings(participant, activity):
     """ Mark any existing ratings for the activity as inactive. """
-    find_ratings = {'participant__pk': participant.pk,
-                    'activity': activity,
-                    'active': True}
+    find_ratings = {
+        'participant__pk': participant.pk,
+        'activity': activity,
+        'active': True,
+    }
     for existing in models.LeaderRating.objects.filter(Q(**find_ratings)):
         existing.active = False
         existing.save()
@@ -22,6 +24,7 @@ class LeaderApplicationMixin:
 
     Requires self.activity
     """
+
     def can_reapply(self, latest_application):
         """ Winter School allows one application per year.
 
@@ -72,8 +75,9 @@ class LeaderApplicationMixin:
         an application type.
         """
         applications = self.model.objects.select_related('participant')
-        return applications.prefetch_related('participant__leaderrecommendation_set',
-                                             'participant__leaderrating_set')
+        return applications.prefetch_related(
+            'participant__leaderrecommendation_set', 'participant__leaderrating_set'
+        )
 
 
 class RatingsRecommendationsMixin:
@@ -98,16 +102,12 @@ class RatingsRecommendationsMixin:
             # NOTE: Rating doesn't need to be active (if the leader was
             # deactivated, we don't want their application to re-appear)
             participant__leaderrating__time_created__gte=F('time_created'),
-            participant__leaderrating__activity=self.activity
+            participant__leaderrating__activity=self.activity,
         )
 
     def sum_annotation(self, selector):
         # Django 2.0: Use conditional aggregation instead
-        return Sum(
-            Case(When(selector, then=1),
-                 default=0,
-                 output_field=IntegerField())
-        )
+        return Sum(Case(When(selector, then=1), default=0, output_field=IntegerField()))
 
 
 class ApplicationManager(LeaderApplicationMixin, RatingsRecommendationsMixin):
@@ -130,9 +130,11 @@ class ApplicationManager(LeaderApplicationMixin, RatingsRecommendationsMixin):
         # Identify which have ratings and/or the leader's recommendation
         applications = applications.annotate(
             num_ratings=self.sum_annotation(self.gave_rating),
-            num_recs=self.sum_annotation(self.gave_rec)
+            num_recs=self.sum_annotation(self.gave_rec),
         )
-        return applications.distinct().order_by('num_ratings', 'num_recs', 'time_created')
+        return applications.distinct().order_by(
+            'num_ratings', 'num_recs', 'time_created'
+        )
 
     def pending_applications(self):
         """ All applications which do not yet have a rating.

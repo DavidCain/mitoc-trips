@@ -22,6 +22,7 @@ class AdminOnlyView(View):
 
 class PotentialDuplicatesView(AdminOnlyView, TemplateView):
     """ Show pairs of participants where the accounts may be duplicates. """
+
     template_name = 'duplicates/index.html'
 
     @property
@@ -65,10 +66,7 @@ class PotentialDuplicatesView(AdminOnlyView, TemplateView):
         # Map PKs back to objects that can be used easily in templates
         participants = models.Participant.objects.filter(
             pk__in=[pk for pair in pairs for pk in pair]
-        ).select_related(
-            'emergency_info__emergency_contact',
-            'car',
-        )
+        ).select_related('emergency_info__emergency_contact', 'car')
         par_by_pk = {par.pk: par for par in participants}
 
         for old, new in pairs:
@@ -82,6 +80,7 @@ class PotentialDuplicatesView(AdminOnlyView, TemplateView):
 
 class MergeParticipantsView(AdminOnlyView):
     """ Merge two duplicate accounts together. """
+
     def participants_from_pks(self):
         pks = [self.kwargs['old'], self.kwargs['new']]
         participants = models.Participant.objects.filter(pk__in=pks)
@@ -99,8 +98,9 @@ class MergeParticipantsView(AdminOnlyView):
 
         corresponding_users = {par.pk: par.user_id for par in participants}
         with transaction.atomic():
-            merge.migrate_user(corresponding_users[old_par],
-                               corresponding_users[new_par])
+            merge.migrate_user(
+                corresponding_users[old_par], corresponding_users[new_par]
+            )
             merge.migrate_participant(old_par, new_par)
         messages.success(request, f'Merged participant #{old_par} into #{new_par}')
         return self.dupes_redirect
@@ -111,6 +111,7 @@ class MergeParticipantsView(AdminOnlyView):
 
 class DistinctParticipantsView(AdminOnlyView):
     """ Mark two seemingly related participants as being distinct. """
+
     def participants_from_pks(self):
         pks = [self.kwargs['left'], self.kwargs['right']]
         participants = models.Participant.objects.filter(pk__in=pks)
@@ -126,8 +127,11 @@ class DistinctParticipantsView(AdminOnlyView):
             return self.dupes_redirect
 
         models.DistinctAccounts(left=left, right=right).save()
-        messages.success(request, f"Marked {left.name} (#{left.pk}) as distinct"
-                                  f" from {right.name} (#{right.pk}).")
+        messages.success(
+            request,
+            f"Marked {left.name} (#{left.pk}) as distinct"
+            f" from {right.name} (#{right.pk}).",
+        )
         return redirect(reverse('potential_duplicates'))
 
     def get(self, request, **kwargs):

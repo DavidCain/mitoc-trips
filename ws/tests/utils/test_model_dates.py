@@ -9,10 +9,11 @@ from ws import models
 
 class MissedLectureTests(SimpleTestCase):
     """ Test the logic that checks if a participant has missed lectures. """
+
     def test_legacy_years(self):
         """ Participants are not marked as missing lectures in first years. """
         # We lack records for these early years, so we just assume presence
-        participant = None   # Won't access the object anyway
+        participant = None  # Won't access the object anyway
         self.assertFalse(utils.missed_lectures(participant, 2014))
         self.assertFalse(utils.missed_lectures(participant, 2015))
 
@@ -21,7 +22,7 @@ class MissedLectureTests(SimpleTestCase):
     def test_lectures_incomplete(self, ws_year, ws_lectures_complete):
         """ If this year's lectures haven't completed, nobody can be absent. """
         ws_lectures_complete.return_value = False
-        participant = None   # Won't access the object anyway
+        participant = None  # Won't access the object anyway
         ws_year.return_value = current_year = 2525
         self.assertFalse(utils.missed_lectures(participant, current_year))
 
@@ -53,6 +54,7 @@ class MissedLectureTests(SimpleTestCase):
 
 class LecturesCompleteTests(SimpleTestCase):
     """ Test the method that tries to infer when lectures are over. """
+
     @patch('ws.utils.model_dates.ws_trips_this_year')
     def test_no_trips_yet(self, ws_trips):
         """ When there are no trips (past or planned), lectures aren't complete.
@@ -67,6 +69,7 @@ class LecturesCompleteTests(SimpleTestCase):
     @patch('ws.utils.model_dates.ws_trips_this_year')
     def test_past_trips(self, ws_trips):
         """ When trips have already completed, lectures are definitely over. """
+
         def past_only(**kwargs):
             if 'trip_date__lt' in kwargs:
                 return [models.Trip(name="Some past trip")]
@@ -88,6 +91,7 @@ class LecturesCompleteTests(SimpleTestCase):
             elif 'trip_date__gte' in kwargs:
                 return [models.Trip(name="Some upcoming trip")]
             return []
+
         ws_trips.return_value.filter.side_effect = future_only
 
         # Test calling this function at various times of day

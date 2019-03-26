@@ -17,13 +17,12 @@ AFFILIATION_MAPPING['N'] = affiliations.NON_AFFILIATE.VALUE
 def get_headers():
     """ Get standard headers to be used with every DocuSign API request. """
     creds = ET.Element('DocuSignCredentials')
-    # pylint: disable=bad-whitespace
-    ET.SubElement(creds,      'Username').text = settings.DOCUSIGN_USERNAME
-    ET.SubElement(creds,      'Password').text = settings.DOCUSIGN_PASSWORD
+    ET.SubElement(creds, 'Username').text = settings.DOCUSIGN_USERNAME
+    ET.SubElement(creds, 'Password').text = settings.DOCUSIGN_PASSWORD
     ET.SubElement(creds, 'IntegratorKey').text = settings.DOCUSIGN_INTEGRATOR_KEY
     return {
         'X-DocuSign-Authentication': ET.tostring(creds),
-        'Accept': 'application/json'
+        'Accept': 'application/json',
     }
 
 
@@ -56,23 +55,29 @@ def prefilled_tabs(participant):
             {'tabLabel': "Emergency Contact Relation", 'value': e_contact.relationship},
         ],
         'numberTabs': [
-            {'tabLabel': "Emergency Contact's Phone", 'value': str(e_contact.cell_phone)},
-            {'tabLabel': 'Phone number', 'value': str(participant.cell_phone)}
-        ]
+            {
+                'tabLabel': "Emergency Contact's Phone",
+                'value': str(e_contact.cell_phone),
+            },
+            {'tabLabel': 'Phone number', 'value': str(participant.cell_phone)},
+        ],
     }
     # Only pre-select affiliation if the participant has a known affiliation
     # (The 'S' affiliation does not map clearly to a category)
     docusign_affiliation = affiliation_to_radio_value(participant)
     if docusign_affiliation:
         tabs['radioGroupTabs'] = [
-            {'groupName': 'Affiliation',
-             'radios': [{'value': docusign_affiliation, 'selected': True}]}
+            {
+                'groupName': 'Affiliation',
+                'radios': [{'value': docusign_affiliation, 'selected': True}],
+            }
         ]
     return tabs
 
 
-def get_roles(participant=None, name=None, email=None,
-              guardian_name=None, guardian_email=None):
+def get_roles(
+    participant=None, name=None, email=None, guardian_name=None, guardian_email=None
+):
     """ Return the role definitions, with prefilled data if available.
 
     When we create the envelope, the waiver will be sent to the releasor (and a
@@ -81,12 +86,12 @@ def get_roles(participant=None, name=None, email=None,
     releasor = {
         'roleName': 'Releasor',
         'name': name or participant.name,
-        'email': email or participant.email
+        'email': email or participant.email,
     }
     desk = {
         'roleName': 'MITOC Desk',
         'name': 'MITOC Desk',
-        'email': 'mitocdesk@gmail.com'
+        'email': 'mitocdesk@gmail.com',
     }
 
     # If there's a participant, copy over medical info & such to prefill form
@@ -99,7 +104,7 @@ def get_roles(participant=None, name=None, email=None,
     guardian = {
         'roleName': 'Parent or Guardian',
         'name': guardian_name,
-        'email': guardian_email
+        'email': guardian_email,
     }
     return [releasor, guardian, desk]
 
@@ -129,8 +134,9 @@ def sign_embedded(participant, releasor, envelope_id, base_url=None):
     return redir_url.json()['url']
 
 
-def initiate_waiver(participant=None, name=None, email=None,
-                    guardian_name=None, guardian_email=None):
+def initiate_waiver(
+    participant=None, name=None, email=None, guardian_name=None, guardian_email=None
+):
     """ Create a waiver & send it to the participant (releasor).
 
     If the participant does not exist (i.e. somebody who's just signing with
@@ -150,7 +156,7 @@ def initiate_waiver(participant=None, name=None, email=None,
         'status': 'sent',
         'templateId': settings.DOCUSIGN_WAIVER_TEMPLATE_ID,
         'templateRoles': roles,
-        'eventNotification': settings.DOCUSIGN_EVENT_NOTIFICATION
+        'eventNotification': settings.DOCUSIGN_EVENT_NOTIFICATION,
     }
 
     # If their email is already known to us & authenticated, sign right away

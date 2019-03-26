@@ -29,13 +29,12 @@ def do_nothing(*args):
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('ws', '0006_participant_gravatar_opt_out'),
-    ]
+    dependencies = [('ws', '0006_participant_gravatar_opt_out')]
 
     operations = [
-        migrations.RunPython(make_groups, reverse_code=do_nothing,
-                             hints={'model_name': 'auth_group',
-                                    'target_db': 'auth_db'})
-
+        migrations.RunPython(
+            make_groups,
+            reverse_code=do_nothing,
+            hints={'model_name': 'auth_group', 'target_db': 'auth_db'},
+        )
     ]

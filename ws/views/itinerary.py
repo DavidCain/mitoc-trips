@@ -34,8 +34,9 @@ class ApprovedTripsMixin:
 
     def get_queryset(self):
         """ All upcoming trips of this activity type. """
-        return models.Trip.objects.filter(activity=self.activity,
-                                          trip_date__gte=local_date())
+        return models.Trip.objects.filter(
+            activity=self.activity, trip_date__gte=local_date()
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -66,12 +67,12 @@ class TripMedical(ItineraryInfoFormMixin):
         return {
             'trip': trip,
             'participants': (
-                trip.signed_up_participants.filter(signup__on_trip=True)
-                .select_related('emergency_info__emergency_contact')
+                trip.signed_up_participants.filter(signup__on_trip=True).select_related(
+                    'emergency_info__emergency_contact'
+                )
             ),
             'trip_leaders': (
-                trip.leaders
-                .select_related('emergency_info__emergency_contact')
+                trip.leaders.select_related('emergency_info__emergency_contact')
             ),
             'cars': get_cars(trip),
             'info_form': self.get_info_form(trip),
@@ -80,6 +81,7 @@ class TripMedical(ItineraryInfoFormMixin):
 
 class TripItineraryView(UpdateView, TripLeadersOnlyView, ItineraryInfoFormMixin):
     """ A hybrid view for creating/editing trip info for a given trip. """
+
     model = models.Trip
     context_object_name = 'trip'
     template_name = 'trips/itinerary.html'
@@ -88,7 +90,9 @@ class TripItineraryView(UpdateView, TripLeadersOnlyView, ItineraryInfoFormMixin)
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['itinerary_available_at'] = itinerary_available_at(self.trip.trip_date)
-        context['info_form_available'] = local_now() >= context['itinerary_available_at']
+        context['info_form_available'] = (
+            local_now() >= context['itinerary_available_at']
+        )
         return context
 
     def get_initial(self):
@@ -103,8 +107,7 @@ class TripItineraryView(UpdateView, TripLeadersOnlyView, ItineraryInfoFormMixin)
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
         signups = self.trip.signup_set.filter(on_trip=True)
-        on_trip = (Q(pk__in=self.trip.leaders.all()) |
-                   Q(signup__in=signups))
+        on_trip = Q(pk__in=self.trip.leaders.all()) | Q(signup__in=signups)
         participants = models.Participant.objects.filter(on_trip).distinct()
         has_car_info = participants.filter(car__isnull=False)
         form.fields['drivers'].queryset = has_car_info
@@ -153,10 +156,12 @@ class TripMedicalView(DetailView, TripMedical):
 
     def _can_view(self, trip, request):
         """ Leaders, chairs, and a trip WIMP can view this page. """
-        return (perm_utils.in_any_group(request.user, ['WIMP']) or
-                (trip.wimp and request.participant == trip.wimp) or
-                perm_utils.leader_on_trip(request.participant, trip, True) or
-                perm_utils.chair_or_admin(request.user, trip.activity))
+        return (
+            perm_utils.in_any_group(request.user, ['WIMP'])
+            or (trip.wimp and request.participant == trip.wimp)
+            or perm_utils.leader_on_trip(request.participant, trip, True)
+            or perm_utils.chair_or_admin(request.user, trip.activity)
+        )
 
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
@@ -191,6 +196,7 @@ class ChairTripView(ApprovedTripsMixin, TripMedical, DetailView):
 
     Will show just the important details, like leaders, description, & itinerary.
     """
+
     template_name = 'chair/trips/view.html'
 
     def get_other_trips(self):
@@ -224,7 +230,9 @@ class ChairTripView(ApprovedTripsMixin, TripMedical, DetailView):
         trip.chair_approved = True
         trip.save()
         if next_trip:
-            return redirect(reverse('view_trip_for_approval', args=(self.activity, next_trip.id,)))
+            return redirect(
+                reverse('view_trip_for_approval', args=(self.activity, next_trip.id))
+            )
         else:
             return redirect(reverse('manage_trips', args=(self.activity,)))
 

@@ -20,6 +20,7 @@ class MutexTaskTests(SimpleTestCase):
 
     def test_lock_format_default_naming(self):
         """ By default, we just use the function name as a unique lock ID. """
+
         @tasks.mutex_task()
         def some_unique_task_name(positional_arg):
             pass
@@ -34,6 +35,7 @@ class MutexTaskTests(SimpleTestCase):
         Specifically, this decorator can access both positional arguments
         and optional arguments.
         """
+
         @tasks.mutex_task('{positional_arg}-{named_kwarg2}')
         def dummy_task(positional_arg, named_kwarg='123', named_kwarg2=None):
             pass
@@ -101,8 +103,7 @@ class TaskTests(TransactionTestCase):
         """ Only trips taking place the next day have itineraries sent out. """
         _yesterday, _today, tomorrow, _two_days_from_now = [
             factories.TripFactory.create(
-                trip_date=date(2019, 1, day),
-                info=factories.TripInfoFactory.create()
+                trip_date=date(2019, 1, day), info=factories.TripInfoFactory.create()
             )
             for day in [24, 25, 26, 27]
         ]
@@ -117,8 +118,7 @@ class TaskTests(TransactionTestCase):
     def test_trips_without_itineraries_omitted(self, send_email_to_funds):
         trips_with_itinerary = [
             factories.TripFactory.create(
-                trip_date=date(2019, 1, 26),
-                info=factories.TripInfoFactory.create()
+                trip_date=date(2019, 1, 26), info=factories.TripInfoFactory.create()
             )
             for i in range(2)
         ]
@@ -131,14 +131,15 @@ class TaskTests(TransactionTestCase):
         # Emails were sent for only the trips with an itinerary
         self.assertEqual(
             [trip for (trip,), kwargs in send_email_to_funds.call_args_list],
-            trips_with_itinerary
+            trips_with_itinerary,
         )
 
     @mock.patch('ws.tasks.cache', wraps=cache)
     @mock.patch('ws.utils.member_sheets.update_discount_sheet')
     @mock.patch('ws.utils.member_sheets.update_participant')
-    def test_discount_tasks_share_same_key(self, update_participant, update_discount_sheet,
-                                           mock_cache):
+    def test_discount_tasks_share_same_key(
+        self, update_participant, update_discount_sheet, mock_cache
+    ):
         """ All tasks modifying the same discount sheet must share a task ID.
 
         This prevents multiple tasks modifying the Google Sheet at the same time.

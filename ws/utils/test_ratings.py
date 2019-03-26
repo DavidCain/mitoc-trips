@@ -18,10 +18,12 @@ class ApplicationManagerHelper:
         climbing-specific response) only to silently accept the wrong
         activity type.
         """
+
         def inner_func(activity):
             if activity != models.BaseRating.CLIMBING:
                 raise ValueError("This test handles climbing applications!")
             return desired_value
+
         return inner_func
 
     @classmethod
@@ -33,9 +35,13 @@ class ApplicationManagerHelper:
         that we need not hit the database.
         """
         get_num_chairs = mock.patch.object(perm_utils, 'num_chairs')
-        model_from_activity = mock.patch.object(models.LeaderApplication, 'model_from_activity')
+        model_from_activity = mock.patch.object(
+            models.LeaderApplication, 'model_from_activity'
+        )
         with get_num_chairs as mock_num_chairs, model_from_activity as mock_app_model:
-            mock_app_model.side_effect = cls._only_for_climbing(models.ClimbingLeaderApplication)
+            mock_app_model.side_effect = cls._only_for_climbing(
+                models.ClimbingLeaderApplication
+            )
             mock_num_chairs.side_effect = cls._only_for_climbing(num_chairs)
             yield
 
@@ -82,7 +88,8 @@ class DatabaseApplicationManagerTests(TestCase):
         for chair in [self.alice, self.bob, self.charlie]:
             perm_utils.make_chair(chair.user, models.BaseRating.CLIMBING)
         self.application = factories.ClimbingLeaderApplicationFactory.create(
-            participant=self.participant)
+            participant=self.participant
+        )
         super().setUp()
 
     @staticmethod
@@ -96,7 +103,7 @@ class DatabaseApplicationManagerTests(TestCase):
             creator=creator,
             participant=self.participant,
             activity=models.BaseRating.CLIMBING,
-            rating='Single pitch, maybe?'  # Comments don't really matter
+            rating='Single pitch, maybe?',  # Comments don't really matter
         )
         rec.save()
         return rec
@@ -106,7 +113,7 @@ class DatabaseApplicationManagerTests(TestCase):
             creator=creator,
             participant=self.participant,
             activity=models.BaseRating.CLIMBING,
-            rating='Multipitch'
+            rating='Multipitch',
         )
         rating.save()
         return rating
@@ -131,7 +138,8 @@ class DatabaseApplicationManagerTests(TestCase):
         # The application does, however, need recommendations from the other chairs!
         for other_chair in [self.bob, self.charlie]:
             manager = self._manager_for(other_chair)
-            pending_apps = manager.pending_applications()  # From that chair's perspective!
+            # Get pending apps from that chair's perspective!
+            pending_apps = manager.pending_applications()
             self.assertEqual(manager.needs_rec(pending_apps), [self.application])
 
     def test_rating_deactivated(self):
@@ -157,7 +165,8 @@ class DatabaseApplicationManagerTests(TestCase):
         # From any chair's perspective, the application does not need attention
         for other_chair in [self.bob, self.charlie]:
             manager = self._manager_for(other_chair)
-            pending_apps = manager.pending_applications()  # From that chair's perspective!
+            # Get pending apps from that chair's perspective!
+            pending_apps = manager.pending_applications()
             self.assertFalse(pending_apps)
             self.assertFalse(manager.needs_rec(pending_apps))
 

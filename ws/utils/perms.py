@@ -30,8 +30,11 @@ def leader_on_trip(participant, trip, creator_allowed=False):
     """
     if not participant:
         return False
-    return (participant in trip.leaders.all() or
-            creator_allowed and participant == trip.creator)
+    return (
+        participant in trip.leaders.all()
+        or creator_allowed
+        and participant == trip.creator
+    )
 
 
 def chair_group(activity):
@@ -105,5 +108,8 @@ def num_chairs(activity):
 
 def chair_activities(user, allow_superusers=False):
     """ All activities for which the user is the chair. """
-    return [activity for activity in models.LeaderRating.CLOSED_ACTIVITIES
-            if is_chair(user, activity, allow_superusers)]
+    return [
+        activity
+        for activity in models.LeaderRating.CLOSED_ACTIVITIES
+        if is_chair(user, activity, allow_superusers)
+    ]

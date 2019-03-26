@@ -40,6 +40,7 @@ def participant_required(view_func):
 
         path = request.get_full_path()  # All requests share scheme & netloc
         return redirect_to_login(path, next_url, REDIRECT_FIELD_NAME)
+
     return _wrapped_view
 
 
@@ -82,15 +83,22 @@ def group_required(*group_names, **kwargs):
 
             path = request.get_full_path()  # All requests share scheme & netloc
             return redirect_to_login(path, next_url, REDIRECT_FIELD_NAME)
+
         return _wrapped_view
+
     return decorator
 
 
-user_info_required = group_required('users_with_info', allow_superusers=False,
-                                    redir_url=reverse_lazy('edit_profile'))
-participant_or_anon = group_required('users_with_info', allow_superusers=False,
-                                     allow_anonymous=True,
-                                     redir_url=reverse_lazy('edit_profile'))
+user_info_required = group_required(
+    'users_with_info', allow_superusers=False, redir_url=reverse_lazy('edit_profile')
+)
+participant_or_anon = group_required(
+    'users_with_info',
+    allow_superusers=False,
+    allow_anonymous=True,
+    redir_url=reverse_lazy('edit_profile'),
+)
 
-admin_only = user_passes_test(lambda u: u.is_superuser,
-                              login_url=reverse_lazy('account_login'))
+admin_only = user_passes_test(
+    lambda u: u.is_superuser, login_url=reverse_lazy('account_login')
+)

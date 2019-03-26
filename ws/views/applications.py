@@ -35,6 +35,7 @@ class LeaderApplicationMixin(ratings_utils.LeaderApplicationMixin):
 
     In both cases, we contain the activity in the URL.
     """
+
     @property
     def activity(self):
         """ The activity, should be verified by the dispatch method. """
@@ -51,6 +52,7 @@ class LeaderApplicationMixin(ratings_utils.LeaderApplicationMixin):
 
 class ApplicationManager(ratings_utils.ApplicationManager, LeaderApplicationMixin):
     """ Superclass for views where chairs are viewing one or more applications. """
+
     @property
     def chair(self):
         """ The viewing participant should be an activity chair. """
@@ -163,6 +165,7 @@ class AllLeaderApplicationsView(ApplicationManager, ListView):
 
 class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):
     """ Handle applications by participants to become leaders. """
+
     form_class = forms.ApplicationLeaderForm
     context_object_name = 'application'
     template_name = 'chair/applications/view.html'
@@ -199,17 +202,18 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):
         last_app = app  # pylint: disable=undefined-loop-variable
 
         def if_valid(other_app):
-            mismatch = (not other_app or
-                        bool(other_app.num_recs) != bool(last_app.num_recs) or
-                        bool(other_app.num_ratings) != bool(last_app.num_ratings))
+            mismatch = (
+                not other_app
+                or bool(other_app.num_recs) != bool(last_app.num_recs)
+                or bool(other_app.num_ratings) != bool(last_app.num_ratings)
+            )
             return None if mismatch else other_app
 
         return if_valid(prev_app), if_valid(next_app)
 
     @property
     def par_ratings(self):
-        find_ratings = Q(participant=self.object.participant,
-                         activity=self.activity)
+        find_ratings = Q(participant=self.object.participant, activity=self.activity)
         return models.LeaderRating.objects.filter(find_ratings)
 
     @property
@@ -222,11 +226,15 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):
         if hasattr(self, '_existing_rec'):
             # pylint: disable=access-member-before-definition
             return self._existing_rec
-        find_rec = Q(creator=self.chair,
-                     participant=self.object.participant,
-                     activity=self.activity,
-                     time_created__gte=self.object.time_created)
-        self._existing_rec = models.LeaderRecommendation.objects.filter(find_rec).first()
+        find_rec = Q(
+            creator=self.chair,
+            participant=self.object.participant,
+            activity=self.activity,
+            time_created__gte=self.object.time_created,
+        )
+        self._existing_rec = models.LeaderRecommendation.objects.filter(
+            find_rec
+        ).first()
         return self._existing_rec
 
     def default_to_recommendation(self):
@@ -250,9 +258,11 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):
     @property
     def assigned_rating(self):
         """ Return any rating given in response to this application. """
-        in_future = Q(participant=self.object.participant,
-                      activity=self.activity,
-                      time_created__gte=self.object.time_created)
+        in_future = Q(
+            participant=self.object.participant,
+            activity=self.activity,
+            time_created__gte=self.object.time_created,
+        )
         if not hasattr(self, '_assigned_rating'):
             ratings = models.LeaderRating.objects.filter(in_future)
             self._assigned_rating = ratings.order_by('time_created').first()
@@ -287,14 +297,13 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):
         see their own feedback.
         """
         return (
-            models.Feedback.everything
-            .filter(participant=self.object.participant)
+            models.Feedback.everything.filter(participant=self.object.participant)
             .exclude(participant=self.chair)
             .select_related('leader', 'trip')
             .prefetch_related('leader__leaderrating_set')
-            .annotate(display_date=Least('trip__trip_date',
-                                         Cast('time_created', DateField()))
-                      )
+            .annotate(
+                display_date=Least('trip__trip_date', Cast('time_created', DateField()))
+            )
             .order_by('-display_date')
         )
 
@@ -310,9 +319,12 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):
 
         participant = self.object.participant
         context['active_ratings'] = list(participant.ratings(rating_active=True))
-        participant_chair_activities = set(perm_utils.chair_activities(participant.user))
+        participant_chair_activities = set(
+            perm_utils.chair_activities(participant.user)
+        )
         context['chair_activities'] = [
-            label for (activity, label) in models.LeaderRating.ACTIVITY_CHOICES
+            label
+            for (activity, label) in models.LeaderRating.ACTIVITY_CHOICES
             if activity in participant_chair_activities
         ]
         context['existing_rating'] = self.existing_rating
@@ -338,15 +350,19 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):
         if is_rec:
             # Hack to convert the (unsaved) rating to a recommendation
             # (Both models have the exact same fields)
-            rec = forms.LeaderRecommendationForm(model_to_dict(rating),
-                                                 instance=self.existing_rec)
+            rec = forms.LeaderRecommendationForm(
+                model_to_dict(rating), instance=self.existing_rec
+            )
             rec.save()
         else:
             ratings_utils.deactivate_ratings(rating.participant, rating.activity)
             rating.save()
 
-        fmt = {'verb': "Recommended" if is_rec else "Created",
-               'rating': rating.rating, 'participant': rating.participant.name}
+        fmt = {
+            'verb': "Recommended" if is_rec else "Created",
+            'rating': rating.rating,
+            'participant': rating.participant.name,
+        }
         msg = "{verb} {rating} rating for {participant}".format(**fmt)
         messages.success(self.request, msg)
 

@@ -12,13 +12,13 @@ from ws.utils.dates import local_now
 
 
 WEIGHTS = {
-    affiliations.MIT_UNDERGRAD.CODE:    0.3,
+    affiliations.MIT_UNDERGRAD.CODE: 0.3,
     affiliations.MIT_GRAD_STUDENT.CODE: 0.2,
-    affiliations.MIT_AFFILIATE.CODE:    0.1,
-    affiliations.MIT_ALUM.CODE:         0.1,
-    affiliations.NON_MIT_UNDERGRAD.CODE:    0.0,
+    affiliations.MIT_AFFILIATE.CODE: 0.1,
+    affiliations.MIT_ALUM.CODE: 0.1,
+    affiliations.NON_MIT_UNDERGRAD.CODE: 0.0,
     affiliations.NON_MIT_GRAD_STUDENT.CODE: 0.0,
-    affiliations.NON_AFFILIATE.CODE:        0.0,
+    affiliations.NON_AFFILIATE.CODE: 0.0,
 }
 assert set(WEIGHTS) == {aff.CODE for aff in affiliations.ALL}
 
@@ -97,9 +97,8 @@ class ParticipantRanker:
         Each participant is decorated with an attribute that says if they've
         reciprocally paired themselves with another participant.
         """
-        is_reciprocally_paired = (
-            Q(pk=F('lotteryinfo__paired_with__'
-                   'lotteryinfo__paired_with__pk'))
+        is_reciprocally_paired = Q(
+            pk=F('lotteryinfo__paired_with__' 'lotteryinfo__paired_with__pk')
         )
 
         participants = self.participants_to_handle().annotate(
@@ -107,7 +106,7 @@ class ParticipantRanker:
             reciprocally_paired=Case(
                 When(is_reciprocally_paired, then=1),
                 default=0,
-                output_field=IntegerField()
+                output_field=IntegerField(),
             )
         )
         with_keys = ((self.priority_key(par), par) for par in participants)
@@ -140,7 +139,7 @@ TripCounts = namedtuple('TripCounts', ['attended', 'flaked', 'total'])
 
 WinterSchoolPriorityRank = namedtuple(
     'WinterSchoolPriorityRank',
-    ['adjustment', 'flake_factor', 'leader_bump', 'affiliation_weight']
+    ['adjustment', 'flake_factor', 'leader_bump', 'affiliation_weight'],
 )
 
 
@@ -168,7 +167,7 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
         return models.Participant.objects.filter(
             signup__trip__trip_date__gt=self.today,
             signup__trip__algorithm='lottery',
-            signup__trip__activity='winter_school'
+            signup__trip__activity='winter_school',
         ).distinct()
 
     def priority_key(self, participant):
@@ -195,7 +194,9 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
         affiliation_weight = affiliation_weighted_rand(participant, self.lottery_key)
 
         # Lower = higher in the list
-        return WinterSchoolPriorityRank(override, flaky_or_neutral, leader_bump, affiliation_weight)
+        return WinterSchoolPriorityRank(
+            override, flaky_or_neutral, leader_bump, affiliation_weight
+        )
 
     def flake_factor(self, participant):
         """ Return a number indicating past "flakiness".
@@ -207,9 +208,13 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
 
     def trips_flaked(self, participant):
         """ Return a QuerySet of trip pk's on which the participant flaked. """
-        return participant.feedback_set.filter(
-            showed_up=False, trip__activity='winter_school'
-        ).values_list('trip__pk', flat=True).distinct()
+        return (
+            participant.feedback_set.filter(
+                showed_up=False, trip__activity='winter_school'
+            )
+            .values_list('trip__pk', flat=True)
+            .distinct()
+        )
 
     def number_trips_led(self, participant):
         """ Return the number of trips the participant has recently led.
@@ -234,8 +239,7 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
         - Participant flaked. Leader left feedback, but left them on the trip
         """
         marked_on_trip = set(
-            participant.trip_set
-            .filter(activity='winter_school')
+            participant.trip_set.filter(activity='winter_school')
             .filter(trip_date__gt=self.jan_1st, trip_date__lt=self.today)
             .values_list('pk', flat=True)
         )
@@ -256,7 +260,10 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
 
     def lowest_non_driver(self, trip):
         """ Return the lowest priority non-driver on the trip. """
-        no_car = (Q(participant__lotteryinfo__isnull=True) |
-                  Q(participant__lotteryinfo__car_status='none'))
+        no_car = Q(participant__lotteryinfo__isnull=True) | Q(
+            participant__lotteryinfo__car_status='none'
+        )
         non_drivers = trip.signup_set.filter(no_car, on_trip=True)
-        return max(non_drivers, key=lambda signup: self.priority_key(signup.participant))
+        return max(
+            non_drivers, key=lambda signup: self.priority_key(signup.participant)
+        )

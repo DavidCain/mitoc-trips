@@ -12,8 +12,7 @@ def update_leader_status(participant):
 
 
 @receiver(post_save, sender=LeaderRating)
-def modify_leader_perms(sender, instance, created, raw, using, update_fields,
-                        **kwargs):
+def modify_leader_perms(sender, instance, created, raw, using, update_fields, **kwargs):
     """ When creating/updating leader permissions, update leader status.
 
     Participants belong to the 'leaders' group when they have an active

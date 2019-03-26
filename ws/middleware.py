@@ -14,6 +14,7 @@ class PrefetchGroupsMiddleware:
     method to do the prefetching (we would obviously extend all-auth).
     For now, this cuts down on query time and execution.
     """
+
     def __init__(self, get_response):
         self.get_response = get_response
 
@@ -26,6 +27,7 @@ class PrefetchGroupsMiddleware:
 
 class ParticipantMiddleware:
     """ Include the user's participant (used in most views) """
+
     def __init__(self, get_response):
         self.get_response = get_response
 

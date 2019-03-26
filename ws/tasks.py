@@ -66,6 +66,7 @@ def mutex_task(task_id_template=None, **shared_task_kwargs):
         (If omitted, we just use the function name)
     :param shared_task_kwargs: Passed through to `shared_task`
     """
+
     def decorator(func):
         signature = inspect.signature(func)
 
@@ -85,7 +86,9 @@ def mutex_task(task_id_template=None, **shared_task_kwargs):
                 else:
                     logger.debug("Other worker already processing %s", task_identifier)
             return None
+
         return wrapped_task
+
     return decorator
 
 
@@ -100,8 +103,11 @@ def update_discount_sheet_for_participant(discount_id, participant_id):
     participant = models.Participant.objects.get(pk=participant_id)
 
     if settings.DISABLE_GSHEETS:
-        logger.warning("Google Sheets functionality is disabled, not updating "
-                       "'%s' for %s", discount.name, participant.name)
+        logger.warning(
+            "Google Sheets functionality is disabled, not updating " "'%s' for %s",
+            discount.name,
+            participant.name,
+        )
         return
 
     member_sheets.update_participant(discount, participant)
@@ -121,8 +127,10 @@ def update_discount_sheet(discount_id):
     logger.info("Updating the discount sheet for %s", discount.name)
 
     if settings.DISABLE_GSHEETS:
-        logger.warning("Google Sheets functionality is disabled, "
-                       "not updating sheet for '%s'", discount.name)
+        logger.warning(
+            "Google Sheets functionality is disabled, " "not updating sheet for '%s'",
+            discount.name,
+        )
         return
 
     member_sheets.update_discount_sheet(discount)
@@ -151,8 +159,11 @@ def send_sao_itineraries():
     """
     tomorrow = date_utils.local_date() + timedelta(days=1)
     trips = models.Trip.objects.filter(trip_date=tomorrow, info__isnull=False)
-    logger.info("Sending itineraries for %d trips taking place tomorrow, %s",
-                trips.count(), tomorrow)
+    logger.info(
+        "Sending itineraries for %d trips taking place tomorrow, %s",
+        trips.count(),
+        tomorrow,
+    )
     for trip in trips.select_related('info').prefetch_related('leaders'):
         send_email_to_funds(trip)
 

@@ -8,17 +8,17 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('ws', '0012_new_prices'),
-    ]
+    dependencies = [('ws', '0012_new_prices')]
 
     operations = [
         migrations.AlterField(
             model_name='car',
             name='year',
-            field=models.PositiveIntegerField(validators=[
-                django.core.validators.MaxValueValidator(2021),
-                django.core.validators.MinValueValidator(1903)
-            ]),
-        ),
+            field=models.PositiveIntegerField(
+                validators=[
+                    django.core.validators.MaxValueValidator(2021),
+                    django.core.validators.MinValueValidator(1903),
+                ]
+            ),
+        )
     ]

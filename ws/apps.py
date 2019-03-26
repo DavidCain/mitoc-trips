@@ -3,6 +3,7 @@ from django.apps import AppConfig
 
 class TestConfig(AppConfig):
     """ A simple configuration that doesn't load signals. """
+
     name = 'ws'
     verbose_name = "MITOC Trips"
 

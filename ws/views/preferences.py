@@ -71,9 +71,11 @@ class LotteryPairingView(CreateView, LotteryPairingMixin):
         messages.success(self.request, paired_msg)
 
         if reciprocal:
-            msg = ("You must both sign up for trips you're interested in: "
-                   "you'll only be placed on a trip if you both signed up. "
-                   "Either one of you can rank the trips.")
+            msg = (
+                "You must both sign up for trips you're interested in: "
+                "you'll only be placed on a trip if you both signed up. "
+                "Either one of you can rank the trips."
+            )
             messages.info(self.request, msg)
         else:
             msg = "{} must also select to be paired with you.".format(paired_par)
@@ -110,9 +112,13 @@ class DiscountsView(FormView):
         form.save()
         participant = form.save()
         for discount in participant.discounts.all():
-            tasks.update_discount_sheet_for_participant.delay(discount.pk, participant.pk)
-        msg = ("Discounts updated! Ensure your membership "
-               "is active for continued access to discounts.")
+            tasks.update_discount_sheet_for_participant.delay(
+                discount.pk, participant.pk
+            )
+        msg = (
+            "Discounts updated! Ensure your membership "
+            "is active for continued access to discounts."
+        )
         messages.success(self.request, msg)
         return super().form_valid(form)
 
@@ -134,18 +140,24 @@ class LotteryPreferencesView(TemplateView, LotteryPairingMixin):
     def ranked_signups(self):
         # NOTE: In the future, we may support multi-trip lotteries outside WS
         # For now, though, this tool is only for ranking WS trips
-        return models.SignUp.objects.filter(
-            participant=self.request.participant,
-            trip__algorithm='lottery',
-            trip__activity='winter_school',
-            trip__trip_date__gt=local_date(),
-        ).order_by('order', 'time_created').select_related('trip')
+        return (
+            models.SignUp.objects.filter(
+                participant=self.request.participant,
+                trip__algorithm='lottery',
+                trip__activity='winter_school',
+                trip__trip_date__gt=local_date(),
+            )
+            .order_by('order', 'time_created')
+            .select_related('trip')
+        )
 
     @property
     def ranked_signups_dict(self):
         """ Used by the Angular trip-ranking widget. """
-        return [{'id': s.pk, 'trip': {'id': s.trip.pk, 'name': s.trip.name}}
-                for s in self.ranked_signups]
+        return [
+            {'id': s.pk, 'trip': {'id': s.trip.pk, 'name': s.trip.name}}
+            for s in self.ranked_signups
+        ]
 
     def get_car_form(self, use_post=True):
         car = self.request.participant.car
@@ -162,12 +174,14 @@ class LotteryPreferencesView(TemplateView, LotteryPairingMixin):
 
     def get_context_data(self, **kwargs):
         self.participant = self.request.participant
-        return {'is_winter_school': is_winter_school(),
-                'ranked_signups': json.dumps(self.ranked_signups_dict),
-                'car_form': self.get_car_form(use_post=True),
-                'lottery_form': self.get_lottery_form(),
-                'reciprocally_paired': self.reciprocally_paired,
-                'paired_par': self.paired_par}
+        return {
+            'is_winter_school': is_winter_school(),
+            'ranked_signups': json.dumps(self.ranked_signups_dict),
+            'car_form': self.get_car_form(use_post=True),
+            'lottery_form': self.get_lottery_form(),
+            'reciprocally_paired': self.reciprocally_paired,
+            'paired_par': self.paired_par,
+        }
 
     def post(self, request, *args, **kwargs):
         context = self.get_context_data()
@@ -175,7 +189,7 @@ class LotteryPreferencesView(TemplateView, LotteryPairingMixin):
         car_form = context['car_form']
         skip_car_form = lottery_form.data['car_status'] != 'own'
         car_form_okay = skip_car_form or car_form.is_valid()
-        if (lottery_form.is_valid() and car_form_okay):
+        if lottery_form.is_valid() and car_form_okay:
             if skip_car_form:  # New form so submission doesn't show errors
                 # (Only needed when doing a Django response)
                 context['car_form'] = self.get_car_form(use_post=False)
@@ -217,8 +231,9 @@ class LotteryPreferencesView(TemplateView, LotteryPairingMixin):
         for signup in self.ranked_signups:
             trip = signup.trip
             try:
-                pair_signup = models.SignUp.objects.get(participant=paired_par,
-                                                        trip=trip)
+                pair_signup = models.SignUp.objects.get(
+                    participant=paired_par, trip=trip
+                )
             except models.SignUp.DoesNotExist:
                 msg = "{} hasn't signed up for {}.".format(paired_par, trip)
                 messages.warning(self.request, msg)

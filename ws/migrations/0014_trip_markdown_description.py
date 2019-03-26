@@ -7,9 +7,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('ws', '0013_car_year_update'),
-    ]
+    dependencies = [('ws', '0013_car_year_update')]
 
     operations = [
         migrations.AlterField(
@@ -23,5 +21,5 @@ class Migration(migrations.Migration):
                     'Please use HTTPS images sparingly, and only if properly licensed.'
                 )
             ),
-        ),
+        )
     ]

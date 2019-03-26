@@ -12,8 +12,7 @@ from django.shortcuts import render, redirect
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.generic.detail import SingleObjectMixin
-from django.views.generic import (DeleteView, DetailView, FormView,
-                                  TemplateView, View)
+from django.views.generic import DeleteView, DetailView, FormView, TemplateView, View
 
 from ws import forms
 from ws import message_generators
@@ -56,6 +55,7 @@ class DeleteParticipantView(OtherParticipantView, DeleteView):
 
 class ParticipantEditMixin(TemplateView):
     """ Updates a participant. Requires self.participant and self.user. """
+
     template_name = 'profile/edit.html'
     update_msg = 'Personal information updated successfully'
 
@@ -101,22 +101,25 @@ class ParticipantEditMixin(TemplateView):
                 par_kwargs["initial"] = {'affiliation': None}
 
         verified_mit_emails = self.user.emailaddress_set.filter(
-            verified=True,
-            email__iendswith='mit.edu'
+            verified=True, email__iendswith='mit.edu'
         )
 
         context = {
             # For everybody but an admin, `participant` is just `viewing_participant`
             'participant': participant,
-            'medical_info_scrubbed': bool(participant and e_info and not e_info.allergies),
+            'medical_info_scrubbed': bool(
+                participant and e_info and not e_info.allergies
+            ),
             'has_mit_email': verified_mit_emails.exists(),
             'currently_has_car': bool(car),
             'participant_form': forms.ParticipantForm(post, **par_kwargs),
             'car_form': forms.CarForm(post, instance=car, **self.prefix('car')),
-            'emergency_info_form': forms.EmergencyInfoForm(post, instance=e_info,
-                                                           **self.prefix('einfo')),
-            'emergency_contact_form': forms.EmergencyContactForm(post, instance=e_contact,
-                                                                 **self.prefix('econtact')),
+            'emergency_info_form': forms.EmergencyInfoForm(
+                post, instance=e_info, **self.prefix('einfo')
+            ),
+            'emergency_contact_form': forms.EmergencyContactForm(
+                post, instance=e_contact, **self.prefix('econtact')
+            ),
         }
 
         # Boolean: Already responded to question.
@@ -136,8 +139,11 @@ class ParticipantEditMixin(TemplateView):
         Upon validation, redirect to homepage or `next` url, if specified.
         """
         context = self.get_context_data()
-        required_dict = {key: val for key, val in context.items()
-                         if isinstance(val, forms.NgModelForm)}
+        required_dict = {
+            key: val
+            for key, val in context.items()
+            if isinstance(val, forms.NgModelForm)
+        }
 
         if not self.has_car:
             required_dict.pop('car_form')
@@ -157,10 +163,10 @@ class ParticipantEditMixin(TemplateView):
                 try:
                     tasks.update_participant_affiliation.delay(participant.pk)
                 except OSError:
-                    sentry.message("Unable to update participant affiliation", {
-                        'pk': participant.pk,
-                        'affiliation': participant.affiliation,
-                    })
+                    sentry.message(
+                        "Unable to update participant affiliation",
+                        {'pk': participant.pk, 'affiliation': participant.affiliation},
+                    )
 
             return self.success_redirect()
         else:
@@ -262,16 +268,21 @@ class ParticipantLookupView(TemplateView, FormView):
         return super().dispatch(request, *args, **kwargs)
 
 
-class ParticipantView(ParticipantLookupView, SingleObjectMixin,
-                      LotteryPairingMixin, LectureAttendanceMixin):
+class ParticipantView(
+    ParticipantLookupView,
+    SingleObjectMixin,
+    LotteryPairingMixin,
+    LectureAttendanceMixin,
+):
     model = models.Participant
     context_object_name = 'participant'
 
     def get_queryset(self):
         """ Select related fields that will be displayed on the page. """
         par = super().get_queryset()
-        return par.select_related('emergency_info__emergency_contact',
-                                  'car', 'lotteryinfo')
+        return par.select_related(
+            'emergency_info__emergency_contact', 'car', 'lotteryinfo'
+        )
 
     def get_trips(self):
         participant = self.object or self.get_object()
@@ -294,8 +305,9 @@ class ParticipantView(ParticipantLookupView, SingleObjectMixin,
         waitlisted = trips.filter(is_par, signup__waitlistsignup__isnull=False)
 
         trips_led = participant.trips_led.prefetch_related(*prefetches)
-        trips_created = (models.Trip.objects.filter(creator=participant)
-                         .prefetch_related(*prefetches))
+        trips_created = models.Trip.objects.filter(
+            creator=participant
+        ).prefetch_related(*prefetches)
 
         # Avoid doubly-listing trips where they participated or led the trip
         created_but_not_on = trips_created.exclude(leading_trip | par_on_trip)
@@ -326,10 +338,7 @@ class ParticipantView(ParticipantLookupView, SingleObjectMixin,
             return f"{num} trip{plural}"
 
         # Stats that are always reported for leaders
-        stats = [
-            f"Attended {count('on_trip')}",
-            f"Led {count('leader')}",
-        ]
+        stats = [f"Attended {count('on_trip')}", f"Led {count('leader')}"]
 
         # Optional stats
         if trips['past']['wimp']:
@@ -354,13 +363,12 @@ class ParticipantView(ParticipantLookupView, SingleObjectMixin,
 
         can_set_attendance = self.can_set_attendance(participant)
         context['can_set_attendance'] = can_set_attendance
-        context['show_attendance'] = (
-            is_winter_school() and (ws_lectures_complete() or can_set_attendance)
+        context['show_attendance'] = is_winter_school() and (
+            ws_lectures_complete() or can_set_attendance
         )
         if can_set_attendance:
             context['attended_lectures'] = models.LectureAttendance.objects.filter(
-                participant=participant,
-                year=ws_year()
+                participant=participant, year=ws_year()
             ).exists()
 
         context['user_viewing'] = user_viewing
@@ -377,7 +385,9 @@ class ParticipantView(ParticipantLookupView, SingleObjectMixin,
         e_info = participant.emergency_info
         e_contact = e_info.emergency_contact
         context['emergency_info_form'] = forms.EmergencyInfoForm(instance=e_info)
-        context['emergency_contact_form'] = forms.EmergencyContactForm(instance=e_contact)
+        context['emergency_contact_form'] = forms.EmergencyContactForm(
+            instance=e_contact
+        )
         context['participant'] = participant
         if not user_viewing:
             feedback = participant.feedback_set.select_related('trip', 'leader')
@@ -387,7 +397,8 @@ class ParticipantView(ParticipantLookupView, SingleObjectMixin,
 
         chair_activities = set(perm_utils.chair_activities(user))
         context['chair_activities'] = [
-            label for (activity, label) in models.LeaderRating.ACTIVITY_CHOICES
+            label
+            for (activity, label) in models.LeaderRating.ACTIVITY_CHOICES
             if activity in chair_activities
         ]
 

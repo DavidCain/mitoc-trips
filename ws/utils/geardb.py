@@ -54,9 +54,11 @@ def user_membership_expiration(user, try_cache=False):
 
 
 def repr_blank_membership():
-    return {'membership': {'expires': None, 'active': False, 'email': None},
-            'waiver': {'expires': None, 'active': False},
-            'status': 'Missing'}
+    return {
+        'membership': {'expires': None, 'active': False, 'email': None},
+        'waiver': {'expires': None, 'active': False},
+        'status': 'Missing',
+    }
 
 
 def membership_expiration(emails):
@@ -67,6 +69,7 @@ def membership_expiration(emails):
 
     It also calculates whether or not the membership has expired.
     """
+
     def expiration_date(info):
         mem_expires = info['membership']['expires']
         return (mem_expires is not None, mem_expires, *waiver_date(info))
@@ -95,7 +98,7 @@ def membership_expiration(emails):
     if participant:
         participant.update_membership(
             membership_expires=most_recent['membership']['expires'],
-            waiver_expires=most_recent['waiver']['expires']
+            waiver_expires=most_recent['waiver']['expires'],
         )
 
     return most_recent
@@ -104,8 +107,9 @@ def membership_expiration(emails):
 def format_cached_membership(participant):
     """ Format a ws.models.Membership object as a server response. """
     mem = participant.membership
-    return format_membership(participant.email,
-                             mem.membership_expires, mem.waiver_expires)
+    return format_membership(
+        participant.email, mem.membership_expires, mem.waiver_expires
+    )
 
 
 def format_membership(email, membership_expires, waiver_expires):
@@ -113,8 +117,10 @@ def format_membership(email, membership_expires, waiver_expires):
     membership, waiver = person['membership'], person['waiver']
     membership['email'] = email
 
-    for component, expires in [(membership, membership_expires),
-                               (waiver, waiver_expires)]:
+    for component, expires in [
+        (membership, membership_expires),
+        (waiver, waiver_expires),
+    ]:
         component['expires'] = expires
         component['active'] = bool(expires and expires >= local_date())
 
@@ -166,14 +172,23 @@ def matching_info_for(emails):
             or pe.alternate_email in %(emails)s
          group by p.id, p.affiliation, p.email, pe.alternate_email
          order by membership_expires, waiver_expires
-        ''', {'emails': tuple(emails)}
+        ''',
+        {'emails': tuple(emails)},
     )
 
     # Email capitalization in the database may differ from what users report
     # Map back to the case supplied in arguments for easier mapping
     to_original_case = {email.lower(): email for email in emails}
 
-    for person_id, affiliation, date_inserted, main, alternate, m_expires, w_expires in cursor:
+    for (
+        person_id,
+        affiliation,
+        date_inserted,
+        main,
+        alternate,
+        m_expires,
+        w_expires,
+    ) in cursor:
         # We know that the either the main or alternate email was requested
         # (It's possible that membership records were requested for _both_ emails)
         # In case the alternate email was given alongside the primary email,
@@ -197,9 +212,9 @@ def get_matches(emails):
     - Some email addresses may return the same membership record
     """
     for info in matching_info_for(emails):
-        formatted = format_membership(info['email'],
-                                      info['membership_expires'],
-                                      info['waiver_expires'])
+        formatted = format_membership(
+            info['email'], info['membership_expires'], info['waiver_expires']
+        )
         yield info['email'], formatted
 
 
@@ -253,10 +268,9 @@ def outstanding_items(emails, rented_on_or_before=None):
            -- Omit these so we don't get needless duplicates
            and (pe.alternate_email is null or p.email != pe.alternate_email)
          group by p.email, g.id, gt.type_name, gt.rental_amount, r.checkedout
-        ''', {
-            'emails': tuple(emails),
-            'rented_on_or_before': rented_on_or_before,
-        })
+        ''',
+        {'emails': tuple(emails), 'rented_on_or_before': rented_on_or_before},
+    )
 
     for main, alternate_emails, gear_id, name, cost, checkedout in cursor.fetchall():
         if main in to_original_case:
@@ -311,11 +325,9 @@ def update_affiliation(participant):
         # Deprecated status, participant hasn't logged on in years
         return
 
-    emails = (
-        models.EmailAddress.objects
-        .filter(verified=True, user_id=participant.user_id)
-        .values_list('email', flat=True)
-    )
+    emails = models.EmailAddress.objects.filter(
+        verified=True, user_id=participant.user_id
+    ).values_list('email', flat=True)
     matches = list(matching_info_for(emails))
     if not matches:
         return
@@ -347,22 +359,26 @@ def update_affiliation(participant):
     # - the gear database has no known affiliation
     # - the affiliation was updated more recently than the gear database
     should_update = (
-        most_recent['affiliation'] in DEPRECATED_GEARDB_AFFILIATIONS or
-        not most_recent['affiliation'] or
-        participant.profile_last_updated.date() >= last_updated(most_recent)
+        most_recent['affiliation'] in DEPRECATED_GEARDB_AFFILIATIONS
+        or not most_recent['affiliation']
+        or participant.profile_last_updated.date() >= last_updated(most_recent)
     )
 
     if should_update:
         cursor = connections['geardb'].cursor()
-        logger.info("Updating affiliation for %s from %s to %s",
-                    participant.name, most_recent['affiliation'], geardb_affiliation)
+        logger.info(
+            "Updating affiliation for %s from %s to %s",
+            participant.name,
+            most_recent['affiliation'],
+            geardb_affiliation,
+        )
         cursor.execute(
             '''
             update people
                set affiliation = %(affiliation)s
              where id = %(person_id)s
-            ''', {'affiliation': geardb_affiliation,
-                  'person_id': most_recent['person_id']}
+            ''',
+            {'affiliation': geardb_affiliation, 'person_id': most_recent['person_id']},
         )
 
 
@@ -409,9 +425,7 @@ def trips_information():
     """
     # TODO: Last year only?
     signup_on_trip = Case(
-        When(signup__on_trip=True, then=1),
-        default=0,
-        output_field=IntegerField()
+        When(signup__on_trip=True, then=1), default=0, output_field=IntegerField()
     )
 
     trips_per_participant = dict(
@@ -419,7 +433,7 @@ def trips_information():
         .annotate(
             # NOTE: Adding other annotations results in double-counting signups
             # (We do multiple JOINs, and can't easily pass a DISTINCT to the Sum)
-            num_trips_attended=Sum(signup_on_trip),
+            num_trips_attended=Sum(signup_on_trip)
         )
         .values_list('pk', 'num_trips_attended')
     )
@@ -487,6 +501,6 @@ def membership_information():
         all_members[info['person_id']] = {
             'last_known_affiliation': info['last_known_affiliation'],
             'num_rentals': info['num_rentals'],
-            **trips_info_for(email)
+            **trips_info_for(email),
         }
     return all_members

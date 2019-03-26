@@ -20,9 +20,7 @@ def make_last_updated_on(participant, some_date):
     2. `profile_last_updated` is TZ-aware, but we can use TZ-naive dates
     """
     participant.profile_last_updated = participant.profile_last_updated.replace(
-        year=some_date.year,
-        month=some_date.month,
-        day=some_date.day,
+        year=some_date.year, month=some_date.month, day=some_date.day
     )
     participant.save()
 
@@ -31,7 +29,9 @@ class LapsedTests(TransactionTestCase):
     @freeze_time("Wed, 25 Dec 2019 12:00:00 EST")
     def test_not_lapsed_with_recent_update(self):
         today = date(2019, 12, 25)
-        still_within_window = today - timedelta(days=settings.MUST_UPDATE_AFTER_DAYS - 1)
+        still_within_window = today - timedelta(
+            days=settings.MUST_UPDATE_AFTER_DAYS - 1
+        )
         factories.ParticipantFactory.create(profile_last_updated=still_within_window)
 
         self.assertEqual(len(cleanup.lapsed_participants()), 0)
@@ -42,7 +42,7 @@ class LapsedTests(TransactionTestCase):
         membership = models.Membership(
             membership_expires=date(2020, 1, 1),
             waiver_expires=None,
-            last_cached=date(2019, 12, 1)
+            last_cached=date(2019, 12, 1),
         )
         membership.save()
         participant = factories.ParticipantFactory.create(membership=membership)
@@ -56,7 +56,7 @@ class LapsedTests(TransactionTestCase):
         membership = models.Membership(
             waiver_expires=date(2020, 1, 1),
             membership_expires=None,
-            last_cached=date(2019, 12, 1)
+            last_cached=date(2019, 12, 1),
         )
         membership.save()
         participant = factories.ParticipantFactory.create(membership=membership)
@@ -70,7 +70,8 @@ class LapsedTests(TransactionTestCase):
         # Participant was on a trip in the last year
         trip = factories.TripFactory.create(trip_date=date(2019, 2, 28))
         signup = factories.SignUpFactory.create(trip=trip, on_trip=True)
-        make_last_updated_on(signup.participant, date(1995, 1, 1))  # Override default of 'now'
+        # Override default of 'now'
+        make_last_updated_on(signup.participant, date(1995, 1, 1))
 
         self.assertEqual(len(cleanup.lapsed_participants()), 0)
 
@@ -89,7 +90,8 @@ class LapsedTests(TransactionTestCase):
         )
         membership.save()
         participant = factories.ParticipantFactory.create(membership=membership)
-        make_last_updated_on(participant, date(2012, 12, 1))  # Hasn't updated in 13 months
+        # Hasn't updated in 13 months
+        make_last_updated_on(participant, date(2012, 12, 1))
 
         self.assertEqual(cleanup.lapsed_participants().get(), participant)
 
@@ -106,7 +108,8 @@ class PurgeMedicalInfoTests(TransactionTestCase):
     def test_purge_medical_data(self):
         # Gets medical info for free!
         participant = factories.ParticipantFactory.create(membership=None)
-        make_last_updated_on(participant, date(2012, 12, 1))  # Hasn't updated in 13 months
+        # Hasn't updated in 13 months
+        make_last_updated_on(participant, date(2012, 12, 1))
 
         # Note that we started with information
         e_info = participant.emergency_info
@@ -118,11 +121,9 @@ class PurgeMedicalInfoTests(TransactionTestCase):
         cleanup.purge_old_medical_data()
 
         # Re-query so that we get all fresh data (refresh_from_db only does one model)
-        participant = (
-            models.Participant.objects
-            .select_related('emergency_info__emergency_contact')
-            .get(pk=participant.pk)
-        )
+        participant = models.Participant.objects.select_related(
+            'emergency_info__emergency_contact'
+        ).get(pk=participant.pk)
 
         # Now, note that sensitive fields have been cleaned out
         self.assertEqual(participant.emergency_info.allergies, '')

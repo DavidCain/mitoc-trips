@@ -77,7 +77,9 @@ class SignWaiverView(FormView):
     def post(self, request, *args, **kwargs):
         """ Either use participant or a name+email form to submit a waiver. """
         if request.participant:
-            return self.send_waiver(participant=request.participant, **self.guardian_info)
+            return self.send_waiver(
+                participant=request.participant, **self.guardian_info
+            )
 
         # If there's no participant, we're just submitting an email and name directly
         f = self.get_form()

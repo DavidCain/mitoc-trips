@@ -54,8 +54,9 @@ def connect_to_sheets():
 
     if not creds_present:
         if settings.DEBUG:
-            logger.error("OAUTH_JSON_CREDENTIALS is missing! "
-                         "Unable to update Google Sheets.")
+            logger.error(
+                "OAUTH_JSON_CREDENTIALS is missing! " "Unable to update Google Sheets."
+            )
             return None, None
         raise KeyError("Specify OAUTH_JSON_CREDENTIALS to update Google Sheets")
 
@@ -65,12 +66,14 @@ def connect_to_sheets():
 
 def with_refreshed_token(func):
     """ By default, tokens are limited to 60 minutes. Refresh if expired. """
+
     def func_wrapper(*args, **kwargs):
         client, credentials = connect_to_sheets()
         if credentials.access_token_expired:
             credentials.refresh(httplib2.Http())  # (`client` points to this)
             client.login()  # Log in again to refresh credentials
         func(*args, **kwargs)
+
     return func_wrapper
 
 
@@ -90,7 +93,7 @@ class SheetWriter:
         access='Access Level',
         leader='Leader Status',
         student='Student Status',
-        school='School'
+        school='School',
     )
     labels = namedtuple('SpreadsheetLabels', col_constants)(**col_constants)
 
@@ -99,18 +102,14 @@ class SheetWriter:
         self.discount = discount
 
         # These columns appear in all discount sheets
-        self.header = [
-            self.labels.name,
-            self.labels.email,
-            self.labels.membership
-        ]
+        self.header = [self.labels.name, self.labels.email, self.labels.membership]
 
         # Depending on properties of the discount, include additional cols
         extra_optional_columns = [
             (self.labels.access, discount.report_access),
             (self.labels.leader, discount.report_leader),
             (self.labels.student, discount.report_student),
-            (self.labels.school, discount.report_school)
+            (self.labels.school, discount.report_school),
         ]
         for label, should_include in extra_optional_columns:
             if should_include:
@@ -176,7 +175,7 @@ class SheetWriter:
             self.labels.email: participant.email,
             self.labels.membership: self.membership_status(user),
             self.labels.student: participant.get_affiliation_display(),
-            self.labels.school: self.school(participant)
+            self.labels.school: self.school(participant),
         }
 
         # Only fetch these if needed, as we hit the database
@@ -210,6 +209,7 @@ def update_participant(discount, participant):
     last_col = len(writer.header)
     for cell in wks.findall(participant.email):
         if cell.col == 2:  # (Participants _could_ name themselves an email...)
+            # pylint: disable=too-many-function-args
             row_cells = wks.range(cell.row, cell.col, cell.row, last_col)
             assign(row_cells, new_row)
             return
@@ -242,6 +242,7 @@ def update_discount_sheet(discount):
     # Resize sheet to exact size, select all cells
     num_rows, num_cols = len(participants) + 1, len(writer.header)
     wks.resize(num_rows, num_cols)
+    # pylint: disable=too-many-function-args
     all_cells = wks.range(1, 1, num_rows, num_cols)
     rows = grouper(all_cells, len(writer.header))
 

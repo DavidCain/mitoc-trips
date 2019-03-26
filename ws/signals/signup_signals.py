@@ -58,8 +58,8 @@ def leader_signup(sender, instance, created, raw, using, update_fields, **kwargs
 
 
 def get_trip_link(trip):
-    #trip_url = reverse('view_trip', args=(trip.id,))
-    #return '<a href="{}">"{}"</a>'.format(trip_url, trip)
+    # trip_url = reverse('view_trip', args=(trip.id,))
+    # return '<a href="{}">"{}"</a>'.format(trip_url, trip)
     return trip  # TODO: The link above only does relative URL
 
 
@@ -71,8 +71,9 @@ def add_waitlist(sender, instance, created, raw, using, update_fields, **kwargs)
 
 
 @receiver(m2m_changed, sender=Trip.leaders.through)
-def delete_leader_signups(sender, instance, action, reverse, model, pk_set,
-                          using, **kwargs):
+def delete_leader_signups(
+    sender, instance, action, reverse, model, pk_set, using, **kwargs
+):
     """ When removing leaders from the trip, delete their signups.
 
     Ideally, we should be able to use the pre_remove signal to detect which
@@ -130,8 +131,9 @@ def add_lottery_task(sender, instance, created, raw, using, update_fields, **kwa
         return  # Only new lottery trips get a new task
 
     try:
-        task_id = tasks.run_lottery.apply_async((trip.pk, None),
-                                                eta=trip.signups_close_at)
+        task_id = tasks.run_lottery.apply_async(
+            (trip.pk, None), eta=trip.signups_close_at
+        )
     except OSError:
         sentry.message("Failed to make lottery task", {'trip_pk': trip.pk})
     else:

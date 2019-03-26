@@ -75,6 +75,7 @@ class ParticipantFactory(DjangoModelFactory):
 class LotteryInfoFactory(DjangoModelFactory):
     class Meta:
         model = models.LotteryInfo
+
     participant = SubFactory(ParticipantFactory)
 
 

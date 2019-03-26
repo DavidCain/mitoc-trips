@@ -13,7 +13,13 @@ from django.http import HttpResponseBadRequest
 from django.shortcuts import render, redirect
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
-from django.views.generic import CreateView, DetailView, DeleteView, ListView, UpdateView
+from django.views.generic import (
+    CreateView,
+    DetailView,
+    DeleteView,
+    ListView,
+    UpdateView,
+)
 
 from ws import forms
 from ws import models
@@ -34,6 +40,7 @@ class TripView(DetailView):
     and leader names). For other participants, the controls displayed to them
     will vary depending on their permissions.
     """
+
     model = models.Trip
     context_object_name = 'trip'
     template_name = 'trips/view.html'
@@ -59,13 +66,16 @@ class TripView(DetailView):
         if not par_by_user_id:  # No leaders or participants on the trip
             return
 
-        emails = models.EmailAddress.objects.filter(verified=True,
-                                                    user_id__in=par_by_user_id)
+        emails = models.EmailAddress.objects.filter(
+            verified=True, user_id__in=par_by_user_id
+        )
         participant_by_email = {
             addr.email: par_by_user_id[addr.user_id] for addr in emails
         }
         gear_per_participant = defaultdict(list)
-        for item in outstanding_items(participant_by_email, rented_on_or_before=trip.trip_date):
+        for item in outstanding_items(
+            participant_by_email, rented_on_or_before=trip.trip_date
+        ):
             participant = participant_by_email[item['email']]
             gear_per_participant[participant].append(item)
 
@@ -78,10 +88,11 @@ class TripView(DetailView):
         context = super().get_context_data()
         trip = self.object
 
-        context['leader_on_trip'] = perm_utils.leader_on_trip(self.request.participant, trip, True)
-        context['can_admin'] = (
-            context['leader_on_trip'] or
-            perm_utils.chair_or_admin(self.request.user, trip.activity)
+        context['leader_on_trip'] = perm_utils.leader_on_trip(
+            self.request.participant, trip, True
+        )
+        context['can_admin'] = context['leader_on_trip'] or perm_utils.chair_or_admin(
+            self.request.user, trip.activity
         )
         if context['can_admin'] or perm_utils.is_leader(self.request.user):
             context['rentals_by_par'] = list(self.rentals_by_participant(trip))
@@ -122,8 +133,10 @@ class ReviewTripView(DetailView):
         """ Create or update all feedback passed along in form data. """
         trip = self.object = self.get_object()
         if trip.feedback_window_passed:
-            messages.warning(self.request, "Trip feedback window has passed. "
-                                           "Feedback may not be updated.")
+            messages.warning(
+                self.request,
+                "Trip feedback window has passed. " "Feedback may not be updated.",
+            )
             return redirect(reverse('review_trip', args=(trip.pk,)))
 
         leader = self.request.participant
@@ -135,8 +148,10 @@ class ReviewTripView(DetailView):
             return HttpResponseBadRequest("Invalid form contents")
 
         # Create or update feedback for all feedback passed in the form
-        existing_feedback = {feedback.participant.pk: feedback
-                             for feedback in self.get_existing_feedback()}
+        existing_feedback = {
+            feedback.participant.pk: feedback
+            for feedback in self.get_existing_feedback()
+        }
         for pk, comments, showed_up in posted_feedback:
             blank_feedback = showed_up and not comments
             existing = feedback = existing_feedback.get(pk)
@@ -148,8 +163,11 @@ class ReviewTripView(DetailView):
             if not existing:
                 if blank_feedback:
                     continue  # Don't create new feedback saying nothing useful
-                kwargs = {'leader': leader, 'trip': trip,
-                          'participant': models.Participant.objects.get(pk=pk)}
+                kwargs = {
+                    'leader': leader,
+                    'trip': trip,
+                    'participant': models.Participant.objects.get(pk=pk),
+                }
                 feedback = models.Feedback.objects.create(**kwargs)
 
             feedback.comments = comments
@@ -178,11 +196,13 @@ class ReviewTripView(DetailView):
     def get_context_data(self, **kwargs):
         today = local_date()
         trip = self.object = self.get_object()
-        return {"trip": trip,
-                "feedback_window_passed": trip.feedback_window_passed,
-                "trip_completed": today >= trip.trip_date,
-                "feedback_required": trip.activity == 'winter_school',
-                "feedback_list": self.feedback_list}
+        return {
+            "trip": trip,
+            "feedback_window_passed": trip.feedback_window_passed,
+            "trip_completed": today >= trip.trip_date,
+            "feedback_required": trip.activity == 'winter_school',
+            "feedback_list": self.feedback_list,
+        }
 
     @method_decorator(group_required('leaders'))
     def dispatch(self, request, *args, **kwargs):
@@ -260,10 +280,11 @@ class EditTripView(UpdateView, TripLeadersOnlyView):
     @property
     def update_rescinds_approval(self):
         trip = self.object
-        return (trip.chair_approved and
-                not perm_utils.is_chair(self.request.user, trip.activity) and
-                trip.trip_date >= local_date()  # Doesn't matter after trip
-                )
+        return (
+            trip.chair_approved
+            and not perm_utils.is_chair(self.request.user, trip.activity)
+            and trip.trip_date >= local_date()  # Doesn't matter after trip
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -299,6 +320,7 @@ class EditTripView(UpdateView, TripLeadersOnlyView):
 
 class TripListView(ListView):
     """ Superclass for any view that displays a list of trips. """
+
     model = models.Trip
     template_name = 'trips/all/view.html'
     context_object_name = 'trip_queryset'
@@ -320,6 +342,7 @@ class TripListView(ListView):
 
 class UpcomingTripsView(TripListView):
     """ View current trips. Note: currently open to the world!"""
+
     context_object_name = 'current_trips'
 
     def get_queryset(self):
@@ -329,6 +352,7 @@ class UpcomingTripsView(TripListView):
 
 class AllTripsView(TripListView):
     """ View all trips, past and present. """
+
     pass
 
 

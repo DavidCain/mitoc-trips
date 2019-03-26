@@ -21,7 +21,7 @@ login_required_routes = [
     'leader_trip_signup',
     'discounts',
     'lottery_preferences',
-    'lottery_pairing'
+    'lottery_pairing',
 ]
 
 
@@ -46,6 +46,7 @@ class AuthTests(TestCase):
          privileges are based on groups. Some participants belong to the
          leaders group, others are activity chairs
     """
+
     def setUp(self):
         self.client = Client()
         super().setUp()
@@ -53,9 +54,7 @@ class AuthTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.user = User.objects.create_user(
-            email='fake@example.com',
-            password='password',
-            username='username'
+            email='fake@example.com', password='password', username='username'
         )
 
     def login(self):
@@ -72,11 +71,18 @@ class AuthTests(TestCase):
 
     def test_open_pages(self):
         """ Anonymous users can browse a number of pages. """
-        for open_url in ['contact',
-                         'help-home', 'help-about', 'help-personal_info',
-                         'help-lottery', 'help-signups',
-                         'all_trips', 'upcoming_trips',
-                         'stats', 'json-trips_by_leader']:
+        for open_url in [
+            'contact',
+            'help-home',
+            'help-about',
+            'help-personal_info',
+            'help-lottery',
+            'help-signups',
+            'all_trips',
+            'upcoming_trips',
+            'stats',
+            'json-trips_by_leader',
+        ]:
             response = self.client.get(reverse(open_url))
             self.assertEqual(response.status_code, 200)
 

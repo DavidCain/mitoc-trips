@@ -71,7 +71,9 @@ class PermUtilTests(TestCase):
 class SuperUserTestCase(TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.admin = User.objects.create_superuser('admin', 'admin@example.com', 'password')
+        cls.admin = User.objects.create_superuser(
+            'admin', 'admin@example.com', 'password'
+        )
         super().setUpClass()
 
     def test_activity_chair(self):
@@ -80,24 +82,34 @@ class SuperUserTestCase(TestCase):
         self.assertTrue(perm_utils.chair_or_admin(self.admin, models.BaseRating.HIKING))
         self.assertTrue(perm_utils.is_chair(self.admin, models.BaseRating.HIKING))
         self.assertTrue(
-            perm_utils.is_chair(self.admin, models.BaseRating.HIKING, allow_superusers=True)
+            perm_utils.is_chair(
+                self.admin, models.BaseRating.HIKING, allow_superusers=True
+            )
         )
         self.assertFalse(
-            perm_utils.is_chair(self.admin, models.BaseRating.HIKING, allow_superusers=False)
+            perm_utils.is_chair(
+                self.admin, models.BaseRating.HIKING, allow_superusers=False
+            )
         )
 
     def test_chair_activities(self):
         """ The admin qualifies as a chair when allow_superusers is set. """
         # This admin is not a chair in the normal context
-        self.assertFalse(perm_utils.chair_activities(self.admin, allow_superusers=False))
+        self.assertFalse(
+            perm_utils.chair_activities(self.admin, allow_superusers=False)
+        )
         self.assertFalse(perm_utils.chair_activities(self.admin))
 
-        allowed_activities = set(perm_utils.chair_activities(self.admin, allow_superusers=True))
+        allowed_activities = set(
+            perm_utils.chair_activities(self.admin, allow_superusers=True)
+        )
 
         # Considered the chair for closed activities
         self.assertEqual(allowed_activities, set(models.BaseRating.CLOSED_ACTIVITIES))
         # No open activities are included in the set
-        self.assertFalse(allowed_activities.intersection(models.BaseRating.OPEN_ACTIVITIES))
+        self.assertFalse(
+            allowed_activities.intersection(models.BaseRating.OPEN_ACTIVITIES)
+        )
 
     def test_admin_not_counted_in_list(self):
         """ The admin isn't considered in the count of chairs. """

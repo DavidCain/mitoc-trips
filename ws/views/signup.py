@@ -70,8 +70,10 @@ class BaseSignUpView(CreateView, LotteryPairingMixin):
             if trip.signup_set.filter(participant=self.paired_par).exists():
                 msg += " The lottery will attempt to place you together."
             else:
-                msg += (" If they do not sign up for this trip, the lottery"
-                        " will attempt to place you alone on this trip.")
+                msg += (
+                    " If they do not sign up for this trip, the lottery"
+                    " will attempt to place you alone on this trip."
+                )
 
         messages.success(self.request, msg)
 
@@ -101,6 +103,7 @@ class SignUpView(BaseSignUpView):
     the hidden field (Trip), participants could sign up for any trip this way.
     This is not really an issue, though, so no security flaw.
     """
+
     model = models.SignUp
     form_class = forms.SignUpForm
 
@@ -136,8 +139,9 @@ class DeleteSignupView(DeleteView):
         if not signup.participant == request.participant:
             raise PermissionDenied
         trip = signup.trip
-        drops_allowed = (trip.let_participants_drop or
-                         (trip.upcoming and trip.algorithm == 'lottery'))
+        drops_allowed = trip.let_participants_drop or (
+            trip.upcoming and trip.algorithm == 'lottery'
+        )
         if not drops_allowed:
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)

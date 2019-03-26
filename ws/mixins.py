@@ -17,6 +17,7 @@ class LotteryPairingMixin:
 
     Requires a `participant` attribute.
     """
+
     @property
     def pair_requests(self):
         requested = Q(lotteryinfo__paired_with=self.participant)
@@ -43,6 +44,7 @@ class LotteryPairingMixin:
 
 class LectureAttendanceMixin:
     """ Manage the participant's lecture attendance. """
+
     def can_set_attendance(self, participant):
         # WS chairs can set any time for any user
         if perm_utils.is_chair(self.request.user, 'winter_school', True):

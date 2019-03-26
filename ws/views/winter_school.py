@@ -19,6 +19,7 @@ from ws.utils.dates import ws_year
 
 class LectureAttendanceView(FormView, LectureAttendanceMixin):
     """ Mark the participant as having attended lectures. """
+
     form_class = forms.AttendedLecturesForm
 
     def get(self, request, *args, **kwargs):
@@ -41,7 +42,9 @@ class LectureAttendanceView(FormView, LectureAttendanceMixin):
 
         # Notifications aren't shown when viewing other participants
         if participant == self.request.participant:
-            messages.error(self.request, "Unable to record your attendance at this time.")
+            messages.error(
+                self.request, "Unable to record your attendance at this time."
+            )
 
         return redirect(reverse('view_participant', args=(participant.pk,)))
 
@@ -51,9 +54,7 @@ class LectureAttendanceView(FormView, LectureAttendanceMixin):
             return self.form_invalid(form)
 
         attended, _ = models.LectureAttendance.objects.get_or_create(
-            participant=participant,
-            year=ws_year(),
-            creator=self.request.participant
+            participant=participant, year=ws_year(), creator=self.request.participant
         )
         attended.save()
 

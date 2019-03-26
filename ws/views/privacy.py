@@ -52,8 +52,9 @@ class JsonDataDumpView(NeedsParticipant, TemplateView, SingleObjectMixin):
 
     def get_queryset(self):
         joins = ['emergency_info__emergency_contact', 'car', 'lotteryinfo']
-        return (models.Participant.objects.select_related(*joins)
-                .prefetch_related('signup_set__trip'))
+        return models.Participant.objects.select_related(*joins).prefetch_related(
+            'signup_set__trip'
+        )
 
     @property
     def medical(self):
@@ -84,17 +85,11 @@ class JsonDataDumpView(NeedsParticipant, TemplateView, SingleObjectMixin):
 
         for f in all_feedback.select_related('trip', 'participant'):
             yield {
-                'participant': {
-                    'id': f.participant.pk,
-                    'name': f.participant.name
-                },
+                'participant': {'id': f.participant.pk, 'name': f.participant.name},
                 'comments': f.comments,
                 'showed_up': f.showed_up,
                 'time_created': f.time_created,
-                'trip': {
-                    'id': f.trip.pk,
-                    'name': f.trip.name
-                }
+                'trip': {'id': f.trip.pk, 'name': f.trip.name},
             }
 
     @property
@@ -105,21 +100,15 @@ class JsonDataDumpView(NeedsParticipant, TemplateView, SingleObjectMixin):
 
         for f in all_feedback.select_related('trip', 'leader'):
             yield {
-                'leader': {
-                    'id': f.leader.pk,
-                    'name': f.leader.name
-                },
-                'trip': {
-                    'id': f.trip.pk,
-                    'name': f.trip.name
-                }
+                'leader': {'id': f.leader.pk, 'name': f.leader.name},
+                'trip': {'id': f.trip.pk, 'name': f.trip.name},
             }
 
     @property
     def feedback(self):
         return {
             'received': list(self.received_feedback),
-            'given': list(self.authored_feedback)
+            'given': list(self.authored_feedback),
         }
 
     @property
@@ -128,7 +117,7 @@ class JsonDataDumpView(NeedsParticipant, TemplateView, SingleObjectMixin):
         for attendance in self.object.lectureattendance_set.all():
             yield {
                 'year': attendance.year,
-                'time_created': attendance.time_created  # model_to_dict omits!
+                'time_created': attendance.time_created,  # model_to_dict omits!
             }
 
     @property
@@ -141,10 +130,7 @@ class JsonDataDumpView(NeedsParticipant, TemplateView, SingleObjectMixin):
                 'last_updated': s.last_updated,
                 'notes': s.notes,
                 'on_trip': s.on_trip,
-                'trip': {
-                    'id': s.trip.pk,
-                    'name': s.trip.name
-                }
+                'trip': {'id': s.trip.pk, 'name': s.trip.name},
             }
 
     @property
@@ -158,20 +144,22 @@ class JsonDataDumpView(NeedsParticipant, TemplateView, SingleObjectMixin):
             'car_status': info.get_car_status_display(),
             'number_of_passengers': info.number_of_passengers,
             'last_updated': info.last_updated,
-            'paired_with': info.paired_with and info.paired_with.name
+            'paired_with': info.paired_with and info.paired_with.name,
         }
 
     @property
     def trips(self):
         """ Trips that the participant WIMPed, led, or created. """
+
         def repr_trips(manager):
-            return [model_to_dict(trip, fields=['id', 'name'])
-                    for trip in manager.all()]
+            return [
+                model_to_dict(trip, fields=['id', 'name']) for trip in manager.all()
+            ]
 
         return {
             'wimped': repr_trips(self.object.wimp_trips),
             'led': repr_trips(self.object.trips_led.all()),
-            'created': repr_trips(self.object.created_trips.all())
+            'created': repr_trips(self.object.created_trips.all()),
         }
 
     @property
@@ -194,24 +182,24 @@ class JsonDataDumpView(NeedsParticipant, TemplateView, SingleObjectMixin):
             'profile_last_updated': par.profile_last_updated,
             'cell_phone': par.cell_phone and str(par.cell_phone),
             'affiliation': par.get_affiliation_display(),
-            'emails': [model_to_dict(e, fields=['email', 'verified', 'primary'])
-                       for e in self.request.user.emailaddress_set.all()]
+            'emails': [
+                model_to_dict(e, fields=['email', 'verified', 'primary'])
+                for e in self.request.user.emailaddress_set.all()
+            ],
         }
 
     @property
     def ws_applications(self):
         """ All Winter School leader applications by the user. """
-        ws_apps = (
-            models.WinterSchoolLeaderApplication.objects
-            .filter(participant=self.object)
-            .prefetch_related('mentor_activities', 'mentee_activities')
-        )
+        ws_apps = models.WinterSchoolLeaderApplication.objects.filter(
+            participant=self.object
+        ).prefetch_related('mentor_activities', 'mentee_activities')
 
         for app in ws_apps.all():
             formatted = model_to_dict(app, exclude=['id', 'participant'])
             formatted.update(
                 mentor_activities=[act.name for act in formatted['mentor_activities']],
-                mentee_activities=[act.name for act in formatted['mentee_activities']]
+                mentee_activities=[act.name for act in formatted['mentee_activities']],
             )
             yield formatted
 
@@ -229,11 +217,13 @@ class JsonDataDumpView(NeedsParticipant, TemplateView, SingleObjectMixin):
 
         normal_apps = [
             (models.LeaderRating.HIKING, models.HikingLeaderApplication),
-            (models.LeaderRating.CLIMBING, models.ClimbingLeaderApplication)
+            (models.LeaderRating.CLIMBING, models.ClimbingLeaderApplication),
         ]
         for activity, app_model in normal_apps:
-            applications = [model_to_dict(app, exclude=['id', 'participant'])
-                            for app in app_model.objects.filter(by_participant)]
+            applications = [
+                model_to_dict(app, exclude=['id', 'participant'])
+                for app in app_model.objects.filter(by_participant)
+            ]
             if applications:
                 yield activity, applications
 
@@ -244,7 +234,7 @@ class JsonDataDumpView(NeedsParticipant, TemplateView, SingleObjectMixin):
             formatted = model_to_dict(rating, fields=['rating', 'notes', 'active'])
             formatted.update(
                 creator={'id': rating.creator.id, 'name': rating.creator.name},
-                time_created=rating.time_created
+                time_created=rating.time_created,
             )
             by_activity[rating.activity].append(formatted)
         return dict(by_activity)
@@ -254,10 +244,20 @@ class JsonDataDumpView(NeedsParticipant, TemplateView, SingleObjectMixin):
         """ Return all data in an ordered dictionary for presentation. """
         self.object = self.get_object()
 
-        fields = ['user', 'membership', 'discounts', 'car', 'medical',
-                  'lottery_info', 'leader_ratings', 'leader_applications',
-                  'winter_school_lecture_attendance', 'trips',
-                  'signups', 'feedback']
+        fields = [
+            'user',
+            'membership',
+            'discounts',
+            'car',
+            'medical',
+            'lottery_info',
+            'leader_ratings',
+            'leader_applications',
+            'winter_school_lecture_attendance',
+            'trips',
+            'signups',
+            'feedback',
+        ]
         data = OrderedDict((name, getattr(self, name)) for name in fields)
 
         # Coerce generators to lists for serialization as arrays

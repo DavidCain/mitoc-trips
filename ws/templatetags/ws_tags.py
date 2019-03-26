@@ -19,9 +19,11 @@ def lecture_attendance(participant, user_viewing, can_set_attendance=False):
     this_year = ws_year()
     form = AttendedLecturesForm(initial={'participant': participant})
     form.fields['participant'].widget = HiddenInput()  # Will be checked by view
-    return {'form': form,
-            'participant': participant,
-            'user_viewing': user_viewing,
-            'attended_lectures': attendance.filter(year=this_year).exists(),
-            'past_attendance': attendance.exclude(year=this_year),
-            'can_set_attendance': can_set_attendance}
+    return {
+        'form': form,
+        'participant': participant,
+        'user_viewing': user_viewing,
+        'attended_lectures': attendance.filter(year=this_year).exists(),
+        'past_attendance': attendance.exclude(year=this_year),
+        'can_set_attendance': can_set_attendance,
+    }

@@ -35,8 +35,9 @@ class AllLeadersView(ListView):
         context_data = super().get_context_data(**kwargs)
 
         closed_activities = models.LeaderRating.CLOSED_ACTIVITY_CHOICES
-        activities = [(val, label) for (val, label) in closed_activities
-                      if val != 'cabin']
+        activities = [
+            (val, label) for (val, label) in closed_activities if val != 'cabin'
+        ]
         context_data['activities'] = activities
         return context_data
 
@@ -47,6 +48,7 @@ class AllLeadersView(ListView):
 
 class CreateRatingView(CreateView):
     """ Should be inhereted to provide a template. """
+
     form_class = forms.LeaderForm
 
     @property
@@ -130,6 +132,7 @@ class DeactivateLeaderRatingsView(OnlyForActivityChair):
 
 class ActivityLeadersView(OnlyForActivityChair, CreateRatingView):
     """ Manage the leaders of a single activity. """
+
     template_name = 'leaders/by_activity.html'
 
     def get_form_kwargs(self):
@@ -144,7 +147,9 @@ class ActivityLeadersView(OnlyForActivityChair, CreateRatingView):
 
     def get_ratings(self):
         """ Returns all leaders with active ratings. """
-        ratings = models.LeaderRating.objects.filter(activity=self.activity, active=True)
+        ratings = models.LeaderRating.objects.filter(
+            activity=self.activity, active=True
+        )
         ratings = ratings.prefetch_related('participant__trips_led')
         return ratings.annotate(last_trip_date=Max('participant__trips_led__trip_date'))
 
@@ -157,6 +162,7 @@ class ActivityLeadersView(OnlyForActivityChair, CreateRatingView):
 
 class ManageLeadersView(CreateRatingView):
     """ A view to update the rating of any leader across all ratings. """
+
     form_class = forms.LeaderForm
     template_name = 'chair/leaders.html'
     success_url = reverse_lazy('manage_leaders')
