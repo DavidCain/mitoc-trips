@@ -3,9 +3,7 @@ from datetime import date, timedelta
 from django.test import TransactionTestCase
 from freezegun import freeze_time
 
-from ws import cleanup
-from ws import models
-from ws import settings
+from ws import cleanup, models, settings
 from ws.tests import factories
 
 

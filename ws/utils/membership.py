@@ -1,10 +1,9 @@
 from datetime import timedelta
 
-from django.db.utils import OperationalError
 from django.db.models import Q
+from django.db.utils import OperationalError
 
-from ws import models
-from ws import sentry
+from ws import models, sentry
 from ws.utils.dates import local_now
 from ws.utils.geardb import membership_expiration, verified_emails
 

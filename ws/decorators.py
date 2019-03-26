@@ -1,11 +1,11 @@
 from functools import wraps
 
-from django.core.exceptions import PermissionDenied
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.views import redirect_to_login
-from django.urls import reverse, reverse_lazy
+from django.core.exceptions import PermissionDenied
 from django.shortcuts import resolve_url
+from django.urls import reverse, reverse_lazy
 from django.utils.decorators import available_attrs
 
 import ws.utils.perms as perm_utils

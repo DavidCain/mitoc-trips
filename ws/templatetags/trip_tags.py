@@ -3,10 +3,10 @@ from datetime import timedelta
 from django import template
 from django.db.models import Case, Count, IntegerField, Sum, When
 
-from ws import models
 import ws.utils.dates as date_utils
-import ws.utils.ratings as ratings_utils
 import ws.utils.perms as perm_utils
+import ws.utils.ratings as ratings_utils
+from ws import models
 
 register = template.Library()
 

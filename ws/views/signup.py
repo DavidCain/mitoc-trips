@@ -17,8 +17,7 @@ from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.generic import CreateView, DeleteView
 
-from ws import forms
-from ws import models
+from ws import forms, models
 from ws.decorators import group_required, user_info_required
 from ws.mixins import LotteryPairingMixin
 

@@ -3,9 +3,8 @@ Dateutils that require using models.
 
 This is a separate module to avoid creating circular dependencies.
 """
-from ws import models
-
 import ws.utils.dates as dateutils
+from ws import models
 
 
 def ws_trips_this_year():

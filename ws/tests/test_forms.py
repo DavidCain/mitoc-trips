@@ -1,6 +1,5 @@
 from allauth.account.models import EmailAddress
 from django.test import SimpleTestCase, TransactionTestCase
-
 from mitoc_const import affiliations
 
 from ws import forms

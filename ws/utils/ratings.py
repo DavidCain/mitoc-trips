@@ -2,9 +2,9 @@ from datetime import timedelta
 
 from django.db.models import Case, F, IntegerField, Q, Sum, When
 
-from ws import models
-from ws.utils.dates import ws_year, local_date, local_now
 import ws.utils.perms as perm_utils
+from ws import models
+from ws.utils.dates import local_date, local_now, ws_year
 
 
 def deactivate_ratings(participant, activity):

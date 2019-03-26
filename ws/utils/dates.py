@@ -3,8 +3,9 @@ Some shortcuts to retrieve meaningful dates.
 """
 
 from datetime import datetime, time, timedelta
-from django.utils import timezone
+
 from django.conf import settings
+from django.utils import timezone
 
 
 def date_from_iso(datestring):

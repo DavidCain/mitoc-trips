@@ -1,10 +1,10 @@
-from unittest.mock import patch, PropertyMock
 from datetime import datetime
+from unittest.mock import PropertyMock, patch
 
 from django.test import SimpleTestCase
 
-from ws.utils import model_dates as utils
 from ws import models
+from ws.utils import model_dates as utils
 
 
 class MissedLectureTests(SimpleTestCase):

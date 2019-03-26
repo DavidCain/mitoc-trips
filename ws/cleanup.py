@@ -1,12 +1,10 @@
-from datetime import timedelta
 import logging
+from datetime import timedelta
 
 from django.db.models import Q
 
-from ws import models
-from ws import settings
 import ws.utils.dates as dateutils
-
+from ws import models, settings
 
 logger = logging.getLogger(__name__)
 

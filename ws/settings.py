@@ -11,9 +11,8 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
 
-from celery.schedules import crontab
 import raven
-
+from celery.schedules import crontab
 
 SECRET_KEY = os.getenv(
     'DJANGO_SECRET_KEY', '*this-is-obviously-not-secure-only-use-it-locally*'

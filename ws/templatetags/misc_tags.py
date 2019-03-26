@@ -1,8 +1,6 @@
+import phonenumbers
 from django import template
 from django.utils.safestring import mark_safe
-
-import phonenumbers
-
 
 register = template.Library()
 

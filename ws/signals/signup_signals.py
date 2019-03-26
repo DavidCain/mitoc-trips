@@ -2,16 +2,19 @@
 Handle aspects of trip creation/modification when receiving signup changes.
 """
 
-from django.db.models.signals import pre_save, post_save
-from django.db.models.signals import pre_delete, post_delete
-from django.db.models.signals import m2m_changed
+from django.db.models.signals import (
+    m2m_changed,
+    post_delete,
+    post_save,
+    pre_delete,
+    pre_save,
+)
 from django.dispatch import receiver
 
+from ws import sentry, tasks
 from ws.celery_config import app
-from ws.models import LeaderSignUp, SignUp, WaitList, Trip
-from ws import sentry
+from ws.models import LeaderSignUp, SignUp, Trip, WaitList
 from ws.utils.signups import trip_or_wait, update_queues_if_trip_open
-from ws import tasks
 
 
 @receiver(post_save, sender=SignUp)

@@ -1,13 +1,13 @@
+import unittest.mock
 from collections import OrderedDict
 from datetime import date, timedelta
-import unittest.mock
 
 from django.contrib.auth.models import AnonymousUser
 from django.db import connections
 from django.test import SimpleTestCase, TransactionTestCase
 
-from ws.utils.dates import local_date
 from ws.utils import geardb
+from ws.utils.dates import local_date
 
 
 class NoUserTests(SimpleTestCase):

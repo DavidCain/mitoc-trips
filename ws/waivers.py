@@ -1,11 +1,9 @@
 import xml.etree.cElementTree as ET
 
 import requests
-
 from mitoc_const import affiliations
 
 from ws import settings
-
 
 AFFILIATION_MAPPING = {aff.CODE: aff.VALUE for aff in affiliations.ALL}
 

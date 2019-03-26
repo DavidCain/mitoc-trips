@@ -16,4 +16,5 @@ before_script:
   - psql postgres -c 'alter user ws createdb'
 script: 
   - black --skip-string-normalization --check ws
+  - isort -rc --check ws
   - python manage.py test

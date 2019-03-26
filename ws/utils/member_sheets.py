@@ -8,21 +8,19 @@ spreadsheets. Each spreadsheet will be shared with the company offering the
 discount, so that they can verify membership status.
 """
 import bisect
-from collections import OrderedDict, namedtuple
 import functools
-from itertools import zip_longest
 import logging
 import os.path
+from collections import OrderedDict, namedtuple
+from itertools import zip_longest
 
 import gspread
 import httplib2
 from oauth2client.service_account import ServiceAccountCredentials
 
-from ws import models
-from ws import settings
+from ws import models, settings
 from ws.utils import geardb
 from ws.utils.perms import activity_name, is_chair
-
 
 logger = logging.getLogger(__name__)
 

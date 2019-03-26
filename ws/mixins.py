@@ -3,12 +3,12 @@ Mixins used across multiple views.
 """
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
-from django.utils.decorators import method_decorator
 from django.shortcuts import render
+from django.utils.decorators import method_decorator
 from django.views.generic import View
 
-from ws import models
 import ws.utils.perms as perm_utils
+from ws import models
 from ws.utils.dates import is_winter_school
 
 

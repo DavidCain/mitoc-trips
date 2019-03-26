@@ -1,9 +1,8 @@
 from django import template
 
+import ws.utils.perms as perm_utils
 from ws import models
 from ws.utils.dates import local_date
-import ws.utils.perms as perm_utils
-
 
 register = template.Library()
 

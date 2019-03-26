@@ -8,23 +8,19 @@ object that's linked to their user account.
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect, render
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
-from django.views.generic.detail import SingleObjectMixin
 from django.views.generic import DeleteView, DetailView, FormView, TemplateView, View
+from django.views.generic.detail import SingleObjectMixin
 
-from ws import forms
-from ws import message_generators
-from ws import models
-from ws import sentry
-from ws import tasks
-from ws.decorators import admin_only, group_required, user_info_required
-from ws.mixins import LotteryPairingMixin, LectureAttendanceMixin
-from ws.templatetags.trip_tags import annotated_for_trip_list
-from ws.utils.dates import local_date, local_now, is_winter_school, ws_year
-from ws.utils.model_dates import ws_lectures_complete
 import ws.utils.perms as perm_utils
+from ws import forms, message_generators, models, sentry, tasks
+from ws.decorators import admin_only, group_required, user_info_required
+from ws.mixins import LectureAttendanceMixin, LotteryPairingMixin
+from ws.templatetags.trip_tags import annotated_for_trip_list
+from ws.utils.dates import is_winter_school, local_date, local_now, ws_year
+from ws.utils.model_dates import ws_lectures_complete
 
 
 class OtherParticipantView(SingleObjectMixin):

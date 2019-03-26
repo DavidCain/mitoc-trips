@@ -1,15 +1,11 @@
 from django.conf.urls import include, url
-from django.contrib import admin
 from django.conf.urls.static import static
+from django.contrib import admin
 from django.urls import reverse_lazy
 from django.views.generic import RedirectView, TemplateView
 
-from ws import feeds
-from ws import views
-from ws import api_views
-from ws import settings
+from ws import api_views, feeds, settings, views
 from ws.decorators import group_required
-
 
 # Access is controlled in views, but URLs are roughly grouped by access
 urlpatterns = [

@@ -1,15 +1,12 @@
+import random
 from collections import namedtuple
 from datetime import timedelta
-import random
 
-from django.db.models import F, Q, Case, When, IntegerField
-
+from django.db.models import Case, F, IntegerField, Q, When
 from mitoc_const import affiliations
 
-from ws import models
-from ws import settings
+from ws import models, settings
 from ws.utils.dates import local_now
-
 
 WEIGHTS = {
     affiliations.MIT_UNDERGRAD.CODE: 0.3,

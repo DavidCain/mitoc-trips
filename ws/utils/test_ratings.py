@@ -3,9 +3,9 @@ from unittest import mock
 
 from django.test import SimpleTestCase
 
-from ws import models
-from ws.tests import factories, TestCase
 import ws.utils.perms as perm_utils
+from ws import models
+from ws.tests import TestCase, factories
 from ws.utils import ratings
 
 

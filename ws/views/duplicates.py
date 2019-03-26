@@ -5,8 +5,7 @@ from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView, View
 
-from ws import merge
-from ws import models
+from ws import merge, models
 from ws.decorators import admin_only
 
 

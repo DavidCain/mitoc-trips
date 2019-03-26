@@ -1,29 +1,25 @@
 from datetime import datetime, timedelta
 
+from allauth.account.models import EmailAddress
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
-from django.urls import reverse, reverse_lazy
-from django.core.validators import MinValueValidator, MaxValueValidator
-from django.core.validators import RegexValidator
+from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.db import models
 from django.db.models import F, Q
+from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 from django.utils.translation import string_concat
-
-from allauth.account.models import EmailAddress
 from localflavor.us.models import USStateField
+from mitoc_const import affiliations
 from phonenumber_field.modelfields import PhoneNumberField
 
-from mitoc_const import affiliations
-
-from ws.fields import OptionalOneToOneField
 import ws.utils.dates as dateutils
+from ws.fields import OptionalOneToOneField
 from ws.utils.avatar import avatar_url
-
 
 pytz_timezone = timezone.get_default_timezone()
 

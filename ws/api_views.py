@@ -1,6 +1,7 @@
-from collections import defaultdict
 import json
+from collections import defaultdict
 
+import jwt
 from allauth.account.models import EmailAddress
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
@@ -8,23 +9,21 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Q
 from django.http import JsonResponse
+from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import DetailView, ListView, View
 from django.views.generic.detail import SingleObjectMixin
-from django.utils.decorators import method_decorator
-import jwt
 
-from ws import models
-from ws.views import AllLeadersView, TripLeadersOnlyView
-from ws.templatetags.avatar_tags import avatar_url
-
-from ws.decorators import group_required
-from ws.utils.api import jwt_token_from_headers
-from ws.utils.model_dates import missed_lectures
-from ws.utils.dates import date_from_iso
+import ws.utils.geardb as geardb_utils
 import ws.utils.perms as perm_utils
 import ws.utils.signups as signup_utils
-import ws.utils.geardb as geardb_utils
+from ws import models
+from ws.decorators import group_required
+from ws.templatetags.avatar_tags import avatar_url
+from ws.utils.api import jwt_token_from_headers
+from ws.utils.dates import date_from_iso
+from ws.utils.model_dates import missed_lectures
+from ws.views import AllLeadersView, TripLeadersOnlyView
 
 
 class SimpleSignupsView(DetailView):

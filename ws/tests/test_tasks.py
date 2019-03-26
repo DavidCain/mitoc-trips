@@ -4,7 +4,6 @@ from unittest import mock
 from django.core.cache import cache
 from django.test import SimpleTestCase, TransactionTestCase
 from freezegun import freeze_time
-
 from mitoc_const import affiliations
 
 from ws import tasks

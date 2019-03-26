@@ -3,8 +3,8 @@ from unittest.mock import Mock
 from django.contrib.auth.models import AnonymousUser
 
 from ws.middleware import ParticipantMiddleware
-from ws.tests.factories import UserFactory, ParticipantFactory
 from ws.tests import TestCase
+from ws.tests.factories import ParticipantFactory, UserFactory
 
 
 class TestParticipantMiddleware(TestCase):

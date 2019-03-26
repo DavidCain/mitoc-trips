@@ -1,8 +1,8 @@
 from django.db.models import Q
 
+from ws import models
 from ws.utils.dates import local_date
 from ws.utils.signups import add_to_waitlist
-from ws import models
 
 
 def par_is_driver(participant):

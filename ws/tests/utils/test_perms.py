@@ -2,9 +2,8 @@ from django.contrib.auth.models import AnonymousUser, User
 
 from ws import models
 from ws.tests import TestCase
+from ws.tests.factories import ParticipantFactory, UserFactory
 from ws.utils import perms as perm_utils
-
-from ws.tests.factories import UserFactory, ParticipantFactory
 
 
 class PermUtilTests(TestCase):

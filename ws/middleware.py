@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+
 from ws.models import Participant
 
 

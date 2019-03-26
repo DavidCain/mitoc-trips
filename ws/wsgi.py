@@ -11,7 +11,7 @@ import os
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "ws.settings")
 
-# pylint: disable=wrong-import-position
-from django.core.wsgi import get_wsgi_application
+from django.core.wsgi import get_wsgi_application  # isort:skip
+
 
 application = get_wsgi_application()

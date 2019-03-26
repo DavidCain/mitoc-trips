@@ -1,5 +1,5 @@
-from django.test import SimpleTestCase
 from django.db import connections
+from django.test import SimpleTestCase
 
 
 class ConnectionTests(SimpleTestCase):

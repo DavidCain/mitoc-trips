@@ -9,9 +9,9 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import escape
 
-from ws import models
 import ws.utils.dates as dateutils
 import ws.utils.perms
+from ws import models
 
 
 class LotteryMessages:

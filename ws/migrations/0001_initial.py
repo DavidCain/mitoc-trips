@@ -3,11 +3,12 @@
 from __future__ import unicode_literals
 
 import django.core.validators
-from django.db import migrations, models
 import django.db.models.deletion
 import django.utils.timezone
 import localflavor.us.models
 import phonenumber_field.modelfields
+from django.db import migrations, models
+
 import ws.fields
 import ws.utils.dates
 

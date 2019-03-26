@@ -4,6 +4,9 @@ disable=
   # Handled by black
   format,
 
+  # Handled by isort
+  ungrouped-imports,
+
   arguments-differ,
   fixme,
   invalid-name,

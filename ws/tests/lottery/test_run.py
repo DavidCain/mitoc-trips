@@ -2,8 +2,8 @@ from unittest.mock import patch
 
 from django.test import SimpleTestCase
 
-from ws.lottery import run
 from ws import models
+from ws.lottery import run
 
 
 class SingleTripLotteryTests(SimpleTestCase):

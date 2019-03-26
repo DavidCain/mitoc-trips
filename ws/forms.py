@@ -1,24 +1,19 @@
 from django import forms
-from django.db.models.fields import TextField
 from django.core.exceptions import ValidationError
-
-from djng.forms import NgForm, NgFormValidationMixin
-from djng.forms import NgModelFormMixin, NgModelForm
+from django.db.models.fields import TextField
+from djng.forms import NgForm, NgFormValidationMixin, NgModelForm, NgModelFormMixin
 from djng.forms.fields import (
+    BooleanField,
     CharField,
     ChoiceField,
     EmailField,
-    BooleanField,
     RegexField,
 )
 from djng.styling.bootstrap3.forms import Bootstrap3FormMixin
-
 from localflavor.us.us_states import US_STATES
-
 from mitoc_const import affiliations
 
-from ws import models
-from ws import widgets
+from ws import models, widgets
 from ws.membership import MERCHANT_ID, PAYMENT_TYPE
 from ws.utils.signups import non_trip_participants
 

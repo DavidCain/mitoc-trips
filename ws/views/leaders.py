@@ -14,12 +14,10 @@ from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.generic import CreateView, ListView, View
 
-from ws import forms
-from ws import models
-from ws.decorators import group_required, chairs_only
-
 import ws.utils.perms as perm_utils
 import ws.utils.ratings as ratings_utils
+from ws import forms, models
+from ws.decorators import chairs_only, group_required
 
 
 class AllLeadersView(ListView):

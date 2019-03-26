@@ -1,6 +1,5 @@
-from factory import SubFactory, Sequence
+from factory import Sequence, SubFactory
 from factory.django import DjangoModelFactory
-
 from mitoc_const import affiliations
 
 from ws import models

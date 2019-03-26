@@ -1,7 +1,7 @@
 from django.test import SimpleTestCase
 
-from ws.lottery import handle
 from ws import models
+from ws.lottery import handle
 
 
 class DriverTests(SimpleTestCase):

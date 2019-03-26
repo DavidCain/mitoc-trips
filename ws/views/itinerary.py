@@ -16,12 +16,11 @@ from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.generic import DetailView, ListView, UpdateView
 
-from ws import forms
-from ws import models
+import ws.utils.perms as perm_utils
+from ws import forms, models
 from ws.decorators import group_required
 from ws.mixins import TripLeadersOnlyView
-from ws.utils.dates import local_date, local_now, itinerary_available_at
-import ws.utils.perms as perm_utils
+from ws.utils.dates import itinerary_available_at, local_date, local_now
 from ws.utils.itinerary import get_cars
 
 

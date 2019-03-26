@@ -1,5 +1,6 @@
 from django import template
 from django.forms import HiddenInput
+
 from ws.forms import AttendedLecturesForm
 from ws.utils.dates import ws_year
 

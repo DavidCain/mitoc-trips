@@ -21,11 +21,10 @@ from django.utils.decorators import method_decorator
 from django.views.generic import CreateView, DetailView, ListView
 from django.views.generic.edit import FormMixin
 
-from ws import forms
-from ws import models
-from ws.decorators import chairs_only, user_info_required
-import ws.utils.ratings as ratings_utils
 import ws.utils.perms as perm_utils
+import ws.utils.ratings as ratings_utils
+from ws import forms, models
+from ws.decorators import chairs_only, user_info_required
 
 
 class LeaderApplicationMixin(ratings_utils.LeaderApplicationMixin):

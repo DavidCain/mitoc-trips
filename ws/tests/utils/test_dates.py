@@ -1,5 +1,5 @@
-from datetime import datetime, timedelta
 import unittest.mock
+from datetime import datetime, timedelta
 
 from django.test import SimpleTestCase  # No need for database
 

@@ -1,14 +1,13 @@
-from urllib.parse import urlparse, parse_qs
 import unittest.mock
+from urllib.parse import parse_qs, urlparse
 
 from django.contrib.auth.models import User
 from django.test import Client
 from django.urls import reverse
 
 from ws.tests import TestCase
-from ws.tests.helpers import PermHelpers
 from ws.tests.factories import TripFactory
-
+from ws.tests.helpers import PermHelpers
 
 login_required_routes = [
     'all_trips_medical',

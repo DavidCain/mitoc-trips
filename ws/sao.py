@@ -3,9 +3,8 @@ import logging
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import get_template
 
-from ws.utils import itinerary
 from ws.settings import BURSAR_NAME
-
+from ws.utils import itinerary
 
 logger = logging.getLogger(__name__)
 

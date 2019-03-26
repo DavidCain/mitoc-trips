@@ -1,5 +1,5 @@
-from django.db.models.fields import TextField
 from django import template
+from django.db.models.fields import TextField
 
 from ws import models
 

@@ -1,19 +1,17 @@
-from datetime import date
 import itertools
 import random
 import unittest
+from datetime import date
 from unittest.mock import patch
 
+import factory
 from django.db.models import signals
 from django.test import SimpleTestCase
-
-import factory
 from freezegun import freeze_time
 
+from ws import models, settings
 from ws.lottery import rank
 from ws.tests import TestCase
-from ws import models
-from ws import settings
 from ws.tests.factories import (
     FeedbackFactory,
     LotteryInfoFactory,

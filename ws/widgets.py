@@ -1,8 +1,8 @@
 import json
 
 from django.forms import widgets as dj_widgets
-from django.utils.html import format_html
 from django.forms.utils import flatatt
+from django.utils.html import format_html
 
 
 class MarkdownTextarea(dj_widgets.Textarea):

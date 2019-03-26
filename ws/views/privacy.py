@@ -1,19 +1,17 @@
-from collections import defaultdict, OrderedDict
 import types
-
+from collections import OrderedDict, defaultdict
 
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
 from django.db.models import Q
 from django.forms.models import model_to_dict
+from django.http import JsonResponse
 from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.generic import FormView, TemplateView
 from django.views.generic.detail import SingleObjectMixin
 
+from ws import forms, models
 from ws.decorators import participant_required
-from ws import forms
-from ws import models
 
 
 class NeedsParticipant:

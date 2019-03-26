@@ -5,19 +5,17 @@ The gear database is itself a Django application (which we will eventually
 integrate with this one). In the meantime, communicate with an
 externally-hosted MySQL database instead of using Django models.
 """
+import logging
 from collections import OrderedDict
 from datetime import datetime, timedelta
-import logging
 
 from django.db import connections
 from django.db.models import Case, Count, IntegerField, Sum, When
 from django.db.models.functions import Lower
-
 from mitoc_const import affiliations
 
-from ws.utils.dates import local_date
 from ws import models
-
+from ws.utils.dates import local_date
 
 logger = logging.getLogger(__name__)
 # In all cases, we should use the MITOC Trips affiliation instead

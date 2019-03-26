@@ -11,9 +11,8 @@ from django.shortcuts import redirect
 from django.urls import reverse
 from django.views.generic import CreateView, FormView
 
+from ws import forms, models
 from ws.mixins import LectureAttendanceMixin
-from ws import forms
-from ws import models
 from ws.utils.dates import ws_year
 
 

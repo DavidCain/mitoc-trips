@@ -1,11 +1,10 @@
 import os
 
 import celery
-from raven.contrib.celery import register_signal, register_logger_signal
-
 from django.apps import apps
-from ws.sentry import client
+from raven.contrib.celery import register_logger_signal, register_signal
 
+from ws.sentry import client
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ws.settings')
 

@@ -1,20 +1,18 @@
-from datetime import datetime
 import io
 import json
 import logging
+from datetime import datetime
 from pathlib import Path
 
 from mitoc_const import affiliations
 
-from ws import models
-from ws.utils.dates import local_now, closest_wed_at_noon
-from ws import settings
+from ws import models, settings
 from ws.lottery.handle import (
     SingleTripParticipantHandler,
     WinterSchoolParticipantHandler,
 )
 from ws.lottery.rank import SingleTripParticipantRanker, WinterSchoolParticipantRanker
-
+from ws.utils.dates import closest_wed_at_noon, local_now
 
 AFFILIATION_MAPPING = {
     # Excludes the deprecated student code, since new members don't have that
