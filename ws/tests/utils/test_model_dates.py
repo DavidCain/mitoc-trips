@@ -73,8 +73,7 @@ class LecturesCompleteTests(SimpleTestCase):
         def past_only(**kwargs):
             if 'trip_date__lt' in kwargs:
                 return [models.Trip(name="Some past trip")]
-            else:
-                return []
+            return []
 
         ws_trips.return_value.filter.side_effect = past_only
         self.assertTrue(utils.ws_lectures_complete())
@@ -88,7 +87,7 @@ class LecturesCompleteTests(SimpleTestCase):
             """ There are no trips in the past, but there are some upcoming. """
             if 'trip_date__lt' in kwargs:
                 return []
-            elif 'trip_date__gte' in kwargs:
+            if 'trip_date__gte' in kwargs:
                 return [models.Trip(name="Some upcoming trip")]
             return []
 

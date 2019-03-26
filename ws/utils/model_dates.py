@@ -31,10 +31,10 @@ def ws_lectures_complete():
 
     if trips_this_ws.filter(trip_date__lt=today):
         return True
-    elif trips_this_ws.filter(trip_date__gte=today) and after_thursday:
+    if trips_this_ws.filter(trip_date__gte=today) and after_thursday:
         return True
-    else:  # It's Winter School, but it's not late enough in the first week
-        return False
+    # It's Winter School, but it's not late enough in the first week
+    return False
 
 
 def missed_lectures(participant, year):

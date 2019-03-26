@@ -482,8 +482,8 @@ class Participant(models.Model):
         activities = active_ratings.values_list('activity', flat=True)
         if activities:
             return list(activities) + LeaderRating.OPEN_ACTIVITIES
-        else:  # Not a MITOC leader, can't lead anything
-            return []
+        # Not a MITOC leader, can't lead anything
+        return []
 
     def can_lead(self, activity):
         """ Can participant lead trips of the given activity type. """
@@ -1193,8 +1193,7 @@ class LeaderApplication(models.Model):
     def application_year(self):
         if self.activity == LeaderRating.WINTER_SCHOOL:
             return dateutils.ws_year()
-        else:
-            return dateutils.local_date().year
+        return dateutils.local_date().year
 
     @staticmethod
     def can_apply(activity):

@@ -33,7 +33,8 @@ def participant_required(view_func):
     def _wrapped_view(request, *args, **kwargs):
         if request.participant:
             return view_func(request, *args, **kwargs)
-        elif request.user.is_authenticated:
+
+        if request.user.is_authenticated:
             next_url = resolve_url(reverse('edit_profile'))
         else:
             next_url = None

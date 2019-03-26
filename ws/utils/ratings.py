@@ -45,15 +45,14 @@ class LeaderApplicationMixin:
     def application_year(self):
         if self.activity == 'winter_school':
             return ws_year()
-        else:
-            return local_date().year
+        return local_date().year
 
     @property
     def num_chairs(self):
         """ Return the number of chairs for this activity. """
 
         # It's important that this remain a property (dynamically requested, not stored at init)
-        # This way, views that want to get activity from self.kwargs can inheret from the mixin
+        # This way, views that want to get activity from self.kwargs can inherit from the mixin
         if not hasattr(self, '_num_chairs'):
             self._num_chairs = perm_utils.num_chairs(self.activity)
         return self._num_chairs

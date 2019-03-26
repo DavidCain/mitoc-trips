@@ -178,8 +178,7 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):
         if self.next_app:  # Set before we saved this object
             app_args = (self.activity, self.next_app.pk)
             return reverse('view_application', args=app_args)
-        else:
-            return reverse('manage_applications', args=(self.activity,))
+        return reverse('manage_applications', args=(self.activity,))
 
     def get_other_apps(self):
         """ Get the applications that come before and after this in the queue.
@@ -269,8 +268,7 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):
     def before_rating(self):
         if self.assigned_rating:
             return Q(time_created__lte=self.assigned_rating.time_created)
-        else:
-            return Q()
+        return Q()
 
     def get_recommendations(self, assigned_rating=None):
         """ Get recommendations made by leaders/chairs for this application.
@@ -372,8 +370,7 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):
 
         if form.is_valid():
             return self.form_valid(form)
-        else:
-            return self.form_invalid(form)
+        return self.form_invalid(form)
 
     @method_decorator(chairs_only())
     def dispatch(self, request, *args, **kwargs):

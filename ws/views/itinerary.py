@@ -232,8 +232,7 @@ class ChairTripView(ApprovedTripsMixin, TripMedical, DetailView):
             return redirect(
                 reverse('view_trip_for_approval', args=(self.activity, next_trip.id))
             )
-        else:
-            return redirect(reverse('manage_trips', args=(self.activity,)))
+        return redirect(reverse('manage_trips', args=(self.activity,)))
 
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):

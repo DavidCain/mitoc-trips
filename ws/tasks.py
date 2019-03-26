@@ -80,8 +80,7 @@ def mutex_task(task_id_template=None, **shared_task_kwargs):
             with exclusive_lock(task_identifier) as has_lock:
                 if has_lock:
                     return func(*task_args, **task_kwargs)
-                else:
-                    logger.debug("Other worker already processing %s", task_identifier)
+                logger.debug("Other worker already processing %s", task_identifier)
             return None
 
         return wrapped_task

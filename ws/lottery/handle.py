@@ -66,8 +66,7 @@ class ParticipantHandler:
     def to_be_placed(self):
         if self.allow_pairs and self.paired:
             return (self.participant, self.paired_par)
-        else:
-            return (self.participant,)
+        return (self.participant,)
 
     @property
     def par_text(self):
@@ -98,7 +97,7 @@ class ParticipantHandler:
         if trip.open_slots >= self.slots_needed:
             self.place_all_on_trip(signup)
             return True
-        elif self.is_driver and not trip.open_slots and not self.paired:
+        if self.is_driver and not trip.open_slots and not self.paired:
             # A driver may displace somebody else
             # (but a couple with a driver cannot displace two people)
             if self.count_drivers_on_trip(trip) < self.min_drivers:

@@ -165,8 +165,8 @@ class ParticipantEditMixin(TemplateView):
                     )
 
             return self.success_redirect()
-        else:
-            return render(request, self.template_name, context)
+
+        return render(request, self.template_name, context)
 
     def _save_forms(self, user, post_forms):
         """ Given completed, validated forms, handle saving all.

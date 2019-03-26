@@ -55,6 +55,6 @@ class AuthRouter:
 
         if label_is_auth(app_label):
             return db == 'auth_db'
-        elif app_label == 'ws':
+        if app_label == 'ws':
             return db == 'default'
         return None

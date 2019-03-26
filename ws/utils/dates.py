@@ -78,8 +78,7 @@ def next_lottery():
     lottery_morning = wed_morning()  # Closest Wednesday, at 9 am
     if local_now() > lottery_morning:  # Today is Wednesday, after lottery
         return lottery_time(lottery_morning + timedelta(days=7))
-    else:
-        return lottery_morning
+    return lottery_morning
 
 
 def next_wednesday():

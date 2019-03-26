@@ -130,24 +130,22 @@ class SheetWriter:
 
     @staticmethod
     def school(participant):
-        """ Return what school participant goes to, if appliciable. """
+        """ Return what school participant goes to, if applicable. """
         if not participant.is_student:
             return 'N/A'
-        elif participant.affiliation in {'MU', 'MG'}:
+        if participant.affiliation in {'MU', 'MG'}:
             return 'MIT'
-        else:
-            return 'Other'  # We don't collect non-MIT affiliation
+        return 'Other'  # We don't collect non-MIT affiliation
 
     def access_text(self, participant):
         """ Simple string indicating level of access person should have. """
         if self.discount.administrators.filter(pk=participant.pk).exists():
             return 'Admin'
-        elif participant.is_leader:
+        if participant.is_leader:
             return 'Leader'
-        elif participant.is_student:
+        if participant.is_student:
             return 'Student'
-        else:
-            return 'Standard'
+        return 'Standard'
 
     @staticmethod
     def membership_status(user):
@@ -161,10 +159,9 @@ class SheetWriter:
         # We report Active/Expired, since companies don't care about waiver status
         if membership['active']:
             return 'Active'
-        elif membership['expires']:
+        if membership['expires']:
             return 'Expired {}'.format(membership['expires'].isoformat())
-        else:
-            return 'Missing'
+        return 'Missing'
 
     def get_row(self, participant, user):
         """ Get the row values that match the header for this discount sheet. """

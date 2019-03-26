@@ -28,7 +28,6 @@ disable=
   # I aspire to remove these #
   ############################
   missing-docstring,
-  no-else-return,
   unused-argument,  # Currently quite common in method strings
 
 [REPORTS]
