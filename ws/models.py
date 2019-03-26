@@ -1175,6 +1175,10 @@ class LeaderApplication(models.Model):
     previous_rating = models.CharField(
         max_length=255, blank=True, help_text="Previous rating (if any)"
     )
+    archived = models.BooleanField(
+        default=False,
+        help_text="Application should not be considered pending. Allows participant to submit another application if they desire.",
+    )
     # desired_rating = ... (a CharField, but can vary per application)
     year = models.PositiveIntegerField(
         validators=[MinValueValidator(2014)],

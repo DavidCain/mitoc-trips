@@ -175,3 +175,11 @@ class DatabaseApplicationManagerTests(TestCase):
 
         # Application is not regarded as "pending"
         self.assertFalse(charlie_manager.pending_applications())
+
+    def test_archived_application(self):
+        """ Archived applications are not shown as pending. """
+        self.application.archived = True
+        self.application.save()
+        manager = self._manager_for(self.bob)
+        pending_apps = manager.pending_applications()
+        self.assertFalse(pending_apps)

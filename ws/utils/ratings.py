@@ -132,7 +132,7 @@ class ApplicationManager(LeaderApplicationMixin, RatingsRecommendationsMixin):
             num_recs=self.sum_annotation(self.gave_rec),
         )
         return applications.distinct().order_by(
-            'num_ratings', 'num_recs', 'time_created'
+            '-archived', 'num_ratings', 'num_recs', 'time_created'
         )
 
     def pending_applications(self):
@@ -151,7 +151,11 @@ class ApplicationManager(LeaderApplicationMixin, RatingsRecommendationsMixin):
         if self.model is None:
             return []
 
-        return list(self.sorted_annotated_applications().filter(num_ratings=0))
+        return list(
+            self.sorted_annotated_applications()
+            .filter(num_ratings=0)
+            .exclude(archived=True)
+        )
 
     def _chair_should_recommend(self, app):
         """ Return if the chair should be expected to recommend this application.
@@ -159,6 +163,8 @@ class ApplicationManager(LeaderApplicationMixin, RatingsRecommendationsMixin):
         This determines where the application appears in the queue of pending
         applications (assuming it's a pending application in the first place!).
         """
+        if app.archived:  # The application is no longer pending
+            return False
         if app.num_recs:  # The chair has already made a recommendation
             return False
         if app.num_ratings:  # The application received a rating
@@ -178,6 +184,8 @@ class ApplicationManager(LeaderApplicationMixin, RatingsRecommendationsMixin):
         return [app for app in applications if self._chair_should_recommend(app)]
 
     def _should_rate(self, app):
+        if app.archived:  # The application is no longer pending
+            return False
         if app.num_ratings:  # The application received a rating
             return False
         # If there are multiple chairs, we request recommendations first

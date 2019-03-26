@@ -84,6 +84,17 @@
 
 <hr>
 
+{% if application.archived %}
+  <div class="alert alert-warning">
+    <h5>This application was archived!</h5>
+    <p>
+      Archiving an application removes it from the queue of applications needing attention.
+      You can still choose to give the prospective leader a rating at any time.
+      Once their application is archived, a prospective leader may apply again!
+    </p>
+  </div>
+{% endif %}
+
 
 <div class="row">
   <div class="col-md-6">
