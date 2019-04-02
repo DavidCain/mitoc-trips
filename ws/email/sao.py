@@ -24,8 +24,8 @@ def send_email_to_funds(trip, recipient='sao-desk@mit.edu'):
         'bursar_name': BURSAR_NAME,
     }
 
-    text_content = get_template('sao/funds_email.txt').render(context)
-    html_content = get_template('sao/funds_email.html').render(context)
+    text_content = get_template('email/sao/funds_email.txt').render(context)
+    html_content = get_template('email/sao/funds_email.html').render(context)
 
     subject = "MITOC-Trips registration: {}".format(trip.name)
     bursar = 'mitoc-bursar@mit.edu'

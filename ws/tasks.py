@@ -10,8 +10,8 @@ from celery.five import monotonic  # pylint: disable=no-name-in-module
 from django.core.cache import cache
 
 from ws import cleanup, models, settings
+from ws.email.sao import send_email_to_funds
 from ws.lottery.run import SingleTripLotteryRunner, WinterSchoolLotteryRunner
-from ws.sao import send_email_to_funds
 from ws.utils import dates as date_utils
 from ws.utils import geardb, member_sheets
 
