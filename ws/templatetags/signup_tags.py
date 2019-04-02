@@ -144,11 +144,6 @@ def driver_table(cars):
     return {'cars': cars}
 
 
-@register.filter
-def subtract(value, arg):
-    return value - arg
-
-
 @register.inclusion_tag('for_templatetags/not_on_trip.html')
 def not_on_trip(trip, signups_on_trip, signups_off_trip, display_notes):
     """ Display a table of participants who're not on the given trip.
