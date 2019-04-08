@@ -15,6 +15,6 @@ before_script:
   - psql postgres -c 'create role ws login'
   - psql postgres -c 'alter user ws createdb'
 script: 
-  - black --skip-string-normalization --check ws
+  - black --check ws
   - isort -rc --check ws
   - python manage.py test

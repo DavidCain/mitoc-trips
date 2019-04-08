@@ -1,0 +1,5 @@
+[tool.black]
+include = '\.py$'
+# Don't attempt to normalize strings
+# (Preserves the convention of "single quotes for data, double quotes for humans")
+skip-string-normalization = true
