@@ -114,7 +114,7 @@ class MembershipSQLHelpers:
     def tearDown(self):
         """ Because of MySQL, each test's insertions aren't reverted. """
         with self.cursor as cursor:
-            cursor.execute('delete from gear_peopleemails;')
+            cursor.execute('delete from geardb_peopleemails;')
             cursor.execute('delete from people_waivers;')
             cursor.execute('delete from people_memberships;')
             cursor.execute('delete from people;')
@@ -142,7 +142,7 @@ class MembershipSQLHelpers:
         with self.cursor as cursor:
             cursor.execute(
                 '''
-                insert into gear_peopleemails (person_id, alternate_email)
+                insert into geardb_peopleemails (person_id, alternate_email)
                 values (%(person_id)s, %(email)s)
                 ''',
                 {'person_id': person_id, 'email': email},

@@ -163,9 +163,9 @@ def matching_info_for(emails):
                max(pm.expires)  as membership_expires,
           date(max(pw.expires)) as waiver_expires
           from people p
-               left join gear_peopleemails  pe on p.id = pe.person_id
-               left join people_memberships pm on p.id = pm.person_id
-               left join people_waivers     pw on p.id = pw.person_id
+               left join geardb_peopleemails pe on p.id = pe.person_id
+               left join people_memberships  pm on p.id = pm.person_id
+               left join people_waivers      pw on p.id = pw.person_id
          where p.email in %(emails)s
             or pe.alternate_email in %(emails)s
          group by p.id, p.affiliation, p.email, pe.alternate_email
@@ -258,7 +258,7 @@ def outstanding_items(emails, rented_on_or_before=None):
                join people      p on p.id = r.person_id
                join gear        g on g.id = r.gear_id
                join gear_types gt on g.type = gt.id
-               left join gear_peopleemails pe on p.id = pe.person_id
+               left join geardb_peopleemails pe on p.id = pe.person_id
          where r.returned is null
            {rental_date_clause}
            and (p.email in %(emails)s or pe.alternate_email in %(emails)s)
@@ -392,9 +392,9 @@ def all_active_members():
                lower(pe.alternate_email) as alternate_email,
                count(r.id) as num_rentals
           from people p
-               join people_memberships     pm on p.id = pm.person_id
-               left join gear_peopleemails pe on p.id = pe.person_id
-               left join rentals           r  on p.id = r.person_id
+               join people_memberships       pm on p.id = pm.person_id
+               left join geardb_peopleemails pe on p.id = pe.person_id
+               left join rentals             r  on p.id = r.person_id
          where pm.expires > now()
          group by p.id, p.affiliation, p.email, pe.alternate_email
         '''

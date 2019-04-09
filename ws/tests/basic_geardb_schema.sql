@@ -1,4 +1,4 @@
--- DROP TABLE if exists `gear_peopleemails`;
+-- DROP TABLE if exists `geardb_peopleemails`;
 -- DROP TABLE if exists `people_waivers`;
 -- DROP TABLE if exists `people_memberships`;
 -- DROP TABLE if exists `people`;
@@ -24,13 +24,13 @@ CREATE TABLE `people` (
   UNIQUE KEY `user_id` (`user_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=10174 DEFAULT CHARSET=latin1;
 
-CREATE TABLE `gear_peopleemails` (
+CREATE TABLE `geardb_peopleemails` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `person_id` int(11) NOT NULL,
   `alternate_email` varchar(100) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `alternate_email` (`alternate_email`),
-  KEY `gear_peopleemails_16f39487` (`person_id`),
+  KEY `geardb_peopleemails_16f39487` (`person_id`),
   CONSTRAINT `person_id_refs_id_8fea2d7b` FOREIGN KEY (`person_id`) REFERENCES `people` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=108 DEFAULT CHARSET=latin1;
 
