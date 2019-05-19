@@ -217,6 +217,11 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'ws.tasks.update_all_discount_sheets',
         'schedule': crontab(minute=0, hour=3),
     },
+    'send-trip-summaries-email': {
+        'task': 'ws.tasks.send_trip_summaries_email',
+        # Tuesdays around noon (ignore DST)
+        'schedule': crontab(minute=0, hour=17, day_of_week=2),
+    },
     'send-sao-itineraries': {
         'task': 'ws.tasks.send_sao_itineraries',
         'schedule': crontab(minute=0, hour=4),
