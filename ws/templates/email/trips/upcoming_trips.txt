@@ -1,0 +1,14 @@
+{% load email_tags %}
+This is a weekly digest of upcoming trips hosted by the MIT Outing Club.
+To unsubscribe, visit http://mailman.mit.edu/mailman/listinfo/mitoc-trip-announce
+---------------------------------------------------------------------------------
+{% for trip in open_for_signup %}
+{% upcoming_trip_summary_txt trip %}{% endfor %}
+{% for trip in not_yet_open %}
+{% if forloop.first %}
+Upcoming trips (not yet open)
+-----------------------------
+{% endif %}
+{% upcoming_trip_summary_txt trip %}{% endfor %}
+
+Unsubscribe: http://mailman.mit.edu/mailman/options/mitoc-trip-announce

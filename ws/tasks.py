@@ -11,6 +11,7 @@ from django.core.cache import cache
 
 from ws import cleanup, models, settings
 from ws.email.sao import send_email_to_funds
+from ws.email.trips import send_trips_summary
 from ws.lottery.run import SingleTripLotteryRunner, WinterSchoolLotteryRunner
 from ws.utils import dates as date_utils
 from ws.utils import geardb, member_sheets
@@ -144,6 +145,12 @@ def update_participant_affiliation(participant_id):
     """ Use the participant's affiliation to update the gear database. """
     participant = models.Participant.objects.get(pk=participant_id)
     geardb.update_affiliation(participant)
+
+
+@mutex_task()
+def send_trip_summaries_email():
+    """ Email summary of upcoming trips to mitoc-trip-announce@mit.edu """
+    send_trips_summary()
 
 
 @mutex_task()

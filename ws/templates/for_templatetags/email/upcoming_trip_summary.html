@@ -1,0 +1,22 @@
+{% load general_tags %}{% gapless %}
+<h2><a href="https://mitoc-trips.mit.edu{% url 'view_trip' trip.pk %}">{{ trip.name }}</a></h2>
+<h3>{{ trip.trip_date|date:"l, F j" }}</h3>
+<p>
+  <ul>
+    <li><strong>Difficulty rating:</strong> {{ trip.difficulty_rating }}</li>
+    {% if trip.leaders.count %}
+      <li><strong>Leaders:</strong> {{ trip.leaders_with_rating|slice:':5'|join:', ' }}{% if trip.leaders.count > 5 %}... ({{ trip.leaders.count }} in total){% endif %}</li>
+    {% endif %}
+    {% if trip.prereqs %}
+      <li><strong>Prerequisites:</strong> {{ trip.prereqs }}</li>
+    {% endif %}
+    {% if trip.signups_open %}
+      <li><strong>Spaces remaining:</strong> {{ trip.maximum_participants|subtract:trip.signups_on_trip }}</li>
+      <li><strong>Signups close at:</strong> {{ trip.signups_close_at }}</li>
+    {% else %}
+      <li><strong>Signups open at:</strong> {{ trip.signups_open_at }}</li>
+    {% endif %}
+    <li><strong>Algorithm:</strong> {{ trip.get_algorithm_display }}</li>
+  </ul>
+</p>
+{% endgapless %}
