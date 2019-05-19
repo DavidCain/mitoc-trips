@@ -1,22 +1,25 @@
 {% load general_tags %}{% gapless %}
-<h2><a href="https://mitoc-trips.mit.edu{% url 'view_trip' trip.pk %}">{{ trip.name }}</a></h2>
-<h3>{{ trip.trip_date|date:"l, F j" }}</h3>
-<p>
-  <ul>
-    <li><strong>Difficulty rating:</strong> {{ trip.difficulty_rating }}</li>
+{# CSS has been inlined for use in email clients by https://htmlemail.io/inline/ #}
+<h2 style="color: #000000; font-family: sans-serif; font-weight: 400; line-height: 1.4; margin: 0;">
+  <a href="https://mitoc-trips.mit.edu{% url 'view_trip' trip.pk %}" style="color: #3498db; text-decoration: underline;">{{ trip.name }}</a>
+</h2>
+<h3 style="color: #000000; font-family: sans-serif; font-weight: 400; line-height: 1.4; margin: 0;">{{ trip.trip_date|date:"l, F j" }}</h3>
+<p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">
+  <ul style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">
+    <li style="list-style-position: inside; margin-left: 5px;"><strong>Difficulty rating:</strong> {{ trip.difficulty_rating }}</li>
     {% if trip.leaders.count %}
-      <li><strong>Leaders:</strong> {{ trip.leaders_with_rating|slice:':5'|join:', ' }}{% if trip.leaders.count > 5 %}... ({{ trip.leaders.count }} in total){% endif %}</li>
+      <li style="list-style-position: inside; margin-left: 5px;"><strong>Leaders:</strong> {{ trip.leaders_with_rating|slice:':5'|join:', ' }}{% if trip.leaders.count > 5 %}... ({{ trip.leaders.count }} in total){% endif %}</li>
     {% endif %}
     {% if trip.prereqs %}
-      <li><strong>Prerequisites:</strong> {{ trip.prereqs }}</li>
+      <li style="list-style-position: inside; margin-left: 5px;"><strong>Prerequisites:</strong> {{ trip.prereqs }}</li>
     {% endif %}
     {% if trip.signups_open %}
-      <li><strong>Spaces remaining:</strong> {{ trip.maximum_participants|subtract:trip.signups_on_trip }}</li>
-      <li><strong>Signups close at:</strong> {{ trip.signups_close_at }}</li>
+      <li style="list-style-position: inside; margin-left: 5px;"><strong>Spaces remaining:</strong> {{ trip.maximum_participants|subtract:trip.signups_on_trip }}</li>
+      <li style="list-style-position: inside; margin-left: 5px;"><strong>Signups close at:</strong> {{ trip.signups_close_at }}</li>
     {% else %}
-      <li><strong>Signups open at:</strong> {{ trip.signups_open_at }}</li>
+      <li style="list-style-position: inside; margin-left: 5px;"><strong>Signups open at:</strong> {{ trip.signups_open_at }}</li>
     {% endif %}
-    <li><strong>Algorithm:</strong> {{ trip.get_algorithm_display }}</li>
+    <li style="list-style-position: inside; margin-left: 5px;"><strong>Algorithm:</strong> {{ trip.get_algorithm_display }}</li>
   </ul>
 </p>
 {% endgapless %}
