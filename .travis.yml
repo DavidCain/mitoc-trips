@@ -11,6 +11,7 @@ services:
 addons:
   postgresql: "9.6"
 before_script:
+  - nvm install 12.6.0
   - npm install
   - npm install -g uglify-js yuglify
   - WS_DJANGO_TEST=1 python manage.py collectstatic --verbosity=0

@@ -2,14 +2,15 @@
 
 poetry_dev_bootstrap_file = .poetry_dev_up_to_date
 poetry_prod_bootstrap_file = .poetry_prod_up_to_date
+npm_bootstrap_file = .node_packages_up_to_date
 
 
 .PHONY: all
-all: install-python-dev
+all: install-python-dev install-js
 
 # Build everything needed for deployment in production
 .PHONY: build
-build: install-python-prod
+build: install-python-prod install-js
 
 .PHONY: install-python-dev
 install-python-dev: $(poetry_dev_bootstrap_file)
@@ -31,6 +32,13 @@ $(poetry_prod_bootstrap_file): poetry.lock
 	@# Remove the dev bootstrap file, since the `--no-dev` removed any present dev deps
 	rm -f $(poetry_dev_bootstrap_file)
 
+.PHONY: install-js
+install-js: $(npm_bootstrap_file)
+$(npm_bootstrap_file): frontend/package.json frontend/package-lock.json
+	touch $(npm_bootstrap_file).notyet
+	npm --prefix=frontend/ install
+	mv $(npm_bootstrap_file).notyet $(npm_bootstrap_file)
+
 .PHONY: check
 check: lint test
 
@@ -46,18 +54,32 @@ lint: install-python-dev
 	black --fast --check ws
 	isort --recursive --check ws
 	pylint --jobs 0 ws  # '0' tells pylint to auto-detect available processors
+	npm --prefix=frontend/ run lint
 
 .PHONY: test
-test: install-python-dev
+test: test-python test-js
+
+.PHONY: test-python
+test-python: install-python-dev
 	WS_DJANGO_TEST=1 coverage run manage.py test --no-input
+
+# (Note: no tests at present, will exit with non-zero exit code)
+.PHONY: test-js
+test-js: install-js
+	npm --prefix=frontend/ run test:unit -- --coverage
 
 # Production webservers won't run this way, so install dev dependencies
 .PHONY: run
 run: install-python-dev
 	./manage.py runserver
 
+.PHONY: run-js
+run-js: install-js
+	npm --prefix=frontend/ run serve
+
 .PHONY: clean
 clean:
 	rm -f $(poetry_dev_bootstrap_file)
 	rm -f $(poetry_prod_bootstrap_file)
+	rm -f $(npm_bootstrap_file)
 	find . -name '*.pyc' -delete
