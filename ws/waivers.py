@@ -7,10 +7,6 @@ from ws import settings
 
 AFFILIATION_MAPPING = {aff.CODE: aff.VALUE for aff in affiliations.ALL}
 
-# Deprecated codes ('S' is omitted since we can't map for sure)
-AFFILIATION_MAPPING['M'] = affiliations.MIT_AFFILIATE.VALUE
-AFFILIATION_MAPPING['N'] = affiliations.NON_AFFILIATE.VALUE
-
 
 def get_headers():
     """ Get standard headers to be used with every DocuSign API request. """
@@ -39,15 +35,11 @@ def get_base_url():
     return resp.json()['loginAccounts'][0]['baseUrl']
 
 
-def affiliation_to_radio_value(participant):
-    """ Map affiliation to a selectable value in the DocuSign template. """
-    return AFFILIATION_MAPPING.get(participant.affiliation)
-
-
 def prefilled_tabs(participant):
-    """ Return tabs that are prefilled for the Releasor role. """
+    """ Return tabs that are pre-filled for the Releasor role. """
     e_contact = participant.emergency_info.emergency_contact
-    tabs = {
+    docusign_affiliation = AFFILIATION_MAPPING[participant.affiliation]
+    return {
         'textTabs': [
             {'tabLabel': "Emergency Contact", 'value': e_contact.name},
             {'tabLabel': "Emergency Contact Relation", 'value': e_contact.relationship},
@@ -59,18 +51,14 @@ def prefilled_tabs(participant):
             },
             {'tabLabel': 'Phone number', 'value': str(participant.cell_phone)},
         ],
-    }
-    # Only pre-select affiliation if the participant has a known affiliation
-    # (The 'S' affiliation does not map clearly to a category)
-    docusign_affiliation = affiliation_to_radio_value(participant)
-    if docusign_affiliation:
-        tabs['radioGroupTabs'] = [
+        # Map affiliation to a selectable value in the DocuSign template
+        'radioGroupTabs': [
             {
                 'groupName': 'Affiliation',
                 'radios': [{'value': docusign_affiliation, 'selected': True}],
             }
-        ]
-    return tabs
+        ],
+    }
 
 
 def get_roles(
