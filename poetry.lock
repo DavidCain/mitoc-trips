@@ -343,6 +343,14 @@ version = "1.0"
 
 [[package]]
 category = "main"
+description = "Transparently use webpack with django"
+name = "django-webpack-loader"
+optional = false
+python-versions = "*"
+version = "0.6.0"
+
+[[package]]
+category = "main"
 description = "Pythonic argument parser, that will make you smile"
 name = "docopt"
 optional = true
@@ -492,6 +500,11 @@ name = "isort"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 version = "4.3.21"
+
+[package.dependencies]
+[package.dependencies.toml]
+optional = true
+version = "*"
 
 [package.extras]
 pipfile = ["pipreqs", "requirementslib"]
@@ -1023,7 +1036,7 @@ code_coverage = ["coverage", "coveralls"]
 debugging = ["django-debug-toolbar", "ipdb"]
 
 [metadata]
-content-hash = "5b1ef325a31f8feb2c2a5457771b0ad252f67ddef30bb89da6a601eb34a71f8a"
+content-hash = "505683fee967e4b36aa6c0976f22232c2388a99d16876e60047ccd46f0bec3a7"
 python-versions = "^3.6"
 
 [metadata.files]
@@ -1162,6 +1175,10 @@ django-pipeline = [
 ]
 django-smtp-ssl = [
     {file = "django-smtp-ssl-1.0.zip", hash = "sha256:282863d5905e03686b6555ac788aa732842695d6f9cf1dcfa66d898abb7565d0"},
+]
+django-webpack-loader = [
+    {file = "django-webpack-loader-0.6.0.tar.gz", hash = "sha256:60bab6b9a037a5346fad12d2a70a6bc046afb33154cf75ed640b93d3ebd5f520"},
+    {file = "django_webpack_loader-0.6.0-py2.py3-none-any.whl", hash = "sha256:970b968c2a8975fb7eff56a3bab5d0d90d396740852d1e0c50c5cfe2b824199a"},
 ]
 docopt = [
     {file = "docopt-0.6.2.tar.gz", hash = "sha256:49b3a825280bd66b3aa83585ef59c4a8c82f2c8a522dbe754a8bc8d08c85c491"},

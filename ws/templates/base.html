@@ -1,3 +1,5 @@
+{% load render_bundle from webpack_loader %}
+
 {% load pipeline %}
 {% load staticfiles %}
 {% load avatar_tags %}
@@ -16,6 +18,10 @@
     <title>{% block head_title %}{% endblock head_title %} | MITOC Trips</title>
     <link rel="shortcut icon" type="image/png" href="{% static 'favicon.ico' %}"/>
 
+
+    {# TODO: How to do with Django webpack? #}
+    {#<link href="{% static '/vue_frontend/app.js' %}" rel="preload" as="script">#}
+    {#<link href="{% static '/vue_frontend/chunk-vendors.js' %}" rel="preload" as="script">#}
 
     {% block css %}
       {% stylesheet 'app' %}
@@ -197,5 +203,10 @@
         </div>
     </footer>
   </div>
+
+
+  {% block end_of_body_js %}
+    {% render_bundle "app" "js" %}
+  {% endblock end_of_body_js %}
 </body>
 </html>

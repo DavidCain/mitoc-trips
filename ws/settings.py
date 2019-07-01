@@ -91,6 +91,7 @@ INSTALLED_APPS = [
     'pipeline',
     'ws.apps.TripsConfig',
     'corsheaders',
+    'webpack_loader',
 ]
 try:
     # The debug toolbar is always absent in prod, but optional for local development!
@@ -408,4 +409,13 @@ LOGGING = {
         'django': {'handlers': ['file'], 'level': 'ERROR', 'propagate': True},
         'ws': {'handlers': ['file'], 'level': 'INFO', 'propagate': True},
     },
+}
+
+FRONTEND_DIR = os.path.join(BASE_DIR, 'frontend')
+WEBPACK_LOADER = {
+    'DEFAULT': {
+        'CACHE': DEBUG,
+        'BUNDLE_DIR_NAME': '/bundles/',  # must end with slash
+        'STATS_FILE': os.path.join(FRONTEND_DIR, 'webpack-stats.json'),
+    }
 }

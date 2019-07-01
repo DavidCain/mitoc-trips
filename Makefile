@@ -10,7 +10,7 @@ all: install-python-dev install-js
 
 # Build everything needed for deployment in production
 .PHONY: build
-build: install-python-prod install-js
+build: install-python-prod build-frontend
 
 .PHONY: install-python-dev
 install-python-dev: $(poetry_dev_bootstrap_file)
@@ -39,6 +39,12 @@ $(npm_bootstrap_file): frontend/package.json frontend/package-lock.json
 	npm --prefix=frontend/ install
 	mv $(npm_bootstrap_file).notyet $(npm_bootstrap_file)
 
+# Build webpack-stats.json, which Django webpack loader will serve
+# (Needed for production as well as tests, which behave like production)
+.PHONY: build-frontend
+build-frontend: install-js
+	npm --prefix=frontend/ run build
+
 .PHONY: check
 check: lint test
 
@@ -60,7 +66,7 @@ lint: install-python-dev
 test: test-python test-js
 
 .PHONY: test-python
-test-python: install-python-dev
+test-python: install-python-dev build-frontend
 	WS_DJANGO_TEST=1 coverage run manage.py test --no-input
 
 .PHONY: test-js
