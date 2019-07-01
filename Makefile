@@ -63,7 +63,6 @@ test: test-python test-js
 test-python: install-python-dev
 	WS_DJANGO_TEST=1 coverage run manage.py test --no-input
 
-# (Note: no tests at present, will exit with non-zero exit code)
 .PHONY: test-js
 test-js: install-js
 	npm --prefix=frontend/ run test:unit -- --coverage
