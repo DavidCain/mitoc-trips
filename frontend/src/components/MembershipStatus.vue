@@ -14,6 +14,11 @@
         v-bind:data="membershipData"
       >
       </MembershipStatusSummaryPersonal>
+      <MembershipStatusFaq
+        v-if="showFullFaq && membershipData"
+        v-bind:membershipStatus="membershipData.membershipStatus"
+        v-bind:email="email"
+      ></MembershipStatusFaq>
     </div>
     <div v-else>
       Querying MITOC servers for membership status...
@@ -30,18 +35,29 @@ import { localize } from "@/modules/dateutil";
 
 import MembershipStatusIndicator from "./MembershipStatus/MembershipStatusIndicator.vue";
 import MembershipStatusSummaryPersonal from "./MembershipStatus/MembershipStatusSummaryPersonal.vue";
+import MembershipStatusFaq from "./MembershipStatus/MembershipStatusFaq.vue";
 
 @Component({
   components: {
     MembershipStatusIndicator,
+    MembershipStatusFaq,
     MembershipStatusSummaryPersonal
   }
 })
 export default class MembershipStatus extends Vue {
   @Prop() private userId!: number;
   @Prop() private personalized?: boolean;
+  @Prop() private showFullFaq?: boolean;
 
   private membershipData: MembershipData | null = null;
+
+  get email(): string | null {
+    if (!this.membershipData) {
+      return null;
+    }
+
+    return this.membershipData.membership.email;
+  }
 
   async created() {
     this.membershipData = await getMemberStatus(this.userId);

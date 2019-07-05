@@ -8,6 +8,7 @@ import { flushPromises, setTimeTo } from "@/tests/util";
 import { MembershipResponse } from "@/modules/membership/actions";
 import MembershipStatus from "./MembershipStatus.vue";
 import MembershipStatusIndicator from "./MembershipStatus/MembershipStatusIndicator.vue";
+import MembershipStatusFaq from "./MembershipStatus/MembershipStatusFaq.vue";
 import MembershipStatusSummaryPersonal from "./MembershipStatus/MembershipStatusSummaryPersonal.vue";
 
 const ROUTE_REGEX = /\/users\/\d+\/membership.json/;
@@ -131,5 +132,45 @@ describe("Personalized or not", () => {
     hasSummary(wrapper, false);
     await flushPromises();
     hasSummary(wrapper, true);
+  });
+});
+
+describe("FAQ", () => {
+  function hasFaq(wrapper: Wrapper<Vue>, present: boolean): void {
+    expect(wrapper.find(MembershipStatusFaq).exists()).toBe(present);
+  }
+
+  it("Does not render the FAQ by default", async () => {
+    respondsWith(MEMBERSHIP_RESPONSE);
+    const wrapper = render();
+    await flushPromises();
+    hasFaq(wrapper, false);
+  });
+
+  it("Renders a membership FAQ when requested", async () => {
+    respondsWith({
+      membership: {
+        active: false,
+        expires: "1963-12-28",
+        email: "member.email@example.com"
+      },
+      waiver: {
+        active: false,
+        expires: "1963-12-28"
+      },
+      status: "Expired"
+    });
+    const wrapper = render({ showFullFaq: true });
+
+    // Does not appear initially, since we have no data about the membership
+    hasFaq(wrapper, false);
+    await flushPromises();
+    hasFaq(wrapper, true);
+
+    const faq = wrapper.find(MembershipStatusFaq);
+    expect(faq.props()).toEqual({
+      membershipStatus: "Expired",
+      email: "member.email@example.com"
+    });
   });
 });
