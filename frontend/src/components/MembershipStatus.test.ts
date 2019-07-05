@@ -52,14 +52,27 @@ describe("userId", () => {
   });
 });
 
-it("Displays 'querying MITOC servers' while waiting for query to complete", async () => {
-  respondsWith(MEMBERSHIP_RESPONSE);
-  const wrapper = render();
+describe("loadingMsg", () => {
+  beforeEach(() => {
+    respondsWith(MEMBERSHIP_RESPONSE);
+  });
 
-  const queryingMsg = "Querying MITOC servers for membership status...";
-  expect(wrapper.text()).toContain(queryingMsg);
-  await flushPromises();
-  expect(wrapper.text()).not.toContain(queryingMsg);
+  it("Displays 'querying MITOC servers' on normal queries", async () => {
+    const wrapper = render();
+
+    const queryingMsg = "Querying MITOC servers for membership status...";
+    expect(wrapper.text()).toContain(queryingMsg);
+    await flushPromises();
+    expect(wrapper.text()).not.toContain(queryingMsg);
+  });
+
+  it("Displays a 'processing' message if we just signed", async () => {
+    const wrapper = render({ justSigned: true });
+
+    const queryingMsg = "We're currently processing your waiver...";
+    expect(wrapper.text()).toContain(queryingMsg);
+    await flushPromises();
+  });
 });
 
 describe("Expiring Soon", () => {
@@ -172,5 +185,47 @@ describe("FAQ", () => {
       membershipStatus: "Expired",
       email: "member.email@example.com"
     });
+  });
+});
+
+describe("justSigned", () => {
+  let dateNowSpy: jest.SpyInstance;
+
+  beforeAll(() => {
+    dateNowSpy = setTimeTo("2019-02-22T12:34:56-05:00");
+  });
+
+  afterAll(() => {
+    dateNowSpy.mockRestore();
+  });
+
+  // TODO: Resolve the conflict of flushing & using fake timers
+  // beforeEach(() => {
+  //   jest.useFakeTimers();
+  // });
+
+  describe("true", () => {
+    it("does not poll repeatedly if the first status returned is current", () => {
+      respondsWith({
+        ...MEMBERSHIP_RESPONSE,
+        // This date is exactly one year in the future, which appears active!
+        waiver: { active: true, expires: "2020-02-22" },
+        status: "Active"
+      });
+
+      const wrapper = render({ justSigned: true });
+      flushPromises();
+    });
+
+    // TODO: I plan to use jest.useFakeTimers, which currently mocks `setTimeout`
+    // Unfortunately, that alters the behavior of `flushPromises()`.
+    // There are multiple ways this can be resolved, though I can finish at another time.
+    it("Polls at increasing intervals until a new waiver is given", () => {});
+
+    it("Ceases polling after a fixed number of requests", () => {});
+  });
+
+  describe("false", () => {
+    it("only makes one API request, regardless of status", () => {});
   });
 });
