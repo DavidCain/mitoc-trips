@@ -14,7 +14,7 @@
     <small><em>MITOC will never share your information without your express consent.</em></small>
   </div>
   <div class="col-md-offset-1 col-md-4">
-    <membership-status data-personal="true" data-user-id="{{ user.id }}">
+    <membership-status user-id="{{ user.id }}" v-bind:personalized="true">
     </membership-status>
     <small>An active membership is required for these discounts.</small>
   </div>

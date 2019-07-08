@@ -51,7 +51,10 @@
   </div>
 
   <div class="col-md-6">
-    <membership-status data-personal="true" data-show-full-faq="true" data-user-id="{{ user.id }}">
+    <membership-status
+      user-id="{{ user.id }}"
+      v-bind:show-full-faq="true"
+      v-bind:personalized="true">
     </membership-status>
   </div>
 </div>

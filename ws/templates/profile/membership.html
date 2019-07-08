@@ -32,7 +32,10 @@ Membership dues
   <div class="row">
     <div class="col-sm-6 col-sm-push-6">
       {% if user.is_authenticated %}
-        <membership-status data-show-full-faq="true" data-personal="true" data-user-id="{{ user.id }}">
+        <membership-status
+          user-id="{{ user.id }}"
+          v-bind:show-full-faq="true"
+          v-bind:personalized="true">
         </membership-status>
       {% endif %}
     </div>

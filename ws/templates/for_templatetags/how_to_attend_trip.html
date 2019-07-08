@@ -14,6 +14,6 @@
 </div>
 
 {% if show_membership_status %}
-  <membership-status data-personal="true" data-user-id="{{ user.pk }}">
+  <membership-status user-id="{{ user.pk }}" v-bind:personalized="true">
   </membership-status>
 {% endif %}
