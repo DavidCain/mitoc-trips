@@ -1,14 +1,12 @@
 {% extends "messages_page.html" %}
 
-{% load i18n %}
-
-{% block head_title %}{% trans "Emails" %}{% endblock %}
+{% block head_title %}Emails{% endblock %}
 
 {% block content %}
 {{ block.super }}
 <div class="row" id = "account-emails">
   <div class="col-md-6">
-  <h3>{% trans "E-mail Addresses" %}</h3>
+  <h3>E-mail Addresses</h3>
 
 
   <form action="{% url 'account_email' %}" class="well" method="post">
@@ -24,34 +22,31 @@
 
           {{ emailaddress.email }}
           {% if not emailaddress.verified %}
-          <span class="label label-warning unverified">{% trans "Unverified" %}</span>
+            <span class="label label-warning unverified">Unverified</span>
           {% endif %}
-          {% if emailaddress.primary %}<span class="label label-primary">{% trans "Primary" %}</span>{% endif %}
+          {% if emailaddress.primary %}
+            <span class="label label-primary">Primary</span>
+          {% endif %}
         </label>
       </div>
       {% endfor %}
     </div>
 
     <div class="btn-group" role="group">
-      <button class="btn btn-default" type="submit" name="action_primary">{% trans 'Make Primary' %}</button>
-      <button class="btn btn-default" type="submit" name="action_send">{% trans 'Re-send Verification' %}</button>
-      <button class="btn btn-default"
-              data-danger-hover
-              type="submit"
-              name="action_remove">
-        {% trans 'Remove' %}
-      </button>
+      <button class="btn btn-default" type="submit" name="action_primary">Make Primary</button>
+      <button class="btn btn-default" type="submit" name="action_send">Re-send Verification</button>
+      <button class="btn btn-default" type="submit" name="action_remove">Remove</button>
     </div>
 
   </form>
 
 
-  <h4>{% trans "Add E-mail Address" %}</h4>
+  <h4>Add E-mail Address</h4>
 
   <form method="post" action="{% url 'account_email' %}" class="well">
     {% csrf_token %}
     {{ form.as_p}}
-    <button class="btn btn-primary" name="action_add" type="submit">{% trans "Add E-mail" %}</button>
+    <button class="btn btn-primary" name="action_add" type="submit">Add E-mail</button>
   </form>
   </div>
 

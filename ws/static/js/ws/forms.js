@@ -371,33 +371,6 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
     }
   };
 })
-.directive('dangerHover', function($compile) {
-  return {
-    restrict: 'A',
-    link: function (scope, element, attrs) {
-      // Identify the base Bootstrap button class to display when not hovering
-      var classes = attrs.class ? attrs.class.split(/\s+/) : [];
-      var baseBtnClass = attrs.class && _.find(classes, function (cls) {
-        return cls.lastIndexOf('btn-', 0) === 0;
-      });
-      if (!baseBtnClass) {
-        baseBtnClass = 'btn-default';
-        element.addClass('btn');
-        element.addClass(baseBtnClass);
-      }
-
-      // Show red when hovering
-      element.bind('mouseover', function(e) {
-        element.removeClass(baseBtnClass);
-        element.addClass('btn-danger');
-      });
-      element.bind('mouseleave', function(e) {
-        element.removeClass('btn-danger');
-        element.addClass(baseBtnClass);
-      });
-    },
-  };
-})
 .directive('approveTrip', function($http, djangoUrl) {
   return {
     restrict: 'E',
