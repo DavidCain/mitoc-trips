@@ -82,23 +82,26 @@ class MutexTaskTests(SimpleTestCase):
 
 
 class TaskTests(TransactionTestCase):
+    @staticmethod
     @mock.patch('ws.utils.member_sheets.update_discount_sheet')
-    def test_update_discount_sheet(self, update_discount_sheet):
+    def test_update_discount_sheet(update_discount_sheet):
         discount = factories.DiscountFactory.create(pk=9123)
         tasks.update_discount_sheet(9123)
         update_discount_sheet.assert_called_with(discount)
 
+    @staticmethod
     @mock.patch('ws.utils.geardb.update_affiliation')
-    def test_update_participant_affiliation(self, update_affiliation):
+    def test_update_participant_affiliation(update_affiliation):
         participant = factories.ParticipantFactory.create(
             affiliation=affiliations.NON_AFFILIATE.CODE
         )
         tasks.update_participant_affiliation(participant.pk)
         update_affiliation.assert_called_with(participant)
 
+    @staticmethod
     @freeze_time("Fri, 25 Jan 2019 03:00:00 EST")
     @mock.patch('ws.tasks.send_email_to_funds')
-    def test_send_tomorrow_itiniraries(self, send_email_to_funds):
+    def test_send_tomorrow_itiniraries(send_email_to_funds):
         """ Only trips taking place the next day have itineraries sent out. """
         _yesterday, _today, tomorrow, _two_days_from_now = [
             factories.TripFactory.create(
@@ -133,11 +136,12 @@ class TaskTests(TransactionTestCase):
             trips_with_itinerary,
         )
 
+    @staticmethod
     @mock.patch('ws.tasks.cache', wraps=cache)
     @mock.patch('ws.utils.member_sheets.update_discount_sheet')
     @mock.patch('ws.utils.member_sheets.update_participant')
     def test_discount_tasks_share_same_key(
-        self, update_participant, update_discount_sheet, mock_cache
+        update_participant, update_discount_sheet, mock_cache
     ):
         """ All tasks modifying the same discount sheet must share a task ID.
 

@@ -20,7 +20,8 @@ class SetupGearDbTestRunner(DiscoverRunner):
     instead call an API managed by the gear database itself.
     """
 
-    def geardb_cursor(self, config):
+    @staticmethod
+    def geardb_cursor(config):
         geardb = next(wrapper for (wrapper, name, _) in config if name == 'geardb')
         return geardb.connection.cursor()
 

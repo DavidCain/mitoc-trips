@@ -128,7 +128,8 @@ class AllLeaderApplicationsView(ApplicationManager, ListView):
         """ Annotate each application with its number of recs & ratings. """
         return self.sorted_annotated_applications()
 
-    def _group_applications_by_year(self, applications):
+    @staticmethod
+    def _group_applications_by_year(applications):
         apps_by_year = defaultdict(list)
         for app in applications:
             if app.num_ratings:

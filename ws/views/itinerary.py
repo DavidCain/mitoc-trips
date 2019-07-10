@@ -47,7 +47,8 @@ class ApprovedTripsMixin:
 
 
 class ItineraryInfoFormMixin:
-    def get_info_form(self, trip):
+    @staticmethod
+    def get_info_form(trip):
         """ Return a stripped form for read-only display.
 
         Drivers will be displayed separately, and the 'accuracy' checkbox
@@ -153,7 +154,8 @@ class TripMedicalView(DetailView, TripMedical):
     queryset = models.Trip.objects.all()
     template_name = 'trips/medical.html'
 
-    def _can_view(self, trip, request):
+    @staticmethod
+    def _can_view(trip, request):
         """ Leaders, chairs, and a trip WIMP can view this page. """
         return (
             perm_utils.in_any_group(request.user, ['WIMP'])

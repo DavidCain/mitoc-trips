@@ -21,7 +21,6 @@ disable=
   attribute-defined-outside-init,
   duplicate-code,
   no-member,
-  no-self-use,
   too-many-locals,
 
   ############################

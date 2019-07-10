@@ -63,7 +63,8 @@ class ParticipantEditMixin(TemplateView):
     def has_car(self):
         return 'has_car' in self.request.POST
 
-    def prefix(self, base, **kwargs):
+    @staticmethod
+    def prefix(base, **kwargs):
         return dict(prefix=base, scope_prefix=base + '_scope', **kwargs)
 
     def get_context_data(self, **kwargs):
@@ -324,7 +325,8 @@ class ParticipantView(
             },
         }
 
-    def get_stats(self, trips):
+    @staticmethod
+    def get_stats(trips):
         if not any(trips['past'].values()):
             return []
 
@@ -421,7 +423,8 @@ class ProfileView(ParticipantView):
         context['just_signed'] = args.get('event') == 'signing_complete'
         return context
 
-    def render_landing_page(self, request):
+    @staticmethod
+    def render_landing_page(request):
         today = local_date()
         current_trips = models.Trip.objects.filter(trip_date__gte=today)
         context = {'current_trips': annotated_for_trip_list(current_trips)}

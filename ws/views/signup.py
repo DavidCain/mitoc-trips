@@ -46,7 +46,8 @@ class BaseSignUpView(CreateView, LotteryPairingMixin):
             return self.form_invalid(form)
         return super().form_valid(form)
 
-    def get_errors(self, signup):
+    @staticmethod
+    def get_errors(signup):
         """ Take a signup (saved, but not committed), and validate. """
         errors = []
         # (user_info_required ensures that participant is present & not None)

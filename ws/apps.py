@@ -12,7 +12,8 @@ class TripsConfig(AppConfig):
     name = 'ws'
     verbose_name = "MITOC Trips"
 
-    def load_signals(self):
+    @staticmethod
+    def load_signals():
         from . import signals  # pylint: disable=unused-import, unused-variable
 
     def ready(self):

@@ -7,8 +7,9 @@ from ws.lottery import run
 
 
 class SingleTripLotteryTests(SimpleTestCase):
+    @staticmethod
     @patch.object(models.Trip, 'save')
-    def test_fcfs_not_run(self, save_trip):
+    def test_fcfs_not_run(save_trip):
         """ If a trip's algorithm is not 'lottery', nothing happens. """
         trip = models.Trip(algorithm='fcfs')
         runner = run.SingleTripLotteryRunner(trip)

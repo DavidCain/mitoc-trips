@@ -43,11 +43,13 @@ class LotteryMessages:
             self.warn_if_no_ranked_trips()
             self.warn_if_dated_info()
 
-    def profile_link(self, text):
+    @staticmethod
+    def profile_link(text):
         # Remember to set extra_tags='safe' to avoid escaping HTML
         return '<a href="{}">{}</a>'.format(reverse('edit_profile'), text)
 
-    def prefs_link(self, text='lottery preferences'):
+    @staticmethod
+    def prefs_link(text='lottery preferences'):
         # Remember to set extra_tags='safe' to avoid escaping HTML
         return '<a href="{}">{}</a>'.format(reverse('lottery_preferences'), text)
 

@@ -181,7 +181,8 @@ class AdminTripSignupsView(SingleObjectMixin, FormatSignupMixin, TripLeadersOnly
         # Anything already on should be waitlisted
         self.update_signups(signup_list, trip)
 
-    def signups_to_update(self, signup_list, trip):
+    @staticmethod
+    def signups_to_update(signup_list, trip):
         """ From the payload, break signups into deletion & those that stay.
 
         All signups are given (in order) in `signup_list`. If the `deleted` key
@@ -372,7 +373,8 @@ class JsonAllLeadersView(AllLeadersView):
             ).distinct()
         return leaders
 
-    def all_active_ratings(self):
+    @staticmethod
+    def all_active_ratings():
         """ Return all active ratings per leader, indexed by pk. """
         ratings = models.LeaderRating.objects.filter(active=True)
         by_leader = defaultdict(list)
@@ -624,7 +626,8 @@ class CheckTripOverflowView(View, SingleObjectMixin):
 
 
 class TripsByLeaderView(View):
-    def get(self, request, *args, **kwargs):
+    @staticmethod
+    def get(request, *args, **kwargs):
         by_leader = models.Participant.leaders.prefetch_related('trips_led')
 
         ret = [
@@ -652,7 +655,8 @@ class TripsByLeaderView(View):
 
 
 class RawMembershipStatsView(View):
-    def get(self, request, *args, **kwargs):
+    @staticmethod
+    def get(request, *args, **kwargs):
         return JsonResponse(
             {'members': list(geardb_utils.membership_information().values())}
         )

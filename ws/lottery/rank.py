@@ -204,7 +204,8 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
         attended, flaked, _ = self.number_ws_trips(participant)
         return (flaked * 5) - (2 * attended)
 
-    def trips_flaked(self, participant):
+    @staticmethod
+    def trips_flaked(participant):
         """ Return a QuerySet of trip pk's on which the participant flaked. """
         return (
             participant.feedback_set.filter(

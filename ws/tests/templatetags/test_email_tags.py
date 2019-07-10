@@ -11,7 +11,8 @@ from ws.utils.dates import localize
 
 @freeze_time("11 Dec 2025 12:00:00 EST")
 class EmailTagsTests(TestCase):
-    def _make_trip(self):
+    @staticmethod
+    def _make_trip():
         trip = factories.TripFactory.create(
             name="Some Cool Upcoming Trip",
             trip_date=date(2025, 12, 14),

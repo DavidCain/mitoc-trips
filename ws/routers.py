@@ -19,7 +19,8 @@ class AuthRouter:
     auth application.
     """
 
-    def db_for_read(self, model, **hints):
+    @staticmethod
+    def db_for_read(model, **hints):
         """
         Attempts to read auth models go to auth_db.
         """
@@ -27,7 +28,8 @@ class AuthRouter:
             return 'auth_db'
         return None
 
-    def db_for_write(self, model, **hints):
+    @staticmethod
+    def db_for_write(model, **hints):
         """
         Attempts to write auth models go to auth_db.
         """
@@ -35,7 +37,8 @@ class AuthRouter:
             return 'auth_db'
         return None
 
-    def allow_relation(self, obj1, obj2, **hints):
+    @staticmethod
+    def allow_relation(obj1, obj2, **hints):
         """
         Allow relations if a model in the auth app is involved.
         """
@@ -43,7 +46,8 @@ class AuthRouter:
             return True
         return None
 
-    def allow_migrate(self, db, app_label, model_name=None, **hints):
+    @staticmethod
+    def allow_migrate(db, app_label, model_name=None, **hints):
         """
         Make sure the auth app only appears in the 'auth_db' database.
         """

@@ -46,7 +46,8 @@ class LotteryRunner:
     def mark_handled(self, participant, handled=True):
         self.participants_handled[participant.pk] = handled
 
-    def participant_to_bump(self, trip):
+    @staticmethod
+    def participant_to_bump(trip):
         """ Which participant to bump off the trip if another needs a place.
 
         By default, just goes with the most recently-added participant.

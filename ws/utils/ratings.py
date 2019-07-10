@@ -104,7 +104,8 @@ class RatingsRecommendationsMixin:
             participant__leaderrating__activity=self.activity,
         )
 
-    def sum_annotation(self, selector):
+    @staticmethod
+    def sum_annotation(selector):
         # Django 2.0: Use conditional aggregation instead
         return Sum(Case(When(selector, then=1), default=0, output_field=IntegerField()))
 
@@ -157,7 +158,8 @@ class ApplicationManager(LeaderApplicationMixin, RatingsRecommendationsMixin):
             .exclude(archived=True)
         )
 
-    def _chair_should_recommend(self, app):
+    @staticmethod
+    def _chair_should_recommend(app):
         """ Return if the chair should be expected to recommend this application.
 
         This determines where the application appears in the queue of pending

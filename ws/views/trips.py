@@ -55,7 +55,8 @@ class TripView(DetailView):
         trip = trip or self.get_object()
         return self.request.participant.signup_set.filter(trip=trip).first()
 
-    def rentals_by_participant(self, trip):
+    @staticmethod
+    def rentals_by_participant(trip):
         """ Yield all items rented by leaders & participants on this trip. """
         on_trip = trip.signup_set.filter(on_trip=True).select_related('participant')
         trip_participants = [s.participant for s in on_trip]

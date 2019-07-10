@@ -9,7 +9,8 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ws.settings')
 
 
 class Celery(celery.Celery):
-    def on_configure(self):  # pylint: disable=method-hidden
+    @staticmethod
+    def on_configure():  # pylint: disable=method-hidden
         if not client:
             return
 
