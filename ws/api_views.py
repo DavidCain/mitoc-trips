@@ -274,7 +274,7 @@ class LeaderParticipantSignupView(
     model = models.Trip
 
     def post(self, request, *args, **kwargs):
-        """ Process the participant & trip, create or update signup as neeeded.
+        """ Process the participant & trip, create or update signup as needed.
 
         This method handles two main cases:
         - Participant has never signed up for the trip, will be placed
@@ -302,14 +302,17 @@ class LeaderParticipantSignupView(
 
             if already_on_trip:
                 queue = "trip" if signup.on_trip else "waitlist"
-                msg = f"{par.name} is already on the {queue}"
-                return JsonResponse({'message': msg}, status=409)
+                return JsonResponse(
+                    {'message': f"{par.name} is already on the {queue}"}, status=409
+                )
 
         signup.notes = postdata.get('notes', '')
         signup = signup_utils.trip_or_wait(signup)
 
-        trip_signups = trip.on_trip_or_waitlisted.select_related('participant')
-        trip_participants = {s.participant for s in trip_signups}
+        trip_participants = {
+            s.participant
+            for s in trip.on_trip_or_waitlisted.select_related('participant')
+        }
 
         other_trips_by_par = dict(
             trip.other_trips_by_participant(for_participants=[par])
@@ -319,11 +322,13 @@ class LeaderParticipantSignupView(
         # signup: descriptor, agnostic of presence on the trip or waiting list
         # on_trip: a boolean to place this signup in the right place
         #          (either at the bottom of the trip list or waiting list)
-        payload = {
-            'signup': self.describe_signup(signup, trip_participants, other_trips),
-            'on_trip': signup.on_trip,
-        }
-        return JsonResponse(payload, status=201)
+        return JsonResponse(
+            {
+                'signup': self.describe_signup(signup, trip_participants, other_trips),
+                'on_trip': signup.on_trip,
+            },
+            status=201,
+        )
 
 
 class JsonAllParticipantsView(ListView):
@@ -558,8 +563,9 @@ class MembershipStatusesView(View):
         matches = geardb_utils.matching_memberships(email_to_user)
 
         # Default to blank memberships in case not found
-        no_membership = geardb_utils.repr_blank_membership()
-        participant_memberships = {pk: no_membership for pk in par_pks}
+        participant_memberships = {
+            pk: geardb_utils.repr_blank_membership() for pk in par_pks
+        }
 
         # Update participants where matching membership information was found
         for email, membership in matches.items():
