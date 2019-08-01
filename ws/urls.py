@@ -172,6 +172,8 @@ urlpatterns = [
     ),
     url(r'^trips/(?P<pk>\d+)/$', views.TripView.as_view(), name='view_trip'),
     url(r'^trips.rss$', feeds.UpcomingTripsFeed(), name='rss-upcoming_trips'),
+    # By default, `/trips/` shows only upcoming trips, and `/trips/all` shows *all* trips
+    # Both views support filtering for trips after a certain date, though
     url(r'^trips/$', views.UpcomingTripsView.as_view(), name='upcoming_trips'),
     url(r'^trips/all/$', views.AllTripsView.as_view(), name='all_trips'),
     url(r'^trips/signup/$', views.SignUpView.as_view(), name='trip_signup'),

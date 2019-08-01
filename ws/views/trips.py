@@ -5,6 +5,7 @@ A "trip" is any official trip registered in the system - created by leaders, to 
 attended by any interested participants.
 """
 from collections import defaultdict
+from datetime import timedelta
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -28,7 +29,7 @@ from ws.decorators import group_required
 from ws.lottery.run import SingleTripLotteryRunner
 from ws.mixins import TripLeadersOnlyView
 from ws.templatetags.trip_tags import annotated_for_trip_list
-from ws.utils.dates import is_winter_school, local_date
+from ws.utils.dates import date_from_iso, is_winter_school, local_date
 from ws.utils.geardb import outstanding_items
 
 
@@ -319,39 +320,86 @@ class EditTripView(UpdateView, TripLeadersOnlyView):
 
 
 class TripListView(ListView):
-    """ Superclass for any view that displays a list of trips. """
+    """ Superclass for any view that displays a list of trips.
+
+    We support loading and displaying all trips (`/trips/all`). The SQL query
+    is pretty efficient, though it results in a pretty large DOM for clients
+    (since we have over 1,000 trips).
+
+    To keep responses reasonably-sized, we support pagination-like behavior,
+    filtering trips down to just those since some past date.
+    """
 
     model = models.Trip
     template_name = 'trips/all/view.html'
     context_object_name = 'trip_queryset'
+    include_past_trips = True
 
     def get_queryset(self):
         trips = super().get_queryset()
         return annotated_for_trip_list(trips)
 
+    def _optionally_filter_from_args(self):
+        """ Return the date at which we want to omit previous trips, plus validity boolean.
+
+        If the user passes an invalid date (for example, because they were
+        manually building the query arguments), we don't want to 500 and
+        instead should just give them a simple warning message.
+        """
+        start_date = None
+        start_date_invalid = False
+        if 'after' in self.request.GET:
+            after = self.request.GET['after']
+            try:
+                start_date = date_from_iso(after)
+            except (TypeError, ValueError):
+                start_date_invalid = True
+            else:
+                start_date_invalid = False
+
+        return (start_date, start_date_invalid)
+
     def get_context_data(self, **kwargs):
         """ Sort trips into past and present trips. """
-        context_data = super().get_context_data(**kwargs)
-        trips = context_data[self.context_object_name]
-
+        context = super().get_context_data(**kwargs)
+        trips = context[self.context_object_name]
         today = local_date()
-        context_data['current_trips'] = trips.filter(trip_date__gte=today)
-        context_data['past_trips'] = trips.filter(trip_date__lt=today)
-        return context_data
+        context['today'] = today
+
+        on_or_after_date, context['date_invalid'] = self._optionally_filter_from_args()
+        if on_or_after_date:
+            context['on_or_after_date'] = on_or_after_date
+            trips = trips.filter(trip_date__gte=on_or_after_date)
+
+        # Get approximately one year prior for use in paginating back in time.
+        # (need not be exact/handle leap years)
+        context['one_year_prior'] = (on_or_after_date or today) - timedelta(days=365)
+
+        # By default, just show upcoming trips.
+        context['current_trips'] = trips.filter(trip_date__gte=today)
+        # However, if we've explicitly opted in to showing past trips, include them
+        if self.include_past_trips or on_or_after_date:
+            context['past_trips'] = trips.filter(trip_date__lt=today)
+            if not on_or_after_date:
+                # We're on the special 'all trips' view, so there are no add'l previous trips
+                context['one_year_prior'] = None
+        return context
 
 
 class UpcomingTripsView(TripListView):
-    """ View current trips. Note: currently open to the world!"""
+    """ By default, view only upcoming (future) trips.
 
-    context_object_name = 'current_trips'
+    If given a date, filter to only trips after that date.
+    """
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        return queryset.filter(trip_date__gte=local_date())
+    # Default value, but past trips can appear by including a date filter
+    include_past_trips = False
 
 
 class AllTripsView(TripListView):
-    """ View all trips, past and present. """
+    """ View all trips, past and present (optionally after a given date). """
+
+    include_past_trips = True
 
 
 class ApproveTripsView(UpcomingTripsView):

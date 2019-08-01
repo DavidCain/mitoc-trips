@@ -5,6 +5,7 @@ appnope==0.1.0
 astroid==2.2.5
 attrs==19.1.0
 backcall==0.1.0
+beautifulsoup4==4.8.0
 black==19.3b0
 Click==7.0
 decorator==4.4.0
@@ -27,6 +28,7 @@ ptyprocess==0.6.0
 Pygments==2.3.1
 pylint==2.3.1
 python-dateutil==2.8.0
+soupsieve==1.9.2
 sqlparse==0.3.0
 text-unidecode==1.2
 toml==0.10.0

@@ -6,20 +6,39 @@
   {{ block.super }}
 {% endblock meta %}
 
-{% block head_title %}{{ past_trips|yesno:"All,Upcoming" }} trips{% endblock head_title %}
+{% block head_title %}
+  {% if on_or_after_date %}
+    Trips after {{ on_or_after_date|date:"Y-m-d" }}
+  {% elif past_trips is not None %}
+    All trips
+  {% else %}
+    Upcoming trips
+  {% endif %}
+{% endblock head_title %}
 
 {% block content %}
 {{ block.super }}
 
+{% if date_invalid %}
+<div class="alert alert-danger">
+  Invalid date given for filtering trips. Please supply dates in YYYY-MM-DD format.
+</div>
+{% endif %}
+
 <h3>
-  Upcoming trips
+  {# Cover edge case of 'trip after' date being in the future and filtering upcoming trips #}
+  {% if on_or_after_date > today %}
+    Trips after {{ on_or_after_date|date:"M j, Y" }}
+  {% else %}
+    Upcoming trips
+  {% endif %}
   <a role="button" class="btn btn-default pull-right" href="{% url 'rss-upcoming_trips' %}"><i class="fas fa-rss"></i> Subscribe</a>
 </h3>
 
 {% if current_trips %}
   {% trip_list_table current_trips %}
 {% else %}
-  <p> No current or upcoming trips!
+  <p> No upcoming trips!
   {% if "leaders" in groups %}
   <a href="{% url 'create_trip' %}">Create one?</a>
   {% endif %}
@@ -29,12 +48,17 @@
 {% if past_trips %}
   <h3> Past trips </h3>
   {% trip_list_table past_trips %}
-{% else %}
-  <hr>
-  <p>
-    <a href="{% url 'all_trips' %}"><i class="fas fa-history"></i> View past trips</a>
-    <a class="pull-right" href="https://mitoc.mit.edu"><i class="fas fa-external-link-alt"></i>&nbsp;MITOC home page</a>
-  </p>
 {% endif %}
+<hr>
+<p>
+  {% if one_year_prior %}
+    {# We hide this link when we're already viewing all past trips #}
+    <a href="{% url 'upcoming_trips' %}?after={{ one_year_prior|date:"Y-m-d" }}">
+    <i class="fas fa-history"></i>
+    Previous trips
+  </a>
+  {% endif %}
+  <a class="pull-right" href="https://mitoc.mit.edu"><i class="fas fa-external-link-alt"></i>&nbsp;MITOC home page</a>
+</p>
 
 {% endblock content %}

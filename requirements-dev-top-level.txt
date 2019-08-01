@@ -1,5 +1,6 @@
 -r requirements-top-level.txt
 
+beautifulsoup4
 black
 django-debug-toolbar>=1.5
 factory_boy>=2.9.0
