@@ -9,7 +9,13 @@ from django.utils import timezone
 
 
 def date_from_iso(datestring):
-    return datetime.strptime(datestring, '%Y-%m-%d').date()
+    """ Convert a YYYY-MM-DD datestring to a date object.
+
+    Throws ValueError or TypeError on invalid inputs.
+    """
+    # Might throw ValueError or TypeError
+    moment = datetime.strptime(datestring, '%Y-%m-%d')
+    return moment.date()
 
 
 def localize(dt_time):

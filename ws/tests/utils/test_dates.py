@@ -1,9 +1,25 @@
 import unittest.mock
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 
 from django.test import SimpleTestCase  # No need for database
 
 from ws.utils import dates as date_utils
+
+
+class DateFromIsoTests(unittest.TestCase):
+    def test_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            date_utils.date_from_iso(None)
+        with self.assertRaises(TypeError):
+            date_utils.date_from_iso(37)
+
+    def test_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            date_utils.date_from_iso('2019-06-99')
+
+    def test_succesfully_parses(self):
+        parsed_date = date_utils.date_from_iso('2019-06-19')
+        self.assertEqual(parsed_date, date(2019, 6, 19))
 
 
 class DateUtilTests(SimpleTestCase):
