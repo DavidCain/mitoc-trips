@@ -2,9 +2,12 @@
 # pylint: disable=no-self-use
 from django.contrib.syndication.views import Feed
 from django.urls import reverse, reverse_lazy
+from django.utils import timezone
 
 from ws.models import Trip
 from ws.utils.dates import local_date
+
+DEFAULT_TIMEZONE = timezone.get_default_timezone()  # (US/Eastern)
 
 
 class UpcomingTripsFeed(Feed):
@@ -26,10 +29,10 @@ class UpcomingTripsFeed(Feed):
         return reverse('view_trip', args=[trip.pk])
 
     def item_pubdate(self, trip):
-        return trip.time_created
+        return trip.time_created.astimezone(DEFAULT_TIMEZONE)
 
     def item_author_name(self, trip):
         return trip.creator.name
 
     def item_updateddate(self, trip):
-        return trip.last_edited
+        return trip.last_edited.astimezone(DEFAULT_TIMEZONE)
