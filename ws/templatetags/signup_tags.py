@@ -3,6 +3,7 @@ from itertools import chain
 from django import template
 from django.forms import HiddenInput
 
+from ws.enums import Program
 from ws.forms import SignUpForm
 from ws.utils.dates import local_date
 from ws.utils.membership import can_attend_trip
@@ -131,7 +132,11 @@ def signup_table(signups, has_notes=False, show_drivers=False, all_participants=
 
 @register.inclusion_tag('for_templatetags/trip_summary.html', takes_context=True)
 def trip_summary(context, trip):
-    return {'show_contacts': context['user'].is_authenticated, 'trip': trip}
+    return {
+        'show_contacts': context['user'].is_authenticated,
+        'show_program': trip.program_enum != Program.NONE,
+        'trip': trip,
+    }
 
 
 @register.inclusion_tag('for_templatetags/medical_table.html')

@@ -3,7 +3,7 @@ from factory import LazyAttribute, RelatedFactory, SelfAttribute, Sequence, SubF
 from factory.django import DjangoModelFactory
 from mitoc_const import affiliations
 
-from ws import models
+from ws import enums, models
 
 
 class DiscountFactory(DjangoModelFactory):
@@ -153,6 +153,7 @@ class TripFactory(DjangoModelFactory):
     difficulty_rating = "Intermediate"
     level = "B"
     activity = "winter_school"
+    program = enums.Program.WINTER_SCHOOL.value
     creator = SubFactory(ParticipantFactory)
 
 

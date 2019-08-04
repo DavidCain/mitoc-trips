@@ -19,6 +19,7 @@ from mitoc_const.membership import RENEWAL_ALLOWED_WITH_DAYS_LEFT
 from phonenumber_field.modelfields import PhoneNumberField
 
 import ws.utils.dates as dateutils
+from ws import enums
 from ws.fields import OptionalOneToOneField
 from ws.utils.avatar import avatar_url
 
@@ -728,6 +729,13 @@ class TripInfo(models.Model):
 
 
 class Trip(models.Model):
+    program = models.CharField(
+        max_length=255,
+        choices=enums.Program.choices(),
+        # For now, just default program to 'none' (we don't yet have form handling)
+        # Later, do not define a default - we'll populate based on leader/time of year
+        default=enums.Program.NONE.value,
+    )
     activity = models.CharField(
         max_length=31,
         choices=LeaderRating.ACTIVITY_CHOICES,
@@ -819,6 +827,11 @@ class Trip(models.Model):
 
     def __str__(self):
         return self.name
+
+    @property
+    def program_enum(self):
+        """ Convert the string constant value to an instance of the enum. """
+        return enums.Program(self.program)
 
     @property
     def feedback_window_passed(self):

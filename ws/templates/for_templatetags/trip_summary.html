@@ -31,6 +31,11 @@
         </dd>
     {% endif %}
 
+    {% if show_program %}
+      <dt>Program</dt>
+      <dd>{{ trip.get_program_display }}</dd>
+    {% endif %}
+
     {% if trip.level %}
       <dt>Trip level</dt>
       <dd>{{ trip.level }}</dd>
