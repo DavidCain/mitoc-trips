@@ -507,7 +507,7 @@ class Participant(models.Model):
     def is_leader(self):
         """ Query ratings to determine if this participant is a leader.
 
-        Wnen dealing with Users, it's faster to use utils.perms.is_leader
+        When dealing with Users, it's faster to use utils.perms.is_leader
         """
         return self.leaderrating_set.filter(active=True).exists()
 
@@ -1361,7 +1361,7 @@ class WinterSchoolLeaderApplication(LeaderApplication):
         blank=True,
         max_length=5000,
         help_text="Details of previous winter outdoors experience. "
-        "Include the type of trip (x-country skiiing, above treeline, "
+        "Include the type of trip (x-country skiing, above treeline, "
         "snowshoeing, ice climbing, etc), approximate dates and locations, "
         "numbers of participants, notable trail and weather conditions. "
         "Please also give details of whether you participated, led, "
@@ -1453,7 +1453,7 @@ class ClimbingLeaderApplication(LeaderApplication):
     familiarity_spotting = models.CharField(
         max_length=16,
         choices=FAMILIARITY_CHOICES,
-        verbose_name="Familarity with spotting boulder problems",
+        verbose_name="Familiarity with spotting boulder problems",
     )
     familiarity_bolt_anchors = models.CharField(
         max_length=16,
