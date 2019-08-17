@@ -3,3 +3,9 @@ include = '\.py$'
 # Don't attempt to normalize strings
 # (Preserves the convention of "single quotes for data, double quotes for humans")
 skip-string-normalization = true
+
+[tool.isort]
+line_length = 88
+known_first_party = "ws"
+multi_line_output = 3
+include_trailing_comma = true
