@@ -5,6 +5,14 @@ poetry install
 poetry run ./manage.py test
 ```
 
+## Optional: Report test coverage
+```
+poetry install
+poetry install --extras=code_coverage
+poetry run coverage run manage.py test
+poetry run coverage report
+```
+
 # Common gotchas
 ## Use `TestCase.multi_db == True` for authentication & geardb tests
 Any unit test that interacts with authentication (the `User` model, for example), will

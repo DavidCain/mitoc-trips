@@ -150,6 +150,27 @@ version = "0.4.1"
 
 [[package]]
 category = "main"
+description = "Code coverage measurement for Python"
+name = "coverage"
+optional = true
+python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*, <4"
+version = "4.5.4"
+
+[[package]]
+category = "main"
+description = "Show coverage stats online via coveralls.io"
+name = "coveralls"
+optional = true
+python-versions = "*"
+version = "1.8.2"
+
+[package.dependencies]
+coverage = ">=3.6,<5.0"
+docopt = ">=0.6.1"
+requests = ">=1.0.0"
+
+[[package]]
+category = "main"
 description = "Better living through Python with decorators"
 marker = "python_version >= \"3.4\""
 name = "decorator"
@@ -252,6 +273,14 @@ name = "django-smtp-ssl"
 optional = false
 python-versions = "*"
 version = "1.0"
+
+[[package]]
+category = "main"
+description = "Pythonic argument parser, that will make you smile"
+name = "docopt"
+optional = true
+python-versions = "*"
+version = "0.6.2"
 
 [[package]]
 category = "dev"
@@ -779,10 +808,11 @@ python-versions = ">=2.7"
 version = "0.5.2"
 
 [extras]
+code_coverage = ["coverage", "coveralls"]
 debugging = ["django-debug-toolbar", "ipdb"]
 
 [metadata]
-content-hash = "fed567bfb1e11a77a92ab34d8bda88808b60d82a580fc7c2abf587e18c4f3e04"
+content-hash = "071b542d9a0868ebf82bb64d5d4cc396c8356ee5ca8ce99f5eb5795cf5f80da1"
 python-versions = "^3.6"
 
 [metadata.hashes]
@@ -801,6 +831,8 @@ certifi = ["046832c04d4e752f37383b628bc601a7ea7211496b4638f6514d0e5b9acc4939", "
 chardet = ["84ab92ed1c4d4f16916e05906b6b75a6c0fb5db821cc65e70cbd64a3e2a5eaae", "fc323ffcaeaed0e0a02bf4d117757b98aed530d9ed4531e3e15460124c106691"]
 click = ["2335065e6395b9e67ca716de5f7526736bfa6ceead690adf616d925bdc622b13", "5b94b49521f6456670fdb30cd82a4eca9412788a93fa6dd6df72c94d5a8ff2d7"]
 colorama = ["05eed71e2e327246ad6b38c540c4a3117230b19679b875190486ddd2d721422d", "f8ac84de7840f5b9c4e3347b3c1eaa50f7e49c2b07596221daec5edaabbd7c48"]
+coverage = ["08907593569fe59baca0bf152c43f3863201efb6113ecb38ce7e97ce339805a6", "0be0f1ed45fc0c185cfd4ecc19a1d6532d72f86a2bac9de7e24541febad72650", "141f08ed3c4b1847015e2cd62ec06d35e67a3ac185c26f7635f4406b90afa9c5", "19e4df788a0581238e9390c85a7a09af39c7b539b29f25c89209e6c3e371270d", "23cc09ed395b03424d1ae30dcc292615c1372bfba7141eb85e11e50efaa6b351", "245388cda02af78276b479f299bbf3783ef0a6a6273037d7c60dc73b8d8d7755", "331cb5115673a20fb131dadd22f5bcaf7677ef758741312bee4937d71a14b2ef", "386e2e4090f0bc5df274e720105c342263423e77ee8826002dcffe0c9533dbca", "3a794ce50daee01c74a494919d5ebdc23d58873747fa0e288318728533a3e1ca", "60851187677b24c6085248f0a0b9b98d49cba7ecc7ec60ba6b9d2e5574ac1ee9", "63a9a5fc43b58735f65ed63d2cf43508f462dc49857da70b8980ad78d41d52fc", "6b62544bb68106e3f00b21c8930e83e584fdca005d4fffd29bb39fb3ffa03cb5", "6ba744056423ef8d450cf627289166da65903885272055fb4b5e113137cfa14f", "7494b0b0274c5072bddbfd5b4a6c6f18fbbe1ab1d22a41e99cd2d00c8f96ecfe", "826f32b9547c8091679ff292a82aca9c7b9650f9fda3e2ca6bf2ac905b7ce888", "93715dffbcd0678057f947f496484e906bf9509f5c1c38fc9ba3922893cda5f5", "9a334d6c83dfeadae576b4d633a71620d40d1c379129d587faa42ee3e2a85cce", "af7ed8a8aa6957aac47b4268631fa1df984643f07ef00acd374e456364b373f5", "bf0a7aed7f5521c7ca67febd57db473af4762b9622254291fbcbb8cd0ba5e33e", "bf1ef9eb901113a9805287e090452c05547578eaab1b62e4ad456fcc049a9b7e", "c0afd27bc0e307a1ffc04ca5ec010a290e49e3afbe841c5cafc5c5a80ecd81c9", "dd579709a87092c6dbee09d1b7cfa81831040705ffa12a1b248935274aee0437", "df6712284b2e44a065097846488f66840445eb987eb81b3cc6e4149e7b6982e1", "e07d9f1a23e9e93ab5c62902833bf3e4b1f65502927379148b6622686223125c", "e2ede7c1d45e65e209d6093b762e98e8318ddeff95317d07a27a2140b80cfd24", "e4ef9c164eb55123c62411f5936b5c2e521b12356037b6e1c2617cef45523d47", "eca2b7343524e7ba246cab8ff00cab47a2d6d54ada3b02772e908a45675722e2", "eee64c616adeff7db37cc37da4180a3a5b6177f5c46b187894e633f088fb5b28", "ef824cad1f980d27f26166f86856efe11eff9912c4fed97d3804820d43fa550c", "efc89291bd5a08855829a3c522df16d856455297cf35ae827a37edac45f466a7", "fa964bae817babece5aa2e8c1af841bebb6d0b9add8e637548809d040443fee0", "ff37757e068ae606659c28c3bd0d923f9d29a85de79bf25b2b34b148473b5025"]
+coveralls = ["9bc5a1f92682eef59f688a8f280207190d9a6afb84cef8f567fa47631a784060", "fb51cddef4bc458de347274116df15d641a735d3f0a580a9472174e2e62f408c"]
 decorator = ["86156361c50488b84a3f148056ea716ca587df2f0de1d34750d35c21312725de", "f069f3a01830ca754ba5258fde2278454a0b5b79e0d7f5c13b3b97e57d4acff6"]
 django = ["52a66d7f8b036d02da0a4472359e8be1727424fc1e4b4f5c684ef97de7b569e1", "c85b8c95366e187ca0581d45a6e508107ca4bd38cb45c24aa09d3572074c523d"]
 django-allauth = ["45661b6fe308466154adf54461679fab6f0c6850b10c56dc322fbbb9d47e03d9"]
@@ -811,6 +843,7 @@ django-localflavor = ["628f382ac0b8ce401d4ba684031abd2548c24782df9fb0d5c7ad44c35
 django-phonenumber-field = ["1318c09f4e4c1caed8b9351d0e49b0d41a2e68ca323b8930fe1562b632629ab1", "b2d1e9899809b92e07af5484e50c5c79364070fffbf13a1da117ecf0553e8157"]
 django-pipeline = ["b56f2cfdb113dc1cb05257d8eb8d145fc0ade6f0d1236fb425df15bd059dce15", "ef67aaf58959a2959e13fc114001cee5beec05ac18a81cc700ea9f1c8e3f40a8"]
 django-smtp-ssl = ["282863d5905e03686b6555ac788aa732842695d6f9cf1dcfa66d898abb7565d0"]
+docopt = ["49b3a825280bd66b3aa83585ef59c4a8c82f2c8a522dbe754a8bc8d08c85c491"]
 factory-boy = ["728df59b372c9588b83153facf26d3d28947fc750e8e3c95cefa9bed0e6394ee", "faf48d608a1735f0d0a3c9cbf536d64f9132b547dae7ba452c4d99a79e84a370"]
 faker = ["96ad7902706f2409a2d0c3de5132f69b413555a419bacec99d3f16e657895b47", "b3bb64aff9571510de6812df45122b633dbc6227e870edae3ed9430f94698521"]
 freezegun = ["2a4d9c8cd3c04a201e20c313caf8b6338f1cfa4cda43f46a94cc4a9fd13ea5e7", "edfdf5bc6040969e6ed2e36eafe277963bdc8b7c01daeda96c5c8594576c9390"]

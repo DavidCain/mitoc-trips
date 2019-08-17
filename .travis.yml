@@ -1,7 +1,9 @@
 language: python
 python: "3.6"
 before_install: pip install poetry
-install: poetry install
+install:
+  - poetry install
+  - poetry install --extras=code_coverage
 env:
   - GEAR_DATABASE_USER='travis' GEAR_DATABASE_PASSWORD=''
 services:
@@ -18,4 +20,6 @@ before_script:
 script: 
   - black --check ws
   - isort -rc --check ws
-  - python manage.py test
+  - coverage run manage.py test
+after_success:
+  - coveralls

@@ -48,7 +48,13 @@ requests = "*"
 django-debug-toolbar = { version = "*", optional = true }
 ipdb = { version = "*", optional = true }
 
+# Optional dependencies for generating & reporting test coverage stats
+# (coverage can be used locally, coverage is primarily for the build)
+coverage = { version = "*", optional = true }
+coveralls = { version = "*", optional = true }
+
 [tool.poetry.extras]
+code_coverage = ["coverage", "coveralls"]
 debugging = ["django-debug-toolbar", "ipdb"]
 
 [tool.poetry.dev-dependencies]
