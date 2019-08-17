@@ -1,10 +1,8 @@
 # How to run tests
 
 ```bash
-python3 -m venv test_env
-source test_env/bin/activate
-pip install -r requirements-dev.txt
-python manage.py test
+poetry install
+poetry run ./manage.py test
 ```
 
 # Common gotchas

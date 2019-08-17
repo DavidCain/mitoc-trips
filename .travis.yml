@@ -1,6 +1,7 @@
 language: python
 python: "3.6"
-install: pip install -r requirements-dev.txt
+before_install: pip install poetry
+install: poetry install
 env:
   - GEAR_DATABASE_USER='travis' GEAR_DATABASE_PASSWORD=''
 services:
