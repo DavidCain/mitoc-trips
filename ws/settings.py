@@ -58,7 +58,32 @@ ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 
 TEST_RUNNER = 'ws.tests.runner.SetupGearDbTestRunner'
 
-INSTALLED_APPS = []  # Must be defined by respective configs
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'django.contrib.sites',
+    'localflavor',
+    'phonenumber_field',
+    'allauth',
+    'allauth.account',
+    'djng',
+    'pipeline',
+    'raven.contrib.django.raven_compat',
+    'ws.apps.TripsConfig',
+    'corsheaders',
+]
+try:
+    # The debug toolbar is always absent in prod, but optional for local development!
+    import debug_toolbar  # pylint: disable=unused-import
+except ImportError:
+    pass
+else:
+    INSTALLED_APPS.append('debug_toolbar')
+
 
 if os.environ.get('WS_DJANGO_LOCAL'):
     from .conf.local_settings import *  # pylint: disable=wildcard-import,unused-wildcard-import

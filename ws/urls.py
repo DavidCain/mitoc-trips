@@ -422,7 +422,9 @@ urlpatterns = [
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
-if settings.DEBUG:
+try:
     import debug_toolbar
-
+except ImportError:
+    pass
+else:
     urlpatterns = [url(r'^__debug__/', include(debug_toolbar.urls))] + urlpatterns
