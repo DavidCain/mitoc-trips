@@ -18,7 +18,7 @@ class EmergencyContactFactory(DjangoModelFactory):
         model = models.EmergencyContact
 
     name = "My Mother"
-    cell_phone = "781-555-0342"
+    cell_phone = "+17815550342"
     relationship = "Mother"
     email = "mum@example.com"
 

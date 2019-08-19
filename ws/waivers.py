@@ -41,15 +41,13 @@ def prefilled_tabs(participant):
     docusign_affiliation = AFFILIATION_MAPPING[participant.affiliation]
     return {
         'textTabs': [
+            {'tabLabel': 'Phone number', 'value': str(participant.cell_phone)},
             {'tabLabel': "Emergency Contact", 'value': e_contact.name},
             {'tabLabel': "Emergency Contact Relation", 'value': e_contact.relationship},
-        ],
-        'numberTabs': [
             {
                 'tabLabel': "Emergency Contact's Phone",
                 'value': str(e_contact.cell_phone),
             },
-            {'tabLabel': 'Phone number', 'value': str(participant.cell_phone)},
         ],
         # Map affiliation to a selectable value in the DocuSign template
         'radioGroupTabs': [
