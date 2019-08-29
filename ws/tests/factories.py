@@ -1,4 +1,5 @@
-from factory import Sequence, SubFactory
+import allauth.account.models as account_models
+from factory import LazyAttribute, RelatedFactory, Sequence, SubFactory
 from factory.django import DjangoModelFactory
 from mitoc_const import affiliations
 
@@ -33,12 +34,22 @@ class EmergencyInfoFactory(DjangoModelFactory):
     medical_history = "None"
 
 
+class EmailFactory(DjangoModelFactory):
+    class Meta:
+        model = account_models.EmailAddress
+
+    email = LazyAttribute(lambda obj: obj.user.email)
+    verified = True
+    primary = True
+
+
 class UserFactory(DjangoModelFactory):
     class Meta:
         model = models.User
 
     username = Sequence(lambda n: f"user{n + 1}")
     email = Sequence(lambda n: f"user{n + 1}@example.com")
+    emailaddress = RelatedFactory(EmailFactory, 'user')
 
 
 class ParticipantFactory(DjangoModelFactory):
