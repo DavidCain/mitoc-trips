@@ -82,6 +82,17 @@ class ParticipantFactory(DjangoModelFactory):
         return super()._create(model_class, *args, **kwargs)
 
 
+class LeaderRatingFactory(DjangoModelFactory):
+    class Meta:
+        model = models.LeaderRating
+
+    activity = models.LeaderRating.HIKING
+    rating = 'Full leader'
+    creator = SubFactory(ParticipantFactory)
+    participant = SubFactory(ParticipantFactory)
+    active = True
+
+
 class LotteryInfoFactory(DjangoModelFactory):
     class Meta:
         model = models.LotteryInfo

@@ -55,6 +55,6 @@
     <div {% if leader_signup_allowed %}class="hidden"{% endif %}>
       {{ signup_form.as_div }}
     </div>
-    <button type="submit" class="btn btn-primary">Sign up {% if leader_signup_allowed %}as participant{% endif %}</button>
+    <button type="submit" class="btn btn-primary">Sign up{% if leader_signup_allowed %} as participant{% endif %}</button>
   </form>
 {% endif %}

@@ -44,7 +44,7 @@ def leader_signup_is_allowed(trip, participant):
 
 
 @register.inclusion_tag('for_templatetags/signup_for_trip.html', takes_context=True)
-def signup_for_trip(context, trip, participant, existing_signup=None):
+def signup_for_trip(context, trip, participant, existing_signup):
     """ Display the appropriate signup controls for a given trip.
 
     Signups are forbidden in a number of cases (trip already happened, signups
