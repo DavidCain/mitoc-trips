@@ -19,6 +19,12 @@ def date_from_iso(datestring):
 
 
 def localize(dt_time):
+    """ Take a naive datetime and assign a time zone to it (without changing wall time).
+
+    >>> from datetime import datetime
+    >>> localize(datetime(2018, 10, 27, 4, 30)
+    datetime.datetime(2018, 10, 27, 4, 30, tzinfo=<DstTzInfo 'America/New_York' EDT-1 day, 20:00:00 DST>)
+    """
     pytz_timezone = timezone.get_default_timezone()
     return pytz_timezone.localize(dt_time)
 
