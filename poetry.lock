@@ -812,7 +812,7 @@ code_coverage = ["coverage", "coveralls"]
 debugging = ["django-debug-toolbar", "ipdb"]
 
 [metadata]
-content-hash = "071b542d9a0868ebf82bb64d5d4cc396c8356ee5ca8ce99f5eb5795cf5f80da1"
+content-hash = "f628a83faa1349861a120a501dbff01ba318a572e35f12393ac7fd348a94f8e9"
 python-versions = "^3.6"
 
 [metadata.hashes]

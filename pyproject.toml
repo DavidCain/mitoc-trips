@@ -62,6 +62,6 @@ beautifulsoup4 = "*"
 black = { version = "*", allows-prereleases = true }
 factory_boy = "^2.9.0"
 freezegun = "^0.3.9"
-isort = "*"
+isort = { version = "*", extras = ["pyproject"] }
 lxml = "*"
 pylint = "*"
