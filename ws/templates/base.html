@@ -168,15 +168,20 @@
         {% endblock content %}
     </div>
 
-    <footer class="footer hidden-print">
+    <footer class="footer hidden-print text-muted">
         <div class="container">
+            {% block footer %}
             <div class="row">
-                <div class="col-xs-5 text-muted">© {% now 'Y' %} <a href="https://mitoc.mit.edu">MITOC</a></div>
-                <div class="col-xs-2 text-muted text-center">
+                <div class="col-xs-5">© {% now 'Y' %} <a href="https://mitoc.mit.edu">MITOC</a></div>
+                <div class="col-xs-2 text-center">
+                    <noscript>
+                        <a href="https://github.com/DavidCain/mitoc-trips">Open source!</a>
+                    </noscript>
                     <a class="btn" href="https://github.com/DavidCain/mitoc-trips"><i class="fab fa-2x fa-github"></i></a>
                 </div>
-                <div class="col-xs-5 text-muted text-right">Written by David Cain</div>
+                <div class="col-xs-5 text-right">Written by David Cain</div>
             </div>
+            {% endblock footer %}
         </div>
     </footer>
 </body>
