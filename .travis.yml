@@ -2,8 +2,7 @@ language: python
 python: "3.6"
 before_install: pip install poetry
 install:
-  - poetry install
-  - poetry install --extras=code_coverage
+  - make install
 env:
   - GEAR_DATABASE_USER='travis' GEAR_DATABASE_PASSWORD=''
 services:
@@ -18,8 +17,6 @@ before_script:
   - psql postgres -c 'create role ws login'
   - psql postgres -c 'alter user ws createdb'
 script: 
-  - black --check ws
-  - isort -rc --check ws
-  - coverage run manage.py test
+  - make check
 after_success:
   - coveralls
