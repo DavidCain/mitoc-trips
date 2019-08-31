@@ -53,6 +53,10 @@ STATICFILES_FINDERS = (
 )
 
 # auth and allauth settings
+AUTH_PASSWORD_VALIDATORS = [
+    {'NAME': 'pwned_passwords_django.validators.PwnedPasswordsValidator'}
+]
+
 LOGIN_REDIRECT_URL = '/'
 ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 
