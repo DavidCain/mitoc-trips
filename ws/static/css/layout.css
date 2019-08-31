@@ -208,6 +208,16 @@ h4#car label {
   margin-top: -5px;
 }
 
+/* These two rules are needed to support a non-collapsing menu on mobile.
+ * We desire a non-collapsing menu on pages with zero JavaScript.
+ */
+.non-collapse.navbar-nav >li {
+  float: left !important;
+}
+.non-collapse.navbar-right {
+  float: right!important;
+}
+
 #account-emails form.well {
   background-color: inherit;
 }

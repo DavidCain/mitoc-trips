@@ -1,6 +1,4 @@
-{% extends "account/base.html" %}
-
-{% load account %}
+{% extends "base_no_scripts.html" %}
 
 {% block head_title %}Log In{% endblock head_title %}
 {% block login_button %}{% endblock login_button%}
@@ -15,8 +13,10 @@
 
 <form class="login" method="POST" action="{% url 'account_login' %}">
   {% csrf_token %}
-  <table>
+  <span class="text-danger">
     {{ form.non_field_errors }}
+  </span>
+  <table>
     <tr>
       <th>{{ form.login.label_tag }}</th>
       <td>{{ form.login.errors }}{{ form.login }}</td>

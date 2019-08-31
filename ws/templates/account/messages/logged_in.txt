@@ -1,3 +1,1 @@
-{% load account %}
-{% load i18n %}
 Successfully signed in as {{ user.email }}.

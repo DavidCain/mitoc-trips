@@ -34,12 +34,14 @@
 </head>
 
 <body data-ng-app="ws">
-    {# Pre-populate `$templateCache` for faster interaction with directives #}
-    {% for filename, contents in angular_templates.items %}
-      <script type="text/ng-template" id="{{ filename }}">
-        {{ contents|safe }}
-      </script>
-    {% endfor %}
+    {% block cached_templates %}
+      {# Pre-populate `$templateCache` for faster interaction with directives #}
+      {% for filename, contents in angular_templates.items %}
+        <script type="text/ng-template" id="{{ filename }}">
+          {{ contents|safe }}
+        </script>
+      {% endfor %}
+    {% endblock cached_templates %}
 
     <nav class="navbar navbar-inverse navbar-fixed-top" id="main-menu">
         <div class="container">
@@ -55,12 +57,15 @@
                         </ul>
                     {% endif %}
                 {% endblock login_button %}
-                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse" aria-expanded="false" aria-controls="navbar">
+                {% block menu_toggle %}
+                  <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse" aria-expanded="false" aria-controls="navbar">
                     <span class="sr-only">Toggle navigation</span>
                     {# Navicon #}<span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span>
-                </button>
+                  </button>
+                {% endblock menu_toggle %}
             </div>
 
+            {% block nav %}
             <div class="visible-xs-block clearfix"></div>
             <div id="navbar" class="collapse navbar-collapse">
                 <ul class="nav navbar-nav navbar-left">
@@ -159,7 +164,8 @@
                     <li><a href="{% url 'help-home' %}">Help</a></li>
                     <li><a href="{% url 'contact' %}">Contact</a></li>
                 </ul>
-            </div><!--/.nav-collapse -->
+            </div>
+            {% endblock nav %}
         </div>
     </nav>
 

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load avatar_tags %}
+
+{# -------------------------------------------------------------------------------- #}
+{# This special page configures a base template with zero JavaScript.               #}
+{# It should be used on sensitive pages, like signup, login, and password change.   #}
+{#                                                                                  #}
+{# For security, views using this template have a Content Security Policy that:     #}
+{# - prevents loading of any JavaScript from any source                             #}
+{# - prevents XHR to any origin                                                     #}
+{# -------------------------------------------------------------------------------- #}
+
+
+{# For security purposes, we should load zero JavaScript on critical pages. #}
+{# If a malicious script snuck into our bundle, it could theoretically keylog passwords! #}
+{% block js %}{% endblock js %}
+{% block cached_templates %}{% endblock cached_templates %}
+
+{# Disable the menu toggle altogether #}
+{% block menu_toggle %}{% endblock menu_toggle %}
+
+{# Serve a minimal menu that doesn't need any CSS+JS trickery to display nicely on all screen sizes #}
+{% block nav %}
+  <div id="navbar">
+    <ul class="nav navbar-nav navbar-right non-collapse">
+      {% if user.is_authenticated %}
+        <li>
+          <a href="{% url 'home' %}"
+             title="For security, all scripts have been disabled on this page. Return to your profile?">
+            {{ viewing_participant|avatar_square }}
+          </a>
+        </li>
+      {% endif %}
+      <li><a href="{% url 'help-home' %}">Help</a></li>
+      <li><a href="{% url 'contact' %}">Contact</a></li>
+    </ul>
+  </div>
+{% endblock nav %}
+
+{% block footer %}
+  {% include 'noscript_footer.html' %}
+{% endblock footer %}

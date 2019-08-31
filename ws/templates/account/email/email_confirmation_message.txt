@@ -1,6 +1,7 @@
-{% load account %}{% user_display user as user_display %}{% load i18n %}{% autoescape off %}{% blocktrans with current_site.name as site_name %}This email address has been given for signup on {{ site_name }}.
+{% autoescape off %}
+This email address has been given for signup on {{ current_site.name }}.
 
 To confirm you own this email and continue the signup process, go to {{ activate_url }}.
 
 If you did not sign up, no further action is necessary.
-{% endblocktrans %}{% endautoescape %}
+{% endautoescape %}

@@ -1,29 +1,31 @@
-{% extends "account/base.html" %}
+{% extends "base_no_scripts.html" %}
 
-{% load i18n %}
-
-{% block head_title %}{% trans "Signup" %}{% endblock %}
+{% block head_title %}Sign up{% endblock %}
 
 {% block content %}
-<h1>{% trans "Sign Up" %}</h1>
+<h1>Sign up</h1>
 
-<p>{% blocktrans %}Already have an account? Then please <a href="{{ login_url }}">log in</a>.{% endblocktrans %}</p>
+<p>Already have an account? Then please <a href="{{ login_url }}">log in</a>.</p>
 
-<div class="narrow">
-    <div class="alert alert-info">
-        If you already have a membership, use the same email you used when signing up!
-    </div>
-    <form class="signup" id="signup_form" method="post" action="{% url 'account_signup' %}">
-        {% csrf_token %}
-        <table>
-            {{ form.as_table }}
-        </table>
-        {% if redirect_field_value %}
-        <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
-        {% endif %}
-        <input type="submit" value="{% trans "Sign Up" %} &raquo;" />
-    </form>
+<div>
+  <div class="alert alert-info">
+    If you already have a membership, use the same email you used when signing up!
+  </div>
+  <form id="signup_form" method="post" action="{% url 'account_signup' %}">
+    {% csrf_token %}
+    <table>
+      {{ form.as_table }}
+      <tr>
+        <th></th>
+        <td>
+          <br>
+          <input class="btn btn-primary" type="submit" value="Sign up" />
+        </td>
+      </tr>
+    </table>
+    {% if redirect_field_value %}
+      <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+    {% endif %}
+  </form>
 </div>
-
-
 {% endblock %}
