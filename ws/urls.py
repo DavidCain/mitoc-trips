@@ -18,8 +18,13 @@ urlpatterns = [
     # Redirect to home page after changing password (default is annoying loop)
     url(
         r'^accounts/password/change/$',
-        views.LoginAfterPasswordChangeView.as_view(),
+        views.CustomPasswordChangeView.as_view(),
         name='account_change_password',
+    ),
+    url(
+        r'^accounts/login/$',
+        views.CheckIfPwnedOnLoginView.as_view(),
+        name='account_login',
     ),
     url(r'^accounts/', include('allauth.urls')),
     # Administrator views

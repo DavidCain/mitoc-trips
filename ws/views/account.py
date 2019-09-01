@@ -1,13 +1,34 @@
 """
 Views relating to account management.
 """
-from allauth.account.views import PasswordChangeView
+import logging
+from urllib.parse import urlencode
+
+from allauth.account.views import LoginView, PasswordChangeView
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 from django.utils.decorators import method_decorator
+from pwned_passwords_django.api import pwned_password
+
+from ws import models
+
+logger = logging.getLogger(__name__)
 
 
-class LoginAfterPasswordChangeView(PasswordChangeView):
+class CustomPasswordChangeView(PasswordChangeView):
+    """ Custom password change view that makes two key changes:
+
+    1. Redirects to login immediately after changing password
+       (prevents an endless loop inherent in django-allaauth)
+    2. Marks password as "not pwned" since validation has passed
+        - It's possible that the API was down at the time, and we had to fall
+          back to using Django's password validator instead. However, it's still
+          acceptable to marked the password "not pwned" since:
+            - To keep the password marked as "pwned" locks out users
+            - We will perform another check on the next login
+    """
+
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
@@ -15,3 +36,83 @@ class LoginAfterPasswordChangeView(PasswordChangeView):
     @property
     def success_url(self):
         return reverse('account_login')
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        if self.request.participant:
+            self.request.participant.insecure_password = False
+            self.request.participant.save()
+        return response
+
+
+class CheckIfPwnedOnLoginView(LoginView):
+    """ Whenever users log in, we should check that their password has not been compromised.
+
+    There are two reasons to perform this check:
+    - Because passwords are salted & hashed, we have no way of knowing either
+      users' raw passwords (or their hashes). Login is the only time we can check
+      that passwords are secure.
+    - It's possible that a user's password was recently added to the database
+      of breached passwords - we should check on every login.
+    """
+
+    def _form_valid_perform_login(self, form):
+        """ Performs login with a correct username/password.
+
+        Returns if this password has been seen in data breaches, plus the
+        appropriate HTTP response for form_valid.
+
+        As a side effect, this populates `self.request.user`
+        """
+        correct_password = form.cleaned_data['password']
+        times_password_seen = pwned_password(correct_password)  # type: Optional[int]
+        if times_password_seen:
+            change_password_url = reverse('account_change_password')
+
+            # Make sure we preserve the original redirect, if there was one
+            next_url = self.request.GET.get('next')
+            if next_url:
+                change_password_url += '?' + urlencode({'next': next_url})
+            response = form.login(self.request, redirect_url=change_password_url)
+        else:
+            response = super().form_valid(form)
+
+        return bool(times_password_seen), response
+
+    def _post_login_update_password_validity(self, password_breached):
+        """ After form.login has been invoked, handle password being breached or not.
+
+        This method exists to serve two types of users:
+        - those who have a corresponding Participant model (most active users)
+        - those who have only a user record (signed up, never finished registration)
+        """
+        user = self.request.user
+        assert user, "Method should be invoked *after* user login."
+
+        # The user may or may not have a participant record linked!
+        # If they do have a participant, set the password as insecure (or not)
+        participant = models.Participant.from_user(user)
+        if participant:
+            participant.insecure_password = password_breached
+            participant.save()
+
+        if password_breached:
+            subject = (
+                f"Participant {participant.pk}" if participant else f"User {user.pk}"
+            )
+            logger.info("%s logged in with a breached password", subject)
+
+        if password_breached and not participant:
+            # For non-new users lacking a participant (very rare), a message + redirect is fine.
+            # If they ignore the reset, they'll be locked out once creating a Participant record.
+            messages.error(
+                self.request,
+                'This password has been compromised! Please choose a new password. '
+                'If you use this password on any other sites, we recommend changing it immediately.',
+            )
+
+    def form_valid(self, form):
+        password_breached, response = self._form_valid_perform_login(form)
+        self._post_login_update_password_validity(password_breached)
+
+        return response

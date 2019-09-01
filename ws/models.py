@@ -254,6 +254,9 @@ class Participant(models.Model):
             "'>Manage email addresses</a>.",
         ),
     )
+    insecure_password = models.BooleanField(
+        default=False, verbose_name="Password shown to be insecure"
+    )
     gravatar_opt_out = models.BooleanField(
         default=False,
         verbose_name="Opt out of Gravatar",
