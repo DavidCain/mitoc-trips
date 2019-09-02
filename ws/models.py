@@ -257,6 +257,11 @@ class Participant(models.Model):
     insecure_password = models.BooleanField(
         default=False, verbose_name="Password shown to be insecure"
     )
+    password_last_checked = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Last time password was checked against HaveIBeenPwned's database",
+    )
     gravatar_opt_out = models.BooleanField(
         default=False,
         verbose_name="Opt out of Gravatar",

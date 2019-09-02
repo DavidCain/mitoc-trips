@@ -1,10 +1,13 @@
 import uuid
+from datetime import datetime
 from unittest import mock
 
 import allauth.account.models as account_models
+import pytz
 from bs4 import BeautifulSoup
 from django.contrib.auth.models import User
 from django.test import Client
+from freezegun import freeze_time
 from pwned_passwords_django import api
 
 from ws import models
@@ -12,6 +15,7 @@ from ws.tests import TestCase, factories
 from ws.views import account
 
 
+@freeze_time("2019-08-29 12:25:00 EST")
 class LoginTests(TestCase):
     def setUp(self):
         self.client = Client()
@@ -50,6 +54,9 @@ class LoginTests(TestCase):
         participant = models.Participant.from_user(self.user)
         self.assertFalse(participant.insecure_password)
 
+        # Because the API was down, we did not write to `password_last_checked`
+        self.assertIsNone(participant.password_last_checked)
+
     def test_previously_secure_password(self):
         """ The database is updated all the time - any user's password can become compromised! """
         factories.ParticipantFactory.create(
@@ -66,8 +73,14 @@ class LoginTests(TestCase):
             "%s logged in with a breached password", f"Participant {participant.pk}"
         )
 
-        # Because the user's password is insecure, they're prompted to change it
+        # The participant's password was found to be in breaches, so we update the record!
         self.assertTrue(participant.insecure_password)
+        self.assertEqual(
+            participant.password_last_checked,
+            datetime(2019, 8, 29, 16, 25, tzinfo=pytz.utc),
+        )
+
+        # Because the user's password is insecure, they're prompted to change it
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/accounts/password/change/")
 
@@ -110,7 +123,13 @@ class LoginTests(TestCase):
         self.assertEqual(response.url, "/")
 
         participant = models.Participant.from_user(self.user)
+
+        # The participant's password was found to be in zero breaches, so we update the record!
         self.assertFalse(participant.insecure_password)
+        self.assertEqual(
+            participant.password_last_checked,
+            datetime(2019, 8, 29, 16, 25, tzinfo=pytz.utc),
+        )
 
     def test_redirect_should_be_preserved(self):
         """ If attempting to login with a redirect, it should be preserved!. """
@@ -126,6 +145,7 @@ class LoginTests(TestCase):
         )
 
 
+@freeze_time("2019-07-15 12:45:00 EST")
 class PasswordChangeTests(TestCase):
     def setUp(self):
         self.client = Client()
@@ -133,6 +153,9 @@ class PasswordChangeTests(TestCase):
         self.password = str(uuid.uuid4())  # A long, sufficiently random password!
         self.user = User.objects.create_user(
             username='strong', email='strong@example.com', password=self.password
+        )
+        account_models.EmailAddress.objects.create(
+            email=self.user.email, verified=True, primary=True, user_id=self.user.pk
         )
 
     def _change_password(self, new_password):
@@ -161,12 +184,20 @@ class PasswordChangeTests(TestCase):
         pwned_password.assert_called_once_with(new_password)
 
         participant = models.Participant.from_user(self.user)
+        # The participant's password was found to be in zero breaches, so we update the record!
         self.assertFalse(participant.insecure_password)
+        self.assertEqual(
+            participant.password_last_checked,
+            datetime(2019, 7, 15, 16, 45, tzinfo=pytz.utc),
+        )
 
     def test_user_without_participant(self):
         """ It's possible for users to change password as a user without a participant. """
         user = User.objects.create_user(
             username='bad', email='bad@example.com', password=self.password
+        )
+        account_models.EmailAddress.objects.create(
+            email=user.email, verified=True, primary=True, user_id=user.pk
         )
 
         # Skip the normal login flow, so we're only validating on the change flow

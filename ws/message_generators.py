@@ -210,5 +210,5 @@ def warn_if_password_insecure(request):
         messages.error(request, msg, extra_tags='safe')
 
         logger.debug(
-            "Warned participant {par.pk} ({par.email}) about insecure password"
+            "Warned participant %s ({%s}) about insecure password", par.pk, par.email
         )

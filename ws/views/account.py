@@ -12,6 +12,7 @@ from django.utils.decorators import method_decorator
 from pwned_passwords_django.api import pwned_password
 
 from ws import models
+from ws.utils.dates import local_now
 
 logger = logging.getLogger(__name__)
 
@@ -39,8 +40,13 @@ class CustomPasswordChangeView(PasswordChangeView):
 
     def form_valid(self, form):
         response = super().form_valid(form)
+
         if self.request.participant:
             self.request.participant.insecure_password = False
+            # NOTE: Technically, we cannot know for sure if the API call to HIBP failed
+            # (and thus, we might be updating this timestamp incorrectly)
+            # However, we log API failures and could use that information to identify the last success
+            self.request.participant.password_last_checked = local_now()
             self.request.participant.save()
         return response
 
@@ -77,9 +83,9 @@ class CheckIfPwnedOnLoginView(LoginView):
         else:
             response = super().form_valid(form)
 
-        return bool(times_password_seen), response
+        return times_password_seen, response
 
-    def _post_login_update_password_validity(self, password_breached):
+    def _post_login_update_password_validity(self, times_password_seen):
         """ After form.login has been invoked, handle password being breached or not.
 
         This method exists to serve two types of users:
@@ -93,26 +99,28 @@ class CheckIfPwnedOnLoginView(LoginView):
         # If they do have a participant, set the password as insecure (or not)
         participant = models.Participant.from_user(user)
         if participant:
-            participant.insecure_password = password_breached
+            participant.insecure_password = bool(times_password_seen)
+            if times_password_seen is not None:  # (None indicates an API failure)
+                participant.password_last_checked = local_now()
             participant.save()
 
-        if password_breached:
+        if times_password_seen:
             subject = (
                 f"Participant {participant.pk}" if participant else f"User {user.pk}"
             )
             logger.info("%s logged in with a breached password", subject)
 
-        if password_breached and not participant:
-            # For non-new users lacking a participant (very rare), a message + redirect is fine.
-            # If they ignore the reset, they'll be locked out once creating a Participant record.
-            messages.error(
-                self.request,
-                'This password has been compromised! Please choose a new password. '
-                'If you use this password on any other sites, we recommend changing it immediately.',
-            )
+            if not participant:
+                # For non-new users lacking a participant (very rare), a message + redirect is fine.
+                # If they ignore the reset, they'll be locked out once creating a Participant record.
+                messages.error(
+                    self.request,
+                    'This password has been compromised! Please choose a new password. '
+                    'If you use this password on any other sites, we recommend changing it immediately.',
+                )
 
     def form_valid(self, form):
-        password_breached, response = self._form_valid_perform_login(form)
-        self._post_login_update_password_validity(password_breached)
+        times_password_breached, response = self._form_valid_perform_login(form)
+        self._post_login_update_password_validity(times_password_breached)
 
         return response
