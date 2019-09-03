@@ -40,3 +40,7 @@ test:
 .PHONY: run
 run:
 	./manage.py runserver
+
+.PHONY: clean
+	rm f $(poetry_bootstrap_file)
+	find . -name '*.pyc' -delete
