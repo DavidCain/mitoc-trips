@@ -2,6 +2,8 @@
 Handle aspects of trip creation/modification when receiving signup changes.
 """
 
+import logging
+
 from django.db.models.signals import (
     m2m_changed,
     post_delete,
@@ -11,10 +13,12 @@ from django.db.models.signals import (
 )
 from django.dispatch import receiver
 
-from ws import sentry, tasks
+from ws import tasks
 from ws.celery_config import app
 from ws.models import LeaderSignUp, SignUp, Trip, WaitList
 from ws.utils.signups import trip_or_wait, update_queues_if_trip_open
+
+logger = logging.getLogger(__name__)
 
 
 @receiver(post_save, sender=SignUp)
@@ -114,7 +118,7 @@ def revoke_existing_task(sender, instance, raw, using, update_fields, **kwargs):
             app.control.revoke(trip.lottery_task_id)
         except OSError:
             # Log the exception, but don't raise exceptions, preventing trip saving
-            sentry.message("Failed to revoke lottery task", {'trip_pk': trip.pk})
+            logger.error("Failed to revoke lottery task for trip %s", trip.pk)
         else:
             instance.lottery_task_id = None
 
@@ -138,7 +142,7 @@ def add_lottery_task(sender, instance, created, raw, using, update_fields, **kwa
             (trip.pk, None), eta=trip.signups_close_at
         )
     except OSError:
-        sentry.message("Failed to make lottery task", {'trip_pk': trip.pk})
+        logger.error("Failed to make lottery task for trip %s", trip.pk)
     else:
         trip.lottery_task_id = task_id
         # Use update() to avoid repeated signal on post_save

@@ -5,6 +5,8 @@ The "Participant" is the core organization model of the trips system. Every
 user who has completed the mandatory signup information is given a Participant
 object that's linked to their user account.
 """
+import logging
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
@@ -18,12 +20,14 @@ import ws.messages.leader
 import ws.messages.lottery
 import ws.messages.participant
 import ws.utils.perms as perm_utils
-from ws import forms, models, sentry, tasks
+from ws import forms, models, tasks
 from ws.decorators import admin_only, group_required, user_info_required
 from ws.mixins import LectureAttendanceMixin, LotteryPairingMixin
 from ws.templatetags.trip_tags import annotated_for_trip_list
 from ws.utils.dates import is_winter_school, local_date, local_now, ws_year
 from ws.utils.model_dates import ws_lectures_complete
+
+logger = logging.getLogger(__name__)
 
 
 class OtherParticipantView(SingleObjectMixin):
@@ -163,9 +167,10 @@ class ParticipantEditMixin(TemplateView):
                 try:
                     tasks.update_participant_affiliation.delay(participant.pk)
                 except OSError:
-                    sentry.message(
-                        "Unable to update participant affiliation",
-                        {'pk': participant.pk, 'affiliation': participant.affiliation},
+                    logger.error(
+                        "Unable to update affiliation to %s for participant %s",
+                        participant.pk,
+                        participant.affiliation,
                     )
 
             return self.success_redirect()

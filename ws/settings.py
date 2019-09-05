@@ -11,8 +11,21 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
 
-import raven
+import sentry_sdk
 from celery.schedules import crontab
+from sentry_sdk.integrations.celery import CeleryIntegration
+from sentry_sdk.integrations.django import DjangoIntegration
+
+# Configure Sentry right away so that any other errors are captured!
+# TODO: Rename env var - Raven was the name of the legacy client
+if 'RAVEN_DSN' in os.environ:
+    # See: https://docs.sentry.io/platforms/python/django/
+    sentry_sdk.init(
+        os.environ['RAVEN_DSN'],
+        integrations=[DjangoIntegration(), CeleryIntegration()],
+        # This attaches basic user data to the event
+        send_default_pii=True,
+    )
 
 SECRET_KEY = os.getenv(
     'DJANGO_SECRET_KEY', '*this-is-obviously-not-secure-only-use-it-locally*'
@@ -76,7 +89,6 @@ INSTALLED_APPS = [
     'allauth.account',
     'djng',
     'pipeline',
-    'raven.contrib.django.raven_compat',
     'ws.apps.TripsConfig',
     'corsheaders',
 ]
@@ -391,10 +403,4 @@ LOGGING = {
         'django': {'handlers': ['file'], 'level': 'ERROR', 'propagate': True},
         'ws': {'handlers': ['file'], 'level': 'INFO', 'propagate': True},
     },
-}
-
-
-RAVEN_CONFIG = {
-    'dsn': os.getenv('RAVEN_DSN'),  # If absent, nothing happens
-    'release': raven.fetch_git_sha(BASE_DIR),
 }

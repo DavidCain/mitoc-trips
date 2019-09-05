@@ -2,6 +2,9 @@ import unittest
 from importlib import reload
 from unittest import mock
 
+from sentry_sdk.integrations.celery import CeleryIntegration
+from sentry_sdk.integrations.django import DjangoIntegration
+
 from ws import settings
 
 real_import = __import__
@@ -130,3 +133,28 @@ class SettingsTests(unittest.TestCase):
         self.assertFalse(settings.DEBUG)  # Not safe in production!
         self.assertEqual(settings.ALLOWED_HOSTS, ['mitoc-trips.mit.edu'])
         self.assertEqual(settings.CORS_ORIGIN_WHITELIST, ('https://mitoc.mit.edu',))
+
+    def test_sentry_not_initialized_if_envvar_present(self):
+        """ During local development, we can disable Sentry. """
+
+        with mock.patch.dict('os.environ', {'WS_DJANGO_LOCAL': '1'}, clear=True):
+            with mock.patch.object(settings.sentry_sdk, 'init') as init_sentry:
+                self._fresh_settings_load()
+        init_sentry.assert_not_called()
+
+    def test_sentry_initialized_from_envvar(self):
+        """ The DSN for Sentry comes from config. """
+        fake_dsn = 'https://hex-code@sentry.io/123446'
+
+        with mock.patch.dict('os.environ', {'RAVEN_DSN': fake_dsn}):
+            with mock.patch.object(settings.sentry_sdk, 'init') as init_sentry:
+                self._fresh_settings_load()
+        init_sentry.assert_called_once_with(
+            fake_dsn,
+            integrations=[mock.ANY, mock.ANY],  # Django & Celery, checked separately
+            send_default_pii=True,
+        )
+        integrations = init_sentry.call_args_list[0][1]['integrations']
+
+        self.assertTrue(isinstance(integrations[0], DjangoIntegration))
+        self.assertTrue(isinstance(integrations[1], CeleryIntegration))

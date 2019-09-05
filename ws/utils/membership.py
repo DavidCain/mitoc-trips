@@ -2,8 +2,9 @@ from datetime import timedelta
 
 from django.db.models import Q
 from django.db.utils import OperationalError
+from sentry_sdk import capture_exception
 
-from ws import models, sentry
+from ws import models
 from ws.utils.dates import local_now
 from ws.utils.geardb import membership_expiration, verified_emails
 
@@ -53,8 +54,7 @@ def can_attend_trip(user, trip):
     try:
         update_membership_cache(participant)
     except OperationalError:
-        if sentry.client:
-            sentry.client.captureException()
+        capture_exception()
         return True  # Database is down! Just assume they can attend
 
     participant.membership.refresh_from_db()

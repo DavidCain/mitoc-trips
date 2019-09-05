@@ -40,8 +40,8 @@ oauth2client = "*"
 phonenumberslite = "*"
 psycopg2-binary = "*"
 pytz = "*"
-raven = "*"
 requests = "*"
+sentry-sdk = "*"
 
 # Optional dependencies for local development
 # (Included here, since extras cannot refer to dev dependencies)
