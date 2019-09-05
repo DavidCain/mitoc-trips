@@ -23,22 +23,22 @@ check: lint test
 # Run automatic code formatters/linters that don't require human input
 # (might fix a broken `make check`)
 .PHONY: fix
-fix:
+fix: install
 	black ws
 	isort --recursive ws
 
 .PHONY: lint
-lint:
+lint: install
 	black --fast --check ws
 	isort --recursive --check ws
 	pylint ws
 
 .PHONY: test
-test:
+test: install
 	coverage run manage.py test
 
 .PHONY: run
-run:
+run: install
 	./manage.py runserver
 
 .PHONY: clean
