@@ -91,6 +91,7 @@ def membership_expiration(emails):
             most_recent = last_waiver
 
     # Since we fetched the most current information from the db, update cache
+    # TODO: Should probably refactor this method so it doesn't have unclear side effects
     email = most_recent['membership']['email']
     participant = models.Participant.from_email(email)
     if participant:
