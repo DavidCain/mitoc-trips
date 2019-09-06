@@ -1,10 +1,9 @@
 from datetime import date, timedelta
 
-from django.test import TransactionTestCase
 from freezegun import freeze_time
 
 from ws import cleanup, models, settings
-from ws.tests import factories
+from ws.tests import TestCase, factories
 
 
 def make_last_updated_on(participant, some_date):
@@ -23,7 +22,7 @@ def make_last_updated_on(participant, some_date):
     participant.save()
 
 
-class LapsedTests(TransactionTestCase):
+class LapsedTests(TestCase):
     @freeze_time("Wed, 25 Dec 2019 12:00:00 EST")
     def test_not_lapsed_with_recent_update(self):
         today = date(2019, 12, 25)
@@ -94,7 +93,58 @@ class LapsedTests(TransactionTestCase):
         self.assertEqual(cleanup.lapsed_participants().get(), participant)
 
 
-class PurgeMedicalInfoTests(TransactionTestCase):
+class PurgeNonStudentDiscountsTests(TestCase):
+    def setUp(self):
+        self.discount_for_everybody = factories.DiscountFactory.create(
+            student_required=False
+        )
+        self.student_only_discount = factories.DiscountFactory.create(
+            student_required=True
+        )
+
+    def test_purged(self):
+        # Create a collection of participants with every student affiliation
+        current_students = [
+            factories.ParticipantFactory.create(affiliation='MU'),
+            factories.ParticipantFactory.create(affiliation='MG'),
+            factories.ParticipantFactory.create(affiliation='NU'),
+            factories.ParticipantFactory.create(affiliation='NG'),
+        ]
+        alum = factories.ParticipantFactory.create(affiliation='MU')
+        former_undergrad = factories.ParticipantFactory.create(affiliation='MU')
+        former_grad_student = factories.ParticipantFactory.create(affiliation='NG')
+
+        # Assign both discounts to everybody, since they're all currently students
+        everybody = [former_undergrad, former_grad_student, alum, *current_students]
+        for participant in everybody:
+            participant.discounts = [
+                self.discount_for_everybody,
+                self.student_only_discount,
+            ]
+            participant.save()
+
+        # The former students move into non-student statuses
+        alum.affiliation = 'ML'
+        alum.save()
+        former_undergrad.affiliation = 'MA'
+        former_undergrad.save()
+        former_grad_student.affiliation = 'NA'
+        former_grad_student.save()
+
+        cleanup.purge_non_student_discounts()
+
+        # All participants remain in the discount which has no student requirement
+        self.assertCountEqual(
+            self.discount_for_everybody.participant_set.all(), everybody
+        )
+
+        # Just the students keep the student discount!
+        self.assertCountEqual(
+            self.student_only_discount.participant_set.all(), current_students
+        )
+
+
+class PurgeMedicalInfoTests(TestCase):
     def test_current_participants_unaffected(self):
         # Will automatically get a profile_last_updated value
         participant = factories.ParticipantFactory.create()

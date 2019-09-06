@@ -61,7 +61,7 @@ def purge_non_student_discounts():
     # Remove student discounts from all non-students who have them
     participants = models.Participant.objects.all()
     for par in participants.filter(not_student, discounts__in=stu_discounts):
-        par.discounts = par.discounts.filter(student_required=True)
+        par.discounts = par.discounts.filter(student_required=False)
         par.save()
 
 
