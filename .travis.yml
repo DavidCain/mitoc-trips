@@ -13,7 +13,7 @@ addons:
 before_script:
   - npm install
   - npm install -g uglify-js yuglify
-  - python manage.py collectstatic --verbosity=0
+  - WS_DJANGO_TEST=1 python manage.py collectstatic --verbosity=0
   - psql postgres -c 'create role ws login'
   - psql postgres -c 'alter user ws createdb'
 script: 

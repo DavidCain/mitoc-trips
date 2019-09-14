@@ -2,10 +2,10 @@
 Django settings for ws project.
 
 For more information on this file, see
-https://docs.djangoproject.com/en/1.8/topics/settings/
+https://docs.djangoproject.com/en/1.11/topics/settings/
 
 For the full list of settings and their values, see
-https://docs.djangoproject.com/en/1.8/ref/settings/
+https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -89,7 +89,9 @@ else:
     INSTALLED_APPS.append('debug_toolbar')
 
 
-if os.environ.get('WS_DJANGO_LOCAL'):
+if os.environ.get('WS_DJANGO_TEST'):
+    from .conf.test_settings import *  # pylint: disable=wildcard-import,unused-wildcard-import
+elif os.environ.get('WS_DJANGO_LOCAL'):
     from .conf.local_settings import *  # pylint: disable=wildcard-import,unused-wildcard-import
 else:
     from .conf.production_settings import *  # pylint: disable=wildcard-import,unused-wildcard-import

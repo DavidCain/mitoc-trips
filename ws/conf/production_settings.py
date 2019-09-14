@@ -6,7 +6,7 @@ DEBUG = False
 
 # In true production, 'mitoc-trips.mit.edu'
 # Running in Vagrant, this is set to 'mitoc-trips.local'
-ALLOWED_HOSTS = [os.getenv('DJANGO_ALLOWED_HOST')]
+ALLOWED_HOSTS = [os.environ['DJANGO_ALLOWED_HOST']]
 
 if os.getenv('EC2_IP'):
     ALLOWED_HOSTS.append(os.environ['EC2_IP'])
@@ -21,8 +21,8 @@ ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 EMAIL_BACKEND = 'django_smtp_ssl.SSLEmailBackend'
 EMAIL_HOST = 'email-smtp.us-east-1.amazonaws.com'
 EMAIL_PORT = 465
-EMAIL_HOST_USER = os.getenv('SES_USER')
-EMAIL_HOST_PASSWORD = os.getenv('SES_PASSWORD')
+EMAIL_HOST_USER = os.environ['SES_USER']
+EMAIL_HOST_PASSWORD = os.environ['SES_PASSWORD']
 
 CORS_ORIGIN_WHITELIST = ('https://mitoc.mit.edu',)
 CORS_ALLOW_METHODS = ('GET',)
