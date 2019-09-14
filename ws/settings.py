@@ -128,6 +128,7 @@ FORM_RENDERER = 'djng.forms.renderers.DjangoAngularBootstrap3Templates'
 
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.gzip.GZipMiddleware',
     'pipeline.middleware.MinifyHTMLMiddleware',
     'djng.middleware.AngularUrlMiddleware',
@@ -138,12 +139,10 @@ MIDDLEWARE = [
     'ws.middleware.PrefetchGroupsMiddleware',
     'ws.middleware.ParticipantMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.common.CommonMiddleware',
 ]
 if 'debug_toolbar' in INSTALLED_APPS:
     MIDDLEWARE.append('debug_toolbar.middleware.DebugToolbarMiddleware')
-if 'corsheaders' in INSTALLED_APPS:
-    MIDDLEWARE.insert(0, 'corsheaders.middleware.CorsMiddleware')
-    MIDDLEWARE.append('django.middleware.common.CommonMiddleware')
 
 AUTHENTICATION_BACKENDS = (
     # Needed to login by username in Django admin, regardless of `allauth`
