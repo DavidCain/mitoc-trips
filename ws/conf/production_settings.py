@@ -3,7 +3,6 @@
 import os
 
 DEBUG = False
-TEMPLATE_DEBUG = False
 
 # In true production, 'mitoc-trips.mit.edu'
 # Running in Vagrant, this is set to 'mitoc-trips.local'
