@@ -41,9 +41,7 @@ class Messages(MessageGenerator):
                     f'Please <a href="{trip_url}">submit an itinerary for '
                     f'{escape(name)}</a> before departing!'
                 )
-                messages.add_message(
-                    self.request, messages.WARNING, msg, extra_tags='safe'
-                )
+                self.add_unique_message(messages.WARNING, msg, extra_tags='safe')
 
     def _complain_if_missing_feedback(self):
         """ Create messages if the leader should supply feedback.
@@ -67,4 +65,4 @@ class Messages(MessageGenerator):
         for trip_pk, name in recent_trips_without_feedback:
             trip_url = reverse('review_trip', args=(trip_pk,))
             msg = f'Please supply feedback for <a href="{trip_url}">{escape(name)}</a>'
-            messages.add_message(self.request, messages.WARNING, msg, extra_tags='safe')
+            self.add_unique_message(messages.WARNING, msg, extra_tags='safe')
