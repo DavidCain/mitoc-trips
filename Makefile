@@ -31,7 +31,7 @@ fix: install
 lint: install
 	black --fast --check ws
 	isort --recursive --check ws
-	pylint ws
+	pylint --jobs 0 ws  # '0' tells pylint to auto-detect available processors
 
 .PHONY: test
 test: install
