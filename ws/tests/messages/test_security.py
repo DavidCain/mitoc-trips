@@ -2,28 +2,18 @@ from contextlib import contextmanager
 from unittest import mock
 
 from django.contrib.auth.models import AnonymousUser
-from django.test import RequestFactory
 
-from ws import message_generators
-from ws.tests import TestCase
+from ws.messages import security
 from ws.tests.factories import ParticipantFactory, UserFactory
+from ws.tests.messages import MessagesTestCase
 
 
-class WarnIfPasswordInsecureTests(TestCase):
-    def setUp(self):
-        self.factory = RequestFactory()
-
+class WarnIfPasswordInsecureTests(MessagesTestCase):
     @staticmethod
     @contextmanager
     def _mock_debug():
-        with mock.patch.object(message_generators.logger, 'debug') as debug:
+        with mock.patch.object(security.logger, 'debug') as debug:
             yield debug
-
-    @staticmethod
-    @contextmanager
-    def _mock_messages_error():
-        with mock.patch.object(message_generators.messages, 'error') as error:
-            yield error
 
     def test_no_user_on_request(self):
         request = self.factory.get('/')
@@ -33,7 +23,7 @@ class WarnIfPasswordInsecureTests(TestCase):
         request.participant = None
 
         with self._mock_debug() as debug, self._mock_messages_error() as error:
-            message_generators.warn_if_password_insecure(request)
+            security.Messages(request).supply()
 
         debug.assert_not_called()
         error.assert_not_called()
@@ -46,7 +36,7 @@ class WarnIfPasswordInsecureTests(TestCase):
         request.participant = None
 
         with self._mock_debug() as debug, self._mock_messages_error() as error:
-            message_generators.warn_if_password_insecure(request)
+            security.Messages(request).supply()
 
         debug.assert_not_called()
         error.assert_not_called()
@@ -59,7 +49,7 @@ class WarnIfPasswordInsecureTests(TestCase):
         request.user = par.user
 
         with self._mock_debug() as debug, self._mock_messages_error() as error:
-            message_generators.warn_if_password_insecure(request)
+            security.Messages(request).supply()
 
         debug.assert_not_called()
         error.assert_not_called()
@@ -74,7 +64,7 @@ class WarnIfPasswordInsecureTests(TestCase):
         request.user = par.user
 
         with self._mock_debug() as debug, self._mock_messages_error() as error:
-            message_generators.warn_if_password_insecure(request)
+            security.Messages(request).supply()
 
         error.assert_called_once_with(
             request,

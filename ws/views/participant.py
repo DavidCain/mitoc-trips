@@ -14,8 +14,12 @@ from django.utils.decorators import method_decorator
 from django.views.generic import DeleteView, DetailView, FormView, TemplateView, View
 from django.views.generic.detail import SingleObjectMixin
 
+import ws.messages.leader
+import ws.messages.lottery
+import ws.messages.participant
+import ws.messages.security
 import ws.utils.perms as perm_utils
-from ws import forms, message_generators, models, sentry, tasks
+from ws import forms, models, sentry, tasks
 from ws.decorators import admin_only, group_required, user_info_required
 from ws.mixins import LectureAttendanceMixin, LotteryPairingMixin
 from ws.templatetags.trip_tags import annotated_for_trip_list
@@ -450,13 +454,11 @@ class ProfileView(ParticipantView):
         if request.participant.affiliation_dated:
             return redirect(reverse('edit_profile'))
 
-        message_generators.warn_if_needs_update(request)
-        message_generators.complain_if_missing_feedback(request)
-        message_generators.complain_if_missing_itineraries(request)
-        message_generators.warn_if_password_insecure(request)
+        ws.messages.leader.Messages(request).supply()
+        ws.messages.participant.Messages(request).supply()
+        ws.messages.security.Messages(request).supply()
+        ws.messages.lottery.Messages(request).supply()
 
-        lottery_messages = message_generators.LotteryMessages(request)
-        lottery_messages.supply_all_messages()
         return super().get(request, *args, **kwargs)
 
     def get_object(self, queryset=None):
