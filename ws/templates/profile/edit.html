@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% load form_tags %}
-{% load messages_tags %}
 
 {% block head_title %}
 Edit profile {% if participant %} - {{ participant.name }}{% endif %}
@@ -8,7 +7,6 @@ Edit profile {% if participant %} - {{ participant.name }}{% endif %}
 
 {% block content %}
 
-{% messages_alerts %}
 {% if not viewing_participant or not viewing_participant.info_current %}
   <div class="alert alert-info">
     {% if not viewing_participant %}

@@ -14,6 +14,9 @@
   {% endif %}
 {% endblock head_title %}
 
+{# Will display messages in a custom location on the sidebar. #}
+{% block messages %}{% endblock messages %}
+
 {% block content %}
 
 {% if not user_viewing %}

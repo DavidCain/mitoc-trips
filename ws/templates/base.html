@@ -4,6 +4,7 @@
 {% load perm_tags %}
 {% load trip_tags %}
 {% load content_tags %}
+{% load messages_tags %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -170,6 +171,11 @@
     </nav>
 
     <div class="container main-content">
+        {# Most pages will keep messages where they are, but some pages might want to override! #}
+        {% block messages %}
+            {% messages_alerts %}
+        {% endblock messages %}
+
         {% block content %}
         {% endblock content %}
     </div>
