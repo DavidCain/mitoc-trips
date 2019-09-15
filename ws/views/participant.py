@@ -17,7 +17,6 @@ from django.views.generic.detail import SingleObjectMixin
 import ws.messages.leader
 import ws.messages.lottery
 import ws.messages.participant
-import ws.messages.security
 import ws.utils.perms as perm_utils
 from ws import forms, models, sentry, tasks
 from ws.decorators import admin_only, group_required, user_info_required
@@ -456,7 +455,6 @@ class ProfileView(ParticipantView):
 
         ws.messages.leader.Messages(request).supply()
         ws.messages.participant.Messages(request).supply()
-        ws.messages.security.Messages(request).supply()
         ws.messages.lottery.Messages(request).supply()
 
         return super().get(request, *args, **kwargs)

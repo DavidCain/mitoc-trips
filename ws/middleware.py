@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 
+from ws.messages import security
 from ws.models import Participant
 
 
@@ -34,4 +35,20 @@ class ParticipantMiddleware:
 
     def __call__(self, request):
         request.participant = Participant.from_user(request.user)
+        return self.get_response(request)
+
+
+class CustomMessagesMiddleware:
+    """ Render some custom messages on every page load.
+
+    Caution: *must* be installed after both:
+    - ParticipantMiddleware (to access participant info for messages)
+    - MessagesMiddleware (to render messages)
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        security.Messages(request).supply()
         return self.get_response(request)

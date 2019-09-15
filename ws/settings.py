@@ -138,10 +138,11 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'ws.middleware.PrefetchGroupsMiddleware',
-    'ws.middleware.ParticipantMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'ws.middleware.PrefetchGroupsMiddleware',
+    'ws.middleware.ParticipantMiddleware',
+    'ws.middleware.CustomMessagesMiddleware',
 ]
 if 'debug_toolbar' in INSTALLED_APPS:
     MIDDLEWARE.append('debug_toolbar.middleware.DebugToolbarMiddleware')

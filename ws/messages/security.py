@@ -25,16 +25,20 @@ class Messages(MessageGenerator):
         This serves to warn people who ignore the message (and log that they ignored it,
         so we might use that data to inform a better password policy).
         """
+        change_password_url = reverse('account_change_password')
+        if self.request.path == change_password_url:
+            # Already on the 'change password' URL, no need to warn again
+            return
+
         par = self.request.participant
         if par and par.insecure_password:
-            change_password_url = reverse('account_change_password')
             msg = (
                 'Your password is insecure! '
                 f'Please <a href="{change_password_url}">change your password.</a>'
             )
-            messages.error(self.request, msg, extra_tags='safe')
+            self.add_unique_message(messages.ERROR, msg, extra_tags='safe')
 
-            logger.debug(
+            logger.info(
                 "Warned participant %s ({%s}) about insecure password",
                 par.pk,
                 par.email,
