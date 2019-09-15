@@ -1,9 +1,25 @@
-{% extends "base.html" %}
+{% extends "base_no_scripts.html" %}
+{# This error page should strive to be as simple as possible (so that it does not fail!). #}
+{# The JavaScript-less version will load quickly and reliably for everybody. #}
 
-{% block head_title %}Server error {% endblock head_title %}
+{% block head_title %}Server error{% endblock head_title %}
+
+{# User is most likely logged in, but template cannot detect this (user middleware failed!) #}
+{# Showing the login button is probably not helpful, so just decline to show it. #}
+{% block login_button %}{% endblock login_button %}
+
+{# Messages requires successful middleware, don't attempt to load #}
+{% block messages %}{% endblock messages %}
 
 {% block content %}
-<h2>Server error</h2>
+  <h2>Server error</h2>
 
-<p>A server error occured. A report detailing this error has been sent to the administrator.</p>
-{% endblock %}
+  <p class="lead">
+    An unexpected error occurred! A report detailing this error has been sent to the administrator.
+  </p>
+  <p>
+      If you'd like, you can also <a href="{% url 'contact' %}">contact us</a> with a bug report.
+      {# It's possible the whole contact page is down too. Provide an email directly. #}
+      (<a href="mailto:davidjosephcain@gmail.com">Email the administrator</a>).
+  </p>
+{% endblock content %}
