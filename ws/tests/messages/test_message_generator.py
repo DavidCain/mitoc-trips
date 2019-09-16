@@ -3,7 +3,6 @@ from unittest import mock
 
 from django.contrib import messages
 from django.contrib.auth.models import User
-from django.test import Client
 
 from ws.messages import MessageGenerator
 from ws.tests import TestCase
@@ -18,8 +17,8 @@ class MessageGeneratorTests(TestCase):
             yield add_message
 
     def setUp(self):
+        super().setUp()
         # We use a real client so that we can get access to messages middleware!
-        self.client = Client()
         user = User.objects.create_user(
             email='fake@example.com', password='password', username='username'
         )

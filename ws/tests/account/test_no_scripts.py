@@ -1,14 +1,10 @@
 from bs4 import BeautifulSoup
 from django.contrib.auth.models import User
-from django.test import Client
 
 from ws.tests import TestCase
 
 
 class AccountTests(TestCase):
-    def setUp(self):
-        self.client = Client()
-
     def _assert_no_scripts(self, response, user=None):
         self.assertEqual(response.status_code, 200)
         soup = BeautifulSoup(response.content, 'html.parser')

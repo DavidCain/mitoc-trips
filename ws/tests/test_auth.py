@@ -2,7 +2,6 @@ import unittest.mock
 from urllib.parse import parse_qs, urlparse
 
 from django.contrib.auth.models import User
-from django.test import Client
 from django.urls import reverse
 
 from ws.tests import TestCase
@@ -45,10 +44,6 @@ class AuthTests(TestCase):
          privileges are based on groups. Some participants belong to the
          leaders group, others are activity chairs
     """
-
-    def setUp(self):
-        self.client = Client()
-        super().setUp()
 
     @classmethod
     def setUpTestData(cls):

@@ -6,7 +6,6 @@ import allauth.account.models as account_models
 import pytz
 from bs4 import BeautifulSoup
 from django.contrib.auth.models import User
-from django.test import Client
 from freezegun import freeze_time
 from pwned_passwords_django import api
 
@@ -18,7 +17,7 @@ from ws.views import account
 @freeze_time("2019-08-29 12:25:00 EST")
 class LoginTests(TestCase):
     def setUp(self):
-        self.client = Client()
+        super().setUp()
         # Make a user with a terrible, very-often breached password
         self.user = User.objects.create_user(
             username='hacked', email='hacked@example.com', password='football'
@@ -148,7 +147,7 @@ class LoginTests(TestCase):
 @freeze_time("2019-07-15 12:45:00 EST")
 class PasswordChangeTests(TestCase):
     def setUp(self):
-        self.client = Client()
+        super().setUp()
 
         self.password = str(uuid.uuid4())  # A long, sufficiently random password!
         self.user = User.objects.create_user(
