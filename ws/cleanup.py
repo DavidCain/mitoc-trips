@@ -1,6 +1,7 @@
 import logging
 from datetime import timedelta
 
+from django.db import transaction
 from django.db.models import Q
 
 import ws.utils.dates as dateutils
@@ -41,11 +42,7 @@ def lapsed_participants():
         Q(signup__trip__trip_date__gte=today)
     )
 
-    return (
-        models.Participant.objects.filter(lapsed_update)
-        .exclude(active_members)
-        .select_related('emergency_info')
-    )
+    return models.Participant.objects.filter(lapsed_update).exclude(active_members)
 
 
 def purge_non_student_discounts():
@@ -65,6 +62,7 @@ def purge_non_student_discounts():
         par.save()
 
 
+@transaction.atomic
 def purge_old_medical_data():
     """ For privacy reasons, purge old medical information.
 
@@ -78,8 +76,30 @@ def purge_old_medical_data():
     an active participant, since that will just require them to provide current
     medical info.
     """
-    # We only update participants that have not yet been scrubbed
-    needs_scrub = lapsed_participants().exclude(emergency_info__allergies='')
+    needs_scrub = (
+        lapsed_participants()
+        # We only update participants that have emergency info & have not yet been scrubbed
+        .exclude(emergency_info__allergies='').exclude(emergency_info=None)
+        # If some other query already holds a lock, just skip for now!
+        # (likely means that the participant is being updated, and shouldn't be purged)
+        # We can always try to purge again on the next scheduled run.
+        # TODO (Django 2), exclusive join *only* on Participant + e. info, not Membership
+        # .select_for_update(skip_locked=True, of=('self', 'emergency_info'))
+    )
+
+    # Re-select participants, this time with an UPDATE lock (skirts Django shortcoming)
+    # NOTE: This technically means that participants could have changed in this window.
+    # TODO (Django 2): Remove this hack, use above `of=` solution
+    needs_scrub = (
+        models.Participant.objects.filter(pk__in=needs_scrub).select_related(
+            'emergency_info'
+        )
+        # If some other query already holds a lock, just skip for now!
+        # (likely means that the participant is being updated, and shouldn't be purged)
+        # We can always try to purge again on the next scheduled run.
+        .select_for_update(skip_locked=True)
+    )
+
     for par in needs_scrub:
         logger.info(
             "Purging medical data for %s (%s - %s, last updated %s)",
@@ -89,7 +109,7 @@ def purge_old_medical_data():
             par.profile_last_updated.date(),
         )
 
-    # Using update() bypasses normal model validation that these be non-empty
+    # Using update() bypasses normal model validation that these be non-empty.
     # SQL constraints prevent `null` values, but we can have empty strings!
     models.EmergencyInfo.objects.filter(participant__in=needs_scrub).update(
         allergies="", medications="", medical_history=""

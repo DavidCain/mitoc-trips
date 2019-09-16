@@ -1,4 +1,5 @@
 from datetime import date, timedelta
+from unittest import mock
 
 from freezegun import freeze_time
 
@@ -149,24 +150,36 @@ class PurgeMedicalInfoTests(TestCase):
         # Will automatically get a profile_last_updated value
         participant = factories.ParticipantFactory.create()
         original = participant.emergency_info
-        cleanup.purge_old_medical_data()
+        with mock.patch.object(cleanup.logger, 'info') as log_info:
+            cleanup.purge_old_medical_data()
+        log_info.assert_not_called()  # Nothing to log, no changes made
         participant.emergency_info.refresh_from_db()
         self.assertEqual(original, participant.emergency_info)
 
     def test_purge_medical_data(self):
-        # Gets medical info for free!
-        participant = factories.ParticipantFactory.create(membership=None)
-        # Hasn't updated in 13 months
+        # (Will have medical information created)
+        participant = factories.ParticipantFactory.create(
+            membership=None, name='Old Member', email='old@example.com', pk=823
+        )
+        # Hasn't updated in at least 13 months
         make_last_updated_on(participant, date(2012, 12, 1))
 
         # Note that we started with information
         e_info = participant.emergency_info
         e_contact = e_info.emergency_contact
-        self.assertNotEqual(e_info.allergies, '')
-        self.assertNotEqual(e_info.medications, '')
-        self.assertNotEqual(e_info.medical_history, '')
+        self.assertTrue(e_info.allergies)
+        self.assertTrue(e_info.medications)
+        self.assertTrue(e_info.medical_history)
 
-        cleanup.purge_old_medical_data()
+        with mock.patch.object(cleanup.logger, 'info') as log_info:
+            cleanup.purge_old_medical_data()
+        log_info.assert_called_once_with(
+            'Purging medical data for %s (%s - %s, last updated %s)',
+            'Old Member',
+            823,
+            'old@example.com',
+            date(2012, 12, 1),
+        )
 
         # Re-query so that we get all fresh data (refresh_from_db only does one model)
         participant = models.Participant.objects.select_related(

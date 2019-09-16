@@ -9,6 +9,7 @@ import logging
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import redirect, render
 from django.urls import reverse, reverse_lazy
@@ -177,6 +178,7 @@ class ParticipantEditMixin(TemplateView):
 
         return render(request, self.template_name, context)
 
+    @transaction.atomic
     def _save_forms(self, user, post_forms):
         """ Given completed, validated forms, handle saving all.
 
@@ -186,12 +188,16 @@ class ParticipantEditMixin(TemplateView):
 
         :param post_forms: Dictionary of <template_name>: <form>
         """
+        participant = post_forms['participant_form'].save(commit=False)
+        if participant.pk:  # Existing participant! Lock for UPDATE now.
+            # (we don't also lock other objects via JOIN since those can be NULL)
+            models.Participant.objects.filter(pk=participant.pk).select_for_update()
+
         e_contact = post_forms['emergency_contact_form'].save()
         e_info = post_forms['emergency_info_form'].save(commit=False)
         e_info.emergency_contact = e_contact
         e_info = post_forms['emergency_info_form'].save()
 
-        participant = post_forms['participant_form'].save(commit=False)
         participant.user_id = user.id
         participant.emergency_info = e_info
 
