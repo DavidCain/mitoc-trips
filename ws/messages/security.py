@@ -36,10 +36,11 @@ class Messages(MessageGenerator):
                 'Your password is insecure! '
                 f'Please <a href="{change_password_url}">change your password.</a>'
             )
-            self.add_unique_message(messages.ERROR, msg, extra_tags='safe')
+            warned = self.add_unique_message(messages.ERROR, msg, extra_tags='safe')
 
-            logger.info(
-                "Warned participant %s ({%s}) about insecure password",
-                par.pk,
-                par.email,
-            )
+            if warned:
+                logger.info(
+                    "Warned participant %s (%s) about insecure password",
+                    par.pk,
+                    par.email,
+                )

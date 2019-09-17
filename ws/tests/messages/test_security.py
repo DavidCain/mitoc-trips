@@ -2,7 +2,7 @@ from contextlib import contextmanager
 from unittest import mock
 
 from django.contrib import messages
-from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth.models import AnonymousUser, User
 
 from ws.messages import security
 from ws.tests.factories import ParticipantFactory, UserFactory
@@ -57,14 +57,23 @@ class WarnIfPasswordInsecureTests(MessagesTestCase):
 
     def test_participant_with_insecure_password(self):
         """ Test core behavior of the generator - a known participant with a bad password. """
-        request = self.factory.get('/')
-        par = ParticipantFactory.create(
-            email='oops@example.com', insecure_password=True
+        # Use the test client, since RequestFactory can't handle messages
+        user = User.objects.create_user(
+            email='fake@example.com', password='password', username='username'
         )
-        request.participant = par
-        request.user = par.user
+        par = ParticipantFactory.create(
+            email='oops@example.com', insecure_password=True, user_id=user.pk
+        )
+        self.client.login(email=user.email, password='password')
 
-        with self._mock_info() as info, self._mock_add_message() as add_message:
+        with self._mock_info() as info, self._mock_add_message(True) as add_message:
+            # Loading any page will invoke the security messages
+            response = self.client.get('/contact/')
+            request = response.wsgi_request
+
+            # Explicitly re-supply messages on the same request (without a page load)
+            # This will not add to the total number of calls to `add_message()`
+            security.Messages(request).supply()
             security.Messages(request).supply()
 
         add_message.assert_called_once_with(
@@ -74,7 +83,7 @@ class WarnIfPasswordInsecureTests(MessagesTestCase):
             extra_tags='safe',
         )
         info.assert_called_once_with(
-            "Warned participant %s ({%s}) about insecure password",
+            "Warned participant %s (%s) about insecure password",
             par.pk,
             'oops@example.com',
         )

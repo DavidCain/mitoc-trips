@@ -43,14 +43,14 @@ class MessageGeneratorTests(TestCase):
 
         with self._spy_on_add_message() as add_message:
             # On first invocation, sends out the message
-            generator.add_unique_message(messages.INFO, "Hello")
+            self.assertTrue(generator.add_unique_message(messages.INFO, "Hello"))
             self.assertIn(hello_call, add_message.call_args_list)
             add_message.reset_mock()
 
             # On second invocation, does not send again
-            generator.add_unique_message(messages.INFO, "Hello")
+            self.assertFalse(generator.add_unique_message(messages.INFO, "Hello"))
             self.assertNotIn(hello_call, add_message.call_args_list)
 
             # A new unique message will be sent, though!
-            generator.add_unique_message(messages.INFO, "Goodbye")
+            self.assertTrue(generator.add_unique_message(messages.INFO, "Goodbye"))
             self.assertIn(goodbye_call, add_message.call_args_list)
