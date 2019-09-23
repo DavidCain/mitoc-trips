@@ -7,12 +7,6 @@ from ws import settings
 register = template.Library()
 
 
-@register.inclusion_tag('for_templatetags/cdn_fallback.html')
-def cdn_fallback(lib_name, cdn_url, npm_path):
-    """ Load the package from a CDN, but fall back to local service on failure. """
-    return {'lib_name': lib_name, 'cdn_url': cdn_url, 'npm_path': npm_path}
-
-
 @register.inclusion_tag('for_templatetags/raven_user_context.html', takes_context=True)
 def raven_user_context(context, user, participant):
     """ Include JavaScript that should only be present in production. """
