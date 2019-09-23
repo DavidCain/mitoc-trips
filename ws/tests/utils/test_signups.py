@@ -1,8 +1,10 @@
 from unittest.mock import PropertyMock, patch
 
-from django.test import SimpleTestCase
+from django.contrib import messages
+from django.test import RequestFactory, SimpleTestCase
 
 from ws import models
+from ws.tests import TestCase, factories
 from ws.utils import signups as signup_utils
 
 
@@ -73,3 +75,111 @@ class ManualOrderingTests(SimpleTestCase):
 
         wl_save.assert_called_once()
         self.assertEqual(wl_signup.manual_order, 37)
+
+
+class NonTripParticipantsTests(TestCase):
+    def test_creator_is_eligible_as_participant(self):
+        """ So long as the creator is not a leader, they count as a non-trip participant. """
+        trip = factories.TripFactory()
+        self.assertNotIn(trip.creator, trip.leaders.all())
+        self.assertIn(trip.creator, signup_utils.non_trip_participants(trip))
+
+        trip.leaders.add(trip.creator)
+
+        self.assertIn(trip.creator, trip.leaders.all())
+        self.assertNotIn(trip.creator, signup_utils.non_trip_participants(trip))
+
+    def test_participants_on_trip(self):
+        """ All participants not signed up for the trip are returned. """
+        trip = factories.TripFactory()
+        on_trip = factories.ParticipantFactory.create()
+        factories.SignUpFactory.create(participant=on_trip, trip=trip, on_trip=True)
+        off_trip = factories.ParticipantFactory.create()
+        signed_up_not_on_trip = factories.ParticipantFactory.create()
+        factories.SignUpFactory.create(
+            participant=signed_up_not_on_trip, trip=trip, on_trip=False
+        )
+
+        other_trip_signup = factories.SignUpFactory.create(on_trip=True)
+
+        participants = signup_utils.non_trip_participants(trip)
+        self.assertNotIn(on_trip, participants)
+        self.assertIn(off_trip, participants)
+        self.assertIn(signed_up_not_on_trip, participants)
+        self.assertIn(other_trip_signup.participant, participants)
+
+
+class AddToWaitlistTests(TestCase):
+    def test_already_on_trip(self):
+        """ Participants already on the trip will be waitlisted. """
+        signup = factories.SignUpFactory.create(on_trip=True)
+        wl_signup = signup_utils.add_to_waitlist(signup)
+        self.assertEqual(wl_signup.signup, signup)
+        self.assertFalse(wl_signup.signup.on_trip)
+
+    def test_already_has_waitlist_entry(self):
+        wl_signup = factories.WaitListSignupFactory.create()
+        self.assertIs(wl_signup, signup_utils.add_to_waitlist(wl_signup.signup))
+
+    def test_adds_message_on_request(self):
+        request = RequestFactory().get('/')
+        signup = factories.SignUpFactory.create(on_trip=False)
+        with patch.object(messages, 'success') as success:
+            wl_signup = signup_utils.add_to_waitlist(signup, request=request)
+        success.assert_called_once_with(request, "Added to waitlist.")
+        self.assertEqual(wl_signup.signup, signup)
+        self.assertFalse(wl_signup.signup.on_trip)
+
+    def test_can_add_to_top_of_list(self):
+        """ We can add somebody to the waitlist, passing all others. """
+        trip = factories.TripFactory()
+
+        # Build a waitlist with a mixture of ordered by time added & manually ordered
+        spot_1 = factories.SignUpFactory.create(trip=trip, on_trip=False)
+        spot_2 = factories.SignUpFactory.create(trip=trip, on_trip=False)
+        spot_3 = factories.SignUpFactory.create(trip=trip, on_trip=False)
+        spot_4 = factories.SignUpFactory.create(trip=trip, on_trip=False)
+        factories.WaitListSignupFactory(signup=spot_3)
+        factories.WaitListSignupFactory(signup=spot_4)
+        factories.WaitListSignupFactory(signup=spot_2, manual_order=10)
+        factories.WaitListSignupFactory(signup=spot_1, manual_order=11)
+        self.assertEqual(list(trip.waitlist.signups), [spot_1, spot_2, spot_3, spot_4])
+
+        signup = factories.SignUpFactory.create(trip=trip, on_trip=True)
+        signup_utils.add_to_waitlist(signup, prioritize=True, top_spot=True)
+        self.assertEqual(
+            list(trip.waitlist.signups), [signup, spot_1, spot_2, spot_3, spot_4]
+        )
+
+    def test_can_add_to_bottom_of_priority(self):
+        """ Adding signups with priority puts them beneath other priorities, but above non. """
+        trip = factories.TripFactory()
+
+        spot_3 = factories.SignUpFactory.create(trip=trip, on_trip=False)
+        spot_1 = factories.SignUpFactory.create(trip=trip, on_trip=False)
+        spot_2 = factories.SignUpFactory.create(trip=trip, on_trip=False)
+
+        # Start with a simple waitlist with no manual ordering
+        spot_5 = factories.SignUpFactory.create(trip=trip, on_trip=False)
+        spot_4 = factories.SignUpFactory.create(trip=trip, on_trip=False)
+        signup_utils.add_to_waitlist(spot_4)
+        signup_utils.add_to_waitlist(spot_5)
+        self.assertEqual(list(trip.waitlist.signups), [spot_4, spot_5])
+
+        # Add each new signup to priority, but not the top spot
+        signup_utils.add_to_waitlist(spot_1, prioritize=True, top_spot=False)
+        self.assertEqual(list(trip.waitlist.signups), [spot_1, spot_4, spot_5])
+        signup_utils.add_to_waitlist(spot_2, prioritize=True, top_spot=False)
+        self.assertEqual(list(trip.waitlist.signups), [spot_1, spot_2, spot_4, spot_5])
+        signup_utils.add_to_waitlist(spot_3, prioritize=True, top_spot=False)
+        self.assertEqual(
+            list(trip.waitlist.signups), [spot_1, spot_2, spot_3, spot_4, spot_5]
+        )
+
+        # Adding to the top spot still works!
+        signup = factories.SignUpFactory.create(trip=trip, on_trip=True)
+        signup_utils.add_to_waitlist(signup, prioritize=True, top_spot=True)
+        self.assertEqual(
+            list(trip.waitlist.signups),
+            [signup, spot_1, spot_2, spot_3, spot_4, spot_5],
+        )

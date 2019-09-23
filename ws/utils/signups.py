@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.db import transaction
 from django.db.models import Q
 
 from ws import models
@@ -33,6 +34,7 @@ def next_in_order(signup, manual_order=None):
     wl.save()
 
 
+@transaction.atomic
 def add_to_waitlist(signup, request=None, prioritize=False, top_spot=False):
     """ Add the given signup to the waitlist, optionally prioritizing it. """
     signup.on_trip = False
@@ -48,7 +50,7 @@ def add_to_waitlist(signup, request=None, prioritize=False, top_spot=False):
             messages.success(request, "Added to waitlist.")
 
     if prioritize:
-        prioritize_wl_signup(wl_signup, top_spot)
+        _prioritize_wl_signup(wl_signup, top_spot)
     return wl_signup
 
 
@@ -121,10 +123,10 @@ def non_trip_participants(trip):
     return all_participants.exclude(par_on_trip)
 
 
-def prioritize_wl_signup(waitlist_signup, top_spot=False):
+def _prioritize_wl_signup(waitlist_signup, top_spot=False):
     """ Add the signup towards the top of the list.
 
-    If top_spot=True, place above all wailist spots. Otherwise,
+    If top_spot=True, place above all waitlist spots. Otherwise,
     place below all other previous priority waitlist spots, but above
     standard waitlist entries.
 

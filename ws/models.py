@@ -687,7 +687,9 @@ class SignUp(BaseSignUp):
 
     class Meta:
         # When ordering for an individual, should order by priority (i.e. 'order')
-        # When ordering for many, should go by time created.
+        # When ordering for a specific trip, should order by:
+        # 1. `manual_order` (applied if leaders sort signups)
+        # 2. `time_created` (first to sign up -> first on trip)
         ordering = ["manual_order", "last_updated"]
         unique_together = ('participant', 'trip')
 
@@ -1138,6 +1140,8 @@ class WaitListSignup(models.Model):
     waitlist = models.ForeignKey("WaitList", on_delete=models.CASCADE)
     time_created = models.DateTimeField(auto_now_add=True)
     # Specify to override ordering by time created
+    # TODO: Make this *ascending* (so 1 is first, 2 is second)
+    # Right now, it's descending - which is both confusing & conflicts with SignUp
     manual_order = models.IntegerField(null=True, blank=True)
 
     def __str__(self):
@@ -1146,9 +1150,11 @@ class WaitListSignup(models.Model):
         )
 
     class Meta:
-        # None will come after after integer in reverse sorted,
-        # So anyone with a manual ordering integer will be first
-        ordering = ["-manual_order", "time_created"]
+        # TODO (Django 2): Use F-expressions. [F('manual_order').desc(nulls_last=True), ...]
+        # TODO (Django 2): Also update WaitList.signups property definition
+        # WARNING: Postgres will put nulls first, not last.
+        ordering = ["-manual_order", "time_created", "pk"]  # NOT CORRECT!
+        # WARNING: This default ordering is not fully correct. Manually call `order_by`)
 
 
 class WaitList(models.Model):
@@ -1159,22 +1165,48 @@ class WaitList(models.Model):
 
     @property
     def signups(self):
-        # Don't know of any way to apply this ordering to signups field
-        return self.unordered_signups.order_by('waitlistsignup')
+        """ Return signups ordered with the waitlist rules.
+
+        This method is useful because the SignUp object has the useful information
+        for display, but the WaitListSignup object has information for ordering.
+        """
+        # TODO (Django 2): Just use the below, once we can use F-expressions in `ordering`
+        # return self.unordered_signups.order_by('waitlistsignup')
+        return self.unordered_signups.order_by(
+            F('waitlistsignup__manual_order').desc(nulls_last=True),
+            F('waitlistsignup__time_created').asc(),
+        )
 
     @property
     def first_of_priority(self):
         """ The 'manual_order' value to be first in the waitlist. """
-        first_wl_signup = self.waitlistsignup_set.first()
-        max_order = first_wl_signup.manual_order or 9  # Could be None
-        return max_order + 1
+        # TODO (Django 2): Just use the below, refactor code to avoid extra lookups
+        # first_wl_signup = self.waitlistsignup_set.first()
+        first_signup = self.signups.first()
+        if first_signup is None:
+            return 10
+        return first_signup.waitlistsignup.manual_order + 1
 
     @property
     def last_of_priority(self):
-        """ The 'manual_order' value to be priority, but below others. """
-        last_wl_signup = self.waitlistsignup_set.last()
-        min_order = last_wl_signup.manual_order or 11  # Could be None
-        return min_order - 1
+        """ The 'manual_order' value to be below all manual orders, but above non-ordered.
+
+        Waitlist signups are ordered first by `manual_order`, then by time created. This
+        method is useful for the scenario when you want to give somebody priority in the
+        waitlist, but to not surpass others who were previously added to the top of the
+        waitlist.
+        """
+        # TODO (Django 2): Just use the below
+        # last_wl_signup = self.waitlistsignup_set.filter(manual_order__isnull=False).last()
+        last_wl_signup = (
+            self.waitlistsignup_set.filter(manual_order__isnull=False)
+            .order_by(F('manual_order').desc(nulls_last=True))
+            .last()
+        )
+
+        if last_wl_signup is None:
+            return 10
+        return last_wl_signup.manual_order - 1
 
 
 class LeaderApplication(models.Model):

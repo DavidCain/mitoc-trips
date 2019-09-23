@@ -602,9 +602,9 @@ class CheckTripOverflowView(View, SingleObjectMixin):
         resp = self.clear_response.copy()
 
         diff = max_participants - on_trip.count()
-        waitlisted = models.WaitListSignup.objects.filter(signup__trip=trip)
+        waitlisted = trip.waitlist.signups
         if diff > 0 and waitlisted[:diff]:
-            bumped = ', '.join(wl.signup.participant.name for wl in waitlisted[:diff])
+            bumped = ', '.join(signup.participant.name for signup in waitlisted[:diff])
             resp['msg'] = (
                 "Expanding to {} participants would bump {} off "
                 "the waitlist.".format(max_participants, bumped)

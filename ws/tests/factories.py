@@ -1,5 +1,5 @@
 import allauth.account.models as account_models
-from factory import LazyAttribute, RelatedFactory, Sequence, SubFactory
+from factory import LazyAttribute, RelatedFactory, SelfAttribute, Sequence, SubFactory
 from factory.django import DjangoModelFactory
 from mitoc_const import affiliations
 
@@ -137,6 +137,14 @@ class SignUpFactory(DjangoModelFactory):
     order = None
     manual_order = None
     on_trip = False
+
+
+class WaitListSignupFactory(DjangoModelFactory):
+    class Meta:
+        model = models.WaitListSignup
+
+    signup = SubFactory(SignUpFactory)
+    waitlist = SelfAttribute('signup.trip.waitlist')
 
 
 class ClimbingLeaderApplicationFactory(DjangoModelFactory):
