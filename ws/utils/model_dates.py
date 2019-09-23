@@ -7,7 +7,7 @@ import ws.utils.dates as dateutils
 from ws import models
 
 
-def ws_trips_this_year():
+def _ws_trips_this_year():
     jan_1 = dateutils.jan_1()
     return models.Trip.objects.filter(trip_date__gte=jan_1, activity='winter_school')
 
@@ -24,7 +24,7 @@ def ws_lectures_complete():
     """
     now = dateutils.local_now()
     today = now.date()
-    trips_this_ws = ws_trips_this_year()
+    trips_this_ws = _ws_trips_this_year()
 
     dow = now.weekday()
     after_thursday = dow > 3 or dow == 3 and now.hour >= 21
