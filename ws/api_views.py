@@ -583,54 +583,6 @@ class MembershipStatusesView(View):
         return super().dispatch(request, *args, **kwargs)
 
 
-class CheckTripOverflowView(View, SingleObjectMixin):
-    """ JSON-returning view to be used for AJAX on trip editing. """
-
-    model = models.Trip
-    clear_response = {
-        "msg": "",  # Returned message
-        "msg_type": "",  # CSS class to apply
-    }
-
-    @method_decorator(login_required)
-    def dispatch(self, request, *args, **kwargs):
-        return super().dispatch(request, *args, **kwargs)
-
-    def response_dict(self, trip, max_participants):
-        """ Returns dictionary giving info about effects on the trip lists."""
-        on_trip = trip.signup_set.filter(on_trip=True)
-        resp = self.clear_response.copy()
-
-        diff = max_participants - on_trip.count()
-        waitlisted = trip.waitlist.signups
-        if diff > 0 and waitlisted[:diff]:
-            bumped = ', '.join(signup.participant.name for signup in waitlisted[:diff])
-            resp['msg'] = (
-                "Expanding to {} participants would bump {} off "
-                "the waitlist.".format(max_participants, bumped)
-            )
-            resp['msg_type'] = 'info'
-        elif diff < 0:
-            bumped_signups = on_trip[max_participants:]
-            bumped = ', '.join(s.participant.name for s in bumped_signups)
-            resp['msg'] = (
-                "Reducing trip to {} participants would move {} to "
-                "the waitlist.".format(max_participants, bumped)
-            )
-            resp['msg_type'] = 'warning'
-        return resp
-
-    def get(self, request, *args, **kwargs):
-        trip = self.get_object()
-        try:
-            maximum_participants = int(request.GET['maximum_participants'])
-        except (KeyError, ValueError):
-            resp = self.clear_response
-        else:
-            resp = self.response_dict(trip, maximum_participants)
-        return JsonResponse(resp)
-
-
 class TripsByLeaderView(View):
     @staticmethod
     def get(request, *args, **kwargs):

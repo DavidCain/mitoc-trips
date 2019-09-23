@@ -359,11 +359,6 @@ urlpatterns = [
     ),
     # API (must have account in system)
     url(
-        r'^trips/(?P<pk>\d+)/overflow.json$',
-        api_views.CheckTripOverflowView.as_view(),
-        name='json-check_trip_overflow',
-    ),
-    url(
         r'^leaders.json/(?:(?P<activity>.+)/)?$',
         api_views.JsonAllLeadersView.as_view(),
         name='json-leaders',
