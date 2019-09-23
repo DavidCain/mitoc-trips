@@ -2,7 +2,7 @@ from django.contrib.auth.models import AnonymousUser, User
 
 from ws import models
 from ws.tests import TestCase
-from ws.tests.factories import ParticipantFactory, UserFactory
+from ws.tests.factories import ParticipantFactory, TripFactory, UserFactory
 from ws.utils import perms as perm_utils
 
 
@@ -13,6 +13,21 @@ class PermUtilTests(TestCase):
         self.assertFalse(perm_utils.is_leader(anon), False)
         self.assertFalse(perm_utils.is_chair(anon, 'climbing'), False)
         self.assertFalse(perm_utils.in_any_group(anon, ['group_name']), False)
+
+    def test_leader_on_trip_creator(self):
+        trip = TripFactory()
+        self.assertTrue(
+            perm_utils.leader_on_trip(trip.creator, trip, creator_allowed=True)
+        )
+        self.assertFalse(
+            perm_utils.leader_on_trip(trip.creator, trip, creator_allowed=False)
+        )
+
+    def test_leader_on_trip(self):
+        trip = TripFactory()
+        self.assertFalse(perm_utils.leader_on_trip(trip.creator, trip))
+        trip.leaders.add(trip.creator)
+        self.assertTrue(perm_utils.leader_on_trip(trip.creator, trip))
 
     def test_open_activities_no_chair(self):
         """ Open activities never have a chair. """

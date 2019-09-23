@@ -20,8 +20,7 @@ class ApplicationManagerHelper:
         """
 
         def inner_func(activity):
-            if activity != models.BaseRating.CLIMBING:
-                raise ValueError("This test handles climbing applications!")
+            assert activity == models.BaseRating.CLIMBING
             return desired_value
 
         return inner_func

@@ -30,11 +30,9 @@ def leader_on_trip(participant, trip, creator_allowed=False):
     """
     if not participant:
         return False
-    return (
-        participant in trip.leaders.all()
-        or creator_allowed
-        and participant == trip.creator
-    )
+    if participant in trip.leaders.all():
+        return True
+    return creator_allowed and participant == trip.creator
 
 
 def chair_group(activity):
