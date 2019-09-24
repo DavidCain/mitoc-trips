@@ -1,7 +1,9 @@
 import unittest.mock
 from datetime import date, datetime, timedelta
 
+import pytz
 from django.test import SimpleTestCase  # No need for database
+from freezegun import freeze_time
 
 from ws.utils import dates as date_utils
 
@@ -73,18 +75,84 @@ class DateUtilTests(SimpleTestCase):
                 self.assertLess(test_date, closest_wed)
 
     def test_closest_wed_at_noon(self):
-        wed_noon = date_utils.closest_wed_at_noon()
-        self.assertEqual(wed_noon.hour, 12)
-        self.assertEqual(wed_noon.minute, 0)
+        est = pytz.timezone('America/New_York')
 
-    @unittest.mock.patch('ws.utils.dates.local_now')
-    def test_is_winter_school(self, local_now):
-        for day, expected in [
-            (datetime(2016, 12, 28), False),
-            (datetime(2017, 1, 1), True),
-            (datetime(2017, 1, 14), True),
-            (datetime(2017, 1, 31), True),
-            (datetime(2017, 2, 10), False),
-        ]:
-            local_now.return_value = day
-            self.assertEqual(date_utils.is_winter_school(), expected)
+        # On Wednesday, we return the same day
+        with freeze_time("2016-12-28 23:22 EST"):
+            self.assertEqual(
+                date_utils.closest_wed_at_noon(),
+                est.localize(datetime(2016, 12, 28, 12, 0, 0)),
+            )
+
+        # 3 days to the next Wednesday, 4 days to the previous
+        with freeze_time("2016-12-25 10:00 EST"):
+            self.assertEqual(
+                date_utils.closest_wed_at_noon(),
+                est.localize(datetime(2016, 12, 28, 12, 0, 0)),
+            )
+
+        # 4 days to the next Wednesday, 3 days to the previous
+        with freeze_time("2016-12-24 10:00 EST"):
+            self.assertEqual(
+                date_utils.closest_wed_at_noon(),
+                est.localize(datetime(2016, 12, 21, 12, 0, 0)),
+            )
+
+    def test_is_winter_school(self):
+        """ Test the method that approximates if it's Winter School. """
+        # December before Winter School
+        with freeze_time("2016-12-28 12:00 EST"):
+            self.assertFalse(date_utils.is_winter_school())
+
+        # Weeks during Winter School
+        with freeze_time("2017-01-01 12:00 EST"):
+            self.assertTrue(date_utils.is_winter_school())
+        with freeze_time("2017-01-14 12:00 EST"):
+            self.assertTrue(date_utils.is_winter_school())
+        with freeze_time("2017-01-31 12:00 EST"):
+            self.assertTrue(date_utils.is_winter_school())
+
+        # The week after Winter School is over
+        with freeze_time("2017-02-10 12:00 EST"):
+            self.assertFalse(date_utils.is_winter_school())
+
+    def test_fcfs_close_time(self):
+        est = pytz.timezone('America/New_York')
+        thur_night = est.localize(datetime(2019, 1, 24, 23, 59, 59))
+
+        # For the usual case (trips over the weekend), it's the Thursday beforehand
+        (fri, sat, sun, mon) = (date(2019, 1, dom) for dom in [25, 26, 27, 28])
+        self.assertEqual(date_utils.fcfs_close_time(fri), thur_night)
+        self.assertEqual(date_utils.fcfs_close_time(sat), thur_night)
+        self.assertEqual(date_utils.fcfs_close_time(sun), thur_night)
+        self.assertEqual(date_utils.fcfs_close_time(mon), thur_night)
+
+        # Tuesday & Wednesday trips shouldn't really happen as part of the normal lottery
+        # That said, if they *are* part of the lottery, they were posted 1 week in advance.
+        tue, wed = date(2019, 1, 29), date(2019, 1, 30)
+        self.assertEqual(date_utils.fcfs_close_time(tue), thur_night)
+        self.assertEqual(date_utils.fcfs_close_time(wed), thur_night)
+
+        # A trip taking place on Thursday should close the night before
+        # (otherwise, it would be closing *after* the trip completes!
+        wed_night = thur_night - timedelta(days=1)
+        self.assertEqual(date_utils.fcfs_close_time(date(2019, 1, 24)), wed_night)
+
+    def test_next_lottery(self):
+        est = pytz.timezone('America/New_York')
+        friday_the_23rd = est.localize(datetime(2019, 1, 23, 9, 0, 0))
+        friday_the_30th = est.localize(datetime(2019, 1, 30, 9, 0, 0))
+
+        # Normal cases: lottery is always just the next Wednesday morning
+        with freeze_time("Fri, 25 Jan 2019 03:00:00 EST"):
+            self.assertEqual(date_utils.next_lottery(), friday_the_30th)
+        with freeze_time("Mon, 28 Jan 2019 12:42:37 EST"):
+            self.assertEqual(date_utils.next_lottery(), friday_the_30th)
+
+        # Before the scheduled lottery time, it's in a few minutes!
+        with freeze_time("Wed, 23 Jan 2019 08:52:34 EST"):
+            self.assertEqual(date_utils.next_lottery(), friday_the_23rd)
+
+        # After the scheduled lottery time: it's next week
+        with freeze_time("Wed, 23 Jan 2019 09:05:00 EST"):
+            self.assertEqual(date_utils.next_lottery(), friday_the_30th)

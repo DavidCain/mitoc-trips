@@ -22,9 +22,6 @@ import ws.utils.dates as dateutils
 from ws.fields import OptionalOneToOneField
 from ws.utils.avatar import avatar_url
 
-pytz_timezone = timezone.get_default_timezone()
-
-
 alphanum = RegexValidator(
     r'^[a-zA-Z0-9 ]*$', "Only alphanumeric characters and spaces allowed"
 )
@@ -479,7 +476,7 @@ class Participant(models.Model):
         If no rating is found, simply the name will be given.
         """
         day_before = query_date - timedelta(days=1)
-        at_time = pytz_timezone.localize(dateutils.late_at_night(day_before))
+        at_time = dateutils.late_at_night(day_before)
         kwargs = {'at_time': at_time, 'rating_active': False}
         rating = self.activity_rating(activity, **kwargs)
         return "{} ({})".format(self.name, rating) if rating else self.name
@@ -924,11 +921,11 @@ class Trip(models.Model):
     @property
     def midnight_before(self):
         day_before = self.trip_date - timedelta(days=1)
-        return pytz_timezone.localize(dateutils.late_at_night(day_before))
+        return dateutils.late_at_night(day_before)
 
     @property
     def fcfs_close_time(self):
-        return pytz_timezone.localize(dateutils.fcfs_close_time(self.trip_date))
+        return dateutils.fcfs_close_time(self.trip_date)
 
     @property
     def open_slots(self):

@@ -4,7 +4,6 @@ Some shortcuts to retrieve meaningful dates.
 
 from datetime import datetime, time, timedelta
 
-from django.conf import settings
 from django.utils import timezone
 
 
@@ -45,13 +44,29 @@ def itinerary_available_at(trip_date):
 
 def late_at_night(date):
     """ 23:59 on the date, since midnight is technically the next day. """
-    return timezone.datetime(date.year, date.month, date.day, 23, 59, 59)
+    dt = datetime(date.year, date.month, date.day, 23, 59, 59)
+    return localize(dt)
 
 
 def fcfs_close_time(trip_date):
-    """ WS trips close first-come, first-serve signups on Thursday night. """
+    """ The time that a WS trip should close its first-come, first-serve signups.
+
+    Winter School trips that are part of the weekly lottery typically take
+    place on Saturday & Sunday (and occasionally Friday or Monday). After
+    the Wednesday morning lottery runs, we have a period of being open for
+    first-come, first-serve signups. This method returns when those signups
+    should close.
+
+    In normal circumstances, WS trips close for all signups on Thursday night.
+    """
     trip_dow = trip_date.weekday()
     thur_before = trip_date - timedelta(days=(trip_dow - 3) % 7)
+
+    # Any trip taking place on a Thursday should close on Wednesday night
+    # (Otherwise, we would have signups close *after* the trip participants return home)
+    if thur_before == trip_date:
+        thur_before -= timedelta(days=1)
+
     return late_at_night(thur_before)
 
 
@@ -117,18 +132,16 @@ def closest_wed_at_noon():
     return localize(ret)
 
 
-def participant_cutoff():
-    """ Datetime at which previous signups are no longer current/valid. """
-    delta = timedelta(settings.MUST_UPDATE_AFTER_DAYS)
-    return timezone.now() - delta
-
-
 def is_winter_school():
     """ Returns if Winter School is ongoing.
 
     Used to give warnings about lottery preferences and such.
+
+    Should likely be combined with `ws_lectures_complete` or other means of inspecting
+    presence of trips this year (that will give a more authoritative picture of whether
+    or not Winter School is actually ongoing.
     """
-    # Approximate -programming for IAP is difficult
+    # Warning: This is only approximate! We cannot define when IAP occurs each year
     now = local_now()
     return now.month == 1 or (now.month == 2 and now.day < 7)
 
