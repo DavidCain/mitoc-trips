@@ -1338,8 +1338,9 @@ class WinterSchoolLeaderApplication(LeaderApplication):
     taking_wfa = models.CharField(
         max_length=10,
         choices=[("Yes", "Yes"), ("No", "No"), ("Maybe", "Maybe/don't know")],
-        verbose_name="Do you plan on taking the subsidized WFA at MIT?",
-        help_text="Save $100 on the course fee by leading two or more trips!",
+        verbose_name="Do you plan on taking a WFA course before Winter School?",
+        help_text="You can subsidize your WFA certification by $100 by leading two or more trips! "
+        "We will be holding a WFA course on MIT's campus (dates to be announced soon).",
     )
     training = models.TextField(
         blank=True,
@@ -1350,6 +1351,12 @@ class WinterSchoolLeaderApplication(LeaderApplication):
         "State the approximate dates of these activities. "
         "Leave blank if not applicable.",
     )
+    technical_skills = models.TextField(
+        blank=True,
+        max_length=5000,
+        help_text="Please summarize how you meet the criteria for the leader rating you are requesting, "
+        "including any relevant technical skills (traction use, navigation, use of overnight equipment, etc.)",
+    )
     winter_experience = models.TextField(
         blank=True,
         max_length=5000,
@@ -1359,6 +1366,21 @@ class WinterSchoolLeaderApplication(LeaderApplication):
         "numbers of participants, notable trail and weather conditions. "
         "Please also give details of whether you participated, led, "
         "or co-led these trips.",
+    )
+    ice_experience = models.TextField(
+        blank=True,
+        max_length=5000,
+        verbose_name="Ice-climbing experience (ice leader applicants only)",
+        help_text="Please describe your ice-climbing experience, "
+        "including the approximate number of days you have ice-climbed in the last two years.",
+    )
+    ski_experience = models.TextField(
+        blank=True,
+        max_length=5000,
+        verbose_name="Ski experience (ski leader applicants only)",
+        help_text="Please describe your skiing experience, "
+        "including both resort and back-country experience, "
+        "and an estimate of the number of days you have backcountry skied in the last two years.",
     )
     other_experience = models.TextField(
         blank=True,
@@ -1386,6 +1408,11 @@ class WinterSchoolLeaderApplication(LeaderApplication):
         related_name="mentee_activities",
         verbose_name='For which activities would you like a mentor?',
         help_text="Please select at least one.",
+    )
+    mentorship_goals = models.TextField(
+        blank=True,
+        max_length=5000,
+        help_text="What are you looking to get out of the mentorship program?",
     )
 
 
