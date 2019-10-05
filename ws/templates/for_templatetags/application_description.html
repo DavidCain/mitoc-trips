@@ -21,7 +21,7 @@
     Please complete and submit the form below if you're interested in becoming a MITOC Winter School Leader.
   </p>
   <p>
-    The rating system outlined here determines the categories within which leaders are allowed to conduct trips.
+    The rating system outlined below determines the categories within which leaders are allowed to conduct trips.
     Qualifications for a particular category are a combination of outdoor experience and leadership, particularly in winter conditions.
   </p>
 
@@ -29,49 +29,13 @@
     Contact the <a href="mailto:ws-chair@mit.edu">Winter School chair</a> if you have any questions.
   </p>
 
-  <div class="panel panel-default">
-    <div class="panel-heading"><h4>Leader Ratings</h4></div>
-    <div class="panel-body">
-
-      <h4>Ratings by Location</h4>
-
-      <ul>
-        <li><strong>A</strong>: less than one hour from intensive care (ski resorts, short hikes from the road, et cetera)</li>
-        <li><strong>B</strong>: anything below treeline more than one hour from intensive care</li>
-        <li><strong>C</strong>: above treeline</li>
-      </ul>
-
-      <h4>Ratings by Activity</h4>
-
-      <ul>
-        <li><strong>I</strong>: ice climbing</li>
-        <li><strong>S</strong>: telemark/backcountry skiing</li>
-      </ul>
-
-      <h4>Primary leaders (A, B, C, I, S)</h4>
-
-      Each Winter School trip must have a minimum of two leaders,
-      at least one of whom is rated as a 'primary' leader.
-      WFA or higher is required for all B and C primary leaders.
-      Please note that full C ratings have typically been denied to people who have not
-      demonstrated ability to act as primary leader on at least one Winter School trip
-      in above-treeline conditions (e.g. by "running the show" as a co-leader).
-
-      <h4>Co-leaders (co-A, co-B, co-C, co-I, co-S)</h4>
-
-      <p>Co-leaders require a primary leader to be present in the group in order to lead a trip.
-      Co-ratings are given to those who show promise in an area but have not demonstrated the specific outdoor experience/leadership/group management necessary for a full rating.
-      This allows them to gain experience under the supervision of an experienced leader.
-      Co-leaders are encouraged to use the earlier weeks of Winter School to demonstrate the skill set necessary to be 'upgraded' to primary leader prior to the close of IAP.
-      </p>
-
-      <h4>How ratings work</h4>
-
-      <p>
-      All leaders are assigned a location rating along with any applicable activity ratings.
-      Activity ratings are subordinate to location ratings: a {B, S} leader can only lead ski mountaineering trips below treeline.
-      A leader rated {A, co-B, co-I} can act as primary leader on A-level trips, can co-lead B-level trips with a full B or C leader, and can co-lead ice climbing trips as long as they qualify as B level or below.
-      </p>
-    </div>
+  <div class="well">
+    {% include 'snippets/ws_ratings.html' %}
+  </div>
+  <div class="well">
+    {% include 'snippets/terrain_ratings.html' %}
+  </div>
+  <div class="well">
+    {% include 'snippets/activity_ratings.html' %}
   </div>
 {% endif %}

@@ -4,60 +4,12 @@
 {% block faq %}
   <h2>How Leader Ratings are Assigned</h2>
   <div class="well" id="terrain_rating_assignment">
-    <h4>Initial Terrain Ratings: (co)A, (co)B, (co)C</h4>
-
-    <p>
-      To receive a Winter School leader rating you should have some winter hiking
-      experience, and some group management experience (could be leading summer
-      hikes).
-    </p>
-
-    <p>
-      If you are a new Winter School leader you start with only a co-rating to
-      learn how MITOC does things from an established full leader. If you have
-      substantial winter hiking experience outside of MITOC we will ask you to
-      have your co-leader the first weekend send a reference for upgrade to full
-      leader status once you are familiar with the MITOC way of doing things.
-    </p>
-
-    <p>
-      For a coB rating you should have experience travelling in B terrain. Most
-      trips are B trips so we try to assign coB ratings where possible, and
-      most winter hiking experience falls within B territory anyway.
-    </p>
-
-    <p>
-      For a coC rating you should know how to self-arrest from all 4 positions,
-      proper ice axe and crampon use, be able to navigate in poor visibility, and
-      properly layer above treeline.
-    </p>
-
-    <p>
-      If you do not have current WFA (or higher) you cannot be a full B or C leader.
-    </p>
-
+    {% include 'snippets/terrain_ratings.html' %}
   </div>
+
   <div class="well" id="activity_rating_assignment">
-    <h4>Initial Activity Ratings: (co)I, (co)S</h4>
-
-    <p>
-      coI leaders are likely experienced rock climbers, good at building TR
-      anchors, and have experience following ice. Most often they are MITOC
-      rock climbing leaders or involved in the rock climbing program. Full Ice
-      leaders should be comfortable leading ice climbs as we expect full ice
-      leaders to know how to read ice conditions and have substantial ice
-      climbing experience.
-    </p>
-
-    <p>
-      coS leaders are generally experienced frontcountry skiers (blacks aren’t
-      hard) with at least some backcountry ski experience. Full S leaders have
-      critical hard skills that include knowing how to identify what is and is
-      not avalanche terrain (and knowing to stay out of it for MITOC trips),
-      proper setup, fit and basic repair of AT and telemark gear, and use of
-      skins/ other backcountry ski gear.
-    </p>
-    </div>
+    {% include 'snippets/activity_ratings.html' %}
+  </div>
 
   <div class="well" id="upgrades">
     <h4>Rating Upgrades</h4>
