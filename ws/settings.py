@@ -176,6 +176,9 @@ elif os.environ.get('WS_DJANGO_LOCAL'):
 else:
     from .conf.production_settings import *  # pylint: disable=wildcard-import,unused-wildcard-import
 
+# For local work (where Celery isn't configured), just run tasks serially
+CELERY_ALWAYS_EAGER = DEBUG and 'CELERY_BROKER_URL' not in os.environ
+
 # 32 bit signed integers (default before Django 3.2) are plenty big enough for our purposes.
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 

@@ -167,6 +167,11 @@ urlpatterns = [
         RedirectView.as_view(url='/winter_school/leaders/apply', permanent=True),
         name='old_become_leader',
     ),
+    path(
+        'mailing_lists/unsubscribe/',
+        views.MassUnsubscribeView.as_view(),
+        name='unsubscribe',
+    ),
     path('profile/membership/', views.PayDuesView.as_view(), name='pay_dues'),
     path('profile/waiver/', views.SignWaiverView.as_view(), name='initiate_waiver'),
     re_path(

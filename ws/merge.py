@@ -53,6 +53,7 @@ EXPECTED_USER_TABLES: Dict[str, Tuple[str, ...]] = {
     'account_emailaddress': ('user_id',),
     'django_admin_log': ('user_id',),
     'ws_participant': ('user_id',),
+    'ws_mailinglistrequest': ('requested_by_id',),
 }
 
 
@@ -188,6 +189,13 @@ def _migrate_user(old_pk, new_pk):
         "delete from auth_user_groups where user_id = %(old_pk)s", {'old_pk': old_pk}
     )
     cursor.execute("delete from auth_user where id = %(old_pk)s", {'old_pk': old_pk})
+
+    # Just null out user linking on any old tracked unsubscribe requests.
+    # (These are mostly meant for short-term user confirmation anyway)
+    cursor.execute(
+        "update ws_mailinglistrequest set requested_by_id = null where requested_by_id = %(old_pk)s",
+        {'old_pk': old_pk},
+    )
 
 
 def _migrate_participant(old_pk, new_pk):

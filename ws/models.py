@@ -9,7 +9,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.db import models
-from django.db.models import F, Q
+from django.db.models import F, Q, UniqueConstraint
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.utils.safestring import mark_safe
@@ -1876,3 +1876,75 @@ class DistinctAccounts(models.Model):
     right = models.ForeignKey(
         Participant, on_delete=models.CASCADE, related_name='distinctions_right'
     )
+
+
+class MailingListRequest(models.Model):
+    """A participant's request to subscribe (or unsubscribe) from a list."""
+
+    # It's not a requirement that one be logged in to make requests.
+    # *However*, if one is indeed logged-in, we can report the status of old requests.
+    # Importantly, this won't leak any information if the email doesn't belong to the participant.
+    # (The most we can say is whether or not we processed the request or not)
+    requested_by = models.ForeignKey(
+        User, blank=True, null=True, on_delete=models.PROTECT
+    )
+
+    time_created = models.DateTimeField(auto_now_add=True)
+    num_attempts = models.PositiveIntegerField(default=0)
+    last_time_attempted = models.DateTimeField(
+        blank=True,
+        null=True,
+        help_text="Time at which we most recently attempted this request.",
+    )
+
+    class State(models.TextChoices):
+        """The current status of the request - should be locked against."""
+
+        REQUESTED = ('REQUESTED', 'Requested')
+        SUCCEEDED = ('SUCCEEDED', 'Succeeded')
+        CANCELED = ('CANCELED', 'Canceled')
+        FAILED = ('FAILED', 'Failed')
+        FAILED_RETRYABLE = ('FAILED_RETRYABLE', 'Failed, will retry later')
+
+    class Action(models.TextChoices):
+        SUBSCRIBE = ('SUBSCRIBE', 'Subscribe')
+        UNSUBSCRIBE = ('UNSUBSCRIBE', 'Unsubscribe')
+
+    # NOTE: This need not be a verified email: You don't need an account to unsubscribe.
+    email = models.EmailField(
+        help_text="Email address of the requesting user",
+        # Indexed because we'll bulk lookup, lock, and process per-email
+        db_index=True,
+    )
+
+    mailing_list = models.EmailField(help_text="MIT Mailman list to unsubscribe from")
+    state = models.CharField(
+        max_length=32, choices=State.choices, default=State.REQUESTED
+    )
+    action = models.CharField(max_length=32, choices=Action.choices, blank=False)
+
+    def is_actionable(self) -> bool:
+        return self.state in (self.State.REQUESTED, self.State.FAILED_RETRYABLE)
+
+    @classmethod
+    def actionable_unsubscribe_requests(cls, email: str):
+        return cls.objects.filter(
+            state__in={cls.State.REQUESTED, cls.State.FAILED_RETRYABLE},
+            action=cls.Action.UNSUBSCRIBE,
+            email=email,
+        )
+
+    def __str__(self):
+        return f"[{self.state}] {self.action} {self.email} to/from {self.mailing_list}"
+
+    class Meta:
+        # Use a unique constraint to make sure we never have duplicate requests.
+        # It's okay for there to be multiple completed unsubscriptions, for example.
+        # But if a new redundant request comes in, just request processing again.
+        constraints = [
+            UniqueConstraint(
+                name='one_active_request_at_a_time',
+                fields=('email', 'mailing_list', 'state'),
+                condition=(Q(state='REQUESTED') | Q(state='FAILED_RETRYABLE')),
+            )
+        ]

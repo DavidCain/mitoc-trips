@@ -9,6 +9,7 @@ from celery import group, shared_task
 from django.core.cache import cache
 from django.db import transaction
 
+import ws.mailman.request as mailman_request
 from ws import cleanup, models, settings
 from ws.email import renew
 from ws.email.sole import send_email_to_funds
@@ -285,3 +286,12 @@ def run_lottery(trip_id, lottery_config=None):
     trip = models.Trip.objects.get(pk=trip_id)
     runner = SingleTripLotteryRunner(trip)
     runner()
+
+
+@shared_task
+def handle_unsubscribe_requests(email: str):
+    """Process all the unsubscription requests for this email."""
+    # Run unsubscribe requests *sequentially*
+    # (we could easily parallelize, but this will hopefully preserve CPU resources)
+    for request in models.MailingListRequest.actionable_unsubscribe_requests(email):
+        mailman_request.process_request(request)

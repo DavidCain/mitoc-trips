@@ -7,6 +7,7 @@ from localflavor.us.us_states import US_STATES
 from mitoc_const import affiliations
 
 from ws import enums, models, widgets
+from ws.mailman import KNOWN_MAILING_LISTS
 from ws.membership import MERCHANT_ID, PAYMENT_TYPE
 from ws.utils.dates import is_currently_iap, nearest_sat
 from ws.utils.signups import non_trip_participants
@@ -734,3 +735,17 @@ class EmailPreferencesForm(forms.ModelForm):
     class Meta:
         model = models.Participant
         fields = ['send_membership_reminder']
+
+
+class MassUnsubscribeForm(forms.Form):
+    MAILING_LISTS_CHOICES = [
+        (category, [(name, name) for name in mailing_lists])
+        for category, mailing_lists in KNOWN_MAILING_LISTS.items()
+    ]
+    mailing_lists = forms.MultipleChoiceField(
+        required=True,
+        label='Mailing lists',
+        choices=MAILING_LISTS_CHOICES,
+        widget=forms.CheckboxSelectMultiple,
+    )
+    email = forms.EmailField(required=True)

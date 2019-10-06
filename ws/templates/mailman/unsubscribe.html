@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block head_title %}Unsubscribe from MITOC lists{% endblock head_title %}
+
+{% block content %}
+<h1>Unsubscribe from MITOC lists</h1>
+<p class="lead">
+  Submit unsubscribe requests to any <a href="https://mitoc.mit.edu/mailing-lists">MITOC mailing list</a>.
+</p>
+
+<div class="row">
+  <div class="col-md-4">
+    <form name="{{ form.form_name }}" method="post" action=".">
+      {% csrf_token %}
+      {{ form.mailing_lists }}
+      {{ form.email|as_crispy_field }}
+      <button type="submit" class="btn btn-primary">Unsubscribe</button>
+    </form>
+  </div>
+  <div class="col-md-8">
+    {% if existing_requests %}
+      <h3>Previous unsubscribe requests</h3>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Mailing list</th>
+            <th>Email</th>
+            <th>Requested</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for req in existing_requests %}
+          <tr>
+            <td>{{ req.mailing_list }}</td>
+            <td>{{ req.email }}</td>
+            <td>{{ req.time_created }}</td>
+            <td{% if req.last_time_attempted %} title="{{ req.last_time_attempted }}"{% endif %}>{{ req.get_state_display }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+    <h3 id="#how">How does this work?</h3>
+    <p>
+      When you submit this form, we send an unsubscribe request on your behalf to <em>every</em> selected list.
+      If you are subscribed to the mailing list, you'll get an email with a confirmation link.
+      If you are <em>not</em> subscribed to any given list, nothing happens.
+    <p>
+    </p>
+      You may also unsubscribe at any time yourself: <code>https://mailman.mit.edu/mailman/options/{mailing_list}</code>
+    </p>
+
+    <h3 id="#why-so-difficult">Why isn't there an easier way to unsubscribe?</h3>
+    <p>
+      MITOC's mailing lists are incredibly simple (they run <a href="https://www.list.org/">Mailman v2</a>).
+      Anybody can subscribe to mailing lists, without any kind of MITOC account.
+      Accordingly, there's no easy way for us to know which mailing lists any
+      individual is signed up for, or under which email address.
+
+      The best we can do is make many unsubscribe requests for a given email address.
+    </p>
+    <p>
+      Ideally, each mailing list message would include a footer link to unsubscribe, but sadly
+      MIT's version of Mailman cannot do that.
+    </p>
+    <p>
+      <small>
+        Mailman v3 has a <a href="https://docs.mailman3.org/projects/mailman/en/release-3.1/src/mailman/rest/docs/rest.html">REST API</a>
+        which will open up possibilities for easier management. Maybe MIT's Mailman servers will be updated one day...
+      </small>
+    </p>
+    <p>
+      Questions? <a href="{% url 'contact' %}">Contact us</a>.
+    </p>
+  </div>
+</div>
+{% endblock content %}

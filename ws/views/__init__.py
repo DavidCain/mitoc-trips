@@ -6,6 +6,7 @@ from .applications import *
 from .duplicates import *
 from .itinerary import *
 from .leaders import *
+from .mailman import *
 from .membership import *
 from .participant import *
 from .preferences import *
