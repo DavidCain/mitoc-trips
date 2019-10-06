@@ -19,7 +19,7 @@ def _eligible_trips():
     return annotated_for_trip_list(upcoming_trips)
 
 
-def trips_to_summarize():
+def _trips_to_summarize():
     """ Return trips which should be summarized in the email message.
 
     Returns trips broken up into two different classifications:
@@ -38,20 +38,16 @@ def trips_to_summarize():
 
 
 def send_trips_summary(recipient='mitoc-trip-announce@mit.edu'):
-    """ Send a weekly blast of upcoming trips!
-
-    Returns the generated message.
-    """
-    open_for_signup, not_yet_open = trips_to_summarize()
+    """ Send a weekly blast of upcoming trips! """
+    open_for_signup, not_yet_open = _trips_to_summarize()
     if not (open_for_signup or not_yet_open):
-        return None  # No need to send empty email
+        return  # No need to send empty email
     context = {'open_for_signup': open_for_signup, 'not_yet_open': not_yet_open}
 
-    text_content = get_template('email/trips/upcoming_trips.txt').render(context)
-    html_content = get_template('email/trips/upcoming_trips.html').render(context)
+    text = get_template('email/trips/upcoming_trips.txt').render(context).strip()
+    html = get_template('email/trips/upcoming_trips.html').render(context)
 
     subject = f"MITOC Trips | {len(open_for_signup)} currently open, {len(not_yet_open)} upcoming"
-    msg = EmailMultiAlternatives(subject, text_content, to=[recipient])
-    msg.attach_alternative(html_content, "text/html")
+    msg = EmailMultiAlternatives(subject, text, to=[recipient])
+    msg.attach_alternative(html, "text/html")
     msg.send()
-    return msg
