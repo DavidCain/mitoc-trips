@@ -28,7 +28,7 @@
     "jquery": "^3.4.0",
     "jquery-ui": "git+https://github.com/components/jqueryui.git#1.11.4",
     "jquery-ui-touch-punch": "^0.2.3",
-    "lodash": "^4.17.11",
+    "lodash": "^4.17.15",
     "ui-select": "^0.16.1"
   }
 }
