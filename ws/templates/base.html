@@ -3,7 +3,6 @@
 {% load avatar_tags %}
 {% load perm_tags %}
 {% load trip_tags %}
-{% load content_tags %}
 {% load messages_tags %}
 <!DOCTYPE html>
 <html lang="en">
@@ -23,10 +22,6 @@
     {% endblock css %}
 
     {% block js %}
-      {# Configure Raven first before loading application JS #}
-      {% javascript 'raven' %}
-      {% raven_user_context user viewing_participant %}
-
       {% javascript 'vendor' %}
       {% javascript 'app' %}
       {% javascript 'fontawesome' %}
