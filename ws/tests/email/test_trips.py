@@ -1,5 +1,6 @@
 from datetime import date, datetime, time, timedelta
 
+from bs4 import BeautifulSoup
 from django.core import mail
 from freezegun import freeze_time
 
@@ -15,9 +16,13 @@ class TripsBlastTest(TestCase):
             trip_date=date(2020, 1, 2),
             name="Presi Traverse",
             difficulty_rating="Very hard",
+            prereqs="High level of fitness",
             maximum_participants=4,
             algorithm='fcfs',
         )
+        self.presi.leaders.add(factories.ParticipantFactory.create(name="Tim Beaver"))
+        self.presi.leaders.add(factories.ParticipantFactory.create(name="Jane Example"))
+
         self.frankie = self._create_trip(
             trip_date=date(2020, 1, 8),
             name="Frankenstein Ice Climbing",
@@ -62,6 +67,8 @@ class TripsBlastTest(TestCase):
                 f'<https://mitoc-trips.mit.edu/trips/{self.presi.pk}/>',
                 'Thursday, January 2',
                 'Difficulty rating: Very hard',
+                'Leaders: Jane Example, Tim Beaver',
+                'Prerequisites: High level of fitness',
                 'Spaces remaining: 4',
                 'Signups close at: Jan. 1, 2020, 9:30 p.m.',
                 'Algorithm: first-come, first-serve',
@@ -77,7 +84,7 @@ class TripsBlastTest(TestCase):
                 '',
                 '',
                 '',
-                'Unsubscribe: http://mailman.mit.edu/mailman/options/mitoc-trip-announce',
+                'Unsubscribe: http://mailman.mit.edu/mailman/listinfo/mitoc-trip-announce',
             ]
         )
         self.assertEqual(msg.body, expected_content)
@@ -109,6 +116,8 @@ class TripsBlastTest(TestCase):
                 f'<https://mitoc-trips.mit.edu/trips/{self.presi.pk}/>',
                 'Thursday, January 2',
                 'Difficulty rating: Very hard',
+                'Leaders: Jane Example, Tim Beaver',
+                'Prerequisites: High level of fitness',
                 'Spaces remaining: 4',
                 'Signups close at: Jan. 1, 2020, 9:30 p.m.',
                 'Algorithm: first-come, first-serve',
@@ -136,7 +145,47 @@ class TripsBlastTest(TestCase):
                 'Algorithm: lottery',
                 '',
                 '',
-                'Unsubscribe: http://mailman.mit.edu/mailman/options/mitoc-trip-announce',
+                'Unsubscribe: http://mailman.mit.edu/mailman/listinfo/mitoc-trip-announce',
             ]
         )
         self.assertEqual(msg.body, expected_content)
+
+        # Check the HTML (which is chock full of email-specific CSS & structure)
+        soup = BeautifulSoup(msg.alternatives[0][0], 'html.parser')
+        self.assertEqual(soup.title.text, 'Upcoming MITOC trips | Wednesday, January 1')
+        self.assertIn(
+            'http://mailman.mit.edu/mailman/listinfo/mitoc-trip-announce', soup.text
+        )
+
+        upcoming_trips = soup.find('h1', string='Trips currently open for signup')
+        self.assertEqual(
+            [
+                heading.get_text(' ', strip=True)
+                for heading in upcoming_trips.find_next_siblings('h2')
+            ],
+            # Note: `Future trip` will appear *after* the next h1
+            ['Presi Traverse', 'Frankenstein Ice Climbing', 'Future trip'],
+        )
+
+        # Check formatting of one trip (others will be the same)
+        presi = soup.find('h2').find_next_sibling('p')
+        self.assertEqual(
+            [li.get_text(' ', strip=True) for li in presi.find('ul').find_all('li')],
+            [
+                'Difficulty rating: Very hard',
+                'Leaders: Jane Example, Tim Beaver',
+                'Prerequisites: High level of fitness',
+                'Spaces remaining: 4',
+                'Signups close at: Jan. 1, 2020, 9:30 p.m.',
+                'Algorithm: first-come, first-serve',
+            ],
+        )
+
+        future_trips = soup.find('h1', string='Upcoming trips (not yet open)')
+        self.assertEqual(
+            [
+                heading.get_text(' ', strip=True)
+                for heading in future_trips.find_next_siblings('h2')
+            ],
+            ['Future trip'],
+        )

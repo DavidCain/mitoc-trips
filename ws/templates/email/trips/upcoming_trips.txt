@@ -11,4 +11,4 @@ Upcoming trips (not yet open)
 {% endif %}
 {% upcoming_trip_summary_txt trip %}{% endfor %}
 
-Unsubscribe: http://mailman.mit.edu/mailman/options/mitoc-trip-announce
+Unsubscribe: http://mailman.mit.edu/mailman/listinfo/mitoc-trip-announce
