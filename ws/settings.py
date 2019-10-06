@@ -289,12 +289,11 @@ USE_TZ = True
 # Participants must update their profile information every ~6 months
 MUST_UPDATE_AFTER_DAYS = 180
 
-base_deps = ['jquery/dist/jquery.min.js', 'angular/angular.js']
-
 vendor_js = [
-    *base_deps,
+    # (jQuery is required by many legacy deps, but is loaded with Bootstrap 3)
+    # 'jquery/dist/jquery.min.js'
+    'angular/angular.js',
     'lodash/lodash.js',
-    'bootstrap/dist/js/bootstrap.js',
     'footable/js/footable.js',
     'footable/js/footable.sort.js',
     'jquery-ui/ui/core.js',
@@ -321,13 +320,34 @@ PIPELINE = {
     'JS_COMPRESSOR': 'pipeline.compressors.uglifyjs.UglifyJSCompressor',
     'CSS_COMPRESSOR': 'pipeline.compressors.yuglify.YuglifyCompressor',
     'JAVASCRIPT': {
+        # Bootstrap JS is used on most every page (in the main menu)
+        # Other JavaScript is in the process of being deprecated, so we should be able to serve just this.
+        'bootstrap': {
+            'source_filenames': [
+                'jquery/dist/jquery.min.js',
+                'bootstrap/dist/js/bootstrap.js',
+            ],
+            'output_filename': 'js/bootstrap.js',
+            'extra_context': {'defer': True},
+        },
+        # FontAwesome is served separately to use a data attribute hack
+        # It's also served to allow its use on raw HTML pages that ignore legacy JS.
+        # (Note that the hack relies on the filename containing 'fontawesome')
+        'fontawesome': {
+            'source_filenames': ['@fortawesome/fontawesome-free/js/all.js'],
+            'output_filename': 'js/fontawesome.js',  # WARNING: don't change.
+            'extra_context': {'defer': True},
+        },
+        #
+        # ******** WARNING: the below bundles use the legacy JavaScript frontend ******** #
+        #
         # Vendor assets change very rarely, we can keep the cache a long time
-        'vendor': {
+        'legacy_vendor': {
             'source_filenames': vendor_js,
             'output_filename': 'js/vendor.js',
             'extra_context': {'defer': True},
         },
-        'app': {
+        'legacy_app': {
             'source_filenames': local_js,
             'output_filename': 'js/app.js',
             'extra_context': {'defer': True},
@@ -336,13 +356,6 @@ PIPELINE = {
         'd3': {
             'source_filenames': ['d3/d3.min.js'],
             'output_filename': 'js/d3.js',
-            'extra_context': {'defer': True},
-        },
-        # FontAwesome is served separately to use a data attribute hack
-        # (Note that the hack relies on the filename containing 'fontawesome')
-        'fontawesome': {
-            'source_filenames': ['@fortawesome/fontawesome-free/js/all.js'],
-            'output_filename': 'js/fontawesome.js',  # WARNING: don't change.
             'extra_context': {'defer': True},
         },
     },

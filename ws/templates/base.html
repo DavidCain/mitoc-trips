@@ -22,9 +22,14 @@
     {% endblock css %}
 
     {% block js %}
-      {% javascript 'vendor' %}
-      {% javascript 'app' %}
+      {% javascript 'bootstrap' %}
       {% javascript 'fontawesome' %}
+
+      {# Pages that have been ported off legacy JavaScript can override this. #}
+      {% block legacy_js %}
+        {% javascript 'legacy_vendor' %}
+        {% javascript 'legacy_app' %}
+      {% endblock legacy_js %}
     {% endblock js %}
 {% endblock head %}
 </head>
