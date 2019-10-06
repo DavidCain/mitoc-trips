@@ -15,9 +15,11 @@ class GeneralTagsTests(SimpleTestCase):
             '{% load general_tags %}',
             'still newlines here',
             '{% gapless %}',
-            '{{ number|subtract:12 }}',  # 25, this works with tags!
+            '{{ number|subtract:12 }}',  # 25 (this works with tags)!
             '{% if True %}',
-            '  hello  ',
+            '  {% if "string_is_truthy" %}',
+            '    hello  ',  # leading & trailing whitespace not touched.
+            '  {% endif %}',
             '{% endif %}',
             '',
             '',  # Empty lines stripped
@@ -25,4 +27,4 @@ class GeneralTagsTests(SimpleTestCase):
         ]
         template_to_render = Template('\n'.join(lines))
         rendered_template = template_to_render.render(context)
-        self.assertEqual(rendered_template, '\nstill newlines here\n25\n  hello')
+        self.assertEqual(rendered_template, '\nstill newlines here\n25\n    hello  ')

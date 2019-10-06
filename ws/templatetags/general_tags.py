@@ -30,7 +30,11 @@ class GaplessNode(Node):
         self.nodelist = nodelist
 
     def render(self, context):
-        return strip_empty_lines(self.nodelist.render(context).strip())
+        stripped = self.nodelist.render(context)
+        stripped = strip_empty_lines(self.nodelist.render(context))
+        # Strip the excess newlines from the `gapless' and `endgapless` tags being on newlines
+        # (but do not strip leading space on actual lines)
+        return stripped.strip('\n')
 
 
 @register.filter
