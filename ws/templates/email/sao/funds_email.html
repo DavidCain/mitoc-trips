@@ -1,5 +1,3 @@
-{% load signup_tags %}
-
 {# When modifying this message, be sure to update its text equivalent #}
 
 <!DOCTYPE html>
@@ -27,8 +25,10 @@
       {% for leader in trip.leaders.all %}
       <li>
         <a href="mailto:{{ leader.email }}">{{ leader.name }}</a>
-        &nbsp;
-        <em>{{ leader.cell_phone }}</em>
+        {% if leader.cell_phone %}
+          &nbsp;
+          <em>{{ leader.cell_phone }}</em>
+        {% endif %}
       </li>
       {% endfor %}
     </ul>
@@ -38,8 +38,10 @@
       {% for signup in signups_on_trip %}
       <li>
         <a href="mailto:{{ signup.participant.email }}">{{ signup.participant.name }}</a>
-        &nbsp;
-        <em>{{ signup.participant.cell_phone }}</em>
+        {% if signup.participant.cell_phone %}
+          &nbsp;
+          <em>{{ signup.participant.cell_phone }}</em>
+        {% endif %}
       </li>
       {% endfor %}
     </ul>
@@ -48,7 +50,34 @@
     {% if not cars %}
       <p>Nobody on this trip submitted information for a car.</p>
     {% else %}
-      {% driver_table cars %}
+      {# (this recreates `driver_table`, but as plain HTML without any CSS available #}
+      <table>
+        <thead>
+          <tr>
+            <th>Driver</th>
+            <th>Make + Model</th>
+            <th>Plate</th>
+            <th>State</th>
+            <th>Year</th>
+            <th>Color</th>
+            <th>Car Status</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for car in cars %}
+            <tr>
+              <td>{{ car.participant.name }}</td>
+              <td>{{ car.make }} {{ car.model }}</td>
+              <td>{{ car.license_plate }}</td>
+              <td>{{ car.state }}</td>
+              <td>{{ car.year }}</td>
+              <td>{{ car.color }}</td>
+              <td>{{ car.participant.lotteryinfo.get_car_status_display }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     {% endif %}
 
     <h3>Approval</h3>

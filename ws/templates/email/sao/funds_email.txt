@@ -1,3 +1,4 @@
+{% load general_tags %}
 This automated message is registering an official trip of the MIT Outing Club (MITOC).
 
 Trip: {{ trip.name }}
@@ -5,26 +6,36 @@ Date: {{ trip.trip_date|date:"Y-m-d" }}
 Start location: {{ trip.info.start_location }}
 
 Trip leaders:
+{% gapless %}
 {% for leader in trip.leaders.all %}
-  - {{ leader.name }} {{ leader.cell_phone }}{% endfor %}
+  - {{ leader.name }} ({{ leader.email }}){% if leader.cell_phone %} {{ leader.cell_phone }}{% endif %}
+{% endfor %}
+{% endgapless %}
 
 Trip participants:
+{% gapless %}
 {% for signup in signups_on_trip %}
-  - {{ signup.participant.name }} {{ signup.participant.cell_phone }}{% endfor %}
+{% with signup.participant as par %}
+  - {{ par.name }} ({{ par.email }}){% if par.cell_phone %} {{ par.cell_phone }}{% endif %}
+{% endwith %}
+{% endfor %}
+{% endgapless %}
 
 Drivers:
+{% gapless %}
 {% if not cars %}
   Nobody on this trip submitted information for a car.
 {% else %}
-  {% for car in cars %}
- - {{ car.participant.name }}: {{ car }}{% endfor %}
+{% for car in cars %}
+ - {{ car.participant.name }}: {{ car }}
+{% endfor %}
 {% endif %}
+{% endgapless %}
 
-Approval
-
-Financial signatory: {{ bursar_name }}
-Travel expenses approved: $0.00
-Cost object: 2720209
+Approval:
+  Financial signatory: {{ bursar_name }}
+  Travel expenses approved: $0.00
+  Cost object: 2720209
 
 
 Questions? Respond to this email, or see https://mitoc-trips.mit.edu/contact/

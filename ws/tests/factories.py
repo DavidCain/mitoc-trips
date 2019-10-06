@@ -60,6 +60,7 @@ class ParticipantFactory(DjangoModelFactory):
     user_id = Sequence(lambda n: n + 1)
     email = Sequence(lambda n: f"participant{n + 1}@example.com")
     name = "Test Participant"
+    car = None
     emergency_info = SubFactory(EmergencyInfoFactory)
 
     @classmethod
@@ -80,6 +81,18 @@ class ParticipantFactory(DjangoModelFactory):
             UserFactory.create(id=kwargs['user_id'], email=kwargs['email'])
 
         return super()._create(model_class, *args, **kwargs)
+
+
+class CarFactory(DjangoModelFactory):
+    class Meta:
+        model = models.Car
+
+    license_plate = "ABC 123"
+    state = 'MA'
+    make = 'Powell Motors'
+    model = 'Homer'
+    year = 2019
+    color = 'Green'
 
 
 class LeaderRatingFactory(DjangoModelFactory):
