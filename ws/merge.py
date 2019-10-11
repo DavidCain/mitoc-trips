@@ -12,6 +12,41 @@ complete history.
 
 from django.db import connections, transaction
 
+# An enumeration of columns that we explicitly intend to migrate in `ws`, grouped by table
+# If any table has a column with a foreign key to ws_participant that is not in here, we will error
+# Unless explicitly handled, each will be automatically migrated
+EXPECTED_PARTICIPANT_TABLES = {
+    'ws_trip': ('creator_id', 'wimp_id'),
+    'ws_leaderrating': ('participant_id', 'creator_id'),
+    'ws_feedback': ('participant_id', 'leader_id'),
+    'ws_lotteryinfo': ('participant_id', 'paired_with_id'),
+    'ws_lotteryadjustment': ('creator_id', 'participant_id'),
+    'ws_climbingleaderapplication': ('participant_id',),
+    'ws_hikingleaderapplication': ('participant_id',),
+    'ws_winterschoolleaderapplication': ('participant_id',),
+    'ws_leaderrecommendation': ('creator_id', 'participant_id'),
+    'ws_lectureattendance': ('participant_id', 'creator_id'),
+    'ws_winterschoolsettings': ('last_updated_by_id',),
+    'ws_discount_administrators': ('participant_id',),
+    'ws_distinctaccounts': ('left_id', 'right_id'),
+    # All these should only have one participant each
+    # (In practice, we should rarely see the old & the new on the same object)
+    'ws_tripinfo_drivers': ('participant_id',),
+    'ws_participant_discounts': ('participant_id',),
+    'ws_trip_leaders': ('participant_id',),
+    'ws_leadersignup': ('participant_id',),
+    'ws_signup': ('participant_id',),
+}  # type: Dict[str, Tuple[str]]
+
+# An enumeration of columns that we explicitly intend to migrate in `auth_db`
+# Each one must be *manually handled!*
+EXPECTED_USER_TABLES = {
+    'auth_user_groups': ('user_id',),
+    'auth_user_user_permissions': ('user_id',),
+    'account_emailaddress': ('user_id',),
+    'django_admin_log': ('user_id',),
+}  # type: Dict[str, Tuple[str]]
+
 
 def simple_fk_update(cursor, table, col, old_pk, new_pk):
     """ For tables that don't have unique constraints, copy over FKs.
@@ -21,17 +56,16 @@ def simple_fk_update(cursor, table, col, old_pk, new_pk):
     to sort that out.
     """
     cursor.execute(
-        """
+        f"""
         update {table}
-           set {col} = {new_pk}
-         where {col} = {old_pk}
-        """.format(
-            table=table, col=col, new_pk=new_pk, old_pk=old_pk
-        )
+           set {col} = %(new_pk)s
+         where {col} = %(old_pk)s
+        """,
+        {'new_pk': new_pk, 'old_pk': old_pk},
     )
 
 
-def fk_tables(cursor, src_table, col):
+def _fk_tables(cursor, src_table, col):
     """ Identify all other tables that point to the source table's column.
 
     This is useful for ensuring that we migrate over all FKs.
@@ -66,17 +100,15 @@ def check_fk_tables(cursor, src_table, column, expected):
     more foreign keys.
     """
     non_handled = []
-    for table, col, _ftable in fk_tables(cursor, src_table, column):
-        if col not in expected.get(table, {}):
+    for table, col, _ftable in _fk_tables(cursor, src_table, column):
+        if col not in expected.get(table, tuple()):
             non_handled.append((table, col))
     if non_handled:
-        print("The following foreign keys are not properly handled:")
-        for table, col in non_handled:
-            print(col + '\t' + table)
-        raise ValueError("Database has more FKs than we're handling")
+        missing = ','.join(f"{table}.{col}" for table, col in non_handled)
+        raise ValueError(f"Database has more FKs. Not handled: {missing}")
 
 
-def update_lotteryinfo(cursor, old_pk, new_pk):
+def _update_lotteryinfo(cursor, old_pk, new_pk):
     """ Ensure one current lotteryinfo object per participant.
 
     Since each participant can only have one lotteryinfo object:
@@ -88,37 +120,27 @@ def update_lotteryinfo(cursor, old_pk, new_pk):
         select exists(
           select
             from ws_lotteryinfo
-           where participant_id = {new_pk}
+           where participant_id = %(new_pk)s
         )
-        """.format(
-            new_pk=new_pk
-        )
+        """,
+        {'new_pk': new_pk},
     )
     if cursor.fetchone()[0]:
-        sql = "delete from ws_lotteryinfo where participant_id = {}".format(old_pk)
+        sql = "delete from ws_lotteryinfo where participant_id = %(old_pk)s"
     else:
         sql = """
             update ws_lotteryinfo
-               set participant_id = {new_pk}
-             where participant_id = {old_pk}
-            """.format(
-            new_pk=new_pk, old_pk=old_pk
-        )
-    cursor.execute(sql)
+               set participant_id = %(new_pk)s
+             where participant_id = %(old_pk)s
+            """
+    cursor.execute(sql, {'old_pk': old_pk, 'new_pk': new_pk})
 
 
-def migrate_user(old_pk, new_pk):
+def _migrate_user(old_pk, new_pk):
     """ Copy over any email addresses and groups from the old user. """
     cursor = connections['auth_db'].cursor()
 
-    expected_tables = [
-        'auth_user_user_permissions',
-        'account_emailaddress',
-        'django_admin_log',
-        'auth_user_groups',
-    ]
-    expected = {key: 'user_id' for key in expected_tables}
-    check_fk_tables(cursor, 'auth_user', 'id', expected)
+    check_fk_tables(cursor, 'auth_user', 'id', EXPECTED_USER_TABLES)
 
     cursor.execute("select count(*) from auth_user_user_permissions")
     if cursor.fetchone()[0]:
@@ -129,10 +151,9 @@ def migrate_user(old_pk, new_pk):
         """
         update account_emailaddress
            set "primary" = false
-         where user_id = {old_pk}
-        """.format(
-            old_pk=old_pk
-        )
+         where user_id = %(old_pk)s
+        """,
+        {'old_pk': old_pk},
     )
     for table in ['account_emailaddress', 'django_admin_log']:
         simple_fk_update(cursor, table, 'user_id', old_pk, new_pk)
@@ -143,59 +164,40 @@ def migrate_user(old_pk, new_pk):
         with existing as (
           select group_id
             from auth_user_groups
-           where user_id = {old_pk}
+           where user_id = %(old_pk)s
         )
         update auth_user_groups
-           set user_id = {new_pk}
-         where user_id = {old_pk} and
+           set user_id = %(new_pk)s
+         where user_id = %(old_pk)s and
               group_id not in (select group_id from existing)
-        """.format(
-            new_pk=new_pk, old_pk=old_pk
-        )
+        """,
+        {'old_pk': old_pk, 'new_pk': new_pk},
     )
 
-    cursor.execute("delete from auth_user_groups where user_id = {}".format(old_pk))
-    cursor.execute("delete from auth_user where id = {}".format(old_pk))
+    cursor.execute(
+        "delete from auth_user_groups where user_id = %(old_pk)s", {'old_pk': old_pk}
+    )
+    cursor.execute("delete from auth_user where id = %(old_pk)s", {'old_pk': old_pk})
 
 
-def migrate_participant(old_pk, new_pk):
+def _migrate_participant(old_pk, new_pk):
     """ Copy over references to the old participant to belong to the new. """
     cursor = connections['default'].cursor()
 
-    expected = {
-        'ws_trip': {'creator_id', 'wimp_id'},
-        'ws_leaderrating': {'participant_id', 'creator_id'},
-        'ws_feedback': {'participant_id', 'leader_id'},
-        'ws_lotteryinfo': {'participant_id', 'paired_with_id'},
-        'ws_lotteryadjustment': {'creator_id', 'participant_id'},
-        'ws_climbingleaderapplication': {'participant_id'},
-        'ws_hikingleaderapplication': {'participant_id'},
-        'ws_winterschoolleaderapplication': {'participant_id'},
-        'ws_leaderrecommendation': {'creator_id', 'participant_id'},
-        'ws_lectureattendance': {'participant_id', 'creator_id'},
-        'ws_winterschoolsettings': {'last_updated_by_id'},
-        'ws_discount_administrators': {'participant_id'},
-        'ws_distinctaccounts': {'left_id', 'right_id'},
-        # All these should only have one participant each
-        # (In practice, we should rarely see the old & the new on the same object)
-        'ws_tripinfo_drivers': {'participant_id'},
-        'ws_participant_discounts': {'participant_id'},
-        'ws_trip_leaders': {'participant_id'},
-        'ws_leadersignup': {'participant_id'},
-        'ws_signup': {'participant_id'},
-    }
-    check_fk_tables(cursor, 'ws_participant', 'id', expected)
+    check_fk_tables(cursor, 'ws_participant', 'id', EXPECTED_PARTICIPANT_TABLES)
 
-    update_lotteryinfo(cursor, old_pk, new_pk)
+    _update_lotteryinfo(cursor, old_pk, new_pk)
 
-    for table, cols in expected.items():
+    for table, cols in EXPECTED_PARTICIPANT_TABLES.items():
         for col in cols:
             simple_fk_update(cursor, table, col, old_pk, new_pk)
 
-    cursor.execute("delete from ws_participant where id = {}".format(old_pk))
+    cursor.execute(
+        "delete from ws_participant where id = %(old_pk)s", {'old_pk': old_pk}
+    )
 
 
-def merge_people(old, new):
+def merge_participants(old, new):
     with transaction.atomic():  # Rollback if FK migration fails
-        migrate_user(old.user_id, new.user_id)
-        migrate_participant(old.pk, new.pk)
+        _migrate_user(old.user_id, new.user_id)
+        _migrate_participant(old.pk, new.pk)

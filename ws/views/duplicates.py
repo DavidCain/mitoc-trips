@@ -1,5 +1,6 @@
 from django.contrib import messages
-from django.db import connections, transaction
+from django.db import connections
+from django.db.utils import IntegrityError
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.decorators import method_decorator
@@ -32,6 +33,7 @@ class PotentialDuplicatesView(AdminOnlyView, TemplateView):
         listed last. It's suggested that the merge is done into that account.
         """
         cursor = connections['default'].cursor()
+        # TODO: Move this out of the view into its own module, with direct testing
         cursor.execute(
             '''
             with dupe_groups as (
@@ -77,31 +79,44 @@ class PotentialDuplicatesView(AdminOnlyView, TemplateView):
         return context
 
 
+def _participants(left_pk, right_pk):
+    left, right = int(left_pk), int(right_pk)  # (Map from query args to ints)
+    participants = models.Participant.objects.filter(pk__in=(left, right))
+    if len(participants) != 2:
+        raise models.Participant.DoesNotExist
+    by_pk = {par.pk: par for par in participants}
+    return by_pk[left], by_pk[right]
+
+
 class MergeParticipantsView(AdminOnlyView):
     """ Merge two duplicate accounts together. """
 
-    def participants_from_pks(self):
-        pks = [self.kwargs['old'], self.kwargs['new']]
-        participants = models.Participant.objects.filter(pk__in=pks)
-        if len(participants) != 2:
-            raise ValueError("One or more of the participants doesn't exist.")
-        return participants
-
     def post(self, request, **kwargs):
-        old_par, new_par = int(kwargs['old']), int(kwargs['new'])
         try:
-            participants = self.participants_from_pks()
-        except ValueError:
-            messages.error(request, f"Cannot merge {old_par} into {new_par}")
+            old_par, new_par = _participants(self.kwargs['old'], self.kwargs['new'])
+        except models.Participant.DoesNotExist:
+            messages.error(
+                request,
+                f"One of #{self.kwargs['old']},#{self.kwargs['new']} is missing",
+            )
             return self.dupes_redirect
 
-        corresponding_users = {par.pk: par.user_id for par in participants}
-        with transaction.atomic():
-            merge.migrate_user(
-                corresponding_users[old_par], corresponding_users[new_par]
+        try:
+            merge.merge_participants(old_par, new_par)
+        except IntegrityError as err:
+            # It's normally bad practice to surface exception messages directly to users.
+            # However, this view only is available to admins
+            # (And an IntegrityError only reveals the name of the constraint, plus PKs)
+            messages.error(
+                request,
+                "Unable to merge participants because of overlapping data! "
+                f"Full message: {err}",
             )
-            merge.migrate_participant(old_par, new_par)
-        messages.success(request, f'Merged participant #{old_par} into #{new_par}')
+        else:
+            messages.success(
+                request,
+                f"Merged {old_par} (#{old_par.pk}) into {new_par} (#{new_par.pk})",
+            )
         return self.dupes_redirect
 
     def get(self, request, **kwargs):
@@ -111,25 +126,21 @@ class MergeParticipantsView(AdminOnlyView):
 class DistinctParticipantsView(AdminOnlyView):
     """ Mark two seemingly related participants as being distinct. """
 
-    def participants_from_pks(self):
-        pks = [self.kwargs['left'], self.kwargs['right']]
-        participants = models.Participant.objects.filter(pk__in=pks)
-        if len(participants) != 2:
-            raise ValueError("One or more of the participants doesn't exist.")
-        return participants
-
     def post(self, request, **kwargs):
         try:
-            left, right = self.participants_from_pks()  # Order doesn't matter
-        except ValueError:
-            messages.error(request, f"One or more participants are deleted.")
+            left, right = _participants(self.kwargs['left'], self.kwargs['right'])
+        except models.Participant.DoesNotExist:
+            messages.error(
+                request,
+                f"One of #{self.kwargs['left']},#{self.kwargs['right']} is missing",
+            )
             return self.dupes_redirect
 
         models.DistinctAccounts(left=left, right=right).save()
         messages.success(
             request,
             f"Marked {left.name} (#{left.pk}) as distinct"
-            f" from {right.name} (#{right.pk}).",
+            f" from {right.name} (#{right.pk})",
         )
         return redirect(reverse('potential_duplicates'))
 
