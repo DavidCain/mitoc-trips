@@ -1,7 +1,7 @@
 {% load markdown_tags %}
 {% load misc_tags %}
 {% load trip_tags %}
-<h2> {{ trip.name }} </h2>
+<h2>{% trip_icon trip %} {{ trip.name }}</h2>
 
 <dl class="dl-horizontal">
     {% if trip.leaders.all %}

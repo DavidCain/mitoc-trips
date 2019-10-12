@@ -6,9 +6,14 @@ from django.db.models import Case, Count, IntegerField, Sum, When
 import ws.utils.dates as date_utils
 import ws.utils.perms as perm_utils
 import ws.utils.ratings as ratings_utils
-from ws import models
+from ws import icons, models
 
 register = template.Library()
+
+
+@register.simple_tag
+def trip_icon(trip):
+    return icons.for_trip(trip)
 
 
 def annotated_for_trip_list(trips):

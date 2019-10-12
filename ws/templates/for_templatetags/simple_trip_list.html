@@ -1,3 +1,4 @@
+{% load trip_tags %}
 <table class="footable">
   <thead>
     <tr>
@@ -13,7 +14,7 @@
     {% for trip in trip_list %}
       <tr>
         <td>
-          <a href="{% url 'view_trip' trip.id %}">{{ trip.name|truncatechars:max_title_chars }}</a><br>
+          {% trip_icon trip %}<a href="{% url 'view_trip' trip.id %}">{{ trip.name|truncatechars:max_title_chars }}</a><br>
           <strong>{{ trip.difficulty_rating }}</strong> {{ trip.description|truncatechars:max_description_chars }}
         </td>
         {% if not collapse_date %}

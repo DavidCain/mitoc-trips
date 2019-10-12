@@ -1,4 +1,5 @@
 {% load general_tags %}
+{% load trip_tags %}
 <table class="footable">
   <thead>
     <tr>
@@ -23,7 +24,7 @@
           {% if approve_mode %}
             <a href="{% url 'view_trip_for_approval' trip.activity trip.pk %}">
           {% else %}
-            <a href="{% url 'view_trip' trip.pk %}">
+            {% trip_icon trip %}<a href="{% url 'view_trip' trip.pk %}">
           {% endif  %}
               {{ trip.name|truncatechars:45 }}
           </a>
