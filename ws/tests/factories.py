@@ -153,6 +153,7 @@ class TripFactory(DjangoModelFactory):
     difficulty_rating = "Intermediate"
     level = "B"
     activity = "winter_school"
+    trip_type = enums.TripType.HIKING.value
     program = enums.Program.WINTER_SCHOOL.value
     creator = SubFactory(ParticipantFactory)
 

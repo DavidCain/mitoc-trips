@@ -101,3 +101,109 @@ class Program(enum.Enum):
     def _is_open(cls, value):
         """ Return True if any leader can lead. """
         return cls(value) in (cls.CIRCUS, cls.SERVICE, cls.NONE)
+
+
+@enum.unique
+class TripType(enum.Enum):
+    """ A descriptor for what sort of things will be done on a trip.
+
+    This is distinct from leader ratings, which pertain to a certain class of activity.
+    """
+
+    # Catchall for when the activity isn't described, or none make sense
+    NONE = 'none'
+    OTHER = 'other'
+
+    # Biking
+    ROAD_BIKING = 'biking_road'
+    MOUNTAIN_BIKING = 'biking_mountain'
+
+    # Boating
+    KAYAKING = 'boating_kayaking'
+    SEA_KAYAKING = 'boating_kayaking_sea'
+    CANOEING = 'boating_canoeing'
+    SURFING = 'boating_surfing'
+
+    # Climbing
+    BOULDERING = 'climbing_bouldering'
+    ICE_CLIMBING = 'climbing_ice'
+    SPORT_CLIMBING = 'climbing_sport'
+    TRAD_CLIMBING = 'climbing_trad'
+    GYM_CLIMBING = 'climbing_gym'
+
+    # Hiking
+    HIKING = 'hiking_hiking'
+    TRAIL_RUNNING = 'hiking_trail_running'
+
+    # Skiing!
+    RESORT_SKIING = 'skiing_resort'
+    BC_SKIING = 'skiing_bc'
+    XC_SKIING = 'skiing_xc'
+
+    # Miscellaneous
+    ICE_SKATING = 'ice_skating'
+    ULTIMATE = 'ultimate'
+
+    @classmethod
+    def choices(cls):
+        """ Group into logical blocks for easy identification.
+
+        In the future, we may tightly activity ratings with the options you can select below.
+        """
+        return [
+            (
+                'Biking',
+                [
+                    (cls.ROAD_BIKING.value, 'Road biking'),
+                    (cls.MOUNTAIN_BIKING.value, 'Mountain biking'),
+                ],
+            ),
+            (
+                'Boating',
+                [
+                    (cls.CANOEING.value, 'Canoeing'),
+                    (cls.KAYAKING.value, 'Kayaking'),
+                    (cls.SEA_KAYAKING.value, 'Sea kayaking'),
+                    (cls.SURFING.value, 'Surfing'),
+                ],
+            ),
+            (
+                'Climbing',
+                [
+                    (cls.BOULDERING.value, 'Bouldering'),
+                    (cls.GYM_CLIMBING.value, 'Gym climbing'),
+                    (cls.ICE_CLIMBING.value, 'Ice climbing'),
+                    (cls.SPORT_CLIMBING.value, 'Sport climbing, top rope'),
+                    (cls.TRAD_CLIMBING.value, 'Trad climbing'),
+                ],
+            ),
+            (
+                'Hiking',
+                [
+                    (cls.HIKING.value, 'Hiking'),
+                    (cls.TRAIL_RUNNING.value, 'Trail running'),
+                ],
+            ),
+            (
+                'Skiing',
+                [
+                    (cls.BC_SKIING.value, 'Backcountry skiing'),
+                    (cls.XC_SKIING.value, 'Cross-country skiing'),
+                    (cls.RESORT_SKIING.value, 'Resort skiing'),
+                ],
+            ),
+            (
+                'Miscellaneous',
+                [
+                    (cls.ICE_SKATING.value, 'Ice skating'),
+                    (cls.ULTIMATE.value, 'Ultimate'),
+                ],
+            ),
+            (
+                'Other, N/A',
+                [
+                    (cls.NONE.value, 'None, or not applicable'),
+                    (cls.OTHER.value, 'Other'),
+                ],
+            ),
+        ]

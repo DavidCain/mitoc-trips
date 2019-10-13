@@ -741,6 +741,13 @@ class Trip(models.Model):
         choices=LeaderRating.ACTIVITY_CHOICES,
         default=LeaderRating.WINTER_SCHOOL,
     )
+    trip_type = models.CharField(
+        max_length=255,
+        choices=enums.TripType.choices(),
+        # For now, just default trip type to 'none' (we don't yet have form handling)
+        # Later, do not define a default - we'll populate based on leader/time of year
+        default=enums.TripType.NONE.value,
+    )
     creator = models.ForeignKey(
         Participant, related_name='created_trips', on_delete=models.CASCADE
     )
@@ -832,6 +839,11 @@ class Trip(models.Model):
     def program_enum(self):
         """ Convert the string constant value to an instance of the enum. """
         return enums.Program(self.program)
+
+    @property
+    def trip_type_enum(self):
+        """ Convert the string constant value to an instance of the enum. """
+        return enums.TripType(self.trip_type)
 
     @property
     def feedback_window_passed(self):

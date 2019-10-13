@@ -36,6 +36,11 @@
       <dd>{{ trip.get_program_display }}</dd>
     {% endif %}
 
+    {% if show_trip_type %}
+      <dt>Type</dt>
+      <dd>{{ trip.get_trip_type_display }}</dd>
+    {% endif %}
+
     {% if trip.level %}
       <dt>Trip level</dt>
       <dd>{{ trip.level }}</dd>
