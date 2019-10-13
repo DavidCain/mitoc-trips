@@ -1,11 +1,9 @@
 import unittest.mock
 from urllib.parse import parse_qs, urlparse
 
-from django.contrib.auth.models import User
 from django.urls import reverse
 
-from ws.tests import TestCase
-from ws.tests.factories import TripFactory
+from ws.tests import TestCase, factories
 from ws.tests.helpers import PermHelpers
 
 login_required_routes = [
@@ -47,8 +45,8 @@ class AuthTests(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.user = User.objects.create_user(
-            email='fake@example.com', password='password', username='username'
+        cls.user = factories.UserFactory.create(
+            email='fake@example.com', password='password'
         )
 
     def login(self):
@@ -82,8 +80,7 @@ class AuthTests(TestCase):
 
     def test_viewing_trips(self):
         """ Anonymous users can view trips (they just can't sign up). """
-        # Note: This test requires fixtures or other test data
-        trip = TripFactory.create()
+        trip = factories.TripFactory.create()
         view_trip = self.client.get(reverse('view_trip', kwargs={'pk': trip.pk}))
         self.assertEqual(view_trip.status_code, 200)
 

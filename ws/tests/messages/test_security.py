@@ -2,7 +2,7 @@ from contextlib import contextmanager
 from unittest import mock
 
 from django.contrib import messages
-from django.contrib.auth.models import AnonymousUser, User
+from django.contrib.auth.models import AnonymousUser
 
 from ws.messages import security
 from ws.tests.factories import ParticipantFactory, UserFactory
@@ -58,12 +58,8 @@ class WarnIfPasswordInsecureTests(MessagesTestCase):
     def test_participant_with_insecure_password(self):
         """ Test core behavior of the generator - a known participant with a bad password. """
         # Use the test client, since RequestFactory can't handle messages
-        user = User.objects.create_user(
-            email='fake@example.com', password='password', username='username'
-        )
-        par = ParticipantFactory.create(
-            email='oops@example.com', insecure_password=True, user_id=user.pk
-        )
+        user = UserFactory.create(email='fake@example.com', password='password')
+        par = ParticipantFactory.create(user=user, insecure_password=True)
         self.client.login(email=user.email, password='password')
 
         with self._mock_info() as info, self._mock_add_message(True) as add_message:
@@ -85,7 +81,7 @@ class WarnIfPasswordInsecureTests(MessagesTestCase):
         info.assert_called_once_with(
             "Warned participant %s (%s) about insecure password",
             par.pk,
-            'oops@example.com',
+            'fake@example.com',
         )
 
     def test_participant_with_insecure_password_on_change_password(self):

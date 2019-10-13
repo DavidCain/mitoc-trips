@@ -2,10 +2,8 @@ import uuid
 from datetime import datetime
 from unittest import mock
 
-import allauth.account.models as account_models
 import pytz
 from bs4 import BeautifulSoup
-from django.contrib.auth.models import User
 from freezegun import freeze_time
 from pwned_passwords_django import api
 
@@ -19,11 +17,8 @@ class LoginTests(TestCase):
     def setUp(self):
         super().setUp()
         # Make a user with a terrible, very-often breached password
-        self.user = User.objects.create_user(
-            username='hacked', email='hacked@example.com', password='football'
-        )
-        account_models.EmailAddress.objects.create(
-            email=self.user.email, verified=True, primary=True, user_id=self.user.pk
+        self.user = factories.UserFactory.create(
+            email='hacked@example.com', password='football'
         )
         self.form_data = {'login': 'hacked@example.com', 'password': 'football'}
 
@@ -150,11 +145,8 @@ class PasswordChangeTests(TestCase):
         super().setUp()
 
         self.password = str(uuid.uuid4())  # A long, sufficiently random password!
-        self.user = User.objects.create_user(
-            username='strong', email='strong@example.com', password=self.password
-        )
-        account_models.EmailAddress.objects.create(
-            email=self.user.email, verified=True, primary=True, user_id=self.user.pk
+        self.user = factories.UserFactory.create(
+            email='strong@example.com', password=self.password
         )
 
     def _change_password(self, new_password):
@@ -192,11 +184,8 @@ class PasswordChangeTests(TestCase):
 
     def test_user_without_participant(self):
         """ It's possible for users to change password as a user without a participant. """
-        user = User.objects.create_user(
-            username='bad', email='bad@example.com', password=self.password
-        )
-        account_models.EmailAddress.objects.create(
-            email=user.email, verified=True, primary=True, user_id=user.pk
+        user = factories.UserFactory.create(
+            email='bad@example.com', password=self.password
         )
 
         # Skip the normal login flow, so we're only validating on the change flow

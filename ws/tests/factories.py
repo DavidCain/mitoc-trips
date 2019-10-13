@@ -50,6 +50,17 @@ class UserFactory(DjangoModelFactory):
     username = Sequence(lambda n: f"user{n + 1}")
     email = Sequence(lambda n: f"user{n + 1}@example.com")
     emailaddress = RelatedFactory(EmailFactory, 'user')
+    password = 'password'  # (Will be hashed & salted by `create_user`)
+
+    @classmethod
+    def _create(cls, model_class, *args, **kwargs):
+        """ Behave like `create_user` -- coerce password to a hashed/salted equivalent.
+
+        We pretty much have no reason to initialize a user with a hashed/salted password,
+        instead preferring to work with plaintext passwords.
+        """
+        manager = cls._get_manager(model_class)
+        return manager.create_user(*args, **kwargs)
 
 
 class ParticipantFactory(DjangoModelFactory):
@@ -63,10 +74,30 @@ class ParticipantFactory(DjangoModelFactory):
     car = None
     emergency_info = SubFactory(EmergencyInfoFactory)
 
+    @staticmethod
+    def _given_user(kwargs):
+        if 'user' in kwargs:
+            return kwargs['user']
+        if 'user_id' in kwargs:
+            return models.User.objects.get(pk=kwargs['user_id'])
+        return None
+
     @classmethod
     def create(cls, **kwargs):
-        if 'user_id' in kwargs:
+        """ If a user is specified, sync these two objects.
+
+        (User records live in a different database, so we must do this fetch
+        to keep them in sync).
+        """
+        user = cls._given_user(kwargs)
+        if user:
+            kwargs.pop('user', None)  # (If given, not meaningful)
+            kwargs['user_id'] = user.pk
             kwargs['_disable_auto_user_creation'] = True
+
+            # By default, use the user's email address
+            if 'email' not in kwargs:
+                kwargs['email'] = user.email
         return super().create(**kwargs)
 
     @classmethod
