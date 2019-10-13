@@ -35,7 +35,7 @@ lint: install
 
 .PHONY: test
 test: install
-	WS_DJANGO_TEST=1 coverage run manage.py test
+	WS_DJANGO_TEST=1 coverage run manage.py test --no-input
 
 .PHONY: run
 run: install
