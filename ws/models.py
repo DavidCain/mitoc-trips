@@ -566,12 +566,12 @@ class MentorActivity(models.Model):
 
 class BaseRating(models.Model):
     # Activities where you must be rated in order to create/lead a trip
-    BIKING = 'biking'
-    BOATING = 'boating'
-    CABIN = 'cabin'
-    CLIMBING = 'climbing'
-    HIKING = 'hiking'
-    WINTER_SCHOOL = 'winter_school'
+    BIKING = enums.Activity.BIKING.value
+    BOATING = enums.Activity.BOATING.value
+    CABIN = enums.Activity.CABIN.value
+    CLIMBING = enums.Activity.CLIMBING.value
+    HIKING = enums.Activity.HIKING.value
+    WINTER_SCHOOL = enums.Activity.WINTER_SCHOOL.value
     CLOSED_ACTIVITY_CHOICES = [
         (BIKING, 'Biking'),
         (BOATING, 'Boating'),

@@ -6,6 +6,25 @@ import enum
 
 
 @enum.unique
+class Activity(enum.Enum):
+    """ An activity for which a leader can be given a rating.
+
+    Identifying characteristics of an activity:
+        - There are one or more chairs that handle rating leaders
+        - The rating is a requirement for creating trips in at least one Program
+        - Having a rating means the leader has demonstrated skill & experience
+          allowing them to safely bring participants along on this type of trip.
+    """
+
+    BIKING = 'biking'
+    BOATING = 'boating'
+    CABIN = 'cabin'  # TODO: somewhat of an exception to the above criteria
+    CLIMBING = 'climbing'
+    HIKING = 'hiking'
+    WINTER_SCHOOL = 'winter_school'
+
+
+@enum.unique
 class Program(enum.Enum):
     """ A 'program' is a way to logically group related trips.
 
@@ -101,6 +120,27 @@ class Program(enum.Enum):
     def _is_open(cls, value):
         """ Return True if any leader can lead. """
         return cls(value) in (cls.CIRCUS, cls.SERVICE, cls.NONE)
+
+    def required_activity(self):
+        """ For the program, return a required leader rating to make trips.
+
+        Returns None otherwise.
+        """
+        mapping = {
+            self.BIKING: Activity.BIKING,
+            self.BOATING: Activity.BOATING,
+            self.CABIN: Activity.CABIN,  # TODO: Remove 'cabin' as a rating
+            self.CLIMBING: Activity.CLIMBING,
+            self.HIKING: Activity.HIKING,
+            self.MITOC_ROCK_PROGRAM: Activity.CLIMBING,
+            self.WINTER_SCHOOL: Activity.WINTER_SCHOOL,
+            self.WINTER_NON_IAP: Activity.WINTER_SCHOOL,
+            # No specific rating required, just _any_ rating
+            self.CIRCUS: None,
+            self.SERVICE: None,
+            self.NONE: None,
+        }
+        return mapping[self]
 
 
 @enum.unique

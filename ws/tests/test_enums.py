@@ -22,6 +22,37 @@ class ProgramTest(unittest.TestCase):
 
         self.assertFalse(enums.Program.WINTER_SCHOOL.is_open())
 
+    def test_every_program_has_required_activity(self):
+        """ Every program explicitly has a required activity. """
+        for program in enums.Program:
+            activity = program.required_activity()
+            if activity is not None:
+                self.assertTrue(isinstance(activity, enums.Activity))
+
+    def test_required_activity(self):
+        self.assertIsNone(enums.Program.CIRCUS.required_activity())
+        self.assertIsNone(enums.Program.SERVICE.required_activity())
+        self.assertIsNone(enums.Program.NONE.required_activity())
+
+        # Two programs require WS ratings
+        self.assertEqual(
+            enums.Program.WINTER_SCHOOL.required_activity(),
+            enums.Activity.WINTER_SCHOOL,
+        )
+        self.assertEqual(
+            enums.Program.WINTER_NON_IAP.required_activity(),
+            enums.Activity.WINTER_SCHOOL,
+        )
+
+        # Two programs require climbing ratings
+        self.assertEqual(
+            enums.Program.CLIMBING.required_activity(), enums.Activity.CLIMBING
+        )
+        self.assertEqual(
+            enums.Program.MITOC_ROCK_PROGRAM.required_activity(),
+            enums.Activity.CLIMBING,
+        )
+
 
 class TripTypeTest(unittest.TestCase):
     def test_every_program_in_choices(self):
