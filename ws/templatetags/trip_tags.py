@@ -43,8 +43,8 @@ def trip_list_table(trip_list, approve_mode=False):
 
 
 @register.inclusion_tag('for_templatetags/feedback_table.html')
-def feedback_table(all_feedback, relevant_activity=None):
-    return {'all_feedback': all_feedback, 'relevant_activity': relevant_activity}
+def feedback_table(all_feedback):
+    return {'all_feedback': all_feedback}
 
 
 @register.filter
@@ -54,14 +54,10 @@ def name_with_rating(leader, trip):
 
 
 @register.filter
-def leader_display(feedback, relevant_activity=None):
+def leader_display(feedback):
     """ Give a relevant display of the leader for display alongside feedback. """
     if feedback.trip:
         return feedback.leader.name_with_rating(feedback.trip)
-    if relevant_activity:
-        return feedback.leader.name_with_activity_rating_on(
-            relevant_activity, feedback.time_created
-        )
     return feedback.leader.name
 
 
