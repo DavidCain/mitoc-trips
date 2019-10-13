@@ -2,10 +2,9 @@ from contextlib import contextmanager
 from unittest import mock
 
 from django.contrib import messages
-from django.contrib.auth.models import User
 
 from ws.messages import MessageGenerator
-from ws.tests import TestCase
+from ws.tests import TestCase, factories
 
 
 class MessageGeneratorTests(TestCase):
@@ -19,10 +18,8 @@ class MessageGeneratorTests(TestCase):
     def setUp(self):
         super().setUp()
         # We use a real client so that we can get access to messages middleware!
-        user = User.objects.create_user(
-            email='fake@example.com', password='password', username='username'
-        )
-        self.client.login(email=user.email, password='password')
+        user = factories.UserFactory.create()
+        self.client.force_login(user)
 
     def test_supply(self):
         """ The `supply()` method must be overridden by children. """

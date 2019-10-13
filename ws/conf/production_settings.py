@@ -26,3 +26,12 @@ EMAIL_HOST_PASSWORD = os.environ['SES_PASSWORD']
 
 CORS_ORIGIN_WHITELIST = ('https://mitoc.mit.edu',)
 CORS_ALLOW_METHODS = ('GET',)
+
+# (Django defaults, for now)
+# Consider using Argon2 eventually: https://docs.djangoproject.com/en/2.2/topics/auth/passwords/)
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+    'django.contrib.auth.hashers.Argon2PasswordHasher',
+    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+]

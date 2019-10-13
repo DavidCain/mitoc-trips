@@ -3,7 +3,6 @@ from unittest import mock
 
 import pytz
 from bs4 import BeautifulSoup
-from django.contrib.auth.models import User
 from freezegun import freeze_time
 
 from ws import models, tasks
@@ -32,10 +31,8 @@ class EditProfileViewTests(TestCase):
 
     def setUp(self):
         super().setUp()
-        self.user = User.objects.create_user(
-            email='fake@example.com', password='password', username='username'
-        )
-        self.client.login(email=self.user.email, password='password')
+        self.user = factories.UserFactory.create()
+        self.client.force_login(self.user)
 
     def _assert_form_data_saved(self, participant):
         """ Assert that the given participant has data from `form_data`. """

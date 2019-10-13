@@ -23,3 +23,6 @@ CORS_ALLOW_METHODS = ('GET',)
 # Tell Celery to only attempt once, then immediately give up.
 # This makes tests faster
 CELERY_BROKER_TRANSPORT_OPTIONS = {'max_retries': 0}
+
+# Use the fast (but wildly insecure) MD5 to speed up tests.
+PASSWORD_HASHERS = ['django.contrib.auth.hashers.MD5PasswordHasher']

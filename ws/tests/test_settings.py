@@ -10,6 +10,14 @@ from ws import settings
 real_import = __import__
 
 
+# these settings must be present to prevent key errors loading production_settings
+MIN_PROD_SETTINGS = {
+    'DJANGO_ALLOWED_HOST': 'mitoc-trips.mit.edu',
+    'SES_USER': 'AKIA0000000000000000',
+    'SES_PASSWORD': 'some-long-random-password',
+}
+
+
 class SettingsTests(unittest.TestCase):
     @staticmethod
     def _reimport_if_needed(name, *args):
@@ -68,9 +76,7 @@ class SettingsTests(unittest.TestCase):
         """ By default, we load production settings. """
         env_vars = {
             'EC2_IP': '10.1.2.3',  # (will actually be a public IP)
-            'DJANGO_ALLOWED_HOST': 'mitoc-trips.mit.edu',
-            'SES_USER': 'AKIA0000000000000000',
-            'SES_PASSWORD': 'some-long-random-password',
+            **MIN_PROD_SETTINGS,
         }
 
         with mock.patch.dict('os.environ', env_vars, clear=True):
@@ -121,18 +127,21 @@ class SettingsTests(unittest.TestCase):
 
     def test_production_settings_without_ec2_ip(self):
         """ We need not set an EC2_IP (especially if not actually running in AWS) """
-        env_vars = {
-            'DJANGO_ALLOWED_HOST': 'mitoc-trips.mit.edu',
-            'SES_USER': 'AKIA0000000000000000',
-            'SES_PASSWORD': 'some-long-random-password',
-        }
+        with mock.patch.dict('os.environ', MIN_PROD_SETTINGS, clear=True):
+            self._fresh_settings_load()
 
-        with mock.patch.dict('os.environ', env_vars, clear=True):
+        self.assertEqual(settings.ALLOWED_HOSTS, ['mitoc-trips.mit.edu'])
+        self.assertEqual(settings.CORS_ORIGIN_WHITELIST, ('https://mitoc.mit.edu',))
+
+    def test_production_security(self):
+        """ Sanity check that some key values are set properly in production. """
+        with mock.patch.dict('os.environ', MIN_PROD_SETTINGS, clear=True):
             self._fresh_settings_load()
 
         self.assertFalse(settings.DEBUG)  # Not safe in production!
-        self.assertEqual(settings.ALLOWED_HOSTS, ['mitoc-trips.mit.edu'])
-        self.assertEqual(settings.CORS_ORIGIN_WHITELIST, ('https://mitoc.mit.edu',))
+        self.assertNotIn(
+            'django.contrib.auth.hashers.MD5PasswordHasher', settings.PASSWORD_HASHERS
+        )
 
     def test_sentry_not_initialized_if_envvar_present(self):
         """ During local development, we can disable Sentry. """

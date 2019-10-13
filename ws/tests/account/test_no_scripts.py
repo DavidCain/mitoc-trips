@@ -1,7 +1,6 @@
 from bs4 import BeautifulSoup
-from django.contrib.auth.models import User
 
-from ws.tests import TestCase
+from ws.tests import TestCase, factories
 
 
 class AccountTests(TestCase):
@@ -31,10 +30,8 @@ class AccountTests(TestCase):
 
     def test_noscript_on_password_change(self):
         """ For an authenticated user, we don't load JS for password change. """
-        user = User.objects.create_user(
-            email='fake@example.com', password='password', username='username'
-        )
-        self.client.login(email=user.email, password='password')
+        user = factories.UserFactory.create()
+        self.client.force_login(user)
 
         self._assert_no_scripts(self.client.get('/accounts/password/change/'), user)
 
