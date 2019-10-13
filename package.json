@@ -23,7 +23,6 @@
     "angular-ui-sortable": "^0.13.4",
     "bc-phone-number": "git+https://git@github.com/DavidCain/bc-phone-number.git",
     "bootstrap": "^3.4.1",
-    "d3": "^3.5.17",
     "footable": "^2.0.6",
     "jquery": "^3.4.0",
     "jquery-ui": "git+https://github.com/components/jqueryui.git#1.11.4",

@@ -364,12 +364,6 @@ PIPELINE = {
             'output_filename': 'js/app.js',
             'extra_context': {'defer': True},
         },
-        # D3 is only needed on one page - don't waste the bytes on others
-        'd3': {
-            'source_filenames': ['d3/d3.min.js'],
-            'output_filename': 'js/d3.js',
-            'extra_context': {'defer': True},
-        },
     },
     'STYLESHEETS': {
         'app': {

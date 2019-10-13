@@ -1,18 +1,19 @@
 {% extends "base.html" %}
-{% load pipeline %}
 {% block head_title %}Leaderboard{% endblock head_title %}
-
-{% block js %}
-  {{ block.super }}
-  {% javascript 'd3' %}
-{% endblock js %}
-
 
 {% block content %}
   {{ block.super }}
 
   <h1>Leaderboard</h1>
-  <trips-by-leader>
-  </trips-by-leader>
+  <p class="lead">Unfortunately, the leaderboard is disabled for now.</p>
+  <p>The leaderboard was intended to help activity chairs identify active leaders. It also kindled some friendly competition among leaders.</p>
+
+  <p>Unfortunately, it was built with some tools that are in the process of being phased out. It also relied on some trip properties that are also being overhauled.</p>
+
+  <p>
+      <strong>It will be back</strong>, hopefully better than ever.
+      Future improvements will include the ability to filter by the actual <em>type</em> of trip (skiing, ice climbing, bouldering, etc.)
+      Stay tuned!
+  </p>
 
 {% endblock content %}

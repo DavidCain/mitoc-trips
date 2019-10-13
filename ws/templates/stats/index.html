@@ -4,16 +4,6 @@
 {% block content %}
   {{ block.super }}
 
-  <h2>
-    <a href="{% url 'leaderboard' %}">
-      Leaderboard
-    </a>
-  </h2>
-  <p class="lead">
-    An interactive chart showing which trips have been led over time by
-    leaders.
-  </p>
-
   {% if 'leaders' in groups %}
     <h2>
       <a href="{% url 'membership_stats' %}">
