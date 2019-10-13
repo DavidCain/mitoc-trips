@@ -61,9 +61,6 @@ class Program(enum.Enum):
     - The rules & behavior that should apply for the trip (Program)
     """
 
-    # General (official events, courses, TRS, etc.)
-    NONE = 'none'
-
     # Mountain & road biking, taking place *outside* of winter conditions
     BIKING = 'biking'
 
@@ -77,24 +74,27 @@ class Program(enum.Enum):
     # Climbing trips (taking place *outside* of MRP, or the MITOC Rock Program)
     CLIMBING = 'climbing'
 
-    # Circus events (whole weekend in a cabin with differing types of leaders)
-    # NOTE: If this is a Winter Circus, there's ambiguity about the right kind of program
-    # future TODO: We should probably allow mixing programs to apply all their rules.
-    CIRCUS = 'circus'
-
     # 3-season hiking (that is, hiking when the WSC has decided winter rules do *not* apply)
     HIKING = 'hiking'
 
     # MRP - a special program that admits participants & conducts exclusive trips
     MITOC_ROCK_PROGRAM = 'mitoc_rock_program'
 
-    # Service (trail cleanup, watershed cleanup, volunteering, etc.)
-    SERVICE = 'service'
-
     # Winter School *during* IAP (weekend trip part of the normal lottery)
     WINTER_SCHOOL = 'winter_school'
     # Winter School *outside* of IAP (a standalone trip where winter rules apply)
     WINTER_NON_IAP = 'winter_non_iap'
+
+    # Circus events (whole weekend in a cabin with differing types of leaders)
+    # NOTE: If this is a Winter Circus, there's ambiguity about the right kind of program
+    # future TODO: We should probably allow mixing programs to apply all their rules.
+    CIRCUS = 'circus'
+
+    # Service (trail cleanup, watershed cleanup, volunteering, etc.)
+    SERVICE = 'service'
+
+    # General (official events, courses, TRS, etc.)
+    NONE = 'none'
 
     @classmethod
     def choices(cls):
@@ -134,6 +134,9 @@ class Program(enum.Enum):
     def _is_open(cls, value):
         """ Return True if any leader can lead. """
         return cls(value) in (cls.CIRCUS, cls.SERVICE, cls.NONE)
+
+    def winter_rules_apply(self):
+        return self in (self.WINTER_SCHOOL, self.WINTER_NON_IAP)
 
     def required_activity(self):
         """ For the program, return a required leader rating to make trips.

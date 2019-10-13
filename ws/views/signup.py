@@ -86,8 +86,8 @@ class LeaderSignUpView(BaseSignUpView):
 
     def get_errors(self, signup):
         errors = super().get_errors(signup)
-        if not signup.participant.can_lead(signup.trip.activity):
-            errors.append("Can't lead {} trips!".format(signup.trip.activity))
+        if not signup.participant.can_lead(signup.trip.program_enum):
+            errors.append(f"Can't lead {signup.trip.get_program_display()} trips!")
         return errors
 
     @method_decorator(group_required('leaders'))

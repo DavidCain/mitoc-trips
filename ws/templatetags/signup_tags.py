@@ -40,7 +40,7 @@ def leader_signup_is_allowed(trip, participant):
     return (
         trip_upcoming
         and trip.allow_leader_signups
-        and participant.can_lead(trip.activity)
+        and participant.can_lead(trip.program_enum)
     )
 
 

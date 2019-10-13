@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 from django.template import Context, Template
 from freezegun import freeze_time
 
-from ws import models
+from ws import enums, models
 from ws.tests import TestCase, factories
 from ws.utils.dates import localize
 
@@ -76,9 +76,11 @@ class SignupForTripTests(TestCase):
         self.assertIsNone(soup.find('form'))
 
     def test_leader_signup_allowed_for_open_activities(self):
-        """ Any leader can sign up as a leader for open activity trips. """
+        """ Any leader can sign up as a leader for open program trips. """
         circus_trip = self._make_trip(
-            allow_leader_signups=True, activity=models.LeaderRating.CIRCUS
+            allow_leader_signups=True,
+            activity=models.LeaderRating.CIRCUS,
+            program=enums.Program.CIRCUS.value,
         )
         self.assertTrue(circus_trip.signups_open)
         leader = self._leader(models.LeaderRating.CLIMBING)
@@ -92,7 +94,9 @@ class SignupForTripTests(TestCase):
     def test_leaders_with_rating_can_sign_up(self):
         """ Leaders with an active rating in the activity can sign up as leaders. """
         climbing_trip = self._make_trip(
-            allow_leader_signups=True, activity=models.LeaderRating.CLIMBING
+            allow_leader_signups=True,
+            activity=models.LeaderRating.CLIMBING,
+            program=enums.Program.CLIMBING.value,
         )
         climbing_leader = self._leader(models.LeaderRating.CLIMBING)
 
@@ -115,6 +119,7 @@ class SignupForTripTests(TestCase):
             signups_close_at=localize(datetime(2025, 12, 13, 23, 59)),
             allow_leader_signups=True,
             activity=models.LeaderRating.BIKING,
+            program=enums.Program.BIKING.value,
         )
         self.assertTrue(trip.signups_not_yet_open)
 

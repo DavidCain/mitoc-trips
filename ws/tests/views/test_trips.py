@@ -178,7 +178,7 @@ class CreateTripViewTest(TestCase, Helpers):
         form_data = dict(self._form_data(form))
 
         # We have the selections pre-populated too.
-        self.assertEqual(form_data['activity'], models.LeaderRating.BIKING)
+        self.assertEqual(form_data['program'], enums.Program.BIKING.value)
         self.assertEqual(form_data['algorithm'], 'lottery')
 
         # Fill in the form with some blank, but required values (accept the other defaults)

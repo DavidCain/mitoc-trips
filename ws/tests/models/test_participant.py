@@ -4,7 +4,7 @@ from datetime import date
 from freezegun import freeze_time
 
 import ws.utils.dates as dateutils
-from ws import models
+from ws import enums, models
 from ws.tests import TestCase, factories
 
 
@@ -143,3 +143,25 @@ class LeaderTest(TestCase):
             trip_date=date(2019, 10, 23), activity=models.BaseRating.WINTER_SCHOOL
         )
         self.assertEqual('John Long (Full leader)', john.name_with_rating(trip))
+
+    def test_participants_cannot_lead(self):
+        participant = factories.ParticipantFactory()
+        self.assertFalse(participant.can_lead(enums.Program.WINTER_SCHOOL))
+        # Even open programs aren't able to be led by any participant
+        self.assertFalse(participant.can_lead(enums.Program.CIRCUS))
+
+    def test_can_lead_own_activity_and_open(self):
+        participant = factories.ParticipantFactory()
+        participant.leaderrating_set.add(
+            factories.LeaderRatingFactory.create(
+                participant=participant, activity=enums.Activity.BIKING.value
+            )
+        )
+        # Can only lead programs for own activity
+        self.assertTrue(participant.can_lead(enums.Program.BIKING))
+        self.assertFalse(participant.can_lead(enums.Program.CLIMBING))
+
+        # Can lead all open programs
+        self.assertTrue(participant.can_lead(enums.Program.CIRCUS))
+        self.assertTrue(participant.can_lead(enums.Program.NONE))
+        self.assertTrue(participant.can_lead(enums.Program.SERVICE))

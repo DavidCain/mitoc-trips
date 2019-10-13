@@ -13,7 +13,7 @@ from djng.styling.bootstrap3.forms import Bootstrap3FormMixin
 from localflavor.us.us_states import US_STATES
 from mitoc_const import affiliations
 
-from ws import models, widgets
+from ws import enums, models, widgets
 from ws.membership import MERCHANT_ID, PAYMENT_TYPE
 from ws.utils.signups import non_trip_participants
 
@@ -217,7 +217,7 @@ class TripForm(DjangularRequiredModelForm):
     class Meta:
         model = models.Trip
         fields = [
-            'activity',
+            'program',
             'trip_type',
             'name',
             'leaders',
@@ -269,7 +269,7 @@ class TripForm(DjangularRequiredModelForm):
 
     def clean_membership_required(self):
         """ Ensure that all WS trips require membership. """
-        if self.cleaned_data['activity'] == 'winter_school':
+        if self.cleaned_data['program'] == enums.Program.WINTER_SCHOOL.value:
             return True
         return self.cleaned_data['membership_required']
 
@@ -278,36 +278,29 @@ class TripForm(DjangularRequiredModelForm):
         new_max = self.cleaned_data['maximum_participants']
         accepted_signups = trip.signup_set.filter(on_trip=True).count()
         if self.instance and accepted_signups > new_max:
-            msg = (
+            raise ValidationError(
                 "Can't shrink trip past number of signed-up participants. "
                 "To remove participants, admin this trip instead."
             )
-            raise ValidationError(msg)
         return new_max
 
     def clean(self):
-        """ Ensure that all leaders can lead the trip.
-
-        We do this in the form instead of the model, because we don't
-        want ValidationErrors when trying to modify old trips where a
-        leader rating may have lapsed.
-        """
+        """ Ensure that all leaders can lead the trip. """
         super().clean()
-        activity = self.cleaned_data['activity']
         leaders = self.cleaned_data['leaders']
+        program_enum = enums.Program(self.cleaned_data['program'])
 
-        lacking_privs = [par for par in leaders if not par.can_lead(activity)]
+        lacking_privs = [par for par in leaders if not par.can_lead(program_enum)]
 
         if lacking_privs:
             names = ', '.join(leader.name for leader in lacking_privs)
-            msg = "{} can't lead {} trips".format(names, activity)
-            self.add_error('leaders', msg)
+            self.add_error('leaders', f"{names} can't lead {program_enum.label} trips")
         return self.cleaned_data
 
     def clean_level(self):
         """ Remove extra whitespace from the level, strip if not WS. """
-        activity = self.cleaned_data.get('activity')
-        if activity != models.LeaderRating.WINTER_SCHOOL:
+        program = enums.Program(self.cleaned_data.get('program'))
+        if not program.winter_rules_apply():
             return None
         return self.cleaned_data.get('level', '').strip()
 
@@ -321,24 +314,36 @@ class TripForm(DjangularRequiredModelForm):
             wimp.attrs['selected-id'] = self.instance.wimp.pk
             wimp.attrs['selected-name'] = self.instance.wimp.name
 
+    @staticmethod
+    def _allowed_program_choices(allowed_program_enums):
+        for category, choices in enums.Program.choices():
+            assert isinstance(category, str) and isinstance(choices, list)
+            valid_choices = [
+                (value, label)
+                for (value, label) in choices
+                if enums.Program(value) in allowed_program_enums
+            ]
+            if valid_choices:
+                yield (category, valid_choices)
+
     def __init__(self, *args, **kwargs):
-        allowed_activities = kwargs.pop("allowed_activities", None)
+        allowed_programs = kwargs.pop("allowed_programs", None)
         super().__init__(*args, **kwargs)
         self.fields['leaders'].queryset = models.Participant.leaders.get_queryset()
         self.fields['leaders'].help_text = None  # Disable "Hold command..."
 
-        # We'll dynamically hide the level widget on GET if it's not a WS trip
-        # On POST, we only want this field required for Winter School trips
-        activity = self.data.get('activity')
-        self.fields['level'].required = activity == 'winter_school' or not activity
+        # We'll dynamically hide the level widget on GET if it's not a winter trip
+        # On POST, we only want this field required for winter trips
+        program = self.data.get('program')
+        program_enum = enums.Program(program) if program else None
+        self.fields['level'].required = (
+            program_enum and program_enum.winter_rules_apply()
+        )
 
-        if allowed_activities is not None:
-            activities = [
-                vl
-                for vl in self.fields['activity'].choices
-                if vl[0] in allowed_activities
-            ]
-            self.fields['activity'].choices = activities
+        if allowed_programs is not None:
+            self.fields['program'].choices = list(
+                self._allowed_program_choices(allowed_programs)
+            )
 
         self._init_wimp()
 

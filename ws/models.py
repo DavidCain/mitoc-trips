@@ -488,18 +488,24 @@ class Participant(models.Model):
         return max(ratings, key=lambda rating: rating.time_created).rating
 
     @property
-    def allowed_activities(self):
+    def allowed_programs(self):
         active_ratings = self.leaderrating_set.filter(active=True)
-        activities = active_ratings.values_list('activity', flat=True)
-        if activities:
-            return list(activities) + LeaderRating.OPEN_ACTIVITIES
-        # Not a MITOC leader, can't lead anything
-        return []
+        rated_activities = active_ratings.values_list('activity', flat=True)
+        if not rated_activities:
+            # Not a MITOC leader, can't lead anything
+            return
 
-    def can_lead(self, activity):
+        for program_enum in enums.Program:
+            req_activity = program_enum.required_activity()
+            if req_activity is None or req_activity.value in rated_activities:
+                yield program_enum
+
+    def can_lead(self, program_enum):
         """ Can participant lead trips of the given activity type. """
-        if activity in LeaderRating.OPEN_ACTIVITIES and self.is_leader:
-            return True
+        if program_enum.is_open():
+            return self.is_leader
+
+        activity = program_enum.required_activity().value
         return self.leaderrating_set.filter(activity=activity, active=True).exists()
 
     @property
@@ -840,6 +846,12 @@ class Trip(models.Model):
     def program_enum(self):
         """ Convert the string constant value to an instance of the enum. """
         return enums.Program(self.program)
+
+    # TODO: activity is deprecated. Remove this once `trip.activity` purged.
+    def get_legacy_activity(self):
+        """ Return an 'activity' from the given program. """
+        activity_enum = self.program_enum.required_activity()
+        return activity_enum.value if activity_enum else 'official_event'
 
     @property
     def trip_type_enum(self):

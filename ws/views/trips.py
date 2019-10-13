@@ -24,7 +24,7 @@ from django.views.generic import (
 
 import ws.utils.perms as perm_utils
 import ws.utils.signups as signup_utils
-from ws import forms, models
+from ws import enums, forms, models
 from ws.decorators import group_required
 from ws.lottery.run import SingleTripLotteryRunner
 from ws.mixins import TripLeadersOnlyView
@@ -222,15 +222,16 @@ class CreateTripView(CreateView):
         kwargs = super().get_form_kwargs()
         kwargs['initial'] = kwargs.get('initial', {})
         if not self.request.user.is_superuser:
-            allowed_activities = self.request.participant.allowed_activities
-            kwargs['allowed_activities'] = allowed_activities
+            allowed_programs = list(self.request.participant.allowed_programs)
+            kwargs['allowed_programs'] = allowed_programs
 
-            if is_winter_school() and 'winter_school' in allowed_activities:
-                kwargs['initial']['activity'] = 'winter_school'
+            if is_winter_school() and enums.Program.WINTER_SCHOOL in allowed_programs:
+                kwargs['initial']['program'] = enums.Program.WINTER_SCHOOL.value
             else:
-                # The first activity may not be open to the leader.
-                # We restrict choices, so ensure leader can lead this activity.
-                kwargs['initial']['activity'] = kwargs['allowed_activities'][0]
+                # The first program may not be open to the leader.
+                # We restrict choices, so ensure leader can lead this program.
+                allowed_program = next(iter(allowed_programs))
+                kwargs['initial']['program'] = allowed_program.value
         return kwargs
 
     def get_success_url(self):
@@ -249,6 +250,7 @@ class CreateTripView(CreateView):
         creator = self.request.participant
         trip = form.save(commit=False)
         trip.creator = creator
+        trip.activity = trip.get_legacy_activity()
         return super().form_valid(form)
 
     @method_decorator(group_required('leaders'))
@@ -313,9 +315,11 @@ class EditTripView(UpdateView, TripLeadersOnlyView):
     def form_valid(self, form):
         self._ignore_leaders_if_unchanged(form)
 
+        trip = form.save(commit=False)
         if self.update_rescinds_approval:
-            trip = form.save(commit=False)
             trip.chair_approved = False
+
+        trip.activity = trip.get_legacy_activity()
         return super().form_valid(form)
 
 
