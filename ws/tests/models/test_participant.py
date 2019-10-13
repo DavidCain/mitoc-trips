@@ -1,6 +1,10 @@
 import datetime
+from datetime import date
+
+from freezegun import freeze_time
 
 import ws.utils.dates as dateutils
+from ws import models
 from ws.tests import TestCase, factories
 
 
@@ -85,3 +89,57 @@ class ProblemsWithProfile(TestCase):
         self.assertEqual(
             participant.problems_with_profile, ["Please update your MIT affiliation."]
         )
+
+
+class LeaderTest(TestCase):
+    def test_name_with_rating_no_rating(self):
+        """ Participants who aren't actively leaders just return their name. """
+        trip = factories.TripFactory.create()
+        participant = factories.ParticipantFactory.create(name='Tommy Caldwell')
+        self.assertEqual('Tommy Caldwell', participant.name_with_rating(trip))
+
+    def test_past_rating(self):
+        """ We will display a past rating that was applicable at the time! """
+        alex = factories.ParticipantFactory.create(name='Alex Honnold')
+
+        # Make an older rating to show this isn't used
+        with freeze_time("2018-11-10 12:25:00 EST"):
+            rating = factories.LeaderRatingFactory.create(
+                participant=alex,
+                activity=models.BaseRating.WINTER_SCHOOL,
+                rating='co-leader',
+                active=False,  # (presume was active at the time)
+            )
+            alex.leaderrating_set.add(rating)
+        with freeze_time("2019-02-15 12:25:00 EST"):
+            rating = factories.LeaderRatingFactory.create(
+                participant=alex,
+                activity=models.BaseRating.WINTER_SCHOOL,
+                rating='Full leader',
+                active=False,  # (presume was active at the time)
+            )
+            alex.leaderrating_set.add(rating)
+        trip = factories.TripFactory.create(
+            trip_date=date(2019, 2, 23), activity=models.BaseRating.WINTER_SCHOOL
+        )
+
+        # At present, Alex is not even a leader
+        self.assertFalse(alex.is_leader)
+        # However, when that past trip happened, he was a leader.
+        self.assertEqual('Alex Honnold (Full leader)', alex.name_with_rating(trip))
+
+    @freeze_time("2018-11-10 12:25:00 EST")
+    def test_future_trip(self):
+        john = factories.ParticipantFactory.create(name='John Long')
+
+        john.leaderrating_set.add(
+            factories.LeaderRatingFactory.create(
+                participant=john,
+                activity=models.BaseRating.WINTER_SCHOOL,
+                rating='Full leader',
+            )
+        )
+        trip = factories.TripFactory.create(
+            trip_date=date(2019, 10, 23), activity=models.BaseRating.WINTER_SCHOOL
+        )
+        self.assertEqual('John Long (Full leader)', john.name_with_rating(trip))

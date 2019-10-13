@@ -405,7 +405,7 @@ class ParticipantView(
             feedback = participant.feedback_set.select_related('trip', 'leader')
             feedback = feedback.prefetch_related('leader__leaderrating_set')
             context['all_feedback'] = feedback
-        context['ratings'] = participant.ratings(rating_active=True)
+        context['ratings'] = participant.ratings(must_be_active=True)
 
         chair_activities = set(perm_utils.chair_activities(user))
         context['chair_activities'] = [

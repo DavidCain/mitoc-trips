@@ -442,18 +442,18 @@ class Participant(models.Model):
             self.save()
         return acct, created
 
-    def ratings(self, rating_active=True, at_time=None, after_time=None):
+    def ratings(self, must_be_active=True, at_time=None, after_time=None):
         """ Return all ratings matching the supplied filters.
 
-        rating_active: Only format a rating if it's still active
-        at_time:       Only return current ratings before the given time
-                       (useful to get a past, but not necessarily current, rating)
-        after_time:    Only return ratings created after this time
+        must_be_active: Only format a rating if it's still active
+        at_time:        Only return ratings before the given time
+                        (useful to get a past, but not necessarily current, rating)
+        after_time:     Only return ratings created after this time
         """
         # (We do this in raw Python instead of `filter()` to avoid n+1 queries
         # This method should be called when leaderrating_set was prefetched
         ratings = (
-            r for r in self.leaderrating_set.all() if r.active or not rating_active
+            r for r in self.leaderrating_set.all() if r.active or not must_be_active
         )
         if at_time:
             ratings = (r for r in ratings if r.time_created <= at_time)
@@ -462,11 +462,7 @@ class Participant(models.Model):
         return ratings
 
     def name_with_rating(self, trip):
-        """ Give the leader's name plus rating at the time of the trip. """
-        return self.name_with_activity_rating_on(trip.activity, trip.trip_date)
-
-    def name_with_activity_rating_on(self, activity, query_date):
-        """ Give the leader's name plus rating the day before the query date.
+        """ Give the leader's name plus rating at the time of the trip.
 
         Note: Some leaders from Winter School 2014 or 2015 may not have any
         ratings. In those years, we deleted all Winter School ratings at the
@@ -475,11 +471,13 @@ class Participant(models.Model):
 
         If no rating is found, simply the name will be given.
         """
-        day_before = query_date - timedelta(days=1)
-        at_time = dateutils.late_at_night(day_before)
-        kwargs = {'at_time': at_time, 'rating_active': False}
-        rating = self.activity_rating(activity, **kwargs)
-        return "{} ({})".format(self.name, rating) if rating else self.name
+        day_before = trip.trip_date - timedelta(days=1)
+        rating = self.activity_rating(
+            trip.activity,
+            at_time=dateutils.late_at_night(day_before),
+            must_be_active=False,
+        )
+        return f"{self.name} ({rating})" if rating else self.name
 
     def activity_rating(self, activity, **kwargs):
         """ Return leader's rating for the given activity (if one exists). """
@@ -1234,7 +1232,7 @@ class LeaderApplication(models.Model):
     def rating_given(self):
         """ Return any activity rating created after this application. """
         return self.participant.activity_rating(
-            self.activity, rating_active=True, after_time=self.time_created
+            self.activity, must_be_active=True, after_time=self.time_created
         )
 
     @property

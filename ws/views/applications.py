@@ -73,9 +73,9 @@ class LeaderApplyView(LeaderApplicationMixin, CreateView):
 
         # Pre-fill the most-recently held rating, if not currently active
         # (Most commonly, this occurs with the annual renewal for WS leaders)
-        curr_rating = self.par.activity_rating(self.activity, rating_active=True)
-        prev_rating = self.par.activity_rating(self.activity, rating_active=False)
+        curr_rating = self.par.activity_rating(self.activity, must_be_active=True)
         if not curr_rating:
+            prev_rating = self.par.activity_rating(self.activity, must_be_active=False)
             kwargs['initial'] = {'desired_rating': prev_rating}
         return kwargs
 
@@ -95,7 +95,7 @@ class LeaderApplyView(LeaderApplicationMixin, CreateView):
         application = form.save(commit=False)
         application.year = self.application_year
         application.participant = self.par
-        rating = self.par.activity_rating(self.activity, rating_active=False)
+        rating = self.par.activity_rating(self.activity, must_be_active=False)
         application.previous_rating = rating or ''
         return super().form_valid(form)
 
@@ -314,7 +314,7 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):
         context['prev_app'], context['next_app'] = self.get_other_apps()
 
         participant = self.object.participant
-        context['active_ratings'] = list(participant.ratings(rating_active=True))
+        context['active_ratings'] = list(participant.ratings(must_be_active=True))
         participant_chair_activities = set(
             perm_utils.chair_activities(participant.user)
         )
