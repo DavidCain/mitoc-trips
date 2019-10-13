@@ -16,6 +16,7 @@ from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.generic import DeleteView, DetailView, FormView, TemplateView, View
 from django.views.generic.detail import SingleObjectMixin
+from kombu.exceptions import OperationalError
 
 import ws.messages.leader
 import ws.messages.lottery
@@ -167,7 +168,7 @@ class ParticipantEditMixin(TemplateView):
             if updating_self or participant.affiliation != orig_affiliation:
                 try:
                     tasks.update_participant_affiliation.delay(participant.pk)
-                except OSError:
+                except OperationalError:
                     logger.error(
                         "Unable to update affiliation to %s for participant %s",
                         participant.pk,

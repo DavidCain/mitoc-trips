@@ -101,6 +101,55 @@ else:
     INSTALLED_APPS.append('debug_toolbar')
 
 
+# Celery settings
+CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'amqp://guest:guest@127.0.0.1//')
+CELERY_RESULT_BACKEND = 'rpc'
+CELERY_RESULT_PERSISTENT = True  # Don't reset msgs after broker restart (requires RPC)
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_ACCEPT_CONTENT = ['json']
+
+# Try to schedule tasks three times.
+# - First retry: immediate
+# - Second retry: half a second later
+#
+# This prevents tasks from hanging forever when the broker is down.
+CELERY_BROKER_TRANSPORT_OPTIONS = {
+    'max_retries': 2,
+    'interval_start': 0,
+    'interval_step': 0.5,
+    'interval_max': 1,
+}
+
+CELERY_BEAT_SCHEDULE = {
+    'purge-non-student-discounts': {
+        'task': 'ws.tasks.purge_non_student_discounts',
+        'schedule': crontab(minute=0, hour=2, day_of_week=1),
+    },
+    'purge-old-medical-data': {
+        'task': 'ws.tasks.purge_old_medical_data',
+        'schedule': crontab(minute=0, hour=2, day_of_week=2),
+    },
+    'refresh-all-discount-spreadsheets': {
+        'task': 'ws.tasks.update_all_discount_sheets',
+        'schedule': crontab(minute=0, hour=3),
+    },
+    'send-trip-summaries-email': {
+        'task': 'ws.tasks.send_trip_summaries_email',
+        # Tuesdays around noon (ignore DST)
+        'schedule': crontab(minute=0, hour=17, day_of_week=2),
+    },
+    'send-sao-itineraries': {
+        'task': 'ws.tasks.send_sao_itineraries',
+        'schedule': crontab(minute=0, hour=4),
+    },
+    'run-ws-lottery': {
+        'task': 'ws.tasks.run_ws_lottery',
+        'schedule': crontab(minute=0, hour=14, month_of_year=[1, 2], day_of_week=3),
+    },
+}
+
+CELERY_TIMEZONE = 'UTC'
+
 if os.environ.get('WS_DJANGO_TEST'):
     from .conf.test_settings import *  # pylint: disable=wildcard-import,unused-wildcard-import
 elif os.environ.get('WS_DJANGO_LOCAL'):
@@ -240,43 +289,6 @@ DOCUSIGN_EVENT_NOTIFICATION = {
 # Google Sheet (discount roster) settings
 OAUTH_JSON_CREDENTIALS = os.getenv('OAUTH_JSON_CREDENTIALS')
 DISABLE_GSHEETS = bool(os.getenv('DISABLE_GSHEETS'))
-
-# Celery settings
-CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'amqp://guest:guest@127.0.0.1//')
-CELERY_RESULT_BACKEND = 'rpc'
-CELERY_RESULT_PERSISTENT = True  # Don't reset msgs after broker restart (requires RPC)
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_ACCEPT_CONTENT = ['json']
-
-CELERY_BEAT_SCHEDULE = {
-    'purge-non-student-discounts': {
-        'task': 'ws.tasks.purge_non_student_discounts',
-        'schedule': crontab(minute=0, hour=2, day_of_week=1),
-    },
-    'purge-old-medical-data': {
-        'task': 'ws.tasks.purge_old_medical_data',
-        'schedule': crontab(minute=0, hour=2, day_of_week=2),
-    },
-    'refresh-all-discount-spreadsheets': {
-        'task': 'ws.tasks.update_all_discount_sheets',
-        'schedule': crontab(minute=0, hour=3),
-    },
-    'send-trip-summaries-email': {
-        'task': 'ws.tasks.send_trip_summaries_email',
-        # Tuesdays around noon (ignore DST)
-        'schedule': crontab(minute=0, hour=17, day_of_week=2),
-    },
-    'send-sao-itineraries': {
-        'task': 'ws.tasks.send_sao_itineraries',
-        'schedule': crontab(minute=0, hour=4),
-    },
-    'run-ws-lottery': {
-        'task': 'ws.tasks.run_ws_lottery',
-        'schedule': crontab(minute=0, hour=14, month_of_year=[1, 2], day_of_week=3),
-    },
-}
-
-CELERY_TIMEZONE = 'UTC'
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.11/topics/i18n/

@@ -19,3 +19,9 @@ ACCOUNT_EMAIL_VERIFICATION = 'none'
 
 DEBUG_TOOLBAR_PATCH_SETTINGS = False
 INTERNAL_IPS = ['127.0.0.1', '192.168.33.15']
+
+
+# Tell Celery to only attempt once, then immediately give up.
+# (by default, Celery will retry forever)
+# This makes development faster when running with no local broker
+CELERY_BROKER_TRANSPORT_OPTIONS = {'max_retries': 0}

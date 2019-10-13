@@ -18,3 +18,8 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 CORS_ORIGIN_WHITELIST = ('https://mitoc.mit.edu',)
 CORS_ALLOW_METHODS = ('GET',)
+
+
+# Tell Celery to only attempt once, then immediately give up.
+# This makes tests faster
+CELERY_BROKER_TRANSPORT_OPTIONS = {'max_retries': 0}

@@ -12,6 +12,7 @@ from django.db.models.signals import (
     pre_save,
 )
 from django.dispatch import receiver
+from kombu.exceptions import OperationalError
 
 from ws import tasks
 from ws.celery_config import app
@@ -116,7 +117,7 @@ def revoke_existing_task(sender, instance, raw, using, update_fields, **kwargs):
     if trip.lottery_task_id and needs_revoke:
         try:
             app.control.revoke(trip.lottery_task_id)
-        except OSError:
+        except OperationalError:
             # Log the exception, but don't raise exceptions, preventing trip saving
             logger.error("Failed to revoke lottery task for trip %s", trip.pk)
         else:
@@ -141,7 +142,7 @@ def add_lottery_task(sender, instance, created, raw, using, update_fields, **kwa
         task_id = tasks.run_lottery.apply_async(
             (trip.pk, None), eta=trip.signups_close_at
         )
-    except OSError:
+    except OperationalError:
         logger.error("Failed to make lottery task for trip %s", trip.pk)
     else:
         trip.lottery_task_id = task_id
