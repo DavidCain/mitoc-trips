@@ -3,6 +3,7 @@ import re
 from bs4 import BeautifulSoup
 from freezegun import freeze_time
 
+from ws import models
 from ws.tests import TestCase, factories
 
 WHITESPACE = re.compile(r'\s+')
@@ -141,3 +142,62 @@ class AllTripsViewTest(TestCase, Helpers):
         self._expect_title(soup, 'Trips after 2017-11-15')
         self._expect_past_trips(response, [expected_trip.pk])
         self._expect_link_for_date(soup, '2016-11-15')
+
+
+class CreateTripViewTest(TestCase, Helpers):
+    @staticmethod
+    def _form_data(form):
+        for elem in form.find_all(['input', 'textareea']):
+            yield elem['name'], elem.get('value', '')
+        for select in form.find_all('select'):
+            selection = select.find('option', selected=True)
+            value = selection['value'] if selection else ''
+            yield select['name'], value
+
+    def test_creation(self):
+        """ End-to-end test of form submission on creating a new trip.
+
+        This is something of an integration test. Dealing with forms
+        in this way is a bit of a hassle, but this ensures that we're handling
+        everything properly.
+
+        More specific behavior testing should be done at the form level.
+        """
+        user = factories.UserFactory.create(
+            email='leader@example.com', password='password'
+        )
+        trip_leader = factories.ParticipantFactory.create(user=user)
+        trip_leader.leaderrating_set.add(
+            factories.LeaderRatingFactory.create(
+                participant=trip_leader, activity=models.LeaderRating.BIKING
+            )
+        )
+        self.client.login(email='leader@example.com', password='password')
+        _resp, soup = self._get('/trips/create/')
+        form = soup.find('form')
+        form_data = dict(self._form_data(form))
+
+        # We have the selections pre-populated too.
+        self.assertEqual(form_data['activity'], models.LeaderRating.BIKING)
+        self.assertEqual(form_data['algorithm'], 'lottery')
+
+        # Fill in the form with some blank, but required values (accept the other defaults)
+        form_data.update(
+            {
+                'name': 'My Great Trip',
+                'difficulty_rating': 'Intermediate',
+                'description': "Let's go hiking!",
+            }
+        )
+        self.assertEqual(form['action'], '.')
+
+        # Upon form submission, we're redirected to the new trip's page!
+        resp = self.client.post('/trips/create/', form_data, follow=False)
+        self.assertEqual(resp.status_code, 302)
+        new_trip_url = re.compile(r'^/trips/(\d+)/$')
+        self.assertRegex(resp.url, new_trip_url)
+        trip_pk = int(new_trip_url.match(resp.url).group(1))
+
+        trip = models.Trip.objects.get(pk=trip_pk)
+        self.assertEqual(trip.creator, trip_leader)
+        self.assertEqual(trip.name, 'My Great Trip')
