@@ -73,7 +73,6 @@ class AuthTests(TestCase):
             'all_trips',
             'upcoming_trips',
             'stats',
-            'json-trips_by_leader',
         ]:
             response = self.client.get(reverse(open_url))
             self.assertEqual(response.status_code, 200)
