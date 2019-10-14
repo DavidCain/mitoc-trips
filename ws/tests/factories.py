@@ -142,6 +142,8 @@ class LotteryInfoFactory(DjangoModelFactory):
         model = models.LotteryInfo
 
     participant = SubFactory(ParticipantFactory)
+    car_status = "rent"
+    paired_with = None
 
 
 class TripFactory(DjangoModelFactory):
