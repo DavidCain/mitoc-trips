@@ -19,5 +19,5 @@ class Messages(MessageGenerator):
             msg = 'Personal information is out of date.'
 
         edit_url = reverse('edit_profile')
-        msg += ' <a href="{}">Update</a> to sign up for trips.'.format(edit_url)
-        messages.warning(self.request, msg, extra_tags='safe')
+        msg += f' <a href="{edit_url}">Update</a> to sign up for trips.'
+        self.add_unique_message(messages.WARNING, msg, extra_tags='safe')
