@@ -218,6 +218,7 @@ class TripForm(DjangularRequiredModelForm):
         model = models.Trip
         fields = [
             'activity',
+            'trip_type',
             'name',
             'leaders',
             'wimp',

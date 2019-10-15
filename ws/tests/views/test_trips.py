@@ -3,7 +3,7 @@ import re
 from bs4 import BeautifulSoup
 from freezegun import freeze_time
 
-from ws import models
+from ws import enums, models
 from ws.tests import TestCase, factories
 
 WHITESPACE = re.compile(r'\s+')
@@ -185,6 +185,7 @@ class CreateTripViewTest(TestCase, Helpers):
         form_data.update(
             {
                 'name': 'My Great Trip',
+                'trip_type': enums.TripType.MOUNTAIN_BIKING.value,
                 'difficulty_rating': 'Intermediate',
                 'description': "Let's go hiking!",
             }

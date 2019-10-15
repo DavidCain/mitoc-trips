@@ -11,14 +11,21 @@
       <h2>Basics</h2>
 
       {% form_group form.name %}
+
       <div class="row">
-        <div class="col-sm-4">
+        <div class="col-xs-6">
           {% form_group form.activity %}
         </div>
-        <div class="col-sm-4">
+        <div class="col-xs-6">
+          {% form_group form.trip_type %}
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-xs-6">
           {% form_group form.maximum_participants %}
         </div>
-        <div class="col-sm-4">
+        <div class="col-xs-6">
           {% form_group form.difficulty_rating %}
         </div>
       </div>

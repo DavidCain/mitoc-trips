@@ -741,13 +741,7 @@ class Trip(models.Model):
         choices=LeaderRating.ACTIVITY_CHOICES,
         default=LeaderRating.WINTER_SCHOOL,
     )
-    trip_type = models.CharField(
-        max_length=255,
-        choices=enums.TripType.choices(),
-        # For now, just default trip type to 'none' (we don't yet have form handling)
-        # Later, do not define a default - we'll populate based on leader/time of year
-        default=enums.TripType.NONE.value,
-    )
+    trip_type = models.CharField(max_length=255, choices=enums.TripType.choices())
     creator = models.ForeignKey(
         Participant, related_name='created_trips', on_delete=models.CASCADE
     )
