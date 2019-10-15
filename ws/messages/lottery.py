@@ -20,11 +20,9 @@ class Messages(MessageGenerator):
     @property
     def lotteryinfo(self):
         participant = self.request.participant
-        if not participant:
-            return None
 
         try:
-            return participant.lotteryinfo
+            return participant and participant.lotteryinfo
         except models.LotteryInfo.DoesNotExist:
             return None
 
@@ -33,10 +31,10 @@ class Messages(MessageGenerator):
             return
         self.warn_if_missing_lottery()
         self.warn_if_car_missing()
+        self.warn_if_dated_info()
 
         if self.lotteryinfo:  # (warnings are redundant if no lottery info)
             self.warn_if_no_ranked_trips()
-            self.warn_if_dated_info()
 
     @staticmethod
     def profile_link(text):
@@ -55,23 +53,23 @@ class Messages(MessageGenerator):
         checking participant.lotteryinfo is sufficient to check both.
         """
         if not self.lotteryinfo:
-            msg = "You haven't set your {}.".format(self.prefs_link())
-            messages.warning(self.request, msg, extra_tags='safe')
+            prefs = self.prefs_link()
+            self.add_unique_message(
+                messages.WARNING, f"You haven't set your {prefs}.", extra_tags='safe'
+            )
 
     def warn_if_car_missing(self):
         lottery = self.lotteryinfo
         if not lottery:
             return
         if lottery.car_status == 'own' and not self.request.participant.car:
+            edit_car = self.profile_link("submitted car information")
+            prefs = self.prefs_link()
             msg = (
-                "You're a driver in the lottery, but haven't {edit_car}. "
-                "If you can no longer drive, please update your {prefs}."
+                f"You're a driver in the lottery, but haven't {edit_car}. "
+                f"If you can no longer drive, please update your {prefs}."
             )
-            message = msg.format(
-                edit_car=self.profile_link("submitted car information"),
-                prefs=self.prefs_link(),
-            )
-            messages.warning(self.request, message, extra_tags='safe')
+            self.add_unique_message(messages.WARNING, msg, extra_tags='safe')
 
     def warn_if_no_ranked_trips(self):
         """ Warn the user if there are future signups, and none are ranked.
@@ -86,26 +84,30 @@ class Messages(MessageGenerator):
             participant=self.request.participant,
             on_trip=False,
             trip__algorithm='lottery',
+            trip__activity=models.BaseRating.WINTER_SCHOOL,
             trip__trip_date__gte=dateutils.local_date(),
         ).values_list('order', flat=True)
         some_trips_ranked = any(order for order in future_signups)
 
         if len(future_signups) > 1 and not some_trips_ranked:
             msg = "You haven't " + self.prefs_link("ranked upcoming trips.")
-            messages.warning(self.request, msg, extra_tags='safe')
+            self.add_unique_message(messages.WARNING, msg, extra_tags='safe')
 
     def warn_if_dated_info(self):
-        """ If the participant hasn't updated information in a while, remind
-        them of their status as a driver. """
-        if self.lotteryinfo:
-            time_diff = timezone.now() - self.lotteryinfo.last_updated
-            days_old = time_diff.days
+        """ Remind participants if they've not updated lottery preferences. """
+        if not self.lotteryinfo:
+            return
 
-            if days_old >= self.WARN_AFTER_DAYS_OLD:
-                msg = (
-                    "You haven't updated your {} in {} days. "
-                    "You will be counted as a {}driver in the next lottery."
-                )
-                driver_prefix = "" if self.lotteryinfo.is_driver else "non-"
-                msg = msg.format(self.prefs_link(), days_old, driver_prefix)
-                messages.info(self.request, msg, extra_tags='safe')
+        time_diff = timezone.now() - self.lotteryinfo.last_updated
+        days_old = time_diff.days
+
+        if days_old < self.WARN_AFTER_DAYS_OLD:
+            return
+
+        prefs = self.prefs_link()
+        driver_prefix = "" if self.lotteryinfo.is_driver else "non-"
+        msg = (
+            f"You haven't updated your {prefs} in {days_old} days. "
+            f"You will be counted as a {driver_prefix}driver in the next lottery."
+        )
+        self.add_unique_message(messages.INFO, msg, extra_tags='safe')

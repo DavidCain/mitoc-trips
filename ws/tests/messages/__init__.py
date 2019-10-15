@@ -11,6 +11,13 @@ class MessagesTestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
 
+    def _request_with_participant(self, participant):
+        """ Return a real request option that behaves like participant middleware. """
+        request = self.factory.get('/')
+        request.user = participant.user
+        request.participant = participant
+        return request
+
     @staticmethod
     @contextmanager
     def _mock_add_message(wrap=False):
