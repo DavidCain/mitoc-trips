@@ -155,3 +155,26 @@ def ws_year():
 def jan_1():
     jan_1st = timezone.datetime(local_date().year, 1, 1)
     return localize(jan_1st)
+
+
+def default_signups_close_at():
+    """ Return the default for when signups should close.
+
+    This is mostly written to give reasonable defaults for Winter School, where all
+    trips are posted during the week, for the coming weekend (and should close at 9 am
+    on Wednesday, so the lottery can run). However, this is also a sensible assumption
+    to make year-round!
+
+    If it's currently late in the week (~Thursday), we could very well be
+    posting a last-minute trip for the weekend, though we don't know what the leader
+    will choose once creating the initial form defaults. If a trip is being posted on
+    Wednesday, then just default to having signups close at midnight before, so we
+    don't give a form pre-filled with invalid defaults.
+    """
+    wed_before = wed_morning()
+    if wed_before >= local_now():
+        return wed_before
+
+    # If today is Wednesday, just have signups close at midnight before
+    trip_date = nearest_sat()
+    return late_at_night(trip_date - timedelta(days=1))

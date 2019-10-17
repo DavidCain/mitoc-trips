@@ -1,7 +1,11 @@
+from datetime import datetime
+
 from allauth.account.models import EmailAddress
 from django.test import SimpleTestCase, TransactionTestCase
+from freezegun import freeze_time
 from mitoc_const import affiliations
 
+import ws.utils.dates as dateutils
 from ws import forms
 from ws.tests import factories
 
@@ -92,3 +96,23 @@ class ParticipantFormTests(TransactionTestCase):
             },
         )
         self.assertFalse(form.is_valid())
+
+
+class TripFormTests(TransactionTestCase):
+    @freeze_time("Wed, 16 Oct 2019 20:30:00 EST")
+    def test_default_signups_close_late_week(self):
+        """ On a Wednesday, we just default to midnight on the night before """
+        form = forms.TripForm()
+        self.assertEqual(
+            form.fields['signups_close_at'].initial(),
+            dateutils.localize(datetime(2019, 10, 18, 23, 59, 59)),
+        )
+
+    @freeze_time("Mon, 14 Oct 2019 12:45:00 EST")
+    def test_default_signups_close_early_week(self):
+        """ Early week, we default to Wednesday morning."""
+        form = forms.TripForm()
+        self.assertEqual(
+            form.fields['signups_close_at'].initial(),
+            dateutils.localize(datetime(2019, 10, 16, 9, 0, 0)),
+        )

@@ -795,7 +795,7 @@ class Trip(models.Model):
     trip_date = models.DateField(default=dateutils.nearest_sat)
     signups_open_at = models.DateTimeField(default=timezone.now)
     signups_close_at = models.DateTimeField(
-        default=dateutils.wed_morning, null=True, blank=True
+        default=dateutils.default_signups_close_at, null=True, blank=True
     )
 
     let_participants_drop = models.BooleanField(
