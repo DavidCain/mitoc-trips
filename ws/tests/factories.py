@@ -68,12 +68,10 @@ class ParticipantFactory(DjangoModelFactory):
         model = models.Participant
 
     affiliation = affiliations.NON_AFFILIATE.CODE
-    user_id = factory.Sequence(lambda n: n + 1)
     email = factory.Sequence(lambda n: f"participant{n + 1}@example.com")
     name = "Test Participant"
     car = None
     emergency_info = factory.SubFactory(EmergencyInfoFactory)
-
 
     @staticmethod
     def _given_user(kwargs):
@@ -110,7 +108,8 @@ class ParticipantFactory(DjangoModelFactory):
         we cannot use a SubFactory for the User object.
         """
         if not kwargs.pop('_disable_auto_user_creation', False):
-            UserFactory.create(id=kwargs['user_id'], email=kwargs['email'])
+            user = UserFactory.create(email=kwargs['email'])
+            kwargs['user_id'] = user.pk
 
         return super()._create(model_class, *args, **kwargs)
 
