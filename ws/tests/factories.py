@@ -1,5 +1,5 @@
 import allauth.account.models as account_models
-from factory import LazyAttribute, RelatedFactory, SelfAttribute, Sequence, SubFactory
+import factory
 from factory.django import DjangoModelFactory
 from mitoc_const import affiliations
 
@@ -28,7 +28,7 @@ class EmergencyInfoFactory(DjangoModelFactory):
     class Meta:
         model = models.EmergencyInfo
 
-    emergency_contact = SubFactory(EmergencyContactFactory)
+    emergency_contact = factory.SubFactory(EmergencyContactFactory)
     allergies = "None"
     medications = "None"
     medical_history = "None"
@@ -38,7 +38,7 @@ class EmailFactory(DjangoModelFactory):
     class Meta:
         model = account_models.EmailAddress
 
-    email = LazyAttribute(lambda obj: obj.user.email)
+    email = factory.LazyAttribute(lambda obj: obj.user.email)
     verified = True
     primary = True
 
@@ -47,9 +47,9 @@ class UserFactory(DjangoModelFactory):
     class Meta:
         model = models.User
 
-    username = Sequence(lambda n: f"user{n + 1}")
-    email = Sequence(lambda n: f"user{n + 1}@example.com")
-    emailaddress = RelatedFactory(EmailFactory, 'user')
+    username = factory.Sequence(lambda n: f"user{n + 1}")
+    email = factory.Sequence(lambda n: f"user{n + 1}@example.com")
+    emailaddress = factory.RelatedFactory(EmailFactory, 'user')
     password = 'password'  # (Will be hashed & salted by `create_user`)
 
     @classmethod
@@ -68,11 +68,12 @@ class ParticipantFactory(DjangoModelFactory):
         model = models.Participant
 
     affiliation = affiliations.NON_AFFILIATE.CODE
-    user_id = Sequence(lambda n: n + 1)
-    email = Sequence(lambda n: f"participant{n + 1}@example.com")
+    user_id = factory.Sequence(lambda n: n + 1)
+    email = factory.Sequence(lambda n: f"participant{n + 1}@example.com")
     name = "Test Participant"
     car = None
-    emergency_info = SubFactory(EmergencyInfoFactory)
+    emergency_info = factory.SubFactory(EmergencyInfoFactory)
+
 
     @staticmethod
     def _given_user(kwargs):
@@ -132,8 +133,8 @@ class LeaderRatingFactory(DjangoModelFactory):
 
     activity = models.LeaderRating.HIKING
     rating = 'Full leader'
-    creator = SubFactory(ParticipantFactory)
-    participant = SubFactory(ParticipantFactory)
+    creator = factory.SubFactory(ParticipantFactory)
+    participant = factory.SubFactory(ParticipantFactory)
     active = True
 
 
@@ -141,7 +142,7 @@ class LotteryInfoFactory(DjangoModelFactory):
     class Meta:
         model = models.LotteryInfo
 
-    participant = SubFactory(ParticipantFactory)
+    participant = factory.SubFactory(ParticipantFactory)
     car_status = "rent"
     paired_with = None
 
@@ -150,14 +151,14 @@ class TripFactory(DjangoModelFactory):
     class Meta:
         model = models.Trip
 
-    name = Sequence(lambda n: f"Test Trip #{n + 1}")
+    name = factory.Sequence(lambda n: f"Test Trip #{n + 1}")
     description = "An awesome trip into the Whites"
     difficulty_rating = "Intermediate"
     level = "B"
     activity = "winter_school"
     trip_type = enums.TripType.HIKING.value
     program = enums.Program.WINTER_SCHOOL.value
-    creator = SubFactory(ParticipantFactory)
+    creator = factory.SubFactory(ParticipantFactory)
 
 
 class TripInfoFactory(DjangoModelFactory):
@@ -169,9 +170,9 @@ class FeedbackFactory(DjangoModelFactory):
     class Meta:
         model = models.Feedback
 
-    participant = SubFactory(ParticipantFactory)
-    leader = SubFactory(ParticipantFactory)
-    trip = SubFactory(TripFactory)
+    participant = factory.SubFactory(ParticipantFactory)
+    leader = factory.SubFactory(ParticipantFactory)
+    trip = factory.SubFactory(TripFactory)
     comments = "Participant did a great job."
 
 
@@ -179,8 +180,8 @@ class SignUpFactory(DjangoModelFactory):
     class Meta:
         model = models.SignUp
 
-    participant = SubFactory(ParticipantFactory)
-    trip = SubFactory(TripFactory)
+    participant = factory.SubFactory(ParticipantFactory)
+    trip = factory.SubFactory(TripFactory)
     notes = ""
     order = None
     manual_order = None
@@ -191,15 +192,15 @@ class WaitListSignupFactory(DjangoModelFactory):
     class Meta:
         model = models.WaitListSignup
 
-    signup = SubFactory(SignUpFactory)
-    waitlist = SelfAttribute('signup.trip.waitlist')
+    signup = factory.SubFactory(SignUpFactory)
+    waitlist = factory.SelfAttribute('signup.trip.waitlist')
 
 
 class ClimbingLeaderApplicationFactory(DjangoModelFactory):
     class Meta:
         model = models.ClimbingLeaderApplication
 
-    participant = SubFactory(ParticipantFactory)
+    participant = factory.SubFactory(ParticipantFactory)
     years_climbing = 9
     years_climbing_outside = 7
     outdoor_bouldering_grade = "V3"
