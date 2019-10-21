@@ -17,7 +17,7 @@ from django.views.generic.detail import SingleObjectMixin
 import ws.utils.geardb as geardb_utils
 import ws.utils.perms as perm_utils
 import ws.utils.signups as signup_utils
-from ws import models
+from ws import enums, models
 from ws.decorators import group_required
 from ws.templatetags.avatar_tags import avatar_url
 from ws.utils.api import jwt_token_from_headers
@@ -366,6 +366,50 @@ class JsonAllParticipantsView(ListView):
         return super().dispatch(request, *args, **kwargs)
 
 
+class JsonProgramLeadersView(View):
+    """ Give basic information about leaders for a program. """
+
+    @staticmethod
+    def describe_leaders(program_enum):
+        activity_enum = program_enum.required_activity()
+
+        ratings = (
+            models.LeaderRating.objects.filter(
+                activity=activity_enum.value, active=True
+            )
+            .select_related('participant')
+            # (On the off-chance there are duplicates, just take most recent)
+            .order_by('participant__id', '-time_created')
+            .distinct('participant_id')
+        )
+
+        for rating in ratings:
+            yield {
+                'id': rating.participant.pk,
+                'name': rating.participant.name,
+                'rating': rating.rating,
+            }
+
+    def get(self, context, **response_kwargs):
+        try:
+            program_enum = enums.Program(self.kwargs['program'])
+        except ValueError:
+            return JsonResponse({}, status=404)
+
+        return JsonResponse(
+            {
+                'leaders': sorted(
+                    self.describe_leaders(program_enum), key=lambda par: par['name']
+                )
+            }
+        )
+
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+
+# TODO: DEPRECATED, remove once trips are created with program, not activity
 class JsonAllLeadersView(AllLeadersView):
     """ Give basic information about leaders, viewable to the public. """
 

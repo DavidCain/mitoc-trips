@@ -604,8 +604,12 @@ class BaseRating(models.Model):
     rating = models.CharField(max_length=31)
     notes = models.TextField(max_length=500, blank=True)  # Contingencies, etc.
 
+    @property
+    def activity_enum(self):
+        return enums.Activity(self.activity)
+
     def __str__(self):
-        return "{} ({}, {})".format(self.participant, self.rating, self.activity)
+        return f"{self.participant.name} ({self.rating}, {self.activity})"
 
     class Meta:
         abstract = True

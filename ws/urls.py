@@ -357,11 +357,16 @@ urlpatterns = [
         group_required('WSC')(TemplateView.as_view(template_name='help/wsc/wsc.html')),
         name='help-wsc',
     ),
-    # API (must have account in system)
+    # API
     url(
         r'^leaders.json/(?:(?P<activity>.+)/)?$',
         api_views.JsonAllLeadersView.as_view(),
         name='json-leaders',
+    ),
+    url(
+        r'^programs/(?P<program>.+)/leaders.json$',
+        api_views.JsonProgramLeadersView.as_view(),
+        name='json-program-leaders',
     ),
     url(
         r'^participants.json/$',
