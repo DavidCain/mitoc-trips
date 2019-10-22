@@ -1,15 +1,15 @@
 <ui-select multiple data-ng-model="selected.leaders" data-theme="bootstrap" data-ng-disabled="disabled">
   <ui-select-match placeholder="Select person...">
   <span data-ng-class="{'invalid-leader': !$item.canLead}" data-ng-bind="$item.name"
-    data-uib-tooltip="{{ $item.name }} can't lead this type of trip"
+    data-uib-tooltip="{{ $item.name }} can't lead trips under this program"
     data-tooltip-enable="{{ !$item.canLead }}"
     data-tooltip-placement="bottom">
     </span>
   </ui-select-match>
-  <ui-select-choices data-repeat="person in filteredLeaders | propsFilter: {name: $select.search, rating: $select.search}">
+  <ui-select-choices data-repeat="person in programLeaders | propsFilter: {name: $select.search}">
     <span data-ng-bind-html="person.name | highlight: $select.search"></span>
-    <span data-ng-if="person.rating">
-      (<span data-ng-bind-html="''+ person.rating | highlight: $select.search"></span>)
+    <span data-ng-if="programRatings[person.id]">
+      (<span data-ng-bind-html="''+ programRatings[person.id] | highlight: $select.search"></span>)
     </span>
   </ui-select-choices>
 </ui-select>

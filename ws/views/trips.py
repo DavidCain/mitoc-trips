@@ -276,8 +276,7 @@ class EditTripView(UpdateView, TripLeadersOnlyView):
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         if not self.request.user.is_superuser:
-            allowed_activities = self.request.participant.allowed_activities
-            kwargs['allowed_activities'] = allowed_activities
+            kwargs['allowed_programs'] = list(self.request.participant.allowed_programs)
         return kwargs
 
     @property

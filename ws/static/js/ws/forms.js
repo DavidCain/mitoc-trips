@@ -421,40 +421,6 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
     }
   };
 })
-/* Expects leaders represented as in json-leaders. */
-.service('activityService', function() {
-  var open_activities = ['circus', 'official_event', 'course'];
-
-  var activityService = this;
-
-  /* Return if the activity is open to all leaders */
-  activityService.isOpen = function(activity) {
-    return _.includes(open_activities, activity);
-  };
-
-  /* Give a string representation of the leader's applicable rating.
-   *
-   * When the activity is Winter School, this might return 'B coC'
-   * When it's an open activity, an empty string will be returned
-   */
-  activityService.formatRating = function(activity, leader) {
-    if (!activity || activityService.isOpen(activity)) {
-      return "";
-    }
-    var leader_rating = _.find(leader.ratings, {activity: activity});
-    return leader_rating && leader_rating.rating;
-  };
-
-  /* Return if the person is rated to lead the activity. */
-  activityService.leaderRated = function(activity, leader) {
-    if (activityService.isOpen(activity)) {
-      return !!leader.ratings.length;
-    }
-
-    var rating = _.find(leader.ratings, {activity: activity});
-    return !!rating;
-  };
-})
 .directive('participantLookup', function($window) {
   return {
     restrict: 'E',
@@ -537,62 +503,112 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
     },
   };
 })
-.directive('leaderSelect', function($http, djangoUrl, filterFilter, activityService) {
+.directive('leaderSelect', function($http, $q, djangoUrl) {
   return {
     restrict: 'E',
     require: 'ngModel',
     scope: {
-      activity: '=?',
+      program: '=',
       leaders: '=ngModel',
       leaderIds: '=?',  // Existing IDs, supplied through widget
       name: '@'
     },
     templateUrl: '/static/template/leader-select.html',
     link: function (scope, element, attrs, ngModelCtrl) {
-      scope.selected = {};
+      scope.selected = {
+        leaders: [],
+      };
 
-      /* Fetch all leaders and their ratings */
-      var fetchLeaderList = function() {
-        $http.get(djangoUrl.reverse("json-leaders")).then(function (response) {
-          // Only select needed values, since we'll be storing array in scope
-          scope.allLeaders = _.map(response.data.leaders, function(leader) {
-            return _.pick(leader, ['id', 'name', 'ratings']);
-          });
+      // If leader IDs are passed in, it's an existing trip with an existing program.
+      scope.initialProgram = null;
 
-          // Match IDs of leaders (supplied in directive attr) to leaders
-          if (scope.leaderIds && scope.leaderIds.length) {
-            scope.selected.leaders = _.filter(scope.allLeaders, function(leader) {
-              return _.includes(scope.leaderIds, leader.id);
-            });
-            delete scope.leaderIds;  // Not used elsewhere, prevent doing this again
+      // A collection of all seen leaders, accessed by ID
+      scope.allLeaders = {};
+
+      // Just the leaders who are allowed to lead trips for this particular program
+      scope.programLeaders = [];
+
+      // Discard any other unneeded parameters - we only need ID for model, name for display
+      var nameAndId = function(par ) {
+        return {'id': par.id, 'name': par.name};
+      }
+
+      // Start by identifying any existing leaders passed in
+      // (This supports editing trips)
+      // NOTE: The back end will not let you save a trip if a former leader has lost privileges
+      var fetchInitialLeaders = function() {
+        if (!scope.leaderIds || !scope.leaderIds.length) {
+          return $q.when([]);  // No initial leaders.
+        }
+        var url = djangoUrl.reverse("json-participants");
+        var queryArgs = {'id': scope.leaderIds};
+
+        return $http.get(url, {params: queryArgs}).then(function (response) {
+          // Discard unneeded other params
+          return response.data.participants.map(nameAndId);
+        });
+      }
+
+      // Given a new iterable of leader objects, add them to the master mapping
+      // (this ensures that the master mapping keeps the same objects)
+      var addToLeaderMapping = function(leaders) {
+        _.each(leaders, function(leader) {
+          if (!_.has(scope.allLeaders, leader.id)) {
+            scope.allLeaders[leader.id] = nameAndId(leader);
           }
-          filterForActivity();
         });
       };
-      fetchLeaderList();  // Only called here, but could feasibly want to refresh
 
-      /* Filter the select options to only include leaders for the current activity
-       *
-       * Additionally, the `ratings` field present on all leaders will be replaced
-       * with their activity-appropriate rating.
-       */
-      var filterForActivity = function() {
-        if (!scope.allLeaders) {
+      var oneTimeInitialFetch = fetchInitialLeaders().then(function(initialLeaders) {
+        addToLeaderMapping(initialLeaders);
+        scope.selected.leaders = initialLeaders;
+        return initialLeaders;
+      });
+
+      // Every time the program changes, identify valid leaders
+      scope.$watch('program', function identifyValidLeaders(program) {
+        if (!program) {
           return;
         }
 
-        var filteredLeaders;
-        if (!scope.activity || activityService.isOpen(scope.activity)) {
-          scope.filteredLeaders = scope.allLeaders;
-        } else {
-          var hasRating = {ratings: {activity: scope.activity}};
-          scope.filteredLeaders = filterFilter(scope.allLeaders, hasRating);
+        // This is the first load of the given program!
+        if (scope.leaderIds && scope.initialProgram === null) {
+          scope.initialProgram = program;
         }
 
-        // Add a single 'rating' attribute that corresponds to the activity
-        // (for easy searching of leaders by rating)
-        _.each(scope.filteredLeaders, function(leader) {
-          leader.rating = activityService.formatRating(scope.activity, leader);
+        $q.all([oneTimeInitialFetch, fetchProgramLeaders()])
+          .then(function buildValidLeaders(promises) {
+            var programLeaders = promises[1];
+
+            scope.programRatings = {};
+            _.each(programLeaders, function(par) {
+              scope.programRatings[par.id] = par.rating;
+            });
+
+            // Add any previously unseen leaders to our directory
+            addToLeaderMapping(programLeaders);
+
+            // Make the programLeaders iterable contain the same objects.
+            scope.programLeaders = programLeaders.map(function(par) {
+              return scope.allLeaders[par.id];
+            });
+
+            // Just to be sure that reference integrity is maintained, explicitly translate.
+            scope.selected.leaders = _.map(scope.selected.leaders, function(par) {
+              return scope.allLeaders[par.id];
+            });
+
+            // Now validate that the selected leaders can lead this program
+            checkSelectedLeaders();
+            ngModelCtrl.$validate();
+          });
+      });
+
+      /* Fetch all leaders and their ratings for the program. */
+      var fetchProgramLeaders = function() {
+        var url = djangoUrl.reverse("json-program-leaders", [scope.program]);
+        return $http.get(url).then(function (response) {
+          return response.data.leaders;
         });
       };
 
@@ -601,9 +617,11 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
         return !(leaders && leaders.length);
       };
 
+      // Translate from the model's raw participant IDs to full objects.
+      // (maintains proper reference)
       ngModelCtrl.$formatters.push(function(modelValue) {
-        return _.filter(scope.allLeaders, function(leader) {
-          return _.includes(modelValue, leader.id);
+        return _.map(modelValue, function(leaderId) {
+          return scope.allLeaders[leaderId];
         });
       });
 
@@ -615,14 +633,13 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
        * or not they can lead the trip.
        */
       var checkSelectedLeaders = function() {
-        var checkLeader = _.partial(activityService.leaderRated, scope.activity);
+        var programLeaderIds = _.map(scope.programLeaders, 'id');
         _.each(scope.selected.leaders, function(leader) {
-          leader.canLead = checkLeader(leader);
+          leader.canLead = _.includes(programLeaderIds, leader.id);
         });
       };
 
       ngModelCtrl.$validators.leadersOkay = function(modelValue, viewValue) {
-
         // If we haven't yet checked everybody's ability to lead, do that now.
         viewValue.forEach(function(leader) {
           if (!_.has(leader, 'canLead')) {
@@ -633,13 +650,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
         return _.every(_.map(viewValue, 'canLead'));
       };
 
-      scope.$watch('activity', function(activity) {
-        filterForActivity();
-        checkSelectedLeaders();
-        ngModelCtrl.$validate();
-      });
-
-      scope.$watch('selected.leaders', function() {
+      scope.$watch('selected.leaders', function(newValue, oldValue) {
         ngModelCtrl.$setViewValue(scope.selected.leaders);
       });
 

@@ -65,7 +65,7 @@ class BootstrapDateInput(dj_widgets.DateInput):
 
 class LeaderSelect(dj_widgets.SelectMultiple):
     def render(self, name, value, attrs=None, choices=()):
-        attrs.update(activity='activity', name=name)
+        attrs.update(program='program', name=name)
         if value:
             attrs['leader-ids'] = json.dumps(value)
         final_attrs = flatatt(self.build_attrs(self.attrs, attrs))
