@@ -450,7 +450,7 @@ class AttendedLecturesForm(forms.Form):
 class WinterSchoolSettingsForm(DjangularRequiredModelForm):
     class Meta:
         model = models.WinterSchoolSettings
-        fields = ['allow_setting_attendance']
+        fields = ['allow_setting_attendance', 'accept_applications']
 
 
 def LeaderApplicationForm(*args, **kwargs):

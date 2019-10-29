@@ -548,6 +548,9 @@ class WinterSchoolSettings(SingletonModel):
     allow_setting_attendance = models.BooleanField(
         default=False, verbose_name="Let participants set lecture attendance"
     )
+    accept_applications = models.BooleanField(
+        default=True, verbose_name="Accept new Winter School leader applications"
+    )
 
 
 class MentorActivity(models.Model):
