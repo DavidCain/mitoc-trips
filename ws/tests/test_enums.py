@@ -61,3 +61,13 @@ class TripTypeTest(unittest.TestCase):
             all_choices(enums.TripType.choices()),
             [trip_type.value for trip_type in enums.TripType],
         )
+
+
+class ActivityTest(unittest.TestCase):
+    def test_every_activity_has_label(self):
+        for activity in enums.Activity:
+            self.assertTrue(activity.label)
+
+    def test_is_winter_school(self):
+        self.assertFalse(enums.Activity.CLIMBING.is_winter_school())
+        self.assertTrue(enums.Activity.WINTER_SCHOOL.is_winter_school())

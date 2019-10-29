@@ -23,7 +23,7 @@ from django.views.generic.edit import FormMixin
 
 import ws.utils.perms as perm_utils
 import ws.utils.ratings as ratings_utils
-from ws import forms, models
+from ws import enums, forms, models
 from ws.decorators import chairs_only, user_info_required
 
 
@@ -107,14 +107,22 @@ class LeaderApplyView(LeaderApplicationMixin, CreateView):
         """ Get any existing application and rating. """
         context = super().get_context_data(**kwargs)
 
+        context['activity_enum'] = enums.Activity(self.activity)
         context['year'] = self.application_year
         existing = self.get_queryset().filter(participant=self.par)
+
+        accepting_apps = models.LeaderApplication.accepting_applications(self.activity)
+        context['accepting_applications'] = accepting_apps
+
         if existing:
             app = existing.order_by('-time_created').first()
             context['application'] = app
-            context['can_apply'] = models.LeaderApplication.can_reapply(app)
+            # TODO: Move this validation into the form/route too.
+            can_apply = accepting_apps and models.LeaderApplication.can_reapply(app)
+            context['can_apply'] = can_apply
         else:
-            context['can_apply'] = True
+            context['can_apply'] = accepting_apps
+
         return context
 
     @method_decorator(user_info_required)
@@ -153,6 +161,9 @@ class AllLeaderApplicationsView(ApplicationManager, ListView):
         context['needs_rec'] = self.needs_rec(apps)
         context['needs_rating'] = self.needs_rating(apps)
         context['pending'] = context['needs_rating'] or context['needs_rec']
+        context['activity_enum'] = enums.Activity(self.kwargs['activity'])
+        accepting_apps = models.LeaderApplication.accepting_applications(self.activity)
+        context['new_applications_disabled'] = not accepting_apps
 
         context['apps_by_year'] = self._group_applications_by_year(apps)
         return context
@@ -163,7 +174,11 @@ class AllLeaderApplicationsView(ApplicationManager, ListView):
         if not perm_utils.chair_or_admin(request.user, activity):
             raise PermissionDenied
         if not models.LeaderApplication.can_apply_for_activity(self.activity):
-            context = {'missing_form': True, 'activity': self.activity}
+            context = {
+                'missing_form': True,
+                'activity': self.activity,
+                'activity_enum': enums.Activity(self.activity),
+            }
             return render(request, self.template_name, context)
         return super().dispatch(request, *args, **kwargs)
 

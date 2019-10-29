@@ -1,6 +1,15 @@
+import re
+
 from bs4 import BeautifulSoup
+from freezegun import freeze_time
 
 from ws.tests import TestCase, factories
+
+WHITESPACE = re.compile(r'[\n\s]+')
+
+
+def strip_whitespace(text):
+    return re.sub(WHITESPACE, ' ', text).strip()
 
 
 class Helpers:
@@ -23,7 +32,9 @@ class ClimbingLeaderApplicationTest(TestCase, Helpers):
             'In addition to this form, we require that applicants have '
             'two recommendations from current MITOC climbing leaders.'
         )
-        self.assertEqual(soup.find('h1').text, 'Climbing Leader Application')
+        self.assertEqual(
+            strip_whitespace(soup.find('h1').text), 'Climbing Leader Application'
+        )
         self.assertEqual(soup.find('p').text, expected_preamble)
 
     def test_key_fields_hidden(self):
@@ -37,3 +48,17 @@ class ClimbingLeaderApplicationTest(TestCase, Helpers):
         self.assertFalse(soup.find('input', attrs={'name': 'participant'}))
         # Previous rating is provided by the system.
         self.assertFalse(soup.find('input', attrs={'name': 'previous_rating'}))
+
+
+@freeze_time("2020-10-20 14:56:00 EST")
+class WinterSchoolLeaderApplicationTest(TestCase, Helpers):
+    def setUp(self):
+        self.participant = factories.ParticipantFactory.create()
+        self.client.force_login(self.participant.user)
+
+    def test_title(self):
+        _response, soup = self._get('/winter_school/leaders/apply/')
+        self.assertEqual(
+            strip_whitespace(soup.find('h1').text),
+            'Winter School 2021 Leader Application',
+        )

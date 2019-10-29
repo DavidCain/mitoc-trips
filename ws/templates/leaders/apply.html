@@ -6,11 +6,16 @@
 {% block content %}
 {{ block.super }}
 
-{% if activity == 'winter_school' %}
-  <h1>Winter School {{ year }} Leader Application</h1>
-{% else %}
-  <h1>{{ activity|title }} Leader Application</h1>
-{% endif %}
+<h1>
+  {{ activity_enum.label }}
+  {% if activity_enum.is_winter_school %}
+    {{ year }}
+  {% endif %}
+  Leader Application
+  {% if not accepting_applications %}
+   - Closed!
+  {% endif %}
+</h1>
 
 {% if application %}
   {% application_status application can_apply %}
@@ -18,6 +23,27 @@
 
 {% if can_apply %}
   {% application_description activity %}
+
+{# We don't need to explain to somebody that applications are closed if they recently submitted one. #}
+{% elif not application and not accepting_applications %}
+  <p class="lead">
+    Applications are not currently being accepted.
+  </p>
+  {% if activity_enum.is_winter_school %}
+    <p>
+      Winter School leader applications are reviewed each year in November.
+    </p>
+
+    <p>
+      Interested in becoming a leader during the next Winter School?
+      Subscribe to our <a href="https://mitoc.mit.edu/#mailing-lists">mailing lists</a> to be notified when applications are open!
+    </p>
+
+    <p>
+      If you have any other questions, please <a href="{% url 'contact' %}">contact us</a>.
+    </p>
+  {% endif %}
+
 {% endif %}
 
 <div class="row">
@@ -28,7 +54,7 @@
 
       <form name="{{ form.form_name }}" method="post" action="." novalidate data-submit-if-valid>
         {% csrf_token %}
-        {% if activity == 'winter_school' %}
+        {% if activity_enum.is_winter_school %}
           {% ws_application form %}
         {% else %}
           {{ form.as_div }}

@@ -5,6 +5,17 @@
 {% block content %}
 {{ block.super }}
 
+{# Show a notice if applications are disabled, plus a link to re-enable submission. #}
+{% if new_applications_disabled and not needs_rec %}
+  <div class="alert alert-warning">
+    Participants are currently blocked from submitting new leader applications.
+
+    {% if activity_enum.is_winter_school %}
+      <a href="{% url 'ws_settings' %}">Allow leaders to create new applications?</a>
+    {% endif %}
+  </div>
+{% endif %}
+
 {% if not pending %}
   <h2>Leader Applications</h2>
   <p class="lead">
@@ -13,7 +24,7 @@
 
   {% if missing_form %}
     <div class="alert alert-warning">
-      <p>You don't have any application form defined for your activity!</p>
+      <p>You don't have any application form defined for {{ activity_enum.label }}!</p>
 
       <p>
         If you'd like to enable leader applications through the web site, prepare

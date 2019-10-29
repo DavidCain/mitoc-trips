@@ -23,6 +23,20 @@ class Activity(enum.Enum):
     HIKING = 'hiking'
     WINTER_SCHOOL = 'winter_school'
 
+    def label(self):
+        mapping = {
+            self.BIKING: 'Biking',
+            self.BOATING: 'Boating',
+            self.CABIN: 'Cabin',
+            self.CLIMBING: 'Climbing',
+            self.HIKING: 'Hiking',
+            self.WINTER_SCHOOL: 'Winter School',
+        }
+        return mapping[self]
+
+    def is_winter_school(self):
+        return self == self.WINTER_SCHOOL
+
 
 @enum.unique
 class Program(enum.Enum):

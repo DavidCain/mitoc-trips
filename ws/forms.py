@@ -455,7 +455,7 @@ class WinterSchoolSettingsForm(DjangularRequiredModelForm):
 
 def LeaderApplicationForm(*args, **kwargs):
     """ Factory form for applying to be a leader in any activity. """
-    activity = kwargs.pop('activity', 'winter_school')
+    activity = kwargs.pop('activity')
 
     class DynamicActivityForm(DjangularRequiredModelForm):
         class Meta:
@@ -466,6 +466,12 @@ def LeaderApplicationForm(*args, **kwargs):
                 for field in model._meta.fields  # pylint: disable=protected-access
                 if isinstance(field, TextField)
             }
+
+        def clean(self):
+            cleaned_data = super().clean()
+            if not models.LeaderApplication.accepting_applications(activity):
+                raise ValidationError("Not currently accepting applications!")
+            return cleaned_data
 
         def __init__(self, *args, **kwargs):
             # TODO: Errors on args, where args is a single tuple of the view
