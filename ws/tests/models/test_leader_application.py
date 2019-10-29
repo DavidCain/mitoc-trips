@@ -1,7 +1,64 @@
 from freezegun import freeze_time
 
-from ws import models
+from ws import enums, models
 from ws.tests import TestCase, factories
+
+ACTIVITIES_WITH_APPLICATIONS = [
+    enums.Activity.CLIMBING,
+    enums.Activity.HIKING,
+    enums.Activity.WINTER_SCHOOL,
+]
+
+ACTIVITIES_WITHOUT_APPLICATIONS = [
+    enums.Activity.BIKING,
+    enums.Activity.BOATING,
+    enums.Activity.CABIN,
+]
+
+
+class AcceptingApplicationsTest(TestCase):
+    def test_enumerations_comprehensive(self):
+        """ The above categorizations are comprehensive. """
+        self.assertCountEqual(
+            enums.Activity,
+            [*ACTIVITIES_WITH_APPLICATIONS, *ACTIVITIES_WITHOUT_APPLICATIONS],
+        )
+
+    def test_no_form_not_accepting(self):
+        """ Activities without a defined form are not accepting applications. """
+        for activity_enum in ACTIVITIES_WITHOUT_APPLICATIONS:
+            activity = activity_enum.value
+            self.assertFalse(models.LeaderApplication.can_apply_for_activity(activity))
+            self.assertFalse(models.LeaderApplication.accepting_applications(activity))
+
+    def test_always_accepting(self):
+        """ Some activities are always accepting applications. """
+        self.assertTrue(
+            models.LeaderApplication.accepting_applications(
+                enums.Activity.CLIMBING.value
+            )
+        )
+        self.assertTrue(
+            models.LeaderApplication.accepting_applications(enums.Activity.HIKING.value)
+        )
+
+    def test_ws_accepting_by_default(self):
+        # Settings don't exist to begin with (they'll be created on first access)
+        self.assertFalse(models.WinterSchoolSettings.objects.exists())
+        self.assertTrue(
+            models.LeaderApplication.accepting_applications(
+                enums.Activity.WINTER_SCHOOL.value
+            )
+        )
+
+        ws_settings = models.WinterSchoolSettings.load()
+        self.assertTrue(ws_settings.accept_applications)
+
+    def test_ws_not_accepting(self):
+        ws_settings = models.WinterSchoolSettings.load()
+        ws_settings.accept_applications = False
+        ws_settings.save()
+        self.assertFalse(ws_settings.accept_applications)
 
 
 class CanReapplyTest(TestCase):

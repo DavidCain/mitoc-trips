@@ -119,7 +119,8 @@ class LeaderApplyView(LeaderApplicationMixin, CreateView):
 
     @method_decorator(user_info_required)
     def dispatch(self, request, *args, **kwargs):
-        if not models.LeaderApplication.can_apply(kwargs.get('activity')):
+        activity = kwargs.get('activity')
+        if not models.LeaderApplication.can_apply_for_activity(activity):
             raise Http404
         return super().dispatch(request, *args, **kwargs)
 
@@ -161,7 +162,7 @@ class AllLeaderApplicationsView(ApplicationManager, ListView):
         activity = kwargs.get('activity')
         if not perm_utils.chair_or_admin(request.user, activity):
             raise PermissionDenied
-        if not models.LeaderApplication.can_apply(self.activity):
+        if not models.LeaderApplication.can_apply_for_activity(self.activity):
             context = {'missing_form': True, 'activity': self.activity}
             return render(request, self.template_name, context)
         return super().dispatch(request, *args, **kwargs)

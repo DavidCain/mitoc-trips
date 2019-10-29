@@ -1267,8 +1267,22 @@ class LeaderApplication(models.Model):
             return dateutils.ws_year()
         return dateutils.local_date().year
 
+    @classmethod
+    def accepting_applications(cls, activity):
+        application_defined = cls.can_apply_for_activity(activity)
+        if activity != enums.Activity.WINTER_SCHOOL.value:
+            # For non-WS activity types, it's sufficient to just have a form defined.
+            # (These activities do not support turning on & off the ability to apply)
+            return application_defined
+
+        # WinterSchoolLeaderApplication is clearly defined.
+        assert application_defined, "Winter School application not defined!"
+
+        ws_settings = WinterSchoolSettings.load()
+        return ws_settings.accept_applications
+
     @staticmethod
-    def can_apply(activity):
+    def can_apply_for_activity(activity):
         """ Return if an application exists for the activity. """
         if activity not in LeaderRating.CLOSED_ACTIVITIES:
             return False
