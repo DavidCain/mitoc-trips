@@ -459,7 +459,7 @@ def LeaderApplicationForm(*args, **kwargs):
 
     class DynamicActivityForm(DjangularRequiredModelForm):
         class Meta:
-            exclude = ['year', 'participant', 'previous_rating']
+            exclude = ['archived', 'year', 'participant', 'previous_rating']
             model = models.LeaderApplication.model_from_activity(activity)
             widgets = {
                 field.name: forms.Textarea(attrs={'rows': 4})
