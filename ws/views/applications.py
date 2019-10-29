@@ -90,6 +90,10 @@ class LeaderApplyView(LeaderApplicationMixin, CreateView):
     def par(self):
         return self.request.participant
 
+    @property
+    def application_year(self):
+        return models.LeaderApplication.application_year_for_activity(self.activity)
+
     def form_valid(self, form):
         """ Link the application to the submitting participant. """
         application = form.save(commit=False)
@@ -108,7 +112,7 @@ class LeaderApplyView(LeaderApplicationMixin, CreateView):
         if existing:
             app = existing.order_by('-time_created').first()
             context['application'] = app
-            context['can_apply'] = self.can_reapply(app)
+            context['can_apply'] = models.LeaderApplication.can_reapply(app)
         else:
             context['can_apply'] = True
         return context

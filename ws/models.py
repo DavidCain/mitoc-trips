@@ -1258,9 +1258,9 @@ class LeaderApplication(models.Model):
             self.activity, must_be_active=True, after_time=self.time_created
         )
 
-    @property
-    def application_year(self):
-        if self.activity == LeaderRating.WINTER_SCHOOL:
+    @classmethod
+    def application_year_for_activity(cls, activity):
+        if activity == LeaderRating.WINTER_SCHOOL:
             return dateutils.ws_year()
         return dateutils.local_date().year
 
@@ -1270,6 +1270,18 @@ class LeaderApplication(models.Model):
         if activity not in LeaderRating.CLOSED_ACTIVITIES:
             return False
         return bool(LeaderApplication.model_from_activity(activity))
+
+    @classmethod
+    def can_reapply(cls, latest_application):
+        """ Return if a participant can re-apply to the activity, given their latest application.
+
+        This implements the default behavior for most activities.
+        Other application types may subclass to implement their own behavior!
+        """
+        # Allow upgrades after 2 weeks, repeat applications after ~6 months
+        waiting_period_days = 14 if latest_application.rating_given else 180
+        time_passed = dateutils.local_now() - latest_application.time_created
+        return time_passed > timedelta(days=waiting_period_days)
 
     @property
     def activity(self):
@@ -1435,6 +1447,11 @@ class WinterSchoolLeaderApplication(LeaderApplication):
         max_length=5000,
         help_text="What are you looking to get out of the mentorship program?",
     )
+
+    @classmethod
+    def can_reapply(cls, latest_application):
+        """ Participants may only apply once per year to be a WS leader! """
+        return latest_application.year < dateutils.ws_year()
 
 
 class ClimbingLeaderApplication(LeaderApplication):

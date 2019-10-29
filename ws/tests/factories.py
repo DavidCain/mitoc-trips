@@ -222,3 +222,18 @@ class ClimbingLeaderApplicationFactory(DjangoModelFactory):
     notable_climbs = "The Nose of El Capitan"
     favorite_route = "Jaws II"
     extra_info = "An extinct giant sloth is largely responsible for the existence of the avocado."
+
+
+class WinterSchoolLeaderApplicationFactory(DjangoModelFactory):
+    class Meta:
+        model = models.WinterSchoolLeaderApplication
+
+    participant = factory.SubFactory(ParticipantFactory)
+    desired_rating = "B coC"
+    taking_wfa = "No"
+    training = "EMT Basic"
+    technical_skills = "I know how to self arrest"
+    winter_experience = "Several years hiking in the Whites"
+    ice_experience = ""  # (No experience)
+    ski_experience = ""  # (No experience)
+    other_experience = "Leader in my college outing club"
