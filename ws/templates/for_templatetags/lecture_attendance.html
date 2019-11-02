@@ -26,7 +26,7 @@
             <p>
             Past years' attendance:
             {% for record in past_attendance %}
-              <span class="label label-success"><i class="fas fa-fw fa-check"></i>{{ record.year }}</span>
+              <span class="label label-success"><i class="fas fa-fw fa-check"></i><span>{{ record.year }}</span></span>
             {% endfor %}
             </p>
           {% endif %}
@@ -40,17 +40,19 @@
   </form>
 {% else %}  {# Any leader can see that the participant was absent. #}
   <h3>Lecture Attendance</h3>
-  <p>
-    <span class="label label-danger">Absent</span>
-    {% if user_viewing %}You{% else %}{{ participant.name }}{% endif %} did not attend this year's lectures!
+    <p>
+      <span class="label label-danger">Absent</span>
+      {% if user_viewing %}You{% else %}{{ participant.name }}{% endif %} did not attend this year's lectures!
+    </p>
+
     {% if user_viewing %}
       <div class="alert alert-danger">
-        <p>You <strong>must</strong> attend lectures each year in order to participate in Winter School.
-        If you did indeed attend this year's lectures, please contact the
-        the <a href="mailto:ws-chair@mit.edu">Winter School chair</a>.
+        <p>
+          You <strong>must</strong> attend lectures each year in order to participate in Winter School.
+          If you did indeed attend this year's lectures, please contact
+          the <a href="mailto:ws-chair@mit.edu">Winter School chair</a>.
         </p>
       </div>
-      </p>
     {% endif %}
   </p>
 

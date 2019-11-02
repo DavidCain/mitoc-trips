@@ -8,7 +8,7 @@ register = template.Library()
 
 
 @register.inclusion_tag('for_templatetags/lecture_attendance.html')
-def lecture_attendance(participant, user_viewing, can_set_attendance=False):
+def lecture_attendance(participant, user_viewing: bool, can_set_attendance=False):
     """ Show the participant's record for Winter School lecture attendance.
 
     If allowed, let the user change said participant's attendance.

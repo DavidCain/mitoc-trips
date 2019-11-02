@@ -237,3 +237,11 @@ class WinterSchoolLeaderApplicationFactory(DjangoModelFactory):
     ice_experience = ""  # (No experience)
     ski_experience = ""  # (No experience)
     other_experience = "Leader in my college outing club"
+
+
+class LectureAttendanceFactory(DjangoModelFactory):
+    class Meta:
+        model = models.LectureAttendance
+
+    participant = factory.SubFactory(ParticipantFactory)
+    creator = factory.SubFactory(ParticipantFactory)
