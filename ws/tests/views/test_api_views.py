@@ -1,3 +1,5 @@
+from unittest import mock
+
 from freezegun import freeze_time
 
 from ws import enums
@@ -106,4 +108,76 @@ class JsonProgramLeadersViewTest(TestCase):
         self.assertEqual(
             response.json(),
             {'leaders': [{'id': par.pk, 'name': 'Steve O', 'rating': 'C'}]},
+        )
+
+
+class JsonParticipantsTest(TestCase):
+    def setUp(self):
+        super().setUp()
+        self.participant = factories.ParticipantFactory.create(
+            name="Mr. Bolton", email="michael@example.com"
+        )
+        self.client.force_login(self.participant.user)
+
+    def test_just_user(self):
+        user = factories.UserFactory.create()
+        self.client.force_login(user)
+        response = self.client.get('/participants.json')
+        self.assertEqual(response.status_code, 403)
+
+    def test_unauthenticated(self):
+        self.client.logout()
+        response = self.client.get('/participants.json')
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, "/accounts/login/?next=/participants.json")
+
+    @staticmethod
+    def _expect(par):
+        return {
+            'id': par.pk,
+            'name': par.name,
+            'email': par.email,
+            'avatar': mock.ANY,  # (we test elsewhere)
+        }
+
+    def test_search(self):
+        michaela = factories.ParticipantFactory.create(name="Michaela the MITOCer")
+        michele = factories.ParticipantFactory.create(name="Michele da Italia")
+        miguel = factories.ParticipantFactory.create(name="Miguel Michele")
+        factories.ParticipantFactory.create(name="Aaron Blake")
+
+        searcher = {
+            'id': self.participant.pk,
+            'name': 'Mr. Bolton',
+            'email': 'michael@example.com',  # Match was on email, not name
+            'avatar': 'https://www.gravatar.com/avatar/03ea78c0884c9ac0f73e6af7b9649e90?d=mm&s=200&r=pg',
+        }
+
+        others = [self._expect(michaela), self._expect(michele), self._expect(miguel)]
+
+        # Search for something nobody will match on.
+        response = self.client.get('/participants.json?search=Michelada')
+        self.assertEqual(response.json(), {'participants': []})
+
+        # Search everybody matching 'mich' (matches all but Aaron)
+        response = self.client.get('/participants.json?search=Mich')
+        matches = response.json()['participants']
+        # TODO: Once using FTS or something, assert order.
+        # For now, we just return in any given order.
+        self.assertCountEqual(matches, [searcher, *others])
+
+        # Exclude self when searching
+        response = self.client.get('/participants.json?search=Mich&exclude_self=1')
+        no_self_matches = response.json()['participants']
+        self.assertCountEqual(no_self_matches, others)
+
+    def test_exact_id(self):
+        """ Participants can be queried by an exact ID. """
+        one = factories.ParticipantFactory.create()
+        two = factories.ParticipantFactory.create()
+        factories.ParticipantFactory.create()
+
+        response = self.client.get(f'/participants.json?id={one.pk}&id={two.pk}')
+        self.assertEqual(
+            response.json(), {'participants': [self._expect(one), self._expect(two)]}
         )

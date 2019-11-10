@@ -331,7 +331,7 @@ class LeaderParticipantSignupView(
         )
 
 
-class JsonAllParticipantsView(ListView):
+class JsonParticipantsView(ListView):
     model = models.Participant
 
     def top_matches(self, search=None, exclude_self=False, max_results=20):
@@ -345,7 +345,15 @@ class JsonAllParticipantsView(ListView):
         if exclude_self:
             participants = participants.exclude(pk=self.request.participant.pk)
 
-        for participant in participants[:max_results]:
+        yield from self._serialize_participants(participants[:max_results])
+
+    def from_pk(self, participant_ids):
+        participants = self.get_queryset().filter(pk__in=participant_ids)
+        yield from self._serialize_participants(participants)
+
+    @staticmethod
+    def _serialize_participants(participants):
+        for participant in participants:
             yield {
                 'id': participant.pk,
                 'name': participant.name,
@@ -354,11 +362,17 @@ class JsonAllParticipantsView(ListView):
             }
 
     def render_to_response(self, context, **response_kwargs):
-        search = self.request.GET.get('search')
-        exclude_self = self.request.GET.get('exclude_self')
-        matches = self.top_matches(search, exclude_self)
+        participant_ids = self.request.GET.getlist('id')
+        if participant_ids:
+            matches = self.from_pk(participant_ids)
+        else:
+            search = self.request.GET.get('search')
+            exclude_self = bool(self.request.GET.get('exclude_self'))
+            matches = self.top_matches(search, exclude_self)
+
         return JsonResponse({'participants': list(matches)})
 
+    @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         """ Participant object must exist, but it need not be current. """
         if not self.request.participant:

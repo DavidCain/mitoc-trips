@@ -369,8 +369,8 @@ urlpatterns = [
         name='json-program-leaders',
     ),
     url(
-        r'^participants.json/$',
-        api_views.JsonAllParticipantsView.as_view(),
+        r'^participants.json$',
+        api_views.JsonParticipantsView.as_view(),
         name='json-participants',
     ),
     url(
