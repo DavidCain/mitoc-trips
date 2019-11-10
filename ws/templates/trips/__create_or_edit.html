@@ -59,6 +59,7 @@
         </div>
       </div>
 
+      {# Note: infinite recursion is caused here with the datepicker on jQuery 3.4.x #}
       {% form_group form.trip_date %}
 
       {% form_group form.algorithm %}
