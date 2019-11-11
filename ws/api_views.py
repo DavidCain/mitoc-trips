@@ -387,21 +387,22 @@ class JsonProgramLeadersView(View):
     def describe_leaders(program_enum):
         activity_enum = program_enum.required_activity()
 
+        leaders = models.LeaderRating.objects.filter(active=True)
+        if activity_enum:
+            leaders = leaders.filter(activity=activity_enum.value)
+
         ratings = (
-            models.LeaderRating.objects.filter(
-                activity=activity_enum.value, active=True
-            )
-            .select_related('participant')
-            # (On the off-chance there are duplicates, just take most recent)
-            .order_by('participant__id', '-time_created')
-            .distinct('participant_id')
+            leaders.select_related('participant')
+            # (If there are duplicates activity ratings for an activity, just take most recent)
+            # (If we have an open program, the leader may have multiple ratings -- just pick one)
+            .order_by('participant__id', '-time_created').distinct('participant_id')
         )
 
         for rating in ratings:
             yield {
                 'id': rating.participant.pk,
                 'name': rating.participant.name,
-                'rating': rating.rating,
+                'rating': rating.rating if activity_enum else None,
             }
 
     def get(self, context, **response_kwargs):

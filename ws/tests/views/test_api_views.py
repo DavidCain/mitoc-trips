@@ -32,6 +32,40 @@ class JsonProgramLeadersViewTest(TestCase):
         response = self.client.get('/programs/climbing/leaders.json')
         self.assertEqual(response.json(), {'leaders': []})
 
+    def test_open_program(self):
+        """ Any active leader is allowed for an open program. """
+        factories.LeaderRatingFactory.create(
+            rating='Inactive', activity=enums.Activity.BIKING.value, active=False
+        )
+        h = factories.LeaderRatingFactory.create(
+            participant__name='Hiker',
+            rating='Leader',
+            activity=enums.Activity.HIKING.value,
+        )
+        c = factories.LeaderRatingFactory.create(
+            participant__name='Climber',
+            rating='Sport',
+            activity=enums.Activity.CLIMBING.value,
+        )
+        # Climbing leader is also a leader on a different activity!
+        # (they will not be counted twice)
+        factories.LeaderRatingFactory.create(
+            participant=c.participant,
+            rating='Downhill',
+            activity=enums.Activity.BIKING.value,
+        )
+
+        response = self.client.get('/programs/circus/leaders.json')
+        self.assertEqual(
+            response.json(),
+            {
+                'leaders': [
+                    {'id': c.participant_id, 'name': 'Climber', 'rating': None},
+                    {'id': h.participant_id, 'name': 'Hiker', 'rating': None},
+                ]
+            },
+        )
+
     def test_alphabetical(self):
         """ Leaders are sorted by name. """
         c = factories.LeaderRatingFactory.create(participant__name='Carl', rating='A')
