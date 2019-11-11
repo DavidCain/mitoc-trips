@@ -2,7 +2,7 @@ import functools
 
 from django.contrib.auth.models import Group, User
 
-from ws import models
+from ws import enums
 
 
 # This is technically only accurate when starting the web server,
@@ -35,21 +35,10 @@ def leader_on_trip(participant, trip, creator_allowed=False):
     return creator_allowed and participant == trip.creator
 
 
-def chair_group(activity):
-    if activity in models.LeaderRating.OPEN_ACTIVITIES:
-        raise ValueError("Open activities don't have chairs")
-
-    if activity == 'winter_school':
+def chair_group(activity_enum):
+    if activity_enum == enums.Activity.WINTER_SCHOOL:
         return 'WSC'
-    return activity + '_chair'
-
-
-def activity_name(activity):
-    """ Human-readable activity name.
-
-    'winter_school' -> 'Winter School'
-    """
-    return activity.replace('_', ' ').title()
+    return activity_enum.value + '_chair'
 
 
 def in_any_group(user, group_names, allow_superusers=True):
@@ -70,44 +59,42 @@ def in_any_group(user, group_names, allow_superusers=True):
     return any(g in group_names for g in search_groups)
 
 
-def make_chair(user, activity_type):
+def make_chair(user, activity_enum):
     """ Make the given user an activity chair! """
-    group_name = chair_group(activity_type)  # Raises ValueError on invalid activity
+    group_name = chair_group(activity_enum)  # Raises ValueError on invalid activity
     Group.objects.get(name=group_name).user_set.add(user)
 
 
-def is_chair(user, activity_type, allow_superusers=True):
+def is_chair(user, activity_enum, allow_superusers=True):
     """ Return if the activity has chairs, and the user is one.
 
     If the user is an admin, return True if and only if that activity
     has chairs (e.g. even an admin can't be the chair of 'official events').
     """
-    if activity_type in models.LeaderRating.OPEN_ACTIVITIES:
-        return False  # By definition, these don't have chairs
-    return in_any_group(user, [chair_group(activity_type)], allow_superusers)
+    if activity_enum is None:
+        return False
+    return in_any_group(user, [chair_group(activity_enum)], allow_superusers)
 
 
-def chair_or_admin(user, activity_type):
+def chair_or_admin(user, activity_enum):
     """ Return if the user is the chair of the activity, or if they're an admin.
 
     This is needed because some activity types (open activities) don't have
     any chairs by definition, but we still want to grant admins access as if
     they were activity chairs.
     """
-    # TODO: It's possible that we return `True` on a non-existent activity
-    # Just replace this with the is_chair call with allow_superusers=True
-    return True if user.is_superuser else is_chair(user, activity_type, True)
+    return True if user.is_superuser else is_chair(user, activity_enum, True)
 
 
-def num_chairs(activity):
-    group = chair_group(activity)
+def num_chairs(activity_enum):
+    group = chair_group(activity_enum)
     return User.objects.filter(groups__name=group).count()
 
 
 def chair_activities(user, allow_superusers=False):
     """ All activities for which the user is the chair. """
     return [
-        activity
-        for activity in models.LeaderRating.CLOSED_ACTIVITIES
-        if is_chair(user, activity, allow_superusers)
+        activity_enum
+        for activity_enum in enums.Activity
+        if is_chair(user, activity_enum, allow_superusers)
     ]

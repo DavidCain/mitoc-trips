@@ -3,7 +3,7 @@
   {% if trip.upcoming %}
     <div class="alert alert-info">
       Please ensure that you have all
-      {% if trip.activity == 'winter_school' %}
+      {% if trip.program == 'winter_school' %}
         <a href="{% url 'help-ws_gear' %}">required safety gear</a>
       {% else %}
         required safety gear

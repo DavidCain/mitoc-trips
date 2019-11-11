@@ -9,14 +9,12 @@ from django.urls import reverse, reverse_lazy
 from django.utils.decorators import available_attrs
 
 import ws.utils.perms as perm_utils
-from ws import models
+from ws import enums
 
 
-def chairs_only(*activity_types, **kwargs):
-    if not activity_types:
-        activity_types = models.LeaderRating.CLOSED_ACTIVITIES
-    groups = {perm_utils.chair_group(activity) for activity in activity_types}
-    return group_required(*groups, **kwargs)
+def chairs_only():
+    groups = {perm_utils.chair_group(activity_enum) for activity_enum in enums.Activity}
+    return group_required(*groups)
 
 
 def profile_needs_update(request):

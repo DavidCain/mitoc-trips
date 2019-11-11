@@ -154,7 +154,7 @@ class TripFactory(DjangoModelFactory):
     description = "An awesome trip into the Whites"
     difficulty_rating = "Intermediate"
     level = "B"
-    activity = "winter_school"
+    activity = "winter_school"  # TODO: Remove!
     trip_type = enums.TripType.HIKING.value
     program = enums.Program.WINTER_SCHOOL.value
     creator = factory.SubFactory(ParticipantFactory)

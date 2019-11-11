@@ -9,6 +9,7 @@ For views relating to the leader application process, see ws.views.applications
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.db.models import Max
+from django.http import Http404
 from django.shortcuts import redirect
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
@@ -16,7 +17,7 @@ from django.views.generic import CreateView, ListView, View
 
 import ws.utils.perms as perm_utils
 import ws.utils.ratings as ratings_utils
-from ws import forms, models
+from ws import enums, forms, models
 from ws.decorators import chairs_only, group_required
 
 
@@ -32,11 +33,11 @@ class AllLeadersView(ListView):
     def get_context_data(self, **kwargs):
         context_data = super().get_context_data(**kwargs)
 
-        closed_activities = models.LeaderRating.CLOSED_ACTIVITY_CHOICES
-        activities = [
-            (val, label) for (val, label) in closed_activities if val != 'cabin'
+        context_data['activities'] = [
+            (activity_enum.value, activity_enum.label)
+            for activity_enum in enums.Activity
+            if activity_enum != enums.Activity.CABIN
         ]
-        context_data['activities'] = activities
         return context_data
 
     @method_decorator(group_required('leaders'))
@@ -88,10 +89,18 @@ class OnlyForActivityChair(View):
         """ The activity, should be verified by the dispatch method. """
         return self.kwargs['activity']
 
+    @property
+    def activity_enum(self):
+        return enums.Activity(self.kwargs['activity'])
+
     @method_decorator(chairs_only())
     def dispatch(self, request, *args, **kwargs):
-        activity = kwargs.get('activity')
-        if not perm_utils.chair_or_admin(request.user, activity):
+        try:
+            activity_enum = enums.Activity(kwargs.get('activity'))
+        except ValueError:
+            raise Http404
+
+        if not perm_utils.chair_or_admin(request.user, activity_enum):
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
 
@@ -123,7 +132,7 @@ class DeactivateLeaderRatingsView(OnlyForActivityChair):
             rating.active = False
             rating.save()  # Do a single update (not bulk) to trigger signals
         removed_names = ', '.join(rating.participant.name for rating in ratings)
-        msg = "Removed {} rating for {}".format(self.activity, removed_names)
+        msg = f"Removed {self.activity_enum.label} rating for {removed_names}"
         messages.success(request, msg)
         return self._success()
 
@@ -153,7 +162,7 @@ class ActivityLeadersView(OnlyForActivityChair, CreateRatingView):
 
     def get_context_data(self, **kwargs):
         context_data = super().get_context_data(**kwargs)
-        context_data['activity'] = self.activity
+        context_data['activity_enum'] = self.activity_enum
         context_data['ratings'] = self.get_ratings()
         return context_data
 

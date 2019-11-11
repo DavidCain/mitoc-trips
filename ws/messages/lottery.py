@@ -7,7 +7,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 import ws.utils.dates as dateutils
-from ws import models
+from ws import enums, models
 
 from . import MessageGenerator
 
@@ -84,7 +84,7 @@ class Messages(MessageGenerator):
             participant=self.request.participant,
             on_trip=False,
             trip__algorithm='lottery',
-            trip__activity=models.BaseRating.WINTER_SCHOOL,
+            trip__program=enums.Program.WINTER_SCHOOL.value,
             trip__trip_date__gte=dateutils.local_date(),
         ).values_list('order', flat=True)
         some_trips_ranked = any(order for order in future_signups)

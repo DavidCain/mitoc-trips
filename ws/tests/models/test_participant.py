@@ -98,6 +98,20 @@ class LeaderTest(TestCase):
         participant = factories.ParticipantFactory.create(name='Tommy Caldwell')
         self.assertEqual('Tommy Caldwell', participant.name_with_rating(trip))
 
+    def test_open_trip(self):
+        """ When ratings aren't required, only the name is returned. """
+        trip = factories.TripFactory.create(program=enums.Program.CIRCUS.value)
+        participant = factories.ParticipantFactory.create(name='Tommy Caldwell')
+
+        participant.leaderrating_set.add(
+            factories.LeaderRatingFactory.create(
+                participant=participant,
+                activity=models.BaseRating.WINTER_SCHOOL,
+                rating='Full leader',
+            )
+        )
+        self.assertEqual('Tommy Caldwell', participant.name_with_rating(trip))
+
     def test_past_rating(self):
         """ We will display a past rating that was applicable at the time! """
         alex = factories.ParticipantFactory.create(name='Alex Honnold')

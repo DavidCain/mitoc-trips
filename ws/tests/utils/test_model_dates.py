@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 from freezegun import freeze_time
 
-from ws import models
+from ws import enums, models
 from ws.tests import TestCase, factories
 from ws.utils import model_dates as utils
 
@@ -59,7 +59,7 @@ class LecturesCompleteTests(TestCase):
     @staticmethod
     def _create_ws_trip(trip_date, **kwargs):
         factories.TripFactory.create(
-            trip_date=trip_date, activity='winter_school', **kwargs
+            trip_date=trip_date, program=enums.Program.WINTER_SCHOOL.value, **kwargs
         )
 
     @freeze_time("Wednesday, Jan 3 2018 15:00:00 EST")

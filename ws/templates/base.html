@@ -96,26 +96,26 @@
                         </li>
                     {% endif %}
 
-                    {% for activity, label in user|labeled_chair_activities %}
-                        {% with viewing_participant|pending_applications_count:activity as num_pending_apps %}
-                        {% with activity|unapproved_trip_count as num_pending_approval %}
+                    {% for activity_enum in user|chair_activities %}
+                        {% with viewing_participant|pending_applications_count:activity_enum as num_pending_apps %}
+                        {% with activity_enum|unapproved_trip_count as num_pending_approval %}
                             <li class="dropdown">
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
-                                    {% if activity == 'winter_school' %}
+                                    {% if activity_enum.is_winter_school %}
                                         WSC
                                     {% else %}
-                                        {{ activity|title }}
+                                        {{ activity_enum.label }}
                                     {% endif %}
                                     {% if num_pending_apps or num_pending_approval %}
                                         <span class="badge">{{ num_pending_apps|add:num_pending_approval }}</span>
                                     {% endif %}
                                 </a>
                                 <ul class="dropdown-menu">
-                                    <li> <a href="{% url 'activity_leaders' activity %}">Manage leaders</a> </li>
-                                    <li> <a href="{% url 'manage_applications' activity %}"> Leader applications <span class="badge">{{ num_pending_apps }}</span> </a> </li>
-                                    <li> <a href="{% url 'manage_trips' activity %}"> Approve trips <span class="badge">{{ num_pending_approval }}</span> </a> </li>
+                                    <li> <a href="{% url 'activity_leaders' activity_enum.value %}">Manage leaders</a> </li>
+                                    <li> <a href="{% url 'manage_applications' activity_enum.value %}"> Leader applications <span class="badge">{{ num_pending_apps }}</span> </a> </li>
+                                    <li> <a href="{% url 'manage_trips' activity_enum.value %}"> Approve trips <span class="badge">{{ num_pending_approval }}</span> </a> </li>
 
-                                    {% if activity == 'winter_school' %}
+                                    {% if activity_enum.is_winter_school %}
                                         <li> <a href="{% url 'all_trips_medical' %}"> WIMP - Trip itineraries </a> </li>
                                         <li> <a href="{% url 'help-wimp_guide' %}"> WIMP guide </a> </li>
                                         <li> <a href="{% url 'ws_settings' %}"> Settings </a> </li>

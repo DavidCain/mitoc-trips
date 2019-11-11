@@ -5,7 +5,7 @@ from datetime import timedelta
 from django.db.models import Case, F, IntegerField, Q, When
 from mitoc_const import affiliations
 
-from ws import models, settings
+from ws import enums, models, settings
 from ws.utils.dates import local_now
 
 WEIGHTS = {
@@ -165,7 +165,7 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
         return models.Participant.objects.filter(
             signup__trip__trip_date__gt=self.today,
             signup__trip__algorithm='lottery',
-            signup__trip__activity='winter_school',
+            signup__trip__program=enums.Program.WINTER_SCHOOL.value,
         ).distinct()
 
     def priority_key(self, participant):
@@ -209,7 +209,7 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
         """ Return a QuerySet of trip pk's on which the participant flaked. """
         return (
             participant.feedback_set.filter(
-                showed_up=False, trip__activity='winter_school'
+                showed_up=False, trip__program=enums.Program.WINTER_SCHOOL.value
             )
             .values_list('trip__pk', flat=True)
             .distinct()
@@ -238,7 +238,7 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
         - Participant flaked. Leader left feedback, but left them on the trip
         """
         marked_on_trip = set(
-            participant.trip_set.filter(activity='winter_school')
+            participant.trip_set.filter(program=enums.Program.WINTER_SCHOOL.value)
             .filter(trip_date__gt=self.jan_1st, trip_date__lt=self.today)
             .values_list('pk', flat=True)
         )

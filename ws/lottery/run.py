@@ -6,7 +6,7 @@ from pathlib import Path
 
 from mitoc_const import affiliations
 
-from ws import models, settings
+from ws import enums, models, settings
 from ws.lottery.handle import (
     SingleTripParticipantHandler,
     WinterSchoolParticipantHandler,
@@ -145,7 +145,7 @@ class WinterSchoolLotteryRunner(LotteryRunner):
         Trips re-open Wednesday at noon, close at midnight on Thursday.
         """
         self.logger.info("Making all lottery trips first-come, first-serve")
-        ws_trips = models.Trip.objects.filter(activity='winter_school')
+        ws_trips = models.Trip.objects.filter(program=enums.Program.WINTER_SCHOOL.value)
         noon = closest_wed_at_noon()
         for trip in ws_trips.filter(algorithm='lottery'):
             trip.make_fcfs(signups_open_at=noon)

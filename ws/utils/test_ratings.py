@@ -4,27 +4,12 @@ from unittest import mock
 from django.test import SimpleTestCase
 
 import ws.utils.perms as perm_utils
-from ws import models
+from ws import enums, models
 from ws.tests import TestCase, factories
 from ws.utils import ratings
 
 
 class ApplicationManagerHelper:
-    @staticmethod
-    def _only_for_climbing(desired_value):
-        """ Return the desired value, but only for climbing!
-
-        This makes sure we're not mocking away underlying utils (to get a
-        climbing-specific response) only to silently accept the wrong
-        activity type.
-        """
-
-        def inner_func(activity):
-            assert activity == models.BaseRating.CLIMBING
-            return desired_value
-
-        return inner_func
-
     @classmethod
     @contextmanager
     def _mock_for_climbing(cls, num_chairs):
@@ -38,24 +23,25 @@ class ApplicationManagerHelper:
             models.LeaderApplication, 'model_from_activity'
         )
         with get_num_chairs as mock_num_chairs, model_from_activity as mock_app_model:
-            mock_app_model.side_effect = cls._only_for_climbing(
-                models.ClimbingLeaderApplication
-            )
-            mock_num_chairs.side_effect = cls._only_for_climbing(num_chairs)
+            mock_app_model.return_value = models.ClimbingLeaderApplication
+            mock_num_chairs.return_value = num_chairs
             yield
+
+        mock_app_model.assert_called_with(enums.Activity.CLIMBING.value)
+        mock_num_chairs.assert_called_with(enums.Activity.CLIMBING)
 
 
 class OneChairTests(TestCase):
     def test_everything_needs_rating_with_one_chair(self):
         """ When there's only one chair, every application needs ratings! """
         chair = factories.ParticipantFactory.create()
-        perm_utils.make_chair(chair.user, models.BaseRating.CLIMBING)
+        perm_utils.make_chair(chair.user, enums.Activity.CLIMBING)
         # Filtering is done in Python, no need to save to db
         app1 = factories.ClimbingLeaderApplicationFactory.create()
         app2 = factories.ClimbingLeaderApplicationFactory.create()
 
         manager = ratings.ApplicationManager(
-            chair=chair, activity=models.BaseRating.CLIMBING
+            chair=chair, activity=enums.Activity.CLIMBING.value
         )
         pending_apps = manager.pending_applications()
         self.assertEqual(manager.needs_rating(pending_apps), [app1, app2])
@@ -74,7 +60,7 @@ class DatabaselessOneChairTests(SimpleTestCase, ApplicationManagerHelper):
             factories.ClimbingLeaderApplicationFactory.build() for _ in range(3)
         ]
         with self._mock_for_climbing(num_chairs=1):
-            manager = ratings.ApplicationManager(activity=models.BaseRating.CLIMBING)
+            manager = ratings.ApplicationManager(activity=enums.Activity.CLIMBING.value)
             self.assertEqual(manager.needs_rec(pending_recs), [])
 
 
@@ -85,7 +71,7 @@ class DatabaseApplicationManagerTests(TestCase):
             factories.ParticipantFactory.create() for _ in 'abc'
         ]
         for chair in [self.alice, self.bob, self.charlie]:
-            perm_utils.make_chair(chair.user, models.BaseRating.CLIMBING)
+            perm_utils.make_chair(chair.user, enums.Activity.CLIMBING)
         self.application = factories.ClimbingLeaderApplicationFactory.create(
             participant=self.participant
         )
@@ -94,14 +80,14 @@ class DatabaseApplicationManagerTests(TestCase):
     @staticmethod
     def _manager_for(chair_participant):
         return ratings.ApplicationManager(
-            chair=chair_participant, activity=models.BaseRating.CLIMBING
+            chair=chair_participant, activity=enums.Activity.CLIMBING.value
         )
 
     def _make_recommendation(self, creator):
         rec = models.LeaderRecommendation(
             creator=creator,
             participant=self.participant,
-            activity=models.BaseRating.CLIMBING,
+            activity=enums.Activity.CLIMBING.value,
             rating='Single pitch, maybe?',  # Comments don't really matter
         )
         rec.save()
@@ -111,7 +97,7 @@ class DatabaseApplicationManagerTests(TestCase):
         rating = models.LeaderRating(
             creator=creator,
             participant=self.participant,
-            activity=models.BaseRating.CLIMBING,
+            activity=enums.Activity.CLIMBING.value,
             rating='Multipitch',
         )
         rating.save()
@@ -120,7 +106,7 @@ class DatabaseApplicationManagerTests(TestCase):
     def test_applications_needing_recommendation(self):
         """ Consider applications without a chair recommendation as requiring one! """
         # We have three chairs!
-        self.assertEqual(perm_utils.num_chairs(models.BaseRating.CLIMBING), 3)
+        self.assertEqual(perm_utils.num_chairs(enums.Activity.CLIMBING), 3)
 
         # The application is in a pending state, while awaiting recommendation & rating
         alice_manager = self._manager_for(self.alice)

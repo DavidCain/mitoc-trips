@@ -5,6 +5,10 @@ from ws.utils.forms import all_choices
 
 
 class ProgramTest(unittest.TestCase):
+    def test_every_program_has_label(self):
+        for program_enum in enums.Program:
+            self.assertTrue(program_enum.label)
+
     def test_every_program_in_choices(self):
         """ At present, every program is a valid choice.
 

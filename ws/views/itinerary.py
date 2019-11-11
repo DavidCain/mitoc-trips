@@ -161,7 +161,7 @@ class TripMedicalView(DetailView, TripMedical):
             perm_utils.in_any_group(request.user, ['WIMP'])
             or (trip.wimp and request.participant == trip.wimp)
             or perm_utils.leader_on_trip(request.participant, trip, True)
-            or perm_utils.chair_or_admin(request.user, trip.activity)
+            or perm_utils.chair_or_admin(request.user, trip.required_activity_enum())
         )
 
     @method_decorator(login_required)
@@ -239,6 +239,6 @@ class ChairTripView(ApprovedTripsMixin, TripMedical, DetailView):
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         trip = self.get_object()
-        if not perm_utils.is_chair(request.user, trip.activity):
+        if not perm_utils.is_chair(request.user, trip.required_activity_enum()):
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)

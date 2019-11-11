@@ -3,6 +3,7 @@
 {% load form_tags %}
 {% load messages_tags %}
 {% load misc_tags %}
+{% load perm_tags %}
 {% load trip_tags %}
 {% load ws_tags %}
 
@@ -76,8 +77,8 @@
             </h1>
 
             <div class="leader-titles">
-              {% for activity in chair_activities %}
-                <h4>{{ activity }} Chair</h4>
+              {% for activity_enum in user|chair_activities %}
+                <h4>{{ activity_enum.label }} Chair</h4>
               {% endfor %}
               {% for rating in ratings %}
                 <h4>{{ rating.get_activity_display }} Leader ({{ rating.rating }})</h4>

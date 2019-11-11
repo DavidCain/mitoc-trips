@@ -269,7 +269,7 @@ class TripForm(DjangularRequiredModelForm):
 
     def clean_membership_required(self):
         """ Ensure that all WS trips require membership. """
-        if self.cleaned_data['program'] == enums.Program.WINTER_SCHOOL.value:
+        if self.cleaned_data.get('program') == enums.Program.WINTER_SCHOOL.value:
             return True
         return self.cleaned_data['membership_required']
 
@@ -287,6 +287,9 @@ class TripForm(DjangularRequiredModelForm):
     def clean(self):
         """ Ensure that all leaders can lead the trip. """
         super().clean()
+
+        if 'program' not in self.cleaned_data or 'leaders' not in self.cleaned_data:
+            return self.cleaned_data
         leaders = self.cleaned_data['leaders']
         program_enum = enums.Program(self.cleaned_data['program'])
 
@@ -304,8 +307,9 @@ class TripForm(DjangularRequiredModelForm):
 
     def clean_level(self):
         """ Remove extra whitespace from the level, strip if not WS. """
-        program = enums.Program(self.cleaned_data.get('program'))
-        if not program.winter_rules_apply():
+        program = self.cleaned_data.get('program')
+        program_enum = enums.Program(program) if program else None
+        if program_enum and not program_enum.winter_rules_apply():
             return None
         return self.cleaned_data.get('level', '').strip()
 

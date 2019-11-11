@@ -10,7 +10,7 @@ from datetime import timedelta
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
-from django.http import HttpResponseBadRequest
+from django.http import Http404, HttpResponseBadRequest
 from django.shortcuts import redirect, render
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
@@ -93,7 +93,7 @@ class TripView(DetailView):
             self.request.participant, trip, True
         )
         context['can_admin'] = context['leader_on_trip'] or perm_utils.chair_or_admin(
-            self.request.user, trip.activity
+            self.request.user, trip.required_activity_enum()
         )
         if context['can_admin'] or perm_utils.is_leader(self.request.user):
             context['rentals_by_par'] = list(self.rentals_by_participant(trip))
@@ -201,7 +201,7 @@ class ReviewTripView(DetailView):
             "trip": trip,
             "feedback_window_passed": trip.feedback_window_passed,
             "trip_completed": today >= trip.trip_date,
-            "feedback_required": trip.activity == 'winter_school',
+            "feedback_required": trip.program_enum == enums.Program.WINTER_SCHOOL,
             "feedback_list": self.feedback_list,
         }
 
@@ -282,10 +282,14 @@ class EditTripView(UpdateView, TripLeadersOnlyView):
     @property
     def update_rescinds_approval(self):
         trip = self.object
+        activity_enum = trip.required_activity_enum()
+        if activity_enum is None:
+            return False  # No required activity, thus no chair to rescind"
+
         return (
             trip.chair_approved
-            and not perm_utils.is_chair(self.request.user, trip.activity)
-            and trip.trip_date >= local_date()  # Doesn't matter after trip
+            and trip.trip_date >= local_date()
+            and not perm_utils.is_chair(self.request.user, activity_enum)
         )
 
     def get_context_data(self, **kwargs):
@@ -414,8 +418,12 @@ class ApproveTripsView(UpcomingTripsView):
 
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
-        activity = kwargs.get('activity')
-        if not perm_utils.is_chair(request.user, activity):
+        try:
+            activity_enum = enums.Activity(kwargs.get('activity'))
+        except ValueError:
+            raise Http404
+
+        if not perm_utils.is_chair(request.user, activity_enum):
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
 

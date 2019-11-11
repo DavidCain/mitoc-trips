@@ -18,9 +18,9 @@ import gspread
 import httplib2
 from oauth2client.service_account import ServiceAccountCredentials
 
-from ws import models, settings
+from ws import enums, models, settings
 from ws.utils import geardb
-from ws.utils.perms import activity_name, is_chair
+from ws.utils.perms import is_chair
 
 logger = logging.getLogger(__name__)
 
@@ -122,8 +122,9 @@ class SheetWriter:
         """
         active_ratings = participant.leaderrating_set.filter(active=True)
         for activity in active_ratings.values_list('activity', flat=True):
-            position = 'chair' if is_chair(user, activity, False) else 'leader'
-            yield "{} {}".format(activity_name(activity), position)
+            activity_enum = enums.Activity(activity)
+            position = 'chair' if is_chair(user, activity_enum, False) else 'leader'
+            yield f"{activity_enum.label} {position}"
 
     def leader_text(self, participant, user):
         return ', '.join(self.activity_descriptors(participant, user))

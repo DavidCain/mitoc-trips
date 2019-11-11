@@ -9,6 +9,7 @@ from django.utils.html import escape
 
 import ws.utils.dates as dateutils
 import ws.utils.perms as permutils
+from ws import enums
 
 from . import MessageGenerator
 
@@ -28,7 +29,9 @@ class Messages(MessageGenerator):
         # All WS trips require itineraries, though
         future_trips_without_info = (
             self.request.participant.trips_led.filter(
-                trip_date__gte=now.date(), info__isnull=True, activity='winter_school'
+                trip_date__gte=now.date(),
+                info__isnull=True,
+                program=enums.Program.WINTER_SCHOOL.value,
             )
             .order_by('trip_date')  # Warn about closest trips first!
             .values_list('pk', 'trip_date', 'name')

@@ -72,21 +72,24 @@ def activity_rating(leader, activity):
 
 
 @register.filter
-def pending_applications_count(chair, activity):
+def pending_applications_count(chair, activity_enum):
     """ Count applications where:
 
     - All chairs have given recs, rating is needed
     - Viewing user hasn't given a rec
     """
-    manager = ratings_utils.ApplicationManager(chair=chair, activity=activity)
+    manager = ratings_utils.ApplicationManager(
+        chair=chair, activity=activity_enum.value
+    )
     return len(manager.pending_applications())
 
 
 @register.filter
-def unapproved_trip_count(activity):
+def unapproved_trip_count(activity_enum):
     today = dateutils.local_date()
+    # TODO: Migrate away from legacy activity
     return models.Trip.objects.filter(
-        trip_date__gte=today, activity=activity, chair_approved=False
+        trip_date__gte=today, activity=activity_enum.value, chair_approved=False
     ).count()
 
 
@@ -100,7 +103,7 @@ def trip_edit_buttons(trip, participant, user, hide_approve=False):
     available_at = dateutils.itinerary_available_at(trip.trip_date)
     return {
         'trip': trip,
-        'is_chair': perm_utils.chair_or_admin(user, trip.activity),
+        'is_chair': perm_utils.chair_or_admin(user, trip.required_activity_enum()),
         'is_creator': trip.creator == participant,
         'is_trip_leader': perm_utils.leader_on_trip(participant, trip, False),
         'hide_approve': hide_approve,  # Hide approval even if user is a chair

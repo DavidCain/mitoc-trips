@@ -14,7 +14,7 @@ from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.generic import CreateView, FormView, TemplateView
 
-from ws import forms, models, tasks
+from ws import enums, forms, models, tasks
 from ws.decorators import user_info_required
 from ws.mixins import LotteryPairingMixin
 from ws.utils.dates import is_winter_school, local_date
@@ -142,7 +142,7 @@ class LotteryPreferencesView(TemplateView, LotteryPairingMixin):
             models.SignUp.objects.filter(
                 participant=self.request.participant,
                 trip__algorithm='lottery',
-                trip__activity='winter_school',
+                trip__program=enums.Program.WINTER_SCHOOL.value,
                 trip__trip_date__gt=local_date(),
             )
             .order_by('order', 'time_created')

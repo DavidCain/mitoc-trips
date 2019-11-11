@@ -472,9 +472,13 @@ class Participant(models.Model):
 
         If no rating is found, simply the name will be given.
         """
+        required_activity = trip.program_enum.required_activity()
+        if required_activity is None:
+            return self.name
+
         day_before = trip.trip_date - timedelta(days=1)
         rating = self.activity_rating(
-            trip.activity,
+            required_activity.value,
             at_time=dateutils.late_at_night(day_before),
             must_be_active=False,
         )
@@ -847,11 +851,17 @@ class Trip(models.Model):
         """ Convert the string constant value to an instance of the enum. """
         return enums.Program(self.program)
 
+    def winter_rules_apply(self):
+        return self.program_enum.winter_rules_apply()
+
     # TODO: activity is deprecated. Remove this once `trip.activity` purged.
     def get_legacy_activity(self):
         """ Return an 'activity' from the given program. """
         activity_enum = self.program_enum.required_activity()
         return activity_enum.value if activity_enum else 'official_event'
+
+    def required_activity_enum(self):
+        return self.program_enum.required_activity()
 
     @property
     def trip_type_enum(self):
@@ -1024,8 +1034,7 @@ class Trip(models.Model):
     def clean(self):
         """ Ensure that all trip dates are reasonable. """
         if not self.time_created:  # Trip first being created
-            is_ws_trip = self.activity == LeaderRating.WINTER_SCHOOL
-            if is_ws_trip and self.after_lottery:
+            if self.program_enum == enums.Program.WINTER_SCHOOL and self.after_lottery:
                 self.make_fcfs()
 
             if self.signups_closed:
@@ -1275,7 +1284,7 @@ class LeaderApplication(models.Model):
 
     @classmethod
     def application_year_for_activity(cls, activity):
-        if activity == LeaderRating.WINTER_SCHOOL:
+        if activity == enums.Activity.WINTER_SCHOOL.value:
             return dateutils.ws_year()
         return dateutils.local_date().year
 

@@ -1,6 +1,6 @@
 from django.db.models import Q
 
-from ws import models
+from ws import enums, models
 from ws.utils.dates import local_date
 from ws.utils.signups import add_to_waitlist
 
@@ -169,7 +169,7 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
         signups = self.participant.signup_set.filter(
             trip__trip_date__gt=self.today,
             trip__algorithm='lottery',
-            trip__activity='winter_school',
+            trip__program=enums.Program.WINTER_SCHOOL.value,
         )
         if self.paired:  # Restrict signups to those both signed up for
             signups = signups.filter(trip__in=self.paired_par.trip_set.all())

@@ -1,7 +1,7 @@
 from django.db.models import Case, F, IntegerField, Q, Sum, When
 
 import ws.utils.perms as perm_utils
-from ws import models
+from ws import enums, models
 
 
 def deactivate_ratings(participant, activity):
@@ -29,7 +29,8 @@ class LeaderApplicationMixin:
         # It's important that this remain a property (dynamically requested, not stored at init)
         # This way, views that want to get activity from self.kwargs can inherit from the mixin
         if not hasattr(self, '_num_chairs'):
-            self._num_chairs = perm_utils.num_chairs(self.activity)
+            activity_enum = enums.Activity(self.activity)
+            self._num_chairs = perm_utils.num_chairs(activity_enum)
         return self._num_chairs
 
     @property

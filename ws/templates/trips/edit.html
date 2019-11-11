@@ -5,10 +5,10 @@
   {% if update_rescinds_approval %}
     <div class="alert alert-warning">
       This trip has been approved by
-      {% if trip.activity == 'winter_school' %}
+      {% if trip.winter_rules_apply %}
         the Winter Safety Committee.
       {% else %}
-        the {{ trip.activity|title }} chair.
+        the activity chair.
       {% endif %}
       Making any changes will rescind this approval.
     </div>

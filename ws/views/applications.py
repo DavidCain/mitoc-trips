@@ -82,7 +82,7 @@ class LeaderApplyView(LeaderApplicationMixin, CreateView):
     def get_queryset(self):
         """ For looking up if any recent applications have been completed. """
         applications = self.model.objects
-        if self.activity == models.LeaderRating.WINTER_SCHOOL:
+        if self.activity == enums.Activity.WINTER_SCHOOL.value:
             return applications.filter(year=self.application_year)
         return applications
 
@@ -170,8 +170,12 @@ class AllLeaderApplicationsView(ApplicationManager, ListView):
 
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
-        activity = kwargs.get('activity')
-        if not perm_utils.chair_or_admin(request.user, activity):
+        try:
+            activity_enum = enums.Activity(kwargs.get('activity'))
+        except ValueError:
+            raise Http404
+
+        if not perm_utils.chair_or_admin(request.user, activity_enum):
             raise PermissionDenied
         if not models.LeaderApplication.can_apply_for_activity(self.activity):
             context = {
@@ -396,6 +400,11 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):
     @method_decorator(chairs_only())
     def dispatch(self, request, *args, **kwargs):
         """ Redirect if anonymous, but deny permission if not a chair. """
-        if not perm_utils.chair_or_admin(request.user, self.activity):
+        try:
+            activity_enum = enums.Activity(self.activity)
+        except ValueError:
+            raise Http404
+
+        if not perm_utils.chair_or_admin(request.user, activity_enum):
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)

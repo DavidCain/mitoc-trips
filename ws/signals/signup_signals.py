@@ -14,7 +14,7 @@ from django.db.models.signals import (
 from django.dispatch import receiver
 from kombu.exceptions import OperationalError
 
-from ws import tasks
+from ws import enums, tasks
 from ws.celery_config import app
 from ws.models import LeaderSignUp, SignUp, Trip, WaitList
 from ws.utils.signups import trip_or_wait, update_queues_if_trip_open
@@ -133,7 +133,7 @@ def add_lottery_task(sender, instance, created, raw, using, update_fields, **kwa
     """
     trip = instance
 
-    if trip.activity == 'winter_school':
+    if trip.program_enum == enums.Program.WINTER_SCHOOL:
         return  # Winter School lotteries are handled separately
     if trip.lottery_task_id or trip.algorithm != 'lottery':
         return  # Only new lottery trips get a new task

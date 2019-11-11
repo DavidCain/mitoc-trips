@@ -9,7 +9,7 @@ from django.db.models import signals
 from django.test import SimpleTestCase
 from freezegun import freeze_time
 
-from ws import models, settings
+from ws import enums, models, settings
 from ws.lottery import rank
 from ws.tests import TestCase
 from ws.tests.factories import (
@@ -291,15 +291,21 @@ class FlakeFactorTests(TestCase):
 
         (We do not start with the participant actually signed up/on the trip).
         """
+
+        def create_ws_trip(trip_date):
+            return TripFactory.create(
+                program=enums.Program.WINTER_SCHOOL.value, trip_date=trip_date
+            )
+
         cls.last_season_trips = [
-            TripFactory.create(activity='winter_school', trip_date=date(2017, 1, 15)),
-            TripFactory.create(activity='winter_school', trip_date=date(2017, 1, 22)),
+            create_ws_trip(date(2017, 1, 15)),
+            create_ws_trip(date(2017, 1, 22)),
         ]
 
         cls.three_trips = [
-            TripFactory.create(activity='winter_school', trip_date=date(2018, 1, 13)),
-            TripFactory.create(activity='winter_school', trip_date=date(2018, 1, 14)),
-            TripFactory.create(activity='winter_school', trip_date=date(2018, 1, 20)),
+            create_ws_trip(date(2018, 1, 13)),
+            create_ws_trip(date(2018, 1, 14)),
+            create_ws_trip(date(2018, 1, 20)),
         ]
         cls.all_trips = cls.last_season_trips + cls.three_trips
 

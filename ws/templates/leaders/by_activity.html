@@ -8,13 +8,12 @@
 
 <div class="row">
   <div class="col-md-8">
+    <h2>{{ activity_enum.label }} Leaders</h2>
     {% if not ratings %}
-      <h2> Leaders </h2>
       <p>No active leaders!</p>
     {% else %}
-      <form action="{% url 'deactivate_leaders' activity %}" method="POST">
+      <form action="{% url 'deactivate_leaders' activity_enum.value %}" method="POST">
         {% csrf_token %}
-        <h2> {{ ratings.0.get_activity_display }} Leaders </h2>
         <table class="footable">
           <thead>
             <tr>
@@ -29,7 +28,7 @@
             {% for rating in ratings %}
             <tr data-ng-class="{'alert-danger': deactivate_ratings_{{ rating.pk }}}">
               <td><a href="{% url 'view_participant' rating.participant.pk %}">{{ rating.participant.name }}</a></td>
-              <td> {{ rating.rating }}</td>
+              <td>{{ rating.rating }}</td>
               <td>{{ rating.time_created|date:"Y-m-d" }}</td>
               <td>{{ rating.last_trip_date|date:"Y-m-d" }}</td>
               <td>

@@ -1,16 +1,12 @@
 import re
+from datetime import date
 
 from bs4 import BeautifulSoup
 from freezegun import freeze_time
 
+import ws.utils.perms as perm_utils
 from ws import enums, models
-from ws.tests import TestCase, factories
-
-WHITESPACE = re.compile(r'\s+')
-
-
-def strip_whitespace(text):
-    return re.sub(WHITESPACE, ' ', text).strip()
+from ws.tests import TestCase, factories, strip_whitespace
 
 
 class Helpers:
@@ -167,16 +163,14 @@ class CreateTripViewTest(TestCase, Helpers):
 
         More specific behavior testing should be done at the form level.
         """
-        user = factories.UserFactory.create(
-            email='leader@example.com', password='password'
-        )
+        user = factories.UserFactory.create()
+        self.client.force_login(user)
         trip_leader = factories.ParticipantFactory.create(user=user)
         trip_leader.leaderrating_set.add(
             factories.LeaderRatingFactory.create(
                 participant=trip_leader, activity=models.LeaderRating.BIKING
             )
         )
-        self.client.login(email='leader@example.com', password='password')
         _resp, soup = self._get('/trips/create/')
         form = soup.find('form')
         form_data = dict(self._form_data(form))
@@ -210,9 +204,8 @@ class CreateTripViewTest(TestCase, Helpers):
 
 class EditTripViewTest(TestCase, Helpers):
     def test_editing(self):
-        user = factories.UserFactory.create(
-            email='leader@example.com', password='password'
-        )
+        user = factories.UserFactory.create(email='leader@example.com')
+        self.client.force_login(user)
         trip_creator = factories.ParticipantFactory.create(user=user)
         trip_creator.leaderrating_set.add(
             factories.LeaderRatingFactory.create(
@@ -233,13 +226,9 @@ class EditTripViewTest(TestCase, Helpers):
         )
         trip.leaders.add(old_leader)
 
-        self.client.login(email='leader@example.com', password='password')
-        edit_resp, soup = self._get(f'/trips/{trip.pk}/edit/')
-
+        _edit_resp, soup = self._get(f'/trips/{trip.pk}/edit/')
         form = soup.find('form')
         form_data = dict(self._form_data(form))
-
-        soup = BeautifulSoup(edit_resp.content, 'html.parser')
 
         # We supply the two leaders via an Angular directive
         # (Angular will be used to populate the `leaders` input, so manually populate here)
@@ -268,3 +257,81 @@ class EditTripViewTest(TestCase, Helpers):
 
         # To support any legacy behavior still around, we set activity.
         self.assertEqual(trip.activity, 'winter_school')
+
+    @freeze_time("2019-02-15 12:25:00 EST")
+    def test_update_rescinds_approval(self):
+        leader = factories.ParticipantFactory.create()
+        self.client.force_login(leader.user)
+        factories.LeaderRatingFactory.create(
+            participant=leader, activity=enums.Activity.CLIMBING.value
+        )
+        trip = factories.TripFactory.create(
+            creator=leader,
+            program=enums.Program.CLIMBING.value,
+            trip_date=date(2019, 3, 2),
+            chair_approved=True,
+        )
+
+        edit_resp, soup = self._get(f'/trips/{trip.pk}/edit/')
+        self.assertTrue(edit_resp.context['update_rescinds_approval'])
+
+        form = soup.find('form')
+        form_data = dict(self._form_data(form))
+
+        self.assertEqual(
+            strip_whitespace(soup.find(class_='alert-warning').text),
+            'This trip has been approved by the activity chair. '
+            'Making any changes will rescind this approval.',
+        )
+
+        # Upon form submission, we're redirected to the new trip's page!
+        resp = self.client.post(f'/trips/{trip.pk}/edit/', form_data, follow=False)
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(resp.url, f'/trips/{trip.pk}/')
+
+        # We can see that chair approval is now removed.
+        trip = models.Trip.objects.get(pk=trip.pk)
+        self.assertFalse(trip.chair_approved)
+
+
+class ApproveTripsViewTest(TestCase):
+    def setUp(self):
+        self.user = factories.UserFactory.create()
+        self.client.force_login(self.user)
+
+    def test_unauthenticated(self):
+        self.client.logout()
+        response = self.client.get('/climbing/trips/')
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, '/accounts/login/?next=/climbing/trips/')
+
+    def test_bad_activity(self):
+        response = self.client.get('/snowmobiling/trips/')
+        self.assertEqual(response.status_code, 404)
+
+    def test_all_trips_approved(self):
+        factories.TripFactory.create(
+            program=enums.Program.CLIMBING.value,
+            activity=enums.Activity.CLIMBING.value,
+            chair_approved=True,
+        )
+        perm_utils.make_chair(self.user, enums.Activity.CLIMBING)
+        response = self.client.get('/climbing/trips/')
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNone(response.context['first_unapproved_trip'])
+
+    def test_chair(self):
+        factories.TripFactory.create(
+            program=enums.Program.CLIMBING.value,
+            activity=enums.Activity.CLIMBING.value,
+            chair_approved=True,
+        )
+        unapproved = factories.TripFactory.create(
+            program=enums.Program.MITOC_ROCK_PROGRAM.value,
+            activity=enums.Activity.CLIMBING.value,
+            chair_approved=False,
+        )
+        perm_utils.make_chair(self.user, enums.Activity.CLIMBING)
+        response = self.client.get('/climbing/trips/')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['first_unapproved_trip'], unapproved)

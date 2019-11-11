@@ -4,12 +4,13 @@ Dateutils that require using models.
 This is a separate module to avoid creating circular dependencies.
 """
 import ws.utils.dates as dateutils
-from ws import models
+from ws import enums, models
 
 
 def _ws_trips_this_year():
-    jan_1 = dateutils.jan_1()
-    return models.Trip.objects.filter(trip_date__gte=jan_1, activity='winter_school')
+    return models.Trip.objects.filter(
+        trip_date__gte=dateutils.jan_1(), program=enums.Program.WINTER_SCHOOL.value
+    )
 
 
 def ws_lectures_complete():

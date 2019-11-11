@@ -91,7 +91,7 @@ class FormatSignupMixin:
         if paired_with not in trip_participants:  # Includes waitlist!
             paired_with = None
 
-        if signup.trip.activity == 'winter_school':
+        if signup.trip.program_enum == enums.Program.WINTER_SCHOOL:
             no_lectures = missed_lectures(par, signup.trip.trip_date.year)
         else:
             no_lectures = False  # Don't show warning for other activities
@@ -499,7 +499,12 @@ class ApproveTripView(SingleObjectMixin, View):
 
     def dispatch(self, request, *args, **kwargs):
         trip = self.get_object()
-        if not perm_utils.is_chair(request.user, trip.activity, False):
+        activity_enum = trip.required_activity_enum()
+        if activity_enum is None:
+            return JsonResponse(
+                {'message': f'No chair for {trip.program_enum.label}'}, status=400
+            )
+        if not perm_utils.chair_or_admin(request.user, activity_enum):
             return JsonResponse({}, status=403)
         return super().dispatch(request, *args, **kwargs)
 

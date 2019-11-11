@@ -49,7 +49,7 @@
 
             {# Temporarily disable this control for non-admins #}
             {% if user.is_superuser %}
-            {% if trip.algorithm == 'lottery' and trip.activity != 'winter_school' %}
+            {% if trip.algorithm == 'lottery' and trip.program != 'winter_school' %}
               <form method="POST" action="{% url 'run_lottery' trip.pk %}">
                 {% csrf_token %}
                 <button class="btn btn-success" type="submit">Run Lottery Now</button>

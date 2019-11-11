@@ -23,6 +23,7 @@ class Activity(enum.Enum):
     HIKING = 'hiking'
     WINTER_SCHOOL = 'winter_school'
 
+    @property
     def label(self):
         mapping = {
             self.BIKING: 'Biking',
@@ -96,30 +97,48 @@ class Program(enum.Enum):
     # General (official events, courses, TRS, etc.)
     NONE = 'none'
 
+    @property
+    def label(self):
+        mapping = {
+            self.BIKING: 'Biking',
+            self.BOATING: 'Boating',
+            self.CABIN: 'Cabin',
+            self.CLIMBING: 'Climbing',
+            self.HIKING: '3-season hiking',
+            self.MITOC_ROCK_PROGRAM: 'MITOC Rock Program',
+            self.WINTER_SCHOOL: 'Winter School',
+            self.WINTER_NON_IAP: 'Winter (outside IAP)',
+            # Open options!
+            self.CIRCUS: 'Circus',
+            self.SERVICE: 'Service',
+            self.NONE: 'None',
+        }
+        return mapping[self]
+
     @classmethod
     def choices(cls):
         """ Group each value into named groups (for use in forms & models). """
-        all_choices = [
-            (cls.BIKING, 'Biking'),
-            (cls.BOATING, 'Boating'),
-            (cls.CABIN, 'Cabin'),
-            (cls.CLIMBING, 'Climbing'),
-            (cls.HIKING, '3-season hiking'),
-            (cls.MITOC_ROCK_PROGRAM, 'MITOC Rock Program'),
-            (cls.WINTER_SCHOOL, 'Winter School'),
-            (cls.WINTER_NON_IAP, 'Winter (outside IAP)'),
+        ordered_choices = [
+            cls.BIKING,
+            cls.BOATING,
+            cls.CABIN,
+            cls.CLIMBING,
+            cls.HIKING,
+            cls.MITOC_ROCK_PROGRAM,
+            cls.WINTER_SCHOOL,
+            cls.WINTER_NON_IAP,
             # Open options!
-            (cls.CIRCUS, 'Circus'),
-            (cls.SERVICE, 'Service'),
-            (cls.NONE, 'None'),
+            cls.CIRCUS,
+            cls.SERVICE,
+            cls.NONE,
         ]
 
         open_choices, closed_choices = [], []
-        for program, label in all_choices:
-            if cls._is_open(program):
-                open_choices.append((program.value, label))
+        for program_enum in ordered_choices:
+            if program_enum.is_open():
+                open_choices.append((program_enum.value, program_enum.label))
             else:
-                closed_choices.append((program.value, label))
+                closed_choices.append((program_enum.value, program_enum.label))
 
         return [
             ('Specific rating required', closed_choices),

@@ -1,15 +1,7 @@
-import re
-
 from bs4 import BeautifulSoup
 from freezegun import freeze_time
 
-from ws.tests import TestCase, factories
-
-WHITESPACE = re.compile(r'[\n\s]+')
-
-
-def strip_whitespace(text):
-    return re.sub(WHITESPACE, ' ', text).strip()
+from ws.tests import TestCase, factories, strip_whitespace
 
 
 class Helpers:

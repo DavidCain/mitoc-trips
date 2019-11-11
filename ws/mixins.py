@@ -8,7 +8,7 @@ from django.utils.decorators import method_decorator
 from django.views.generic import View
 
 import ws.utils.perms as perm_utils
-from ws import models
+from ws import enums, models
 from ws.utils.dates import is_winter_school
 
 
@@ -47,7 +47,7 @@ class LectureAttendanceMixin:
 
     def can_set_attendance(self, participant):
         # WS chairs can set any time for any user
-        if perm_utils.is_chair(self.request.user, 'winter_school', True):
+        if perm_utils.is_chair(self.request.user, enums.Activity.WINTER_SCHOOL, True):
             return True
 
         # Non-chairs are only allowed during WS when setting enabled
@@ -66,7 +66,10 @@ class TripLeadersOnlyView(View):
     def dispatch(self, request, *args, **kwargs):
         """ Only allow creator, leaders of the trip, and chairs. """
         trip = self.get_object()
-        chair = perm_utils.chair_or_admin(request.user, trip.activity)
+
+        activity_enum = trip.required_activity_enum()
+        chair = activity_enum and perm_utils.chair_or_admin(request.user, activity_enum)
+
         trip_leader = perm_utils.leader_on_trip(request.participant, trip, True)
         if not (chair or trip_leader):
             return render(request, 'not_your_trip.html', {'trip': trip})
