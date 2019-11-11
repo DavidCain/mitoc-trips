@@ -535,7 +535,6 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
 
       // Start by identifying any existing leaders passed in
       // (This supports editing trips)
-      // NOTE: The back end will not let you save a trip if a former leader has lost privileges
       var fetchInitialLeaders = function() {
         if (!scope.leaderIds || !scope.leaderIds.length) {
           return $q.when([]);  // No initial leaders.
@@ -578,6 +577,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
 
         $q.all([oneTimeInitialFetch, fetchProgramLeaders()])
           .then(function buildValidLeaders(promises) {
+            var initialLeaders = promises[0];
             var programLeaders = promises[1];
 
             scope.programRatings = {};
@@ -592,6 +592,19 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
             scope.programLeaders = programLeaders.map(function(par) {
               return scope.allLeaders[par.id];
             });
+
+            var programLeaderIds = _.map(scope.programLeaders, 'id');
+            if (program === scope.initialProgram) {
+              var noLongerActive = _.filter(initialLeaders, function(par) {
+                return !_.includes(programLeaderIds, par.id);
+              });
+              // Include initial leaders who can no longer lead
+              scope.programLeaders = scope.programLeaders.concat(
+                _.map(noLongerActive, function(par) {
+                  return scope.allLeaders[par.id];
+                })
+              );
+            }
 
             // Just to be sure that reference integrity is maintained, explicitly translate.
             scope.selected.leaders = _.map(scope.selected.leaders, function(par) {

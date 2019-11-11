@@ -14,6 +14,19 @@ def strip_whitespace(text):
 
 
 class Helpers:
+    @staticmethod
+    def _form_data(form):
+        for elem in form.find_all('textarea'):
+            yield elem['name'], elem.text
+
+        for elem in form.find_all('input'):
+            yield elem['name'], elem.get('value', '')
+
+        for select in form.find_all('select'):
+            selection = select.find('option', selected=True)
+            value = selection['value'] if selection else ''
+            yield select['name'], value
+
     def _get(self, url):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
@@ -145,15 +158,6 @@ class AllTripsViewTest(TestCase, Helpers):
 
 
 class CreateTripViewTest(TestCase, Helpers):
-    @staticmethod
-    def _form_data(form):
-        for elem in form.find_all(['input', 'textareea']):
-            yield elem['name'], elem.get('value', '')
-        for select in form.find_all('select'):
-            selection = select.find('option', selected=True)
-            value = selection['value'] if selection else ''
-            yield select['name'], value
-
     def test_creation(self):
         """ End-to-end test of form submission on creating a new trip.
 
@@ -202,3 +206,65 @@ class CreateTripViewTest(TestCase, Helpers):
         trip = models.Trip.objects.get(pk=trip_pk)
         self.assertEqual(trip.creator, trip_leader)
         self.assertEqual(trip.name, 'My Great Trip')
+
+
+class EditTripViewTest(TestCase, Helpers):
+    def test_editing(self):
+        user = factories.UserFactory.create(
+            email='leader@example.com', password='password'
+        )
+        trip_creator = factories.ParticipantFactory.create(user=user)
+        trip_creator.leaderrating_set.add(
+            factories.LeaderRatingFactory.create(
+                participant=trip_creator, activity=models.LeaderRating.WINTER_SCHOOL
+            )
+        )
+        trip = factories.TripFactory.create(
+            creator=trip_creator, program=enums.Program.WINTER_SCHOOL.value
+        )
+        trip.leaders.add(trip_creator)
+
+        # Add an old leader to this trip, to demonstrate that editing & submitting is allowed
+        old_leader = factories.ParticipantFactory.create()
+        factories.LeaderRatingFactory.create(
+            participant=old_leader,
+            activity=models.LeaderRating.WINTER_SCHOOL,
+            active=False,
+        )
+        trip.leaders.add(old_leader)
+
+        self.client.login(email='leader@example.com', password='password')
+        edit_resp, soup = self._get(f'/trips/{trip.pk}/edit/')
+
+        form = soup.find('form')
+        form_data = dict(self._form_data(form))
+
+        soup = BeautifulSoup(edit_resp.content, 'html.parser')
+
+        # We supply the two leaders via an Angular directive
+        # (Angular will be used to populate the `leaders` input, so manually populate here)
+        self.assertEqual(
+            soup.find('leader-select')['leader-ids'],
+            f'[{trip_creator.pk}, {old_leader.pk}]',
+        )
+        form_data['leaders'] = [trip_creator.pk, old_leader.pk]
+
+        # We have the selections pre-populated with existing data
+        self.assertEqual(form_data['program'], enums.Program.WINTER_SCHOOL.value)
+        self.assertEqual(form_data['algorithm'], 'lottery')
+
+        # Make some updates to the trip!
+        form_data.update({'name': 'An old WS trip'})
+        self.assertEqual(form['action'], '.')
+
+        # Upon form submission, we're redirected to the new trip's page!
+        resp = self.client.post(f'/trips/{trip.pk}/edit/', form_data, follow=False)
+        self.assertEqual(resp.status_code, 302)
+
+        trip = models.Trip.objects.get(pk=trip.pk)
+        self.assertEqual(trip.creator, trip_creator)
+        self.assertCountEqual(trip.leaders.all(), [old_leader, trip_creator])
+        self.assertEqual(trip.name, 'An old WS trip')
+
+        # To support any legacy behavior still around, we set activity.
+        self.assertEqual(trip.activity, 'winter_school')

@@ -290,6 +290,11 @@ class TripForm(DjangularRequiredModelForm):
         leaders = self.cleaned_data['leaders']
         program_enum = enums.Program(self.cleaned_data['program'])
 
+        # To allow editing old trips with lapsed leaders, only check new additions
+        trip = self.instance
+        if trip.pk:
+            leaders = leaders.exclude(pk__in=trip.leaders.all())
+
         lacking_privs = [par for par in leaders if not par.can_lead(program_enum)]
 
         if lacking_privs:
@@ -329,7 +334,9 @@ class TripForm(DjangularRequiredModelForm):
     def __init__(self, *args, **kwargs):
         allowed_programs = kwargs.pop("allowed_programs", None)
         super().__init__(*args, **kwargs)
-        self.fields['leaders'].queryset = models.Participant.leaders.get_queryset()
+        # Use the participant queryset to cover an edge case:
+        # editing an old trip where one of the leaders is no longer a leader!
+        self.fields['leaders'].queryset = models.Participant.objects.get_queryset()
         self.fields['leaders'].help_text = None  # Disable "Hold command..."
 
         # We'll dynamically hide the level widget on GET if it's not a winter trip
