@@ -98,23 +98,23 @@ class DateUtilTests(SimpleTestCase):
                 est.localize(datetime(2016, 12, 21, 12, 0, 0)),
             )
 
-    def test_is_winter_school(self):
+    def test_is_currently_iap(self):
         """ Test the method that approximates if it's Winter School. """
         # December before Winter School
         with freeze_time("2016-12-28 12:00 EST"):
-            self.assertFalse(date_utils.is_winter_school())
+            self.assertFalse(date_utils.is_currently_iap())
 
         # Weeks during Winter School
         with freeze_time("2017-01-01 12:00 EST"):
-            self.assertTrue(date_utils.is_winter_school())
+            self.assertTrue(date_utils.is_currently_iap())
         with freeze_time("2017-01-14 12:00 EST"):
-            self.assertTrue(date_utils.is_winter_school())
+            self.assertTrue(date_utils.is_currently_iap())
         with freeze_time("2017-01-31 12:00 EST"):
-            self.assertTrue(date_utils.is_winter_school())
+            self.assertTrue(date_utils.is_currently_iap())
 
         # The week after Winter School is over
         with freeze_time("2017-02-10 12:00 EST"):
-            self.assertFalse(date_utils.is_winter_school())
+            self.assertFalse(date_utils.is_currently_iap())
 
     def test_fcfs_close_time(self):
         est = pytz.timezone('America/New_York')

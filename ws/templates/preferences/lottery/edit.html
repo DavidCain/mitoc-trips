@@ -11,7 +11,7 @@
 {% block content %}
 {{ block.super }}
 
-{% if is_winter_school %}
+{% if currently_winter_school %}
   <h2>Lottery Preferences</h2>
   <p class="lead">Due to the large number of Winter School participants, placement for each weekend's trips will be
   <a href="{% url 'help-lottery' %}">done by lottery</a>.</p>
@@ -26,7 +26,7 @@
   trips you've signed up for will appear here.</p>
 {% endif %}
 
-{% if is_winter_schoor or not ranked_signups %}
+{% if currently_winter_school or not ranked_signups %}
   <hr>
 {% endif %}
 

@@ -25,7 +25,7 @@ from ws import forms, models, tasks
 from ws.decorators import admin_only, group_required, user_info_required
 from ws.mixins import LectureAttendanceMixin, LotteryPairingMixin
 from ws.templatetags.trip_tags import annotated_for_trip_list
-from ws.utils.dates import is_winter_school, local_date, local_now, ws_year
+from ws.utils.dates import is_currently_iap, local_date, local_now, ws_year
 from ws.utils.model_dates import ws_lectures_complete
 
 logger = logging.getLogger(__name__)
@@ -375,7 +375,7 @@ class ParticipantView(
 
         can_set_attendance = self.can_set_attendance(participant)
         context['can_set_attendance'] = can_set_attendance
-        context['show_attendance'] = is_winter_school() and (
+        context['show_attendance'] = is_currently_iap() and (
             ws_lectures_complete() or can_set_attendance
         )
         if can_set_attendance:

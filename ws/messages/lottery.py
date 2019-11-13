@@ -27,7 +27,7 @@ class Messages(MessageGenerator):
             return None
 
     def supply(self):
-        if not self.request.participant or not dateutils.is_winter_school():
+        if not self.request.participant or not dateutils.is_currently_iap():
             return
         self.warn_if_missing_lottery()
         self.warn_if_car_missing()

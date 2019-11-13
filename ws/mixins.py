@@ -9,7 +9,7 @@ from django.views.generic import View
 
 import ws.utils.perms as perm_utils
 from ws import enums, models
-from ws.utils.dates import is_winter_school
+from ws.utils.dates import is_currently_iap
 
 
 class LotteryPairingMixin:
@@ -51,7 +51,7 @@ class LectureAttendanceMixin:
             return True
 
         # Non-chairs are only allowed during WS when setting enabled
-        if not is_winter_school():
+        if not is_currently_iap():
             return False
         settings = models.WinterSchoolSettings.load()
         if not settings.allow_setting_attendance:

@@ -29,7 +29,7 @@ from ws.decorators import group_required
 from ws.lottery.run import SingleTripLotteryRunner
 from ws.mixins import TripLeadersOnlyView
 from ws.templatetags.trip_tags import annotated_for_trip_list
-from ws.utils.dates import date_from_iso, is_winter_school, local_date
+from ws.utils.dates import date_from_iso, is_currently_iap, local_date
 from ws.utils.geardb import outstanding_items
 
 
@@ -225,7 +225,7 @@ class CreateTripView(CreateView):
             allowed_programs = list(self.request.participant.allowed_programs)
             kwargs['allowed_programs'] = allowed_programs
 
-            if is_winter_school() and enums.Program.WINTER_SCHOOL in allowed_programs:
+            if is_currently_iap() and enums.Program.WINTER_SCHOOL in allowed_programs:
                 kwargs['initial']['program'] = enums.Program.WINTER_SCHOOL.value
             else:
                 # The first program may not be open to the leader.

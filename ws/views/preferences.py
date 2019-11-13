@@ -17,7 +17,7 @@ from django.views.generic import CreateView, FormView, TemplateView
 from ws import enums, forms, models, tasks
 from ws.decorators import user_info_required
 from ws.mixins import LotteryPairingMixin
-from ws.utils.dates import is_winter_school, local_date
+from ws.utils.dates import is_currently_iap, local_date
 
 
 class LotteryPairingView(CreateView, LotteryPairingMixin):
@@ -31,7 +31,7 @@ class LotteryPairingView(CreateView, LotteryPairingMixin):
         context = super().get_context_data(**kwargs)
         self.participant = self.request.participant
         context['pair_requests'] = self.pair_requests
-        context['is_winter_school'] = is_winter_school()
+        context['currently_winter_school'] = is_currently_iap()
         return context
 
     def get_form_kwargs(self):
@@ -173,7 +173,7 @@ class LotteryPreferencesView(TemplateView, LotteryPairingMixin):
     def get_context_data(self, **kwargs):
         self.participant = self.request.participant
         return {
-            'is_winter_school': is_winter_school(),
+            'currently_winter_school': is_currently_iap(),
             'ranked_signups': json.dumps(self.ranked_signups_dict),
             'car_form': self.get_car_form(use_post=True),
             'lottery_form': self.get_lottery_form(),

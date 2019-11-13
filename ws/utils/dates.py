@@ -132,14 +132,17 @@ def closest_wed_at_noon():
     return localize(ret)
 
 
-def is_winter_school():
-    """ Returns if Winter School is ongoing.
+def is_currently_iap():
+    """ Returns if it's currently MIT's "Independent Activities Period"
 
-    Used to give warnings about lottery preferences and such.
+    Winter School takes place during IAP each year. This (extremely opproximate!) method
+    is used to infer if it's roughly the time of year that Winter School takes place. We
+    use it to give warnings about lottery preferences or other things that only make
+    sense during IAP.
 
-    Should likely be combined with `ws_lectures_complete` or other means of inspecting
-    presence of trips this year (that will give a more authoritative picture of whether
-    or not Winter School is actually ongoing.
+    This should likely be combined with `ws_lectures_complete` or other means of
+    inspecting presence of trips. Combined, (that will give a more authoritative picture
+    of whether or not Winter School is actually ongoing.
     """
     # Warning: This is only approximate! We cannot define when IAP occurs each year
     now = local_now()
