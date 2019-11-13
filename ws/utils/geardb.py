@@ -29,7 +29,7 @@ AFFILIATION_MAPPING['N'] = affiliations.NON_AFFILIATE.VALUE
 
 
 def verified_emails(user):
-    if not user or user.is_anonymous:
+    if not (user and user.is_authenticated):
         return []
     emails = user.emailaddress_set
     return emails.filter(verified=True).values_list('email', flat=True)
@@ -41,7 +41,7 @@ def user_membership_expiration(user, try_cache=False):
     If `try_cache` is True, then we'll first attempt to locate cached
     membership information. if any information exists, that will be returned.
     """
-    if not user or user.is_anonymous:
+    if not (user and user.is_authenticated):
         return None
     if try_cache:
         participant = models.Participant.from_user(user, join_membership=True)

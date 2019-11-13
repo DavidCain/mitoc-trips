@@ -404,7 +404,7 @@ class Participant(models.Model):
 
     @classmethod
     def from_user(cls, user, join_membership=False):
-        if user.is_anonymous:
+        if not user.is_authenticated:
             return None
 
         one_or_none = cls.objects.filter(user_id=user.id)

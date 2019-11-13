@@ -1,11 +1,29 @@
 import datetime
 from datetime import date
 
+from django.contrib.auth.models import AnonymousUser
 from freezegun import freeze_time
 
 import ws.utils.dates as dateutils
 from ws import enums, models
 from ws.tests import TestCase, factories
+
+
+class ParticipantTest(TestCase):
+    def test_from_anonymous_user(self):
+        self.assertIsNone(models.Participant.from_user(AnonymousUser()))
+
+    def test_from_user(self):
+        user = factories.UserFactory.create()
+        self.assertIsNone(models.Participant.from_user(user))
+
+    def test_from_user_with_participant(self):
+        participant = factories.ParticipantFactory.create()
+        self.assertEqual(models.Participant.from_user(participant.user), participant)
+        self.assertEqual(
+            models.Participant.from_user(participant.user, join_membership=True),
+            participant,
+        )
 
 
 class ProblemsWithProfile(TestCase):

@@ -20,7 +20,7 @@ Membership dues
 
   <hr>
 
-  {% if user.is_anonymous %}
+  {% if not user.is_authenticated %}
     <p class="lead">
       Already a member?
       <a href="{% url 'account_signup' %}?next={% url 'pay_dues' %}">Sign up</a>

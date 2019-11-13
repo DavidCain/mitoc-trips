@@ -447,7 +447,7 @@ class ProfileView(ParticipantView):
         return render(request, 'home.html', context)
 
     def get(self, request, *args, **kwargs):
-        if request.user.is_anonymous:
+        if not request.user.is_authenticated:
             return self.render_landing_page(request)
         if not request.participant:
             return redirect(reverse('edit_profile'))

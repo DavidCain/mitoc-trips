@@ -19,7 +19,7 @@ def chairs_only():
 
 def profile_needs_update(request):
     """ Return if we need to redirect to 'edit_profile' for changes. """
-    if request.user.is_anonymous:
+    if not request.user.is_authenticated:
         return False  # We can't be sure until the user logs in
     if not request.participant:
         return True
@@ -71,7 +71,7 @@ def group_required(*group_names, **kwargs):
     def decorator(view_func):
         @wraps(view_func, assigned=available_attrs(view_func))
         def _wrapped_view(request, *args, **kwargs):
-            if request.user.is_anonymous and allow_anonymous:
+            if allow_anonymous and not request.user.is_authenticated:
                 return view_func(request, *args, **kwargs)
             if profile_needs_update(request):
                 next_url = resolve_url(reverse('edit_profile'))
