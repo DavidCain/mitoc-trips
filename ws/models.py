@@ -493,13 +493,18 @@ class Participant(models.Model):
 
     @property
     def allowed_programs(self):
+        """ Yield all programs which this participant can currently lead. """
         active_ratings = self.leaderrating_set.filter(active=True)
         rated_activities = active_ratings.values_list('activity', flat=True)
         if not rated_activities:
             # Not a MITOC leader, can't lead anything
             return
 
+        iap_ongoing = dateutils.is_currently_iap()
         for program_enum in enums.Program:
+            if program_enum == enums.Program.WINTER_SCHOOL and not iap_ongoing:
+                continue  # With or without a WS rating, WS trips should only be made in IAP!
+
             req_activity = program_enum.required_activity()
             if req_activity is None or req_activity.value in rated_activities:
                 yield program_enum

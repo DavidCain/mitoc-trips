@@ -1,5 +1,4 @@
 from bs4 import BeautifulSoup
-from django.contrib.auth.models import User
 
 from ws.tests import TestCase, factories
 
@@ -7,10 +6,8 @@ from ws.tests import TestCase, factories
 class PotentialDuplicatesViewewTest(TestCase):
     def setUp(self):
         super().setUp()
-        self.user = User.objects.create_superuser(
-            pk=22, email='admin@example.com', password='password', username='superuser'
-        )
-        self.client.login(email=self.user.email, password='password')
+        user = factories.UserFactory.create(is_superuser=True)
+        self.client.force_login(user)
 
     def _get(self, url):
         response = self.client.get(url)

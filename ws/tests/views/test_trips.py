@@ -154,6 +154,33 @@ class AllTripsViewTest(TestCase, Helpers):
 
 
 class CreateTripViewTest(TestCase, Helpers):
+    @freeze_time("2019-12-15 12:25:00 EST")
+    def test_superuser_can_create_any_program(self):
+        """ Even though it's not IAP, the superuser can make any trip type. """
+        user = factories.UserFactory.create(is_superuser=True)
+        factories.ParticipantFactory.create(user_id=user.pk)
+        self.client.force_login(user)
+        _resp, soup = self._get('/trips/create/')
+        options = soup.find('select', attrs={'name': 'program'}).find_all('option')
+        self.assertCountEqual(
+            [opt['value'] for opt in options],
+            [program.value for program in enums.Program],
+        )
+
+    @freeze_time("2019-12-15 12:25:00 EST")
+    def test_winter_school_not_available_outside_iap(self):
+        """ Normal trip leaders can only make normal winter trips outside IAP. """
+        leader = factories.ParticipantFactory.create()
+        factories.LeaderRatingFactory.create(
+            participant=leader, activity=models.LeaderRating.WINTER_SCHOOL
+        )
+        self.client.force_login(leader.user)
+        _resp, soup = self._get('/trips/create/')
+        options = soup.find('select', attrs={'name': 'program'}).find_all('option')
+        programs = [opt['value'] for opt in options]
+        self.assertIn(enums.Program.WINTER_NON_IAP.value, programs)
+        self.assertNotIn(enums.Program.WINTER_SCHOOL.value, programs)
+
     def test_creation(self):
         """ End-to-end test of form submission on creating a new trip.
 
@@ -166,10 +193,8 @@ class CreateTripViewTest(TestCase, Helpers):
         user = factories.UserFactory.create()
         self.client.force_login(user)
         trip_leader = factories.ParticipantFactory.create(user=user)
-        trip_leader.leaderrating_set.add(
-            factories.LeaderRatingFactory.create(
-                participant=trip_leader, activity=models.LeaderRating.BIKING
-            )
+        factories.LeaderRatingFactory.create(
+            participant=trip_leader, activity=models.LeaderRating.BIKING
         )
         _resp, soup = self._get('/trips/create/')
         form = soup.find('form')
@@ -207,10 +232,8 @@ class EditTripViewTest(TestCase, Helpers):
         user = factories.UserFactory.create(email='leader@example.com')
         self.client.force_login(user)
         trip_creator = factories.ParticipantFactory.create(user=user)
-        trip_creator.leaderrating_set.add(
-            factories.LeaderRatingFactory.create(
-                participant=trip_creator, activity=models.LeaderRating.WINTER_SCHOOL
-            )
+        factories.LeaderRatingFactory.create(
+            participant=trip_creator, activity=models.LeaderRating.WINTER_SCHOOL
         )
         trip = factories.TripFactory.create(
             creator=trip_creator, program=enums.Program.WINTER_SCHOOL.value

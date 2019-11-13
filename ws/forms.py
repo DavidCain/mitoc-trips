@@ -323,8 +323,11 @@ class TripForm(DjangularRequiredModelForm):
             wimp.attrs['selected-id'] = self.instance.wimp.pk
             wimp.attrs['selected-name'] = self.instance.wimp.name
 
-    @staticmethod
-    def _allowed_program_choices(allowed_program_enums):
+    def _allowed_program_choices(self, allowed_program_enums):
+        # If editing an existing trip, the old program can persist.
+        if self.instance and self.instance.program_enum not in allowed_program_enums:
+            allowed_program_enums = [self.instance.program_enum, *allowed_program_enums]
+
         for category, choices in enums.Program.choices():
             assert isinstance(category, str) and isinstance(choices, list)
             valid_choices = [
