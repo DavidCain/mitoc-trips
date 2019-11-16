@@ -1,9 +1,11 @@
+from datetime import date, datetime
 from textwrap import dedent
 from unittest.mock import patch
 
 from freezegun import freeze_time
 from mitoc_const import affiliations
 
+import ws.utils.dates as dateutils
 from ws import enums, models, settings
 from ws.lottery import run
 from ws.tests import TestCase, factories
@@ -117,3 +119,90 @@ class SingleTripLotteryTests(TestCase):
         bob.refresh_from_db()
         self.assertFalse(bob.on_trip)
         self.assertTrue(bob.waitlistsignup)
+
+
+@freeze_time("2020-01-15 09:00:00 EST")
+class WinterSchoolLotteryTests(TestCase):
+    @staticmethod
+    def _ws_trip(**kwargs):
+        return factories.TripFactory.create(
+            algorithm="lottery", program=enums.Program.WINTER_SCHOOL.value, **kwargs
+        )
+
+    def setUp(self):
+        self.ice = self._ws_trip(
+            name="Frankenstein",
+            trip_type=enums.TripType.ICE_CLIMBING.value,
+            maximum_participants=3,
+            trip_date=date(2020, 1, 18),  # Sat
+        )
+        self.hike = self._ws_trip(
+            name="Welch-Dickey",
+            trip_type=enums.TripType.HIKING.value,
+            maximum_participants=2,
+            trip_date=date(2020, 1, 19),  # Sun
+        )
+
+        self.hiker = factories.ParticipantFactory.create(name="Prefers Hiking")
+        self.climber = factories.ParticipantFactory.create(name="Seeks Ice")
+
+        # Won't be included in the lottery run.
+        self.non_ws = factories.TripFactory.create(
+            name="Local trail work",
+            algorithm="lottery",
+            program=enums.Program.SERVICE.value,
+            trip_type=enums.TripType.HIKING.value,
+            trip_date=date(2020, 1, 18),  # Sat
+        )
+
+    def _assert_fcfs_at_noon(self, trip):
+        self.assertEqual(trip.algorithm, 'fcfs')
+        self.assertEqual(
+            trip.signups_open_at, dateutils.localize(datetime(2020, 1, 15, 12))
+        )
+
+    def test_no_signups(self):
+        """ Trips are made FCFS, even if nobody signed up. """
+        runner = run.WinterSchoolLotteryRunner()
+        runner()
+
+        for trip in [self.hike, self.ice]:
+            trip.refresh_from_db()
+            self._assert_fcfs_at_noon(trip)
+
+    def test_non_ws_trips_ignored(self):
+        """ Participants with signups for non-WS trips are handled.
+
+        Namely,
+        - a participant's signup for a non-WS trip does not affect the lottery
+        - The cleanup phase of the lottery does not modify any non-WS trips
+        """
+        outside_iap_trip = factories.TripFactory.create(
+            name='non-WS trip',
+            algorithm='lottery',
+            program=enums.Program.WINTER_NON_IAP.value,
+            trip_date=date(2020, 1, 18),
+        )
+        office_day = factories.TripFactory.create(
+            name='Office Day',
+            algorithm='fcfs',
+            program=enums.Program.NONE.value,
+            trip_date=date(2020, 1, 19),
+        )
+
+        # Sign up the hiker for all three trips!
+        for trip in [self.hike, outside_iap_trip, office_day]:
+            factories.SignUpFactory.create(participant=self.hiker, trip=trip)
+
+        runner = run.WinterSchoolLotteryRunner()
+        runner()
+
+        # The participant was placed on their desired WS trip!
+        ws_signup = models.SignUp.objects.get(trip=self.hike, participant=self.hiker)
+        self.assertTrue(ws_signup.on_trip)
+
+        # Neither of the other two trips had their algorithm or start time adjusted
+        outside_iap_trip.refresh_from_db()
+        self.assertEqual(outside_iap_trip.algorithm, 'lottery')
+        office_day.refresh_from_db()
+        self.assertEqual(office_day.signups_open_at, dateutils.local_now())

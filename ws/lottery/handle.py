@@ -173,7 +173,7 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
         )
         if self.paired:  # Restrict signups to those both signed up for
             signups = signups.filter(trip__in=self.paired_par.trip_set.all())
-        return signups.order_by('order', 'time_created')
+        return signups.order_by('order', 'time_created', 'pk')
 
     def place_participant(self):
         if self.paired:
