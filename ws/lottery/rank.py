@@ -2,11 +2,13 @@ import random
 from collections import namedtuple
 from datetime import timedelta
 
-from django.db.models import Case, F, IntegerField, Q, When
+from django.db.models import Q
 from mitoc_const import affiliations
 
 from ws import enums, models, settings
 from ws.utils.dates import local_now
+
+from . import annotate_reciprocally_paired
 
 WEIGHTS = {
     affiliations.MIT_UNDERGRAD.CODE: 0.3,
@@ -94,18 +96,7 @@ class ParticipantRanker:
         Each participant is decorated with an attribute that says if they've
         reciprocally paired themselves with another participant.
         """
-        is_reciprocally_paired = Q(
-            pk=F('lotteryinfo__paired_with__' 'lotteryinfo__paired_with__pk')
-        )
-
-        participants = self.participants_to_handle().annotate(
-            # Django 2.0: Use conditional aggregation instead!
-            reciprocally_paired=Case(
-                When(is_reciprocally_paired, then=1),
-                default=0,
-                output_field=IntegerField(),
-            )
-        )
+        participants = annotate_reciprocally_paired(self.participants_to_handle())
         with_keys = ((self.priority_key(par), par) for par in participants)
         for priority_key, participant in sorted(with_keys):
             yield participant, priority_key

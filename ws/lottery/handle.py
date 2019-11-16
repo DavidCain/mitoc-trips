@@ -69,7 +69,7 @@ class ParticipantHandler:
         return (self.participant,)
 
     @property
-    def par_text(self):
+    def _par_text(self):
         return " + ".join(map(str, self.to_be_placed))
 
     def place_all_on_trip(self, signup):
@@ -80,7 +80,7 @@ class ParticipantHandler:
             )
             place_on_trip(par_signup, self.logger)
 
-    def count_drivers_on_trip(self, trip):
+    def _count_drivers_on_trip(self, trip) -> int:
         participant_drivers = trip.signup_set.filter(self.is_driver_q, on_trip=True)
         lottery_leaders = trip.leaders.filter(lotteryinfo__isnull=False)
         num_leader_drivers = sum(
@@ -88,7 +88,7 @@ class ParticipantHandler:
         )
         return participant_drivers.count() + num_leader_drivers
 
-    def try_to_place(self, signup):
+    def try_to_place(self, signup: models.SignUp) -> bool:
         """ Try to place participant (and partner) on the trip.
 
         Returns if successful.
@@ -100,7 +100,7 @@ class ParticipantHandler:
         if self.is_driver and not trip.open_slots and not self.paired:
             # A driver may displace somebody else
             # (but a couple with a driver cannot displace two people)
-            if self.count_drivers_on_trip(trip) < self.min_drivers:
+            if self._count_drivers_on_trip(trip) < self.min_drivers:
                 self.logger.info(
                     f"{trip} is full, but doesn't have {self.min_drivers} drivers"
                 )
@@ -190,15 +190,15 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
         info = {
             'participant_pk': self.participant.pk,
             'paired_with_pk': self.paired_par and self.paired_par.pk,
-            'affiliation': self.participant.affiliation,
             'is_paired': bool(self.paired),
+            'affiliation': self.participant.affiliation,
             'ranked_trips': ranked_trips,
             'placed_on_choice': None,  # One-indexed rank
             'waitlisted': False,
         }
 
         if not ranked_trips:
-            self.logger.info(f"{self.par_text} did not choose any trips this week")
+            self.logger.info(f"{self._par_text} did not choose any trips this week")
             self.runner.mark_handled(self.participant)
             return info
 
@@ -211,18 +211,17 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
                 info['placed_on_choice'] = rank
                 break
             else:
-                self.logger.info(f"Can't place {self.par_text} on {signup.trip}")
+                self.logger.info(f"Can't place {self._par_text} on {signup.trip}")
         else:  # No trips are open
-            self.logger.info(f"None of {self.par_text}'s trips are open.")
+            self.logger.info(f"None of {self._par_text}'s trips are open.")
             favorite_trip = self.future_signups.first().trip
             for participant in self.to_be_placed:
-                find_signup = Q(participant=participant, trip=favorite_trip)
-                favorite_signup = models.SignUp.objects.get(find_signup)
-                add_to_waitlist(favorite_signup)
-                with_email = f"{self.par_text} ({participant.email})"
-                self.logger.info(
-                    f"Waitlisted {with_email} on {favorite_signup.trip.name}"
+                favorite_signup = models.SignUp.objects.get(
+                    participant=participant, trip=favorite_trip
                 )
+                add_to_waitlist(favorite_signup)
+                with_email = f"{self._par_text} ({participant.email})"
+                self.logger.info(f"Waitlisted {with_email} on {favorite_trip.name}")
                 info['waitlisted'] = True
 
         self.runner.mark_handled(self.participant)

@@ -40,7 +40,7 @@ class LotteryRunner:
         """ Get a unique logger object per each instance. """
         return f"{__name__}.{id(self)}"
 
-    def handled(self, participant):
+    def handled(self, participant) -> bool:
         return self.participants_handled.get(participant.pk, False)
 
     def mark_handled(self, participant, handled=True):
