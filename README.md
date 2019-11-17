@@ -1,5 +1,6 @@
 [![Build Status](https://travis-ci.org/DavidCain/mitoc-trips.svg?branch=master)](https://travis-ci.org/DavidCain/mitoc-trips)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
+[![Coverage Status](https://coveralls.io/repos/github/DavidCain/mitoc-trips/badge.svg?branch=master)](https://coveralls.io/github/DavidCain/mitoc-trips?branch=master)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 # About
 This is a Django-based trip management system for the [MIT Outing Club][mitoc].
@@ -72,7 +73,7 @@ trip formats once subject to same problems as Winter School.
 
 
 
-  [mitoc]: mitoc.org
+  [mitoc]: https://mitoc.mit.edu
   [about]: https://mitoc-trips.mit.edu/help/about/
   [mitoc-ansible]: https://github.com/DavidCain/mitoc-ansible
 

@@ -5,3 +5,6 @@ source = ws
 [report]
 omit =
   ws/migrations/*
+exclude_lines =
+  pragma: no cover
+  raise NotImplementedError
