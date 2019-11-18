@@ -50,11 +50,10 @@ class LotteryRunner:
     def participant_to_bump(trip):
         """ Which participant to bump off the trip if another needs a place.
 
-        By default, just goes with the most recently-added participant.
-        Standard us case: Somebody needs to be bumped so a driver may join.
+        By default, just goes with the last-ordered participant.
+        Standard use case: Somebody needs to be bumped so a driver may join.
         """
-        on_trip = trip.signup_set.filter(on_trip=True)
-        return on_trip.order_by('-last_updated').first()
+        return trip.signup_set.filter(on_trip=True).last()
 
     def __call__(self):
         raise NotImplementedError("Subclasses must implement lottery behavior")

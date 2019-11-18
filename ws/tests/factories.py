@@ -3,6 +3,7 @@ import factory
 from factory.django import DjangoModelFactory
 from mitoc_const import affiliations
 
+import ws.utils.dates as dateutils
 from ws import enums, models
 
 
@@ -144,6 +145,15 @@ class LotteryInfoFactory(DjangoModelFactory):
     participant = factory.SubFactory(ParticipantFactory)
     car_status = "rent"
     paired_with = None
+
+
+class LotteryAdjustmentFactory(DjangoModelFactory):
+    class Meta:
+        model = models.LotteryAdjustment
+
+    creator = factory.SubFactory(ParticipantFactory)
+    participant = factory.SubFactory(ParticipantFactory)
+    expires = factory.LazyAttribute(lambda _obj: dateutils.next_lottery())
 
 
 class TripFactory(DjangoModelFactory):

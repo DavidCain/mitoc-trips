@@ -48,6 +48,7 @@ much-needed testing and detailed feedback.
 - Bjorn Poonen
 - David Johnson
 - Kyle Barron
+- Mason Glidden
 - Neil Titchener
 - Nick Alunni
 

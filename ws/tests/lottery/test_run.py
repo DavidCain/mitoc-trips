@@ -99,7 +99,7 @@ class SingleTripLotteryTests(TestCase):
               3. Bob Bobberson        (MIT affiliate (staff or faculty), 0.5391638258147878)
             --------------------------------------------------
             Single Trip Example has 2 slots, adding Alice Aaronson
-            Single Trip Example has 1  slot, adding Charles Charleson
+            Single Trip Example has 1 slot, adding Charles Charleson
             Adding Bob Bobberson to the waitlist
             """
         )

@@ -14,7 +14,7 @@ def par_is_driver(participant):
 
 def place_on_trip(signup, logger):
     trip = signup.trip
-    slots = ' slot' if trip.open_slots == 1 else 'slots'
+    slots = 'slot' if trip.open_slots == 1 else 'slots'
     logger.info(f"{trip} has {trip.open_slots} {slots}, adding {signup.participant}")
     signup.on_trip = True
     signup.save()
@@ -88,6 +88,10 @@ class ParticipantHandler:
         )
         return participant_drivers.count() + num_leader_drivers
 
+    def _num_drivers_needed(self, trip):
+        num_drivers = self._count_drivers_on_trip(trip)
+        return max(self.min_drivers - num_drivers, 0)
+
     def try_to_place(self, signup: models.SignUp) -> bool:
         """ Try to place participant (and partner) on the trip.
 
@@ -98,9 +102,10 @@ class ParticipantHandler:
             self.place_all_on_trip(signup)
             return True
         if self.is_driver and not trip.open_slots and not self.paired:
-            # A driver may displace somebody else
-            # (but a couple with a driver cannot displace two people)
-            if self._count_drivers_on_trip(trip) < self.min_drivers:
+            # A driver may displace somebody else.
+            # At present, we don't allow pairs of drivers to displace 2.
+            # TODO: Support the above scenario!
+            if self._num_drivers_needed(trip):
                 self.logger.info(
                     f"{trip} is full, but doesn't have {self.min_drivers} drivers"
                 )
@@ -163,7 +168,6 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
         self.today = local_date()
         super().__init__(participant, runner, min_drivers=2, allow_pairs=True)
 
-    @property
     def future_signups(self):
         # Only consider lottery signups for future trips
         signups = self.participant.signup_set.filter(
@@ -183,8 +187,50 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
                 self.runner.mark_handled(self.participant)
                 return None
 
-        ranked_trips = [signup.trip_id for signup in self.future_signups]
-        self.logger.debug(f"Ranked {len(ranked_trips)} trips: {ranked_trips}")
+        info = self._place_or_waitlist()
+        self.runner.mark_handled(self.participant)
+        return info
+
+    def _placement_would_jeopardize_driver_bump(self, signup):
+        """ Return if placing this participant (or pair) risks them later being bumped.
+
+        For paired participants, this returns true if 2 slots remain & at least
+        one more driver is required.
+
+        This is invoked for every signup, so we make attempts to exit early
+        (for efficiency) in most scenarios.
+        """
+        open_slots = signup.trip.open_slots
+
+        if open_slots < self.slots_needed:
+            return False  # Cannot place anyway, driver has nothing to do with it.
+
+        # Shortcut - if we're not taking the last places, we needn't query driver status
+        future_num_slots = open_slots - self.slots_needed
+        if future_num_slots > self.min_drivers:
+            return False  # Definitely will not be bumped (enough slots remain)
+
+        if self.is_driver:
+            return False  # Bumping a driver never makes sense.
+
+        # Few slots remain, but it's possible we already have 1 or 2 drivers on the trip.
+        if self._num_drivers_needed(signup.trip) < future_num_slots:
+            return False
+
+        # At this point, potential drivers could bump some of the last signups!
+        # If other unhandled participants ranked this trip, consider it jeopardized
+        driver_signups = models.SignUp.objects.filter(
+            trip=signup.trip,
+            on_trip=False,  # If on the trip, we know they're handled.
+            participant__lotteryinfo__car_status__in=['own', 'rent'],
+        ).exclude(participant_id__in=self.to_be_placed)
+
+        return any(
+            not self.runner.handled(signup.participant) for signup in driver_signups
+        )
+
+    def _place_or_waitlist(self):
+        future_signups = self.future_signups()
 
         # JSON-serializable object we can use to analyze outputs.
         info = {
@@ -192,37 +238,44 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
             'paired_with_pk': self.paired_par and self.paired_par.pk,
             'is_paired': bool(self.paired),
             'affiliation': self.participant.affiliation,
-            'ranked_trips': ranked_trips,
+            'ranked_trips': [signup.trip_id for signup in future_signups],
             'placed_on_choice': None,  # One-indexed rank
             'waitlisted': False,
         }
 
-        if not ranked_trips:
-            self.logger.info(f"{self._par_text} did not choose any trips this week")
-            self.runner.mark_handled(self.participant)
+        if not future_signups:
+            self.logger.info("%s did not choose any trips this week", self._par_text)
             return info
 
         # Try to place participants on their first choice available trip
-        for rank, signup in enumerate(self.future_signups, start=1):
+        skipped_to_avoid_driver_bump = []  # type: Tuple[int, models.SignUp]
+        for rank, signup in enumerate(future_signups, start=1):
+            trip_name = signup.trip.name
+            if self._placement_would_jeopardize_driver_bump(signup):
+                self.logger.debug("Placing on %r risks bump from a driver", trip_name)
+                skipped_to_avoid_driver_bump.append((rank, signup))
+                continue
             if self.try_to_place(signup):
-                self.logger.debug(
-                    f"Placed on trip #{rank} of {len(self.future_signups)}"
-                )
-                info['placed_on_choice'] = rank
-                break
-            else:
-                self.logger.info(f"Can't place {self._par_text} on {signup.trip}")
-        else:  # No trips are open
-            self.logger.info(f"None of {self._par_text}'s trips are open.")
-            favorite_trip = self.future_signups.first().trip
-            for participant in self.to_be_placed:
-                favorite_signup = models.SignUp.objects.get(
-                    participant=participant, trip=favorite_trip
-                )
-                add_to_waitlist(favorite_signup)
-                with_email = f"{self._par_text} ({participant.email})"
-                self.logger.info(f"Waitlisted {with_email} on {favorite_trip.name}")
-                info['waitlisted'] = True
+                self.logger.debug(f"Placed on trip #{rank} of {len(future_signups)}")
+                return {**info, 'placed_on_choice': rank}
+            self.logger.info("Can't place %s on %r", self._par_text, trip_name)
 
-        self.runner.mark_handled(self.participant)
-        return info
+        # At this point, there were no trips that could take the participant or pair
+        # It's possible that some were skipped because few spaces remained & a driver may bump.
+        # If any potential placements remain, take those & risk a future bump.
+        for rank, signup in skipped_to_avoid_driver_bump:
+            if self.try_to_place(signup):
+                self.logger.debug(f"Placed on trip #{rank} of {len(future_signups)}")
+                return {**info, 'placed_on_choice': rank}
+
+        self.logger.info(f"None of {self._par_text}'s trips are open.")
+        favorite_trip = future_signups.first().trip
+        for participant in self.to_be_placed:
+            favorite_signup = models.SignUp.objects.get(
+                participant=participant, trip=favorite_trip
+            )
+            add_to_waitlist(favorite_signup)
+            with_email = f"{self._par_text} ({participant.email})"
+            self.logger.info(f"Waitlisted {with_email} on {favorite_trip.name}")
+
+        return {**info, 'waitlisted': True}
