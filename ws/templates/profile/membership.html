@@ -104,6 +104,11 @@ Membership dues
           </p>
         </div>
 
+        <p data-ng-show="['MU', 'MG'].includes(merchantDefinedData2)">
+            If <noscript>you are an MIT student and</noscript> the cost of membership dues is prohibitive to your participation,
+           please email <a href="mailto:mitoc-owner@mit.edu">mitoc-owner@mit.edu</a>
+           to ask about this fee being waived.
+        </p>
         <div class="btn-group">
           {% if viewing_participant %}
             <a type="button" class="btn btn-default" href="{% url 'edit_profile' %}?next={% url 'pay_dues' %}">
