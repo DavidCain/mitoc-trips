@@ -77,7 +77,7 @@
             </h1>
 
             <div class="leader-titles">
-              {% for activity_enum in user|chair_activities %}
+              {% for activity_enum in par_user|chair_activities %}
                 <h4>{{ activity_enum.label }} Chair</h4>
               {% endfor %}
               {% for rating in ratings %}
