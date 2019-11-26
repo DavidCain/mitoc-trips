@@ -47,7 +47,7 @@ class LotteryRunner:
         self.participants_handled[participant.pk] = handled
 
     @staticmethod
-    def participant_to_bump(trip):
+    def signup_to_bump(trip):
         """ Which participant to bump off the trip if another needs a place.
 
         By default, just goes with the last-ordered participant.
@@ -150,7 +150,7 @@ class WinterSchoolLotteryRunner(LotteryRunner):
             trip.make_fcfs(signups_open_at=noon)
             trip.save()
 
-    def participant_to_bump(self, trip):
+    def signup_to_bump(self, trip):
         return self.ranker.lowest_non_driver(trip)
 
     def assign_trips(self):

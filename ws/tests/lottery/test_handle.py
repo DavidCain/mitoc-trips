@@ -299,3 +299,79 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
 
         self._assert_on_trip(one, second_trip)
         self._assert_on_trip(one, second_trip)
+
+    def test_bump_paired_participants(self):
+        """ If a participant pair is bumped, we keep them on the same trip. """
+        # Two paired participants rank two trips.
+        preferred_trip = factories.TripFactory.create(
+            algorithm='lottery',
+            program=enums.Program.WINTER_SCHOOL.value,
+            maximum_participants=2,
+        )
+        second_trip = factories.TripFactory.create(
+            algorithm='lottery',
+            program=enums.Program.WINTER_SCHOOL.value,
+            # Not enough room for both participants!
+            # This is avoids possibly triggering the driver avoidance rule
+            # (but has room for one of the bumped participants)
+            maximum_participants=1,
+        )
+        one, two = self._pair_signed_up_for(preferred_trip, car_status='none', order=1)
+        factories.SignUpFactory.create(participant=one, trip=second_trip, order=2)
+        factories.SignUpFactory.create(participant=two, trip=second_trip, order=2)
+
+        # Paired participants are placed on their preferred trip
+        self.assertIsNone(self._place_participant(one))
+        self._place_participant(two)
+
+        # Driver comes along and bumps one of the pair.
+        driver = factories.ParticipantFactory.create(name="Car Owner")
+        factories.LotteryInfoFactory.create(participant=driver, car_status='own')
+        factories.SignUpFactory.create(participant=driver, trip=preferred_trip)
+
+        # Driver gets the trip, bumps one of the two.
+        self._place_participant(driver)
+        self._assert_on_trip(driver, preferred_trip)
+
+        # Though there's room on the second trip, we chose to keep them together
+        self.assertTrue(second_trip.open_slots)
+        waitlisted_signup = preferred_trip.waitlist.signups.get()
+        self.assertIn(waitlisted_signup.participant, [one, two])
+        self._assert_on_trip(waitlisted_signup.participant, second_trip, on_trip=False)
+
+    def test_bump_single_participant(self):
+        """ We try to place a participant on less-preferred trips if possible. """
+        (best, middle, worst) = [
+            factories.TripFactory.create(
+                algorithm='lottery',
+                program=enums.Program.WINTER_SCHOOL.value,
+                maximum_participants=1,
+            )
+            for i in range(3)
+        ]
+
+        par = factories.ParticipantFactory.create()
+        factories.SignUpFactory.create(participant=par, trip=best, order=1)
+        factories.SignUpFactory.create(participant=par, trip=middle, order=2)
+        factories.SignUpFactory.create(participant=par, trip=worst, order=3)
+
+        # Driver also wants to be on those three trips, in the same order
+        driver = factories.ParticipantFactory.create(name="Car Renter")
+        factories.LotteryInfoFactory.create(participant=driver, car_status='rent')
+        factories.SignUpFactory.create(participant=driver, trip=best, order=1)
+        factories.SignUpFactory.create(participant=driver, trip=middle, order=2)
+        factories.SignUpFactory.create(participant=driver, trip=worst, order=3)
+
+        # Because the driver could displace the participant on any of the three trips,
+        # we just choose the first trip and hope for the best.
+        self._place_participant(par)
+        self._assert_on_trip(par, best)
+
+        # We place the driver, who displaces the participant.
+        self._place_participant(driver)
+        self._assert_on_trip(driver, best)
+        self._assert_on_trip(par, best, on_trip=False)
+
+        # The participant is moved to their second-favorite trip, not waitlisted.
+        self._assert_on_trip(par, middle)
+        self.assertFalse(best.waitlist.signups.count())

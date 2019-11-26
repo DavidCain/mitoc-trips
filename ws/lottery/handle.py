@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.db.models import Q
 
 from ws import enums, models
@@ -9,6 +11,17 @@ def par_is_driver(participant):
         return participant.lotteryinfo.is_driver
     except models.LotteryInfo.DoesNotExist:
         return False
+
+
+def ranked_signups(participant, after: date):
+    """ Return all future WS signups for the participant. """
+    # Only consider lottery signups for future trips
+    return participant.signup_set.filter(
+        on_trip=False,
+        trip__algorithm='lottery',
+        trip__trip_date__gt=after,
+        trip__program=enums.Program.WINTER_SCHOOL.value,
+    ).order_by('order', 'time_created', 'pk')
 
 
 def place_on_trip(signup, logger):
@@ -91,6 +104,10 @@ class ParticipantHandler:
         num_drivers = self._count_drivers_on_trip(trip)
         return max(self.min_drivers - num_drivers, 0)
 
+    def bump_participant(self, signup):
+        add_to_waitlist(signup, prioritize=True)
+        self.logger.info("Moved %s to the top of the waitlist", signup)
+
     def try_to_place(self, signup: models.SignUp) -> bool:
         """ Try to place participant (and partner) on the trip.
 
@@ -106,13 +123,10 @@ class ParticipantHandler:
             # TODO: Support the above scenario!
             if self._num_drivers_needed(trip):
                 self.logger.info(
-                    f"{trip} is full, but doesn't have {self.min_drivers} drivers"
+                    "%r is full, but lacks %d drivers", trip.name, self.min_drivers
                 )
-                self.logger.info(f"Adding {signup} to '{trip}', as they're a driver")
-                par_to_bump = self.runner.participant_to_bump(trip)
-                add_to_waitlist(par_to_bump, prioritize=True)
-                self.logger.info(f"Moved {par_to_bump} to the top of the waitlist")
-                # TODO: Try to move the bumped participant to a preferred, open trip!
+                self.logger.info("Adding driver %s to %r", signup, trip.name)
+                self.bump_participant(self.runner.signup_to_bump(trip))
                 signup.on_trip = True
                 signup.save()
                 return True
@@ -164,19 +178,55 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
         """
         :param runner: An instance of LotteryRunner
         """
-        self.lottery_runtime = runner.execution_datetime
+        self.lottery_rundate = runner.execution_datetime.date()
         super().__init__(participant, runner, min_drivers=2, allow_pairs=True)
 
+    def bump_participant(self, signup):
+        """ Try to place a bumped participant on a trip before waitlisting them.
+
+        If a participant is placed on a trip, but later bumped off that trip to
+        make room for a driver, we can generally assume that they would prefer
+        a definite spot on one of their ranked trips as opposed to being on
+        the waitlist.
+
+        Note that this is a different participant than the one being handled!
+        """
+        # This participant is currently on the trip!
+        assert signup.on_trip
+        par = signup.participant
+
+        # Paired participants would generally prefer to stick together
+        try:
+            lotteryinfo = par.lotteryinfo
+        except models.LotteryInfo.DoesNotExist:
+            pass  # Definitely not paired.
+        else:
+            # Choose to just stay on the waitlist in hopes of joining their partner
+            # NOTE: (cannot use `reciprocally_paired`, since that's a rank-annotated prop)
+            if lotteryinfo.reciprocally_paired_with:
+                super().bump_participant(signup)
+
+        self.logger.debug("Searching all signups for a potentially open trip.")
+        # Do not bother being picky about potentially being bumped by a driver
+        future_signups = ranked_signups(par, after=self.lottery_rundate)
+        for other_signup in future_signups:
+            if not other_signup.trip.open_slots:
+                self.logger.debug("%r is full", other_signup.trip.name)
+                continue
+            place_on_trip(other_signup, self.logger)
+            self.logger.debug("Placed on %r", other_signup.trip.name)
+            signup.on_trip = False
+            signup.save()
+            return
+
+        # No slots are open - just waitlist them on their top trip!
+        super().bump_participant(signup)
+
     def future_signups(self):
-        # Only consider lottery signups for future trips
-        signups = self.participant.signup_set.filter(
-            trip__trip_date__gt=self.lottery_runtime.date(),
-            trip__algorithm='lottery',
-            trip__program=enums.Program.WINTER_SCHOOL.value,
-        )
+        signups = ranked_signups(self.participant, after=self.lottery_rundate)
         if self.paired:  # Restrict signups to those both signed up for
             signups = signups.filter(trip__in=self.paired_par.trip_set.all())
-        return signups.order_by('order', 'time_created', 'pk')
+        return signups
 
     def place_participant(self):
         if self.paired:
