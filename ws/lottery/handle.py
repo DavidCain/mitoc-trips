@@ -1,7 +1,6 @@
 from django.db.models import Q
 
 from ws import enums, models
-from ws.utils.dates import local_date
 from ws.utils.signups import add_to_waitlist
 
 
@@ -165,13 +164,13 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
         """
         :param runner: An instance of LotteryRunner
         """
-        self.today = local_date()
+        self.lottery_runtime = runner.execution_datetime
         super().__init__(participant, runner, min_drivers=2, allow_pairs=True)
 
     def future_signups(self):
         # Only consider lottery signups for future trips
         signups = self.participant.signup_set.filter(
-            trip__trip_date__gt=self.today,
+            trip__trip_date__gt=self.lottery_runtime.date(),
             trip__algorithm='lottery',
             trip__program=enums.Program.WINTER_SCHOOL.value,
         )
