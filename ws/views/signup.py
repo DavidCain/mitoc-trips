@@ -54,7 +54,7 @@ class BaseSignUpView(CreateView, LotteryPairingMixin):
         if signup.participant == signup.trip.wimp:
             errors.append("You can't go on a trip for which you are the WIMP.")
         if signup.trip in signup.participant.trip_set.all():
-            errors.append("Already a participant on this trip!")
+            errors.append("Already signed up for this trip!")
         if signup.participant in signup.trip.leaders.all():
             errors.append("Already a leader on this trip!")
         return errors
@@ -66,7 +66,7 @@ class BaseSignUpView(CreateView, LotteryPairingMixin):
         # If the lottery will run in single-trip mode,
         # inform participants about pairing effects
         if trip.single_trip_pairing and self.reciprocally_paired:
-            msg += " You're paired with {}.".format(self.paired_par.name)
+            msg += f" You're paired with {self.paired_par.name}"
             if trip.signup_set.filter(participant=self.paired_par).exists():
                 msg += " The lottery will attempt to place you together."
             else:
@@ -115,7 +115,8 @@ class SignUpView(BaseSignUpView):
         if not signup.trip.signups_open:  # Guards against direct POST
             errors.append("Signups aren't open!")
         if not self.request.participant.can_attend(signup.trip):
-            errors.append("Active membership/waiver required to attend")
+            req = "membership & waiver" if signup.trip.membership_required else "waiver"
+            errors.append(f"Active {req} required to attend")
         return errors
 
     @method_decorator(user_info_required)
