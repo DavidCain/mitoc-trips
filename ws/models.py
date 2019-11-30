@@ -306,6 +306,11 @@ class Participant(models.Model):
 
     discounts = models.ManyToManyField(Discount, blank=True)
 
+    @property
+    def membership_active(self):
+        """ NOTE: This uses the cache, should only be called on a fresh cache. """
+        return bool(self.membership and self.membership.membership_active)
+
     def should_renew_for(self, trip):
         """ NOTE: This uses the cache, should only be called on a fresh cache. """
         if not trip.membership_required:

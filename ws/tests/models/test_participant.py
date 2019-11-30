@@ -1,4 +1,5 @@
 import datetime
+import unittest
 from datetime import date
 
 from django.contrib.auth.models import AnonymousUser
@@ -197,3 +198,24 @@ class LeaderTest(TestCase):
         self.assertTrue(participant.can_lead(enums.Program.CIRCUS))
         self.assertTrue(participant.can_lead(enums.Program.NONE))
         self.assertTrue(participant.can_lead(enums.Program.SERVICE))
+
+
+class MembershipTest(unittest.TestCase):
+    def test_no_cached_membership(self):
+        par = factories.ParticipantFactory.build(membership=None)
+        self.assertFalse(par.membership_active)
+
+    def test_active_membership(self):
+        par = factories.ParticipantFactory.build(
+            membership=factories.MembershipFactory.build()
+        )
+        self.assertTrue(par.membership_active)
+
+    @freeze_time("11 Dec 2025 12:00:00 EST")
+    def test_inactive_membership(self):
+        par = factories.ParticipantFactory.build(
+            membership=factories.MembershipFactory.build(
+                membership_expires=date(2023, 11, 15)  # In the past.
+            )
+        )
+        self.assertFalse(par.membership_active)

@@ -205,3 +205,39 @@ class SignupForTripTests(TestCase):
         soup = self._render(signup.participant, trip)
         self.assertIsNone(soup.find('form'))
         self.assertTrue(soup.find('delete', attrs={'data-label': 'Drop off trip'}))
+
+
+class MembershipActiveTests(TestCase):
+    @staticmethod
+    def _render(participant):
+        context = Context({'participant': participant})
+        html_template = Template(
+            '{% load signup_tags %}{% if participant|membership_active %}Active!{% endif %}'
+        )
+        return html_template.render(context).strip()
+
+    def test_no_cached_membership(self):
+        """ The filter just naively treats a lacking cached membership as not active. """
+        raw_html = self._render(factories.ParticipantFactory.create(membership=None))
+        self.assertEqual(raw_html, '')
+
+    def test_active_membership(self):
+        """ Active memberships return True. """
+        active_membership = factories.MembershipFactory.create()
+        self.assertTrue(active_membership.membership_active)
+        par = factories.ParticipantFactory.create(membership=active_membership)
+        self.assertTrue(par.membership_active)
+
+        self.assertEqual(self._render(par), 'Active!')
+
+    @freeze_time("11 Dec 2025 12:00:00 EST")
+    def test_inactive_membership(self):
+        """ Active memberships return False. """
+        inactive_membership = factories.MembershipFactory.create(
+            membership_expires=date(2023, 11, 15)  # In the past.
+        )
+        self.assertFalse(inactive_membership.membership_active)
+        par = factories.ParticipantFactory.create(membership=inactive_membership)
+        self.assertFalse(par.membership_active)
+
+        self.assertEqual(self._render(par), '')

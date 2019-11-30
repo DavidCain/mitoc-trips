@@ -69,6 +69,7 @@ class ParticipantFactory(DjangoModelFactory):
         model = models.Participant
 
     affiliation = affiliations.NON_AFFILIATE.CODE
+    membership = None
     email = factory.Sequence(lambda n: f"participant{n + 1}@example.com")
     name = "Test Participant"
     car = None
@@ -113,6 +114,18 @@ class ParticipantFactory(DjangoModelFactory):
             kwargs['user_id'] = user.pk
 
         return super()._create(model_class, *args, **kwargs)
+
+
+class MembershipFactory(DjangoModelFactory):
+    class Meta:
+        model = models.Membership
+
+    membership_expires = factory.LazyAttribute(
+        lambda _obj: dateutils.next_wednesday().date()
+    )
+    waiver_expires = factory.LazyAttribute(
+        lambda _obj: dateutils.next_wednesday().date()
+    )
 
 
 class CarFactory(DjangoModelFactory):
