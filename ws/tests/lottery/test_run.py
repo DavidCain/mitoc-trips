@@ -5,7 +5,7 @@ from unittest.mock import patch
 from freezegun import freeze_time
 from mitoc_const import affiliations
 
-import ws.utils.dates as dateutils
+import ws.utils.dates as date_utils
 from ws import enums, models, settings
 from ws.lottery import run
 from ws.tests import TestCase, factories
@@ -158,7 +158,7 @@ class WinterSchoolLotteryTests(TestCase):
     def _assert_fcfs_at_noon(self, trip):
         self.assertEqual(trip.algorithm, 'fcfs')
         self.assertEqual(
-            trip.signups_open_at, dateutils.localize(datetime(2020, 1, 15, 12))
+            trip.signups_open_at, date_utils.localize(datetime(2020, 1, 15, 12))
         )
 
     def test_no_signups(self):
@@ -205,4 +205,4 @@ class WinterSchoolLotteryTests(TestCase):
         outside_iap_trip.refresh_from_db()
         self.assertEqual(outside_iap_trip.algorithm, 'lottery')
         office_day.refresh_from_db()
-        self.assertEqual(office_day.signups_open_at, dateutils.local_now())
+        self.assertEqual(office_day.signups_open_at, date_utils.local_now())

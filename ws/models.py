@@ -18,7 +18,7 @@ from mitoc_const import affiliations
 from mitoc_const.membership import RENEWAL_ALLOWED_WITH_DAYS_LEFT
 from phonenumber_field.modelfields import PhoneNumberField
 
-import ws.utils.dates as dateutils
+import ws.utils.dates as date_utils
 from ws import enums
 from ws.fields import OptionalOneToOneField
 from ws.utils.avatar import avatar_url
@@ -50,7 +50,7 @@ class SingletonModel(models.Model):
 class Car(models.Model):
     # As long as this module is reloaded once a year, this is fine
     # (First license plates were issued in Mass in 1903)
-    year_min, year_max = 1903, dateutils.local_now().year + 2
+    year_min, year_max = 1903, date_utils.local_now().year + 2
     # Loosely validate - may wish to use international plates in the future
     license_plate = models.CharField(max_length=31, validators=[alphanum])
     state = USStateField()
@@ -185,7 +185,7 @@ class Membership(models.Model):
     @property
     def membership_active(self):
         expires = self.membership_expires
-        return expires and expires >= dateutils.local_date()
+        return expires and expires >= date_utils.local_date()
 
     def should_renew_for(self, trip):
         """ Return if membership renewal is required to attend a future trip.
@@ -201,7 +201,7 @@ class Membership(models.Model):
         if not trip.membership_required:
             return False
 
-        today = dateutils.local_date()
+        today = date_utils.local_date()
 
         # We allow renewing membership in the last 40 days of your membership
         # (If you renew during this period, you get a full year + the remaining days)
@@ -395,7 +395,7 @@ class Participant(models.Model):
         if len(self.affiliation) == 1:  # Old one-letter affiliation
             return True
 
-        force_reset = dateutils.localize(datetime(2018, 10, 27, 4, 30))
+        force_reset = date_utils.localize(datetime(2018, 10, 27, 4, 30))
         return self.profile_last_updated < force_reset
 
     @property
@@ -484,7 +484,7 @@ class Participant(models.Model):
         day_before = trip.trip_date - timedelta(days=1)
         rating = self.activity_rating(
             required_activity.value,
-            at_time=dateutils.late_at_night(day_before),
+            at_time=date_utils.late_at_night(day_before),
             must_be_active=False,
         )
         return f"{self.name} ({rating})" if rating else self.name
@@ -505,7 +505,7 @@ class Participant(models.Model):
             # Not a MITOC leader, can't lead anything
             return
 
-        iap_ongoing = dateutils.is_currently_iap()
+        iap_ongoing = date_utils.is_currently_iap()
         for program_enum in enums.Program:
             if program_enum == enums.Program.WINTER_SCHOOL and not iap_ongoing:
                 continue  # With or without a WS rating, WS trips should only be made in IAP!
@@ -544,7 +544,7 @@ class Participant(models.Model):
 class LectureAttendance(models.Model):
     year = models.PositiveIntegerField(
         validators=[MinValueValidator(2016)],
-        default=dateutils.ws_year,
+        default=date_utils.ws_year,
         help_text="Winter School year when lectures were attended.",
     )
     participant = models.ForeignKey(Participant, on_delete=models.CASCADE)
@@ -819,10 +819,10 @@ class Trip(models.Model):
 
     time_created = models.DateTimeField(auto_now_add=True)
     last_edited = models.DateTimeField(auto_now=True)
-    trip_date = models.DateField(default=dateutils.nearest_sat)
+    trip_date = models.DateField(default=date_utils.nearest_sat)
     signups_open_at = models.DateTimeField(default=timezone.now)
     signups_close_at = models.DateTimeField(
-        default=dateutils.default_signups_close_at, null=True, blank=True
+        default=date_utils.default_signups_close_at, null=True, blank=True
     )
 
     let_participants_drop = models.BooleanField(
@@ -880,7 +880,7 @@ class Trip(models.Model):
 
     @property
     def feedback_window_passed(self):
-        return self.trip_date < (dateutils.local_date() - timedelta(30))
+        return self.trip_date < (date_utils.local_date() - timedelta(30))
 
     @property
     def on_trip_or_waitlisted(self):
@@ -958,30 +958,31 @@ class Trip(models.Model):
 
     @property
     def in_past(self):
-        return self.trip_date < dateutils.local_date()
+        return self.trip_date < date_utils.local_date()
 
     @property
     def upcoming(self):
-        return self.trip_date > dateutils.local_date()
+        return self.trip_date > date_utils.local_date()
 
     @property
     def after_lottery(self):
         """ True if it's after the lottery, but takes place before the next one. """
-        next_lottery = dateutils.next_lottery()
-        past_lottery = dateutils.lottery_time(next_lottery - timedelta(days=7))
+        next_lottery = date_utils.next_lottery()
+        past_lottery = date_utils.lottery_time(next_lottery - timedelta(days=7))
 
         return (
-            dateutils.local_now() > past_lottery and self.midnight_before < next_lottery
+            date_utils.local_now() > past_lottery
+            and self.midnight_before < next_lottery
         )
 
     @property
     def midnight_before(self):
         day_before = self.trip_date - timedelta(days=1)
-        return dateutils.late_at_night(day_before)
+        return date_utils.late_at_night(day_before)
 
     @property
     def fcfs_close_time(self):
-        return dateutils.fcfs_close_time(self.trip_date)
+        return date_utils.fcfs_close_time(self.trip_date)
 
     @property
     def open_slots(self):
@@ -1027,12 +1028,12 @@ class Trip(models.Model):
     def make_fcfs(self, signups_open_at=None):
         """ Set the algorithm to FCFS, adjust signup times appropriately. """
         self.algorithm = 'fcfs'
-        now = dateutils.local_now()
+        now = date_utils.local_now()
         if signups_open_at:
             self.signups_open_at = signups_open_at
-        elif dateutils.wed_morning() <= now < dateutils.closest_wed_at_noon():
+        elif date_utils.wed_morning() <= now < date_utils.closest_wed_at_noon():
             # If posted between lottery time and noon, make it open at noon
-            self.signups_open_at = dateutils.closest_wed_at_noon()
+            self.signups_open_at = date_utils.closest_wed_at_noon()
         else:
             self.signups_open_at = now
 
@@ -1050,7 +1051,7 @@ class Trip(models.Model):
             if self.signups_closed:
                 raise ValidationError("Signups can't be closed already!")
             # Careful here - don't want to disallow editing of past trips
-            if self.trip_date < dateutils.local_date():
+            if self.trip_date < date_utils.local_date():
                 raise ValidationError("Trips can't occur in the past!")
 
         close_time = self.signups_close_at
@@ -1068,7 +1069,7 @@ class Trip(models.Model):
 class BygonesManager(models.Manager):
     def get_queryset(self):
         feedback = super().get_queryset()
-        fuggedaboutit = dateutils.local_now() - timedelta(days=390)
+        fuggedaboutit = date_utils.local_now() - timedelta(days=390)
 
         return feedback.exclude(trip__trip_date__lt=fuggedaboutit)
 
@@ -1281,7 +1282,7 @@ class LeaderApplication(models.Model):
     # desired_rating = ... (a CharField, but can vary per application)
     year = models.PositiveIntegerField(
         validators=[MinValueValidator(2014)],
-        default=dateutils.ws_year,
+        default=date_utils.ws_year,
         help_text="Year this application pertains to.",
     )
 
@@ -1295,8 +1296,8 @@ class LeaderApplication(models.Model):
     @classmethod
     def application_year_for_activity(cls, activity):
         if activity == enums.Activity.WINTER_SCHOOL.value:
-            return dateutils.ws_year()
-        return dateutils.local_date().year
+            return date_utils.ws_year()
+        return date_utils.local_date().year
 
     @classmethod
     def accepting_applications(cls, activity):
@@ -1328,7 +1329,7 @@ class LeaderApplication(models.Model):
         """
         # Allow upgrades after 2 weeks, repeat applications after ~6 months
         waiting_period_days = 14 if latest_application.rating_given else 180
-        time_passed = dateutils.local_now() - latest_application.time_created
+        time_passed = date_utils.local_now() - latest_application.time_created
         return time_passed > timedelta(days=waiting_period_days)
 
     @property
@@ -1499,7 +1500,7 @@ class WinterSchoolLeaderApplication(LeaderApplication):
     @classmethod
     def can_reapply(cls, latest_application):
         """ Participants may only apply once per year to be a WS leader! """
-        return latest_application.year < dateutils.ws_year()
+        return latest_application.year < date_utils.ws_year()
 
 
 class ClimbingLeaderApplication(LeaderApplication):

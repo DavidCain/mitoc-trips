@@ -21,12 +21,11 @@ from kombu.exceptions import OperationalError
 import ws.messages.leader
 import ws.messages.lottery
 import ws.messages.participant
+import ws.utils.dates as date_utils
 from ws import forms, models, tasks
 from ws.decorators import admin_only, group_required, user_info_required
 from ws.mixins import LectureAttendanceMixin, LotteryPairingMixin
 from ws.templatetags.trip_tags import annotated_for_trip_list
-from ws.utils.dates import is_currently_iap, local_date, local_now, ws_year
-from ws.utils.model_dates import ws_lectures_complete
 
 logger = logging.getLogger(__name__)
 
@@ -214,7 +213,7 @@ class ParticipantEditMixin(TemplateView):
             participant.car = car
 
         if participant == self.request.participant:
-            participant.profile_last_updated = local_now()
+            participant.profile_last_updated = date_utils.local_now()
         participant.save()
         if del_car:
             car.delete()
@@ -298,7 +297,7 @@ class ParticipantView(
     def get_trips(self):
         participant = self.object or self.get_object()
 
-        today = local_date()
+        today = date_utils.local_date()
 
         # reusable Query objects
         is_par = Q(signup__participant=participant)
@@ -375,12 +374,12 @@ class ParticipantView(
 
         can_set_attendance = self.can_set_attendance(participant)
         context['can_set_attendance'] = can_set_attendance
-        context['show_attendance'] = is_currently_iap() and (
-            ws_lectures_complete() or can_set_attendance
+        context['show_attendance'] = date_utils.is_currently_iap() and (
+            date_utils.ws_lectures_complete() or can_set_attendance
         )
         if can_set_attendance:
             context['attended_lectures'] = models.LectureAttendance.objects.filter(
-                participant=participant, year=ws_year()
+                participant=participant, year=date_utils.ws_year()
             ).exists()
 
         context['user_viewing'] = user_viewing
@@ -432,7 +431,7 @@ class ProfileView(ParticipantView):
 
     @staticmethod
     def render_landing_page(request):
-        today = local_date()
+        today = date_utils.local_date()
         current_trips = models.Trip.objects.filter(trip_date__gte=today)
         context = {'current_trips': annotated_for_trip_list(current_trips)}
 

@@ -2,7 +2,7 @@ from datetime import date, datetime
 
 from freezegun import freeze_time
 
-import ws.utils.dates as dateutils
+import ws.utils.dates as date_utils
 from ws import enums
 from ws.tests import TestCase, factories
 
@@ -26,7 +26,7 @@ class SignupsViewTest(TestCase):
         return factories.TripFactory.create(
             program=enums.Program.CLIMBING.value,
             trip_date=date(2019, 2, 23),
-            signups_open_at=dateutils.localize(datetime(2019, 2, 12, 10, 0, 0)),
+            signups_open_at=date_utils.localize(datetime(2019, 2, 12, 10, 0, 0)),
             **kwargs,
         )
 
@@ -102,7 +102,7 @@ class SignupsViewTest(TestCase):
         """ Cannot sign up for a trip that's not open! """
         not_yet_open_trip = factories.TripFactory.create(
             program=enums.Program.CLIMBING.value,
-            signups_open_at=dateutils.localize(datetime(2019, 3, 20, 10, 0, 0)),
+            signups_open_at=date_utils.localize(datetime(2019, 3, 20, 10, 0, 0)),
         )
 
         # The participant has an active membership that will last at least until the trip

@@ -3,7 +3,7 @@ from datetime import timedelta
 from django import template
 from django.db.models import Case, Count, IntegerField, Sum, When
 
-import ws.utils.dates as dateutils
+import ws.utils.dates as date_utils
 import ws.utils.perms as perm_utils
 import ws.utils.ratings as ratings_utils
 from ws import icons, models
@@ -86,7 +86,7 @@ def pending_applications_count(chair, activity_enum):
 
 @register.filter
 def unapproved_trip_count(activity_enum):
-    today = dateutils.local_date()
+    today = date_utils.local_date()
     # TODO: Migrate away from legacy activity
     return models.Trip.objects.filter(
         trip_date__gte=today, activity=activity_enum.value, chair_approved=False
@@ -100,7 +100,7 @@ def wimp_toolbar(trip):
 
 @register.inclusion_tag('for_templatetags/trip_edit_buttons.html')
 def trip_edit_buttons(trip, participant, user, hide_approve=False):
-    available_at = dateutils.itinerary_available_at(trip.trip_date)
+    available_at = date_utils.itinerary_available_at(trip.trip_date)
     return {
         'trip': trip,
         'is_chair': perm_utils.chair_or_admin(user, trip.required_activity_enum()),
@@ -108,8 +108,8 @@ def trip_edit_buttons(trip, participant, user, hide_approve=False):
         'is_trip_leader': perm_utils.leader_on_trip(participant, trip, False),
         'hide_approve': hide_approve,  # Hide approval even if user is a chair
         'itinerary_available_at': available_at,
-        'available_today': available_at.date() == dateutils.local_date(),
-        'info_form_available': dateutils.local_now() >= available_at,
+        'available_today': available_at.date() == date_utils.local_date(),
+        'info_form_available': date_utils.local_now() >= available_at,
     }
 
 
@@ -154,7 +154,7 @@ def view_trip(trip, participant, user):
 @register.inclusion_tag('for_templatetags/wimp_trips.html')
 def wimp_trips(participant, user):
     """ Give a quick list of the trips that the participant is a WIMP for. """
-    today = dateutils.local_date()
+    today = date_utils.local_date()
     next_week = today + timedelta(days=7)
     # Use Python to avoid an extra query into groups
     wimp_all = any(g.name == 'WIMP' for g in user.groups.all())

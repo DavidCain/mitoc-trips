@@ -5,7 +5,7 @@ from datetime import date
 from django.contrib.auth.models import AnonymousUser
 from freezegun import freeze_time
 
-import ws.utils.dates as dateutils
+import ws.utils.dates as date_utils
 from ws import enums, models
 from ws.tests import TestCase, factories
 
@@ -98,7 +98,7 @@ class ProblemsWithProfile(TestCase):
     def test_not_updated_since_affiliation_overhaul(self):
         """ Any participant with affiliation predating our new categories should re-submit! """
         # This is right before the time when we released new categories!
-        before_cutoff = dateutils.localize(datetime.datetime(2018, 10, 27, 3, 15))
+        before_cutoff = date_utils.localize(datetime.datetime(2018, 10, 27, 3, 15))
 
         # Override the default "now" timestamp, to make participant's last profile update look old
         participant = factories.ParticipantFactory.create()

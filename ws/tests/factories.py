@@ -3,7 +3,7 @@ import factory
 from factory.django import DjangoModelFactory
 from mitoc_const import affiliations
 
-import ws.utils.dates as dateutils
+import ws.utils.dates as date_utils
 from ws import enums, models
 
 
@@ -121,10 +121,10 @@ class MembershipFactory(DjangoModelFactory):
         model = models.Membership
 
     membership_expires = factory.LazyAttribute(
-        lambda _obj: dateutils.next_wednesday().date()
+        lambda _obj: date_utils.next_wednesday().date()
     )
     waiver_expires = factory.LazyAttribute(
-        lambda _obj: dateutils.next_wednesday().date()
+        lambda _obj: date_utils.next_wednesday().date()
     )
 
 
@@ -166,7 +166,7 @@ class LotteryAdjustmentFactory(DjangoModelFactory):
 
     creator = factory.SubFactory(ParticipantFactory)
     participant = factory.SubFactory(ParticipantFactory)
-    expires = factory.LazyAttribute(lambda _obj: dateutils.next_lottery())
+    expires = factory.LazyAttribute(lambda _obj: date_utils.next_lottery())
 
 
 class TripFactory(DjangoModelFactory):

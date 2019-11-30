@@ -7,8 +7,8 @@ from django.contrib import messages
 from django.urls import reverse
 from django.utils.html import escape
 
-import ws.utils.dates as dateutils
-import ws.utils.perms as permutils
+import ws.utils.dates as date_utils
+import ws.utils.perms as perm_utils
 from ws import enums
 
 from . import MessageGenerator
@@ -16,14 +16,14 @@ from . import MessageGenerator
 
 class Messages(MessageGenerator):
     def supply(self):
-        if not permutils.is_leader(self.request.user):
+        if not perm_utils.is_leader(self.request.user):
             return
         self._complain_if_missing_itineraries()
         self._complain_if_missing_feedback()
 
     def _complain_if_missing_itineraries(self):
         """ Create messages if the leader needs to complete trip itineraries. """
-        now = dateutils.local_now()
+        now = date_utils.local_now()
 
         # Most trips require itineraries, but some (TRS, etc.) do not
         # All WS trips require itineraries, though
@@ -38,7 +38,7 @@ class Messages(MessageGenerator):
         )
 
         for trip_pk, trip_date, name in future_trips_without_info:
-            if now > dateutils.itinerary_available_at(trip_date):
+            if now > date_utils.itinerary_available_at(trip_date):
                 trip_url = reverse('trip_itinerary', args=(trip_pk,))
                 msg = (
                     f'Please <a href="{trip_url}">submit an itinerary for '
@@ -53,7 +53,7 @@ class Messages(MessageGenerator):
         """
         participant = self.request.participant
 
-        today = dateutils.local_date()
+        today = date_utils.local_date()
         one_month_ago = today - timedelta(days=30)
 
         recent_trips_without_feedback = (

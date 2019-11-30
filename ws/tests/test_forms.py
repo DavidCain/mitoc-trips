@@ -5,7 +5,7 @@ from django.test import SimpleTestCase, TransactionTestCase
 from freezegun import freeze_time
 from mitoc_const import affiliations
 
-import ws.utils.dates as dateutils
+import ws.utils.dates as date_utils
 from ws import forms
 from ws.tests import factories
 
@@ -105,7 +105,7 @@ class TripFormTests(TransactionTestCase):
         form = forms.TripForm()
         self.assertEqual(
             form.fields['signups_close_at'].initial(),
-            dateutils.localize(datetime(2019, 10, 18, 23, 59, 59)),
+            date_utils.localize(datetime(2019, 10, 18, 23, 59, 59)),
         )
 
     @freeze_time("Mon, 14 Oct 2019 12:45:00 EST")
@@ -114,5 +114,5 @@ class TripFormTests(TransactionTestCase):
         form = forms.TripForm()
         self.assertEqual(
             form.fields['signups_close_at'].initial(),
-            dateutils.localize(datetime(2019, 10, 16, 9, 0, 0)),
+            date_utils.localize(datetime(2019, 10, 16, 9, 0, 0)),
         )

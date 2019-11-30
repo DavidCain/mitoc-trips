@@ -1,14 +1,14 @@
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import get_template
 
-import ws.utils.dates as dateutils
+import ws.utils.dates as date_utils
 from ws import models
 from ws.templatetags.trip_tags import annotated_for_trip_list
 
 
 def _eligible_trips():
     """ Identify all trips that are open for signups, or will be. """
-    now = dateutils.local_now()
+    now = date_utils.local_now()
 
     upcoming_trips = (
         models.Trip.objects.filter(trip_date__gte=now.date())

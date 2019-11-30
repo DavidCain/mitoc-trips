@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.urls import reverse
 from django.utils import timezone
 
-import ws.utils.dates as dateutils
+import ws.utils.dates as date_utils
 from ws import enums, models
 
 from . import MessageGenerator
@@ -27,7 +27,7 @@ class Messages(MessageGenerator):
             return None
 
     def supply(self):
-        if not self.request.participant or not dateutils.is_currently_iap():
+        if not self.request.participant or not date_utils.is_currently_iap():
             return
         self.warn_if_missing_lottery()
         self.warn_if_car_missing()
@@ -85,7 +85,7 @@ class Messages(MessageGenerator):
             on_trip=False,
             trip__algorithm='lottery',
             trip__program=enums.Program.WINTER_SCHOOL.value,
-            trip__trip_date__gte=dateutils.local_date(),
+            trip__trip_date__gte=date_utils.local_date(),
         ).values_list('order', flat=True)
         some_trips_ranked = any(order for order in future_signups)
 

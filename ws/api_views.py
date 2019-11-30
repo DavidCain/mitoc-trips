@@ -14,6 +14,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import DetailView, ListView, View
 from django.views.generic.detail import SingleObjectMixin
 
+import ws.utils.dates as date_utils
 import ws.utils.geardb as geardb_utils
 import ws.utils.perms as perm_utils
 import ws.utils.signups as signup_utils
@@ -21,8 +22,6 @@ from ws import enums, models
 from ws.decorators import group_required
 from ws.templatetags.avatar_tags import avatar_url
 from ws.utils.api import jwt_token_from_headers
-from ws.utils.dates import date_from_iso
-from ws.utils.model_dates import missed_lectures
 from ws.views import AllLeadersView, TripLeadersOnlyView
 
 
@@ -92,7 +91,7 @@ class FormatSignupMixin:
             paired_with = None
 
         if signup.trip.program_enum == enums.Program.WINTER_SCHOOL:
-            no_lectures = missed_lectures(par, signup.trip.trip_date.year)
+            no_lectures = date_utils.missed_lectures(par, signup.trip.trip_date.year)
         else:
             no_lectures = False  # Don't show warning for other activities
 
@@ -578,7 +577,7 @@ class UpdateMembershipView(JWTView):
 
         keys = ('membership_expires', 'waiver_expires')
         update_fields = {
-            key: date_from_iso(self.payload[key])
+            key: date_utils.date_from_iso(self.payload[key])
             for key in keys
             if self.payload.get(key)
         }

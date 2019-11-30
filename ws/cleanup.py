@@ -4,7 +4,7 @@ from datetime import timedelta
 from django.db import transaction
 from django.db.models import Q
 
-import ws.utils.dates as dateutils
+import ws.utils.dates as date_utils
 from ws import models, settings
 
 logger = logging.getLogger(__name__)
@@ -18,7 +18,7 @@ def lapsed_participants():
     "activity" so as to minimize the chance that we accidentally consider
     somebody to have lapsed.
     """
-    now = dateutils.local_now()
+    now = date_utils.local_now()
     one_year_ago = now - timedelta(days=365)
 
     # Participants are required to update their info periodically
