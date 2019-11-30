@@ -11,7 +11,7 @@ from django.urls import reverse
 from django.utils.decorators import method_decorator
 from pwned_passwords_django.api import pwned_password
 
-from ws import models
+from ws import models, settings
 from ws.utils.dates import local_now
 
 logger = logging.getLogger(__name__)
@@ -71,8 +71,12 @@ class CheckIfPwnedOnLoginView(LoginView):
         As a side effect, this populates `self.request.user`
         """
         correct_password = form.cleaned_data['password']
-        times_password_seen = pwned_password(correct_password)  # type: Optional[int]
-        if times_password_seen:
+        if settings.DEBUG and correct_password in settings.WHITELISTED_BAD_PASSWORDS:
+            times_seen = 0
+        else:
+            times_seen = pwned_password(correct_password)  # type: Optional[int]
+
+        if times_seen:
             change_password_url = reverse('account_change_password')
 
             # Make sure we preserve the original redirect, if there was one
@@ -83,7 +87,7 @@ class CheckIfPwnedOnLoginView(LoginView):
         else:
             response = super().form_valid(form)
 
-        return times_password_seen, response
+        return times_seen, response
 
     def _post_login_update_password_validity(self, times_password_seen):
         """ After form.login has been invoked, handle password being breached or not.

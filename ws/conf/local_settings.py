@@ -25,3 +25,7 @@ INTERNAL_IPS = ['127.0.0.1', '192.168.33.15']
 # (by default, Celery will retry forever)
 # This makes development faster when running with no local broker
 CELERY_BROKER_TRANSPORT_OPTIONS = {'max_retries': 0}
+
+# Any participant with the password 'foobar' need not hit the HIBP API to check if pwned.
+# (we know it's pwned, and it should never be allowed in production, but it's fine locally)
+WHITELISTED_BAD_PASSWORDS = ['foobar']

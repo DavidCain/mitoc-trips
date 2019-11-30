@@ -51,6 +51,47 @@ class LoginTests(TestCase):
         # Because the API was down, we did not write to `password_last_checked`
         self.assertIsNone(participant.password_last_checked)
 
+    @mock.patch.object(account, 'settings')
+    def test_known_bad_password(self, mocked_settings):
+        """ We include a debug mode that supports passing known bad passwords. """
+        factories.ParticipantFactory.create(user_id=self.user.pk)
+
+        # We only sidestep the API if `DEBUG` is true, and our password is whitelisted!
+        mocked_settings.DEBUG = True
+        mocked_settings.WHITELISTED_BAD_PASSWORDS = ['football']
+
+        with mock.patch.object(account, 'pwned_password') as pwned_password:
+            response = self.client.post('/accounts/login/', self.form_data)
+
+        # We don't bother hitting the API!
+        pwned_password.assert_not_called()
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, "/")
+
+        participant = models.Participant.from_user(self.user)
+
+        # The participant's password was hard-coded to be in zero breaches, so we update the record!
+        self.assertFalse(participant.insecure_password)
+        self.assertEqual(
+            participant.password_last_checked,
+            datetime(2019, 8, 29, 16, 25, tzinfo=pytz.utc),
+        )
+
+        # Log in again, but this time with DEBUG off (& whitelist still present)
+        # Even with the whitelist, it's not honored unless DEBUG mode is on.
+        self.client.logout()
+        mocked_settings.DEBUG = False
+        self.assertEqual(mocked_settings.WHITELISTED_BAD_PASSWORDS, ['football'])
+
+        # This time, we hit the API and mark the user as having an insecure password.
+        with mock.patch.object(account, 'pwned_password') as pwned_password:
+            pwned_password.return_value = 2022
+            response = self.client.post('/accounts/login/', self.form_data)
+        pwned_password.assert_called_once_with('football')
+        participant = models.Participant.from_user(self.user)
+        self.assertTrue(participant.insecure_password)
+
     def test_previously_secure_password(self):
         """ The database is updated all the time - any user's password can become compromised! """
         factories.ParticipantFactory.create(
