@@ -1,6 +1,8 @@
 from django.contrib import messages
 from django.urls import reverse
 
+from ws.utils.models import problems_with_profile
+
 from . import MessageGenerator
 
 
@@ -10,14 +12,10 @@ class Messages(MessageGenerator):
         if not self.request.user.is_authenticated:
             return
 
-        participant = self.request.participant
-        if not participant:  # Authenticated, but no info yet
-            msg = 'Personal information missing.'
-        else:
-            if participant.info_current:  # Record exists, is up to date
-                return
-            msg = 'Personal information is out of date.'
-
-        edit_url = reverse('edit_profile')
-        msg += f' <a href="{edit_url}">Update</a> to sign up for trips.'
-        self.add_unique_message(messages.WARNING, msg, extra_tags='safe')
+        if any(problems_with_profile(self.request.participant)):
+            edit_url = reverse('edit_profile')
+            self.add_unique_message(
+                messages.WARNING,
+                f'<a href="{edit_url}">Update your profile</a> to sign up for trips.',
+                extra_tags='safe',
+            )

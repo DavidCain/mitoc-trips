@@ -20,6 +20,7 @@ from django.views.generic import CreateView, DeleteView
 from ws import forms, models
 from ws.decorators import group_required, user_info_required
 from ws.mixins import LotteryPairingMixin
+from ws.utils.membership import reasons_cannot_attend
 
 
 class BaseSignUpView(CreateView, LotteryPairingMixin):
@@ -46,17 +47,18 @@ class BaseSignUpView(CreateView, LotteryPairingMixin):
             return self.form_invalid(form)
         return super().form_valid(form)
 
-    @staticmethod
-    def get_errors(signup):
+    def get_errors(self, signup):
         """ Take a signup (saved, but not committed), and validate. """
         errors = []
         # (user_info_required ensures that participant is present & not None)
-        if signup.participant == signup.trip.wimp:
-            errors.append("You can't go on a trip for which you are the WIMP.")
         if signup.trip in signup.participant.trip_set.all():
             errors.append("Already signed up for this trip!")
         if signup.participant in signup.trip.leaders.all():
             errors.append("Already a leader on this trip!")
+
+        # (Use the high-level utility method that enforces a cache refresh if necessary)
+        for reason in reasons_cannot_attend(self.request.user, signup.trip):
+            errors.append(reason.label)
         return errors
 
     def get_success_url(self):
@@ -114,9 +116,6 @@ class SignUpView(BaseSignUpView):
         # (Form is normally hidden by display logic, but this enforces rules)
         if not signup.trip.signups_open:  # Guards against direct POST
             errors.append("Signups aren't open!")
-        if not self.request.participant.can_attend(signup.trip):
-            req = "membership & waiver" if signup.trip.membership_required else "waiver"
-            errors.append(f"Active {req} required to attend")
         return errors
 
     @method_decorator(user_info_required)

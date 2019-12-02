@@ -10,6 +10,7 @@ from django.utils.decorators import available_attrs
 
 import ws.utils.perms as perm_utils
 from ws import enums
+from ws.utils.models import problems_with_profile
 
 
 def chairs_only():
@@ -21,9 +22,8 @@ def profile_needs_update(request):
     """ Return if we need to redirect to 'edit_profile' for changes. """
     if not request.user.is_authenticated:
         return False  # We can't be sure until the user logs in
-    if not request.participant:
-        return True
-    return not request.participant.profile_allows_trip_attendance
+
+    return any(problems_with_profile(request.participant))
 
 
 def participant_required(view_func):

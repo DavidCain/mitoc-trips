@@ -7,7 +7,7 @@ from ws import enums
 from ws.tests import TestCase, factories
 
 
-@freeze_time("2019-02-15 12:25:00 EST")
+@freeze_time("2019-01-15 12:25:00 EST")
 class SignupsViewTest(TestCase):
     def _signup(self, trip):
         return self.client.post('/trips/signup/', {'trip': trip.pk}, follow=False)
@@ -19,12 +19,13 @@ class SignupsViewTest(TestCase):
 
     @staticmethod
     def _upcoming_trip(**kwargs):
-        return factories.TripFactory.create(
-            program=enums.Program.CLIMBING.value,
-            trip_date=date(2019, 2, 23),
-            signups_open_at=date_utils.localize(datetime(2019, 2, 12, 10, 0, 0)),
+        trip_kwargs = {
+            'program': enums.Program.CLIMBING.value,
+            'trip_date': date(2019, 1, 19),
+            'signups_open_at': date_utils.localize(datetime(2019, 1, 14, 10, 0, 0)),
             **kwargs,
-        )
+        }
+        return factories.TripFactory.create(**trip_kwargs)
 
     def test_signup(self):
         """ Posting to the signup flow creates a SignUp object!
@@ -60,7 +61,7 @@ class SignupsViewTest(TestCase):
 
         self.assertEqual(
             resp.context['form'].errors,
-            {'__all__': ["You can't go on a trip for which you are the WIMP."]},
+            {'__all__': ["Cannot attend a trip as its WIMP"]},
         )
 
     def test_leader_cannot_signup(self):
@@ -124,7 +125,13 @@ class SignupsViewTest(TestCase):
         resp = self._signup(trip)
         form = resp.context['form']
         self.assertEqual(
-            form.errors, {'__all__': ["Active membership & waiver required to attend"]}
+            form.errors,
+            {
+                '__all__': [
+                    "An active membership is required",
+                    "A current waiver is required",
+                ]
+            },
         )
 
         # Participant was not placed on the trip.
@@ -134,7 +141,7 @@ class SignupsViewTest(TestCase):
         """ Only active members are allowed on the trip. """
         par = factories.ParticipantFactory.create(
             membership=factories.MembershipFactory.create(
-                membership_expires=date(2020, 2, 1), waiver_expires=None
+                membership_expires=date(2020, 1, 5), waiver_expires=None
             )
         )
         mini_trip = self._upcoming_trip(membership_required=False)
@@ -145,7 +152,7 @@ class SignupsViewTest(TestCase):
         self.client.force_login(par.user)
         resp = self._signup(mini_trip)
         form = resp.context['form']
-        self.assertEqual(form.errors, {'__all__': ["Active waiver required to attend"]})
+        self.assertEqual(form.errors, {'__all__': ["A current waiver is required"]})
 
         # Participant was not placed on the trip.
         self.assertFalse(mini_trip.signup_set.filter(participant=par).exists())

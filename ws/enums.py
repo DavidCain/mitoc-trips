@@ -1,8 +1,136 @@
 import enum
 
+from django.urls import reverse
+from django.utils.safestring import mark_safe
+
 # TODO: Make an abstract base enum that enforces:
 # - unique
 # - `choices` classmethod
+
+
+@enum.unique
+class ProfileProblem(enum.Enum):
+    """ A problem with the participant's profile that must be corrected. """
+
+    NO_INFO = 1  # No Participant object!
+    STALE_INFO = 2  # Hasn't been updated lately. Medical info may have been scrubbed!
+    LEGACY_AFFILIATION = 3  # 'S' (student of ambiguous MIT affiliation)
+    INVALID_EMERGENCY_CONTACT_PHONE = 4  # (typically just a blank contact #)
+    MISSING_FULL_NAME = 5  # 'Cher' instead of 'Cherilyn Sarkisian'
+    PRIMARY_EMAIL_NOT_VALIDATED = 6  # No validated emails, or deleted primary
+
+    @property
+    def how_to_fix(self):
+        """ Return a message with instructions (to the user) on how to fix the problem.
+
+        This includes URLs and should be marked as safe if for rendering in HTML.
+        """
+        manage_emails = reverse('account_email')
+        mapping = {
+            self.NO_INFO: 'Please complete this important safety information to finish the signup process.',
+            self.STALE_INFO: (
+                "You haven't updated your personal information in a while. "
+                "Please ensure that the below information is correct and click 'Submit' to update!"
+            ),
+            self.LEGACY_AFFILIATION: 'Please update your MIT affiliation.',
+            self.INVALID_EMERGENCY_CONTACT_PHONE: 'Please supply a valid number for your emergency contact.',
+            self.MISSING_FULL_NAME: 'Please supply your full legal name.',
+            self.PRIMARY_EMAIL_NOT_VALIDATED: f'Please <a href="{manage_emails}">verify your email address</a>',
+        }
+        return mapping[self]
+
+
+@enum.unique
+class TripIneligibilityReason(enum.Enum):
+    """ A (correctable) reason why a participant cannot attend a trip.
+
+    Each of these problems is a barrier to a participant being on a trip,
+    but includes a solution as to how they can fix the problem.
+    For example, if they have an expired waiver, we tell the participant
+    how to sign a new one.
+
+    There are some problems that prohibit a participant from signing up,
+    but do *not* have an immediate solution. For example, if the participant
+    is already on the trip (as a leader or participant), they can't sign up,
+    but they also don't *need* to "fix" that problem.
+    """
+
+    # User is not logged in (we require a Participant object to sign up)
+    NOT_LOGGED_IN = 1
+
+    # User is logged in, but lacks a corresponding participant profile
+    NO_PROFILE_INFO = 2
+
+    # The participant is the WIMP on the trip, and should not attend it.
+    IS_TRIP_WIMP = 3
+
+    # A ProfileProblem exists for this user
+    PROFILE_PROBLEM = 5
+
+    # The participant has never been a MITOC member or had a waiver before
+    MEMBERSHIP_MISSING = 6
+    WAIVER_MISSING = 7
+
+    # Membership or waiver already exist, but must be renewed, either because:
+    # 1. they've expired
+    # 2. they will have expired by the time the trip starts (and we can renew today)
+    WAIVER_NEEDS_RENEWAL = 8
+    MEMBERSHIP_NEEDS_RENEWAL = 9
+
+    @property
+    def related_to_membership(self):
+        """ Return if this problem relates to the MITOCer's membership.
+
+        Useful for determining if we need to hit the membership database to refresh
+        the cache in the case of a problem preventing trip attendance.
+        """
+        return self in {
+            self.MEMBERSHIP_MISSING,
+            self.MEMBERSHIP_NEEDS_RENEWAL,
+            self.WAIVER_MISSING,
+            self.WAIVER_NEEDS_RENEWAL,
+        }
+
+    @property
+    def label(self):
+        """ A generic label to be read by any consumer (i.e. the user, or another leader). """
+        mapping = {
+            self.NOT_LOGGED_IN: 'Not logged in!',
+            self.NO_PROFILE_INFO: 'No profile found!',
+            self.IS_TRIP_WIMP: 'Cannot attend a trip as its WIMP',
+            self.PROFILE_PROBLEM: 'Profile requires modification',
+            self.MEMBERSHIP_MISSING: 'An active membership is required',
+            self.MEMBERSHIP_NEEDS_RENEWAL: 'Membership must be renewed',
+            self.WAIVER_MISSING: 'A current waiver is required',
+            self.WAIVER_NEEDS_RENEWAL: 'Waiver must be renewed',
+        }
+        return mapping[self]
+
+    def how_to_fix_for(self, trip):
+        """ Return a message directed at the user with the problem containing clues on how to fix.
+
+        This includes URLs and should be marked as safe if for rendering in HTML.
+        """
+        dt = trip.trip_date
+        trip_date = f'{dt:%B} {dt.day}, {dt.year}'
+
+        edit_profile = reverse('edit_profile')
+        account_login = reverse('account_login')
+        pay_dues = reverse('pay_dues')
+        initiate_waiver = reverse('initiate_waiver')
+
+        # "you must... "
+        mapping = {
+            self.NOT_LOGGED_IN: f'<a href="{account_login}">log in</a>',
+            self.NO_PROFILE_INFO: f'provide <a href="{edit_profile}">personal information</a>',
+            self.IS_TRIP_WIMP: 'be replaced in your role as the trip WIMP',
+            self.PROFILE_PROBLEM: f'update your <a href="{edit_profile}">personal information</a>',
+            self.MEMBERSHIP_MISSING: f'have an <a href="{pay_dues}">active membership</a>',
+            self.MEMBERSHIP_NEEDS_RENEWAL: f'''have a <a href="{pay_dues}">membership that's valid until at least {trip_date}</a>''',
+            self.WAIVER_MISSING: f'<a href="{initiate_waiver}">sign a waiver</a>',
+            self.WAIVER_NEEDS_RENEWAL: f'''have a <a href="{initiate_waiver}">waiver that's valid until at least {trip_date}</a>''',
+        }
+        return mark_safe(mapping[self])
 
 
 @enum.unique

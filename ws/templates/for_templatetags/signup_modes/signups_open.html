@@ -2,36 +2,10 @@
 
 <div class="alert alert-info">
   Signups are open!
-  {% if is_wimp %}
-    However, you cannot sign up as you're currently the WIMP.
-  {% endif %}
 </div>
 
-{% if not user.is_authenticated %}
-  {% anonymous_signup trip %}
-{% elif is_wimp %}
-  {# Display nothing: WIMP should not be allowed to be on the trip. #}
-{% elif not user|can_attend:trip %}
-  <div class="alert alert-danger">
-    In order to participate on this trip, you must have
-    {% if trip.membership_required and participant|should_renew_for:trip %}
-      {% if not participant|membership_active %}
-        an <a href="{% url 'pay_dues' %}">active membership</a>
-      {% else %}
-        a <a href="{% url 'pay_dues' %}">membership that's valid until at least {{ trip.trip_date|date:"F jS" }}</a>
-      {% endif %}
-      and
-    {% endif %}
-    a <a href="{% url 'initiate_waiver' %}">waiver that's valid until at least {{ trip.trip_date|date:"F jS" }}</a>.
-  </div>
-
-  <membership-status data-personal="true" data-user-id="{{ user.id }}">
-  </membership-status>
-{% elif not participant.profile_allows_trip_attendance %}
-  <div class="alert alert-danger">
-    You cannot sign up for trips without current
-    <a href="{% url 'edit_profile' %}?next={% url 'view_trip' trip.pk %}">personal information</a>.
-  </div>
+{% if reasons_cannot_attend %}
+  {% how_to_attend trip reasons_cannot_attend user %}
 {% else %}
 
   {% if leader_signup_allowed %}

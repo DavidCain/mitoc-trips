@@ -7,16 +7,7 @@ Edit profile {% if participant %} - {{ participant.name }}{% endif %}
 
 {% block content %}
 
-{% if not viewing_participant or not viewing_participant.info_current %}
-  <div class="alert alert-info">
-    {% if not viewing_participant %}
-      Please complete this important safety information to finish the signup process.
-    {% else %}
-      You haven't updated your personal information in a while.
-      Please ensure that everything below is accurate, and click "Submit" to update!
-    {% endif %}
-  </div>
-{% endif %}
+{# Instructions about how to fix any and all problems will appear as messages! #}
 
 <form name="{{ participant_form.form_name }}"
       action=""

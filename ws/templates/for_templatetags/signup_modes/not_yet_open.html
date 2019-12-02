@@ -1,3 +1,5 @@
+{% load signup_tags %}
+
 <div class="alert alert-info">
   Signups for this trip are not yet open.
 </div>
@@ -5,11 +7,8 @@
   <div class="alert alert-success">
     However, you can sign up early as a leader!
   </div>
-  {% if not participant.profile_allows_trip_attendance %}
-    <div class="alert alert-warning">
-      You cannot sign up for trips without current
-      <a href="{% url 'edit_profile' %}">personal information</a>.
-    </div>
+  {% if reasons_cannot_attend %}
+    {% how_to_attend trip reasons_cannot_attend user %}
   {% else %}
     <form name="{{ signup_form.form_name }}"
           action="{% url 'leader_trip_signup' %}"

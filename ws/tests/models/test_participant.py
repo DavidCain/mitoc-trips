@@ -34,12 +34,123 @@ class ParticipantTest(TestCase):
         self.assertEqual(ada.email_addr, '"Ada Lovelace" <ada@example.com>')
 
 
-class ProblemsWithProfile(TestCase):
-    # NOTE: These require TestCase since we do actual db lookups based on the record
+class ReasonsCannotAttendTest(TestCase):
+    def test_is_wimp(self):
+        # Note that the participant also has no membership!
+        # We *only* highlight the WIMP issue, since nothing else really matters.
+        participant = factories.ParticipantFactory.create(membership=None)
+        trip = factories.TripFactory.create(wimp=participant)
+        self.assertCountEqual(
+            participant.reasons_cannot_attend(trip),
+            [enums.TripIneligibilityReason.IS_TRIP_WIMP],
+        )
+
+    @freeze_time("25 Oct 2018 12:00:00 EST")
+    def test_problem_with_profile_legacy(self):
+        """ If the affiliation was given before we started collecting more detail, warn! """
+        participant = factories.ParticipantFactory.create(
+            membership=factories.MembershipFactory.create(
+                membership_expires=date(2019, 10, 10), waiver_expires=date(2019, 10, 10)
+            )
+        )
+        self.assertCountEqual(
+            participant.problems_with_profile, [enums.ProfileProblem.LEGACY_AFFILIATION]
+        )
+        trip = factories.TripFactory.create(program=enums.Program.CLIMBING)
+        self.assertCountEqual(
+            participant.reasons_cannot_attend(trip),
+            [enums.TripIneligibilityReason.PROFILE_PROBLEM],
+        )
+
+    def test_problems_with_profile_multiple(self):
+        """ If a participant has multiple profile problems, we give only one reason. """
+        participant = factories.ParticipantFactory.create(
+            membership=factories.MembershipFactory.create(),
+            name="Cher",
+            affiliation="S",
+            emergency_info__emergency_contact__cell_phone='',
+        )
+        self.assertCountEqual(
+            participant.problems_with_profile,
+            [
+                enums.ProfileProblem.MISSING_FULL_NAME,
+                enums.ProfileProblem.INVALID_EMERGENCY_CONTACT_PHONE,
+                enums.ProfileProblem.LEGACY_AFFILIATION,
+            ],
+        )
+
+        trip = factories.TripFactory.create(program=enums.Program.CLIMBING)
+        self.assertCountEqual(
+            participant.reasons_cannot_attend(trip),
+            # We *only* highlight the lectures issue.
+            # We don't want to prompt the user to pay membership dues
+            [enums.TripIneligibilityReason.PROFILE_PROBLEM],
+        )
+
+    def test_no_membership_or_waiver(self):
+        participant = factories.ParticipantFactory.create(membership=None)
+
+        trip = factories.TripFactory.create(program=enums.Program.CLIMBING)
+        self.assertCountEqual(
+            participant.reasons_cannot_attend(trip),
+            [
+                enums.TripIneligibilityReason.MEMBERSHIP_MISSING,
+                enums.TripIneligibilityReason.WAIVER_MISSING,
+            ],
+        )
+
+    @freeze_time("11 Dec 2019 12:00:00 EST")
+    def test_expired_membership_and_waiver(self):
+        participant = factories.ParticipantFactory.create(
+            membership=factories.MembershipFactory.create(
+                membership_expires=date(2018, 11, 1), waiver_expires=date(2018, 11, 1)
+            )
+        )
+
+        trip = factories.TripFactory.create(program=enums.Program.CLIMBING)
+        self.assertCountEqual(
+            participant.reasons_cannot_attend(trip),
+            [
+                enums.TripIneligibilityReason.MEMBERSHIP_NEEDS_RENEWAL,
+                enums.TripIneligibilityReason.WAIVER_NEEDS_RENEWAL,
+            ],
+        )
+
+    @freeze_time("11 Dec 2019 12:00:00 EST")
+    def test_waiver_needs_renewal(self):
+        participant = factories.ParticipantFactory.create(
+            membership=factories.MembershipFactory.create(
+                membership_expires=date(2020, 11, 4), waiver_expires=date(2019, 11, 1)
+            )
+        )
+        self.assertCountEqual(participant.problems_with_profile, [])
+
+        trip = factories.TripFactory.create(program=enums.Program.CLIMBING)
+        self.assertCountEqual(
+            participant.reasons_cannot_attend(trip),
+            [enums.TripIneligibilityReason.WAIVER_NEEDS_RENEWAL],
+        )
+
+    @freeze_time("11 Dec 2019 12:00:00 EST")
+    def test_membership_needs_renewal(self):
+        participant = factories.ParticipantFactory.create(
+            membership=factories.MembershipFactory.create(
+                membership_expires=date(2019, 11, 4), waiver_expires=date(2020, 11, 11)
+            )
+        )
+
+        trip = factories.TripFactory.create(program=enums.Program.CLIMBING)
+        self.assertCountEqual(
+            participant.reasons_cannot_attend(trip),
+            [enums.TripIneligibilityReason.MEMBERSHIP_NEEDS_RENEWAL],
+        )
+
+
+class ProblemsWithProfileTest(TestCase):
     def test_our_factory_is_okay(self):
         """ The participant factory that we use is expected to have no problems. """
         participant = factories.ParticipantFactory.create()
-        self.assertFalse(participant.problems_with_profile)
+        self.assertFalse(any(participant.problems_with_profile))
 
     def test_no_cell_phone_on_emergency_contact(self):
         participant = factories.ParticipantFactory.create()
@@ -47,15 +158,15 @@ class ProblemsWithProfile(TestCase):
         participant.emergency_info.emergency_contact = e_contact
         participant.save()
 
-        self.assertEqual(
+        self.assertCountEqual(
             participant.problems_with_profile,
-            ["Please supply a valid number for your emergency contact."],
+            [enums.ProfileProblem.INVALID_EMERGENCY_CONTACT_PHONE],
         )
 
     def test_full_name_required(self):
         participant = factories.ParticipantFactory.create(name='Cher')
-        self.assertEqual(
-            participant.problems_with_profile, ["Please supply your full legal name."]
+        self.assertCountEqual(
+            participant.problems_with_profile, [enums.ProfileProblem.MISSING_FULL_NAME]
         )
 
     def test_verified_email_required(self):
@@ -65,41 +176,19 @@ class ProblemsWithProfile(TestCase):
         # (this should never happen, since we enforce that addresses come from user.emailaddress_set)
         participant.email = 'not-verified@example.com'
 
-        self.assertEqual(
+        self.assertCountEqual(
             participant.problems_with_profile,
-            [
-                'Please <a href="/accounts/email/">verify that you own not-verified@example.com</a>, '
-                'or set your email address to one of your verified addresses.'
-            ],
-        )
-
-    def test_xss_on_email_prevented(self):
-        """ Returned strings can be trusted as HTML. """
-        participant = factories.ParticipantFactory.create(
-            email="</a><script>alert('hax')</script>@hacks.tld"
-        )
-
-        participant.user.emailaddress_set.update(verified=False)
-        self.assertEqual(
-            participant.user.emailaddress_set.get().email,  # (our factory assigns only one email)
-            "</a><script>alert('hax')</script>@hacks.tld",
-        )
-
-        self.assertEqual(
-            participant.problems_with_profile,
-            [
-                'Please <a href="/accounts/email/">verify that you own '
-                # Note the HTML escaping!
-                '&lt;/a&gt;&lt;script&gt;alert(&#39;hax&#39;)&lt;/script&gt;@hacks.tld</a>, '
-                'or set your email address to one of your verified addresses.'
-            ],
+            [enums.ProfileProblem.PRIMARY_EMAIL_NOT_VALIDATED],
         )
 
     def test_old_student_affiliation_dated(self):
-        student = factories.ParticipantFactory.create(affiliation='S')  # MIT or not?
+        student = factories.ParticipantFactory.create(
+            affiliation='S',  # Ambiguous! Is it an MIT student? non-MIT? Undergrad/grad?
+            last_updated=date_utils.local_now(),
+        )
 
-        self.assertEqual(
-            student.problems_with_profile, ["Please update your MIT affiliation."]
+        self.assertCountEqual(
+            student.problems_with_profile, [enums.ProfileProblem.LEGACY_AFFILIATION]
         )
 
     def test_not_updated_since_affiliation_overhaul(self):
@@ -107,13 +196,14 @@ class ProblemsWithProfile(TestCase):
         # This is right before the time when we released new categories!
         before_cutoff = date_utils.localize(datetime.datetime(2018, 10, 27, 3, 15))
 
-        # Override the default "now" timestamp, to make participant's last profile update look old
         participant = factories.ParticipantFactory.create()
+        # Override the default "now" timestamp, to make participant's last profile update look old
         participant.profile_last_updated = before_cutoff
         participant.save()
 
-        self.assertEqual(
-            participant.problems_with_profile, ["Please update your MIT affiliation."]
+        self.assertCountEqual(
+            participant.problems_with_profile,
+            [enums.ProfileProblem.STALE_INFO, enums.ProfileProblem.LEGACY_AFFILIATION],
         )
 
 
@@ -218,7 +308,7 @@ class LeaderTest(TestCase):
         )
 
 
-class MembershipTest(unittest.TestCase):
+class MembershipActiveTest(unittest.TestCase):
     def test_no_cached_membership(self):
         """ Convenience methods on the participant require membership/waiver!"""
         par = factories.ParticipantFactory.build(membership=None)

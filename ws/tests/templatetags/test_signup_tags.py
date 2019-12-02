@@ -4,9 +4,9 @@ from bs4 import BeautifulSoup
 from django.template import Context, Template
 from freezegun import freeze_time
 
+import ws.utils.dates as date_utils
 from ws import enums, models
-from ws.tests import TestCase, factories
-from ws.utils.dates import localize
+from ws.tests import TestCase, factories, strip_whitespace
 
 
 @freeze_time("11 Dec 2025 12:00:00 EST")
@@ -15,10 +15,11 @@ class SignupForTripTests(TestCase):
     def _make_trip(**kwargs):
         """ Create an upcoming FCFS trip. """
         trip_kwargs = {
+            'program': enums.Program.CLIMBING.value,
             'name': "Some Cool Upcoming Trip",
             'trip_date': date(2025, 12, 14),
-            'signups_open_at': localize(datetime(2025, 12, 10, 12, 0)),
-            'signups_close_at': localize(datetime(2025, 12, 13, 21, 30)),
+            'signups_open_at': date_utils.localize(datetime(2025, 12, 10, 12, 0)),
+            'signups_close_at': date_utils.localize(datetime(2025, 12, 13, 21, 30)),
             'algorithm': 'fcfs',
             **kwargs,
         }
@@ -54,25 +55,39 @@ class SignupForTripTests(TestCase):
     def test_participant_with_problems_must_correct_them_first(self):
         # Make a Participant without a full name (we require one)
         participant = factories.ParticipantFactory.create(name='Houdini')
-        self.assertFalse(participant.profile_allows_trip_attendance)
+        trip = self._make_trip()
 
-        soup = self._render(participant)
+        self.assertIn(
+            enums.TripIneligibilityReason.PROFILE_PROBLEM,
+            participant.reasons_cannot_attend(trip),
+        )
+        self.assertCountEqual(
+            participant.problems_with_profile, [enums.ProfileProblem.MISSING_FULL_NAME]
+        )
+
+        soup = self._render(participant, trip)
 
         text = soup.find(class_='alert-danger').get_text(' ', strip=True)
-        self.assertIn(
-            'cannot sign up for trips without current personal information', text
-        )
+        self.assertIn('update your personal information', text)
 
     def test_wimp_cannot_sign_up_for_trip(self):
         """" You can't be the emergency contact while attending a trip. """
         wimp_participant = factories.ParticipantFactory.create()
         trip = self._make_trip(wimp=wimp_participant)
+        self.assertCountEqual(
+            wimp_participant.reasons_cannot_attend(trip),
+            [enums.TripIneligibilityReason.IS_TRIP_WIMP],
+        )
 
         soup = self._render(wimp_participant, trip)
 
-        alert = soup.find(class_='alert-info').get_text(' ', strip=True)
-        self.assertIn('Signups are open!', alert)
-        self.assertIn("you cannot sign up as you're currently the WIMP", alert)
+        info = soup.find(class_='alert-info').get_text(' ', strip=True)
+        self.assertEqual(info, 'Signups are open!')
+
+        self.assertEqual(
+            strip_whitespace(soup.find(class_='alert-danger').text),
+            "In order to participate on this trip, you must be replaced in your role as the trip WIMP.",
+        )
         self.assertIsNone(soup.find('form'))
 
     def test_leader_signup_allowed_for_open_activities(self):
@@ -84,6 +99,9 @@ class SignupForTripTests(TestCase):
         )
         self.assertTrue(circus_trip.signups_open)
         leader = self._leader(models.LeaderRating.CLIMBING)
+
+        # Leader can attend, so we can expect the signup flow!
+        self.assertFalse(any(leader.reasons_cannot_attend(circus_trip)))
 
         soup = self._render(leader, circus_trip)
         self.assertTrue(
@@ -115,16 +133,17 @@ class SignupForTripTests(TestCase):
 
     def test_not_yet_open(self):
         trip = self._make_trip(
-            signups_open_at=localize(datetime(2025, 12, 12, 13, 45)),
-            signups_close_at=localize(datetime(2025, 12, 13, 23, 59)),
+            signups_open_at=date_utils.localize(datetime(2025, 12, 12, 13, 45)),
+            signups_close_at=date_utils.localize(datetime(2025, 12, 13, 23, 59)),
             allow_leader_signups=True,
             activity=models.LeaderRating.BIKING,
             program=enums.Program.BIKING.value,
         )
         self.assertTrue(trip.signups_not_yet_open)
 
-        # Note that normal participants cannot sign up
+        # The participant may attend this trip, signups just aren't open.
         participant = factories.ParticipantFactory.create()
+        self.assertFalse(any(participant.reasons_cannot_attend(trip)))
         soup = self._render(participant, trip)
         self.assertEqual(
             soup.find(class_='alert-info').get_text(' ', strip=True),
@@ -154,7 +173,7 @@ class SignupForTripTests(TestCase):
     def test_closed_trip(self):
         """ Nobody may sign up after signups close. """
         trip = self._make_trip(
-            signups_close_at=localize(datetime(2025, 12, 11, 11, 11))
+            signups_close_at=date_utils.localize(datetime(2025, 12, 11, 11, 11))
         )
         self.assertTrue(trip.signups_closed)
         soup = self._render(factories.ParticipantFactory(), trip)

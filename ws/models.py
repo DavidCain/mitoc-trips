@@ -8,9 +8,8 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.db import models
 from django.db.models import F, Q
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse_lazy
 from django.utils import timezone
-from django.utils.html import escape
 from django.utils.safestring import mark_safe
 from django.utils.translation import string_concat
 from localflavor.us.models import USStateField
@@ -359,41 +358,26 @@ class Participant(models.Model):
         return self.affiliation in self.STUDENT_AFFILIATIONS
 
     @property
-    def profile_allows_trip_attendance(self):
-        """ The participant's profile provides no obstacles to their trip attendance.
-
-        This does NOT include checks like active membership & waiver, etc.
-        """
-        return self.info_current and not self.problems_with_profile
-
-    @property
     def problems_with_profile(self):
-        """ Return any serious profile errors needing immediate correction.
+        """ Yield any serious profile errors needing immediate correction.
 
-        If passed to messages, errors are safe for rendering as-is.
+        These profile errors should prevent the participant from attending a trip.
         """
-        safe_messages = []
+        if not self.info_current:
+            yield enums.ProfileProblem.STALE_INFO
 
         if not self.emergency_info.emergency_contact.cell_phone:
-            safe_messages.append(
-                "Please supply a valid number for your emergency contact."
-            )
+            yield enums.ProfileProblem.INVALID_EMERGENCY_CONTACT_PHONE
         if ' ' not in self.name:  # pylint: disable=unsupported-membership-test
-            safe_messages.append("Please supply your full legal name.")
+            yield enums.ProfileProblem.MISSING_FULL_NAME
 
         emails = self.user.emailaddress_set
+
         if not emails.filter(email=self.email, verified=True).exists():
-            manage_emails = reverse('account_email')
-            email = escape(self.email)  # Protect against XSS
-            safe_messages.append(
-                f'Please <a href="{manage_emails}">verify that you own {email}</a>'
-                ', or set your email address to one of your verified addresses.'
-            )
+            yield enums.ProfileProblem.PRIMARY_EMAIL_NOT_VALIDATED
 
         if self.affiliation_dated:
-            safe_messages.append("Please update your MIT affiliation.")
-
-        return safe_messages
+            yield enums.ProfileProblem.LEGACY_AFFILIATION
 
     @property
     def info_current(self):
@@ -444,20 +428,38 @@ class Participant(models.Model):
         except cls.DoesNotExist:
             return None
 
-    def can_attend(self, trip):
+    def reasons_cannot_attend(self, trip):
         """ Can this participant attend the trip? (based off cached membership)
 
-        NOTE: If the method returns False, it's important that the caller
-        refresh the cache (`update_membership_cache()`) and try again.
+        - If there are zero reasons, then the participant may attend the trip.
+        - If there are one or more reasons, there may others once those are resolved,
+          but we opt not to include others, so that we can focus on the most relevant.
 
-        See: utils.membership.can_attend_trip
+        If membership-related reasons (e.g. expired waiver/membership), it's
+        important that the caller refresh the cache and try again.
+        `utils.membership.reasons_cannot_attend` provides this functionality.
         """
-        if not self.membership:
-            return False
-        if self.membership.should_renew_for(trip):
-            return False
+        # NOT_LOGGED_IN and NO_PROFILE_INFO must be raised by other methods (we have a participant)
 
-        return not self.membership.should_sign_waiver_for(trip)
+        if trip.wimp == self:
+            # Being the WIMP for the trip absolutely prevents attendance, other rules don't matter.
+            yield enums.TripIneligibilityReason.IS_TRIP_WIMP
+            return
+
+        if any(self.problems_with_profile):
+            yield enums.TripIneligibilityReason.PROFILE_PROBLEM
+
+        if self.should_renew_for(trip):
+            if self.membership and self.membership.membership_expires:
+                yield enums.TripIneligibilityReason.MEMBERSHIP_NEEDS_RENEWAL
+            else:
+                yield enums.TripIneligibilityReason.MEMBERSHIP_MISSING
+
+        if self.should_sign_waiver_for(trip):
+            if self.membership and self.membership.waiver_expires:
+                yield enums.TripIneligibilityReason.WAIVER_NEEDS_RENEWAL
+            else:
+                yield enums.TripIneligibilityReason.WAIVER_MISSING
 
     def update_membership(self, membership_expires=None, waiver_expires=None):
         acct, created = Membership.objects.get_or_create(participant=self)

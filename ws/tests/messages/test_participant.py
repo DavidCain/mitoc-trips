@@ -49,8 +49,7 @@ class ParticipantMessagesTest(MessagesTestCase):
         add_message.assert_called_once_with(
             request,
             messages.WARNING,
-            'Personal information missing. '
-            '<a href="/profile/edit/">Update</a> to sign up for trips.',
+            '<a href="/profile/edit/">Update your profile</a> to sign up for trips.',
             extra_tags='safe',
         )
 
@@ -69,7 +68,6 @@ class ParticipantMessagesTest(MessagesTestCase):
         add_message.assert_called_once_with(
             request,
             messages.WARNING,
-            'Personal information is out of date. '
-            '<a href="/profile/edit/">Update</a> to sign up for trips.',
+            '<a href="/profile/edit/">Update your profile</a> to sign up for trips.',
             extra_tags='safe',
         )

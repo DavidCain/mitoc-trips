@@ -6,14 +6,9 @@ from django.forms import HiddenInput
 from ws.enums import Program, TripType
 from ws.forms import SignUpForm
 from ws.utils.dates import local_date
-from ws.utils.membership import can_attend_trip
+from ws.utils.membership import reasons_cannot_attend
 
 register = template.Library()
-
-
-@register.filter
-def can_attend(user, trip):
-    return can_attend_trip(user, trip)
 
 
 @register.filter
@@ -83,26 +78,37 @@ def already_signed_up(trip, signup):
 
 
 @register.inclusion_tag('for_templatetags/signup_modes/signups_open.html')
-def signups_open(user, participant, trip, signup_form, leader_signup_allowed):
-    """ What to display when signups are open for a trip.
-
-    (Participant is logged in, has current info, etc. This is the normal case.
-    """
+def signups_open(user, trip, signup_form, leader_signup_allowed):
+    """ What to display when signups are open for a trip. """
     return {
         'user': user,
         'trip': trip,
-        'is_wimp': trip.wimp and trip.wimp == participant,
-        'participant': participant,
+        'reasons_cannot_attend': list(reasons_cannot_attend(user, trip)),
         'signup_form': signup_form,
         'leader_signup_allowed': leader_signup_allowed,
     }
 
 
+@register.inclusion_tag('for_templatetags/how_to_attend_trip.html')
+def how_to_attend(trip, trip_inelegibility_reasons, user):
+    """ Display messages instructing the user how they can attend this trip. """
+    return {
+        'user': user,
+        'show_membership_status': any(
+            reason.related_to_membership for reason in trip_inelegibility_reasons
+        ),
+        'how_to_fix_messages': [
+            reason.how_to_fix_for(trip) for reason in trip_inelegibility_reasons
+        ],
+    }
+
+
 @register.inclusion_tag('for_templatetags/signup_modes/not_yet_open.html')
-def not_yet_open(participant, signup_form, leader_signup_allowed):
+def not_yet_open(user, trip, signup_form, leader_signup_allowed):
     """ What to display in the signup section when trip signups aren't open (yet). """
     return {
-        'participant': participant,
+        'trip': trip,
+        'reasons_cannot_attend': list(reasons_cannot_attend(user, trip)),
         'signup_form': signup_form,
         'leader_signup_allowed': leader_signup_allowed,
     }

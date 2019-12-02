@@ -26,6 +26,7 @@ from ws import forms, models, tasks
 from ws.decorators import admin_only, group_required, user_info_required
 from ws.mixins import LectureAttendanceMixin, LotteryPairingMixin
 from ws.templatetags.trip_tags import annotated_for_trip_list
+from ws.utils.models import problems_with_profile
 
 logger = logging.getLogger(__name__)
 
@@ -252,10 +253,8 @@ class EditProfileView(ParticipantEditMixin):
         return self.request.participant
 
     def get(self, request, *args, **kwargs):
-        par = request.participant
-        safe_messages = par.problems_with_profile if par else []
-        for msg in safe_messages:
-            messages.info(request, msg, extra_tags='safe')
+        for problem in problems_with_profile(request.participant):
+            messages.info(request, problem.how_to_fix, extra_tags='safe')
         return super().get(request, *args, **kwargs)
 
 

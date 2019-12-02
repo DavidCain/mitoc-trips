@@ -5,6 +5,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.db.utils import OperationalError
 from freezegun import freeze_time
 
+from ws import enums
 from ws.tests import TestCase, factories
 from ws.utils import membership
 
@@ -45,19 +46,27 @@ class RefreshAllMembershipCache(TestCase):
 class CanAttendTripTests(TestCase):
     def setUp(self):
         self.trip = factories.TripFactory.create(
-            trip_date=date(2018, 11, 30), algorithm='fcfs', membership_required=True
+            # (Hiking isn't special, we just choose to avoid WS-specific rules)
+            program=enums.Program.HIKING.value,
+            trip_date=date(2018, 11, 30),
+            algorithm='fcfs',
+            membership_required=True,
         )
 
     def _can_attend(self, user):
-        return membership.can_attend_trip(user, self.trip)
+        return not any(membership.reasons_cannot_attend(user, self.trip))
 
     def test_anonymous_user_cannot_attend(self):
         self.assertFalse(self._can_attend(AnonymousUser()))
 
+    def test_user_without_participant_cannot_attend(self):
+        user = factories.UserFactory.create()
+        self.assertFalse(self._can_attend(user))
+
     def test_participant_with_current_membership_can_attend(self):
         # Create a participant with a membership valid for the given trip
         participant = factories.ParticipantFactory.create()
-        self.assertTrue(participant.can_attend(self.trip))
+        self.assertFalse(any(participant.reasons_cannot_attend(self.trip)))
 
         # This participant can attend the trip!
         with mock.patch.object(membership, 'update_membership_cache') as update_cache:
@@ -86,13 +95,18 @@ class CanAttendTripTests(TestCase):
         participant = factories.ParticipantFactory.create(membership=dated_membership)
 
         # Right now, with our last-cached copy of their membership, they cannot attend
-        self.assertFalse(participant.can_attend(self.trip))
+        self.assertCountEqual(
+            participant.reasons_cannot_attend(self.trip),
+            [enums.TripIneligibilityReason.MEMBERSHIP_NEEDS_RENEWAL],
+        )
 
         def update_participant_membership(par):
             """ Update the membership record (as if they'd renewed today!) """
-            par.update_membership(
-                membership_expires=date(2019, 11, 19), waiver_expires=date(2019, 11, 19)
-            )
+            with freeze_time("2018-11-19 12:00:00 EST"):
+                par.update_membership(
+                    membership_expires=date(2019, 11, 19),
+                    waiver_expires=date(2019, 11, 19),
+                )
 
         with mock.patch.object(membership, 'update_membership_cache') as update_cache:
             update_cache.side_effect = update_participant_membership
@@ -104,3 +118,5 @@ class CanAttendTripTests(TestCase):
         dated_membership.refresh_from_db()
         self.assertEqual(dated_membership.membership_expires, date(2019, 11, 19))
         self.assertEqual(dated_membership.waiver_expires, date(2019, 11, 19))
+
+        self.assertFalse(any(participant.reasons_cannot_attend(self.trip)))

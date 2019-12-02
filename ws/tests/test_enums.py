@@ -1,7 +1,38 @@
 import unittest
 
+from django.test import SimpleTestCase
+
 from ws import enums
+from ws.tests import factories
 from ws.utils.forms import all_choices
+
+
+class ProfileProblemTest(SimpleTestCase):
+    def test_every_problem_has_how_to_fix(self):
+        for problem_enum in enums.ProfileProblem:
+            self.assertTrue(problem_enum.how_to_fix)
+
+
+class TripIneligibilityReasonTest(SimpleTestCase):
+    def test_every_reason_has_label(self):
+        for reason_enum in enums.TripIneligibilityReason:
+            self.assertTrue(reason_enum.label)
+
+    def test_related_to_membership(self):
+        self.assertTrue(
+            enums.TripIneligibilityReason.MEMBERSHIP_MISSING.related_to_membership
+        )
+        self.assertTrue(
+            enums.TripIneligibilityReason.WAIVER_MISSING.related_to_membership
+        )
+        self.assertFalse(
+            enums.TripIneligibilityReason.NOT_LOGGED_IN.related_to_membership
+        )
+
+    def test_every_reason_has_how_to_fix(self):
+        trip = factories.TripFactory.build()
+        for reason_enum in enums.TripIneligibilityReason:
+            self.assertTrue(reason_enum.how_to_fix_for(trip))
 
 
 class ProgramTest(unittest.TestCase):

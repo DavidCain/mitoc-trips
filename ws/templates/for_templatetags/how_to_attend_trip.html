@@ -1,0 +1,19 @@
+<div class="alert alert-danger">
+  In order to participate on this trip, you
+
+  {% if how_to_fix_messages|length == 1 %}
+    must {{ how_to_fix_messages.0 }}.
+  {% else %}
+    must:
+    <ul>
+      {% for safe_html_msg in how_to_fix_messages %}
+        <li>{{ safe_html_msg }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+</div>
+
+{% if show_membership_status %}
+  <membership-status data-personal="true" data-user-id="{{ user.pk }}">
+  </membership-status>
+{% endif %}
