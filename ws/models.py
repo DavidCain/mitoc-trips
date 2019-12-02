@@ -187,6 +187,24 @@ class Membership(models.Model):
         expires = self.membership_expires
         return expires and expires >= date_utils.local_date()
 
+    def should_sign_waiver_for(self, trip):
+        """ Return if the waiver will be valid for the day of the trip.
+
+        We consider waivers "expired" every year.
+        """
+        if not self.waiver_expires:
+            return True
+
+        # Edge case: trip is extremely distant in the future.
+        # Signing a new waiver today won't ensure the waiver is valid by that date.
+        # We at least have one waiver signed and as a legal agreement it doesn't really 'expire'
+        # Allow participants to sign up today - we'll make sure leaders get new waivers closer
+        if (trip.trip_date - date_utils.local_date()) >= timedelta(days=364):
+            return False
+
+        # Participants should *always* sign if waiver will be dated by trip start.
+        return trip.trip_date > self.waiver_expires
+
     def should_renew_for(self, trip):
         """ Return if membership renewal is required to attend a future trip.
 
@@ -216,9 +234,6 @@ class Membership(models.Model):
         expires = self.membership_expires
         will_be_valid_on_date = expires and expires >= trip.trip_date
         return not will_be_valid_on_date
-
-    def waiver_active_until(self, day):
-        return self.waiver_expires and self.waiver_expires >= day
 
     def __str__(self):
         return (
@@ -310,6 +325,12 @@ class Participant(models.Model):
     def membership_active(self):
         """ NOTE: This uses the cache, should only be called on a fresh cache. """
         return bool(self.membership and self.membership.membership_active)
+
+    def should_sign_waiver_for(self, trip):
+        """ NOTE: This uses the cache, should only be called on a fresh cache. """
+        if not self.membership:
+            return True
+        return self.membership.should_sign_waiver_for(trip)
 
     def should_renew_for(self, trip):
         """ NOTE: This uses the cache, should only be called on a fresh cache. """
@@ -434,7 +455,7 @@ class Participant(models.Model):
         if self.membership.should_renew_for(trip):
             return False
 
-        return self.membership.waiver_active_until(trip.trip_date)
+        return not self.membership.should_sign_waiver_for(trip)
 
     def update_membership(self, membership_expires=None, waiver_expires=None):
         acct, created = Membership.objects.get_or_create(participant=self)

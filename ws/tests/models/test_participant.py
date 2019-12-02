@@ -202,20 +202,92 @@ class LeaderTest(TestCase):
 
 class MembershipTest(unittest.TestCase):
     def test_no_cached_membership(self):
+        """ Convenience methods on the participant require membership/waiver!"""
         par = factories.ParticipantFactory.build(membership=None)
-        self.assertFalse(par.membership_active)
 
-    def test_active_membership(self):
-        par = factories.ParticipantFactory.build(
-            membership=factories.MembershipFactory.build()
+        trip = factories.TripFactory.build(membership_required=True)
+
+        # Both a waiver & a membership are required
+        self.assertFalse(par.membership_active)
+        self.assertTrue(par.should_renew_for(trip))
+        self.assertTrue(par.should_sign_waiver_for(trip))
+
+    def test_no_membership(self):
+        membership = factories.MembershipFactory.build(
+            membership_expires=None, waiver_expires=None
         )
-        self.assertTrue(par.membership_active)
+
+        trip = factories.TripFactory.build(membership_required=True)
+
+        # Both a waiver & a membership are required
+        self.assertFalse(membership.membership_active)
+        self.assertTrue(membership.should_renew_for(trip))
+        self.assertTrue(membership.should_sign_waiver_for(trip))
+
+    def test_no_cached_membership_but_not_required(self):
+        membership = factories.MembershipFactory.build(
+            membership_expires=None, waiver_expires=None
+        )
+
+        trip = factories.TripFactory.build(membership_required=False)
+
+        self.assertFalse(membership.membership_active)
+
+        # Membership isn't required, but a waiver still is.
+        self.assertFalse(membership.should_renew_for(trip))
+        self.assertTrue(membership.should_sign_waiver_for(trip))
+
+    @freeze_time("11 Dec 2015 12:00:00 EST")
+    def test_active_membership(self):
+        membership = factories.MembershipFactory.build(
+            membership_expires=date(2016, 11, 4), waiver_expires=None
+        )
+        self.assertTrue(membership.membership_active)
+
+        trip = factories.TripFactory.create(trip_date=date(2015, 11, 17))
+
+        self.assertFalse(membership.should_renew_for(trip))
+        self.assertTrue(membership.should_sign_waiver_for(trip))
 
     @freeze_time("11 Dec 2025 12:00:00 EST")
-    def test_inactive_membership(self):
-        par = factories.ParticipantFactory.build(
-            membership=factories.MembershipFactory.build(
-                membership_expires=date(2023, 11, 15)  # In the past.
-            )
+    def test_stale_membership(self):
+        membership = factories.MembershipFactory.build(
+            # Both are in the past, so currently expired!
+            membership_expires=date(2023, 11, 15),
+            waiver_expires=date(2023, 11, 15),
         )
-        self.assertFalse(par.membership_active)
+
+        trip = factories.TripFactory.create(trip_date=date(2025, 12, 12))
+        self.assertFalse(membership.membership_active)
+        self.assertTrue(membership.should_renew_for(trip))
+        self.assertTrue(membership.should_sign_waiver_for(trip))
+
+    @freeze_time("11 Dec 2025 12:00:00 EST")
+    def test_very_distant_trip(self):
+        membership = factories.MembershipFactory.build(
+            # Renewed just the day before!
+            membership_expires=date(2026, 12, 10),
+            waiver_expires=date(2026, 12, 10),
+        )
+
+        # More than a year out!
+        trip = factories.TripFactory.create(trip_date=date(2026, 12, 13))
+
+        self.assertTrue(membership.membership_active)
+
+        # Much to early to renew a membership (364 days into current membership!)
+        # Signing a waiver won't do any good yet.
+        self.assertFalse(membership.should_renew_for(trip))
+        self.assertFalse(membership.should_sign_waiver_for(trip))
+
+    def test_str(self):
+        par = factories.ParticipantFactory.build(
+            name="Frida Kahlo",
+            membership=factories.MembershipFactory.build(
+                membership_expires=date(2026, 11, 10), waiver_expires=date(2026, 12, 12)
+            ),
+        )
+        self.assertEqual(
+            str(par.membership),
+            'Frida Kahlo, membership: 2026-11-10, waiver: 2026-12-12',
+        )
