@@ -67,7 +67,9 @@ class LapsedTests(TestCase):
         """ Members aren't lapsed if they participated in trips recently. """
         # Participant was on a trip in the last year
         trip = factories.TripFactory.create(trip_date=date(2019, 2, 28))
-        signup = factories.SignUpFactory.create(trip=trip, on_trip=True)
+        signup = factories.SignUpFactory.create(
+            participant__membership=None, trip=trip, on_trip=True
+        )
         # Override default of 'now'
         make_last_updated_on(signup.participant, date(1995, 1, 1))
 

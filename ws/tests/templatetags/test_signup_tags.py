@@ -26,7 +26,7 @@ class SignupForTripTests(TestCase):
 
     @staticmethod
     def _leader(activity):
-        participant = factories.ParticipantFactory()
+        participant = factories.ParticipantFactory.create()
         participant.leaderrating_set.add(
             factories.LeaderRatingFactory.create(
                 participant=participant, activity=activity
@@ -124,7 +124,7 @@ class SignupForTripTests(TestCase):
         self.assertTrue(trip.signups_not_yet_open)
 
         # Note that normal participants cannot sign up
-        participant = factories.ParticipantFactory()
+        participant = factories.ParticipantFactory.create()
         soup = self._render(participant, trip)
         self.assertEqual(
             soup.find(class_='alert-info').get_text(' ', strip=True),

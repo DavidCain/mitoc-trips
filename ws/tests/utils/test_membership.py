@@ -5,7 +5,6 @@ from django.contrib.auth.models import AnonymousUser
 from django.db.utils import OperationalError
 from freezegun import freeze_time
 
-from ws import models
 from ws.tests import TestCase, factories
 from ws.utils import membership
 
@@ -15,12 +14,11 @@ class RefreshAllMembershipCache(TestCase):
     def test_refresh_targets(self):
         """ We refresh any participant without a membership or with a stale cache. """
         # Participant has no cached membership!
-        no_membership_participant = factories.ParticipantFactory.create()
-        self.assertIsNone(no_membership_participant.membership)
+        no_membership_participant = factories.ParticipantFactory.create(membership=None)
 
         # Participant was cached a bit over a week ago
         with freeze_time("2019-03-12 11:31:22 EST"):
-            active_but_cached_last_week = models.Membership.objects.create(
+            active_but_cached_last_week = factories.MembershipFactory.create(
                 membership_expires=date(2020, 3, 18), waiver_expires=date(2020, 3, 18)
             )
         stale_participant = factories.ParticipantFactory.create(
@@ -28,7 +26,7 @@ class RefreshAllMembershipCache(TestCase):
         )
 
         # Participant has no waiver & an expired membership, but that's recently true!
-        cached_now = models.Membership.objects.create(
+        cached_now = factories.MembershipFactory.create(
             membership_expires=None, waiver_expires=date(2019, 1, 1)
         )
         factories.ParticipantFactory.create(membership=cached_now)
@@ -58,11 +56,7 @@ class CanAttendTripTests(TestCase):
 
     def test_participant_with_current_membership_can_attend(self):
         # Create a participant with a membership valid for the given trip
-        participant = factories.ParticipantFactory.create(
-            membership=models.Membership.objects.create(
-                membership_expires=date(2019, 11, 12), waiver_expires=date(2019, 11, 12)
-            )
-        )
+        participant = factories.ParticipantFactory.create()
         self.assertTrue(participant.can_attend(self.trip))
 
         # This participant can attend the trip!
@@ -85,7 +79,7 @@ class CanAttendTripTests(TestCase):
     def test_cache_updated(self):
         """ If our local cache is outdated, we must hit the gear database for updates. """
         with freeze_time("2018-10-23 14:55:45 EST"):  # (Will have old `last_cached`)
-            dated_membership = models.Membership.objects.create(
+            dated_membership = factories.MembershipFactory.create(
                 membership_expires=date(2018, 11, 18),  # Active, expires before trip
                 waiver_expires=date(2018, 12, 18),  # Active, expires after trip
             )

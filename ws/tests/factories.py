@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 import allauth.account.models as account_models
 import factory
 from factory.django import DjangoModelFactory
@@ -64,12 +66,24 @@ class UserFactory(DjangoModelFactory):
         return manager.create_user(*args, **kwargs)
 
 
+class MembershipFactory(DjangoModelFactory):
+    class Meta:
+        model = models.Membership
+
+    membership_expires = factory.LazyAttribute(
+        lambda _obj: date_utils.local_date() + timedelta(days=365)
+    )
+    waiver_expires = factory.LazyAttribute(
+        lambda _obj: date_utils.local_date() + timedelta(days=365)
+    )
+
+
 class ParticipantFactory(DjangoModelFactory):
     class Meta:
         model = models.Participant
 
     affiliation = affiliations.NON_AFFILIATE.CODE
-    membership = None
+    membership = factory.SubFactory(MembershipFactory)
     email = factory.Sequence(lambda n: f"participant{n + 1}@example.com")
     name = "Test Participant"
     car = None
@@ -114,18 +128,6 @@ class ParticipantFactory(DjangoModelFactory):
             kwargs['user_id'] = user.pk
 
         return super()._create(model_class, *args, **kwargs)
-
-
-class MembershipFactory(DjangoModelFactory):
-    class Meta:
-        model = models.Membership
-
-    membership_expires = factory.LazyAttribute(
-        lambda _obj: date_utils.next_wednesday().date()
-    )
-    waiver_expires = factory.LazyAttribute(
-        lambda _obj: date_utils.next_wednesday().date()
-    )
 
 
 class CarFactory(DjangoModelFactory):

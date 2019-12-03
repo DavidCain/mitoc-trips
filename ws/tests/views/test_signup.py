@@ -13,11 +13,7 @@ class SignupsViewTest(TestCase):
         return self.client.post('/trips/signup/', {'trip': trip.pk}, follow=False)
 
     def _active_member(self):
-        par = factories.ParticipantFactory.create(
-            membership=factories.MembershipFactory.create(
-                membership_expires=date(2020, 2, 1), waiver_expires=date(2020, 2, 1)
-            )
-        )
+        par = factories.ParticipantFactory.create()
         self.assertTrue(par.membership_active)
         return par
 
