@@ -210,13 +210,3 @@ def ws_lectures_complete():
         return True
     # It's Winter School, but it's not late enough in the first week
     return False
-
-
-def missed_lectures(participant, year):
-    """ Whether the participant missed WS lectures in the given year. """
-    if year < 2016:
-        return False  # We lack records for 2014 & 2015; assume present
-    if year == ws_year() and not ws_lectures_complete():
-        return False  # Lectures aren't over yet, so nobody "missed" lectures
-
-    return not participant.lectureattendance_set.filter(year=year).exists()

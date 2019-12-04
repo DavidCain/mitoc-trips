@@ -428,6 +428,33 @@ class Participant(models.Model):
         except cls.DoesNotExist:
             return None
 
+    def attended_lectures(self, year):
+        return self.lectureattendance_set.filter(year=year).exists()
+
+    def missed_lectures(self, year):
+        """ Whether the participant missed WS lectures in the given year. """
+        if year < 2016:
+            return False  # We lack records for 2014 & 2015; assume present
+        if year == date_utils.ws_year() and not date_utils.ws_lectures_complete():
+            return False  # Lectures aren't over yet, so nobody "missed" lectures
+
+        return not self.attended_lectures(year)
+
+    def missed_lectures_for(self, trip):
+        """ Should we regard the participant as having missed lectures for this trip.
+
+        This only applies to WS trips - all other trips will return False.
+
+        During the first week of Winter School (where people sign up for trips
+        _before_ being marked as having attended lectures), we don't want to consider
+        people as having missed lectures.
+        """
+        # Notably, winter trips outside IAP don't require lecture attendance
+        if trip.program_enum != enums.Program.WINTER_SCHOOL:
+            return False
+
+        return self.missed_lectures(trip.trip_date.year)
+
     def reasons_cannot_attend(self, trip):
         """ Can this participant attend the trip? (based off cached membership)
 
@@ -444,6 +471,12 @@ class Participant(models.Model):
         if trip.wimp == self:
             # Being the WIMP for the trip absolutely prevents attendance, other rules don't matter.
             yield enums.TripIneligibilityReason.IS_TRIP_WIMP
+            return
+
+        if self.missed_lectures_for(trip):
+            yield enums.TripIneligibilityReason.MISSED_WS_LECTURES
+            # If the participant missed lectures, exit early and don't consider membership
+            # (we don't want folks to pay money, only to realize they cannot attend)
             return
 
         if any(self.problems_with_profile):

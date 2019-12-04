@@ -156,3 +156,28 @@ class SignupsViewTest(TestCase):
 
         # Participant was not placed on the trip.
         self.assertFalse(mini_trip.signup_set.filter(participant=par).exists())
+
+    def test_missed_lectures(self):
+        # Presence of an existing WS trip is the clue that WS has started.
+        factories.TripFactory.create(
+            program=enums.Program.WINTER_SCHOOL.value, trip_date=date(2019, 1, 12)
+        )
+        self.assertTrue(date_utils.ws_lectures_complete())
+
+        ws_trip = self._upcoming_trip(program=enums.Program.WINTER_SCHOOL.value)
+
+        # This participant is not a member! (that's important -- it shapes error messages)
+        par = factories.ParticipantFactory.create(membership=None)
+
+        self.assertFalse(par.attended_lectures(2019))
+        self.assertTrue(par.missed_lectures_for(ws_trip))
+
+        self.client.force_login(par.user)
+        resp = self._signup(ws_trip)
+        form = resp.context['form']
+
+        # Normally, we would prompt the participant to pay dues & sign a waiver.
+        # However, since they might pay dues, then be frustrated that they cannot attend, we don't.
+        self.assertEqual(
+            form.errors, {'__all__': ["Must have attended mandatory safety lectures"]}
+        )

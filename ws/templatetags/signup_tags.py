@@ -12,6 +12,15 @@ register = template.Library()
 
 
 @register.filter
+def missed_lectures_for(participant, trip):
+    if not participant:
+        # They are either not logged in or have not yet created a participant
+        # We handle both cases already
+        return False
+    return participant.missed_lectures_for(trip)
+
+
+@register.filter
 def should_renew_for(participant, trip):
     """ NOTE: This uses the cache, should only be called if cache was updated. """
     return participant.should_renew_for(trip)

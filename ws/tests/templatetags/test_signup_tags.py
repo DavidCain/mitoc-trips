@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from unittest import mock
 
 from bs4 import BeautifulSoup
 from django.template import Context, Template
@@ -260,3 +261,34 @@ class MembershipActiveTests(TestCase):
         self.assertFalse(par.membership_active)
 
         self.assertEqual(self._render(par), '')
+
+
+class MissedLecturesForTest(TestCase):
+    @staticmethod
+    def _render(participant, trip):
+        context = Context({'participant': participant, 'trip': trip})
+        html_template = Template(
+            '{% load signup_tags %}{% if participant|missed_lectures_for:trip %}Missed!{% endif %}'
+        )
+        return html_template.render(context).strip()
+
+    def test_no_participant(self):
+        raw_html = self._render(participant=None, trip=factories.TripFactory.create())
+        self.assertEqual(raw_html, '')
+
+    def test_not_a_ws_trip(self):
+        """ WS trips don't regard participants as having 'missed' """
+        trip = factories.TripFactory.create(program=enums.Program.BIKING.value)
+        par = factories.ParticipantFactory.create()
+        self.assertEqual(self._render(par, trip), '')
+
+    @freeze_time("Thu Jan 18 2018 12:00:00 EST")
+    def test_missed(self):
+        """ We conditionally render content if the participant missed lectures. """
+        par = factories.ParticipantFactory.create()
+        trip = factories.TripFactory.create(
+            program=enums.Program.WINTER_SCHOOL.value, trip_date=date(2018, 1, 20)
+        )
+        with mock.patch.object(date_utils, 'ws_lectures_complete') as lectures_complete:
+            lectures_complete.return_value = True
+            self.assertEqual(self._render(par, trip), 'Missed!')

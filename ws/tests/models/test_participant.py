@@ -1,6 +1,7 @@
 import datetime
 import unittest
 from datetime import date
+from unittest import mock
 
 from django.contrib.auth.models import AnonymousUser
 from django.test import SimpleTestCase
@@ -45,6 +46,17 @@ class ReasonsCannotAttendTest(TestCase):
             [enums.TripIneligibilityReason.IS_TRIP_WIMP],
         )
 
+    def test_missed_lectures(self):
+        # Note that the participant also has no membership!
+        participant = factories.ParticipantFactory.create(membership=None)
+        trip = factories.TripFactory.create(program=enums.Program.WINTER_SCHOOL)
+        self.assertCountEqual(
+            participant.reasons_cannot_attend(trip),
+            # We *only* highlight the lectures issue.
+            # We don't want to prompt the user to pay membership dues
+            [enums.TripIneligibilityReason.MISSED_WS_LECTURES],
+        )
+
     @freeze_time("25 Oct 2018 12:00:00 EST")
     def test_problem_with_profile_legacy(self):
         """ If the affiliation was given before we started collecting more detail, warn! """
@@ -65,7 +77,6 @@ class ReasonsCannotAttendTest(TestCase):
     def test_problems_with_profile_multiple(self):
         """ If a participant has multiple profile problems, we give only one reason. """
         participant = factories.ParticipantFactory.create(
-            membership=factories.MembershipFactory.create(),
             name="Cher",
             affiliation="S",
             emergency_info__emergency_contact__cell_phone='',
@@ -422,3 +433,73 @@ class AffiliationTest(SimpleTestCase):
         self.assertEqual(_dues_for("MA"), 30)
         for non_mit_student in ["NA", "NU", "NG"]:
             self.assertEqual(_dues_for(non_mit_student), 40)
+
+
+class MissedLectureTests(TestCase):
+    """ Test the logic that checks if a participant has missed lectures. """
+
+    def test_legacy_years(self):
+        """ Participants are not marked as missing lectures in first years. """
+        # We lack records for these early years, so we just assume presence
+        participant = factories.ParticipantFactory.create()
+        # We can't say for sure that the participant attended for either year
+        self.assertFalse(participant.attended_lectures(2014))
+        self.assertFalse(participant.attended_lectures(2015))
+
+        # But we also don't regard them as having "missed" since we don't have a record
+        self.assertFalse(participant.missed_lectures(2014))
+        self.assertFalse(participant.missed_lectures(2015))
+        past_trip = factories.TripFactory.create(
+            program=enums.Program.WINTER_SCHOOL.value, trip_date=date(2015, 1, 17)
+        )
+        self.assertFalse(participant.missed_lectures_for(past_trip))
+
+    @freeze_time("Thursday, Jan 4 2018 15:00:00 EST")
+    def test_lectures_incomplete(self):
+        """ If this year's lectures haven't completed, nobody can be absent. """
+        participant = factories.ParticipantFactory.create()
+
+        # Participant hasn't attended.
+        self.assertFalse(participant.attended_lectures(2018))
+
+        # But, since lectures aren't complete, they didn't miss.
+        with mock.patch.object(date_utils, 'ws_lectures_complete') as lectures_complete:
+            lectures_complete.return_value = False
+            self.assertFalse(participant.missed_lectures(2018))
+
+        # Importantly, they aren't considered "missed" with regards to weekend trips
+        sat_trip = factories.TripFactory.create(
+            program=enums.Program.WINTER_SCHOOL.value, trip_date=date(2015, 1, 6)
+        )
+        self.assertFalse(participant.missed_lectures_for(sat_trip))
+
+    @freeze_time("Thursday, Jan 19 2018 15:00:00 EST")
+    def test_current_year(self):
+        """ Check attendance in current year, after lectures complete.
+
+        We're in a year where attendance is recorded, and we're asking about the current
+        year. Did the participant attend?
+        """
+        par = factories.ParticipantFactory.create()
+        factories.LectureAttendanceFactory.create(
+            year=2017, participant=par, creator=par
+        )
+        self.assertTrue(par.attended_lectures(2017))
+
+        self.assertFalse(par.attended_lectures(2018))
+        with mock.patch.object(date_utils, 'ws_lectures_complete') as lectures_complete:
+            # If lectures are not yet complete, we don't regard them as missing
+            lectures_complete.return_value = False
+            self.assertFalse(par.missed_lectures(2018))
+
+            # If lectures are complete, they're counted as missing
+            lectures_complete.return_value = True
+            self.assertTrue(par.missed_lectures(2018))
+
+        # When the participant attended, they did not miss lectures
+        factories.LectureAttendanceFactory.create(
+            year=2018, participant=par, creator=par
+        )
+        with mock.patch.object(date_utils, 'ws_lectures_complete') as lectures_complete:
+            lectures_complete.return_value = True
+            self.assertFalse(par.missed_lectures(2018))

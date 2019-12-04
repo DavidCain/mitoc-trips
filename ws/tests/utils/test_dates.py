@@ -160,55 +160,6 @@ class DateUtilTests(TestCase):
             self.assertEqual(date_utils.next_lottery(), friday_the_30th)
 
 
-class MissedLectureTests(TestCase):
-    """ Test the logic that checks if a participant has missed lectures. """
-
-    def test_legacy_years(self):
-        """ Participants are not marked as missing lectures in first years. """
-        # We lack records for these early years, so we just assume presence
-        participant = factories.ParticipantFactory.build()
-        self.assertFalse(date_utils.missed_lectures(participant, 2014))
-        self.assertFalse(date_utils.missed_lectures(participant, 2015))
-
-    @freeze_time("Thursday, Jan 4 2018 15:00:00 EST")
-    def test_lectures_incomplete(self):
-        """ If this year's lectures haven't completed, nobody can be absent. """
-        participant = factories.ParticipantFactory.build()
-        with mock.patch.object(date_utils, 'ws_lectures_complete') as lectures_complete:
-            lectures_complete.return_value = False
-            self.assertFalse(date_utils.missed_lectures(participant, 2018))
-
-    @freeze_time("Thursday, Jan 19 2018 15:00:00 EST")
-    def test_current_year(self):
-        """ Check attendance in current year, after lectures complete.
-
-        We're in a year where attendance is recorded, and we're asking about the current
-        year. Did the participant attend?
-        """
-        par = factories.ParticipantFactory.create()
-        factories.LectureAttendanceFactory.create(
-            year=2017, participant=par, creator=par
-        )
-
-        # Participant has no attendance recorded for 2018!
-        with mock.patch.object(date_utils, 'ws_lectures_complete') as lectures_complete:
-            # If lectures are not yet complete, we don't regard them as missing
-            lectures_complete.return_value = False
-            self.assertFalse(date_utils.missed_lectures(par, 2018))
-
-            # If lectures are complete, they're counted as missing
-            lectures_complete.return_value = True
-            self.assertTrue(date_utils.missed_lectures(par, 2018))
-
-        # When the participant attended, they did not miss lectures
-        factories.LectureAttendanceFactory.create(
-            year=2018, participant=par, creator=par
-        )
-        with mock.patch.object(date_utils, 'ws_lectures_complete') as lectures_complete:
-            lectures_complete.return_value = True
-            self.assertFalse(date_utils.missed_lectures(par, 2018))
-
-
 class LecturesCompleteTests(TestCase):
     """ Test the method that tries to infer when lectures are over. """
 

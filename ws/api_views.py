@@ -90,15 +90,10 @@ class FormatSignupMixin:
         if paired_with not in trip_participants:  # Includes waitlist!
             paired_with = None
 
-        if signup.trip.program_enum == enums.Program.WINTER_SCHOOL:
-            no_lectures = date_utils.missed_lectures(par, signup.trip.trip_date.year)
-        else:
-            no_lectures = False  # Don't show warning for other activities
-
         return {
             'id': signup.id,
             'participant': {'id': par.id, 'name': par.name, 'email': par.email},
-            'missed_lectures': no_lectures,
+            'missed_lectures': par.missed_lectures_for(signup.trip),
             'feedback': [
                 {
                     'showed_up': f.showed_up,

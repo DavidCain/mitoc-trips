@@ -64,6 +64,9 @@ class TripIneligibilityReason(enum.Enum):
     # The participant is the WIMP on the trip, and should not attend it.
     IS_TRIP_WIMP = 3
 
+    # Specific to Program.WINTER_SCHOOL -- participant hasn't attended lectures, and it's required
+    MISSED_WS_LECTURES = 4
+
     # A ProfileProblem exists for this user
     PROFILE_PROBLEM = 5
 
@@ -98,6 +101,7 @@ class TripIneligibilityReason(enum.Enum):
             self.NOT_LOGGED_IN: 'Not logged in!',
             self.NO_PROFILE_INFO: 'No profile found!',
             self.IS_TRIP_WIMP: 'Cannot attend a trip as its WIMP',
+            self.MISSED_WS_LECTURES: 'Must have attended mandatory safety lectures',
             self.PROFILE_PROBLEM: 'Profile requires modification',
             self.MEMBERSHIP_MISSING: 'An active membership is required',
             self.MEMBERSHIP_NEEDS_RENEWAL: 'Membership must be renewed',
@@ -125,6 +129,7 @@ class TripIneligibilityReason(enum.Enum):
             self.NO_PROFILE_INFO: f'provide <a href="{edit_profile}">personal information</a>',
             self.IS_TRIP_WIMP: 'be replaced in your role as the trip WIMP',
             self.PROFILE_PROBLEM: f'update your <a href="{edit_profile}">personal information</a>',
+            self.MISSED_WS_LECTURES: '''have attended this year's lectures. Questions? Contact the <a href="mailto:ws-chair@mit.edu">Winter School Chair</a>.''',
             self.MEMBERSHIP_MISSING: f'have an <a href="{pay_dues}">active membership</a>',
             self.MEMBERSHIP_NEEDS_RENEWAL: f'''have a <a href="{pay_dues}">membership that's valid until at least {trip_date}</a>''',
             self.WAIVER_MISSING: f'<a href="{initiate_waiver}">sign a waiver</a>',
