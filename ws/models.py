@@ -912,7 +912,7 @@ class Trip(models.Model):
         return self.signup_set.filter(on_trip_or_waitlisted)
 
     @property
-    def within_three_days(self):
+    def _within_three_days(self):
         """ Return a date range for use with Django's `range` function. """
         return (self.trip_date - timedelta(days=3), self.trip_date + timedelta(days=3))
 
@@ -925,7 +925,7 @@ class Trip(models.Model):
         return (
             SignUp.objects.filter(on_trip=True, participant_id__in=par_pks)
             .exclude(trip=self)
-            .filter(trip__trip_date__range=self.within_three_days)
+            .filter(trip__trip_date__range=self._within_three_days)
             .select_related('trip')
             .order_by('trip__trip_date')
         )
@@ -956,7 +956,7 @@ class Trip(models.Model):
         trips_led_by_participants = (
             type(self)
             .objects.filter(
-                leaders__in=par_pks, trip_date__range=self.within_three_days
+                leaders__in=par_pks, trip_date__range=self._within_three_days
             )
             .order_by('trip_date')
             .annotate(leader_pk=F('leaders'))
@@ -975,7 +975,7 @@ class Trip(models.Model):
         """ Return if the trip will apply pairing as a single lottery trip. """
         if self.algorithm != "lottery":
             return False  # Trip is FCFS, or lottery has completed
-        if self.activity == LeaderRating.WINTER_SCHOOL:
+        if self.program_enum == enums.Program.WINTER_SCHOOL:
             return False  # Winter School trips do their own lottery
         return self.honor_participant_pairing
 
@@ -988,8 +988,17 @@ class Trip(models.Model):
         return self.trip_date > date_utils.local_date()
 
     @property
-    def after_lottery(self):
-        """ True if it's after the lottery, but takes place before the next one. """
+    def _is_winter_school_trip_between_lotteries(self):
+        """ Return if this WS trip is between lotteries.
+
+        This exists to solve a specific edge case - a WS trip that's created
+        on, say, a Friday night to take place the immediate Saturday
+        afterwards. It doesn't make sense for this trip to be a lottery trip,
+        since it'll be over by the time the next lottery runs.
+        """
+        if self.program_enum != enums.Program.WINTER_SCHOOL:
+            return False
+
         next_lottery = date_utils.next_lottery()
         past_lottery = date_utils.lottery_time(next_lottery - timedelta(days=7))
 
@@ -1068,14 +1077,14 @@ class Trip(models.Model):
     def clean(self):
         """ Ensure that all trip dates are reasonable. """
         if not self.time_created:  # Trip first being created
-            if self.program_enum == enums.Program.WINTER_SCHOOL and self.after_lottery:
-                self.make_fcfs()
-
             if self.signups_closed:
                 raise ValidationError("Signups can't be closed already!")
             # Careful here - don't want to disallow editing of past trips
             if self.trip_date < date_utils.local_date():
                 raise ValidationError("Trips can't occur in the past!")
+
+            if self._is_winter_school_trip_between_lotteries:
+                self.make_fcfs()
 
         close_time = self.signups_close_at
         if close_time and close_time < self.signups_open_at:
