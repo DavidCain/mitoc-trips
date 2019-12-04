@@ -71,7 +71,7 @@ def is_chair(user, activity_enum, allow_superusers=True):
     If the user is an admin, return True if and only if that activity
     has chairs (e.g. even an admin can't be the chair of 'official events').
     """
-    if activity_enum is None:
+    if activity_enum is None:  # (e.g. when the required activity is None)
         return False
     return in_any_group(user, [chair_group(activity_enum)], allow_superusers)
 

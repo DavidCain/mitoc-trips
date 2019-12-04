@@ -3,6 +3,7 @@ import unittest
 from datetime import date
 
 from django.contrib.auth.models import AnonymousUser
+from django.test import SimpleTestCase
 from freezegun import freeze_time
 
 import ws.utils.dates as date_utils
@@ -25,6 +26,12 @@ class ParticipantTest(TestCase):
             models.Participant.from_user(participant.user, join_membership=True),
             participant,
         )
+
+    def test_email_addr(self):
+        ada = factories.ParticipantFactory.build(
+            name="Ada Lovelace", email="ada@example.com"
+        )
+        self.assertEqual(ada.email_addr, '"Ada Lovelace" <ada@example.com>')
 
 
 class ProblemsWithProfile(TestCase):
@@ -182,6 +189,7 @@ class LeaderTest(TestCase):
         self.assertFalse(participant.can_lead(enums.Program.WINTER_SCHOOL))
         # Even open programs aren't able to be led by any participant
         self.assertFalse(participant.can_lead(enums.Program.CIRCUS))
+        self.assertCountEqual(participant.allowed_programs, [])
 
     def test_can_lead_own_activity_and_open(self):
         participant = factories.ParticipantFactory()
@@ -198,6 +206,16 @@ class LeaderTest(TestCase):
         self.assertTrue(participant.can_lead(enums.Program.CIRCUS))
         self.assertTrue(participant.can_lead(enums.Program.NONE))
         self.assertTrue(participant.can_lead(enums.Program.SERVICE))
+
+        self.assertCountEqual(
+            participant.allowed_programs,
+            [
+                enums.Program.BIKING,
+                enums.Program.CIRCUS,
+                enums.Program.NONE,
+                enums.Program.SERVICE,
+            ],
+        )
 
 
 class MembershipTest(unittest.TestCase):
@@ -291,3 +309,26 @@ class MembershipTest(unittest.TestCase):
             str(par.membership),
             'Frida Kahlo, membership: 2026-11-10, waiver: 2026-12-12',
         )
+
+
+class AffiliationTest(SimpleTestCase):
+    def test_is_student(self):
+        for affiliation in ["MU", "MG", "NU", "NG"]:
+            par = factories.ParticipantFactory.build(affiliation=affiliation)
+            self.assertTrue(par.is_student)
+        for affiliation in ["NA", "MA", "ML"]:
+            par = factories.ParticipantFactory.build(affiliation=affiliation)
+            self.assertFalse(par.is_student)
+
+    def test_annual_dues(self):
+        def _dues_for(affiliation):
+            par = factories.ParticipantFactory.build(affiliation=affiliation)
+            return par.annual_dues
+
+        # NOTE: These may change if the version of `mitoc_const` changes!
+        for mit_student in ["MU", "MG"]:
+            self.assertEqual(_dues_for(mit_student), 15)
+
+        self.assertEqual(_dues_for("MA"), 30)
+        for non_mit_student in ["NA", "NU", "NG"]:
+            self.assertEqual(_dues_for(non_mit_student), 40)

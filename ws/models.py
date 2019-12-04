@@ -75,7 +75,7 @@ class EmergencyContact(models.Model):
     email = models.EmailField()
 
     def __str__(self):
-        return "{} ({}): {}".format(self.name, self.relationship, self.cell_phone)
+        return f"{self.name} ({self.relationship}): {self.cell_phone}"
 
 
 class EmergencyInfo(models.Model):
@@ -87,11 +87,13 @@ class EmergencyInfo(models.Model):
     )
 
     def __str__(self):
-        return "Allergies: {} | Medications: {} | History: {} | " "Contact: {}".format(
-            self.allergies,
-            self.medications,
-            self.medical_history,
-            self.emergency_contact,
+        return ' | '.join(
+            [
+                f"Allergies: {self.allergies}"
+                f"Medications: {self.medications}"
+                f"History: {self.medical_history}"
+                f"Contact: {self.emergency_contact}"
+            ]
         )
 
 
@@ -553,7 +555,7 @@ class Participant(models.Model):
 
     @property
     def email_addr(self):
-        return '"{}" <{}>'.format(self.name, self.email)
+        return f'"{self.name}" <{self.email}>'
 
     def __str__(self):
         return self.name
@@ -1148,12 +1150,15 @@ class LotteryInfo(models.Model):
     @property
     def reciprocally_paired_with(self):
         """ Return requested partner if they also requested to be paired. """
-        if not self.paired_with:
+        if not (self.pk and self.paired_with):  # Must be saved & paired!
             return None
 
         try:
             other_paired_id = self.paired_with.lotteryinfo.paired_with_id
         except self.DoesNotExist:  # Paired participant has no lottery info
+            return None
+
+        if not other_paired_id:
             return None
 
         reciprocal = other_paired_id == self.participant_id
@@ -1219,9 +1224,7 @@ class WaitListSignup(models.Model):
     manual_order = models.IntegerField(null=True, blank=True)
 
     def __str__(self):
-        return "{} waitlisted on {}".format(
-            self.signup.participant.name, self.signup.trip
-        )
+        return f"{self.signup.participant.name} waitlisted on {self.signup.trip}"
 
     class Meta:
         # TODO (Django 2): Use F-expressions. [F('manual_order').desc(nulls_last=True), ...]
@@ -1387,9 +1390,6 @@ class LeaderApplication(models.Model):
         """ Factory for returning appropriate application type. """
         model = cls.model_from_activity(activity)
         return super(LeaderApplication, cls).__new__(model) if model else None
-
-    def __str__(self):
-        return self.participant.name
 
     class Meta:
         # Important!!! Child classes must be named: <activity>LeaderApplication

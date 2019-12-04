@@ -4,7 +4,7 @@ from collections import OrderedDict, defaultdict
 from django.db.models import Q
 from django.forms.models import model_to_dict
 
-from ws import models
+from ws import enums, models
 
 
 class DataDump:
@@ -158,8 +158,7 @@ class DataDump:
         if not mem:
             return None
 
-        fields = ['membership_expires', 'waiver_expires', 'last_cached']
-        return model_to_dict(mem, fields=fields)
+        return model_to_dict(mem, fields=['membership_expires', 'waiver_expires'])
 
     @property
     def user(self):
@@ -178,7 +177,7 @@ class DataDump:
         }
 
     @property
-    def ws_applications(self):
+    def _ws_applications(self):
         """ All Winter School leader applications by the user. """
         ws_apps = models.WinterSchoolLeaderApplication.objects.filter(
             participant=self.par
@@ -194,19 +193,19 @@ class DataDump:
 
     @property
     def leader_applications(self):
-        return dict(self.applications_by_activity)
+        return dict(self._applications_by_activity)
 
     @property
-    def applications_by_activity(self):
-        ws_apps = list(self.ws_applications)
+    def _applications_by_activity(self):
+        ws_apps = list(self._ws_applications)
         if ws_apps:
-            yield models.LeaderRating.WINTER_SCHOOL, ws_apps
+            yield enums.Activity.WINTER_SCHOOL.label, ws_apps
 
         by_participant = Q(participant=self.par)
 
         normal_apps = [
-            (models.LeaderRating.HIKING, models.HikingLeaderApplication),
-            (models.LeaderRating.CLIMBING, models.ClimbingLeaderApplication),
+            (enums.Activity.HIKING.label, models.HikingLeaderApplication),
+            (enums.Activity.CLIMBING.label, models.ClimbingLeaderApplication),
         ]
         for activity, app_model in normal_apps:
             applications = [

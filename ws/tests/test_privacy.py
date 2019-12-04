@@ -1,13 +1,21 @@
 from collections import OrderedDict
+from datetime import date, datetime
 from unittest import mock
+
+from freezegun import freeze_time
 
 from ws.privacy import DataDump
 from ws.tests import TestCase, factories
+from ws.utils.dates import localize
 
 
 class DataDumpTest(TestCase):
     def test_minimal_participant(self):
-        participant = factories.ParticipantFactory.create()
+        with freeze_time("Fri, 11 Nov 2020 18:35:40 EST"):
+            membership = factories.MembershipFactory.create(
+                membership_expires=date(2020, 10, 30), waiver_expires=date(2020, 10, 29)
+            )
+        participant = factories.ParticipantFactory.create(membership=membership)
         data = DataDump(participant.pk)
 
         self.assertEqual(
@@ -32,7 +40,13 @@ class DataDumpTest(TestCase):
                             ],
                         },
                     ),
-                    ('membership', None),
+                    (
+                        'membership',
+                        {
+                            'membership_expires': date(2020, 10, 30),
+                            'waiver_expires': date(2020, 10, 29),
+                        },
+                    ),
                     ('discounts', []),
                     ('car', None),
                     (
@@ -78,16 +92,103 @@ class DataDumpTest(TestCase):
         factories.SignUpFactory.create(on_trip=True, participant=participant)
         factories.SignUpFactory.create(on_trip=False, participant=participant)
         factories.SignUpFactory.create(on_trip=False, participant=participant)
-        factories.ClimbingLeaderApplicationFactory.create(participant=participant)
+
+        with freeze_time("Thu, 5 Jan 2017 18:35:40 EST"):
+            factories.LectureAttendanceFactory.create(
+                year=2017, participant=participant
+            )
+        with freeze_time("Thu, 10 Jan 2019 18:45:20 EST"):
+            factories.LectureAttendanceFactory.create(
+                year=2019, participant=participant
+            )
 
         data = DataDump(participant.pk)
         results = data.all_data
         self.assertTrue(isinstance(results, OrderedDict))
-        # (Won't actually inspect the results of this, since fixture defaults will likely change)
+        self.assertEqual(
+            results['winter_school_lecture_attendance'],
+            [
+                {
+                    'year': 2017,
+                    'time_created': localize(datetime(2017, 1, 5, 18, 35, 40)),
+                },
+                {
+                    'year': 2019,
+                    'time_created': localize(datetime(2019, 1, 10, 18, 45, 20)),
+                },
+            ],
+        )
+        # (Won't inspect the results of every value, since factory defaults may change)
         # Just ensure that they're actually filled.
         self.assertTrue(results['feedback']['received'])
         self.assertTrue(results['feedback']['given'])
         self.assertTrue(results['lottery_info'])
         self.assertTrue(results['leader_ratings'])
-        self.assertTrue(results['leader_applications'])
         self.assertTrue(results['signups'])
+
+    def test_participant_without_membership(self):
+        participant = factories.ParticipantFactory.create(membership=None)
+        data = DataDump(participant.pk)
+
+        self.assertIsNone(data.all_data['membership'])
+
+    def test_leader_school_applications(self):
+        par = factories.ParticipantFactory.create()
+        factories.WinterSchoolLeaderApplicationFactory.create(participant=par)
+        factories.ClimbingLeaderApplicationFactory.create(participant=par)
+
+        data = DataDump(par.pk)
+
+        all_apps = data.all_data['leader_applications']
+        self.assertCountEqual(all_apps, ['Winter School', 'Climbing'])
+        self.assertEqual(
+            all_apps['Winter School'],
+            [
+                {
+                    'previous_rating': '',
+                    'archived': False,
+                    'year': 2020,
+                    'desired_rating': 'B coC',
+                    'taking_wfa': 'No',
+                    'training': 'EMT Basic',
+                    'technical_skills': 'I know how to self arrest',
+                    'winter_experience': 'Several years hiking in the Whites',
+                    'ice_experience': '',
+                    'ski_experience': '',
+                    'other_experience': 'Leader in my college outing club',
+                    'notes_or_comments': '',
+                    'mentorship_goals': '',
+                    'mentor_activities': [],
+                    'mentee_activities': [],
+                }
+            ],
+        )
+        self.assertEqual(
+            all_apps['Climbing'],
+            [
+                {
+                    'previous_rating': '',
+                    'archived': False,
+                    'year': 2020,
+                    'desired_rating': '',
+                    'years_climbing': 9,
+                    'years_climbing_outside': 7,
+                    'outdoor_bouldering_grade': 'V3',
+                    'outdoor_sport_leading_grade': '5.11',
+                    'outdoor_trad_leading_grade': 'Trad is too rad for me',
+                    'familiarity_spotting': 'none',
+                    'familiarity_bolt_anchors': 'very comfortable',
+                    'familiarity_gear_anchors': 'none',
+                    'familiarity_sr': 'some',
+                    'spotting_description': '',
+                    'tr_anchor_description': '',
+                    'rappel_description': '',
+                    'gear_anchor_description': '',
+                    'formal_training': 'Wilderness First Responder',
+                    'teaching_experience': 'Leader in my college outing club',
+                    'notable_climbs': 'The Nose of El Capitan',
+                    'favorite_route': 'Jaws II',
+                    'extra_info': 'An extinct giant sloth is largely responsible for the existence of the avocado.',
+                }
+            ],
+        )

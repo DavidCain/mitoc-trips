@@ -1,7 +1,7 @@
 from django.contrib.auth.models import AnonymousUser, User
 
 from ws import enums
-from ws.tests import TestCase
+from ws.tests import TestCase, factories
 from ws.tests.factories import TripFactory, UserFactory
 from ws.utils import perms as perm_utils
 
@@ -13,6 +13,15 @@ class PermUtilTests(TestCase):
             perm_utils.chair_group(enums.Activity.CLIMBING), 'climbing_chair'
         )
         self.assertEqual(perm_utils.chair_group(enums.Activity.HIKING), 'hiking_chair')
+
+    def test_is_chair_no_activity(self):
+        """ When activity is None, `is_chair` is always false! """
+        self.assertFalse(perm_utils.is_chair(AnonymousUser(), activity_enum=None))
+
+        # Practical example: a trip with no required activity.
+        par = factories.ParticipantFactory.create()
+        trip = factories.TripFactory.create(program=enums.Program.SERVICE.value)
+        self.assertFalse(perm_utils.is_chair(par, trip.required_activity_enum()))
 
     def test_anonymous_leaders(self):
         """ Anonymous users are never leaders, chairs, etc.. """
