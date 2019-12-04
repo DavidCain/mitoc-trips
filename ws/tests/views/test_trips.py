@@ -44,11 +44,11 @@ class Helpers:
         )
 
     def _expect_upcoming_header(self, soup, expected_text):
-        """ Expect a text label on the header, plus the subscribe button. """
+        """ Expect a text label on the header, plus the subscribe+digest buttons. """
         header = soup.body.find('h3')
         header_text = strip_whitespace(header.get_text())
-        # There is a 'Subscribe' button included in the header
-        self.assertEqual(header_text, f'{expected_text} Subscribe')
+        # There is an RSS button and a weekly email digest button included in the header
+        self.assertEqual(header_text, f'{expected_text} RSS Weekly digest')
 
     def _expect_link_for_date(self, soup, datestring):
         link = soup.find('a', href=f'/trips/?after={datestring}')
@@ -112,7 +112,11 @@ class UpcomingTripsViewTest(TestCase, Helpers):
         next_month = factories.TripFactory.create(trip_date='2019-03-22')
         response, soup = self._get('/trips/?after=2019-03-15')
         self._expect_link_for_date(soup, '2018-03-15')
-        self._expect_upcoming_header(soup, 'Trips after Mar 15, 2019')
+
+        # We remove the RSS + email buttons
+        header = soup.body.find('h3')
+        self.assertEqual(strip_whitespace(header.text), 'Trips after Mar 15, 2019')
+
         # The trip next month is included, but not next week (since we're filtering ahead)
         self._expect_current_trips(response, [next_month.pk])
 

@@ -16,8 +16,12 @@
 
 {% if current_trips %}
   <h3>
-    Upcoming trips
-    <a role="button" class="btn btn-default pull-right" href="{% url 'rss-upcoming_trips' %}"><i class="fas fa-rss"></i> Subscribe</a>
+    Upcoming
+    <span class="hidden-xs">trips</span>
+    <span class="btn-group pull-right">
+      <a role="button" class="btn btn-default" href="{% url 'rss-upcoming_trips' %}"><i class="fas fa-rss"></i> RSS</a>
+      <a role="button" class="btn btn-default" href="http://mailman.mit.edu/mailman/listinfo/mitoc-trip-announce"><i class="fas fa-envelope"></i> Weekly digest</a>
+    </span>
   </h3>
   {% trip_list_table current_trips %}
 {% endif %}

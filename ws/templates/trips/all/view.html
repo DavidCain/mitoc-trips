@@ -30,9 +30,13 @@
   {% if on_or_after_date > today %}
     Trips after {{ on_or_after_date|date:"M j, Y" }}
   {% else %}
-    Upcoming trips
+    Upcoming
+    <span class="hidden-xs">trips</span>
+    <span class="btn-group pull-right">
+      <a role="button" class="btn btn-default" href="{% url 'rss-upcoming_trips' %}"><i class="fas fa-rss"></i> RSS</a>
+      <a role="button" class="btn btn-default" href="http://mailman.mit.edu/mailman/listinfo/mitoc-trip-announce"><i class="fas fa-envelope"></i> Weekly digest</a>
+    </span>
   {% endif %}
-  <a role="button" class="btn btn-default pull-right" href="{% url 'rss-upcoming_trips' %}"><i class="fas fa-rss"></i> Subscribe</a>
 </h3>
 
 {% if current_trips %}
@@ -46,7 +50,7 @@
 {% endif %}
 
 {% if past_trips %}
-  <h3> Past trips </h3>
+  <h3>Past trips</h3>
   {% trip_list_table past_trips %}
 {% endif %}
 <hr>
