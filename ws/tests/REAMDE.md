@@ -1,16 +1,15 @@
 # How to run tests
 
+To execute the whole test suite and collect coverage metrics:
+
 ```bash
-poetry install
-poetry run ./manage.py test
+make test
 ```
 
-## Optional: Report test coverage
+## Optional: Visualize test coverage
 ```
-poetry install
-poetry install --extras=code_coverage
-poetry run coverage run manage.py test
-poetry run coverage report
+make test
+coverage html  # Then open htmlcov/index.html
 ```
 
 # Common gotchas
