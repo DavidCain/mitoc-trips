@@ -6,6 +6,16 @@
 <h3 style="color: #000000; font-family: sans-serif; font-weight: 400; line-height: 1.4; margin: 0;">{{ trip.trip_date|date:"l, F j" }}</h3>
 <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">
   <ul style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">
+    <li style="list-style-position: inside; margin-left: 5px;">
+      <strong>Program</strong>: {{ trip.get_program_display }}
+      {% if trip.program_enum.is_winter_school %}
+        Attendance at <a href="https://mitoc.mit.edu/events/winter-school">mandatory safety lectures is required</a>.
+      {% endif %}
+    </li>
+    <li style="list-style-position: inside; margin-left: 5px;"><strong>Type</strong>: {{ trip.get_trip_type_display }}</li>
+    {% if trip.level %}
+      <li style="list-style-position: inside; margin-left: 5px;"><strong>Level</strong>: {{ trip.level }}</li>
+    {% endif %}
     <li style="list-style-position: inside; margin-left: 5px;"><strong>Difficulty rating:</strong> {{ trip.difficulty_rating }}</li>
     {% if trip.leaders.count %}
       <li style="list-style-position: inside; margin-left: 5px;"><strong>Leaders:</strong> {{ trip.leaders_with_rating|slice:':5'|join:', ' }}{% if trip.leaders.count > 5 %}... ({{ trip.leaders.count }} in total){% endif %}</li>

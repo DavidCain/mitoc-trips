@@ -287,6 +287,9 @@ class Program(enum.Enum):
         """ Return True if any leader can lead. """
         return cls(value) in (cls.CIRCUS, cls.SERVICE, cls.NONE)
 
+    def is_winter_school(self):
+        return self == self.WINTER_SCHOOL
+
     def winter_rules_apply(self):
         return self in (self.WINTER_SCHOOL, self.WINTER_NON_IAP)
 

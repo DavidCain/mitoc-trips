@@ -3,18 +3,30 @@
 {{ underline_trip_name }}
 <https://mitoc-trips.mit.edu{% url 'view_trip' trip.pk %}>
 {{ trip.trip_date|date:"l, F j" }}
+
+Program: {{ trip.get_program_display }}{% if trip.program_enum.is_winter_school %} -- Attendance at mandatory safety lectures is required: <https://mitoc.mit.edu/events/winter-school>{% endif %}
+Type: {{ trip.get_trip_type_display }}
+
+{% if trip.level %}
+Level: {{ trip.level }}
+{% endif %}
+
 Difficulty rating: {{ trip.difficulty_rating }}
+
 {% if trip.leaders.count %}
 Leaders: {{ trip.leaders_with_rating|slice:':5'|join:', ' }}{% if trip.leaders.count > 5 %}... ({{ trip.leaders.count }} in total){% endif %}
 {% endif %}
+
 {% if trip.prereqs %}
 Prerequisites: {{ trip.prereqs }}
 {% endif %}
+
 {% if trip.signups_open %}
 Spaces remaining: {{ trip.maximum_participants|subtract:trip.signups_on_trip }}
 Signups close at: {{ trip.signups_close_at }}
 {% else %}
 Signups open at: {{ trip.signups_open_at }}
 {% endif %}
+
 Algorithm: {{ trip.get_algorithm_display }}
 {% endgapless %}

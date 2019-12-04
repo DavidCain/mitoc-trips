@@ -3,7 +3,7 @@ from datetime import date, datetime
 from django.template import Context, Template
 from freezegun import freeze_time
 
-from ws import models
+from ws import enums, models
 from ws.templatetags.trip_tags import annotated_for_trip_list  # TODO: Move.
 from ws.tests import TestCase, factories
 from ws.utils.dates import localize
@@ -15,6 +15,9 @@ class EmailTagsTests(TestCase):
     def _make_trip():
         trip = factories.TripFactory.create(
             name="Some Cool Upcoming Trip",
+            program=enums.Program.WINTER_NON_IAP.value,
+            trip_type=enums.TripType.HIKING.value,
+            level='C',
             trip_date=date(2025, 12, 14),
             difficulty_rating='Advanced',
             prereqs='Comfort with rough terrain',
@@ -37,6 +40,9 @@ class EmailTagsTests(TestCase):
                 '=======================',
                 f'<https://mitoc-trips.mit.edu/trips/{trip.pk}/>',
                 'Sunday, December 14',
+                'Program: Winter (outside IAP)',
+                'Type: Hiking',
+                'Level: C',
                 'Difficulty rating: Advanced',
                 'Prerequisites: Comfort with rough terrain',
                 'Spaces remaining: 8',
@@ -73,6 +79,11 @@ class EmailTagsTests(TestCase):
                 f'<h3 style="{inline["h3"]}">Sunday, December 14</h3>',
                 f'<p style="{inline["p"]}">',
                 f'  <ul style="{inline["ul"]}">',
+                f'    <li style="{inline["li"]}">',
+                f'      <strong>Program</strong>: Winter (outside IAP)',
+                f'    </li>',
+                f'    <li style="{inline["li"]}"><strong>Type</strong>: Hiking</li>',
+                f'      <li style="{inline["li"]}"><strong>Level</strong>: C</li>',
                 f'    <li style="{inline["li"]}"><strong>Difficulty rating:</strong> Advanced</li>',
                 f'      <li style="{inline["li"]}"><strong>Prerequisites:</strong> Comfort with rough terrain</li>',
                 f'      <li style="{inline["li"]}"><strong>Spaces remaining:</strong> 8</li>',

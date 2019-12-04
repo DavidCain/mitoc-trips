@@ -4,8 +4,9 @@ from bs4 import BeautifulSoup
 from django.core import mail
 from freezegun import freeze_time
 
+from ws import enums
 from ws.email.trips import send_trips_summary
-from ws.tests import TestCase, factories
+from ws.tests import TestCase, factories, strip_whitespace
 from ws.utils.dates import localize
 
 
@@ -14,6 +15,9 @@ class TripsBlastTest(TestCase):
         super().setUp()
         self.presi = self._create_trip(
             trip_date=date(2020, 1, 2),
+            program=enums.Program.WINTER_SCHOOL.value,
+            trip_type=enums.TripType.HIKING.value,
+            level="C",
             name="Presi Traverse",
             difficulty_rating="Very hard",
             prereqs="High level of fitness",
@@ -26,7 +30,10 @@ class TripsBlastTest(TestCase):
         self.frankie = self._create_trip(
             trip_date=date(2020, 1, 8),
             name="Frankenstein Ice Climbing",
+            level="I A",
             difficulty_rating="cold",
+            program=enums.Program.WINTER_SCHOOL.value,
+            trip_type=enums.TripType.ICE_CLIMBING.value,
         )
 
     @staticmethod
@@ -66,6 +73,9 @@ class TripsBlastTest(TestCase):
                 '==============',
                 f'<https://mitoc-trips.mit.edu/trips/{self.presi.pk}/>',
                 'Thursday, January 2',
+                'Program: Winter School -- Attendance at mandatory safety lectures is required: <https://mitoc.mit.edu/events/winter-school>',
+                'Type: Hiking',
+                'Level: C',
                 'Difficulty rating: Very hard',
                 'Leaders: Jane Example, Tim Beaver',
                 'Prerequisites: High level of fitness',
@@ -77,6 +87,9 @@ class TripsBlastTest(TestCase):
                 '=========================',
                 f'<https://mitoc-trips.mit.edu/trips/{self.frankie.pk}/>',
                 'Wednesday, January 8',
+                'Program: Winter School -- Attendance at mandatory safety lectures is required: <https://mitoc.mit.edu/events/winter-school>',
+                'Type: Ice climbing',
+                'Level: I A',
                 'Difficulty rating: cold',
                 'Spaces remaining: 8',
                 'Signups close at: Jan. 7, 2020, 9:30 p.m.',
@@ -95,6 +108,9 @@ class TripsBlastTest(TestCase):
         future = self._create_trip(
             trip_date=date(2021, 11, 21),
             name="Future trip",
+            program=enums.Program.SERVICE.value,
+            trip_type=enums.TripType.SPORT_CLIMBING.value,
+            level=None,
             difficulty_rating="N/A",
             maximum_participants=20,
             algorithm='lottery',
@@ -115,6 +131,9 @@ class TripsBlastTest(TestCase):
                 '==============',
                 f'<https://mitoc-trips.mit.edu/trips/{self.presi.pk}/>',
                 'Thursday, January 2',
+                'Program: Winter School -- Attendance at mandatory safety lectures is required: <https://mitoc.mit.edu/events/winter-school>',
+                'Type: Hiking',
+                'Level: C',
                 'Difficulty rating: Very hard',
                 'Leaders: Jane Example, Tim Beaver',
                 'Prerequisites: High level of fitness',
@@ -126,6 +145,9 @@ class TripsBlastTest(TestCase):
                 '=========================',
                 f'<https://mitoc-trips.mit.edu/trips/{self.frankie.pk}/>',
                 'Wednesday, January 8',
+                'Program: Winter School -- Attendance at mandatory safety lectures is required: <https://mitoc.mit.edu/events/winter-school>',
+                'Type: Ice climbing',
+                'Level: I A',
                 'Difficulty rating: cold',
                 'Spaces remaining: 8',
                 'Signups close at: Jan. 7, 2020, 9:30 p.m.',
@@ -140,6 +162,8 @@ class TripsBlastTest(TestCase):
                 '===========',
                 f'<https://mitoc-trips.mit.edu/trips/{future.pk}/>',
                 'Sunday, November 21',
+                'Program: Service',
+                'Type: Sport climbing, top rope',
                 'Difficulty rating: N/A',
                 'Signups open at: Nov. 14, 2021, noon',
                 'Algorithm: lottery',
@@ -167,11 +191,14 @@ class TripsBlastTest(TestCase):
             ['Presi Traverse', 'Frankenstein Ice Climbing', 'Future trip'],
         )
 
-        # Check formatting of one trip (others will be the same)
+        # Check formatting of one trip (others will be largely the same)
         presi = soup.find('h2').find_next_sibling('p')
         self.assertEqual(
-            [li.get_text(' ', strip=True) for li in presi.find('ul').find_all('li')],
+            [strip_whitespace(li.text) for li in presi.find('ul').find_all('li')],
             [
+                'Program: Winter School Attendance at mandatory safety lectures is required.',
+                'Type: Hiking',
+                'Level: C',
                 'Difficulty rating: Very hard',
                 'Leaders: Jane Example, Tim Beaver',
                 'Prerequisites: High level of fitness',
