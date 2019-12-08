@@ -20,11 +20,13 @@ class LotteryPairingMixin:
 
     @property
     def pair_requests(self):
+        """ Participants who have requested to be paired with the given participant. """
         requested = Q(lotteryinfo__paired_with=self.participant)
         return models.Participant.objects.filter(requested)
 
     @property
     def paired_par(self):
+        """ The participant this one requested to be paired with (if any). """
         try:
             return self.participant.lotteryinfo.paired_with
         except models.LotteryInfo.DoesNotExist:
