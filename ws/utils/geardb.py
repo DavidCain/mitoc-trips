@@ -204,7 +204,7 @@ def matching_info_for(emails):
         }
 
 
-def get_matches(emails):
+def _yield_matches(emails):
     """ For each given email, yield a record about the person (if found).
 
     - The email addresses may or may not correspond to the same person.
@@ -224,7 +224,7 @@ def matching_memberships(emails):
     - Look up membership records for a single person, under all their emails
     - Look up memberships for many participants, under all their emails
     """
-    return OrderedDict(get_matches(emails))
+    return OrderedDict(_yield_matches(emails))
 
 
 def outstanding_items(emails, rented_on_or_before=None):

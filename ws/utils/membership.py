@@ -5,8 +5,8 @@ from django.db.utils import OperationalError
 from sentry_sdk import capture_exception
 
 from ws import enums, models
+from ws.utils import geardb
 from ws.utils.dates import local_now
-from ws.utils.geardb import membership_expiration, verified_emails
 
 
 def refresh_all_membership_cache():
@@ -25,8 +25,10 @@ def refresh_all_membership_cache():
 
 def update_membership_cache(participant):
     """ Use results from the gear database to update membership cache. """
+    emails = geardb.verified_emails(participant.user)
+
     # If something is found, this method automatically updates the cache
-    most_recent = membership_expiration(verified_emails(participant.user))
+    most_recent = geardb.membership_expiration(emails)
 
     # However, if nothing is found, we'll need to set that ourselves
     if not most_recent['membership']['email']:
@@ -71,7 +73,7 @@ def reasons_cannot_attend(user, trip):
 
     participant.membership.refresh_from_db()
 
-    # (When running tests we mock away wall time so it's constant)
+    # (When running tests we often mock away wall time so it's constant)
     if local_now() != before_refreshing_ts:
         assert participant.membership.last_cached > original_ts
 
