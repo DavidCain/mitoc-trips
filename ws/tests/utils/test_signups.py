@@ -183,3 +183,77 @@ class AddToWaitlistTests(TestCase):
             list(trip.waitlist.signups),
             [signup, spot_1, spot_2, spot_3, spot_4, spot_5],
         )
+
+
+class UpdateQueuesTest(TestCase):
+    def test_lottery_trips_ignored(self):
+        trip = factories.TripFactory.create(algorithm='lottery')
+
+        signup = factories.SignUpFactory.create(trip=trip)
+
+        self.assertTrue(trip.signups_open)
+        self.assertFalse(signup.on_trip)
+
+        signup_utils.update_queues_if_trip_open(trip)
+
+        signup.refresh_from_db()
+        self.assertFalse(signup.on_trip)
+
+    def test_full_trip_expanding(self):
+        """ If a full trip expands, we pull participants from the waitlist! """
+        trip = factories.TripFactory.create(algorithm='fcfs', maximum_participants=2)
+        self.assertTrue(trip.signups_open)
+
+        one, two, three = (factories.SignUpFactory.create(trip=trip) for i in range(3))
+
+        # First two participants placed
+        signup_utils.trip_or_wait(one)
+        signup_utils.trip_or_wait(two)
+        self.assertTrue(one.on_trip)
+        self.assertTrue(two.on_trip)
+
+        # Third participant waitlisted
+        signup_utils.trip_or_wait(three)
+        self.assertFalse(three.on_trip)
+        self.assertTrue(three.waitlistsignup)
+
+        # An additional participant has the last spot on the waitlist.
+        stays_on_wl = factories.SignUpFactory.create(trip=trip)
+        signup_utils.trip_or_wait(stays_on_wl)
+
+        # Update, explicitly avoiding signals
+        models.Trip.objects.filter(pk=trip.pk).update(maximum_participants=3)
+        trip.refresh_from_db()
+
+        # Update the queues, our third participant can be on the trip now!
+        signup_utils.update_queues_if_trip_open(trip)
+        three.refresh_from_db()
+        self.assertTrue(three.on_trip)
+        # The third participant is pulled off the waitlist, the last stays on  the trip.
+        self.assertCountEqual(
+            models.WaitListSignup.objects.filter(signup__trip=trip),
+            [stays_on_wl.waitlistsignup],
+        )
+
+    def test_full_trip_shrinking(self):
+        trip = factories.TripFactory.create(algorithm='fcfs', maximum_participants=2)
+        one = factories.SignUpFactory.create(trip=trip)
+        two = factories.SignUpFactory.create(trip=trip)
+
+        # First two participants placed
+        signup_utils.trip_or_wait(one)
+        signup_utils.trip_or_wait(two)
+        self.assertTrue(one.on_trip)
+        self.assertTrue(two.on_trip)
+
+        # Update, explicitly avoiding signals, then update queues.
+        models.Trip.objects.filter(pk=trip.pk).update(maximum_participants=1)
+        trip.refresh_from_db()
+        signup_utils.update_queues_if_trip_open(trip)
+
+        # Last participant on the trip is bumped
+        two.refresh_from_db()
+        self.assertFalse(two.on_trip)
+
+        wl_signup = models.WaitListSignup.objects.get(signup__trip=trip)
+        self.assertEqual(wl_signup.signup, two)

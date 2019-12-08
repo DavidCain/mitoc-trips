@@ -2,6 +2,7 @@ from contextlib import contextmanager
 from unittest import mock
 
 from django.test import SimpleTestCase
+from freezegun import freeze_time
 
 import ws.utils.perms as perm_utils
 from ws import enums, models
@@ -168,3 +169,52 @@ class DatabaseApplicationManagerTests(TestCase):
         manager = self._manager_for(self.bob)
         pending_apps = manager.pending_applications()
         self.assertFalse(pending_apps)
+
+
+class DeactivateRatingsTest(TestCase):
+    @staticmethod
+    def test_no_ratings_okay():
+        par = factories.ParticipantFactory.create()
+        ratings.deactivate_ratings(par, enums.Activity.CLIMBING.value)
+
+    def test_deactivate_ratings(self):
+        par = factories.ParticipantFactory.create()
+
+        # Old, inactive ratings aren't touched.
+        with freeze_time("2019-02-22 12:22:22 EST"):
+            deactivated_activity = factories.LeaderRatingFactory.create(
+                activity=enums.Activity.CLIMBING.value,
+                participant=par,
+                rating='Co-leader',
+                active=False,
+            )
+        with freeze_time("2019-03-30 13:33:33 EST"):
+            target_rating = factories.LeaderRatingFactory.create(
+                activity=enums.Activity.CLIMBING.value,
+                participant=par,
+                rating='Full leader',
+                active=True,
+            )
+
+        # Ratings for other activities aren't touched
+        other_activity = factories.LeaderRatingFactory.create(
+            activity=enums.Activity.HIKING.value, participant=par
+        )
+
+        # Other participants' ratings aren't touched
+        same_activity_other_par = factories.LeaderRatingFactory.create(
+            activity=enums.Activity.CLIMBING.value
+        )
+
+        with freeze_time("2020-04-04 14:00:00 EST"):
+            ratings.deactivate_ratings(par, enums.Activity.CLIMBING.value)
+
+        expectations = [
+            (deactivated_activity, False),  # unchanged
+            (target_rating, False),
+            (other_activity, True),
+            (same_activity_other_par, True),
+        ]
+        for rating, is_active in expectations:
+            rating.refresh_from_db()
+            self.assertEqual(rating.active, is_active)

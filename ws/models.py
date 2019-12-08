@@ -1306,7 +1306,7 @@ class WaitList(models.Model):
         first_signup = self.signups.first()
         if first_signup is None:
             return 10
-        return first_signup.waitlistsignup.manual_order + 1
+        return (first_signup.waitlistsignup.manual_order or 0) + 1
 
     @property
     def last_of_priority(self):

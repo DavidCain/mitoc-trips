@@ -69,39 +69,40 @@ def trip_or_wait(
     trip = signup.trip
     if signup.on_trip:
         return signup
-    if trip.algorithm == 'fcfs' and (trip.signups_open or not trip_must_be_open):
-        try:
-            wl_signup = signup.waitlistsignup
-        except models.WaitListSignup.DoesNotExist:
-            wl_signup = None
 
-        if trip.open_slots > 0:  # There's room, sign them up!
-            signup.on_trip = True
-            signup.save()
-            if request:
-                messages.success(request, "Signed up!")
-            if wl_signup:
-                wl_signup.delete()  # Remove (if applicable)
-        else:  # If no room, add them to the waiting list
-            add_to_waitlist(signup, request, prioritize, top_spot)
-    elif request:
-        trip_not_eligible = "Trip is not an open first-come, first-serve trip"
-        messages.error(request, trip_not_eligible)
+    eligible = trip.algorithm == 'fcfs' and (trip.signups_open or not trip_must_be_open)
+    if not eligible:
+        if request:
+            messages.error(request, "Trip is not an open first-come, first-serve trip")
+        return signup
+
+    if not trip.open_slots:  # Trip is full, add to the waiting list
+        add_to_waitlist(signup, request, prioritize, top_spot)
+        return signup
+
+    signup.on_trip = True
+    signup.save()
+    if request:
+        messages.success(request, "Signed up!")
+
+    # Since the participant is now on the trip, we should be sure to remove any waitlist
+    try:
+        signup.waitlistsignup.delete()
+    except models.WaitListSignup.DoesNotExist:
+        pass
+
     return signup
 
 
 def update_queues_if_trip_open(trip):
-    """ Update queues if the trip is an open, first-come, first-serve trip. """
-    if trip.signups_open and trip.algorithm == 'fcfs':
-        update_signup_queues(trip)
+    """ Update queues if the trip is an open, first-come, first-serve trip.
 
-
-def update_signup_queues(trip):
-    """ Update the participant and waitlist queues for a trip.
-
-    This is intended to be used when the trip size changes. If the size
-    is the same, nothing will happen.
+    This is intended to be used when the trip size changes (either from changing
+    the maximum participants, or from somebody else dropping off).
     """
+    if not (trip.signups_open and trip.algorithm == 'fcfs'):
+        return
+
     on_trip = trip.signup_set.filter(on_trip=True)
     diff = trip.maximum_participants - on_trip.count()
 
@@ -112,7 +113,10 @@ def update_signup_queues(trip):
     elif diff < 0:  # Trip is shrinking, move lowest signups to waitlist
         for _ in range(abs(diff)):
             last = trip.signup_set.filter(on_trip=True).last()
-            trip_or_wait(last, prioritize=True, top_spot=True)
+            last.on_trip = False
+            last.save()
+            # Make sure they're at the top!
+            add_to_waitlist(last, prioritize=True, top_spot=True)
 
 
 def non_trip_participants(trip):
