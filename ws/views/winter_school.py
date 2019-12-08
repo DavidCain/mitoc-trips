@@ -9,9 +9,11 @@ works the same during Winter School as it does during the rest of the year.
 from django.contrib import messages
 from django.shortcuts import redirect
 from django.urls import reverse
+from django.utils.decorators import method_decorator
 from django.views.generic import CreateView, FormView
 
 from ws import forms, models
+from ws.decorators import group_required, user_info_required
 from ws.mixins import LectureAttendanceMixin
 from ws.utils.dates import ws_year
 
@@ -45,6 +47,7 @@ class LectureAttendanceView(FormView, LectureAttendanceMixin):
                 self.request, "Unable to record your attendance at this time."
             )
 
+        # (note that some participants may not have access to this route!)
         return redirect(reverse('view_participant', args=(participant.pk,)))
 
     def form_valid(self, form):
@@ -63,6 +66,10 @@ class LectureAttendanceView(FormView, LectureAttendanceMixin):
 
         return redirect(reverse('view_participant', args=(participant.pk,)))
 
+    @method_decorator(user_info_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
 
 class WinterSchoolSettingsView(CreateView):
     form_class = forms.WinterSchoolSettingsForm
@@ -77,3 +84,7 @@ class WinterSchoolSettingsView(CreateView):
     def get_success_url(self):
         messages.success(self.request, "Updated Winter School settings!")
         return reverse('ws_settings')
+
+    @method_decorator(group_required('WSC'))
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
