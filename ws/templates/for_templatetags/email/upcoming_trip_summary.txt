@@ -4,8 +4,12 @@
 <https://mitoc-trips.mit.edu{% url 'view_trip' trip.pk %}>
 {{ trip.trip_date|date:"l, F j" }}
 
+{% if show_program %}
 Program: {{ trip.get_program_display }}{% if trip.program_enum.is_winter_school %} -- Attendance at mandatory safety lectures is required: <https://mitoc.mit.edu/events/winter-school>{% endif %}
+{% endif %}
+{% if show_trip_type %}
 Type: {{ trip.get_trip_type_display }}
+{% endif %}
 
 {% if trip.level %}
 Level: {{ trip.level }}

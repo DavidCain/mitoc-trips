@@ -12,8 +12,8 @@ from ws.utils.dates import localize
 @freeze_time("11 Dec 2025 12:00:00 EST")
 class EmailTagsTests(TestCase):
     @staticmethod
-    def _make_trip():
-        trip = factories.TripFactory.create(
+    def _make_trip(**overrides):
+        trip_args = dict(
             name="Some Cool Upcoming Trip",
             program=enums.Program.WINTER_NON_IAP.value,
             trip_type=enums.TripType.HIKING.value,
@@ -25,7 +25,67 @@ class EmailTagsTests(TestCase):
             signups_close_at=localize(datetime(2025, 12, 13, 21, 30)),
             algorithm='fcfs',
         )
+        trip_args.update(overrides)
+        trip = factories.TripFactory.create(**trip_args)
         return annotated_for_trip_list(models.Trip.objects.filter(pk=trip.pk)).first()
+
+    def test_text_template_no_program(self):
+        """ We exclude the program 'None.' """
+        trip = self._make_trip(trip_type=enums.TripType.NONE.value)
+        txt_template = Template(
+            '{% load email_tags %}{% upcoming_trip_summary_txt trip %}'
+        )
+        rendered_txt = txt_template.render(Context({'trip': trip}))
+        self.assertNotIn('Type: None', rendered_txt.split('\n'))
+        expected_txt = '\n'.join(
+            [
+                'Some Cool Upcoming Trip',
+                '=======================',
+                f'<https://mitoc-trips.mit.edu/trips/{trip.pk}/>',
+                'Sunday, December 14',
+                'Program: Winter (outside IAP)',
+                #'Type: None',  # Omitted because it's not terribly helpful.
+                'Level: C',
+                'Difficulty rating: Advanced',
+                'Prerequisites: Comfort with rough terrain',
+                'Spaces remaining: 8',
+                'Signups close at: Dec. 13, 2025, 9:30 p.m.',
+                'Algorithm: first-come, first-serve',
+                '',
+            ]
+        )
+        self.assertEqual(rendered_txt, expected_txt)
+
+    def test_text_template_no_trip_type(self):
+        """ We exclude the trip type 'None.' """
+        trip = self._make_trip(
+            program=enums.Program.NONE.value,
+            trip_type=enums.TripType.OTHER.value,
+            level=None,
+        )
+        txt_template = Template(
+            '{% load email_tags %}{% upcoming_trip_summary_txt trip %}'
+        )
+        rendered_txt = txt_template.render(Context({'trip': trip}))
+        self.assertNotIn('Program: None', rendered_txt.split('\n'))
+        expected_txt = '\n'.join(
+            [
+                'Some Cool Upcoming Trip',
+                '=======================',
+                f'<https://mitoc-trips.mit.edu/trips/{trip.pk}/>',
+                'Sunday, December 14',
+                #'Program: None',  # Omitted because it's not terribly helpful.
+                'Type: Other',
+                # 'Level: ...',  # Omitted because this isn't a WS trip.
+                'Difficulty rating: Advanced',
+                'Prerequisites: Comfort with rough terrain',
+                'Spaces remaining: 8',
+                'Signups close at: Dec. 13, 2025, 9:30 p.m.',
+                'Algorithm: first-come, first-serve',
+                '',
+            ]
+        )
+        self.assertEqual(rendered_txt, expected_txt)
 
     def test_text_template(self):
         """ Test the textual template (used for clients that prefer not to use HTML). """
@@ -79,10 +139,9 @@ class EmailTagsTests(TestCase):
                 f'<h3 style="{inline["h3"]}">Sunday, December 14</h3>',
                 f'<p style="{inline["p"]}">',
                 f'  <ul style="{inline["ul"]}">',
-                f'    <li style="{inline["li"]}">',
-                f'      <strong>Program</strong>: Winter (outside IAP)',
-                f'    </li>',
-                f'    <li style="{inline["li"]}"><strong>Type</strong>: Hiking</li>',
+                f'      <li style="{inline["li"]}"><strong>Program</strong>: Winter (outside IAP)',
+                f'      </li>',
+                f'      <li style="{inline["li"]}"><strong>Type</strong>: Hiking</li>',
                 f'      <li style="{inline["li"]}"><strong>Level</strong>: C</li>',
                 f'    <li style="{inline["li"]}"><strong>Difficulty rating:</strong> Advanced</li>',
                 f'      <li style="{inline["li"]}"><strong>Prerequisites:</strong> Comfort with rough terrain</li>',
