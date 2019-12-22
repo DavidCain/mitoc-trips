@@ -60,7 +60,7 @@ debugging = ["django-debug-toolbar", "ipdb"]
 
 [tool.poetry.dev-dependencies]
 beautifulsoup4 = "*"
-black = { version = "*", allows-prereleases = true }
+black = { version = "*", allow-prereleases = true }
 factory_boy = "^2.9.0"
 freezegun = "^0.3.9"
 isort = { version = "*", extras = ["pyproject"] }
