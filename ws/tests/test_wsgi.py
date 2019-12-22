@@ -11,7 +11,7 @@ class WsgiTest(unittest.TestCase):
         with mock.patch.object(
             core.wsgi, 'get_wsgi_application', wraps=core.wsgi.get_wsgi_application
         ) as get_app:
-            from ws import wsgi
+            from ws import wsgi  # pylint: disable=import-outside-toplevel
 
         get_app.assert_called_once()
         self.assertTrue(isinstance(wsgi.application, core.handlers.wsgi.WSGIHandler))

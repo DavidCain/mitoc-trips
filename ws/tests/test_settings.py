@@ -32,6 +32,7 @@ class SettingsTests(unittest.TestCase):
         it would raise exceptions! This would happen because production requires some
         env vars that would never be set in local development.
         """
+        # pylint: disable=import-outside-toplevel
         if 'local_settings' in name:
             from ws.conf import local_settings
 

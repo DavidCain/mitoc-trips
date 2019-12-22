@@ -460,12 +460,7 @@ class JsonAllLeadersView(AllLeadersView):
     def render_to_response(self, context, **response_kwargs):
         user_is_leader = perm_utils.is_leader(self.request.user)
         return JsonResponse(
-            {
-                'leaders': [
-                    leader
-                    for leader in self.describe_leaders(with_ratings=user_is_leader)
-                ]
-            }
+            {'leaders': list(self.describe_leaders(with_ratings=user_is_leader))}
         )
 
     def dispatch(self, request, *args, **kwargs):

@@ -14,7 +14,8 @@ class TripsConfig(AppConfig):
 
     @staticmethod
     def load_signals():
-        from . import signals  # pylint: disable=unused-import, unused-variable
+        # pylint: disable=unused-import, unused-variable, import-outside-toplevel
+        from . import signals
 
     def ready(self):
         self.load_signals()

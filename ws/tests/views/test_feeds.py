@@ -28,7 +28,7 @@ class UpcomingTripsViewTest(TestCase):
         self.assertEqual(soup.channel.link.string, 'http://example.com/trips/')
 
         # The two trips appear as items, in reverse chronological order
-        march, february = [item for item in soup.channel.find_all('item')]
+        march, february = list(soup.channel.find_all('item'))
         self.assertEqual(march.title.string, 'March 15 trip')
         self.assertEqual(february.title.string, 'February 10 trip')
 

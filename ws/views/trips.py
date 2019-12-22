@@ -61,7 +61,7 @@ class TripView(DetailView):
         """ Yield all items rented by leaders & participants on this trip. """
         on_trip = trip.signup_set.filter(on_trip=True).select_related('participant')
         trip_participants = [s.participant for s in on_trip]
-        leaders = [leader for leader in trip.leaders.all()]
+        leaders = list(trip.leaders.all())
 
         par_by_user_id = {par.user_id: par for par in trip_participants + leaders}
         if not par_by_user_id:  # No leaders or participants on the trip
