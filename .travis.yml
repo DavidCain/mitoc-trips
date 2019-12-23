@@ -2,7 +2,7 @@ language: python
 python: "3.6"
 before_install: pip install poetry
 install:
-  - make install
+  - make
 env:
   - GEAR_DATABASE_USER='travis' GEAR_DATABASE_PASSWORD=''
 services:
