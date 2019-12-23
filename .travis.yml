@@ -20,4 +20,6 @@ before_script:
 script: 
   - make check
 after_success:
-  - coveralls
+  - gem install coveralls-lcov
+  - coveralls-lcov -v -n frontend/coverage/lcov.info > coverage.json
+  - coveralls --merge=coverage.json
