@@ -1,6 +1,12 @@
 language: python
 python: "3.6"
-before_install: pip install poetry
+cache:
+  - pip: true
+  - npm: true  # (default, but might as well be explicit)
+  - directories:
+    - "$HOME/.cache/pypoetry"
+before_install:
+  - pip install poetry
 install:
   - make
 env:
@@ -12,14 +18,28 @@ addons:
   postgresql: "9.6"
 before_script:
   - nvm install 12.6.0
-  - npm install
-  - npm install -g uglify-js yuglify
-  - WS_DJANGO_TEST=1 python manage.py collectstatic --verbosity=0
-  - psql postgres -c 'create role ws login'
-  - psql postgres -c 'alter user ws createdb'
-script: 
-  - make check
-after_success:
-  - gem install coveralls-lcov
-  - coveralls-lcov -v -n frontend/coverage/lcov.info > coverage.json
-  - coveralls --merge=coverage.json
+
+jobs:
+  include:
+    - name: "Lint Python source"
+      script: make lint-python
+    - name: "Run Python tests"
+      script:
+        # Install the legacy JavaScript bundle, which affects Python tests
+        - npm install
+        # Collect staticfiles (whole suite will crash without these!)
+        - npm install -g uglify-js yuglify
+        - WS_DJANGO_TEST=1 python manage.py collectstatic --verbosity=0
+        # Let the test user create databases for testing!
+        - psql postgres -c 'create role ws login'
+        - psql postgres -c 'alter user ws createdb'
+        # Actually execute tests
+        - make test-python
+        - bash <(curl -s https://codecov.io/bash) -cF Python
+    # At present, linting is fast enough that parallelizing isn't worth it.
+    - name: "Lint & test TypeScript"
+      script:
+      - make lint-js test-js
+      # - npm install -g codecov
+      - bash <(curl -s https://codecov.io/bash) -cF TypeScript
+

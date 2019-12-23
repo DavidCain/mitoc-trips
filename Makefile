@@ -56,10 +56,16 @@ fix: install-python-dev
 	isort --recursive ws
 
 .PHONY: lint
-lint: install-python-dev
+lint: lint-python lint-js
+
+.PHONY: lint-python
+lint-python: install-python-dev
 	black --fast --check ws
 	isort --recursive --check ws
 	pylint --jobs 0 ws  # '0' tells pylint to auto-detect available processors
+
+.PHONY: lint-js
+lint-js: install-js
 	npm --prefix=frontend/ run lint
 
 .PHONY: test

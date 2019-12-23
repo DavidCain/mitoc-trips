@@ -4,6 +4,7 @@
 /.coverage
 /.python-version
 /node_modules
+/frontend/coverage
 /frontend/node_modules
 /frontend/webpack-stats.json
 /static
