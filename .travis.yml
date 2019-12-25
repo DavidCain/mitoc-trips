@@ -25,8 +25,10 @@ jobs:
       script: make lint-python
     - name: "Run Python tests"
       script:
-        # Install the legacy JavaScript bundle, which affects Python tests
+        # Install the legacy & new JavaScript bundles, which both affect Python tests
+        # (e.g. tests of the pages that make sure we don't load any JavaScript)
         - npm install
+        - make build-frontend
         # Collect staticfiles (whole suite will crash without these!)
         - npm install -g uglify-js yuglify
         - WS_DJANGO_TEST=1 python manage.py collectstatic --verbosity=0

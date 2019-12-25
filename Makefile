@@ -86,7 +86,7 @@ run: install-python-dev
 
 .PHONY: run-js
 run-js: install-js
-	npm --prefix=frontend/ run serve
+	NODE_ENV=development npm --prefix=frontend/ run serve
 
 .PHONY: clean
 clean:

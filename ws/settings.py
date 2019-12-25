@@ -57,7 +57,12 @@ STATIC_ROOT = os.getenv('STATIC_ROOT', os.path.join(BASE_DIR, 'static'))
 
 STATICFILES_STORAGE = 'ws.storage.CachedStorage'
 
-STATICFILES_DIRS = [NODE_MODULES]
+STATICFILES_DIRS = [
+    # For the legacy frontend, just put all the files directly in static root
+    NODE_MODULES,
+    # For the new frontend, collect just the distributed files
+    ("frontend", os.path.join(BASE_DIR, 'frontend', 'dist')),
+]
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
@@ -415,7 +420,7 @@ FRONTEND_DIR = os.path.join(BASE_DIR, 'frontend')
 WEBPACK_LOADER = {
     'DEFAULT': {
         'CACHE': DEBUG,
-        'BUNDLE_DIR_NAME': '/bundles/',  # must end with slash
+        'BUNDLE_DIR_NAME': '/static/frontend/',
         'STATS_FILE': os.path.join(FRONTEND_DIR, 'webpack-stats.json'),
     }
 }
