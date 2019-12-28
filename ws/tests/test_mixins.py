@@ -1,4 +1,3 @@
-from django.contrib.auth.models import User
 from django.test import RequestFactory
 from freezegun import freeze_time
 
@@ -66,7 +65,7 @@ class LectureAttendanceMixinTest(TestCase):
     @freeze_time("2019-08-15 12:25:00 EST")
     def test_admin_can_always_set(self):
         """ Regardless of time of year, a superuser can always set attendance. """
-        admin = User.objects.create_superuser('admin', 'admin@example.com', '1234')
+        admin = factories.UserFactory.create(is_superuser=True)
         par = factories.ParticipantFactory.create(user=admin)
 
         other_par = factories.ParticipantFactory.create()

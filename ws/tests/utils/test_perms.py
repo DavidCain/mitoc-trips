@@ -1,4 +1,4 @@
-from django.contrib.auth.models import AnonymousUser, User
+from django.contrib.auth.models import AnonymousUser
 
 from ws import enums
 from ws.tests import TestCase, factories
@@ -68,9 +68,7 @@ class PermUtilTests(TestCase):
 class SuperUserTestCase(TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.admin = User.objects.create_superuser(
-            'admin', 'admin@example.com', 'password'
-        )
+        cls.admin = factories.UserFactory.create(is_superuser=True)
         super().setUpClass()
 
     def test_activity_chair(self):

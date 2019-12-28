@@ -7,8 +7,8 @@ register = template.Library()
 
 
 @register.filter
-def chair_activities(user):
-    return perm_utils.chair_activities(user, True)
+def chair_activities(user, allow_superusers=True):
+    return perm_utils.chair_activities(user, allow_superusers)
 
 
 @register.filter
