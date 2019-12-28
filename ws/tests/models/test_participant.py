@@ -46,12 +46,22 @@ class ReasonsCannotAttendTest(TestCase):
             [enums.TripIneligibilityReason.IS_TRIP_WIMP],
         )
 
+    @freeze_time("12 Jan 2020 12:00:00 EST")
     def test_missed_lectures(self):
-        # Note that the participant also has no membership!
+        # Note that the participant has no membership!
         participant = factories.ParticipantFactory.create(membership=None)
-        trip = factories.TripFactory.create(program=enums.Program.WINTER_SCHOOL)
+
+        # The trip takes place during Winter School, but they've missed lectures.
+        trip = factories.TripFactory.create(
+            program=enums.Program.WINTER_SCHOOL.value, trip_date=date(2020, 1, 19)
+        )
+        with mock.patch.object(date_utils, 'ws_lectures_complete') as lectures_over:
+            lectures_over.return_value = True  # (Otherwise, won't be "missed")
+            self.assertTrue(participant.missed_lectures_for(trip))
+            all_reasons = participant.reasons_cannot_attend(trip)
+
         self.assertCountEqual(
-            participant.reasons_cannot_attend(trip),
+            all_reasons,
             # We *only* highlight the lectures issue.
             # We don't want to prompt the user to pay membership dues
             [enums.TripIneligibilityReason.MISSED_WS_LECTURES],
@@ -90,7 +100,7 @@ class ReasonsCannotAttendTest(TestCase):
             ],
         )
 
-        trip = factories.TripFactory.create(program=enums.Program.CLIMBING)
+        trip = factories.TripFactory.create(program=enums.Program.CLIMBING.value)
         self.assertCountEqual(
             participant.reasons_cannot_attend(trip),
             # We *only* highlight the lectures issue.
@@ -101,7 +111,7 @@ class ReasonsCannotAttendTest(TestCase):
     def test_no_membership_or_waiver(self):
         participant = factories.ParticipantFactory.create(membership=None)
 
-        trip = factories.TripFactory.create(program=enums.Program.CLIMBING)
+        trip = factories.TripFactory.create(program=enums.Program.CLIMBING.value)
         self.assertCountEqual(
             participant.reasons_cannot_attend(trip),
             [
@@ -118,7 +128,7 @@ class ReasonsCannotAttendTest(TestCase):
             )
         )
 
-        trip = factories.TripFactory.create(program=enums.Program.CLIMBING)
+        trip = factories.TripFactory.create(program=enums.Program.CLIMBING.value)
         self.assertCountEqual(
             participant.reasons_cannot_attend(trip),
             [
@@ -136,7 +146,7 @@ class ReasonsCannotAttendTest(TestCase):
         )
         self.assertCountEqual(participant.problems_with_profile, [])
 
-        trip = factories.TripFactory.create(program=enums.Program.CLIMBING)
+        trip = factories.TripFactory.create(program=enums.Program.CLIMBING.value)
         self.assertCountEqual(
             participant.reasons_cannot_attend(trip),
             [enums.TripIneligibilityReason.WAIVER_NEEDS_RENEWAL],
@@ -150,7 +160,7 @@ class ReasonsCannotAttendTest(TestCase):
             )
         )
 
-        trip = factories.TripFactory.create(program=enums.Program.CLIMBING)
+        trip = factories.TripFactory.create(program=enums.Program.CLIMBING.value)
         self.assertCountEqual(
             participant.reasons_cannot_attend(trip),
             [enums.TripIneligibilityReason.MEMBERSHIP_NEEDS_RENEWAL],
