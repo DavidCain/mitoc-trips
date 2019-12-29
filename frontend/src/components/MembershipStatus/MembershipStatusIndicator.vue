@@ -1,5 +1,5 @@
 <template>
-  <span class="label" v-bind:class="className">
+  <span class="label" v-bind:class="className" style="display: inline-block">
     {{ membershipStatus }}
   </span>
 </template>
