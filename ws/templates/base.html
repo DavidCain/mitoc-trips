@@ -26,7 +26,7 @@
       {% javascript 'bootstrap' %}
       {% javascript 'fontawesome' %}
 
-      {# Pages that have been ported off legacy JavaScript can override this. #}
+      {# Pages that have been ported off legacy JavaScript can override this as well as `cached_templates`. #}
       {% block legacy_js %}
         {% javascript 'legacy_vendor' %}
         {% javascript 'legacy_app' %}
@@ -36,15 +36,16 @@
 </head>
 
 <body data-ng-app="ws">
+  {% block cached_templates %}
+    {# Pre-populate `$templateCache` for faster interaction with directives #}
+    {% for filename, contents in angular_templates.items %}
+      <script type="text/ng-template" id="{{ filename }}">
+        {{ contents|safe }}
+      </script>
+    {% endfor %}
+  {% endblock cached_templates %}
+
   <div id="root">
-    {% block cached_templates %}
-      {# Pre-populate `$templateCache` for faster interaction with directives #}
-      {% for filename, contents in angular_templates.items %}
-        <script type="text/ng-template" id="{{ filename }}">
-          {{ contents|safe }}
-        </script>
-      {% endfor %}
-    {% endblock cached_templates %}
 
     <nav class="navbar navbar-inverse navbar-fixed-top" id="main-menu">
         <div class="container">
