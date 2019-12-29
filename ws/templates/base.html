@@ -160,7 +160,11 @@
                                 <li role="separator" class="divider"></li>
                                 <li> <a href="{% url 'account_change_password' %}">Change password</a> </li>
                                 <li> <a href="{% url 'account_email' %}">Manage email(s)</a> </li>
-                                <li> <a href="#" data-ng-click="logout()">Log out</a></li>
+                                <li>
+                                    {# On pages with Angular, this is a one-click logout. On others, it goes to an "are you sure" page #}
+                                    {# TODO: Use Vue to enable POSTing to logout from this #}
+                                    <a href="{% url 'account_logout' %}" data-ng-href="#" data-ng-click="logout()">Log out</a>
+                                </li>
                             </ul>
                         </li>
                     {% endif %}
