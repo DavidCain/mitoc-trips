@@ -88,6 +88,17 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
     }
   });
 })
+.value('membershipStatusLabels',
+  {
+    'Active':             'label-success',
+    'Waiver Expired':     'label-warning',
+    'Missing Waiver':     'label-warning',
+    'Missing Membership': 'label-warning',
+    'Expiring Soon':      'label-info',  // Special front-end only status
+    'Expired':            'label-danger',
+    'Missing':            'label-danger',
+  }
+)
 .directive('editableSignupList', function(membershipStatusLabels) {
   return {
     restrict: 'E',
