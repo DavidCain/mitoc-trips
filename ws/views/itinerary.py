@@ -129,7 +129,7 @@ class AllTripsMedicalView(ListView, TripMedical):
 
 
 class TripMedicalView(DetailView, TripMedical):
-    queryset = models.Trip.objects.all()
+    model = models.Trip
     template_name = 'trips/medical.html'
 
     @staticmethod

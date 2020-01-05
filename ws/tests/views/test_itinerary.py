@@ -4,8 +4,79 @@ from bs4 import BeautifulSoup
 from freezegun import freeze_time
 
 import ws.utils.perms as perm_utils
-from ws import enums
+from ws import enums, models
 from ws.tests import TestCase, factories
+
+
+class TripMedicalViewTest(TestCase):
+    def setUp(self):
+        self.user = factories.UserFactory.create()
+        self.client.force_login(self.user)
+
+    def _assert_cannot_view(self, trip):
+        response = self.client.get(f'/trips/{trip.pk}/medical/')
+        soup = BeautifulSoup(response.content, 'html.parser')
+        self.assertTrue(soup.find('h2', text="Must be a leader to administrate trip"))
+
+    def test_must_have_participant(self):
+        self._assert_cannot_view(factories.TripFactory.create())
+
+    def test_participants_cannot_view(self):
+        factories.ParticipantFactory.create(user=self.user)
+        self._assert_cannot_view(factories.TripFactory.create())
+
+    def test_leader_for_another_trip(self):
+        participant = factories.ParticipantFactory.create(user=self.user)
+        factories.LeaderRatingFactory.create(
+            participant=participant, activity=models.LeaderRating.HIKING
+        )
+
+        other_trip = factories.TripFactory.create()
+        other_trip.leaders.add(participant)
+        trip = factories.TripFactory.create()
+        self._assert_cannot_view(trip)
+
+    def test_view_as_leader(self):
+        trip = factories.TripFactory.create(program=enums.Program.HIKING.value)
+
+        factories.SignUpFactory.create(
+            participant__emergency_info__allergies="Bee stings", trip=trip, on_trip=True
+        )
+
+        leader = factories.ParticipantFactory.create(user=self.user)
+        factories.LeaderRatingFactory.create(
+            participant=leader, activity=models.LeaderRating.HIKING
+        )
+        trip.leaders.add(leader)
+        response = self.client.get(f'/trips/{trip.pk}/medical/')
+        soup = BeautifulSoup(response.content, 'html.parser')
+
+        # Participant medical info is given
+        self.assertTrue(soup.find('td', text="Bee stings"))
+
+        # A link for leaders to supply an itinerary is also given
+        self.assertTrue(
+            soup.find(
+                'a', href=f'/trips/{trip.pk}/itinerary/', text="detailed trip itinerary"
+            )
+        )
+
+    def test_view_as_wimp(self):
+        wimp = factories.ParticipantFactory.create(user=self.user)
+        trip = factories.TripFactory.create(wimp=wimp)
+
+        factories.SignUpFactory.create(
+            participant__emergency_info__allergies="Bee stings", trip=trip, on_trip=True
+        )
+
+        response = self.client.get(f'/trips/{trip.pk}/medical/')
+        soup = BeautifulSoup(response.content, 'html.parser')
+
+        # Participant medical info is given
+        self.assertTrue(soup.find('td', text="Bee stings"))
+
+        # The WIMP cannot provide an itinerary, they're not a leader
+        self.assertFalse(soup.find('a', href=f'/trips/{trip.pk}/itinerary/'))
 
 
 @freeze_time("2019-02-15 12:25:00 EST")
@@ -96,6 +167,11 @@ class ChairTripViewTest(TestCase):
         approve_resp = self.client.post(f'/climbing/trips/{two.pk}/')
         self.assertEqual(approve_resp.status_code, 302)
         self.assertEqual(approve_resp.url, f'/climbing/trips/{one.pk}/')
+
+        # The last trip in the series has no "next" button
+        resp = self.client.get(approve_resp.url)
+        self.assertEqual(resp.context['prev_trip'], four)
+        self.assertIsNone(resp.context['next_trip'])
 
     def test_no_navigation_between_old_trips(self):
         trip = self._make_climbing_trip(
