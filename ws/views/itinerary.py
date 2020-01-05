@@ -24,28 +24,6 @@ from ws.utils.dates import itinerary_available_at, local_date, local_now
 from ws.utils.itinerary import get_cars
 
 
-class ApprovedTripsMixin:
-    model = models.Trip
-
-    @property
-    def activity(self):
-        return self.kwargs['activity']
-
-    def get_queryset(self):
-        """ All upcoming trips of this activity type. """
-        return models.Trip.objects.filter(
-            activity=self.activity, trip_date__gte=local_date()
-        )
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['activity'] = self.activity
-        trips = self.get_queryset()
-        context['approved_trips'] = trips.filter(chair_approved=True)
-        context['unapproved_trips'] = trips.filter(chair_approved=False)
-        return context
-
-
 class ItineraryInfoFormMixin:
     @staticmethod
     def get_info_form(trip):
@@ -192,19 +170,41 @@ class TripMedicalView(DetailView, TripMedical):
         return context_data
 
 
-class ChairTripView(ApprovedTripsMixin, TripMedical, DetailView):
+class ChairTripView(TripMedical, DetailView):
     """ Give a view of the trip intended to let chairs approve or not.
 
     Will show just the important details, like leaders, description, & itinerary.
     """
 
+    model = models.Trip
     template_name = 'chair/trips/view.html'
 
+    @property
+    def activity(self):
+        return self.kwargs['activity']
+
+    def get_queryset(self):
+        """ All trips of this activity type.
+
+        For identifying only trips that need attention, callers
+        should probably also filter on `trip_date` and `chair_approved`.
+
+        By declining to filter here, this prevents a 404 on past trips.
+        (In other words, a trip in the past that may or may not have been
+        approved can still be viewed as it would have been for activity chairs)
+        """
+        return models.Trip.objects.filter(activity=self.activity)
+
     def get_other_trips(self):
-        """ Get the trips that come before and after this trip. """
+        """ Get the trips that come before and after this trip & need approval. """
         this_trip = self.get_object()
 
-        ordered_trips = iter(self.get_queryset().filter(chair_approved=False))
+        ordered_trips = iter(
+            self.get_queryset().filter(
+                chair_approved=False, trip_date__gte=local_date()
+            )
+        )
+
         prev_trip = None
         for trip in ordered_trips:
             if trip.pk == this_trip.pk:
@@ -220,12 +220,16 @@ class ChairTripView(ApprovedTripsMixin, TripMedical, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['prev_trip'], context['next_trip'] = self.get_other_trips()
+        context['activity'] = self.activity
+
         context['info_form'] = self.get_info_form(context['trip'])
+
+        # Provide buttons for quick navigation between upcoming trips needing approval
+        context['prev_trip'], context['next_trip'] = self.get_other_trips()
         return context
 
     def post(self, request, *args, **kwargs):
-        """ Mark the trip approved and move to the next one. """
+        """ Mark the trip approved and move to the next one, if any. """
         trip = self.get_object()
         _, next_trip = self.get_other_trips()  # Do this before saving trip
         trip.chair_approved = True
