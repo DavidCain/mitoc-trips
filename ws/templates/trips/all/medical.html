@@ -11,10 +11,9 @@
 
 
 <h1>WIMP Information Sheet</h1>
-<p>This page contains all known medical information for trips taking place
-on or after {% now "DATE_FORMAT" %}.</p>
-<p>It is intended as a comprehensive sheet for the "Worry If Missing Person,"
-otherwise known as the WIMP.</p>
+<p>This page contains all known medical information for trips taking place on or after {% now "DATE_FORMAT" %}.</p>
+
+<p>It is intended as a comprehensive sheet for the "Worry If Missing Person," otherwise known as the WIMP.</p>
 
 <h3>Drivers</h3>
 <p>When leaders submit trip itinerary, they specify the designated drivers,
@@ -28,44 +27,44 @@ It may not represent who's actually driving for the trip.</p>
 
 
 {% for trip, participants, trip_leaders, cars, info_form in all_trips %}
-<h3><a href="{% url 'view_trip' trip.id %}">{{ trip.name }}</a></h3>
+  <h3><a href="{% url 'view_trip' trip.id %}">{{ trip.name }}</a></h3>
 
-<dl class="dl-horizontal">
+  <dl class="dl-horizontal">
     <dt>Date:</dt>
     <dd>{{ trip.trip_date|date:"l, M d" }}</dd>
     <dt>Description:</dt>
-    <dd> {{ trip.description|truncatewords:100 }}</dd>
-</dl>
+    <dd>{{ trip.description|truncatewords:100 }}</dd>
+  </dl>
 
-<h4>Itinerary</h4>
-{% if info_form %}
-    {% readonly_form info_form %}
-{% else %}
+  <h4>Itinerary</h4>
+  {% if info_form %}
+      {% readonly_form info_form %}
+  {% else %}
     <div class='alert alert-danger'>
-        <strong>No trip itinerary information submitted!</strong>
+      <strong>No trip itinerary information submitted!</strong>
     </div>
-{% endif %}
+  {% endif %}
 
-<h4>Participants</h4>
-{% if participants %}
-{% medical_table participants %}
-{% else %}
-<p> No participants. </p>
-{% endif %}
+  <h4>Participants</h4>
+  {% if participants %}
+    {% medical_table participants %}
+  {% else %}
+    <p>No participants.</p>
+  {% endif %}
 
-<h4>Leaders</h4>
-{% medical_table trip_leaders %}
+  <h4>Leaders</h4>
+  {% medical_table trip_leaders %}
 
-<h4>Drivers</h4>
-{% if not cars %}
-<p>Nobody on this trip submitted information for a car.</p>
-{% else %}
-{% driver_table cars %}
-{% endif %}
+  <h4>Drivers</h4>
+  {% if not cars %}
+    <p>Nobody on this trip submitted information for a car.</p>
+  {% else %}
+    {% driver_table cars %}
+  {% endif %}
 
-<hr>
+  <hr>
 {% empty %}
-<p> No upcoming trips. </p>
+  <p>No upcoming trips.</p>
 {% endfor %}
 
 <span class="helptext">Report generated {% now "DATETIME_FORMAT" %}.</span>

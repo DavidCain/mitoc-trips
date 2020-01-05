@@ -1,11 +1,116 @@
 from datetime import date
 
 from bs4 import BeautifulSoup
+from django.contrib.auth.models import Group
 from freezegun import freeze_time
 
 import ws.utils.perms as perm_utils
 from ws import enums, models
 from ws.tests import TestCase, factories
+
+
+@freeze_time("2020-01-01 12:25:00 EST")
+class AllTripsMedicalViewTest(TestCase):
+    def setUp(self):
+        self.user = factories.UserFactory.create()
+        factories.ParticipantFactory.create(user=self.user)
+        self.client.force_login(self.user)
+
+    def test_not_the_wimp(self):
+        self.assertFalse(perm_utils.in_any_group(self.user, ['WSC', 'WIMP']))
+        response = self.client.get('/trips/medical/')
+        self.assertEqual(response.status_code, 403)
+
+    def test_no_upcoming_trips(self):
+        perm_utils.make_chair(self.user, enums.Activity.WINTER_SCHOOL)
+        response = self.client.get('/trips/medical/')
+        self.assertEqual(response.context['all_trips'], [])
+
+        soup = BeautifulSoup(response.content, 'html.parser')
+
+        self.assertTrue(soup.find('h1', text="WIMP Information Sheet"))
+        expected_header = "This page contains all known medical information for trips taking place on or after Jan. 1, 2020."
+        self.assertTrue(soup.find('p', text=expected_header))
+        self.assertTrue(soup.find('p', text="No upcoming trips."))
+
+    def test_wimp(self):
+        Group.objects.get(name='WIMP').user_set.add(self.user)
+
+        # This trip won't be included
+        factories.TripFactory.create(name="Old trip", trip_date=date(2019, 12, 25))
+
+        jan3 = factories.TripFactory.create(name="3rd Trip", trip_date=date(2020, 1, 3))
+        jan2 = factories.TripFactory.create(name="2nd Trip", trip_date=date(2020, 1, 2))
+
+        response = self.client.get('/trips/medical/')
+        trips_for_context = [trip for (trip, *_) in response.context['all_trips']]
+        self.assertEqual(trips_for_context, [jan2, jan3])
+
+        soup = BeautifulSoup(response.content, 'html.parser')
+
+        # Both trips are described
+        self.assertTrue(soup.find('h3', text="2nd Trip"))
+        self.assertTrue(soup.find('h3', text="3rd Trip"))
+
+    def test_key_data_present(self):
+        Group.objects.get(name='WIMP').user_set.add(self.user)
+
+        leader = factories.ParticipantFactory.create(
+            name="Tim Beaver", emergency_info__allergies="Pollen"
+        )
+
+        # Write a very robust trip itinerary - we expect that to be surfaced
+        plan = "Start at some named trailhead, hike, then come home"
+        itinerary = factories.TripInfoFactory.create(itinerary=plan)
+
+        trip = factories.TripFactory.create(
+            name="Rad Trip", trip_date=date(2020, 1, 3), info=itinerary
+        )
+        trip.leaders.add(leader)
+
+        driver = factories.ParticipantFactory.create(
+            name="Trip Driver",
+            car=factories.CarFactory.create(
+                license_plate="559 DKP", make='Powell Motors', model='Homer',
+            ),
+        )
+        itinerary.drivers.add(driver)
+
+        non_driver = factories.ParticipantFactory.create(name="Non Driver")
+
+        # Put both participants on the trip
+        factories.SignUpFactory.create(participant=driver, trip=trip, on_trip=True)
+        factories.SignUpFactory.create(participant=non_driver, trip=trip, on_trip=True)
+        factories.SignUpFactory.create(
+            participant__name="NOT ON TRIP", trip=trip, on_trip=False
+        )
+
+        response = self.client.get('/trips/medical/')
+        soup = BeautifulSoup(response.content, 'html.parser')
+
+        # Both trip participants + the leader are given in the summary
+        self.assertTrue(
+            soup.find('a', href=f'/participants/{non_driver.pk}/', text="Non Driver")
+        )
+        self.assertTrue(
+            soup.find('a', href=f'/participants/{driver.pk}/', text="Trip Driver")
+        )
+        self.assertTrue(
+            soup.find('a', href=f'/participants/{leader.pk}/', text="Tim Beaver")
+        )
+
+        # Signup not on the trip is omitted.
+        self.assertFalse(soup.find('a', text="NOT ON TRIP"))
+
+        # Key medical information is given
+        self.assertTrue(soup.find('td', text="Pollen"))
+
+        # The driver's car info is given in a table.
+        self.assertTrue(soup.find('td', text="559 DKP"))
+        self.assertTrue(soup.find('td', text="Powell Motors Homer"))
+
+        # The itinerary of the trip is also given
+        self.assertIn(plan, soup.text)
 
 
 class TripMedicalViewTest(TestCase):
