@@ -396,7 +396,7 @@ class TripListView(ListView):
 class UpcomingTripsView(TripListView):
     """ By default, view only upcoming (future) trips.
 
-    If given a date, filter to only trips after that date.
+    If given a date, filter to only trips after that date (which may be past dates!)
     """
 
     # Default value, but past trips can appear by including a date filter
@@ -409,12 +409,18 @@ class AllTripsView(TripListView):
     include_past_trips = True
 
 
-class ApproveTripsView(UpcomingTripsView):
+class ApproveTripsView(ListView):
+    model = models.Trip
     template_name = 'trips/all/manage.html'
 
     def get_queryset(self):
-        upcoming_trips = super().get_queryset()
-        return upcoming_trips.filter(activity=self.kwargs['activity'])
+        """ Filter to only *upcoming* trips needing approval. """
+        all_trips = super().get_queryset()
+        return all_trips.filter(
+            activity=self.kwargs['activity'],
+            trip_date__gte=local_date(),
+            chair_approved=False,
+        )
 
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
@@ -428,10 +434,10 @@ class ApproveTripsView(UpcomingTripsView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
-        # No point sorting into current, past (queryset already handles)
         context = super().get_context_data(**kwargs)
-        unapproved_trips = self.get_queryset().filter(chair_approved=False)
-        context['first_unapproved_trip'] = unapproved_trips.first()
+        trips = list(context['object_list'])
+        context['trips_needing_approval'] = trips
+        context['first_unapproved_trip'] = trips[0] if trips else None
         return context
 
 

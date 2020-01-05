@@ -326,6 +326,15 @@ class ApproveTripsViewTest(TestCase):
         self.user = factories.UserFactory.create()
         self.client.force_login(self.user)
 
+    @staticmethod
+    def _make_climbing_trip(chair_approved=False, **kwargs):
+        return factories.TripFactory.create(
+            program=enums.Program.CLIMBING.value,
+            activity=enums.Activity.CLIMBING.value,
+            chair_approved=chair_approved,
+            **kwargs,
+        )
+
     def test_unauthenticated(self):
         self.client.logout()
         response = self.client.get('/climbing/trips/')
@@ -336,23 +345,24 @@ class ApproveTripsViewTest(TestCase):
         response = self.client.get('/snowmobiling/trips/')
         self.assertEqual(response.status_code, 404)
 
-    def test_all_trips_approved(self):
-        factories.TripFactory.create(
-            program=enums.Program.CLIMBING.value,
-            activity=enums.Activity.CLIMBING.value,
-            chair_approved=True,
-        )
+    def test_no_trips_found(self):
         perm_utils.make_chair(self.user, enums.Activity.CLIMBING)
         response = self.client.get('/climbing/trips/')
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['trips_needing_approval'], [])
+        self.assertIsNone(response.context['first_unapproved_trip'])
+
+    def test_all_trips_approved(self):
+        self._make_climbing_trip(chair_approved=True)
+        self._make_climbing_trip(chair_approved=True)
+        perm_utils.make_chair(self.user, enums.Activity.CLIMBING)
+        response = self.client.get('/climbing/trips/')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['trips_needing_approval'], [])
         self.assertIsNone(response.context['first_unapproved_trip'])
 
     def test_chair(self):
-        factories.TripFactory.create(
-            program=enums.Program.CLIMBING.value,
-            activity=enums.Activity.CLIMBING.value,
-            chair_approved=True,
-        )
+        self._make_climbing_trip(chair_approved=True)
         unapproved = factories.TripFactory.create(
             program=enums.Program.MITOC_ROCK_PROGRAM.value,
             activity=enums.Activity.CLIMBING.value,
@@ -362,3 +372,24 @@ class ApproveTripsViewTest(TestCase):
         response = self.client.get('/climbing/trips/')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context['first_unapproved_trip'], unapproved)
+
+    @freeze_time("2019-07-05 12:25:00 EST")
+    def test_past_unapproved_trips_ignored(self):
+        """ We only prompt chairs to look at trips which are upcoming & unapproved. """
+        # Unapproved, but it's in the past!
+        self._make_climbing_trip(trip_date=date(2019, 7, 4))
+
+        perm_utils.make_chair(self.user, enums.Activity.CLIMBING)
+        response = self.client.get('/climbing/trips/')
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNone(response.context['first_unapproved_trip'])
+
+        # Make some future trips now - these trips will be ranked by date!
+        # (Currently, reverse chronological order)
+        fri = self._make_climbing_trip(trip_date=date(2019, 7, 5))
+        sun = self._make_climbing_trip(trip_date=date(2019, 7, 7))
+        sat = self._make_climbing_trip(trip_date=date(2019, 7, 6))
+
+        context = self.client.get('/climbing/trips/').context
+        self.assertEqual(context['trips_needing_approval'], [sun, sat, fri])
+        self.assertEqual(context['first_unapproved_trip'], sun)

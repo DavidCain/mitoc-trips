@@ -15,8 +15,8 @@
   {% endif %}
 </h2>
 
-{% if current_trips %}
-  {% trip_list_table current_trips True %}
+{% if trips_needing_approval %}
+  {% trip_list_table trips_needing_approval True %}
 {% else %}
   <p class="lead">
     No current or upcoming trips!
