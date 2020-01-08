@@ -254,6 +254,12 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
             participant__lotteryinfo__car_status='none'
         )
         non_drivers = trip.signup_set.filter(no_car, on_trip=True)
+
+        # If the trip is *only* made up of drivers (or is empty) will be None.
+        # For Winter School, this can happen on a trip with 1 participant that's a driver)
+        if not non_drivers:
+            return None
+
         return max(
             non_drivers, key=lambda signup: self.priority_key(signup.participant)
         )

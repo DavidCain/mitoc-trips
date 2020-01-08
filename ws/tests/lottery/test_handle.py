@@ -225,6 +225,30 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
         # The last person on the trip was bumped off!
         self._assert_on_trip(second, trip, on_trip=False)
 
+    def test_bump_but_only_one_driver(self):
+        # Create a trip with room for only one participant
+        trip = factories.TripFactory.create(
+            algorithm='lottery',
+            program=enums.Program.WINTER_SCHOOL.value,
+            maximum_participants=1,
+        )
+
+        # Two participants, both drivers
+        dee = factories.ParticipantFactory.create()
+        dum = factories.ParticipantFactory.create()
+        factories.LotteryInfoFactory.create(participant=dee, car_status='own')
+        factories.LotteryInfoFactory.create(participant=dum, car_status='rent')
+        factories.SignUpFactory.create(participant=dee, trip=trip)
+        factories.SignUpFactory.create(participant=dum, trip=trip)
+
+        # Place the driver first. We have one driver, which is short of the two we normally want
+        self._place_participant(dee)
+        self._assert_on_trip(dee, trip, on_trip=True)
+
+        # Now try to place the other driver. They won't bump the first driver.
+        self._place_participant(dum)
+        self._assert_on_trip(dum, trip, on_trip=False)
+
     def test_avoid_placing_if_risking_bump(self):
         """ We avoid placing participants on a top choice trip if they may be bumped! """
         # Trip has 3 slots, needs 2 drivers

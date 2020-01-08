@@ -108,7 +108,7 @@ class ParticipantHandler:
         add_to_waitlist(signup, prioritize=True)
         self.logger.info("Moved %s to the top of the waitlist", signup)
 
-    def try_to_place(self, signup: models.SignUp) -> bool:
+    def _try_to_place(self, signup: models.SignUp) -> bool:
         """ Try to place participant (and partner) on the trip.
 
         Returns if successful.
@@ -125,8 +125,12 @@ class ParticipantHandler:
                 self.logger.info(
                     "%r is full, but lacks %d drivers", trip.name, self.min_drivers
                 )
+                signup_to_bump = self.runner.signup_to_bump(trip)
+                if not signup_to_bump:
+                    self.logger.info("Trip does not have a non-driver to bump")
+                    return False
                 self.logger.info("Adding driver %s to %r", signup, trip.name)
-                self.bump_participant(self.runner.signup_to_bump(trip))
+                self.bump_participant(signup_to_bump)
                 signup.on_trip = True
                 signup.save()
                 return True
@@ -164,7 +168,7 @@ class SingleTripParticipantHandler(ParticipantHandler):
 
         # Try to place all participants, otherwise add them to the waitlist
         signup = models.SignUp.objects.get(participant=self.participant, trip=self.trip)
-        if not self.try_to_place(signup):
+        if not self._try_to_place(signup):
             for par in self.to_be_placed:
                 self.logger.info(f"Adding {par.name} to the waitlist")
                 add_to_waitlist(
@@ -304,7 +308,7 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
                 self.logger.debug("Placing on %r risks bump from a driver", trip_name)
                 skipped_to_avoid_driver_bump.append((rank, signup))
                 continue
-            if self.try_to_place(signup):
+            if self._try_to_place(signup):
                 self.logger.debug(f"Placed on trip #{rank} of {len(future_signups)}")
                 return {**info, 'placed_on_choice': rank}
             self.logger.info("Can't place %s on %r", self._par_text, trip_name)
@@ -313,7 +317,7 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
         # It's possible that some were skipped because few spaces remained & a driver may bump.
         # If any potential placements remain, take those & risk a future bump.
         for rank, signup in skipped_to_avoid_driver_bump:
-            if self.try_to_place(signup):
+            if self._try_to_place(signup):
                 self.logger.debug(f"Placed on trip #{rank} of {len(future_signups)}")
                 return {**info, 'placed_on_choice': rank}
 
