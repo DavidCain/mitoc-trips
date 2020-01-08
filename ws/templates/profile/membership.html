@@ -134,4 +134,15 @@ Membership dues
       </form>
     </div>
   </div>
+
+  {% block end_of_body_js %}
+    {# If not logged in, use just AngularJS for the form #}
+    {# This seems to resolve errors with people paying dues when not logged in #}
+    {# TODO: Remove this once migrating the whole page to VueJS #}
+
+    {% if user.is_authenticated %}
+      {{ block.super }}
+    {% endif %}
+  {% endblock end_of_body_js %}
+
 {% endblock content %}
