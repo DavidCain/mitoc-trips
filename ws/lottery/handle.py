@@ -129,8 +129,10 @@ class ParticipantHandler:
                 if not signup_to_bump:
                     self.logger.info("Trip does not have a non-driver to bump")
                     return False
-                self.logger.info("Adding driver %s to %r", signup, trip.name)
                 self.bump_participant(signup_to_bump)
+                self.logger.info(
+                    "Adding driver %s to %r", signup.participant.name, trip.name
+                )
                 signup.on_trip = True
                 signup.save()
                 return True
@@ -199,6 +201,8 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
         assert signup.on_trip
         par = signup.participant
 
+        self.logger.info("Bumping %s off %s", par.name, signup.trip.name)
+
         # Paired participants would generally prefer to stick together
         try:
             lotteryinfo = par.lotteryinfo
@@ -209,11 +213,12 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
             # NOTE: (cannot use `reciprocally_paired`, since that's a rank-annotated prop)
             if lotteryinfo.reciprocally_paired_with:
                 super().bump_participant(signup)
+                return
 
         self.logger.debug("Searching all signups for a potentially open trip.")
         # Do not bother being picky about potentially being bumped by a driver
         future_signups = ranked_signups(par, after=self.lottery_rundate)
-        for other_signup in future_signups:
+        for other_signup in future_signups.exclude(pk=signup.pk):
             if not other_signup.trip.open_slots:
                 self.logger.debug("%r is full", other_signup.trip.name)
                 continue

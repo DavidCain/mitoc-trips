@@ -345,8 +345,10 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
         factories.SignUpFactory.create(participant=two, trip=second_trip, order=2)
 
         # Paired participants are placed on their preferred trip
-        self.assertIsNone(self._place_participant(one))
+        self.assertIsNone(self._place_participant(one))  # par one not placed
         self._place_participant(two)
+        self._assert_on_trip(one, preferred_trip)
+        self._assert_on_trip(two, preferred_trip)
 
         # Driver comes along and bumps one of the pair.
         driver = factories.ParticipantFactory.create(name="Car Owner")
@@ -356,12 +358,14 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
         # Driver gets the trip, bumps one of the two.
         self._place_participant(driver)
         self._assert_on_trip(driver, preferred_trip)
+        self.assertFalse(preferred_trip.open_slots)
 
         # Though there's room on the second trip, we chose to keep them together
         self.assertTrue(second_trip.open_slots)
         waitlisted_signup = preferred_trip.waitlist.signups.get()
         self.assertIn(waitlisted_signup.participant, [one, two])
         self._assert_on_trip(waitlisted_signup.participant, second_trip, on_trip=False)
+        self._assert_on_trip(driver, preferred_trip)
 
     def test_bump_single_participant(self):
         """ We try to place a participant on less-preferred trips if possible. """
