@@ -67,12 +67,6 @@ class CreateRatingView(CreateView):
         activity_enum = enums.Activity(form.cleaned_data['activity'])
         participant = form.cleaned_data['participant']
 
-        # Sanity check on ratings (form hides dissallowed activities)
-        if not perm_utils.is_chair(self.request.user, activity_enum, True):
-            not_chair = f"You cannot assign {activity_enum.label} ratings"
-            form.add_error("activity", not_chair)
-            return self.form_invalid(form)
-
         ratings_utils.deactivate_ratings(participant, activity_enum.value)
 
         rating = form.save(commit=False)
