@@ -31,6 +31,23 @@ class ManageLeadersViewTest(TestCase):
         self.assertFalse(resp.context['form'].is_valid())
         self.assertFalse(perm_utils.is_leader(self.participant.user))
 
+    def test_chair_for_wrong_activity(self):
+        perm_utils.make_chair(self.chair.user, enums.Activity.CLIMBING)
+
+        # Not the biking chair, so can't make biking leaders!
+        self.assertFalse(perm_utils.is_chair(self.chair.user, enums.Activity.BIKING))
+        resp = self.client.post(
+            '/chair/leaders/',
+            {
+                'participant': self.participant.pk,
+                'activity': enums.Activity.BIKING.value,
+                'rating': "Leader",
+                'notes': "",
+            },
+        )
+        self.assertFalse(resp.context['form'].is_valid())
+        self.assertFalse(perm_utils.is_leader(self.participant.user))
+
     def test_create_ws_rating(self):
         perm_utils.make_chair(self.chair.user, enums.Activity.WINTER_SCHOOL)
         resp = self.client.post(
@@ -83,6 +100,88 @@ class ManageLeadersViewTest(TestCase):
         self.assertTrue(rating.active)
         self.assertEqual(rating.rating, "C coI")
         self.assertEqual(rating.creator, self.chair)
+
+
+class DeactivateLeaderRatingsViewTest(TestCase):
+    def setUp(self):
+        # Not actually chair!
+        self.chair = factories.ParticipantFactory.create()
+        self.client.force_login(self.chair.user)
+
+    def test_not_chair(self):
+        resp = self.client.get('/climbing/leaders/deactivate/')
+        self.assertEqual(resp.status_code, 403)
+
+    def test_load_url_redirects(self):
+        perm_utils.make_chair(self.chair.user, enums.Activity.CLIMBING)
+        resp = self.client.get('/climbing/leaders/deactivate/')
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(resp.url, '/climbing/leaders/')
+
+    def test_deactivate_nobady(self):
+        rating = factories.LeaderRatingFactory.create(
+            activity=enums.Activity.CLIMBING.value
+        )
+
+        perm_utils.make_chair(self.chair.user, enums.Activity.CLIMBING)
+        resp = self.client.post('/climbing/leaders/deactivate/', {'deactivate': []})
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(resp.url, '/climbing/leaders/')
+
+        # The rating remains active
+        rating.refresh_from_db()
+        self.assertTrue(rating.active)
+
+    def test_deactivate_wrong_activity(self):
+        perm_utils.make_chair(self.chair.user, enums.Activity.CLIMBING)
+        # Try to invoke for an activity where not the chair!
+        resp = self.client.post('/hiking/leaders/deactivate/', {'deactivate': [321]})
+        self.assertEqual(resp.status_code, 403)
+
+    def test_deactivate_multiple_activities(self):
+        hiking = factories.LeaderRatingFactory.create(
+            activity=enums.Activity.HIKING.value
+        )
+        climbing = factories.LeaderRatingFactory.create(
+            activity=enums.Activity.CLIMBING.value
+        )
+
+        perm_utils.make_chair(self.chair.user, enums.Activity.CLIMBING)
+        perm_utils.make_chair(self.chair.user, enums.Activity.HIKING)
+
+        # Cannot deactivate multiple ratings of different activity types, even if chair!
+        resp = self.client.post(
+            '/climbing/leaders/deactivate/', {'deactivate': [climbing.pk, hiking.pk]}
+        )
+        self.assertEqual(resp.status_code, 403)
+
+        # Both ratings remain active
+        hiking.refresh_from_db()
+        climbing.refresh_from_db()
+        self.assertTrue(hiking.active)
+        self.assertTrue(climbing.active)
+
+    def test_successfully_deactivate(self):
+        remove1, remove2, keep = [
+            factories.LeaderRatingFactory.create(activity=enums.Activity.HIKING.value)
+            for _i in range(3)
+        ]
+
+        perm_utils.make_chair(self.chair.user, enums.Activity.HIKING)
+
+        resp = self.client.post(
+            '/hiking/leaders/deactivate/', {'deactivate': [remove1.pk, remove2.pk]}
+        )
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(resp.url, '/hiking/leaders/')
+
+        remove1.refresh_from_db()
+        remove2.refresh_from_db()
+        keep.refresh_from_db()
+
+        self.assertTrue(keep.active)
+        self.assertFalse(remove1.active)
+        self.assertFalse(remove2.active)
 
 
 class AllLeadersViewTest(TestCase):
