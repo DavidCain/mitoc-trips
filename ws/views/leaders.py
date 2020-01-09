@@ -46,7 +46,7 @@ class AllLeadersView(ListView):
 
 
 class CreateRatingView(CreateView):
-    """ Should be inhereted to provide a template. """
+    """ Should be inherited to provide a template. """
 
     form_class = forms.LeaderForm
 
@@ -64,16 +64,16 @@ class CreateRatingView(CreateView):
 
         Any existing ratings for this activity will be marked as inactive.
         """
-        activity = form.cleaned_data['activity']
+        activity_enum = enums.Activity(form.cleaned_data['activity'])
         participant = form.cleaned_data['participant']
 
         # Sanity check on ratings (form hides dissallowed activities)
-        if not perm_utils.is_chair(self.request.user, activity, True):
-            not_chair = "You cannot assign {} ratings".format(activity)
+        if not perm_utils.is_chair(self.request.user, activity_enum, True):
+            not_chair = f"You cannot assign {activity_enum.label} ratings"
             form.add_error("activity", not_chair)
             return self.form_invalid(form)
 
-        ratings_utils.deactivate_ratings(participant, activity)
+        ratings_utils.deactivate_ratings(participant, activity_enum.value)
 
         rating = form.save(commit=False)
         rating.creator = self.request.participant

@@ -174,10 +174,13 @@ class LeaderForm(DjangularRequiredModelForm):
         self.fields['participant'].empty_label = 'Nobody'
 
         if allowed_activities is not None:
+            allowed_activity_values = {
+                activity_enum.value for activity_enum in allowed_activities
+            }
             activities = [
-                activity
-                for activity in self.fields['activity'].choices
-                if activity[0] in allowed_activities
+                (val, label)
+                for (val, label) in self.fields['activity'].choices
+                if val in allowed_activity_values
             ]
             self.fields['activity'].choices = activities
             if activities:
