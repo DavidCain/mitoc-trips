@@ -403,3 +403,158 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
         # The participant is moved to their second-favorite trip, not waitlisted.
         self._assert_on_trip(par, middle)
         self.assertFalse(best.waitlist.signups.count())
+
+    def test_enough_drivers_already_no_bump(self):
+        """ Participants can safely be placed on the last spot of a trip with enough drivers. """
+        trip = factories.TripFactory.create(
+            algorithm='lottery',
+            program=enums.Program.WINTER_SCHOOL.value,
+            maximum_participants=2,
+        )
+
+        # Two participants, both drivers (one leads, one attends)
+        leader_driver = factories.ParticipantFactory.create()
+        par_driver = factories.ParticipantFactory.create()
+        factories.LotteryInfoFactory.create(participant=leader_driver, car_status='own')
+        factories.LotteryInfoFactory.create(participant=par_driver, car_status='rent')
+        trip.leaders.add(leader_driver)
+
+        # Place the driver first. We now have two drivers!
+        factories.SignUpFactory.create(participant=par_driver, trip=trip)
+        self._place_participant(par_driver)
+        self._assert_on_trip(par_driver, trip)
+
+        # Non-driver wants to join the trip.
+        par = factories.ParticipantFactory.create()
+        factories.SignUpFactory.create(participant=par, trip=trip, order=1)
+        factories.SignUpFactory.create(participant=par, order=2)  # Some other trip
+
+        # Another driver has expressed interest in the trip. They could bump!
+        other_driver = factories.ParticipantFactory.create()
+        factories.LotteryInfoFactory.create(participant=other_driver, car_status='own')
+        factories.SignUpFactory.create(participant=other_driver, trip=trip)
+
+        # The non-driver is the last spot! They *might* risk a bump from `other_driver`
+        # However, the trip has 2 drivers so they are safe & will not be bumped.
+        self._place_participant(par)
+        self._assert_on_trip(par, trip)
+
+    def test_second_to_last_spot_no_bump(self):
+        """ Participants can be placed on the second-to-last spot without risking bump. """
+        trip = factories.TripFactory.create(
+            algorithm='lottery',
+            program=enums.Program.WINTER_SCHOOL.value,
+            maximum_participants=2,
+        )
+
+        # Leader is a driver.
+        leader_driver = factories.ParticipantFactory.create()
+        factories.LotteryInfoFactory.create(participant=leader_driver, car_status='own')
+        trip.leaders.add(leader_driver)
+
+        # Non-driver wants to join the trip.
+        par = factories.ParticipantFactory.create()
+        factories.SignUpFactory.create(participant=par, trip=trip, order=1)
+        factories.SignUpFactory.create(participant=par, order=2)  # Some other trip
+
+        # Another driver has expressed interest in the trip. They won't bump.
+        other_driver = factories.ParticipantFactory.create()
+        factories.LotteryInfoFactory.create(participant=other_driver, car_status='own')
+        factories.SignUpFactory.create(participant=other_driver, trip=trip)
+
+        # The non-driver is the second-to-last spot! They *might* risk a bump from `other_driver`
+        # However, the leader is a driver. The last spot can be filled by a driver without bump.
+        self._place_participant(par)
+        self._assert_on_trip(par, trip)
+
+    def test_bumped_bypassing_full_trip(self):
+        """ If a participant is bumped, their other signups' trips may be full. """
+        trip1, trip2, trip3 = [
+            factories.TripFactory.create(
+                name=f"Trip {i}",
+                algorithm='lottery',
+                program=enums.Program.WINTER_SCHOOL.value,
+                maximum_participants=2,
+            )
+            for i in range(1, 4)
+        ]
+
+        # These two participants will be placed, one after the other
+        other_par = factories.ParticipantFactory.create(affiliation="NA")
+        par = factories.ParticipantFactory.create(affiliation="MU")
+        # (submit lottery prefs, to cover all branches in `bump_participant()`)
+        factories.LotteryInfoFactory.create(participant=par, car_status='none')
+
+        # Assert that the priority keys match the order in which we'll assign these two.
+        # (when identifying the lowest non-driver, we look to priority keys)
+        adjust = factories.LotteryAdjustmentFactory.create(
+            participant=other_par, adjustment=-1
+        )
+        # Lower is better, so see that the other participant is placed first.
+        self.assertIn("boost", str(adjust))
+        ranker = self.runner.ranker
+        assert ranker.priority_key(other_par) < ranker.priority_key(par)
+
+        # A driver expressed interest in each trip (making each trip potentially "bumpable")
+        driver = factories.ParticipantFactory.create()
+        factories.LotteryInfoFactory.create(participant=driver, car_status='own')
+        for trip in [trip1, trip2, trip3]:
+            factories.SignUpFactory.create(participant=driver, trip=trip)
+
+        # A non-driver joins the trip first. One slot remains!
+        factories.SignUpFactory.create(participant=other_par, trip=trip1)
+        self._place_participant(other_par)
+
+        # Another non-driver ranks this trip as their favorite.
+        # They rank two other trips below. They risk getting bumped from each trip.
+        factories.SignUpFactory.create(participant=par, trip=trip1, order=1)
+        factories.SignUpFactory.create(participant=par, trip=trip2, order=2)
+        factories.SignUpFactory.create(participant=par, trip=trip3, order=3)
+
+        # There are no safe trips, so we place them on the last spot for their top trip & hope.
+        self._place_participant(par)
+        self._assert_on_trip(par, trip1)
+        self._assert_on_trip(par, trip2, on_trip=False)
+        self._assert_on_trip(par, trip3, on_trip=False)
+
+        # Other participants take the last spots on trip 2, filling the trip
+        for _i in range(2):
+            signup = factories.SignUpFactory.create(trip=trip2)
+            self._place_participant(signup.participant)
+
+        # The main par had the lowest lottery key so they're the one that should be bumped
+        self.assertEqual(self.runner.signup_to_bump(trip1).participant.pk, par.pk)
+
+        # Now, we place the driver, who will bump the participant from trip one.
+        # Trip 2 is full, so we place the bumped participant onto trip 3.
+        self._place_participant(driver)
+        self._assert_on_trip(driver, trip1)
+        self._assert_on_trip(par, trip3)
+
+    def test_driver_cannot_bump_full_trip_with_enough_drivers(self):
+        """ Drivers may not bump a trip with enough drivers on it. """
+        trip = factories.TripFactory.create(
+            algorithm='lottery',
+            program=enums.Program.WINTER_SCHOOL.value,
+            maximum_participants=3,
+        )
+
+        # Two drivers take the first two spots
+        for _i in range(2):
+            driver = factories.ParticipantFactory.create()
+            factories.LotteryInfoFactory.create(participant=driver, car_status='own')
+            factories.SignUpFactory.create(participant=driver, trip=trip)
+            self._place_participant(driver)
+
+        # A non-driver takes the last spot
+        non_driver = factories.ParticipantFactory.create()
+        factories.SignUpFactory.create(participant=non_driver, trip=trip)
+        self._place_participant(non_driver)
+        self._assert_on_trip(non_driver, trip)
+
+        # A driver wants to be placed on this trip, but it's full. They do not bump.
+        main_driver = factories.ParticipantFactory.create()
+        factories.SignUpFactory.create(participant=main_driver, trip=trip)
+        self._place_participant(main_driver)
+
+        self._assert_on_trip(main_driver, trip, on_trip=False)

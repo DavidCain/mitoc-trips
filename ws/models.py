@@ -770,7 +770,7 @@ class SignUp(BaseSignUp):
         # When ordering for an individual, should order by priority (i.e. 'order')
         # When ordering for a specific trip, should order by:
         # 1. `manual_order` (applied if leaders sort signups)
-        # 2. `time_created` (first to sign up -> first on trip)
+        # 2. `last_updated` (first to be on the trip -> first on trip)
         ordering = ["manual_order", "last_updated"]
         unique_together = ('participant', 'trip')
 

@@ -269,10 +269,16 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
             return False  # Definitely will not be bumped (enough slots remain)
 
         if self.is_driver:
-            return False  # Bumping a driver never makes sense.
+            return False  # A driver bumping a driver never makes sense.
 
-        # Few slots remain, but it's possible we already have 1 or 2 drivers on the trip.
-        if self._num_drivers_needed(signup.trip) < future_num_slots:
+        # At this point, few slots remain. Participant could potentially risk being bumped!
+        num_drivers_needed = self._num_drivers_needed(signup.trip)
+        if not num_drivers_needed:
+            return False  # We have enough drivers already!
+
+        # Few slots remain, but it's possible we already have 1 driver on the trip.
+        # Use case: 2 slots left, 1 driver needed. We can safely take second-to-last spot.
+        if num_drivers_needed <= future_num_slots:
             return False
 
         # At this point, potential drivers could bump some of the last signups!
