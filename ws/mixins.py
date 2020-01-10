@@ -70,9 +70,12 @@ class TripLeadersOnlyView(View):
         trip = self.get_object()
 
         activity_enum = trip.required_activity_enum()
-        chair = activity_enum and perm_utils.chair_or_admin(request.user, activity_enum)
+        if activity_enum:
+            is_chair = perm_utils.chair_or_admin(request.user, activity_enum)
+        else:  # (There is no required activity, so no chairs. Allow superusers, though)
+            is_chair = request.user.is_superuser
 
         trip_leader = perm_utils.leader_on_trip(request.participant, trip, True)
-        if not (chair or trip_leader):
+        if not (is_chair or trip_leader):
             return render(request, 'not_your_trip.html', {'trip': trip})
         return super().dispatch(request, *args, **kwargs)

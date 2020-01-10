@@ -232,6 +232,31 @@ class CreateTripViewTest(TestCase, Helpers):
 
 
 class EditTripViewTest(TestCase, Helpers):
+    def test_superusers_may_edit_trip_without_required_activity(self):
+        admin = factories.UserFactory.create(is_superuser=True)
+        self.client.force_login(admin)
+
+        trip = factories.TripFactory.create(program=enums.Program.SERVICE.value)
+        self.assertIsNone(trip.required_activity_enum())
+
+        _edit_resp, soup = self._get(f'/trips/{trip.pk}/edit/')
+        self.assertTrue(soup.find('form'))
+
+    def test_leaders_cannot_edit_other_leaders_trip(self):
+        leader = factories.ParticipantFactory.create()
+        factories.LeaderRatingFactory.create(
+            participant=leader, activity=models.LeaderRating.CLIMBING
+        )
+        self.client.force_login(leader.user)
+
+        trip = factories.TripFactory.create(
+            name="Rad Trip", program=enums.Program.CLIMBING.value
+        )
+
+        _edit_resp, soup = self._get(f'/trips/{trip.pk}/edit/')
+        self.assertTrue(soup.find('h2', text='Must be a leader to administrate trip'))
+        self.assertFalse(soup.find('form'))
+
     def test_editing(self):
         user = factories.UserFactory.create(email='leader@example.com')
         self.client.force_login(user)
