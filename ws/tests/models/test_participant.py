@@ -67,6 +67,63 @@ class ReasonsCannotAttendTest(TestCase):
             [enums.TripIneligibilityReason.MISSED_WS_LECTURES],
         )
 
+    def test_missed_lectures_but_attended_before(self):
+        participant = factories.ParticipantFactory.create()
+        factories.LectureAttendanceFactory.create(participant=participant, year=2016)
+
+        def missed_lectures_for_trip_in_year(year) -> bool:
+            """ Return if missing lectures for a trip in this year prohibits attendance. """
+            trip = factories.TripFactory.create(
+                program=enums.Program.WINTER_SCHOOL.value, trip_date=date(year, 1, 19)
+            )
+            with mock.patch.object(date_utils, 'ws_lectures_complete') as lectures_over:
+                lectures_over.return_value = True  # (Otherwise, won't be "missed")
+                with freeze_time(f"12 Jan {year} 12:00:00 EST"):
+                    # (exhaust the generator while time is mocked)
+                    reasons = set(participant.reasons_cannot_attend(trip))
+
+            # Ignore other reasons, we only care about missing WS lectures
+            return enums.TripIneligibilityReason.MISSED_WS_LECTURES in reasons
+
+        # For normal participants, we always require attendance in the year of the trip
+        self.assertFalse(missed_lectures_for_trip_in_year(2016))  # Attended that year!
+        self.assertTrue(missed_lectures_for_trip_in_year(2017))
+        self.assertTrue(missed_lectures_for_trip_in_year(2020))
+        self.assertTrue(missed_lectures_for_trip_in_year(2021))
+
+        # For WS leaders, attendance in the most recent 4 years permits signup
+        factories.LeaderRatingFactory.create(
+            participant=participant, activity=models.BaseRating.WINTER_SCHOOL,
+        )
+        self.assertFalse(missed_lectures_for_trip_in_year(2016))  # Attended that year!
+        # For 4 years after last attendance, we permit an active leader to sign up for WS trips
+        self.assertFalse(missed_lectures_for_trip_in_year(2017))
+        self.assertFalse(missed_lectures_for_trip_in_year(2020))
+
+        # After 4 years, the leader must attend again
+        self.assertTrue(missed_lectures_for_trip_in_year(2021))
+        self.assertTrue(missed_lectures_for_trip_in_year(2022))
+
+    @freeze_time("12 Jan 2020 12:00:00 EST")
+    def test_missed_lectures_as_first_time_ws_leader(self):
+        """ If a first-time WS leader missed lectures, they are not allowed to participate. """
+        participant = factories.ParticipantFactory.create()
+        self.assertFalse(participant.lectureattendance_set.exists())
+
+        trip = factories.TripFactory.create(
+            program=enums.Program.WINTER_SCHOOL.value, trip_date=date(2020, 1, 19)
+        )
+        factories.LeaderRatingFactory.create(
+            participant=participant, activity=models.BaseRating.WINTER_SCHOOL,
+        )
+        with mock.patch.object(date_utils, 'ws_lectures_complete') as lectures_over:
+            lectures_over.return_value = True  # (Otherwise, won't be "missed")
+            reasons = participant.reasons_cannot_attend(trip)
+
+        self.assertCountEqual(
+            reasons, {enums.TripIneligibilityReason.MISSED_WS_LECTURES}
+        )
+
     @freeze_time("25 Oct 2018 12:00:00 EST")
     def test_problem_with_profile_legacy(self):
         """ If the affiliation was given before we started collecting more detail, warn! """

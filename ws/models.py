@@ -455,6 +455,33 @@ class Participant(models.Model):
 
         return self.missed_lectures(trip.trip_date.year)
 
+    def _cannot_attend_because_missed_lectures(self, trip) -> bool:
+        """ Return if the participant's lack of attendance should prevent their attendance.
+
+        This method exists to allow WS leaders to attend trips as a
+        participant, even if they've missed lectures this year. So long as
+        they've been to a recent year's lectures, we'll allow them to sign up
+        as participants (though they will still be rendered as having missed
+        the current year's lectures in any UI that surfaces that information).
+        """
+        if not self.missed_lectures_for(trip):
+            return False  # Attended this year
+
+        # For Winter School leaders, we have a carve-out if you've attended lectures recently
+        if not self.can_lead(enums.Program.WINTER_SCHOOL):
+            # (All other participants must have attended this year's lectures)
+            return True
+
+        try:
+            last_attendance = self.lectureattendance_set.latest('year')
+        except LectureAttendance.DoesNotExist:
+            return True  # First-time leaders must have attended lectures!
+
+        # Leaders who have attended any of the last 4 years' lectures may attend trips.
+        # e.g. if you attended lectures in 2016, you may attend trips in IAP of 2020, but not 2021
+        years_since_last_lecture = date_utils.ws_year() - last_attendance.year
+        return years_since_last_lecture > 4
+
     def reasons_cannot_attend(self, trip):
         """ Can this participant attend the trip? (based off cached membership)
 
@@ -473,7 +500,7 @@ class Participant(models.Model):
             yield enums.TripIneligibilityReason.IS_TRIP_WIMP
             return
 
-        if self.missed_lectures_for(trip):
+        if self._cannot_attend_because_missed_lectures(trip):
             yield enums.TripIneligibilityReason.MISSED_WS_LECTURES
             # If the participant missed lectures, exit early and don't consider membership
             # (we don't want folks to pay money, only to realize they cannot attend)
