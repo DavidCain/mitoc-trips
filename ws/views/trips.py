@@ -420,7 +420,7 @@ class ApproveTripsView(ListView):
             activity=self.kwargs['activity'],
             trip_date__gte=local_date(),
             chair_approved=False,
-        )
+        ).select_related('info')
 
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):

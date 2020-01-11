@@ -803,6 +803,8 @@ class SignUp(BaseSignUp):
 
 
 class TripInfo(models.Model):
+    last_updated = models.DateTimeField(auto_now=True)
+
     drivers = models.ManyToManyField(
         Participant,
         blank=True,

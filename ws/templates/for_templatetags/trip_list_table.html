@@ -22,6 +22,15 @@
       <tr>
         <td>
           {% if approve_mode %}
+            {% if trip.info %}
+              <span uib-tooltip="Itinerary submitted">
+                <i class="fas fa-fw fa-check text-success"></i>
+              </span>
+            {% else %}
+              <span uib-tooltip="No itinerary!">
+                <i class="fas fa-fw fa-exclamation-triangle text-danger"></i>
+              </span>
+            {% endif %}
             <a href="{% url 'view_trip_for_approval' trip.activity trip.pk %}">
           {% else %}
             {% trip_icon trip %}<a href="{% url 'view_trip' trip.pk %}">
