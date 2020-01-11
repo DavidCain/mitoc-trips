@@ -409,12 +409,36 @@ class ApproveTripsViewTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIsNone(response.context['first_unapproved_trip'])
 
-        # Make some future trips now - these trips will be ranked by date!
-        # (Currently, reverse chronological order)
+        # Make some future trips now - these trips will be ranked by date/itinerary!
         fri = self._make_climbing_trip(trip_date=date(2019, 7, 5))
         sun = self._make_climbing_trip(trip_date=date(2019, 7, 7))
         sat = self._make_climbing_trip(trip_date=date(2019, 7, 6))
 
         context = self.client.get('/climbing/trips/').context
-        self.assertEqual(context['trips_needing_approval'], [sun, sat, fri])
-        self.assertEqual(context['first_unapproved_trip'], sun)
+        self.assertEqual(context['trips_needing_approval'], [fri, sat, sun])
+        self.assertEqual(context['first_unapproved_trip'], fri)
+
+    @freeze_time("2019-07-05 12:25:00 EST")
+    def test_trips_with_itinerary_first(self):
+        """ Trips that have an itinerary are first in the approval flow. """
+        perm_utils.make_chair(self.user, enums.Activity.CLIMBING)
+
+        sat_with_info = self._make_climbing_trip(
+            trip_date=date(2019, 7, 6), info=factories.TripInfoFactory.create(),
+        )
+        sat_without_info = self._make_climbing_trip(
+            trip_date=date(2019, 7, 6), info=None
+        )
+        sun_with_info = self._make_climbing_trip(
+            trip_date=date(2019, 7, 7), info=factories.TripInfoFactory.create(),
+        )
+        sun_without_info = self._make_climbing_trip(
+            trip_date=date(2019, 7, 7), info=None
+        )
+
+        context = self.client.get('/climbing/trips/').context
+        self.assertEqual(
+            context['trips_needing_approval'],
+            [sat_with_info, sat_without_info, sun_with_info, sun_without_info],
+        )
+        self.assertEqual(context['first_unapproved_trip'], sat_with_info)

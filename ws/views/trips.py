@@ -414,13 +414,17 @@ class ApproveTripsView(ListView):
     template_name = 'trips/all/manage.html'
 
     def get_queryset(self):
-        """ Filter to only *upcoming* trips needing approval. """
+        """ Filter to only *upcoming* trips needing approval, sort by those with itinerary!. """
         all_trips = super().get_queryset()
-        return all_trips.filter(
-            activity=self.kwargs['activity'],
-            trip_date__gte=local_date(),
-            chair_approved=False,
-        ).select_related('info')
+        return (
+            all_trips.filter(
+                activity=self.kwargs['activity'],
+                trip_date__gte=local_date(),
+                chair_approved=False,
+            ).select_related('info')
+            # TODO (Django 2): Be more explicit about nulls last
+            .order_by('trip_date', 'info')
+        )
 
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):

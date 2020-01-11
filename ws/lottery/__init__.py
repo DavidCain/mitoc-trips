@@ -2,9 +2,9 @@ from django.db.models import Case, F, IntegerField, Q, When
 
 
 def annotate_reciprocally_paired(participants):
-    """" Annotatate a QuerySet of participants to indicate if bidirectionally paired. """
+    """ Annotate a QuerySet of participants to indicate if bidirectionally paired. """
     is_reciprocally_paired = Q(
-        pk=F('lotteryinfo__paired_with__' 'lotteryinfo__paired_with__pk')
+        pk=F('lotteryinfo__paired_with__lotteryinfo__paired_with__pk')
     )
 
     return participants.annotate(
