@@ -35,6 +35,7 @@ def simple_trip_list(
     trip_list, max_title_chars=45, max_description_chars=120, collapse_date=False
 ):
     return {
+        'today': date_utils.local_date(),
         'trip_list': trip_list,
         'max_title_chars': max_title_chars,
         'max_description_chars': max_description_chars,

@@ -22,7 +22,15 @@
             {% if trip.in_past %}
               {{ trip.trip_date|date:"Y-m-d" }}
             {% else %}
-              {{ trip.trip_date|date:"D" }}
+              <span uib-tooltip="{{ trip.trip_date|date:'l, M j Y' }}" data-tooltip-placement="left">
+                {% if trip.trip_date == today %}
+                  Today
+                {% elif trip.less_than_a_week_away %}
+                  {{ trip.trip_date|date:"D" }}
+                {% else %}
+                  {{ trip.trip_date|date:"M j" }}
+                {% endif %}
+              </span>
             {% endif %}
           </td>
         {% endif %}

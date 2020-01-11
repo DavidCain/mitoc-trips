@@ -1046,6 +1046,18 @@ class Trip(models.Model):
         return self.trip_date < date_utils.local_date()
 
     @property
+    def less_than_a_week_away(self) -> bool:
+        """ Return if the trip is taking place less than a week away.
+
+        If true, this means we can refer to the trip's date unambiguously by
+        just day of the week.
+        """
+        if not self.upcoming:  # Don't count today or past trips
+            return False
+        time_diff = self.trip_date - date_utils.local_date()
+        return time_diff.days < 7
+
+    @property
     def upcoming(self):
         return self.trip_date > date_utils.local_date()
 

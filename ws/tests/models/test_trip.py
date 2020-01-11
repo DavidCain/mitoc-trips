@@ -199,3 +199,28 @@ class CleanTest(SimpleTestCase):
         with self.assertRaises(ValidationError) as cm:
             trip.clean()
         self.assertEqual(cm.exception.message, 'Trips cannot open after they close.')
+
+
+class TripDatesTest(SimpleTestCase):
+    @freeze_time("2020-01-16 18:45:22 EST")
+    def test_less_than_a_week_away(self):
+
+        past_trip = factories.TripFactory.build(trip_date=date(2020, 1, 15))
+        self.assertFalse(past_trip.less_than_a_week_away)
+
+        today_trip = factories.TripFactory.build(trip_date=date(2020, 1, 16))
+        self.assertFalse(today_trip.less_than_a_week_away)
+
+        tomorrow_trip = factories.TripFactory.build(trip_date=date(2020, 1, 17))
+        self.assertTrue(tomorrow_trip.less_than_a_week_away)
+
+        # Today (the 16th) is Thursday. The 23rd is also a Thursday.
+        next_week_trip = factories.TripFactory.build(trip_date=date(2020, 1, 23))
+        self.assertFalse(next_week_trip.less_than_a_week_away)
+
+        # The 22nd is the closest Wednesday!
+        next_wed_trip = factories.TripFactory.build(trip_date=date(2020, 1, 22))
+        self.assertTrue(next_wed_trip.less_than_a_week_away)
+
+        next_month_trip = factories.TripFactory.build(trip_date=date(2020, 2, 16))
+        self.assertFalse(next_month_trip.less_than_a_week_away)
