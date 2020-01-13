@@ -11,6 +11,59 @@ from ws import enums, models, tasks
 from ws.tests import TestCase, factories
 
 
+class LandingPageTests(TestCase):
+    @freeze_time("2020-01-12 09:00:00 EST")
+    def test_unauthenticated_rendering_enough_upcoming_trips(self):
+        # Ten upcoming trips, with the most recent ones first
+        ten_upcoming_trips = [
+            factories.TripFactory.create(trip_date=date(2020, 1, 30 - i))
+            for i in range(10)
+        ]
+
+        response = self.client.get('/')
+        soup = BeautifulSoup(response.content, 'html.parser')
+        lead_paragraph = soup.find('p', class_='lead')
+        self.assertEqual(
+            lead_paragraph.text,
+            'Come hiking, climbing, skiing, paddling, biking, and surfing with the MIT Outing Club!',
+        )
+
+        # All trips are listed in reverse chronological order
+        self.assertEqual(list(response.context['current_trips']), ten_upcoming_trips)
+        # No recent trips are needed, since we have more than eight
+        self.assertNotIn('recent_trips', response.context)
+
+    @freeze_time("2020-01-12 09:00:00 EST")
+    def test_unauthenticated_rendering_few_upcoming_trips(self):
+        # Ten previous trips, with the most recent ones first
+        ten_past_trips = [
+            factories.TripFactory.create(trip_date=date(2019, 12, 30 - i))
+            for i in range(1, 11)
+        ]
+
+        upcoming_trip1 = factories.TripFactory.create(trip_date=date(2020, 1, 15))
+        upcoming_trip2 = factories.TripFactory.create(trip_date=date(2020, 1, 20))
+
+        response = self.client.get('/')
+
+        # Upcoming trips are listed in reverse chronological order
+        self.assertEqual(
+            list(response.context['current_trips']), [upcoming_trip2, upcoming_trip1]
+        )
+        # Recent trips are shown until we have 8 total
+        self.assertEqual(list(response.context['recent_trips']), ten_past_trips[:6])
+
+
+class ProfileViewTests(TestCase):
+    def test_dated_affiliation_redirect(self):
+        # Make a participant with a legacy affiliation
+        participant = factories.ParticipantFactory.create(affiliation='S')
+        self.client.force_login(participant.user)
+        resp = self.client.get('/')
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(resp.url, '/profile/edit/')
+
+
 @freeze_time("2020-01-12 09:00:00 EST")
 class WimpDisplayInProfileViewTests(TestCase):
     def setUp(self):
