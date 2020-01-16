@@ -366,6 +366,10 @@ class ApproveTripsViewTest(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, '/accounts/login/?next=/climbing/trips/')
 
+    def test_not_an_activity_chair(self):
+        response = self.client.get('/climbing/trips/')
+        self.assertEqual(response.status_code, 403)
+
     def test_bad_activity(self):
         response = self.client.get('/snowmobiling/trips/')
         self.assertEqual(response.status_code, 404)
@@ -442,3 +446,42 @@ class ApproveTripsViewTest(TestCase):
             [sat_with_info, sat_without_info, sun_with_info, sun_without_info],
         )
         self.assertEqual(context['first_unapproved_trip'], sat_with_info)
+
+    @freeze_time("2019-07-05 12:25:00 EST")
+    def test_trips_needing_itinerary(self):
+        perm_utils.make_chair(self.user, enums.Activity.CLIMBING)
+
+        sat_trip = self._make_climbing_trip(trip_date=date(2019, 7, 6))
+        sun_trip = self._make_climbing_trip(trip_date=date(2019, 7, 7))
+        sun_trip_info = self._make_climbing_trip(
+            trip_date=date(2019, 7, 7), info=factories.TripInfoFactory.create()
+        )
+
+        dean = factories.ParticipantFactory.create(
+            name="Dean Potter", email="dean@example.com"
+        )
+        sun_trip.leaders.add(dean)
+
+        # Leaders with multiple trips aren't repeated
+        lynn = factories.ParticipantFactory.create(
+            name="Lynn Hill", email="lynn@example.com"
+        )
+        sat_trip.leaders.add(lynn)
+        sun_trip.leaders.add(lynn)
+
+        # This trip is a week away; itineraries aren't open yet
+        next_sat_trip = self._make_climbing_trip(trip_date=date(2019, 7, 13))
+
+        # Alex has no trips that need itinerary
+        alex = factories.ParticipantFactory.create(
+            name="Alex Puccio", email="alex@example.com"
+        )
+        sun_trip_info.leaders.add(alex)
+        next_sat_trip.leaders.add(alex)
+
+        context = self.client.get('/climbing/trips/').context
+        # Leaders are sorted by name
+        self.assertEqual(
+            context['leader_emails_missing_itinerary'],
+            '"Dean Potter" <dean@example.com>, "Lynn Hill" <lynn@example.com>',
+        )

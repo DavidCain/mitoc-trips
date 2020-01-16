@@ -22,6 +22,7 @@ from django.views.generic import (
     UpdateView,
 )
 
+import ws.utils.dates as date_utils
 import ws.utils.perms as perm_utils
 import ws.utils.signups as signup_utils
 from ws import enums, forms, models
@@ -421,7 +422,9 @@ class ApproveTripsView(ListView):
                 activity=self.kwargs['activity'],
                 trip_date__gte=local_date(),
                 chair_approved=False,
-            ).select_related('info')
+            )
+            .select_related('info')
+            .prefetch_related('leaders', 'leaders__leaderrating_set')
             # TODO (Django 2): Be more explicit about nulls last
             .order_by('trip_date', 'info')
         )
@@ -437,10 +440,24 @@ class ApproveTripsView(ListView):
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
 
+    @staticmethod
+    def _leader_emails_missing_itinerary(trips):
+        now = date_utils.local_now()
+        no_itinerary_trips = (trip for trip in trips if not trip.info)
+
+        for trip in no_itinerary_trips:
+            if now < date_utils.itinerary_available_at(trip.trip_date):
+                continue  # Not yet able to submit!
+            for leader in trip.leaders.all():
+                yield leader.email_addr
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         trips = list(context['object_list'])
         context['trips_needing_approval'] = trips
+        context['leader_emails_missing_itinerary'] = ', '.join(
+            sorted(set(self._leader_emails_missing_itinerary(trips)))
+        )
         context['first_unapproved_trip'] = trips[0] if trips else None
         return context
 

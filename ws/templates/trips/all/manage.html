@@ -17,6 +17,11 @@
 
 {% if trips_needing_approval %}
   {% trip_list_table trips_needing_approval True %}
+
+  {% if leader_emails_missing_itinerary %}
+    <h3>Leaders of trips missing an itinerary</h3>
+    <pre class="wrapped-emails">{{ leader_emails_missing_itinerary }}</pre>
+  {% endif %}
 {% else %}
   <p class="lead">
     No current or upcoming trips!
