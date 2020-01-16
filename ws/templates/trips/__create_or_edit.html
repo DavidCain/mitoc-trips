@@ -55,7 +55,9 @@
           <div data-ng-if="(algorithm === 'lottery') && (program !== 'winter_school')">
             {% form_group form.honor_participant_pairing True %}
           </div>
-          {% form_group form.let_participants_drop True %}
+          <div data-ng-if="program !== 'winter_school'">
+            {% form_group form.let_participants_drop True %}
+          </div>
         </div>
       </div>
 
