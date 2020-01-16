@@ -829,7 +829,7 @@ class TripInfo(models.Model):
     )
     worry_time = models.CharField(
         max_length=63,
-        help_text="Suggested: return time +3 hours. "
+        help_text="Suggested: 7 pm, or return time +2 hours (whichever is later). "
         "If the WIMP has not heard from you after this time and is unable "
         "to make contact with any leaders or participants, "
         "the authorities will be called.",
