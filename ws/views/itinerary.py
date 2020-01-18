@@ -67,10 +67,14 @@ class TripItineraryView(UpdateView, TripLeadersOnlyView, ItineraryInfoFormMixin)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        trip = context['trip']
+        now = local_now()
         context['itinerary_available_at'] = itinerary_available_at(self.trip.trip_date)
-        context['info_form_available'] = (
-            local_now() >= context['itinerary_available_at']
+
+        context['info_form_editable'] = (
+            now >= context['itinerary_available_at'] and now.date() <= trip.trip_date
         )
+        context['waiting_to_open'] = local_now() < context['itinerary_available_at']
         return context
 
     def get_initial(self):

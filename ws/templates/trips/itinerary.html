@@ -11,8 +11,22 @@ complete the following form. The responses you give here are very important -
 they are automatically relayed to the WIMP, and will be used to coordinate
 any search and rescue efforts.</p>
 
-<p>This form becomes available the Friday before your trip, and is available
-for editing through the day of your trip.</p>
+<p>
+  This form
+  {% if waiting_to_open %}
+    will become available at {{ itinerary_available_at|date:"g a" }}
+    on {{ itinerary_available_at|date:"l, M jS" }},
+  {% else %}
+    became available at {{ itinerary_available_at|date:"g a" }}
+    on {{ itinerary_available_at|date:"M j, Y" }},
+  {% endif %}
+  and
+
+  {# TODO: make unable to be edited after trip concludes #}
+  may be
+
+  edited through the day of the trip ({{ trip.trip_date|date:"l, M jS" }}).
+</p>
 
 <p><strong>Important:</strong> If you make any changes to your trip itinerary,
 you should return to this page and update the appropriate fields. This will ensure
@@ -21,7 +35,9 @@ that the WIMP has the most up-to-date information regarding your trip.</p>
 <hr />
 
 <h2>WIMP information submission</h2>
-{% if info_form_available %}
+{% if not info_form.editable %}
+  <p>This form will be available at {{ itinerary_available_at }}.</p>
+{% else %}
   <form name="{{ form.form_name }}" action="" method="post" novalidate data-submit-if-valid>
     {% csrf_token %}
     <div class="alert alert-warning">
@@ -38,8 +54,6 @@ that the WIMP has the most up-to-date information regarding your trip.</p>
     </div>
     <button type="submit" class="btn btn-primary">Submit</button>
   </form>
-{% else %}
-  <p>This form will be available at {{ itinerary_available_at }}.</p>
 {% endif %}
 
 {% endblock content %}
