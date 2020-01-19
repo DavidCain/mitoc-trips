@@ -1,9 +1,8 @@
-<dd>{% if form %}
+{% if form %}
 <dl class="dl-horizontal">
   {% for field in form %}
   <dt>{{ field.label }}:</dt>
-  <dd>{{ field.errors }} {{ field.value }}</dd>
+  <dd>{{ field.value }}</dd>
   {% endfor %}
 </dl>
 {% endif %}
-</dd>
