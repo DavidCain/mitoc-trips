@@ -1,0 +1,61 @@
+{% load medical_tags %}
+{% load signup_tags %}
+
+{% include "snippets/phi_omitted_notice.html" %}
+
+<h3>Trip Information</h3>
+{% if trip.info %}
+  <h4>Itinerary</h4>
+  {% trip_itinerary trip %}
+{% else %}
+  <div class="alert alert-danger">
+    A
+    {% if is_trip_leader %}
+      <a href="{% url 'trip_itinerary' trip.pk %}">detailed trip itinerary</a>
+    {% else %}
+      detailed trip itinerary
+    {% endif %}
+    has not been submitted for this trip!
+  </div>
+{% endif %}
+
+{% if trip.info or show_participants_if_no_itinerary %}
+  <h3>Medical information </h3>
+  {% if hide_sensitive_info %}
+    <div class="alert alert-info">
+      This trip occurred on {{ trip.trip_date|date:"D, M j" }}.
+      To preserve participant privacy, sensitive medical information
+      has been redacted from this table. If this is in error, please
+      <a href="{% url 'contact' %}">contact us</a>.
+    </div>
+  {% endif %}
+
+
+  <h4>Participants</h4>
+  {% if participants %}
+    {% medical_table participants hide_sensitive_info %}
+  {% else %}
+    <p>No participants.</p>
+  {% endif %}
+
+  <h4>Leaders</h4>
+  {% medical_table trip_leaders hide_sensitive_info %}
+
+  <h4>Drivers</h4>
+  {% if not cars %}
+    <p>Nobody on this trip submitted information for a car.</p>
+  {% else %}
+    {% if not trip.info %}
+      <div class="alert alert-warning">
+        The below table is for all trip-goers that submitted car information.
+        It may not represent who's actually driving for this trip.
+      </div>
+    {% endif %}
+
+    <p>
+      The "Car Status" column specifies whether each person intended to
+      rent a car, drive their own car, or not drive for this weekend's trips.
+    </p>
+    {% driver_table cars %}
+  {% endif %}
+{% endif %}

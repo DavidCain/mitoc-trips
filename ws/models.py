@@ -1133,6 +1133,17 @@ class Trip(models.Model):
         min_order = last_signup.manual_order or 0
         return min_order + 1
 
+    @property
+    def info_editable(self):
+        now = date_utils.local_now()
+
+        # Past trips may not be edited!
+        if now.date() > self.trip_date:
+            return False
+
+        # Otherwise, info (including itinerary) should be editable after the cutoff has passed
+        return now > date_utils.itinerary_available_at(self.trip_date)
+
     def make_fcfs(self, signups_open_at=None):
         """ Set the algorithm to FCFS, adjust signup times appropriately. """
         self.algorithm = 'fcfs'

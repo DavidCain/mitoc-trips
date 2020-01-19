@@ -54,7 +54,7 @@
 <hr>
 
 
-{% for trip, participants, trip_leaders, cars, info_form in all_trips %}
+{% for trip in trips %}
   <h3><a href="{% url 'view_trip' trip.id %}">{{ trip.name }}</a></h3>
 
   <dl class="dl-horizontal">
@@ -64,31 +64,7 @@
     <dd>{{ trip.description|truncatewords:100 }}</dd>
   </dl>
 
-  <h4>Itinerary</h4>
-  {% if info_form %}
-      {% readonly_form info_form %}
-  {% else %}
-    <div class='alert alert-danger'>
-      <strong>No trip itinerary information submitted!</strong>
-    </div>
-  {% endif %}
-
-  <h4>Participants</h4>
-  {% if participants %}
-    {% medical_table participants %}
-  {% else %}
-    <p>No participants.</p>
-  {% endif %}
-
-  <h4>Leaders</h4>
-  {% medical_table trip_leaders %}
-
-  <h4>Drivers</h4>
-  {% if not cars %}
-    <p>Nobody on this trip submitted information for a car.</p>
-  {% else %}
-    {% driver_table cars %}
-  {% endif %}
+  {% trip_info trip %}
 
   <hr>
 {% empty %}

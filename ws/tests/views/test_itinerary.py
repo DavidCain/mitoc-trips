@@ -9,6 +9,126 @@ from ws import enums, models
 from ws.tests import TestCase, factories, strip_whitespace
 
 
+class TripItineraryViewTest(TestCase):
+    VALID_FORM_BODY = {
+        'drivers': [],
+        'start_location': 'At the trailhead.',
+        'start_time': '9 am',
+        'turnaround_time': 'noon',
+        'return_time': '3 pm',
+        'worry_time': '5 pm',
+        'itinerary': 'Go up a mountain, then come back',
+        # This special extra field is a required affirmation
+        'accurate': True,
+    }
+
+    def setUp(self):
+        self.participant = factories.ParticipantFactory.create()
+        self.client.force_login(self.participant.user)
+        self.trip = factories.TripFactory.create(
+            program=enums.Program.CLIMBING.value, trip_date=date(2018, 2, 18)
+        )
+
+    def _render(self):
+        response = self.client.get(f'/trips/{self.trip.pk}/itinerary/')
+        soup = BeautifulSoup(response.content, 'html.parser')
+        return response, soup
+
+    def test_unauthenticated(self):
+        self.client.logout()
+        response, _ = self._render()
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response.url, f'/accounts/login/?next=/trips/{self.trip.pk}/itinerary/'
+        )
+
+    def test_not_leader(self):
+        # Normal participants cannot view, but they get a 200 explaining why
+        _, soup = self._render()
+        self.assertTrue(soup.find('h2', text='Must be a leader to administrate trip'))
+        self.assertFalse(soup.find('form'))
+
+    def test_not_leader_on_trip(self):
+        _, soup = self._render()
+        factories.LeaderRatingFactory.create(
+            participant=self.participant, activity=enums.Activity.CLIMBING.value
+        )
+        self.assertTrue(soup.find('h2', text='Must be a leader to administrate trip'))
+        self.assertFalse(soup.find('form'))
+
+    @freeze_time("2018-02-14 12:25:00 EST")
+    def test_not_yet_editable(self):
+        self.trip.leaders.add(self.participant)
+
+        # Trip is Sunday. On Wednesday, we can't yet edit!
+        _, soup = self._render()
+        heading = soup.find('h2', text='WIMP information submission')
+        par = heading.find_next('p')
+        self.assertEqual(
+            strip_whitespace(par.text),
+            'This form will become available at 6 p.m. on Thursday, Feb 15th.',
+        )
+        self.assertFalse(soup.find('form'))
+
+        # Submitting does not work!
+        resp = self.client.post(
+            f'/trips/{self.trip.pk}/itinerary/', self.VALID_FORM_BODY,
+        )
+        self.assertEqual(
+            resp.context['form'].errors, {'__all__': ['Itinerary cannot be created']}
+        )
+        self.trip.refresh_from_db()
+        self.assertIsNone(self.trip.info)
+
+    @freeze_time("2018-02-16 18:45:00 EST")
+    def test_currently_editable(self):
+        self.trip.leaders.add(self.participant)
+        _, soup = self._render()
+        par = soup.find('p')
+        self.assertEqual(
+            strip_whitespace(par.text),
+            'This form became available at 6 p.m. on Feb 15, 2018 '
+            'and may be edited through the day of the trip (Sunday, Feb 18th).',
+        )
+        self.assertTrue(soup.find('form'))
+
+        # Posting at this URL creates an itinerary!
+        self.assertIsNone(self.trip.info)
+        creation_resp = self.client.post(
+            f'/trips/{self.trip.pk}/itinerary/', self.VALID_FORM_BODY,
+        )
+        self.assertEqual(creation_resp.status_code, 302)
+        self.assertEqual(creation_resp.url, f'/trips/{self.trip.pk}/')
+
+        self.trip.refresh_from_db()
+        self.assertIsNotNone(self.trip.info)
+
+    @freeze_time("2018-02-15 08:45:00 EST")
+    def test_no_longer_editable(self):
+        self.trip.leaders.add(self.participant)
+
+        _, soup = self._render()
+        par = soup.find('p')
+        self.assertEqual(
+            strip_whitespace(par.text),
+            'This form will become available at 6 p.m. on Thursday, Feb 15th '
+            'and may be edited through the day of the trip (Sunday, Feb 18th).',
+        )
+
+        # No longer editable!
+        self.assertFalse(soup.find('form'))
+
+        # Submitting does not work!
+        resp = self.client.post(
+            f'/trips/{self.trip.pk}/itinerary/', self.VALID_FORM_BODY,
+        )
+        self.assertEqual(
+            resp.context['form'].errors, {'__all__': ['Itinerary cannot be created']}
+        )
+        self.trip.refresh_from_db()
+        self.assertIsNone(self.trip.info)
+
+
 @freeze_time("2020-01-01 12:25:00 EST")
 class AllTripsMedicalViewTest(TestCase):
     def setUp(self):
@@ -24,7 +144,7 @@ class AllTripsMedicalViewTest(TestCase):
     def test_no_upcoming_trips(self):
         perm_utils.make_chair(self.user, enums.Activity.WINTER_SCHOOL)
         response = self.client.get('/trips/medical/')
-        self.assertEqual(response.context['all_trips'], [])
+        self.assertFalse(response.context['trips'].exists())
 
         soup = BeautifulSoup(response.content, 'html.parser')
 
@@ -46,8 +166,7 @@ class AllTripsMedicalViewTest(TestCase):
         jan2 = factories.TripFactory.create(name="2nd Trip", trip_date=date(2020, 1, 2))
 
         response = self.client.get('/trips/medical/')
-        trips_for_context = [trip for (trip, *_) in response.context['all_trips']]
-        self.assertEqual(trips_for_context, [jan2, jan3])
+        self.assertEqual(list(response.context['trips']), [jan2, jan3])
 
         soup = BeautifulSoup(response.content, 'html.parser')
 

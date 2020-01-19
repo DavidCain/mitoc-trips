@@ -1,7 +1,7 @@
 {% extends "base.html" %}
+{% load medical_tags %}
 {% load signup_tags %}
 {% load trip_tags %}
-{% load form_tags %}
 
 {% block head_title %}{{ trip.name }}{% endblock head_title %}
 
@@ -59,13 +59,14 @@
   </div>
   <div class="col-md-6">
     <h2>Trip Itinerary</h2>
-    {% if info_form %}
-      {% readonly_form info_form %}
+    {% if trip.info %}
+      {% trip_itinerary trip %}
     {% else %}
       <div class="alert alert-warning">
         No trip itinerary posted!
       </div>
     {% endif %}
+
   </div>
 </div>
 

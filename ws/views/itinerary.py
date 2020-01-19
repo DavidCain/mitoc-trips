@@ -5,8 +5,6 @@ Each official trip should have an itinerary completed by trip leaders.
 That itinerary specifies who (if anybody) will be driving for the trip,
 what the intended route will be, when to worry, and more.
 """
-from datetime import timedelta
-
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
@@ -21,43 +19,9 @@ from ws import forms, models, wimp
 from ws.decorators import group_required
 from ws.mixins import TripLeadersOnlyView
 from ws.utils.dates import itinerary_available_at, local_date, local_now
-from ws.utils.itinerary import get_cars
 
 
-class ItineraryInfoFormMixin:
-    @staticmethod
-    def get_info_form(trip):
-        """ Return a stripped form for read-only display.
-
-        Drivers will be displayed separately, and the 'accuracy' checkbox
-        isn't needed for display.
-        """
-        if not trip.info:
-            return None
-        info_form = forms.TripInfoForm(instance=trip.info)
-        info_form.fields.pop('drivers')
-        info_form.fields.pop('accurate')
-        return info_form
-
-
-class TripMedical(ItineraryInfoFormMixin):
-    def get_trip_info(self, trip):
-        return {
-            'trip': trip,
-            'participants': (
-                trip.signed_up_participants.filter(signup__on_trip=True).select_related(
-                    'emergency_info__emergency_contact'
-                )
-            ),
-            'trip_leaders': (
-                trip.leaders.select_related('emergency_info__emergency_contact')
-            ),
-            'cars': get_cars(trip),
-            'info_form': self.get_info_form(trip),
-        }
-
-
-class TripItineraryView(UpdateView, TripLeadersOnlyView, ItineraryInfoFormMixin):
+class TripItineraryView(UpdateView, TripLeadersOnlyView):
     """ A hybrid view for creating/editing trip info for a given trip. """
 
     model = models.Trip
@@ -68,12 +32,8 @@ class TripItineraryView(UpdateView, TripLeadersOnlyView, ItineraryInfoFormMixin)
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         trip = context['trip']
-        now = local_now()
-        context['itinerary_available_at'] = itinerary_available_at(self.trip.trip_date)
-
-        context['info_form_editable'] = (
-            now >= context['itinerary_available_at'] and now.date() <= trip.trip_date
-        )
+        context['itinerary_available_at'] = itinerary_available_at(trip.trip_date)
+        context['info_form_editable'] = trip.info_editable
         context['waiting_to_open'] = local_now() < context['itinerary_available_at']
         return context
 
@@ -96,18 +56,19 @@ class TripItineraryView(UpdateView, TripLeadersOnlyView, ItineraryInfoFormMixin)
         return form
 
     def form_valid(self, form):
-        if local_now() < itinerary_available_at(self.trip.trip_date):
-            form.errors['__all__'] = ErrorList(["Form not yet available!"])
+        if not self.trip.info_editable:
+            verb = "modified" if self.trip.info else "created"
+            form.errors['__all__'] = ErrorList([f"Itinerary cannot be {verb}"])
             return self.form_invalid(form)
         self.trip.info = form.save()
         self.trip.save()
         return super().form_valid(form)
 
     def get_success_url(self):
-        return reverse('view_trip', args=(self.trip.id,))
+        return reverse('view_trip', args=(self.trip.pk,))
 
 
-class AllTripsMedicalView(ListView, TripMedical):
+class AllTripsMedicalView(ListView):
     model = models.Trip
     template_name = 'trips/all/medical.html'
     context_object_name = 'trips'
@@ -119,12 +80,6 @@ class AllTripsMedicalView(ListView, TripMedical):
 
     def get_context_data(self, **kwargs):
         context_data = super().get_context_data(**kwargs)
-        by_trip = (self.get_trip_info(trip) for trip in self.get_queryset())
-        all_trips = [
-            (c['trip'], c['participants'], c['trip_leaders'], c['cars'], c['info_form'])
-            for c in by_trip
-        ]
-        context_data['all_trips'] = all_trips
         context_data['wimps'] = wimp.active_wimps()
         return context_data
 
@@ -133,7 +88,7 @@ class AllTripsMedicalView(ListView, TripMedical):
         return super().dispatch(request, *args, **kwargs)
 
 
-class TripMedicalView(DetailView, TripMedical):
+class TripMedicalView(DetailView):
     model = models.Trip
     template_name = 'trips/medical.html'
 
@@ -160,22 +115,15 @@ class TripMedicalView(DetailView, TripMedical):
 
     def get_context_data(self, **kwargs):
         """ Get a trip info form for display as readonly. """
+        context_data = super().get_context_data(**kwargs)
         trip = self.object
         participant = self.request.participant
-        context_data = self.get_trip_info(trip)
         context_data['is_trip_leader'] = perm_utils.leader_on_trip(participant, trip)
-        context_data['info_form'] = self.get_info_form(trip)
 
-        # After a sufficiently long waiting period, hide medical information
-        # (We could need medical info a day or two after a trip was due back)
-        # Some trips last for multiple days (trip date is Friday, return is Sunday)
-        # Because we only record a single trip date, give a few extra days' buffer
-        is_past_trip = local_date() > (trip.trip_date + timedelta(days=5))
-        context_data['hide_sensitive_info'] = is_past_trip
         return context_data
 
 
-class ChairTripView(TripMedical, DetailView):
+class ChairTripView(DetailView):
     """ Give a view of the trip intended to let chairs approve or not.
 
     Will show just the important details, like leaders, description, & itinerary.
@@ -226,8 +174,6 @@ class ChairTripView(TripMedical, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['activity'] = self.activity
-
-        context['info_form'] = self.get_info_form(context['trip'])
 
         # Provide buttons for quick navigation between upcoming trips needing approval
         context['prev_trip'], context['next_trip'] = self.get_other_trips()

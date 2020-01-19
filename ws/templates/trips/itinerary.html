@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load medical_tags %}
 
 {% block head_title %}Submit itinerary - {{ trip.name }}{% endblock head_title %}
 
@@ -6,38 +7,50 @@
 
 <h2><a href="{% url 'view_trip' trip.id %}">{{ trip }}</a>: Trip Emergency Information</h2>
 
-<p>Before departing on your trip, it's imperative that one of the leaders
-complete the following form. The responses you give here are very important -
-they are automatically relayed to the WIMP, and will be used to coordinate
-any search and rescue efforts.</p>
-
 <p>
   This form
   {% if waiting_to_open %}
     will become available at {{ itinerary_available_at|date:"g a" }}
-    on {{ itinerary_available_at|date:"l, M jS" }},
+    on {{ itinerary_available_at|date:"l, M jS" }}
   {% else %}
     became available at {{ itinerary_available_at|date:"g a" }}
-    on {{ itinerary_available_at|date:"M j, Y" }},
+    on {{ itinerary_available_at|date:"M j, Y" }}
   {% endif %}
   and
 
-  {# TODO: make unable to be edited after trip concludes #}
-  may be
+  {% if info_form_editable or waiting_to_open %}
+    may be
+  {% else %}
+    was able to be
+  {% endif %}
 
   edited through the day of the trip ({{ trip.trip_date|date:"l, M jS" }}).
 </p>
 
-<p><strong>Important:</strong> If you make any changes to your trip itinerary,
-you should return to this page and update the appropriate fields. This will ensure
-that the WIMP has the most up-to-date information regarding your trip.</p>
+{% if info_form_editable or waiting_to_open %}
+  <p class="lead">
+    Before departing on your trip, it's imperative that one of the leaders
+    complete the following form. The responses you give here are very important -
+    they are automatically relayed to the WIMP, and will be used to coordinate
+    any search and rescue efforts.
+  </p>
+
+  <p>
+    <strong>Important:</strong> If you make any changes to your trip itinerary,
+    you should return to this page and update the appropriate fields. This will ensure
+    that the WIMP has the most up-to-date information regarding your trip.
+  </p>
+{% endif %}
 
 <hr />
 
 <h2>WIMP information submission</h2>
-{% if not info_form.editable %}
-  <p>This form will be available at {{ itinerary_available_at }}.</p>
-{% else %}
+{% if waiting_to_open %}
+  <p>
+    This form will become available at {{ itinerary_available_at|date:"g a" }}
+    on {{ itinerary_available_at|date:"l, M jS" }}.
+  </p>
+{% elif info_form_editable %}
   <form name="{{ form.form_name }}" action="" method="post" novalidate data-submit-if-valid>
     {% csrf_token %}
     <div class="alert alert-warning">
@@ -54,6 +67,8 @@ that the WIMP has the most up-to-date information regarding your trip.</p>
     </div>
     <button type="submit" class="btn btn-primary">Submit</button>
   </form>
+{% else %}
+  {% trip_info trip %}
 {% endif %}
 
 {% endblock content %}
