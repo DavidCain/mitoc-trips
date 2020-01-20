@@ -1434,10 +1434,8 @@ class LeaderApplication(models.Model):
         return ws_settings.accept_applications
 
     @staticmethod
-    def can_apply_for_activity(activity):
+    def can_apply_for_activity(activity) -> bool:
         """ Return if an application exists for the activity. """
-        if activity not in LeaderRating.CLOSED_ACTIVITIES:
-            return False
         return bool(LeaderApplication.model_from_activity(activity))
 
     @classmethod
@@ -1480,12 +1478,6 @@ class LeaderApplication(models.Model):
             return None
         else:
             return content_type.model_class()
-
-    @classmethod
-    def from_activity(cls, activity):
-        """ Factory for returning appropriate application type. """
-        model = cls.model_from_activity(activity)
-        return super(LeaderApplication, cls).__new__(model) if model else None
 
     class Meta:
         # Important!!! Child classes must be named: <activity>LeaderApplication

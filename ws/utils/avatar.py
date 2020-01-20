@@ -4,10 +4,9 @@ import urllib.parse
 from ws import settings
 
 
-def gravatar_url(email, size=40):
-    if isinstance(email, str):  # Bytestrings okay, unicode must be encoded
-        email = email.encode('utf-8')
-    email_hash = hashlib.md5(email.lower()).hexdigest()
+def gravatar_url(email: str, size=40):
+    email_bytes = email.encode('utf-8').lower()
+    email_hash = hashlib.md5(email_bytes).hexdigest()
     options = urllib.parse.urlencode({'d': 'mm', 's': size, 'r': 'pg'})
     return f"https://www.gravatar.com/avatar/{email_hash}?{options}"
 

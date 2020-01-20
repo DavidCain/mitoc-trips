@@ -166,8 +166,9 @@ class WinterSchoolLotteryRunner(LotteryRunner):
             self.logger.debug('-' * max(len(line) for line in handling_header))
             par_handler = WinterSchoolParticipantHandler(participant, self)
 
-            json_result = par_handler.place_participant()
-            if json_result is not None:
-                json_result['global_rank'] = global_rank
-                json_result['has_flaked'] = key.flake_factor > 0
-                self.logger.debug("RESULT: %s", json.dumps(json_result))
+            json_result = {
+                **par_handler.place_participant(),
+                'global_rank': global_rank,
+                'has_flaked': key.flake_factor > 0,
+            }
+            self.logger.debug("RESULT: %s", json.dumps(json_result))
