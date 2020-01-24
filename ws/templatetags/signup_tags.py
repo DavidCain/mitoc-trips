@@ -1,8 +1,10 @@
 from itertools import chain
 
 from django import template
+from django.db.models import Q
 from django.forms import HiddenInput
 
+from ws import models
 from ws.enums import Program, TripType
 from ws.forms import SignUpForm
 from ws.utils.dates import local_date
@@ -86,12 +88,31 @@ def already_signed_up(trip, signup):
     return {'trip': trip, 'existing_signup': signup}
 
 
+def _same_day_trips(participant, trip):
+    """ Return other trips this participant is on that take place on the same day. """
+    if participant is None:
+        return None
+
+    signup_on_trip = Q(signup__participant=participant, signup__on_trip=True)
+
+    return (
+        models.Trip.objects.filter()
+        .filter(trip_date=trip.trip_date)
+        .filter(Q(leaders=participant) | signup_on_trip)
+        # It shouldn't be possible for this template to be rendered if the viewer
+        # is a leader or a participant on this trip. Cover it anyway.
+        .exclude(pk=trip.pk)
+        .distinct()
+    )
+
+
 @register.inclusion_tag('for_templatetags/signup_modes/signups_open.html')
-def signups_open(user, trip, signup_form, leader_signup_allowed):
+def signups_open(user, participant, trip, signup_form, leader_signup_allowed):
     """ What to display when signups are open for a trip. """
     return {
         'user': user,
         'trip': trip,
+        'same_day_trips': _same_day_trips(participant, trip),
         'reasons_cannot_attend': list(reasons_cannot_attend(user, trip)),
         'signup_form': signup_form,
         'leader_signup_allowed': leader_signup_allowed,

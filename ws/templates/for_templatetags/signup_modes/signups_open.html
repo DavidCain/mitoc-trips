@@ -29,6 +29,15 @@
     <div {% if leader_signup_allowed %}class="hidden"{% endif %}>
       {{ signup_form.as_div }}
     </div>
+    {% if same_day_trips %}
+      <div class="alert alert-danger">
+        <strong>Are you sure you can attend?</strong>
+        You're also attending
+        {% for trip in same_day_trips %}
+          <a href="{% url 'view_trip' trip.pk %}">{{ trip.name }}</a>{% if forloop.last %}.{% else %},{% endif %}
+        {% endfor %}
+      </div>
+    {% endif %}
     <button type="submit" class="btn btn-primary">Sign up{% if leader_signup_allowed %} as participant{% endif %}</button>
   </form>
 {% endif %}

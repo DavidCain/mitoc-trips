@@ -9,7 +9,7 @@
   {% if existing_signup %}
     {% already_signed_up trip existing_signup %}
   {% else %}
-    {% signups_open user trip signup_form leader_signup_allowed %}
+    {% signups_open user participant trip signup_form leader_signup_allowed %}
   {% endif %}
 {% elif trip.signups_not_yet_open %}
   {% not_yet_open user trip signup_form leader_signup_allowed %}

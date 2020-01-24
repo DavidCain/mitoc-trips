@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from unittest import mock
 
 from bs4 import BeautifulSoup
@@ -225,6 +225,70 @@ class SignupForTripTests(TestCase):
         soup = self._render(signup.participant, trip)
         self.assertIsNone(soup.find('form'))
         self.assertTrue(soup.find('delete', attrs={'data-label': 'Drop off trip'}))
+
+    def test_signed_up_for_another_trip_that_day(self):
+        trip = self._make_trip(name="Some Trip That Same Day")
+
+        signup = factories.SignUpFactory.create(trip=trip, on_trip=True)
+
+        same_day_trip = self._make_trip()
+        self.assertEqual(same_day_trip.trip_date, trip.trip_date)
+
+        # The participant is warned if trying to sign up that they have a trip that day!
+        soup = self._render(signup.participant, same_day_trip)
+        danger = soup.find(class_='alert alert-danger')
+        self.assertEqual(
+            strip_whitespace(danger.text),
+            "Are you sure you can attend? You're also attending Some Trip That Same Day.",
+        )
+        # They can still sign up, though!
+        self.assertTrue(soup.find('form'))
+
+    def test_leading_another_trip_that_day(self):
+        trip = self._make_trip(name="Some Trip That Same Day")
+        leader = self._leader(trip.activity)
+        trip.leaders.add(leader)
+
+        same_day_trip = self._make_trip()
+        self.assertEqual(same_day_trip.trip_date, trip.trip_date)
+
+        # The leader is warned that they have a trip that day!
+        soup = self._render(leader, same_day_trip)
+        danger = soup.find(class_='alert alert-danger')
+        self.assertEqual(
+            strip_whitespace(danger.text),
+            "Are you sure you can attend? You're also attending Some Trip That Same Day.",
+        )
+        # They can still sign up, though!
+        self.assertTrue(soup.find('form'))
+
+    def test_same_day_but_no_warning(self):
+        trip = self._make_trip(name='foo')
+
+        # We only look at signups where you're *on* the trip
+        signup = factories.SignUpFactory.create(trip=trip, on_trip=False)
+        # TODO: Fix this weird bug. Why is `on_trip` becoming `True` when `trip` is present?
+        # self.assertFalse(signup.on_trip)
+        signup.on_trip = False
+        signup.save()
+
+        off_trip = signup.participant
+
+        # Leading a trip or participating the previous day does not count!
+        yesterday = self._make_trip(trip_date=trip.trip_date - timedelta(days=1))
+        leader = self._leader(trip.activity)
+        yesterday.leaders.add(leader)
+        yesterday_par = factories.SignUpFactory.create(
+            trip=yesterday, on_trip=True
+        ).participant
+
+        # None of these participants will be warned about same-day trips.
+        same_day_trip = self._make_trip(name="Same Day")
+        self.assertEqual(same_day_trip.trip_date, trip.trip_date)
+        for par in [off_trip, leader, yesterday_par]:
+            soup = self._render(par, same_day_trip)
+            self.assertFalse(soup.find(class_='alert alert-danger'))
+            self.assertTrue(soup.find('form'))
 
 
 class MembershipActiveTests(TestCase):
