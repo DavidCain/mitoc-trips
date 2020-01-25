@@ -120,11 +120,9 @@ class PurgeNonStudentDiscountsTests(TestCase):
         # Assign both discounts to everybody, since they're all currently students
         everybody = [former_undergrad, former_grad_student, alum, *current_students]
         for participant in everybody:
-            participant.discounts = [
-                self.discount_for_everybody,
-                self.student_only_discount,
-            ]
-            participant.save()
+            participant.discounts.set(
+                [self.discount_for_everybody, self.student_only_discount]
+            )
 
         # The former students move into non-student statuses
         alum.affiliation = 'ML'

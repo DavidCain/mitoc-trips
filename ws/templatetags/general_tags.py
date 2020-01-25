@@ -2,17 +2,15 @@ import re
 
 from django import template
 from django.template.base import Node
-from django.utils.functional import allow_lazy
+from django.utils.functional import keep_lazy
 
 register = template.Library()
 
 
+@keep_lazy(str)
 def strip_empty_lines(value):
     """Return the given HTML with empty and all-whitespace lines removed."""
     return re.sub(r'\n[ \t]*(?=\n)', '', value)
-
-
-strip_empty_lines = allow_lazy(strip_empty_lines, str)
 
 
 @register.tag

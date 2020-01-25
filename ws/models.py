@@ -11,7 +11,7 @@ from django.db.models import F, Q
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.utils.safestring import mark_safe
-from django.utils.translation import string_concat
+from django.utils.text import format_lazy
 from localflavor.us.models import USStateField
 from mitoc_const import affiliations
 from mitoc_const.membership import RENEWAL_ALLOWED_WITH_DAYS_LEFT
@@ -262,10 +262,10 @@ class Participant(models.Model):
     emergency_info = models.OneToOneField(EmergencyInfo, on_delete=models.CASCADE)
     email = models.EmailField(
         unique=True,
-        help_text=string_concat(
-            "This will be shared with leaders & other participants. <a href='",
-            reverse_lazy('account_email'),
-            "'>Manage email addresses</a>.",
+        help_text=format_lazy(
+            'This will be shared with leaders & other participants. '
+            '<a href="{url}">Manage email addresses</a>.',
+            url=reverse_lazy('account_email'),
         ),
     )
     insecure_password = models.BooleanField(
@@ -808,11 +808,11 @@ class TripInfo(models.Model):
     drivers = models.ManyToManyField(
         Participant,
         blank=True,
-        help_text=string_concat(
-            "If a trip participant is driving, but is not on this list, "
-            "they must first submit <a href='",
-            reverse_lazy('edit_profile'),
-            "#car'>information about their car</a>. " "They should then be added here.",
+        help_text=format_lazy(
+            'If a trip participant is driving, but is not on this list, '
+            'they must first submit <a href="{url}#car">information about their car</a>. '
+            'They should then be added here.',
+            url=reverse_lazy('edit_profile'),
         ),
     )
     start_location = models.CharField(max_length=127)

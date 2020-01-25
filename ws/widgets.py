@@ -64,7 +64,7 @@ class BootstrapDateInput(dj_widgets.DateInput):
 
 
 class LeaderSelect(dj_widgets.SelectMultiple):
-    def render(self, name, value, attrs=None, choices=()):
+    def render(self, name, value, attrs=None, choices=(), renderer=None):
         attrs.update(program='program', name=name)
         if value:
             attrs['leader-ids'] = json.dumps(value)
@@ -73,7 +73,7 @@ class LeaderSelect(dj_widgets.SelectMultiple):
 
 
 class ParticipantSelect(dj_widgets.Select):
-    def render(self, name, value, attrs=None, choices=()):
+    def render(self, name, value, attrs=None, choices=(), renderer=None):
         attrs.update(name=name)
         final_attrs = self.build_attrs(self.attrs, attrs)
         return format_html(
@@ -82,7 +82,7 @@ class ParticipantSelect(dj_widgets.Select):
 
 
 class PhoneInput(dj_widgets.Input):
-    def render(self, name, value, attrs=None):
+    def render(self, name, value, attrs=None, renderer=None):
         attrs.update(
             {'default-country': 'us', 'preferred-countries': 'us ca', 'name': name}
         )
