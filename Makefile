@@ -73,7 +73,7 @@ test: test-python test-js
 
 .PHONY: test-python
 test-python: install-python-dev build-frontend
-	WS_DJANGO_TEST=1 coverage run manage.py test --no-input
+	WS_DJANGO_TEST=1 python -Wd -m coverage run manage.py test --no-input
 
 .PHONY: test-js
 test-js: install-js
@@ -82,7 +82,7 @@ test-js: install-js
 # Production webservers won't run this way, so install dev dependencies
 .PHONY: run
 run: install-python-dev
-	./manage.py runserver
+	python3 -Wd manage.py runserver
 
 .PHONY: run-js
 run-js: install-js
