@@ -162,6 +162,15 @@ class LotteryInfoFactory(DjangoModelFactory):
     paired_with = None
 
 
+class LotterySeparationFactory(DjangoModelFactory):
+    class Meta:
+        model = models.LotterySeparation
+
+    creator = factory.SubFactory(ParticipantFactory)
+    initiator = factory.SubFactory(ParticipantFactory)
+    recipient = factory.SubFactory(ParticipantFactory)
+
+
 class LotteryAdjustmentFactory(DjangoModelFactory):
     class Meta:
         model = models.LotteryAdjustment

@@ -21,6 +21,7 @@ EXPECTED_PARTICIPANT_TABLES = {
     'ws_feedback': ('participant_id', 'leader_id'),
     'ws_lotteryinfo': ('participant_id', 'paired_with_id'),
     'ws_lotteryadjustment': ('creator_id', 'participant_id'),
+    'ws_lotteryseparation': ('creator_id', 'initiator_id', 'recipient_id'),
     'ws_climbingleaderapplication': ('participant_id',),
     'ws_hikingleaderapplication': ('participant_id',),
     'ws_winterschoolleaderapplication': ('participant_id',),

@@ -1273,6 +1273,42 @@ class LotteryInfo(models.Model):
         ordering = ["car_status", "number_of_passengers"]
 
 
+class LotterySeparation(models.Model):
+    """ When running the Winter School lottery, ensure that two participants are separate.
+
+    This can be thought of as the opposite of LotteryInfo.paired_with
+
+    Whoever initiates this separation is expressing an intent to not be placed
+    on trips with the blocked participant. The blocked participant likely does
+    not know this request has been made (nor have they necessarily done anything
+    wrong). Accordingly, the blocked participant will not suffer any negative
+    consequences in the lottery.
+    """
+
+    time_created = models.DateTimeField(auto_now_add=True)
+    creator = models.ForeignKey(
+        Participant, related_name='separations_created', on_delete=models.CASCADE
+    )
+
+    initiator = models.ForeignKey(
+        Participant,
+        help_text="Participant requesting a separation",
+        related_name='separations_initiated',
+        on_delete=models.CASCADE,
+    )
+
+    recipient = models.ForeignKey(
+        Participant,
+        help_text="The participant with whom the initiator should not be placed on a trip",
+        related_name='separations_received',
+        on_delete=models.CASCADE,
+    )
+
+    class Meta:
+        # TODO (Django 2.2+): Add constraint that initiator != recipient
+        unique_together = ('initiator', 'recipient')
+
+
 class LotteryAdjustment(models.Model):
     """ A manual adjustment that can be made to the lottery.
 
