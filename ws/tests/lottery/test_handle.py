@@ -25,6 +25,12 @@ class DriverTests(SimpleTestCase):
 
 class Helpers:
     @staticmethod
+    def _ws_trip(**kwargs):
+        return factories.TripFactory.create(
+            algorithm='lottery', program=enums.Program.WINTER_SCHOOL.value, **kwargs
+        )
+
+    @staticmethod
     def _with_annotation(participant_id):
         return annotate_reciprocally_paired(
             models.Participant.objects.filter(pk=participant_id)
@@ -33,6 +39,11 @@ class Helpers:
     def _assert_on_trip(self, participant, trip, on_trip=True):
         signup = models.SignUp.objects.get(participant=participant, trip=trip)
         self.assertEqual(signup.on_trip, on_trip)
+
+    @staticmethod
+    def _reciprocally_pair(one, two):
+        factories.LotteryInfoFactory.create(participant=one, paired_with=two)
+        factories.LotteryInfoFactory.create(participant=two, paired_with=one)
 
 
 class SingleTripPlacementTests(TestCase, Helpers):
@@ -44,8 +55,7 @@ class SingleTripPlacementTests(TestCase, Helpers):
         # Two participants, paired with each other!
         john = factories.ParticipantFactory.create()
         alex = factories.ParticipantFactory.create()
-        factories.LotteryInfoFactory.create(participant=john, paired_with=alex)
-        factories.LotteryInfoFactory.create(participant=alex, paired_with=john)
+        self._reciprocally_pair(john, alex)
 
         factories.SignUpFactory.create(participant=john, trip=trip)
         factories.SignUpFactory.create(participant=alex, trip=trip)
@@ -137,8 +147,7 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
         # Two participants, paired with each other!
         john = factories.ParticipantFactory.create()
         alex = factories.ParticipantFactory.create()
-        factories.LotteryInfoFactory.create(participant=john, paired_with=alex)
-        factories.LotteryInfoFactory.create(participant=alex, paired_with=john)
+        self._reciprocally_pair(john, alex)
 
         factories.SignUpFactory.create(participant=john, trip=self.trip)
         factories.SignUpFactory.create(participant=alex, trip=self.trip)
@@ -166,6 +175,42 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
         self._assert_on_trip(alex, self.trip)
         self.assertTrue(self.runner.handled(alex))
         self.assertTrue(self.runner.handled(john))
+
+    def test_reciprocally_paired_but_no_overlapping_trips(self):
+        """ Participants must both sign up for the same trips to be considered. """
+        john = factories.ParticipantFactory.create()
+        alex = factories.ParticipantFactory.create()
+        self._reciprocally_pair(john, alex)
+
+        # John wants to go on the trip. Alex wants to go on another
+        factories.SignUpFactory.create(participant=john, trip=self._ws_trip())
+        factories.SignUpFactory.create(participant=alex, trip=self.trip)
+
+        # Place both in succession. They won't be placed on a trip!
+        self.assertIsNone(self._place_participant(john))
+        alex_summary = self._place_participant(alex)
+        self.assertFalse(
+            models.SignUp.objects.filter(
+                participant__pk__in={john.pk, alex.pk}, on_trip=True
+            ).exists()
+        )
+
+        self.assertTrue(self.runner.handled(john))
+        self.assertTrue(self.runner.handled(alex))
+
+        self.assertEqual(
+            alex_summary,
+            {
+                'participant_pk': alex.pk,
+                'paired_with_pk': john.pk,
+                'is_paired': True,
+                'affiliation': 'NA',
+                # Alex wasn't placed on any trip, or even waitlisted! (Neither was John)
+                'ranked_trips': [],
+                'placed_on_choice': None,
+                'waitlisted': False,
+            },
+        )
 
     def test_waitlisted(self):
         """ If your preferred trips are all full, you'll be waitlisted. """

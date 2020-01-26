@@ -37,7 +37,7 @@ class LotteryRunner:
         self.participants_handled = {}  # Key: pk, gives boolean if handled
 
     @property
-    def logger_id(self):
+    def logger_id(self) -> str:
         """ Get a unique logger object per each instance. """
         return f"{__name__}.{id(self)}"
 
@@ -75,7 +75,7 @@ class SingleTripLotteryRunner(LotteryRunner):
         self.configure_logger()
 
     @property
-    def logger_id(self):
+    def logger_id(self) -> str:
         """ Get a constant logger identifier for each trip. """
         return f"{__name__}.trip.{self.trip.pk}"
 
@@ -173,9 +173,9 @@ class WinterSchoolLotteryRunner(LotteryRunner):
             self.logger.debug('-' * max(len(line) for line in handling_header))
             par_handler = WinterSchoolParticipantHandler(participant, self)
 
-            json_result = {
-                **par_handler.place_participant(),
-                'global_rank': global_rank,
-                'has_flaked': key.flake_factor > 0,
-            }
-            self.logger.debug("RESULT: %s", json.dumps(json_result))
+            json_result = par_handler.place_participant()
+            if json_result is not None:
+                json_result.update(
+                    {'global_rank': global_rank, 'has_flaked': key.flake_factor > 0}
+                )
+                self.logger.debug("RESULT: %s", json.dumps(json_result))

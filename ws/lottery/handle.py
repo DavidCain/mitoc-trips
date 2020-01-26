@@ -1,4 +1,5 @@
 from datetime import date
+from typing import Dict, Optional
 
 from django.db.models import Q
 
@@ -51,11 +52,11 @@ class ParticipantHandler:
         return self.runner.logger
 
     @property
-    def is_driver(self):
+    def is_driver(self) -> bool:
         return any(par_is_driver(par) for par in self.to_be_placed)
 
     @property
-    def paired(self):
+    def paired(self) -> bool:
         """ Efficiently return if this participant is reciprocally paired.
 
         Other methods (in models.py, and mixins.py, among other places) can
@@ -65,7 +66,7 @@ class ParticipantHandler:
 
         This method accesses an annotated property defined in the ParticipantRanker.
         """
-        return self.participant.reciprocally_paired
+        return bool(self.participant.reciprocally_paired)
 
     @property
     def paired_par(self):
@@ -81,7 +82,7 @@ class ParticipantHandler:
         return (self.participant,)
 
     @property
-    def _par_text(self):
+    def _par_text(self) -> str:
         return " + ".join(map(str, self.to_be_placed))
 
     def place_all_on_trip(self, signup):
@@ -100,7 +101,7 @@ class ParticipantHandler:
         )
         return participant_drivers.count() + num_leader_drivers
 
-    def _num_drivers_needed(self, trip):
+    def _num_drivers_needed(self, trip) -> int:
         num_drivers = self._count_drivers_on_trip(trip)
         return max(self.min_drivers - num_drivers, 0)
 
@@ -152,7 +153,7 @@ class SingleTripParticipantHandler(ParticipantHandler):
         super().__init__(participant, runner, allow_pairs=allow_pairs, min_drivers=0)
 
     @property
-    def paired(self):
+    def paired(self) -> bool:
         if not self.participant.reciprocally_paired:
             return False
 
@@ -236,13 +237,20 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
         # No slots are open - just waitlist them on their top trip!
         super().bump_participant(signup)
 
-    def future_signups(self):
+    def _future_signups(self):
         signups = ranked_signups(self.participant, after=self.lottery_rundate)
         if self.paired:  # Restrict signups to those both signed up for
             signups = signups.filter(trip__in=self.paired_par.trip_set.all())
         return signups
 
-    def place_participant(self):
+    def place_participant(self) -> Optional[Dict]:
+        """ Attempt to place the participant (and their partner, if any) on the best trip.
+
+        If it's not possible to place them yet, None will be returned (and they will
+        be handled in the future).
+        """
+        assert not self.runner.handled(self.participant)
+
         # Indicate that this participant's number has come up!
         # (The issue of ranking is external to this module)
         self.runner.mark_seen(self.participant)
@@ -260,7 +268,7 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
 
         return info
 
-    def _placement_would_jeopardize_driver_bump(self, signup):
+    def _placement_would_jeopardize_driver_bump(self, signup) -> bool:
         """ Return if placing this participant (or pair) risks them later being bumped.
 
         For paired participants, this returns true if 2 slots remain & at least
@@ -308,7 +316,7 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
         )
 
     def _place_or_waitlist(self):
-        future_signups = self.future_signups()
+        future_signups = self._future_signups()
 
         # JSON-serializable object we can use to analyze outputs.
         info = {
