@@ -161,11 +161,14 @@ class SingleTripParticipantHandler(ParticipantHandler):
         return models.SignUp.objects.filter(partner_signed_up).exists()
 
     def place_participant(self):
+        # Indicate that this participant's number has come up!
+        # (The issue of ranking is external to this module)
+        self.runner.mark_seen(self.participant)
+
         if self.paired:
             self.logger.info(f"{self.participant} is paired with {self.paired_par}")
-            if not self.runner.handled(self.paired_par):
+            if not self.runner.seen(self.paired_par):
                 self.logger.info(f"Will handle signups when {self.paired_par} comes")
-                self.runner.mark_handled(self.participant)
                 return
 
         # Try to place all participants, otherwise add them to the waitlist
@@ -177,6 +180,8 @@ class SingleTripParticipantHandler(ParticipantHandler):
                     models.SignUp.objects.get(trip=self.trip, participant=par)
                 )
         self.runner.mark_handled(self.participant)
+        if self.paired_par:
+            self.runner.mark_handled(self.paired_par)
 
 
 class WinterSchoolParticipantHandler(ParticipantHandler):
@@ -238,15 +243,21 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
         return signups
 
     def place_participant(self):
+        # Indicate that this participant's number has come up!
+        # (The issue of ranking is external to this module)
+        self.runner.mark_seen(self.participant)
+
         if self.paired:
             self.logger.info(f"{self.participant} is paired with {self.paired_par}")
-            if not self.runner.handled(self.paired_par):
+            if not self.runner.seen(self.paired_par):
                 self.logger.info(f"Will handle signups when {self.paired_par} comes")
-                self.runner.mark_handled(self.participant)
                 return None
 
         info = self._place_or_waitlist()
         self.runner.mark_handled(self.participant)
+        if self.paired_par:
+            self.runner.mark_handled(self.paired_par)
+
         return info
 
     def _placement_would_jeopardize_driver_bump(self, signup):
@@ -287,6 +298,9 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
             trip=signup.trip,
             on_trip=False,  # If on the trip, we know they're handled.
             participant__lotteryinfo__car_status__in=['own', 'rent'],
+            # TODO (Django 2): Exclude reciprocally-paired participants where both are signed up.
+            # These participants cannot bump.
+            # This is simpler in Django 2 (see `annotate_reciprocally_paired()`)
         ).exclude(participant_id__in=self.to_be_placed)
 
         return any(

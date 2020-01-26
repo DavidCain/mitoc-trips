@@ -33,7 +33,8 @@ class LotteryRunner:
         self.logger = logging.getLogger(self.logger_id)
         self.logger.setLevel(logging.DEBUG)
 
-        self.participants_handled = {}  # Key: primary keys, gives boolean if handled
+        self.participants_seen = {}  # Key: pk, gives boolean if number came up
+        self.participants_handled = {}  # Key: pk, gives boolean if handled
 
     @property
     def logger_id(self):
@@ -43,8 +44,14 @@ class LotteryRunner:
     def handled(self, participant) -> bool:
         return self.participants_handled.get(participant.pk, False)
 
+    def seen(self, participant) -> bool:
+        return self.participants_seen.get(participant.pk, False)
+
     def mark_handled(self, participant, handled=True):
         self.participants_handled[participant.pk] = handled
+
+    def mark_seen(self, participant, seen=True):
+        self.participants_seen[participant.pk] = seen
 
     @staticmethod
     def signup_to_bump(trip):

@@ -55,19 +55,21 @@ class SingleTripPlacementTests(TestCase, Helpers):
 
         runner = run.SingleTripLotteryRunner(trip)
 
-        # John goes first, nothing is done because his partner hasn't been handled!
+        # John goes first, nothing is done because his partner hasn't been seen!
         john_handler = handle.SingleTripParticipantHandler(john, runner, trip)
         self.assertIsNone(john_handler.place_participant())
-        self.assertTrue(runner.handled(john))
+        self.assertTrue(runner.seen(john))
         self._assert_on_trip(john, trip, on_trip=False)
 
         # Once handling Alex, both are placed on their ideal trip.
         alex_handler = handle.SingleTripParticipantHandler(alex, runner, trip)
         alex_handler.place_participant()
 
-        self.assertTrue(runner.handled(alex))
+        self.assertTrue(runner.seen(alex))
         self._assert_on_trip(john, trip)
         self._assert_on_trip(alex, trip)
+        self.assertTrue(runner.handled(alex))
+        self.assertTrue(runner.handled(john))
 
 
 class WinterSchoolPlacementTests(TestCase, Helpers):
@@ -141,9 +143,9 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
         factories.SignUpFactory.create(participant=john, trip=self.trip)
         factories.SignUpFactory.create(participant=alex, trip=self.trip)
 
-        # John goes first, nothing is done because his partner hasn't been handled!
+        # John goes first, nothing is done because his partner hasn't been seen!
         self.assertIsNone(self._place_participant(john))
-        self.assertTrue(self.runner.handled(john))
+        self.assertTrue(self.runner.seen(john))
         self._assert_on_trip(john, self.trip, on_trip=False)
 
         # Once handling Alex, both are placed on their ideal trip.
@@ -159,9 +161,11 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
                 'waitlisted': False,
             },
         )
-        self.assertTrue(self.runner.handled(alex))
+        self.assertTrue(self.runner.seen(alex))
         self._assert_on_trip(john, self.trip)
         self._assert_on_trip(alex, self.trip)
+        self.assertTrue(self.runner.handled(alex))
+        self.assertTrue(self.runner.handled(john))
 
     def test_waitlisted(self):
         """ If your preferred trips are all full, you'll be waitlisted. """
