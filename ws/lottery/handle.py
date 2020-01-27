@@ -238,8 +238,18 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
         super().bump_participant(signup)
 
     def _future_signups(self):
-        signups = ranked_signups(self.participant, after=self.lottery_rundate)
+        return ranked_signups(self.participant, after=self.lottery_rundate)
+
+    def _desired_signups(self, signups):
+        """ Of a collection of signups, filter down to just those desired.
+
+        In the normal case, *all* signups in a WS week indicate trips that the
+        participant wants to go on. However, some special cases may reduce this subset.
+        Namely, if the participant is part of a pair and their partner did not also
+        sign up for a given trip, they are assumed to no longer want to go on that trip.
+        """
         if self.paired:  # Restrict signups to those both signed up for
+            # TODO: If paired par has no signups, consider only trips where leading!
             signups = signups.filter(trip__in=self.paired_par.trip_set.all())
         return signups
 
@@ -261,7 +271,12 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
                 self.logger.info(f"Will handle signups when {self.paired_par} comes")
                 return None
 
-        info = self._place_or_waitlist()
+        # Identify all the signups that this participant elected, then the subset
+        # of the trips that they would currently want to be placed on.
+        all_future_signups = self._future_signups()
+        desired_signups = self._desired_signups(all_future_signups)
+
+        info = self._place_or_waitlist(all_future_signups, desired_signups)
         self.runner.mark_handled(self.participant)
         if self.paired_par:
             self.runner.mark_handled(self.paired_par)
@@ -315,9 +330,7 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
             not self.runner.handled(signup.participant) for signup in driver_signups
         )
 
-    def _place_or_waitlist(self):
-        future_signups = self._future_signups()
-
+    def _place_or_waitlist(self, future_signups, desired_signups):
         # JSON-serializable object we can use to analyze outputs.
         info = {
             'participant_pk': self.participant.pk,
@@ -332,10 +345,17 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
         if not future_signups:
             self.logger.info("%s did not choose any trips this week", self._par_text)
             return info
+        if not desired_signups:
+            # This can happen if the Participant paired, but their partner ranked no trips.
+            self.logger.info("%s has no remaining desired trips", self._par_text)
+            return info
 
         # Try to place participants on their first choice available trip
         skipped_to_avoid_driver_bump = []  # type: Tuple[int, models.SignUp]
         for rank, signup in enumerate(future_signups, start=1):
+            if signup not in desired_signups:
+                self.logger.debug("Ignoring undesired signup %s", signup)
+                continue
             trip_name = signup.trip.name
             if self._placement_would_jeopardize_driver_bump(signup):
                 self.logger.debug("Placing on %r risks bump from a driver", trip_name)
@@ -354,8 +374,8 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
                 self.logger.debug(f"Placed on trip #{rank} of {len(future_signups)}")
                 return {**info, 'placed_on_choice': rank}
 
-        self.logger.info(f"None of {self._par_text}'s trips are open.")
-        favorite_trip = future_signups.first().trip
+        self.logger.info(f"None of {self._par_text}'s desired trips are open.")
+        favorite_trip = desired_signups.first().trip
         for participant in self.to_be_placed:
             favorite_signup = models.SignUp.objects.get(
                 participant=participant, trip=favorite_trip

@@ -1,3 +1,5 @@
+import unittest
+
 from django.test import SimpleTestCase
 
 from ws import enums, models
@@ -206,8 +208,43 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
                 'is_paired': True,
                 'affiliation': 'NA',
                 # Alex wasn't placed on any trip, or even waitlisted! (Neither was John)
-                'ranked_trips': [],
+                'ranked_trips': [self.trip.pk],
                 'placed_on_choice': None,
+                'waitlisted': False,
+            },
+        )
+
+    def test_reciprocally_paired_only_some_overlapping_trips(self):
+        """ Participants must both sign up for the same trips to be considered. """
+        john = factories.ParticipantFactory.create()
+        alex = factories.ParticipantFactory.create()
+        self._reciprocally_pair(john, alex)
+
+        # Both want to go on the same trip, but Alex would prefer to go on another.
+        factories.SignUpFactory.create(participant=alex, trip=self.trip)
+        other_trip = self._ws_trip()
+        factories.SignUpFactory.create(participant=john, trip=other_trip)
+        factories.SignUpFactory.create(participant=john, trip=self.trip)
+
+        # Place both in succession. They will be placed on their shared trip
+        self._place_participant(alex)
+        john_summary = self._place_participant(john)
+
+        self.assertTrue(self.runner.handled(john))
+        self.assertTrue(self.runner.handled(alex))
+        self._assert_on_trip(john, self.trip)
+        self._assert_on_trip(alex, self.trip)
+
+        self.assertEqual(
+            john_summary,
+            {
+                'participant_pk': john.pk,
+                'paired_with_pk': alex.pk,
+                'is_paired': True,
+                'affiliation': unittest.mock.ANY,
+                # John ranked two trips! From his perspective, he had his second choice.
+                'ranked_trips': [other_trip.pk, self.trip.pk],
+                'placed_on_choice': 2,
                 'waitlisted': False,
             },
         )
