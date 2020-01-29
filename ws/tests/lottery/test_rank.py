@@ -320,6 +320,21 @@ class FlakeFactorTests(TestCase):
             rank.TripCounts(attended=3, flaked=0, total=3),
         )
 
+    def test_only_trips_attended_counted(self):
+        """ Signing up for a trip (but not being placed) is not counted. """
+        one, two, three = self.three_trips
+        SignUpFactory.create(participant=self.participant, trip=one)
+        SignUpFactory.create(participant=self.participant, trip=two, on_trip=True)
+
+        FeedbackFactory.create(
+            trip=three, participant=self.participant, showed_up=False
+        )
+
+        self.assertEqual(
+            self.ranker.number_ws_trips(self.participant),
+            rank.TripCounts(attended=1, flaked=1, total=2),
+        )
+
     def test_each_trip_counted_once(self):
         """ Multiple trip leaders declaring a participant a flake is no worse than 1. """
         flaked = {'participant': self.participant, 'showed_up': False}

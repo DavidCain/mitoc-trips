@@ -229,7 +229,9 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
         - Participant flaked. Leader left feedback, but left them on the trip
         """
         marked_on_trip = set(
-            participant.trip_set.filter(program=enums.Program.WINTER_SCHOOL.value)
+            participant.trip_set.filter(
+                program=enums.Program.WINTER_SCHOOL.value, signup__on_trip=True
+            )
             .filter(trip_date__gt=self.jan_1st, trip_date__lt=self.today)
             .values_list('pk', flat=True)
         )
