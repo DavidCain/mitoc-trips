@@ -9,10 +9,10 @@ from ws.utils import itinerary
 logger = logging.getLogger(__name__)
 
 
-def send_email_to_funds(trip, recipient='sao-desk@mit.edu'):
-    """ Register the trip with SAO for insurance & liability reasons.
+def send_email_to_funds(trip, recipient='sole-desk@mit.edu'):
+    """ Register the trip with SOLE for insurance & liability reasons.
 
-    This automated email is taking the place of SAO's Student Travel Form.
+    This automated email is taking the place of SOLE's Student Travel Form.
 
     For optimum efficiency, the `trip` should prefetch 'leaders' and select 'info'.
     """
@@ -24,8 +24,8 @@ def send_email_to_funds(trip, recipient='sao-desk@mit.edu'):
         'bursar_name': BURSAR_NAME,
     }
 
-    text_content = get_template('email/sao/funds_email.txt').render(context)
-    html_content = get_template('email/sao/funds_email.html').render(context)
+    text_content = get_template('email/sole/funds_email.txt').render(context)
+    html_content = get_template('email/sole/funds_email.html').render(context)
 
     subject = f"MITOC-Trips registration: {trip.name}"
     bursar = 'mitoc-bursar@mit.edu'

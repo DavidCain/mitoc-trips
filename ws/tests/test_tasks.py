@@ -110,7 +110,7 @@ class TaskTests(TransactionTestCase):
             for day in [24, 25, 26, 27]
         ]
 
-        tasks.send_sao_itineraries()
+        tasks.send_sole_itineraries()
 
         # Emails are only sent for trips going out tomorrow
         send_email_to_funds.assert_called_once_with(tomorrow)
@@ -128,7 +128,7 @@ class TaskTests(TransactionTestCase):
         # Create one trip without an itinerary, on the same day
         factories.TripFactory.create(trip_date=date(2019, 1, 26), info=None)
 
-        tasks.send_sao_itineraries()
+        tasks.send_sole_itineraries()
 
         # Emails were sent for only the trips with an itinerary
         self.assertEqual(

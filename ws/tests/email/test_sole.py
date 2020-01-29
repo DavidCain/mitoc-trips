@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 from django.core import mail
 
 from ws import models
-from ws.email import sao
+from ws.email import sole
 from ws.tests import TestCase, factories
 
 
@@ -128,12 +128,12 @@ class StudentTravelFormTest(TestCase):
     def _expect_basics(self, msg):
         self.assertEqual(msg.subject, 'MITOC-Trips registration: Mt. Lafayette')
         self.assertEqual(msg.from_email, 'mitoc-trips@mit.edu')
-        self.assertEqual(msg.to, ['sao-desk@mit.edu'])
+        self.assertEqual(msg.to, ['sole-desk@mit.edu'])
         self.assertEqual(msg.cc, ['mitoc-bursar@mit.edu'])
         self.assertEqual(msg.reply_to, ['mitoc-bursar@mit.edu'])
 
     def test_message(self):
-        sao.send_email_to_funds(self.trip)
+        sole.send_email_to_funds(self.trip)
 
         # Results in sending a single email
         self.assertEqual(len(mail.outbox), 1)
@@ -184,7 +184,7 @@ class StudentTravelFormTest(TestCase):
 
         self.trip.info.drivers.add(self.joe)
 
-        sao.send_email_to_funds(self.trip)
+        sole.send_email_to_funds(self.trip)
 
         # Results in sending a single email
         self.assertEqual(len(mail.outbox), 1)

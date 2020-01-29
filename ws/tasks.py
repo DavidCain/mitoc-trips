@@ -10,7 +10,7 @@ from celery.five import monotonic  # pylint: disable=no-name-in-module
 from django.core.cache import cache
 
 from ws import cleanup, models, settings
-from ws.email.sao import send_email_to_funds
+from ws.email.sole import send_email_to_funds
 from ws.email.trips import send_trips_summary
 from ws.lottery.run import SingleTripLotteryRunner, WinterSchoolLotteryRunner
 from ws.utils import dates as date_utils
@@ -154,10 +154,10 @@ def send_trip_summaries_email():
 
 
 @mutex_task()
-def send_sao_itineraries():
-    """ Email trip itineraries to the Student Activities Office.
+def send_sole_itineraries():
+    """ Email trip itineraries to Student Organizations, Leadership and Engagement.
 
-    This task should be run daily, so that it will always send SAO
+    This task should be run daily, so that it will always send SOLE
     this information _before_ the trip actually starts.
     """
     tomorrow = date_utils.local_date() + timedelta(days=1)
