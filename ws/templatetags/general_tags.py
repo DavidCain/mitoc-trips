@@ -1,3 +1,4 @@
+import random
 import re
 
 from django import template
@@ -38,3 +39,8 @@ class GaplessNode(Node):
 @register.filter
 def subtract(value, arg):
     return value - arg
+
+
+@register.filter
+def scramble(text):
+    return ''.join(random.sample(text, len(text)))

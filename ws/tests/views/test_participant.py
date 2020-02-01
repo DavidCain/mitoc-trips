@@ -1,3 +1,4 @@
+import random
 from datetime import date, datetime
 from unittest import mock
 
@@ -8,7 +9,8 @@ from freezegun import freeze_time
 
 import ws.utils.perms as perm_utils
 from ws import enums, models, tasks
-from ws.tests import TestCase, factories
+from ws.tests import TestCase, factories, strip_whitespace
+from ws.views.participant import logger
 
 
 class LandingPageTests(TestCase):
@@ -232,4 +234,85 @@ class EditProfileViewTests(TestCase):
         self.assertEqual(
             soup.find(class_='alert').get_text(strip=True),
             "Please supply your full legal name.",
+        )
+
+
+class ParticipantDetailViewTest(TestCase):
+    def setUp(self):
+        super().setUp()
+        self.user = factories.UserFactory.create()
+        self.client.force_login(self.user)
+
+        self.participant = factories.ParticipantFactory.create()
+
+    def test_non_authenticated_redirected(self):
+        self.client.logout()
+        response = self.client.get(f'/participants/{self.participant.pk}/')
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response.url, f'/accounts/login/?next=/participants/{self.participant.pk}/'
+        )
+
+    def test_non_participants_redirected(self):
+        user = factories.UserFactory.create()
+        self.client.force_login(user)
+        response = self.client.get(f'/participants/{self.participant.pk}/')
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response.url, f'/profile/edit/?next=/participants/{self.participant.pk}/'
+        )
+
+    def test_non_leaders_blocked(self):
+        factories.ParticipantFactory.create(user_id=self.user.pk)
+        response = self.client.get(f'/participants/{self.participant.pk}/')
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_redirect_to_own_home(self):
+        par = factories.ParticipantFactory.create(user_id=self.user.pk)
+        response = self.client.get(f'/participants/{par.pk}/')
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, '/')
+
+    def test_leaders_can_view_others(self):
+        par = factories.ParticipantFactory.create(user_id=self.user.pk)
+
+        factories.FeedbackFactory.create(participant=self.participant)
+        factories.FeedbackFactory.create(
+            participant=self.participant,
+            showed_up=False,
+            comments='Slept through their alarm, did not answer phone calls',
+        )
+
+        # Any leader may view - it doesn't matter which activity!
+        factories.LeaderRatingFactory.create(participant=par)
+        self.assertTrue(perm_utils.is_leader(self.user))
+        random.seed("Set seed, for predictable 'scrambling'")
+        response = self.client.get(f'/participants/{self.participant.pk}/')
+        self.assertEqual(response.status_code, 200)
+
+        # When viewing, comments are initially scrambled
+        soup = BeautifulSoup(response.content, 'html.parser')
+        feedback = soup.find(id='feedback').find_next('table')
+        self.assertEqual(
+            strip_whitespace(feedback.find_next('td').text),
+            'Flaked! oo srephh ,twihlien lnSd rmleartpagtsal choeanrudt',
+        )
+
+        # There's a button which enables us to view this feedback, unscrambled.
+        reveal = soup.find(
+            'a', href=f'/participants/{self.participant.pk}/?show_feedback=1'
+        )
+        self.assertTrue(reveal)
+        with mock.patch.object(logger, 'info') as log_info:
+            response = self.client.get(reveal.attrs['href'])
+        log_info.assert_called_once_with(
+            "%s viewed feedback for %s", par, self.participant
+        )
+        soup = BeautifulSoup(response.content, 'html.parser')
+        feedback = soup.find(id='feedback').find_next('table')
+        self.assertEqual(
+            strip_whitespace(feedback.find_next('td').text),
+            'Flaked! Slept through their alarm, did not answer phone calls',
         )

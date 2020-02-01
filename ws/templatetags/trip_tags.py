@@ -49,8 +49,12 @@ def trip_list_table(trip_list, approve_mode=False):
 
 
 @register.inclusion_tag('for_templatetags/feedback_table.html')
-def feedback_table(all_feedback):
-    return {'all_feedback': all_feedback}
+def feedback_table(all_feedback, scramble_contents=False, display_log_notice=False):
+    return {
+        'all_feedback': all_feedback,
+        'scramble_contents': scramble_contents,
+        'display_log_notice': display_log_notice,
+    }
 
 
 @register.filter

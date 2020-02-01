@@ -447,6 +447,18 @@ class ParticipantView(
 
 
 class ParticipantDetailView(ParticipantView, FormView, DetailView):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        args = self.request.GET
+        show_feedback = args.get('show_feedback', '0') not in {'0', ''}
+        if show_feedback:
+            logger.info(
+                "%s viewed feedback for %s", self.request.participant, self.participant
+            )
+        context['hide_comments'] = not show_feedback
+        context['display_log_notice'] = show_feedback
+        return context
+
     def dispatch(self, request, *args, **kwargs):
         if request.participant == self.get_object():
             return redirect(reverse('home'))

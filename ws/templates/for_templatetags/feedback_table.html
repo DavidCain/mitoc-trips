@@ -1,6 +1,21 @@
+{% load general_tags %}
 {% load trip_tags %}
 
-<h3 id='feedback'><i class="fas fa-comments"></i> Feedback </h3>
+<h3 id='feedback'>
+  <i class="fas fa-comments"></i>
+  Feedback
+  {% if scramble_contents and all_feedback %}
+    {# Keep this flow (a simple link) for people running no JavaScript #}
+    {# TODO, though, is to support AJAX "descrambling" of the content below #}
+    <a class="btn btn-default pull-right"
+       data-uib-tooltip="Participant feedback should only be viewed for the purposes of planning a trip. Views of feedback will be logged."
+       href="{% url 'view_participant' all_feedback.0.participant.pk %}?show_feedback=1">
+      Show feedback for trip-planning purposes
+    </a>
+  {% elif display_log_notice %}
+    <span class ="label label-info pull-right">Your access has been logged.</span>
+  {% endif %}
+</h3>
 {% if not all_feedback %}
   <p>None available.</p>
 {% else %}
@@ -19,13 +34,30 @@
             <span class="label label-danger">Flaked!</span>
           {% endif %}
 
-          {{ feedback.comments }}
+          {% if scramble_contents %}
+            <span class="blur">
+                {# Scramble the contents of the feedback (not meant to irreversibly cipher it or anything) #}
+                {# The goal is instead to make it such that leaders do not read this feedback if it's not relevant. #}
+                {# This allows a "reveal" without changing the size of the table much, if at all. #}
+              {{ feedback.comments|scramble }}
+            </span>
+          {% else %}
+            {{ feedback.comments }}
+          {% endif %}
         </td>
         <td>
           <span class="nowrap">
+            {% if scramble_contents %}
+              <a class="blur">
+                {# Use the real leader's name. It's not sensitive info, so we'll just blur it slightly to reduce curiosity. #}
+                {# Keeping the name allows a "reveal" without changing the size of the table much. #}
+                {{ feedback|leader_display }}
+              </a>
+            {% else %}
               <a href="{% url 'view_participant' feedback.leader.id %}">
                 {{ feedback|leader_display }}
               </a>
+            {% endif %}
           </span>
           {% if feedback.trip %}
           <div class="text-right">
