@@ -453,7 +453,11 @@ class ParticipantDetailView(ParticipantView, FormView, DetailView):
         show_feedback = args.get('show_feedback', '0') not in {'0', ''}
         if show_feedback:
             logger.info(
-                "%s viewed feedback for %s", self.request.participant, self.participant
+                "%s (#%d) viewed feedback for %s (#%d)",
+                self.request.participant,
+                self.request.participant.pk,
+                self.participant,
+                self.participant.pk,
             )
         context['hide_comments'] = not show_feedback
         context['display_log_notice'] = show_feedback

@@ -308,7 +308,11 @@ class ParticipantDetailViewTest(TestCase):
         with mock.patch.object(logger, 'info') as log_info:
             response = self.client.get(reveal.attrs['href'])
         log_info.assert_called_once_with(
-            "%s viewed feedback for %s", par, self.participant
+            "%s (#%d) viewed feedback for %s (#%d)",
+            par,
+            par.pk,
+            self.participant,
+            self.participant.pk,
         )
         soup = BeautifulSoup(response.content, 'html.parser')
         feedback = soup.find(id='feedback').find_next('table')
