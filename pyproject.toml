@@ -22,7 +22,7 @@ authors = ["David Cain <davidjosephcain@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.6"
-Django = "^1.11.23"
+Django = "~2.1"
 PyJWT = "*"
 celery = "^4.2"
 django-allauth = "^0.38.0"
