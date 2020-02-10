@@ -204,7 +204,6 @@ FORM_RENDERER = 'djng.forms.renderers.DjangoAngularBootstrap3Templates'
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.gzip.GZipMiddleware',
-    'pipeline.middleware.MinifyHTMLMiddleware',
     'djng.middleware.AngularUrlMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
