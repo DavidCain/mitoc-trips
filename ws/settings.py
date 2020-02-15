@@ -55,7 +55,7 @@ NODE_MODULES = os.path.join(BASE_DIR, 'node_modules')
 STATIC_URL = '/static/'
 STATIC_ROOT = os.getenv('STATIC_ROOT', os.path.join(BASE_DIR, 'static'))
 
-STATICFILES_STORAGE = 'ws.storage.CachedStorage'
+STATICFILES_STORAGE = 'ws.storage.ManifestStorage'
 
 STATICFILES_DIRS = [
     # For the legacy frontend, just put all the files directly in static root
@@ -67,7 +67,7 @@ STATICFILES_DIRS = [
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-    'pipeline.finders.PipelineFinder',
+    'pipeline.finders.ManifestFinder',
 )
 
 # auth and allauth settings
