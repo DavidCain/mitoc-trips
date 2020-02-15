@@ -338,6 +338,8 @@ class TripListView(ListView):
     filtering trips down to just those since some past date.
     """
 
+    ordering = ["-trip_date", "-time_created"]
+
     model = models.Trip
     template_name = 'trips/all/view.html'
     context_object_name = 'trip_queryset'

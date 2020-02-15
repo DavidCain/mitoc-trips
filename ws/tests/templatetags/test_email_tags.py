@@ -27,7 +27,7 @@ class EmailTagsTests(TestCase):
         )
         trip_args.update(overrides)
         trip = factories.TripFactory.create(**trip_args)
-        return annotated_for_trip_list(models.Trip.objects.filter(pk=trip.pk)).first()
+        return annotated_for_trip_list(models.Trip.objects.filter(pk=trip.pk)).get()
 
     def test_text_template_no_program(self):
         """ We exclude the program 'None.' """

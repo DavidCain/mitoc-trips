@@ -1025,7 +1025,7 @@ class Trip(models.Model):
             .order_by('trip_date')
             .annotate(leader_pk=F('leaders'))
         )
-        for trip in trips_led_by_participants:
+        for trip in trips_led_by_participants.order_by('-trip_date', '-time_created'):
             trips_by_par[trip.leader_pk].append(trip)
             del trip.leader_pk  # Remove annotation so it's not accessed elsewhere
 

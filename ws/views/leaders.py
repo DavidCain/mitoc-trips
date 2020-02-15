@@ -148,11 +148,12 @@ class ActivityLeadersView(OnlyForActivityChair, CreateRatingView):
 
     def get_ratings(self):
         """ Returns all leaders with active ratings. """
-        ratings = models.LeaderRating.objects.filter(
-            activity=self.activity, active=True
+        return (
+            models.LeaderRating.objects.filter(activity=self.activity, active=True)
+            .prefetch_related('participant__trips_led')
+            .annotate(last_trip_date=Max('participant__trips_led__trip_date'))
+            .order_by('participant')
         )
-        ratings = ratings.prefetch_related('participant__trips_led')
-        return ratings.annotate(last_trip_date=Max('participant__trips_led__trip_date'))
 
     def get_context_data(self, **kwargs):
         context_data = super().get_context_data(**kwargs)
