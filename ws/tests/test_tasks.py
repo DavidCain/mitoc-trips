@@ -2,12 +2,12 @@ from datetime import date
 from unittest import mock
 
 from django.core.cache import cache
-from django.test import SimpleTestCase, TransactionTestCase
+from django.test import SimpleTestCase
 from freezegun import freeze_time
 from mitoc_const import affiliations
 
 from ws import tasks
-from ws.tests import factories
+from ws.tests import TestCase, factories
 
 
 class MutexTaskTests(SimpleTestCase):
@@ -81,7 +81,7 @@ class MutexTaskTests(SimpleTestCase):
         cache.delete('do_thing-123')
 
 
-class TaskTests(TransactionTestCase):
+class TaskTests(TestCase):
     @staticmethod
     @mock.patch('ws.utils.member_sheets.update_discount_sheet')
     def test_update_discount_sheet(update_discount_sheet):

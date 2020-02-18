@@ -9,6 +9,8 @@ from ws.tests import TestCase, factories
 
 @freeze_time("2019-01-15 12:25:00 EST")
 class SignupsViewTest(TestCase):
+    databases = {'geardb', 'auth_db', 'default'}
+
     def _signup(self, trip):
         return self.client.post('/trips/signup/', {'trip': trip.pk}, follow=False)
 

@@ -2,10 +2,7 @@
 Django settings for ws project.
 
 For more information on this file, see
-https://docs.djangoproject.com/en/1.11/topics/settings/
-
-For the full list of settings and their values, see
-https://docs.djangoproject.com/en/1.11/ref/settings/
+https://docs.djangoproject.com/en/2.2/topics/settings/
 """
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -176,6 +173,7 @@ DATABASES = {
         'PASSWORD': os.getenv('DATABASE_PASSWORD', 'password'),
         'HOST': os.getenv('DATABASE_HOST', 'localhost'),
         'PORT': os.getenv('DATABASE_PORT', '5432'),
+        'TEST': {'DEPENDENCIES': ['geardb']},
     },
     'auth_db': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -184,6 +182,7 @@ DATABASES = {
         'PASSWORD': os.getenv('DATABASE_PASSWORD', 'password'),
         'HOST': os.getenv('DATABASE_HOST', 'localhost'),
         'PORT': os.getenv('DATABASE_PORT', '5432'),
+        'TEST': {'DEPENDENCIES': ['geardb']},
     },
     'geardb': {
         'ENGINE': 'django.db.backends.mysql',
@@ -193,6 +192,7 @@ DATABASES = {
         'PASSWORD': os.getenv('GEAR_DATABASE_PASSWORD', 'password'),
         'HOST': os.getenv('GEAR_DATABASE_HOST', 'localhost'),
         'PORT': os.getenv('GEAR_DATABASE_PORT', '3306'),
+        'TEST': {'DEPENDENCIES': []},
     },
 }
 DATABASE_ROUTERS = ['ws.routers.AuthRouter']
@@ -300,7 +300,7 @@ OAUTH_JSON_CREDENTIALS = os.getenv('OAUTH_JSON_CREDENTIALS')
 DISABLE_GSHEETS = bool(os.getenv('DISABLE_GSHEETS'))
 
 # Internationalization
-# https://docs.djangoproject.com/en/1.11/topics/i18n/
+# https://docs.djangoproject.com/en/2.2/topics/i18n/
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'America/New_York'
 USE_I18N = True

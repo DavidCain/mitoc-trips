@@ -279,8 +279,6 @@ class SingleTripParticipantRankerTests(TestCase):
 
 @freeze_time("Wed, 24 Jan 2018 09:00:00 EST")  # Scheduled after 2nd week of WS
 class FlakeFactorTests(TestCase):
-    multi_db = True  # Roll back changes in _all_ databases
-
     def setUp(self):
         self.participant = ParticipantFactory.create()
         self.ranker = rank.WinterSchoolParticipantRanker()

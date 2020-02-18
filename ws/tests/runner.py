@@ -21,11 +21,6 @@ class SetupGearDbTestRunner(DiscoverRunner):
     instead call an API managed by the gear database itself.
     """
 
-    @staticmethod
-    def geardb_cursor(config):
-        geardb = next(wrapper for (wrapper, name, _) in config if name == 'geardb')
-        return geardb.connection.cursor()
-
     @property
     def sql_commands(self):
         schema = Path(os.path.dirname(__file__), 'basic_geardb_schema.sql')
@@ -34,10 +29,14 @@ class SetupGearDbTestRunner(DiscoverRunner):
             return (c.strip() for c in sql.split(';') if c.strip())
 
     def setup_databases(self, *args, **kwargs):
-        old_names = super().setup_databases(*args, **kwargs)
+        config = super().setup_databases(*args, **kwargs)
 
-        with self.geardb_cursor(old_names) as cursor:
+        # `geardb` should *always* be specified at present
+        # (the other two main databases list it as a dependency)
+        geardb = next(wrapper for (wrapper, name, _) in config if name == 'geardb')
+
+        with geardb.connection.cursor() as cursor:
             for cmd in self.sql_commands:
                 cursor.execute(cmd)
 
-        return old_names
+        return config

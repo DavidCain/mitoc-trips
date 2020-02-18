@@ -1,13 +1,13 @@
 from datetime import datetime
 
 from allauth.account.models import EmailAddress
-from django.test import SimpleTestCase, TransactionTestCase
+from django.test import SimpleTestCase
 from freezegun import freeze_time
 from mitoc_const import affiliations
 
 import ws.utils.dates as date_utils
 from ws import forms
-from ws.tests import factories
+from ws.tests import TestCase, factories
 
 
 class FormTests(SimpleTestCase):
@@ -59,7 +59,7 @@ class FormTests(SimpleTestCase):
         self.assertEqual(list(forms.amount_choices(value_is_amount=True)), expected)
 
 
-class ParticipantFormTests(TransactionTestCase):
+class ParticipantFormTests(TestCase):
     def test_non_mit_affiliation(self):
         """ It's valid to have a non-MIT email address with non-MIT affiliations. """
         user = factories.UserFactory.create()
@@ -98,7 +98,7 @@ class ParticipantFormTests(TransactionTestCase):
         self.assertFalse(form.is_valid())
 
 
-class TripFormTests(TransactionTestCase):
+class TripFormTests(TestCase):
     @freeze_time("Wed, 16 Oct 2019 20:30:00 EST")
     def test_default_signups_close_late_week(self):
         """ On a Wednesday, we just default to midnight on the night before """

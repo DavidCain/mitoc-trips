@@ -4,8 +4,9 @@ from datetime import date, timedelta
 
 from django.contrib.auth.models import AnonymousUser
 from django.db import connections
-from django.test import SimpleTestCase, TransactionTestCase
+from django.test import SimpleTestCase
 
+from ws.tests import TestCase
 from ws.utils import geardb
 from ws.utils.dates import local_date
 
@@ -24,7 +25,9 @@ class NoUserTests(SimpleTestCase):
         self.assertEqual(geardb.verified_emails(None), [])
 
 
-class MembershipExpirationTests(TransactionTestCase):
+class MembershipExpirationTests(TestCase):
+    databases = {'geardb', 'default', 'auth_db'}
+
     @unittest.mock.patch('ws.utils.geardb.matching_memberships')
     def test_split_membership(self, matching_memberships):
         """ We handle a membership and waiver split across two emails. """
@@ -159,7 +162,8 @@ class MembershipSQLHelpers:
         return self.one_match('tim@mit.edu')
 
 
-class MembershipTests(MembershipSQLHelpers, TransactionTestCase):
+class MembershipTests(MembershipSQLHelpers, TestCase):
+    databases = {'geardb', 'default', 'auth_db'}
     """ Test the underlying SQL that drives membership queries. """
 
     def test_no_people_record(self):
@@ -234,7 +238,9 @@ class MembershipTests(MembershipSQLHelpers, TransactionTestCase):
         )
 
 
-class AlternateEmailTests(MembershipSQLHelpers, TransactionTestCase):
+class AlternateEmailTests(MembershipSQLHelpers, TestCase):
+    databases = {'geardb', 'default', 'auth_db'}
+
     def expect_under_email(self, email, lookup=None):
         expected = self.just_tim
         expected['membership']['email'] = email
