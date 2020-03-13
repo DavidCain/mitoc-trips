@@ -19,6 +19,8 @@
 {% block content %}
 {{ block.super }}
 
+{% include 'snippets/covid.html' %}
+
 {% if date_invalid %}
 <div class="alert alert-danger">
   Invalid date given for filtering trips. Please supply dates in YYYY-MM-DD format.

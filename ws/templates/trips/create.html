@@ -2,5 +2,6 @@
 {% block head_title %}Create trip{% endblock head_title %}
 
 {% block content %}
-{{ block.super }}
+  {% include 'snippets/covid.html' %}
+  {{ block.super }}
 {% endblock content %}

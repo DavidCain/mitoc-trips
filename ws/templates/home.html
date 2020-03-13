@@ -12,6 +12,8 @@
 <h1>MITOC Trips</h1>
 <p class="lead">Come hiking, climbing, skiing, paddling, biking, and surfing with the <a href="https://mitoc.mit.edu">MIT Outing Club!</a></p>
 
+{% include 'snippets/covid.html' %}
+
 {{ block.super }}
 
 {% if current_trips %}
