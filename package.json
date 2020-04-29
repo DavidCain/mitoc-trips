@@ -24,7 +24,7 @@
     "bc-phone-number": "git+https://git@github.com/DavidCain/bc-phone-number.git",
     "bootstrap": "^3.4.1",
     "footable": "^2.0.6",
-    "jquery": "^3.3.1",
+    "jquery": "^3.5.0",
     "jquery-ui": "git+https://github.com/components/jqueryui.git#1.11.4",
     "jquery-ui-touch-punch": "^0.2.3",
     "lodash": "^4.17.15",
