@@ -38,7 +38,9 @@ class LeaderApplicationMixin(ratings_utils.LeaderApplicationMixin):
     @property
     def activity(self):
         """ The activity, should be verified by the dispatch method. """
-        return self.kwargs['activity']
+        # TODO: `self.kwargs` isn't obviously available...
+        # I should probably just refactor this whole mixin hierarchy.
+        return self.kwargs['activity']  # type: ignore
 
     def get_queryset(self):
         return self.joined_queryset()
@@ -58,10 +60,12 @@ class ApplicationManager(ratings_utils.ApplicationManager, LeaderApplicationMixi
         return self.request.participant
 
 
-class LeaderApplyView(LeaderApplicationMixin, CreateView):
+# model is a property on LeaderApplicationMixin, but a class attribute on SingleObjectMixin
+class LeaderApplyView(LeaderApplicationMixin, CreateView):  # type: ignore[misc]
     template_name = "leaders/apply.html"
     success_url = reverse_lazy('home')
-    form_class = forms.LeaderApplicationForm
+    # TODO: I'm doing some nasty with this form class.
+    form_class = forms.LeaderApplicationForm  # type: ignore
 
     def get_success_url(self):
         return reverse('become_leader', kwargs={'activity': self.activity})
@@ -133,7 +137,8 @@ class LeaderApplyView(LeaderApplicationMixin, CreateView):
         return super().dispatch(request, *args, **kwargs)
 
 
-class AllLeaderApplicationsView(ApplicationManager, ListView):
+# model is a property on LeaderApplicationMixin, but a class attribute on MultipleObjectMixin
+class AllLeaderApplicationsView(ApplicationManager, ListView):  # type: ignore[misc]
     context_object_name = 'leader_applications'
     template_name = 'chair/applications/all.html'
 
@@ -187,7 +192,8 @@ class AllLeaderApplicationsView(ApplicationManager, ListView):
         return super().dispatch(request, *args, **kwargs)
 
 
-class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):
+# model is a property on LeaderApplicationMixin, but a class attribute on SingleObjectMixin
+class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type: ignore[misc]
     """ Handle applications by participants to become leaders. """
 
     form_class = forms.ApplicationLeaderForm

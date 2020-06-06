@@ -9,13 +9,14 @@ occasionally merge these accounts into one. The end result is that they get an
 account where they can log in with either email address, and get access to a
 complete history.
 """
+from typing import Dict, Tuple
 
 from django.db import connections, transaction
 
 # An enumeration of columns that we explicitly intend to migrate in `ws`, grouped by table
 # If any table has a column with a foreign key to ws_participant that is not in here, we will error
 # Unless explicitly handled, each will be automatically migrated
-EXPECTED_PARTICIPANT_TABLES = {
+EXPECTED_PARTICIPANT_TABLES: Dict[str, Tuple[str, ...]] = {
     'ws_trip': ('creator_id', 'wimp_id'),
     'ws_leaderrating': ('participant_id', 'creator_id'),
     'ws_feedback': ('participant_id', 'leader_id'),
@@ -37,7 +38,7 @@ EXPECTED_PARTICIPANT_TABLES = {
     'ws_trip_leaders': ('participant_id',),
     'ws_leadersignup': ('participant_id',),
     'ws_signup': ('participant_id',),
-}  # type: Dict[str, Tuple[str]]
+}
 
 # An enumeration of columns that we explicitly intend to migrate in `auth_db`
 # Each one must be *manually handled!*

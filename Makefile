@@ -17,7 +17,7 @@ install-python-dev: $(poetry_dev_bootstrap_file)
 $(poetry_dev_bootstrap_file): poetry.lock
 	touch $(poetry_dev_bootstrap_file).notyet
 	poetry install --no-root
-	poetry install --extras=code_coverage
+	poetry install --extras=code_coverage --extras=typing
 	mv $(poetry_dev_bootstrap_file).notyet $(poetry_dev_bootstrap_file)
 	@# Remove the prod bootstrap file, since we now have dev deps present.
 	rm -f $(poetry_prod_bootstrap_file)
@@ -59,10 +59,16 @@ fix: install-python-dev
 lint: lint-python lint-js
 
 .PHONY: lint-python
-lint-python: install-python-dev
+lint-python: install-python-dev typecheck
 	black --fast --check ws
 	isort --recursive --check ws
 	pylint --jobs 0 ws  # '0' tells pylint to auto-detect available processors
+
+.PHONY: typecheck
+typecheck: install-python-dev
+	@# TODO: mypy will start being able to read from pyproject.toml soon
+	@# (leaving the superfluous `--config-file` argument here to make that clear)
+	poetry run mypy --config-file mypy.ini ws
 
 .PHONY: lint-js
 lint-js: install-js
@@ -93,4 +99,5 @@ clean:
 	rm -f $(poetry_dev_bootstrap_file)
 	rm -f $(poetry_prod_bootstrap_file)
 	rm -f $(npm_bootstrap_file)
+	rm -rf .mypy_cache
 	find . -name '*.pyc' -delete

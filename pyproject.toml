@@ -35,7 +35,7 @@ django-smtp-ssl = "*"
 django-webpack-loader = "*"
 gspread = "^3.0.1"
 markdown2 = "*"
-mitoc-const = "^0.4.0"
+mitoc-const = "^1.0.0"  # (1.0.0 includes type hints)
 mysqlclient = "^1.3.14"
 oauth2client = "*"
 phonenumberslite = "*"
@@ -53,9 +53,14 @@ ipdb = { version = "*", optional = true }
 # Optional dependencies for generating & reporting test coverage stats
 coverage = { version = "*", optional = true }
 
+# Optional dependencies for static type checking
+django-stubs = { version = "*", optional = true }
+mypy = { version = "*", optional = true }
+
 [tool.poetry.extras]
 code_coverage = ["coverage", "codecov"]
 debugging = ["django-debug-toolbar", "ipdb"]
+typing = ["django-stubs", "mypy"]
 
 [tool.poetry.dev-dependencies]
 beautifulsoup4 = "*"

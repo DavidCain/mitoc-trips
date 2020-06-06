@@ -1,3 +1,6 @@
+from typing import Type
+
+from django import db
 from django.db.models import Case, F, IntegerField, Q, Sum, When
 
 import ws.utils.perms as perm_utils
@@ -18,6 +21,8 @@ class LeaderApplicationMixin:
     Requires self.activity
     """
 
+    activity: str
+
     @property
     def num_chairs(self):
         """ Return the number of chairs for this activity. """
@@ -29,8 +34,10 @@ class LeaderApplicationMixin:
             self._num_chairs = perm_utils.num_chairs(activity_enum)
         return self._num_chairs
 
+    # The model is meant to be a class attribute of SingleObjectMixin
+    # By defining it as a property, we upset mypy.
     @property
-    def model(self):
+    def model(self) -> Type[db.models.Model]:
         """ Return the application model for this activity type.
 
         The model will be None if no application exists for the activity.
@@ -121,7 +128,7 @@ class ApplicationManager(LeaderApplicationMixin, RatingsRecommendationsMixin):
         """
         # Some activities don't actually have an application type defined! (e.g. 'cabin')
         # Exit early so we don't fail trying to build a database query
-        if self.model is None:
+        if not models.LeaderApplication.can_apply_for_activity(self.activity):
             return []
 
         return list(
@@ -152,7 +159,9 @@ class ApplicationManager(LeaderApplicationMixin, RatingsRecommendationsMixin):
         for a chair to make recommendations when there are no co-chairs to heed
         those recommendations).
         """
-        if self.model is None or self.num_chairs < 2:
+        if not models.LeaderApplication.can_apply_for_activity(self.activity):
+            return []
+        if self.num_chairs < 2:
             return []
 
         return [app for app in applications if self._chair_should_recommend(app)]

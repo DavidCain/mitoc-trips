@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from typing import Type
 
 from allauth.account.models import EmailAddress
 from django.conf import settings
@@ -25,6 +26,10 @@ from ws.utils.avatar import avatar_url
 alphanum = RegexValidator(
     r'^[a-zA-Z0-9 ]*$', "Only alphanumeric characters and spaces allowed"
 )
+
+
+class NoApplicationDefined(Exception):
+    pass
 
 
 class SingletonModel(models.Model):
@@ -1470,7 +1475,11 @@ class LeaderApplication(models.Model):
     @staticmethod
     def can_apply_for_activity(activity) -> bool:
         """ Return if an application exists for the activity. """
-        return bool(LeaderApplication.model_from_activity(activity))
+        try:
+            LeaderApplication.model_from_activity(activity)
+        except NoApplicationDefined:
+            return False
+        return True
 
     @classmethod
     def can_reapply(cls, latest_application):
@@ -1500,7 +1509,7 @@ class LeaderApplication(models.Model):
         return 'winter_school' if activity == 'winterschool' else activity
 
     @staticmethod
-    def model_from_activity(activity):
+    def model_from_activity(activity) -> Type[models.Model]:
         """ Get the specific inheriting child from the activity.
 
         Inverse of activity().
@@ -1509,9 +1518,12 @@ class LeaderApplication(models.Model):
         try:
             content_type = ContentType.objects.get(app_label="ws", model=model)
         except ContentType.DoesNotExist:
-            return None
-        else:
-            return content_type.model_class()
+            raise NoApplicationDefined(f"No application for {activity}")
+
+        model_class = content_type.model_class()
+        if model_class is None:
+            raise NoApplicationDefined(f"No application for {activity}")
+        return model_class
 
     class Meta:
         # Important!!! Child classes must be named: <activity>LeaderApplication

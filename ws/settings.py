@@ -7,6 +7,7 @@ https://docs.djangoproject.com/en/2.2/topics/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+from typing import Any, Dict, List
 
 import sentry_sdk
 from celery.schedules import crontab
@@ -116,7 +117,7 @@ CELERY_ACCEPT_CONTENT = ['json']
 # - Second retry: half a second later
 #
 # This prevents tasks from hanging forever when the broker is down.
-CELERY_BROKER_TRANSPORT_OPTIONS = {
+CELERY_BROKER_TRANSPORT_OPTIONS: Dict[str, Any] = {
     'max_retries': 2,
     'interval_start': 0,
     'interval_step': 0.5,
@@ -156,7 +157,7 @@ CELERY_TIMEZONE = 'UTC'
 # A list of known "bad" passwords for which we don't want to hit the HIBP API.
 # This will *never* be honored in production -- it's just a local testing tool.
 # (Used to test with garbage passwords, avoiding the "change your password!" flow)
-WHITELISTED_BAD_PASSWORDS = []
+WHITELISTED_BAD_PASSWORDS: List[str] = []
 
 if os.environ.get('WS_DJANGO_TEST'):
     from .conf.test_settings import *  # pylint: disable=wildcard-import,unused-wildcard-import

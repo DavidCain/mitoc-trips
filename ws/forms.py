@@ -1,3 +1,5 @@
+from typing import List
+
 from django import forms
 from django.core.exceptions import ValidationError
 from django.db.models.fields import TextField
@@ -142,7 +144,7 @@ class EmergencyInfoForm(DjangularRequiredModelForm):
 class LeaderRecommendationForm(forms.ModelForm):
     class Meta:
         model = models.LeaderRecommendation
-        exclude = []
+        exclude: List[str] = []
 
 
 class ApplicationLeaderForm(DjangularRequiredModelForm):
@@ -475,6 +477,7 @@ class WinterSchoolSettingsForm(DjangularRequiredModelForm):
         fields = ['allow_setting_attendance', 'accept_applications']
 
 
+# TODO: This should be a class, not a method.
 def LeaderApplicationForm(*args, **kwargs):
     """ Factory form for applying to be a leader in any activity. """
     activity = kwargs.pop('activity')
