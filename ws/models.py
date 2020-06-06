@@ -20,7 +20,6 @@ from phonenumber_field.modelfields import PhoneNumberField
 
 import ws.utils.dates as date_utils
 from ws import enums
-from ws.fields import OptionalOneToOneField
 from ws.utils.avatar import avatar_url
 
 alphanum = RegexValidator(
@@ -284,9 +283,11 @@ class Participant(models.Model):
         verbose_name="Opt out of Gravatar",
         help_text="Don't use Gravatar to show an avatar for this account",
     )
-    car = OptionalOneToOneField(Car, on_delete=models.CASCADE)
+    car = models.OneToOneField(Car, null=True, blank=True, on_delete=models.CASCADE)
 
-    membership = OptionalOneToOneField(Membership, on_delete=models.CASCADE)
+    membership = models.OneToOneField(
+        Membership, null=True, blank=True, on_delete=models.CASCADE
+    )
 
     AFFILIATION_CHOICES = [
         (
@@ -929,7 +930,9 @@ class Trip(models.Model):
         "If disabled, only waivers will be mandated.",
     )
 
-    info = OptionalOneToOneField(TripInfo, on_delete=models.CASCADE)
+    info = models.OneToOneField(
+        TripInfo, null=True, blank=True, on_delete=models.CASCADE
+    )
 
     signed_up_participants = models.ManyToManyField(Participant, through=SignUp)
     algorithm = models.CharField(

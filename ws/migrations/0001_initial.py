@@ -10,7 +10,6 @@ import localflavor.us.models
 import phonenumber_field.modelfields
 from django.db import migrations, models
 
-import ws.fields
 import ws.utils.dates
 
 
@@ -649,7 +648,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     'car',
-                    ws.fields.OptionalOneToOneField(
+                    models.OneToOneField(
                         blank=True,
                         null=True,
                         on_delete=django.db.models.deletion.CASCADE,
@@ -1064,7 +1063,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='trip',
             name='info',
-            field=ws.fields.OptionalOneToOneField(
+            field=models.OneToOneField(
                 blank=True,
                 null=True,
                 on_delete=django.db.models.deletion.CASCADE,
