@@ -1,12 +1,14 @@
 .DEFAULT_GOAL := all
 
 poetry_dev_bootstrap_file = .poetry_dev_up_to_date
+poetry_typing_bootstrap_file = .poetry_typing_up_to_date
 poetry_prod_bootstrap_file = .poetry_prod_up_to_date
 npm_bootstrap_file = .node_packages_up_to_date
 
 
+# Default `make` will give everything's that helpful for local development.
 .PHONY: all
-all: install-python-dev install-js
+all: install-python-dev install-typecheck-python install-js
 
 # Build everything needed for deployment in production
 .PHONY: build
@@ -17,8 +19,20 @@ install-python-dev: $(poetry_dev_bootstrap_file)
 $(poetry_dev_bootstrap_file): poetry.lock
 	touch $(poetry_dev_bootstrap_file).notyet
 	poetry install --no-root
-	poetry install --extras=code_coverage --extras=typing
+	poetry install --extras=code_coverage
 	mv $(poetry_dev_bootstrap_file).notyet $(poetry_dev_bootstrap_file)
+	@# Remove the prod bootstrap file, since we now have dev deps present.
+	rm -f $(poetry_prod_bootstrap_file)
+
+# All type modules are given as their own extra
+# If you don't want to deal with overhead, `install-python-dev` is plenty for local dev.
+.PHONY: install-typecheck-python
+install-typecheck-python: $(poetry_typing_bootstrap_file)
+$(poetry_typing_bootstrap_file): poetry.lock
+	touch $(poetry_typing_bootstrap_file).notyet
+	poetry install --no-root
+	poetry install --extras=typing
+	mv $(poetry_typing_bootstrap_file).notyet $(poetry_typing_bootstrap_file)
 	@# Remove the prod bootstrap file, since we now have dev deps present.
 	rm -f $(poetry_prod_bootstrap_file)
 
@@ -56,16 +70,16 @@ fix: install-python-dev
 	isort --recursive ws
 
 .PHONY: lint
-lint: lint-python lint-js
+lint: lint-python typecheck-python lint-js
 
 .PHONY: lint-python
-lint-python: install-python-dev typecheck
+lint-python: install-python-dev
 	black --fast --check ws
 	isort --recursive --check ws
 	pylint --jobs 0 ws  # '0' tells pylint to auto-detect available processors
 
-.PHONY: typecheck
-typecheck: install-python-dev
+.PHONY: typecheck-python
+typecheck-python: install-typecheck-python
 	@# TODO: mypy will start being able to read from pyproject.toml soon
 	@# (leaving the superfluous `--config-file` argument here to make that clear)
 	poetry run mypy --config-file mypy.ini ws

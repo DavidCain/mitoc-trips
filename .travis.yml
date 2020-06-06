@@ -23,6 +23,8 @@ jobs:
   include:
     - name: "Lint Python source"
       script: make lint-python
+    - name: "Typecheck Python source"
+      script: WS_DJANGO_TEST=1 make typecheck-python
     - name: "Run Python tests"
       script:
         # Install the legacy & new JavaScript bundles, which both affect Python tests
