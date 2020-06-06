@@ -73,12 +73,13 @@ class DataDump:
         all_feedback = models.Feedback.everything.filter(about_participant)
 
         for f in all_feedback.select_related('trip', 'participant'):
+            trip = None if f.trip is None else {'id': f.trip.pk, 'name': f.trip.name}
             yield {
                 'participant': {'id': f.participant.pk, 'name': f.participant.name},
                 'comments': f.comments,
                 'showed_up': f.showed_up,
                 'time_created': f.time_created,
-                'trip': {'id': f.trip.pk, 'name': f.trip.name},
+                'trip': trip,
             }
 
     @property
@@ -88,10 +89,8 @@ class DataDump:
         all_feedback = models.Feedback.everything.filter(about_participant)
 
         for f in all_feedback.select_related('trip', 'leader'):
-            yield {
-                'leader': {'id': f.leader.pk, 'name': f.leader.name},
-                'trip': {'id': f.trip.pk, 'name': f.trip.name},
-            }
+            trip = None if f.trip is None else {'id': f.trip.pk, 'name': f.trip.name}
+            yield {'leader': {'id': f.leader.pk, 'name': f.leader.name}, 'trip': trip}
 
     @property
     def feedback(self):
