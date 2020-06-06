@@ -1,5 +1,5 @@
 from datetime import date
-from typing import Dict, Optional
+from typing import Dict, List, Optional, Tuple
 
 from django.db.models import Q
 
@@ -351,7 +351,7 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
             return info
 
         # Try to place participants on their first choice available trip
-        skipped_to_avoid_driver_bump = []  # type: Tuple[int, models.SignUp]
+        skipped_to_avoid_driver_bump: List[Tuple[int, models.SignUp]] = []
         for rank, signup in enumerate(future_signups, start=1):
             if signup not in desired_signups:
                 self.logger.debug("Ignoring undesired signup %s", signup)

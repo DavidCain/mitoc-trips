@@ -42,12 +42,12 @@ EXPECTED_PARTICIPANT_TABLES: Dict[str, Tuple[str, ...]] = {
 
 # An enumeration of columns that we explicitly intend to migrate in `auth_db`
 # Each one must be *manually handled!*
-EXPECTED_USER_TABLES = {
+EXPECTED_USER_TABLES: Dict[str, Tuple[str, ...]] = {
     'auth_user_groups': ('user_id',),
     'auth_user_user_permissions': ('user_id',),
     'account_emailaddress': ('user_id',),
     'django_admin_log': ('user_id',),
-}  # type: Dict[str, Tuple[str]]
+}
 
 
 def simple_fk_update(cursor, table, col, old_pk, new_pk):

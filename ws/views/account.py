@@ -2,6 +2,7 @@
 Views relating to account management.
 """
 import logging
+from typing import Optional
 from urllib.parse import urlencode
 
 from allauth.account.views import LoginView, PasswordChangeView
@@ -71,10 +72,11 @@ class CheckIfPwnedOnLoginView(LoginView):
         As a side effect, this populates `self.request.user`
         """
         correct_password = form.cleaned_data['password']
+        times_seen: Optional[int] = None  # (None indicates an API failure)
         if settings.DEBUG and correct_password in settings.WHITELISTED_BAD_PASSWORDS:
             times_seen = 0
         else:
-            times_seen = pwned_password(correct_password)  # type: Optional[int]
+            times_seen = pwned_password(correct_password)
 
         if times_seen:
             change_password_url = reverse('account_change_password')
@@ -89,7 +91,7 @@ class CheckIfPwnedOnLoginView(LoginView):
 
         return times_seen, response
 
-    def _post_login_update_password_validity(self, times_password_seen):
+    def _post_login_update_password_validity(self, times_password_seen: Optional[int]):
         """ After form.login has been invoked, handle password being breached or not.
 
         This method exists to serve two types of users:
