@@ -2,6 +2,7 @@ import re
 from datetime import date
 
 from bs4 import BeautifulSoup
+from django.test import Client
 from freezegun import freeze_time
 
 import ws.utils.perms as perm_utils
@@ -10,6 +11,8 @@ from ws.tests import TestCase, factories, strip_whitespace
 
 
 class Helpers:
+    client: Client
+
     @staticmethod
     def _form_data(form):
         for elem in form.find_all('textarea'):
@@ -23,36 +26,39 @@ class Helpers:
             value = selection['value'] if selection else ''
             yield select['name'], value
 
-    def _get(self, url):
+    def _get(self, url: str):
         response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
+        assert response.status_code == 200
         soup = BeautifulSoup(response.content, 'html.parser')
         return response, soup
 
-    def _expect_title(self, soup, expected):
+    @staticmethod
+    def _expect_title(soup, expected):
         title = strip_whitespace(soup.title.string)
-        self.assertEqual(title, f'{expected} | MITOC Trips')
+        assert title == f'{expected} | MITOC Trips'
 
-    def _expect_past_trips(self, response, expected_trip_pks):
-        self.assertEqual(
-            [trip.pk for trip in response.context['past_trips']], expected_trip_pks
-        )
+    @staticmethod
+    def _expect_past_trips(response, expected_trip_pks):
+        assert expected_trip_pks == [trip.pk for trip in response.context['past_trips']]
 
-    def _expect_current_trips(self, response, expected_trip_pks):
-        self.assertEqual(
-            [trip.pk for trip in response.context['current_trips']], expected_trip_pks
-        )
+    @staticmethod
+    def _expect_current_trips(response, expected_trip_pks):
+        assert [
+            trip.pk for trip in response.context['current_trips']
+        ] == expected_trip_pks
 
-    def _expect_upcoming_header(self, soup, expected_text):
+    @staticmethod
+    def _expect_upcoming_header(soup, expected_text):
         """ Expect a text label on the header, plus the subscribe+digest buttons. """
         header = soup.body.find('h3')
         header_text = strip_whitespace(header.get_text())
         # There is an RSS button and a weekly email digest button included in the header
-        self.assertEqual(header_text, f'{expected_text} RSS Weekly digest')
+        assert header_text == f'{expected_text} RSS Weekly digest'
 
-    def _expect_link_for_date(self, soup, datestring):
+    @staticmethod
+    def _expect_link_for_date(soup, datestring):
         link = soup.find('a', href=f'/trips/?after={datestring}')
-        self.assertEqual(link.get_text(strip=True), 'Previous trips')
+        assert link.get_text(strip=True) == 'Previous trips'
 
 
 @freeze_time("2019-02-15 12:25:00 EST")
@@ -224,7 +230,9 @@ class CreateTripViewTest(TestCase, Helpers):
         self.assertEqual(resp.status_code, 302)
         new_trip_url = re.compile(r'^/trips/(\d+)/$')
         self.assertRegex(resp.url, new_trip_url)
-        trip_pk = int(new_trip_url.match(resp.url).group(1))
+        match = new_trip_url.match(resp.url)
+        assert match is not None
+        trip_pk = int(match.group(1))
 
         trip = models.Trip.objects.get(pk=trip_pk)
         self.assertEqual(trip.creator, trip_leader)

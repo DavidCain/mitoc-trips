@@ -1,6 +1,7 @@
 import unittest.mock
 from collections import OrderedDict
 from datetime import date, timedelta
+from typing import Any, ClassVar, Dict
 
 from django.contrib.auth.models import AnonymousUser
 from django.db import connections
@@ -101,8 +102,9 @@ class MembershipExpirationTests(TestCase):
         )
 
         # Give the middle membership an active waiver, even though it's not the newest
-        middle = memberships_by_email['2@example.com']
-        middle['waiver'].update(expires=one_month_later, active=True)
+        middle: Dict[str, Any] = memberships_by_email['2@example.com']
+        middle_waiver: Dict[str, Any] = middle['waiver']
+        middle_waiver.update(expires=one_month_later, active=True)
         middle['status'] = 'Membership Expired'
 
         # '2@example.com' is not the newest membership, but it has an active waiver
@@ -152,14 +154,15 @@ class MembershipSQLHelpers:
             )
             return cursor.lastrowid
 
-    def one_match(self, email):
+    @staticmethod
+    def _one_match(email: str):
         matches = geardb.matching_memberships([email])
-        self.assertEqual(len(matches), 1)
+        assert len(matches) == 1
         return matches[email]
 
     @property
     def just_tim(self):
-        return self.one_match('tim@mit.edu')
+        return self._one_match('tim@mit.edu')
 
 
 class MembershipTests(MembershipSQLHelpers, TestCase):
@@ -289,6 +292,11 @@ class MembershipFormattingTests(SimpleTestCase):
 
     email = 'foo@example.com'
 
+    future: ClassVar[date]
+    future2: ClassVar[date]
+    past: ClassVar[date]
+    past2: ClassVar[date]
+
     @classmethod
     def setUp(cls):
         """ Use some convenience dates.
@@ -333,16 +341,17 @@ class MembershipFormattingTests(SimpleTestCase):
         """ Check output when membership is valid, but waiver is not. """
         # First, check an expired waiver
         formatted = self.fmt(membership_expires='future', waiver_expires='past')
+        waiver = {'expires': self.past, 'active': False}
         expected = {
             'membership': {'expires': self.future, 'active': True, 'email': self.email},
-            'waiver': {'expires': self.past, 'active': False},
+            'waiver': waiver,
             'status': 'Waiver Expired',
         }
         self.assertEqual(formatted, expected)
 
         # Then, check a missing waiver
         no_waiver = self.fmt(membership_expires='future', waiver_expires=None)
-        expected['waiver']['expires'] = None
+        waiver['expires'] = None
         expected['status'] = 'Missing Waiver'
         self.assertEqual(no_waiver, expected)
 
@@ -350,8 +359,9 @@ class MembershipFormattingTests(SimpleTestCase):
         """ Check output when waiver is valid, but membership is not. """
         # First, check an expired membership
         formatted = self.fmt(membership_expires='past', waiver_expires='future')
+        membership = {'expires': self.past, 'active': False, 'email': self.email}
         expected = {
-            'membership': {'expires': self.past, 'active': False, 'email': self.email},
+            'membership': membership,
             'waiver': {'expires': self.future, 'active': True},
             'status': 'Missing Membership',
         }
@@ -360,5 +370,5 @@ class MembershipFormattingTests(SimpleTestCase):
         # Then, check a missing membership
         # (Also reported as 'Missing Membership')
         missing = self.fmt(membership_expires=None, waiver_expires='future')
-        expected['membership']['expires'] = None
+        membership['expires'] = None
         self.assertEqual(missing, expected)

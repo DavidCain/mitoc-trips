@@ -27,6 +27,6 @@ class MessagesTestCase(TestCase):
         (If choosing to wrap, RequestFactory should not be used - middleware
         must be present for `add_message` to work!)
         """
-        kwargs = {'wraps': messages.add_message} if wrap else {}
-        with mock.patch.object(messages, 'add_message', **kwargs) as add_message:
+        wraps = messages.add_message if wrap else None
+        with mock.patch.object(messages, 'add_message', wraps=wraps) as add_message:
             yield add_message

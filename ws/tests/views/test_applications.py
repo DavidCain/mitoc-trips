@@ -1,13 +1,16 @@
 from bs4 import BeautifulSoup
+from django.test import Client
 from freezegun import freeze_time
 
 from ws.tests import TestCase, factories, strip_whitespace
 
 
 class Helpers:
-    def _get(self, url):
+    client: Client
+
+    def _get(self, url: str):
         response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
+        assert response.status_code == 200
         soup = BeautifulSoup(response.content, 'html.parser')
         return response, soup
 

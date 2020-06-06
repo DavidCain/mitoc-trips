@@ -1,8 +1,10 @@
 import unittest.mock
+from typing import ClassVar
 from urllib.parse import parse_qs, urlparse
 
 from django.urls import reverse
 
+from ws import models
 from ws.tests import TestCase, factories
 from ws.tests.helpers import PermHelpers
 
@@ -42,6 +44,8 @@ class AuthTests(TestCase):
          privileges are based on groups. Some participants belong to the
          leaders group, others are activity chairs
     """
+
+    user: ClassVar[models.User]
 
     @classmethod
     def setUpTestData(cls):

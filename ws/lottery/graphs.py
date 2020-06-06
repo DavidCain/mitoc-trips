@@ -1,11 +1,11 @@
 from collections import defaultdict
-from typing import List, Tuple
+from typing import List
 
 from ws import models
 
 
 class Cycle:
-    def __init__(self, participants: Tuple[models.Participant]):
+    def __init__(self, participants: List[models.Participant]):
         assert len(participants) > 1
         # Participants must be saved to the database (or they are unhashable)
         # (Also, we should never see participants blocking one another without being in the db!)
@@ -208,7 +208,7 @@ class SeparationGraph:
                     #   ^         v
                     #   +--< C <--+
                     just_cycle_subpath = path[path.index(child) :]
-                    yield Cycle(tuple(just_cycle_subpath))
+                    yield Cycle(just_cycle_subpath)
 
             path.pop()
 

@@ -1,6 +1,8 @@
+from typing import ClassVar
+
 from django.contrib.auth.models import AnonymousUser
 
-from ws import enums
+from ws import enums, models
 from ws.tests import TestCase, factories
 from ws.tests.factories import TripFactory, UserFactory
 from ws.utils import perms as perm_utils
@@ -66,6 +68,8 @@ class PermUtilTests(TestCase):
 
 
 class SuperUserTestCase(TestCase):
+    admin: ClassVar[models.User]
+
     @classmethod
     def setUpClass(cls):
         cls.admin = factories.UserFactory.create(is_superuser=True)
