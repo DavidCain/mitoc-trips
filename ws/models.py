@@ -1133,8 +1133,9 @@ class Trip(models.Model):
         above any new signups).
         """
         last_signup = self.signup_set.last()
-        min_order = last_signup.manual_order or 0
-        return min_order + 1
+        if last_signup is None:
+            return 1
+        return (last_signup.manual_order or 0) + 1
 
     @property
     def info_editable(self):
@@ -1416,7 +1417,8 @@ class WaitList(models.Model):
             .last()
         )
 
-        if last_wl_signup is None:
+        # Larger number == sooner or list
+        if last_wl_signup is None or last_wl_signup.manual_order is None:
             return 10
         return last_wl_signup.manual_order - 1
 
