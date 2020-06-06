@@ -24,7 +24,7 @@ authors = ["David Cain <davidjosephcain@gmail.com>"]
 python = "^3.6"
 Django = "^2.2"
 PyJWT = "*"
-celery = "^4.2"
+celery = "< 4.4.4"  # Version 4.4.4 has kombu KeyError on 'backend' + no `future` module: https://github.com/celery/celery/issues/6153
 django-allauth = "^0.41.0"  # See CVE-2019-19844
 django-angular = "^2.1"
 django-cors-headers = "*"
@@ -64,4 +64,4 @@ factory_boy = "^2.9.0"
 freezegun = "^0.3.9"
 isort = { version = "*", extras = ["pyproject"] }
 lxml = "*"
-pylint = "*"
+pylint = "< 2.5.0"  # 2.5.0 currently reports duplicates from multiprocessing

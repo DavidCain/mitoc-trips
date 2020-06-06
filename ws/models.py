@@ -31,13 +31,11 @@ class SingletonModel(models.Model):
     class Meta:
         abstract = True
 
-    # pylint: disable=arguments-differ
-    def save(self, *args, **kwargs):
+    def save(self, *args, **kwargs):  # pylint: disable=signature-differs
         self.pk = 1
         super().save(*args, **kwargs)
 
-    # pylint: disable=arguments-differ
-    def delete(self, *args, **kwargs):
+    def delete(self, *args, **kwargs):  # pylint: disable=signature-differs
         pass
 
     @classmethod
