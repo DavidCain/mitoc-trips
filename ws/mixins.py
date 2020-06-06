@@ -18,6 +18,8 @@ class LotteryPairingMixin:
     Requires a `participant` attribute.
     """
 
+    participant: models.Participant
+
     @property
     def pair_requests(self):
         """ Participants who have requested to be paired with the given participant. """

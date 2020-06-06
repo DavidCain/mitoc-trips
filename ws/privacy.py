@@ -48,10 +48,10 @@ class DataDump:
     @property
     def medical(self):
         """ Represent emergency info & contact in one dictionary. """
-        einfo = self.par.emergency_info
-        econtact = einfo.emergency_contact
-        einfo = model_to_dict(einfo, exclude=['id', 'emergency_contact_id'])
-        econtact = model_to_dict(econtact, exclude=['id'])
+        emergency_info = self.par.emergency_info
+        emergency_contact = emergency_info.emergency_contact
+        einfo = model_to_dict(emergency_info, exclude=['id', 'emergency_contact_id'])
+        econtact = model_to_dict(emergency_contact, exclude=['id'])
         econtact['cell_phone'] = str(econtact['cell_phone'])
         return {**einfo, 'emergency_contact': econtact}
 

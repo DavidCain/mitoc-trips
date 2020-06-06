@@ -2,6 +2,7 @@ import json
 from collections import defaultdict
 
 import jwt
+import jwt.exceptions
 from allauth.account.models import EmailAddress
 from django.conf import settings
 from django.contrib.auth.decorators import login_required

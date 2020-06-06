@@ -46,6 +46,8 @@ class TripView(DetailView):
     context_object_name = 'trip'
     template_name = 'trips/view.html'
 
+    object: models.Trip
+
     def get_queryset(self):
         trips = super().get_queryset().select_related('info')
         return trips.prefetch_related('leaders', 'leaders__leaderrating_set')
@@ -115,6 +117,8 @@ class ReviewTripView(DetailView):
     template_name = 'trips/review.html'
     success_msg = "Thanks for your feedback!"
 
+    object: models.Trip
+
     @property
     def posted_feedback(self):
         """ Convert named fields of POST data to participant -> feedback mapping.
@@ -156,15 +160,17 @@ class ReviewTripView(DetailView):
         }
         for pk, comments, showed_up in posted_feedback:
             blank_feedback = showed_up and not comments
-            existing = feedback = existing_feedback.get(pk)
+            existing = existing_feedback.get(pk)
 
             if existing and blank_feedback:
                 existing.delete()
                 continue
 
-            if not existing:
-                if blank_feedback:
-                    continue  # Don't create new feedback saying nothing useful
+            if existing is not None:
+                feedback = existing
+            elif blank_feedback:
+                continue  # Don't create new feedback saying nothing useful
+            else:
                 kwargs = {
                     'leader': leader,
                     'trip': trip,
@@ -218,6 +224,8 @@ class CreateTripView(CreateView):
     model = models.Trip
     form_class = forms.TripForm
     template_name = 'trips/create.html'
+
+    object: models.Trip
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -273,6 +281,8 @@ class EditTripView(UpdateView, TripLeadersOnlyView):
     model = models.Trip
     form_class = forms.TripForm
     template_name = 'trips/edit.html'
+
+    object: models.Trip
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()

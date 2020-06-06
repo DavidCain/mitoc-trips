@@ -11,7 +11,7 @@ import bisect
 import functools
 import logging
 import os.path
-from collections import OrderedDict, namedtuple
+import typing
 from itertools import zip_longest
 
 import gspread
@@ -80,11 +80,21 @@ def grouper(iterable, n, fillvalue=None):
     return zip_longest(*args, fillvalue=fillvalue)
 
 
+class SpreadsheetLabels(typing.NamedTuple):
+    name: str
+    email: str
+    membership: str
+    access: str
+    leader: str
+    student: str
+    school: str
+
+
 class SheetWriter:
     """ Utility methods for formatting a row in discount worksheets. """
 
     # Use constants to refer to columns
-    col_constants = OrderedDict(
+    labels = SpreadsheetLabels(
         name='Name',
         email='Email',
         membership='Membership Status',
@@ -93,7 +103,6 @@ class SheetWriter:
         student='Student Status',
         school='School',
     )
-    labels = namedtuple('SpreadsheetLabels', col_constants)(**col_constants)
 
     def __init__(self, discount):
         """ Identify the columns that will be used in the spreadsheet. """

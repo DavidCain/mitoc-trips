@@ -175,7 +175,8 @@ class TripsBlastTest(TestCase):
         self.assertEqual(msg.body, expected_content)
 
         # Check the HTML (which is chock full of email-specific CSS & structure)
-        soup = BeautifulSoup(msg.alternatives[0][0], 'html.parser')
+        content = msg.alternatives[0][0]  # type: ignore
+        soup = BeautifulSoup(content, 'html.parser')
         self.assertEqual(soup.title.text, 'Upcoming MITOC trips | Wednesday, January 1')
         self.assertIn(
             'http://mailman.mit.edu/mailman/listinfo/mitoc-trip-announce', soup.text

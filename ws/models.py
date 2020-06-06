@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Type
+from typing import Dict, List, Type
 
 from allauth.account.models import EmailAddress
 from django.conf import settings
@@ -1016,7 +1016,7 @@ class Trip(models.Model):
             par_pks = [participant.pk for participant in for_participants]
         else:
             par_pks = [s.participant_id for s in self.on_trip_or_waitlisted]
-        trips_by_par = {pk: [] for pk in par_pks}
+        trips_by_par: Dict[int, List[Trip]] = {pk: [] for pk in par_pks}
 
         # Start by identifying trips the participants are attending as participants
         for signup in self.other_signups(par_pks):

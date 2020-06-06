@@ -171,7 +171,7 @@ class StudentTravelFormTest(TestCase):
 
         self.trip.info.drivers.add(self.leader)
 
-        self.joe.car = factories.CarFactory(
+        self.joe.car = factories.CarFactory.create(
             make='Ford',
             model='Fiesta',
             license_plate='ABC 123',
