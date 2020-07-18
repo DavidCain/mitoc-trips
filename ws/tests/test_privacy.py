@@ -134,8 +134,9 @@ class DataDumpTest(TestCase):
 
     def test_leader_school_applications(self):
         par = factories.ParticipantFactory.create()
-        factories.WinterSchoolLeaderApplicationFactory.create(participant=par)
-        factories.ClimbingLeaderApplicationFactory.create(participant=par)
+        with freeze_time("01 Jul 2020 18:35:40 EST"):
+            factories.WinterSchoolLeaderApplicationFactory.create(participant=par)
+            factories.ClimbingLeaderApplicationFactory.create(participant=par)
 
         data = DataDump(par.pk)
 
@@ -147,7 +148,7 @@ class DataDumpTest(TestCase):
                 {
                     'previous_rating': '',
                     'archived': False,
-                    'year': 2020,
+                    'year': 2021,
                     'desired_rating': 'B coC',
                     'taking_wfa': 'No',
                     'training': 'EMT Basic',
@@ -169,7 +170,7 @@ class DataDumpTest(TestCase):
                 {
                     'previous_rating': '',
                     'archived': False,
-                    'year': 2020,
+                    'year': 2021,
                     'desired_rating': '',
                     'years_climbing': 9,
                     'years_climbing_outside': 7,
