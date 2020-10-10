@@ -124,8 +124,9 @@ class Discount(models.Model):
     url = models.URLField(null=True, blank=True)
     ga_key = models.CharField(
         max_length=63,
-        help_text="key for Google spreadsheet with membership information "
-        "(shared as read-only with the company)",
+        # If blank, then we don't actually report this information to a spreadsheet
+        blank=True,
+        help_text="key for Google spreadsheet with membership information (shared as read-only with the company)",
     )
 
     time_created = models.DateTimeField(auto_now_add=True)

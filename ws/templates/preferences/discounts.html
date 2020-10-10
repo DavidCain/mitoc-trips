@@ -38,7 +38,11 @@
             <div class="row">
               <div class="col-md-4 col-xs-6">
                 <label ng-non-bindable>  {# Angular would bind ng-model, and make all these inputs share a model #}
-                  {{ checkbox.tag }} {{ checkbox.choice_label }}
+                  {% if discount.ga_key %}
+                    {# Discounts without the Google Sheets key should just describe what's needed for next steps #}
+                    {{ checkbox.tag }}
+                  {% endif %}
+                  {{ checkbox.choice_label }}
                 </label>
               </div>
               <div class="col-md-4 col-md-push-4 col-xs-6 text-right">

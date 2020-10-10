@@ -88,6 +88,11 @@ def update_discount_sheet_for_participant(discount_id, participant_id):
     another participant (or for all participants, as we do nightly).
     """
     discount = models.Discount.objects.get(pk=discount_id)
+    if not discount.ga_key:
+        # Form logic should prevent ever letting participants "enroll" in this type of discount
+        logger.error("Discount %s does not have a Google Sheet!", discount.name)
+        return
+
     participant = models.Participant.objects.get(pk=participant_id)
 
     if settings.DISABLE_GSHEETS:
@@ -112,6 +117,11 @@ def update_discount_sheet(discount_id):
     another participant (or for all participants, as we do nightly).
     """
     discount = models.Discount.objects.get(pk=discount_id)
+    if not discount.ga_key:
+        # Form logic should prevent ever letting participants "enroll" in this type of discount
+        logger.error("Discount %s does not have a Google Sheet!", discount.name)
+        return
+
     logger.info("Updating the discount sheet for %s", discount.name)
 
     if settings.DISABLE_GSHEETS:
@@ -127,7 +137,9 @@ def update_discount_sheet(discount_id):
 @mutex_task()
 def update_all_discount_sheets():
     logger.info("Updating the member roster for all discount sheets")
-    discount_pks = models.Discount.objects.values_list('pk', flat=True)
+    discount_pks = models.Discount.objects.exclude(ga_key='').values_list(
+        'pk', flat=True
+    )
     group([update_discount_sheet.s(pk) for pk in discount_pks])()
 
 

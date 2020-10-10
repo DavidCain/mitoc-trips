@@ -41,8 +41,13 @@ class DiscountForm(forms.ModelForm):
         if not participant.is_student:
             for discount in discounts:
                 if discount.student_required:
-                    err = "{} is a student-only discount".format(discount.name)
-                    raise ValidationError(err)
+                    raise ValidationError(f"{discount.name} is a student-only discount")
+                if not discount.ga_key:
+                    # The UI should prevent "enrolling" in these read-only discounts, but check anyway.
+                    raise ValidationError(
+                        f"{discount.name} does not support sharing your information automatically. "
+                        "See discount terms for instructions."
+                    )
         return self.cleaned_data
 
     class Meta:

@@ -8,6 +8,7 @@ from mitoc_const import affiliations
 
 from ws import tasks
 from ws.tests import TestCase, factories
+from ws.utils import member_sheets
 
 
 class MutexTaskTests(SimpleTestCase):
@@ -85,7 +86,7 @@ class TaskTests(TestCase):
     @staticmethod
     @mock.patch('ws.utils.member_sheets.update_discount_sheet')
     def test_update_discount_sheet(update_discount_sheet):
-        discount = factories.DiscountFactory.create(pk=9123)
+        discount = factories.DiscountFactory.create(pk=9123, ga_key='test-key')
         tasks.update_discount_sheet(9123)
         update_discount_sheet.assert_called_with(discount)
 
@@ -156,3 +157,52 @@ class TaskTests(TestCase):
 
         tasks.update_discount_sheet(discount.pk)
         mock_cache.add.assert_called_with(expected_lock_id, 'true', 600)
+
+
+class DiscountsWithoutGaKeyTest(TestCase):
+    """ Test our handling of discounts which opt out of the Google Sheets flow. """
+
+    def setUp(self):
+        self.par = factories.ParticipantFactory.create()
+        # Some discounts opt out of the Google Sheets flow
+        self.discount = factories.DiscountFactory.create(ga_key='')
+
+    def test_update_sheet_for_participant(self):
+        """ If we mistakenly wrote a discount without a Google Sheets key, Celery handles it. """
+        # Participants shouldn't be able to opt in to these discounts,
+        # but make sure Celery doesn't choke if they do.
+        self.par.discounts.add(self.discount)
+
+        with mock.patch.object(member_sheets, 'update_participant') as update_par:
+            with mock.patch.object(tasks.logger, 'error') as log_error:
+                tasks.update_discount_sheet_for_participant(
+                    self.discount.pk, self.par.pk
+                )
+
+        log_error.assert_called()
+        update_par.assert_not_called()
+
+    def test_update_sheet(self):
+        """ Updating just a single sheet is handled if that sheet has no Google Sheets key. """
+        with mock.patch.object(member_sheets, 'update_participant') as update_par:
+            with mock.patch.object(tasks.logger, 'error') as log_error:
+                tasks.update_discount_sheet(self.discount.pk)
+
+        log_error.assert_called()
+        update_par.assert_not_called()
+
+    @staticmethod
+    def test_update_all():
+        """ When updating the sheets for all discounts, we exclude ones without a sheet. """
+        # Because this discount has no Google Sheets key, we don't do anything
+        with mock.patch.object(tasks.update_discount_sheet, 's') as update_sheet:
+            tasks.update_all_discount_sheets()
+        update_sheet.assert_not_called()
+
+        # If we add another discount, we can bulk update but will exclude the current one
+        other_discount = factories.DiscountFactory.create(ga_key='some-koy')
+
+        with mock.patch.object(tasks.update_discount_sheet, 's') as update_sheet:
+            with mock.patch.object(tasks, 'group'):
+                tasks.update_all_discount_sheets()
+        update_sheet.assert_called_once_with(other_discount.pk)
