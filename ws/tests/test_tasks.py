@@ -132,7 +132,7 @@ class TaskTests(TestCase):
         tasks.send_sole_itineraries()
 
         # Emails were sent for only the trips with an itinerary
-        self.assertEqual(
+        self.assertCountEqual(
             [trip for (trip,), kwargs in send_email_to_funds.call_args_list],
             trips_with_itinerary,
         )
