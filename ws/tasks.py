@@ -1,6 +1,5 @@
 import inspect
 import logging
-import random
 from contextlib import contextmanager
 from datetime import timedelta
 from functools import wraps
@@ -47,14 +46,6 @@ def exclusive_lock(task_identifier):
         # If we're close to the timeout, just let the cache self-clean
         if got_lock and monotonic() < timeout_at:
             cache.delete(task_identifier)
-
-
-def increasing_retry(num_retries):
-    """ Returning an increasing countdown (in seconds).
-
-    Includes randomness to avoid the Thundering Herd Problem.
-    """
-    return int(random.uniform(2, 4) ** num_retries)
 
 
 def mutex_task(task_id_template=None, **shared_task_kwargs):
