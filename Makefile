@@ -112,6 +112,7 @@ run-js: install-js
 clean:
 	rm -f $(poetry_dev_bootstrap_file)
 	rm -f $(poetry_prod_bootstrap_file)
+	rm -f $(poetry_typing_bootstrap_file)
 	rm -f $(npm_bootstrap_file)
 	rm -rf .mypy_cache
 	find . -name '*.pyc' -delete
