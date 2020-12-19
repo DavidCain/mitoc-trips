@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from typing import Dict, List, Type
 
 from allauth.account.models import EmailAddress
@@ -194,8 +194,14 @@ class Membership(models.Model):
     def should_sign_waiver_for(self, trip):
         """ Return if the waiver will be valid for the day of the trip.
 
-        We consider waivers "expired" every year.
+        We consider waivers "expired" 365 days after being signed.
         """
+        # WS 2021 "trips" are just lectures, so waivers are not needed.
+        # Normally, *all* trips require a waiver, so just make this a temporary hack.
+        # No trip in January, 2021 will be in-person and requiring a waiver.
+        if date(2021, 1, 1) < trip.trip_date < date(2021, 2, 1):
+            return False
+
         if not self.waiver_expires:
             return True
 
