@@ -398,6 +398,7 @@ class MembershipActiveTest(unittest.TestCase):
         self.assertTrue(par.should_renew_for(trip))
         self.assertTrue(par.should_sign_waiver_for(trip))
 
+    @freeze_time("12 Dec 2020 12:00:00 EST")
     def test_no_membership(self):
         membership = factories.MembershipFactory.build(
             membership_expires=None, waiver_expires=None
@@ -410,6 +411,7 @@ class MembershipActiveTest(unittest.TestCase):
         self.assertTrue(membership.should_renew_for(trip))
         self.assertTrue(membership.should_sign_waiver_for(trip))
 
+    @freeze_time("12 Dec 2020 12:00:00 EST")
     def test_no_cached_membership_but_not_required(self):
         membership = factories.MembershipFactory.build(
             membership_expires=None, waiver_expires=None
