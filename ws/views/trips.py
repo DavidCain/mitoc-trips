@@ -78,9 +78,9 @@ class TripView(DetailView):
         }
         gear_per_participant = defaultdict(list)
         for item in outstanding_items(
-            participant_by_email, rented_on_or_before=trip.trip_date
+            list(participant_by_email), rented_on_or_before=trip.trip_date
         ):
-            participant = participant_by_email[item['email']]
+            participant = participant_by_email[item.email]
             gear_per_participant[participant].append(item)
 
         # Yield in order of leaders & default signup ordering

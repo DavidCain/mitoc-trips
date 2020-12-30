@@ -10,7 +10,7 @@ def trip_rental_table(trip, leader_on_trip, items_by_par, show_serial=False):
     # Enforce items are only those rented before the trip itself
     # (Items rented by participants _after_ the trip has ended were not for the trip)
     items_by_par = [
-        (participant, [item for item in items if item['checkedout'] <= trip.trip_date])
+        (participant, [item for item in items if item.checkedout <= trip.trip_date])
         for participant, items in items_by_par
     ]
 

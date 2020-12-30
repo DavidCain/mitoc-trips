@@ -6,8 +6,10 @@ integrate with this one). In the meantime, communicate with an
 externally-hosted MySQL database instead of using Django models.
 """
 import logging
+import typing
 from collections import OrderedDict
 from datetime import datetime, timedelta
+from typing import Iterator, List, Optional
 
 from django.db import connections
 from django.db.models import Case, Count, IntegerField, Sum, When
@@ -28,18 +30,30 @@ AFFILIATION_MAPPING['M'] = affiliations.MIT_AFFILIATE.VALUE
 AFFILIATION_MAPPING['N'] = affiliations.NON_AFFILIATE.VALUE
 
 
-def verified_emails(user):
+class Rental(typing.NamedTuple):
+    """ An object representing a rental by a user in the gear database. """
+
+    email: str
+    id: str  # Example, 'BK-19-04'
+    name: str
+    cost: float  # How much the daily cost for the item is
+    checkedout: datetime
+    overdue: bool
+
+
+def verified_emails(user) -> List[str]:
+    """ Return all email addresses that the user is verified to own. """
     if not (user and user.is_authenticated):
         return []
     emails = user.emailaddress_set
-    return emails.filter(verified=True).values_list('email', flat=True)
+    return list(emails.filter(verified=True).values_list('email', flat=True))
 
 
 def user_membership_expiration(user, try_cache=False):
     """ Return membership information for the user.
 
     If `try_cache` is True, then we'll first attempt to locate cached
-    membership information. if any information exists, that will be returned.
+    membership information. If any information exists, that will be returned.
     """
     if not (user and user.is_authenticated):
         return None
@@ -227,7 +241,9 @@ def matching_memberships(emails):
     return OrderedDict(_yield_matches(emails))
 
 
-def outstanding_items(emails, rented_on_or_before=None):
+def outstanding_items(
+    emails: List[str], rented_on_or_before: Optional[datetime] = None
+) -> Iterator[Rental]:
     """ Yield all items that are currently checked out to the members.
 
     This method supports listing items for an individual participant (who may
@@ -284,17 +300,17 @@ def outstanding_items(emails, rented_on_or_before=None):
                 # This method is a generator - raising StopIteration would stop iteration
                 raise ValueError("Expected at least one email to match!")
 
-        yield {
-            'email': to_original_case[email],
-            'id': gear_id,
-            'name': name,
-            'cost': cost,
-            'checkedout': checkedout,
-            'overdue': (local_date() - checkedout > timedelta(weeks=10)),
-        }
+        yield Rental(
+            email=to_original_case[email],
+            id=gear_id,
+            name=name,
+            cost=cost,
+            checkedout=checkedout,
+            overdue=(local_date() - checkedout > timedelta(weeks=10)),
+        )
 
 
-def user_rentals(user):
+def user_rentals(user) -> List[Rental]:
     return list(outstanding_items(verified_emails(user)))
 
 

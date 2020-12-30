@@ -530,8 +530,21 @@ class UserMembershipView(UserView):
 
 class UserRentalsView(UserView):
     def get(self, request, *args, **kwargs):
+        """ Describe all items the user has checked out from MITOC. """
         user = self.get_object()
-        return JsonResponse({'rentals': geardb_utils.user_rentals(user)})
+        rented_items = [
+            # TODO: Could instead use a dataclass with an `as_dict()` invocation
+            {
+                'email': r.email,
+                'id': r.id,
+                'name': r.name,
+                'cost': r.cost,
+                'checkedout': r.checkedout,
+                'overdue': r.overdue,
+            }
+            for r in geardb_utils.user_rentals(user)
+        ]
+        return JsonResponse({'rentals': rented_items})
 
 
 class JWTView(View):
