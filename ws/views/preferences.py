@@ -6,6 +6,7 @@ paired with another participant. All of these options are deemed "preferences"
 of the participant.
 """
 import json
+from typing import Dict, Set
 
 from django.contrib import messages
 from django.db.models import Q
@@ -141,6 +142,7 @@ class LotteryPreferencesView(TemplateView, LotteryPairingMixin):
         return (
             models.SignUp.objects.filter(
                 participant=self.request.participant,
+                on_trip=False,
                 trip__algorithm='lottery',
                 trip__program=enums.Program.WINTER_SCHOOL.value,
                 trip__trip_date__gt=local_date(),
@@ -202,9 +204,13 @@ class LotteryPreferencesView(TemplateView, LotteryPairingMixin):
             if lottery_info.car_status == 'none':
                 lottery_info.number_of_passengers = None
             lottery_info.save()
-            self.save_signups()
-            self.handle_paired_signups()
-            resp, status = {'message': self.update_msg}, 200
+            try:
+                self.save_signups()
+            except (ValueError, TypeError):
+                resp, status = {'message': 'Unable to save signups'}, 400
+            else:
+                self.handle_paired_signups()
+                resp, status = {'message': self.update_msg}, 200
         else:
             resp, status = {'message': "Car form invalid"}, 400
 
@@ -213,20 +219,30 @@ class LotteryPreferencesView(TemplateView, LotteryPairingMixin):
     def save_signups(self):
         """ Save the rankings given by the participant, optionally removing any signups. """
         par = self.request.participant
-        par_signups = models.SignUp.objects.filter(participant=par)
         posted_signups = self.post_data['signups']
+        required_fields: Set[str] = {'id', 'deleted', 'order'}
 
-        # TODO: This will throw key errors on improperly-formatted payloads
-        for post in [p for p in posted_signups if not p['deleted']]:
-            signup = par_signups.get(pk=post['id'])
-            signup.order = post['order']
-            signup.save()
-        del_ids = [p['id'] for p in self.post_data['signups'] if p['deleted']]
-        # TODO: We could consider other status codes on failed deletions
-        # - 404 if signup not found
-        # - 403 if signups are found, but belong to somebody else
-        if del_ids:
-            signup = par_signups.filter(pk__in=del_ids).delete()
+        for ps in posted_signups:
+            for key in required_fields:
+                if key not in ps:
+                    raise ValueError(f"{key} missing from {ps}")
+
+        # First, delete any signups (provided they belong to the user & are lottery WS trips)
+        # It's important that we prevent participants from deleting *other* signups with this route:
+        # 1. Not all trips allow participants to drop off
+        # 2. Signals aren't triggered from this `delete()`, which means FCFS logic isn't triggered
+        to_del_ids = [p['id'] for p in posted_signups if p['deleted']]
+        if to_del_ids:
+            self.ranked_signups.filter(pk__in=to_del_ids).delete()
+
+        # Next, explicitly rank signups that the participant listed
+        order_per_signup: Dict[int, int] = {
+            int(p['id']): int(p['order']) for p in posted_signups if not p['deleted']
+        }
+        signups = models.SignUp.objects.filter(participant=par, pk__in=order_per_signup)
+        for signup in signups:
+            signup.order = order_per_signup[signup.pk]
+        models.SignUp.objects.bulk_update(signups, ['order'])
 
     def handle_paired_signups(self):
         if not self.reciprocally_paired:

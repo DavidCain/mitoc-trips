@@ -174,6 +174,51 @@ class LotteryPreferencesDriverStatusTests(TestCase, PostHelper):
 
 @freeze_time("2019-01-08 12:25:00 EST")
 class LotteryPreferencesSignupTests(TestCase, PostHelper):
+    def test_missing_ordering(self):
+        """ Signups must specify signup ID, deletion, and ordering. """
+        par = factories.ParticipantFactory.create(lotteryinfo=None)
+        self.client.force_login(par.user)
+
+        signup = factories.SignUpFactory.create(
+            participant=par,
+            trip__algorithm='lottery',
+            trip__program=enums.Program.WINTER_SCHOOL.value,
+            trip__trip_date=date(2019, 1, 12),
+        )
+
+        response = self._post(
+            {
+                'signups': [
+                    # No ordering given
+                    {'id': signup.pk, 'deleted': False},
+                ],
+                'car_status': 'none',
+            }
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json(), {'message': 'Unable to save signups'})
+
+    def test_invalid_ordering(self):
+        """ Ordering must be null or numeric. """
+        par = factories.ParticipantFactory.create(lotteryinfo=None)
+        self.client.force_login(par.user)
+
+        signup = factories.SignUpFactory.create(
+            participant=par,
+            trip__algorithm='lottery',
+            trip__program=enums.Program.WINTER_SCHOOL.value,
+            trip__trip_date=date(2019, 1, 12),
+        )
+
+        response = self._post(
+            {
+                'signups': [{'id': signup.pk, 'deleted': False, 'order': 'threeve'},],
+                'car_status': 'none',
+            }
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json(), {'message': 'Unable to save signups'})
+
     def test_default_ranking(self):
         """ By default, we list ranked signups by time of creation. """
         par = factories.ParticipantFactory.create(lotteryinfo=None)
@@ -302,3 +347,43 @@ class LotteryPreferencesSignupTests(TestCase, PostHelper):
         # We give a 200, even though we could possibly return a 403
         self.assertEqual(response.status_code, 200)
         self.assertTrue(models.SignUp.objects.filter(pk=other_signup.pk).exists())
+
+    def test_can_only_delete_ws_lottery_signups(self):
+        """ This route must not provide an undocumented means to drop off trips.
+
+        Deletion of signups should *only* be for signups where the user is not on
+        the trip because it's in the lottery stage of a Winter School trip.
+        """
+        par = factories.ParticipantFactory.create()
+        not_deletable = [
+            factories.SignUpFactory.create(
+                participant=par,
+                trip__algorithm='fcfs',
+                trip__program=enums.Program.WINTER_SCHOOL.value,
+                trip__trip_date=date(2019, 1, 12),
+            ),
+            # An edge case, but it's technically possible to be pre-placed on a lottery trip
+            factories.SignUpFactory.create(
+                on_trip=True,
+                participant=par,
+                trip__algorithm='lottery',
+                trip__program=enums.Program.WINTER_SCHOOL.value,
+                trip__trip_date=date(2019, 1, 12),
+            ),
+        ]
+        self.client.force_login(par.user)
+        response = self._post(
+            {
+                'signups': [
+                    {'id': signup.pk, 'deleted': True, 'order': None}
+                    for signup in not_deletable
+                ],
+                'car_status': 'none',
+            }
+        )
+        # None of the specified signups were actually deleted
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            models.SignUp.objects.filter(pk__in=[s.pk for s in not_deletable]).count(),
+            len(not_deletable),
+        )
