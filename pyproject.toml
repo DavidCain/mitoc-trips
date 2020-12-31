@@ -23,7 +23,7 @@ authors = ["David Cain <davidjosephcain@gmail.com>"]
 [tool.poetry.dependencies]
 python = "^3.6"
 Django = "^2.2"
-PyJWT = "*"
+PyJWT = ">= 2.0.0"  # 2.0.0 changed the return type of `jwt.encode()`
 celery = "< 4.4.4"  # Version 4.4.4 has kombu KeyError on 'backend' + no `future` module: https://github.com/celery/celery/issues/6153
 django-allauth = "^0.41.0"  # See CVE-2019-19844
 django-angular = "^2.1"

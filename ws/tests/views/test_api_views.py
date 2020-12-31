@@ -18,7 +18,7 @@ class JWTSecurityTest(TestCase):
             {'exp': year_2525, 'email': 'tim@mit.edu'},
             algorithm='HS256',
             key='this is definitely not the real secret',
-        ).decode('utf-8')
+        )
         response = self.client.get(
             '/data/verified_emails/', HTTP_AUTHORIZATION=f'Bearer: {token}',
         )
@@ -31,7 +31,7 @@ class JWTSecurityTest(TestCase):
             {'exp': int(time.time()) - 1, 'email': 'tim@mit.edu'},
             algorithm='HS256',
             key='this is definitely not the real secret',
-        ).decode('utf-8')
+        )
         response = self.client.get(
             '/data/verified_emails/', HTTP_AUTHORIZATION=f'Bearer: {token}',
         )
@@ -44,7 +44,7 @@ class JWTSecurityTest(TestCase):
             {'exp': year_2525, 'email': 'tim@mit.edu'},
             algorithm='HS256',
             key=settings.MEMBERSHIP_SECRET_KEY,
-        ).decode('utf-8')
+        )
         response = self.client.get(
             '/data/verified_emails/', HTTP_AUTHORIZATION=f'Bearer: {real_token}',
         )
@@ -57,7 +57,7 @@ class JWTSecurityTest(TestCase):
             {'exp': year_2525, 'email': 'tim@mit.edu'},
             algorithm='HS512',
             key=settings.MEMBERSHIP_SECRET_KEY,
-        ).decode('utf-8')
+        )
         response = self.client.get(
             '/data/verified_emails/', HTTP_AUTHORIZATION=f'Bearer: {real_token}',
         )
@@ -70,7 +70,7 @@ class JWTSecurityTest(TestCase):
             {'exp': year_2525, 'email': 'tim@mit.edu'},
             algorithm='HS384',
             key=settings.MEMBERSHIP_SECRET_KEY,
-        ).decode('utf-8')
+        )
         response = self.client.get(
             '/data/verified_emails/', HTTP_AUTHORIZATION=f'Bearer: {real_token}',
         )
@@ -92,7 +92,7 @@ class JWTSecurityTest(TestCase):
 
         malicious_token = jwt.encode(
             {'exp': year_2525, 'email': 'tim@mit.edu'}, algorithm='none', key=None
-        ).decode('utf-8')
+        )
         response = self.client.get(
             '/data/verified_emails/', HTTP_AUTHORIZATION=f'Bearer: {malicious_token}',
         )
