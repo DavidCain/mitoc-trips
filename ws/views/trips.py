@@ -77,9 +77,9 @@ class TripView(DetailView):
             addr.email: par_by_user_id[addr.user_id] for addr in emails
         }
         gear_per_participant = defaultdict(list)
-        for item in outstanding_items(
-            list(participant_by_email), rented_on_or_before=trip.trip_date
-        ):
+        for item in outstanding_items(list(participant_by_email)):
+            if item.checkedout > trip.trip_date:
+                continue  # This item definitely wasn't rented for the trip
             participant = participant_by_email[item.email]
             gear_per_participant[participant].append(item)
 
