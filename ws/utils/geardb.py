@@ -1,22 +1,27 @@
 """
 Functions for interacting with the gear database.
 
-The gear database is itself a Django application (which we will eventually
-integrate with this one). In the meantime, communicate with an
-externally-hosted MySQL database instead of using Django models.
+The gear database is itself a Django application (which we are in the processes
+of integrating with this one via an API layer).
+
+In the meantime, this module contains some direct database access to an
+externally-hosted MySQL database.
 """
 import logging
 import typing
 from collections import OrderedDict
 from datetime import datetime, timedelta
-from typing import Iterator, List, Optional
+from typing import Any, Dict, Iterator, List, Optional
+from urllib.parse import urljoin
 
+import requests
 from django.db import connections
 from django.db.models import Case, Count, IntegerField, Sum, When
 from django.db.models.functions import Lower
 from mitoc_const import affiliations
 
-from ws import models
+from ws import models, settings
+from ws.utils import api as api_util
 from ws.utils.dates import local_date
 
 logger = logging.getLogger(__name__)
@@ -28,6 +33,46 @@ AFFILIATION_MAPPING = {aff.CODE: aff.VALUE for aff in affiliations.ALL}
 # Deprecated statuses, but we can still map them
 AFFILIATION_MAPPING['M'] = affiliations.MIT_AFFILIATE.VALUE
 AFFILIATION_MAPPING['N'] = affiliations.NON_AFFILIATE.VALUE
+
+
+API_BASE = 'https://mitoc-gear.mit.edu/api-auth/v1/'
+
+JsonDict = Dict[str, Any]
+
+
+class APIError(Exception):
+    """ Something went wrong in communicating with the API. """
+
+
+def gear_bearer_jwt(**payload) -> str:
+    """Express a JWT for use on mitoc-gear.mit.edu as a bearer token.
+
+    The API there expects a token signed with a shared key - without this token,
+    authorized routes will be denied access.
+    """
+    return api_util.bearer_jwt(settings.GEARDB_SECRET_KEY, **payload)
+
+
+def query_api(route: str, **params: Any) -> List[JsonDict]:
+    """ Request results from the API on mitoc-gear.mit.edu. """
+    response = requests.get(
+        urljoin(API_BASE, route),
+        # NOTE: We sign the payload here, even though current implementations only use query params.
+        # This does technically mean that anyone with a valid token can use the token to query any data.
+        # However, tokens aren't given to end users, only used on the systems which already have the secret.
+        headers={'Authorization': gear_bearer_jwt(**params)},
+        params=params,
+    )
+    if response.status_code != 200:
+        raise APIError()
+
+    body = response.json()
+    results: List[JsonDict] = body['results']
+
+    if body['next'] or len(results) != body['count']:
+        logger.error("Results are paginated; this is not expected or handled.")
+
+    return results
 
 
 class Rental(typing.NamedTuple):
