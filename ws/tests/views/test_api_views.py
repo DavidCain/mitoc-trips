@@ -50,6 +50,33 @@ class JWTSecurityTest(TestCase):
         )
         self.assertEqual(response.status_code, 200)
 
+    def test_real_secret_works_with_different_algorithm(self):
+        """ We also support HMAC with SHA-512. """
+        year_2525 = 17514144000
+        real_token = jwt.encode(
+            {'exp': year_2525, 'email': 'tim@mit.edu'},
+            algorithm='HS512',
+            key=settings.MEMBERSHIP_SECRET_KEY,
+        ).decode('utf-8')
+        response = self.client.get(
+            '/data/verified_emails/', HTTP_AUTHORIZATION=f'Bearer: {real_token}',
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_disallowed_algorithm(self):
+        """ A token signed with the correct secret but the wrong algorithm is denied. """
+        year_2525 = 17514144000
+        real_token = jwt.encode(
+            {'exp': year_2525, 'email': 'tim@mit.edu'},
+            algorithm='HS384',
+            key=settings.MEMBERSHIP_SECRET_KEY,
+        ).decode('utf-8')
+        response = self.client.get(
+            '/data/verified_emails/', HTTP_AUTHORIZATION=f'Bearer: {real_token}',
+        )
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json(), {'message': 'invalid algorithm'})
+
     def test_attempted_attack_fails(self):
         """ Assert that we *always* require a token signed with the secret.
 
