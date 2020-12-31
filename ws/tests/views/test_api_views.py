@@ -1,11 +1,50 @@
 import json
 from unittest import mock
 
+import jwt
 from freezegun import freeze_time
 
 import ws.utils.perms as perm_utils
-from ws import enums
+from ws import enums, settings
 from ws.tests import TestCase, factories
+
+
+class JWTSecurityTest(TestCase):
+    def test_real_secret_works(self):
+        """ First, we show that requests using a signed, non-expired token work. """
+        year_2525 = 17514144000
+        real_token = jwt.encode(
+            {'exp': year_2525, 'email': 'tim@mit.edu'},
+            algorithm='HS256',
+            key=settings.MEMBERSHIP_SECRET_KEY,
+        ).decode('utf-8')
+        response = self.client.get(
+            '/data/verified_emails/', HTTP_AUTHORIZATION=f'Bearer: {real_token}',
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_attempted_attack_fails(self):
+        """ Assert that we *always* require a token signed with the secret.
+
+        The special `none` algorithm in the JWT spec allows attackers to request
+        data using a JWT which is not actually signed using a secret. If an API
+        decodes tokens and allows the `none` algorithm, then that means it can
+        grant access to attackers. This is bad.
+
+        For more, see:
+        https://auth0.com/blog/critical-vulnerabilities-in-json-web-token-libraries/
+        """
+        year_2525 = 17514144000
+
+        malicious_token = jwt.encode(
+            {'exp': year_2525, 'email': 'tim@mit.edu'}, algorithm='none', key=None
+        ).decode('utf-8')
+        response = self.client.get(
+            '/data/verified_emails/', HTTP_AUTHORIZATION=f'Bearer: {malicious_token}',
+        )
+        # Because the attacker gave a token without signing the secret, they get a 401
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json(), {'message': 'invalid algorithm'})
 
 
 class JsonProgramLeadersViewTest(TestCase):
