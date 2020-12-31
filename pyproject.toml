@@ -52,6 +52,7 @@ sentry-sdk = "*"
 # (Included here, since extras cannot refer to dev dependencies)
 django-debug-toolbar = { version = "*", optional = true }
 ipdb = { version = "*", optional = true }
+jedi = { version = "<0.18.0", optional = true }  # https://github.com/ipython/ipython/issues/12740
 
 # Optional dependencies for generating & reporting test coverage stats
 coverage = { version = "*", optional = true }
@@ -62,7 +63,7 @@ mypy = { version = "*", optional = true }
 
 [tool.poetry.extras]
 code_coverage = ["coverage", "codecov"]
-debugging = ["django-debug-toolbar", "ipdb"]
+debugging = ["django-debug-toolbar", "ipdb", "jedi"]
 typing = ["django-stubs", "mypy"]
 
 [tool.poetry.dev-dependencies]
