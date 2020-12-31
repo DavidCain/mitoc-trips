@@ -35,6 +35,9 @@ PRNG_SEED_SECRET = os.getenv('PRNG_SEED_SECRET', 'some-key-unknown-to-participan
 MEMBERSHIP_SECRET_KEY = os.getenv(
     'MEMBERSHIP_SECRET_KEY', 'secret shared with the mitoc-member repo'
 )
+GEARDB_SECRET_KEY = os.getenv(
+    'GEARDB_SECRET_KEY', 'secret shared with the mitoc-gear repo'
+)
 WS_LOTTERY_LOG_DIR = os.getenv('WS_LOTTERY_LOG_DIR', '/tmp/')
 
 # URL to an avatar image that is self-hosted
