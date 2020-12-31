@@ -125,7 +125,7 @@ python-versions = "~=3.5"
 
 [[package]]
 name = "celery"
-version = "4.4.3"
+version = "4.4.7"
 description = "Distributed Task Queue."
 category = "main"
 optional = false
@@ -133,7 +133,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [package.dependencies]
 billiard = ">=3.6.3.0,<4.0"
-kombu = ">=4.6.9,<4.7"
+kombu = ">=4.6.10,<4.7"
 pytz = ">0.0-dev"
 vine = "1.3.0"
 
@@ -1084,7 +1084,7 @@ typing = ["django-stubs", "mypy"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6"
-content-hash = "5854997371c5b0e4b3090ee495e04488787497672cfec91114d6d4fd1e56aebc"
+content-hash = "e955066813abbde994aa045a818f6e67e3f071563869303f6d5a859fd076d0ba"
 
 [metadata.files]
 amqp = [
@@ -1133,8 +1133,8 @@ cachetools = [
     {file = "cachetools-4.2.0.tar.gz", hash = "sha256:3796e1de094f0eaca982441c92ce96c68c89cced4cd97721ab297ea4b16db90e"},
 ]
 celery = [
-    {file = "celery-4.4.3-py2.py3-none-any.whl", hash = "sha256:df2937b7536a2a9b18024776a3a46fd281721813636c03a5177fa02fe66078f6"},
-    {file = "celery-4.4.3.tar.gz", hash = "sha256:5147662e23dc6bc39c17a2cbc9a148debe08ecfb128b0eded14a0d9c81fc5742"},
+    {file = "celery-4.4.7-py2.py3-none-any.whl", hash = "sha256:a92e1d56e650781fb747032a3997d16236d037c8199eacd5217d1a72893bca45"},
+    {file = "celery-4.4.7.tar.gz", hash = "sha256:d220b13a8ed57c78149acf82c006785356071844afe0b27012a4991d44026f9f"},
 ]
 certifi = [
     {file = "certifi-2020.12.5-py2.py3-none-any.whl", hash = "sha256:719a74fb9e33b9bd44cc7f3a8d94bc35e4049deebe19ba7d8e108280cfd59830"},
