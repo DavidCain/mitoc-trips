@@ -4,9 +4,19 @@ Some shortcuts to retrieve meaningful dates.
 
 from datetime import datetime, time, timedelta
 
+import dateutil.parser
 from django.utils import timezone
 
 from ws import enums, models
+
+
+def datetime_from_iso(datestring: str) -> datetime:
+    """ Convert an ISO 8601 datetime string (offset included) to a date object.
+
+    Throws ValueError or TypeError on invalid inputs.
+    """
+    # TODO (Python 3.7): Just use datetime.fromisoformat()
+    return dateutil.parser.isoparse(datestring)
 
 
 def date_from_iso(datestring):
