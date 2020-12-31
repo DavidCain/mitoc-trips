@@ -534,6 +534,7 @@ class UserRentalsView(UserView):
         user = self.get_object()
         rented_items = [
             # TODO: Could instead use a dataclass with an `as_dict()` invocation
+            # Or a TypedDict once on Python 3.8
             {
                 'email': r.email,
                 'id': r.id,

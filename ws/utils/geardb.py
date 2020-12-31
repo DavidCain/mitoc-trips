@@ -10,8 +10,8 @@ externally-hosted MySQL database.
 import logging
 import typing
 from collections import OrderedDict
-from datetime import datetime, timedelta
-from typing import Any, Dict, Iterator, List, Optional
+from datetime import date, datetime, timedelta
+from typing import Any, Dict, Iterator, List
 from urllib.parse import urljoin
 
 import requests
@@ -22,7 +22,7 @@ from mitoc_const import affiliations
 
 from ws import models, settings
 from ws.utils import api as api_util
-from ws.utils.dates import local_date
+from ws.utils.dates import datetime_from_iso, local_date
 
 logger = logging.getLogger(__name__)
 # In all cases, we should use the MITOC Trips affiliation instead
@@ -82,12 +82,15 @@ class Rental(typing.NamedTuple):
     id: str  # Example, 'BK-19-04'
     name: str
     cost: float  # How much the daily cost for the item is
-    checkedout: datetime
+    checkedout: date
     overdue: bool
 
 
 def verified_emails(user) -> List[str]:
-    """Return all email addresses that the user is verified to own."""
+    """Return all email addresses that the user is verified to own.
+
+    We should only ever report results for email addresses we know the user controls.
+    """
     if not (user and user.is_authenticated):
         return []
     emails = user.emailaddress_set
@@ -286,10 +289,8 @@ def matching_memberships(emails):
     return OrderedDict(_yield_matches(emails))
 
 
-def outstanding_items(
-    emails: List[str], rented_on_or_before: Optional[datetime] = None
-) -> Iterator[Rental]:
-    """Yield all items that are currently checked out to the members.
+def outstanding_items(emails: List[str]) -> Iterator[Rental]:
+    """Return all items that are currently checked out to one or more members.
 
     This method supports listing items for an individual participant (who may
     have multiple emails/gear accounts) as well as all participants on a trip.
@@ -298,64 +299,55 @@ def outstanding_items(
         return
 
     # Email capitalization in the database may differ from what users report
-    # Map back to the case supplied in arguments for easier mapping
+    # The gear database does case-insensitive lookups.
+    # We wish to preserve association back to the originally-supplied emails.
+    #
+    # NOTE: There is a possible exploit here where a user can use special Unicode characters
+    # in order to fetch the gear rental history for another user.
+    # For example:
+    # - victim is kate@example.com
+    # - attacker registers Kate@example.com (0x212A *not* the ASCII K)
+    # We don't guard against this exploit here, but can flag which users try to register malicious emails.
+    # Additionally, we only report results to users who have verified email addresses,
+    # and MIT/Gmail/other email providers generally prevent registering emails with these colliding chars.
+    #
+    # More info: https://eng.getwisdom.io/hacking-github-with-unicode-dotless-i/
     to_original_case = {email.lower(): email for email in emails}
 
-    cursor = connections['geardb'].cursor()
+    today = local_date()
 
-    rental_date_clause = ''
-    if rented_on_or_before:
-        rental_date_clause = 'and checkedout <= %(rented_on_or_before)s'
+    for result in query_api('rentals/', email=emails):  # One row per item
+        person, gear = result['person'], result['gear']
 
-    cursor.execute(
-        f'''
-        select lower(p.email),
-               -- Using proper array types here would be nice, but MySQL lacks them...
-               group_concat(distinct lower(pe.alternate_email) separator ','),
-               g.id,
-               gt.type_name,
-               gt.rental_amount,
-               date(convert_tz(r.checkedout, '+00:00', '-05:00')) as checkedout
-          from rentals          r
-               join people      p on p.id = r.person_id
-               join gear        g on g.id = r.gear_id
-               join gear_types gt on g.type = gt.id
-               left join geardb_peopleemails pe on p.id = pe.person_id
-         where r.returned is null
-           {rental_date_clause}
-           and (p.email in %(emails)s or pe.alternate_email in %(emails)s)
-           -- It's possible for there to be extra alternate email records matching the primary email
-           -- Omit these so we don't get needless duplicates
-           and (pe.alternate_email is null or p.email != pe.alternate_email)
-         group by p.email, g.id, gt.type_name, gt.rental_amount, r.checkedout
-        ''',
-        {'emails': tuple(emails), 'rented_on_or_before': rented_on_or_before},
-    )
+        # Map from the person record back to the requested email address
+        all_known_emails: List[str] = [person['email'], *person['alternate_emails']]
+        try:
+            email = next(e for e in all_known_emails if e.lower() in to_original_case)
+        except StopIteration as e:
+            # We should never get a result for a user whose email was not queried
+            raise ValueError("Expected at least one email to match!") from e
 
-    for main, alternate_emails, gear_id, name, cost, checkedout in cursor.fetchall():
-        if main in to_original_case:
-            email = main
-        else:
-            # Because either main or alternate email were matched, this should never happen.
-            assert alternate_emails, "Alternate emails were unexpectedly empty!"
-            alternates = alternate_emails.split(',')
-            try:
-                email = next(e for e in alternates if e in to_original_case)
-            except StopIteration as e:
-                # This method is a generator - raising StopIteration would stop iteration
-                raise ValueError("Expected at least one email to match!") from e
-
+        checkout_date = datetime_from_iso(result['checkedout']).date()
         yield Rental(
-            email=to_original_case[email],
-            id=gear_id,
-            name=name,
-            cost=cost,
-            checkedout=checkedout,
-            overdue=(local_date() - checkedout > timedelta(weeks=10)),
+            email=to_original_case[email.lower()],
+            id=gear['id'],
+            name=gear['type']['type_name'],
+            cost=float(gear['type']['rental_amount']),
+            checkedout=checkout_date,
+            overdue=(today - checkout_date > timedelta(weeks=10)),
         )
 
 
 def user_rentals(user) -> List[Rental]:
+    """Return items which the user has rented (which can be reported to that user).
+
+    It's very, very important that these emails be *verified*.
+    This guards against users trying to spoof other users to identify their rentals.
+
+    Email verification also provides a (small) layer of defense against case
+    collision attacks where an attacker can register a similar email address
+    which lowercases down to a victim's email.
+    """
     return list(outstanding_items(verified_emails(user)))
 
 
