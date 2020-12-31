@@ -551,10 +551,8 @@ class JWTView(View):
 
         secret = settings.MEMBERSHIP_SECRET_KEY
         try:
-            self.payload = jwt.decode(token, secret)
-        except (jwt.exceptions.InvalidKeyError):
-            # This exception is raised in particular if a malicious user tried `algorithm=none`
-            # (Because key *must* be None in order to use the insecure "none" algorithm)
+            self.payload = jwt.decode(token, secret, algorithms=['HS512', 'HS256'])
+        except jwt.exceptions.InvalidAlgorithmError:
             return JsonResponse({'message': 'invalid algorithm'}, status=401)
         except (jwt.exceptions.InvalidTokenError, KeyError):
             return JsonResponse({'message': 'invalid token'}, status=401)
