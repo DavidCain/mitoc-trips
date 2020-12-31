@@ -1,4 +1,3 @@
-import json
 import time
 from unittest import mock
 
@@ -321,7 +320,7 @@ class ApproveTripViewTest(TestCase):
     def _approve(self, trip, approved=True):
         return self.client.post(
             f'/trips/{trip.pk}/approve/',
-            json.dumps({'approved': approved}),
+            {'approved': approved},
             content_type='application/json',
         )
 

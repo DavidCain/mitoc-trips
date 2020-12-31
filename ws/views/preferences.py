@@ -145,7 +145,7 @@ class LotteryPreferencesView(TemplateView, LotteryPairingMixin):
                 trip__program=enums.Program.WINTER_SCHOOL.value,
                 trip__trip_date__gt=local_date(),
             )
-            .order_by('order', 'time_created')
+            .order_by('order', 'time_created', 'pk')
             .select_related('trip')
         )
 
@@ -185,9 +185,12 @@ class LotteryPreferencesView(TemplateView, LotteryPairingMixin):
         context = self.get_context_data()
         lottery_form = context['lottery_form']
         car_form = context['car_form']
+        if not lottery_form.is_valid():
+            # Could use lottery_form.errors to give a better message...
+            return JsonResponse({'message': 'Lottery form invalid'}, status=400)
+
         skip_car_form = lottery_form.data['car_status'] != 'own'
-        car_form_okay = skip_car_form or car_form.is_valid()
-        if lottery_form.is_valid() and car_form_okay:
+        if skip_car_form or car_form.is_valid():
             if skip_car_form:  # New form so submission doesn't show errors
                 # (Only needed when doing a Django response)
                 context['car_form'] = self.get_car_form(use_post=False)
@@ -203,20 +206,25 @@ class LotteryPreferencesView(TemplateView, LotteryPairingMixin):
             self.handle_paired_signups()
             resp, status = {'message': self.update_msg}, 200
         else:
-            resp, status = {'message': "Stuff broke"}, 400
+            resp, status = {'message': "Car form invalid"}, 400
 
         return JsonResponse(resp, status=status)
 
     def save_signups(self):
+        """ Save the rankings given by the participant, optionally removing any signups. """
         par = self.request.participant
         par_signups = models.SignUp.objects.filter(participant=par)
         posted_signups = self.post_data['signups']
 
+        # TODO: This will throw key errors on improperly-formatted payloads
         for post in [p for p in posted_signups if not p['deleted']]:
             signup = par_signups.get(pk=post['id'])
             signup.order = post['order']
             signup.save()
         del_ids = [p['id'] for p in self.post_data['signups'] if p['deleted']]
+        # TODO: We could consider other status codes on failed deletions
+        # - 404 if signup not found
+        # - 403 if signups are found, but belong to somebody else
         if del_ids:
             signup = par_signups.filter(pk__in=del_ids).delete()
 
@@ -233,7 +241,7 @@ class LotteryPreferencesView(TemplateView, LotteryPairingMixin):
                     participant=paired_par, trip=trip
                 )
             except models.SignUp.DoesNotExist:
-                msg = "{} hasn't signed up for {}.".format(paired_par, trip)
+                msg = f"{paired_par} hasn't signed up for {trip}."
                 messages.warning(self.request, msg)
             else:
                 pair_signup.order = signup.order
