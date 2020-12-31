@@ -1,4 +1,5 @@
 import json
+import time
 from unittest import mock
 
 import jwt
@@ -10,6 +11,32 @@ from ws.tests import TestCase, factories
 
 
 class JWTSecurityTest(TestCase):
+    def test_bad_secret_denied(self):
+        """ Tokens signed with the wrong secret should be denied for obvious reasons. """
+        year_2525 = 17514144000
+        token = jwt.encode(
+            {'exp': year_2525, 'email': 'tim@mit.edu'},
+            algorithm='HS256',
+            key='this is definitely not the real secret',
+        ).decode('utf-8')
+        response = self.client.get(
+            '/data/verified_emails/', HTTP_AUTHORIZATION=f'Bearer: {token}',
+        )
+        self.assertEqual(response.status_code, 401)
+
+    @freeze_time("2019-02-22 12:25:00 EST")
+    def test_expired_token_denied(self):
+        """ Expired tokens must not work. """
+        token = jwt.encode(
+            {'exp': int(time.time()) - 1, 'email': 'tim@mit.edu'},
+            algorithm='HS256',
+            key='this is definitely not the real secret',
+        ).decode('utf-8')
+        response = self.client.get(
+            '/data/verified_emails/', HTTP_AUTHORIZATION=f'Bearer: {token}',
+        )
+        self.assertEqual(response.status_code, 401)
+
     def test_real_secret_works(self):
         """ First, we show that requests using a signed, non-expired token work. """
         year_2525 = 17514144000
