@@ -99,7 +99,7 @@ class DiscountsView(FormView):
 
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
-        form.fields['discounts'].queryset = self.get_queryset()
+        form.fields['discounts'].queryset = self.get_queryset().order_by('name')
         return form
 
     def get_form_kwargs(self):

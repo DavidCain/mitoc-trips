@@ -81,7 +81,7 @@ def mutex_task(task_id_template=None, **shared_task_kwargs):
 
 
 @mutex_task('update_discount-{discount_id}')
-def update_discount_sheet_for_participant(discount_id, participant_id):
+def update_discount_sheet_for_participant(discount_id: int, participant_id: int):
     """ Lock the sheet and add/update a single participant.
 
     This task should not run at the same time that we're updating the sheet for

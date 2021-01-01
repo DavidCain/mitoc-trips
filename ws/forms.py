@@ -32,9 +32,8 @@ class RequiredModelForm(forms.ModelForm):
 
 
 class DiscountForm(forms.ModelForm):
-    def clean(self):
-        """ Ensure the participant meets the requirements for the discount. """
-        super().clean()
+    def clean_discounts(self):
+        """ Ensure the participant meets the requirements for each discount. """
         participant = self.instance
         discounts = self.cleaned_data['discounts']
 
@@ -48,7 +47,8 @@ class DiscountForm(forms.ModelForm):
                         f"{discount.name} does not support sharing your information automatically. "
                         "See discount terms for instructions."
                     )
-        return self.cleaned_data
+
+        return discounts
 
     class Meta:
         model = models.Participant
