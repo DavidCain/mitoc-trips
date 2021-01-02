@@ -66,8 +66,7 @@ class LotteryPairingView(CreateView, LotteryPairingMixin):
         reciprocal = self.reciprocally_paired
 
         pre = "Successfully paired" if reciprocal else "Requested pairing"
-        paired_msg = pre + " with {}".format(paired_par)
-        messages.success(self.request, paired_msg)
+        messages.success(self.request, f"{pre} with {paired_par}")
 
         if reciprocal:
             msg = (
@@ -77,7 +76,7 @@ class LotteryPairingView(CreateView, LotteryPairingMixin):
             )
             messages.info(self.request, msg)
         else:
-            msg = "{} must also select to be paired with you.".format(paired_par)
+            msg = f"{paired_par} must also select to be paired with you."
             messages.info(self.request, msg)
 
     @method_decorator(user_info_required)

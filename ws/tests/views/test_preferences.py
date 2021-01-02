@@ -3,6 +3,7 @@ from datetime import date
 from unittest import mock
 
 import dateutil.parser
+from django.contrib import messages
 from freezegun import freeze_time
 from mitoc_const import affiliations
 
@@ -10,14 +11,98 @@ from ws import enums, models, tasks
 from ws.tests import TestCase, factories
 
 
-class PostHelper:
+class LotteryPairingViewTests(TestCase):
+    def test_authenticated_users_only(self):
+        """ Users must be signed in to set lottery pairing. """
+        response = self.client.get('/preferences/lottery/pairing/')
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response.url, '/accounts/login/?next=/preferences/lottery/pairing/'
+        )
+
+    def test_users_with_info_only(self):
+        """ Participant records are required. """
+        user = factories.UserFactory.create()
+        self.client.force_login(user)
+        response = self.client.get('/preferences/lottery/pairing/')
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response.url, '/profile/edit/?next=/preferences/lottery/pairing/'
+        )
+
+    def test_cannot_pair_with_self(self):
+        """ For obvious reasons, attempting to "pair up" with yourself is forbidden. """
+        par = factories.ParticipantFactory.create()
+        self.client.force_login(par.user)
+        response = self.client.post(
+            '/preferences/lottery/pairing/', {'paired_with': par.pk}
+        )
+        self.assertTrue(response.context['form'].errors['paired_with'])
+
+        # No lottery information is saved
+        with self.assertRaises(models.LotteryInfo.DoesNotExist):
+            par.lotteryinfo  # pylint: disable=pointless-statement
+
+    def test_can_change_pairing(self):
+        """ Participants can change their pairing choices. """
+        other_par = factories.ParticipantFactory.create()
+        par = factories.ParticipantFactory.create()
+        factories.LotteryInfoFactory.create(participant=par, paired_with=other_par)
+        self.client.force_login(par.user)
+        self.client.post('/preferences/lottery/pairing/', {'paired_with': ''})
+
+        # The participant is now no longer paired
+        par.lotteryinfo.refresh_from_db()
+        self.assertIsNone(par.lotteryinfo.paired_with)
+
+    def test_non_reciprocated_pairing(self):
+        """ We handle a participant requesting pairing from somebody who hasn't done the same. """
+        par = factories.ParticipantFactory.create()
+        other_par = factories.ParticipantFactory.create(name="Freddie Mercury")
+        self.client.force_login(par.user)
+        with mock.patch.object(messages, 'info') as info:
+            self.client.post(
+                '/preferences/lottery/pairing/', {'paired_with': other_par.pk}
+            )
+
+        info.assert_called_once_with(
+            mock.ANY,  # (Request object)
+            "Freddie Mercury must also select to be paired with you.",
+        )
+
+        self.assertEqual(par.lotteryinfo.paired_with, other_par)
+        self.assertFalse(par.lotteryinfo.reciprocally_paired_with)
+
+    def test_reciprocated_pairing(self):
+        """ We handle a participant being the second half to request pairing. """
+        par = factories.ParticipantFactory.create()
+        other_par = factories.ParticipantFactory.create()
+        factories.LotteryInfoFactory.create(participant=other_par, paired_with=par)
+
+        self.client.force_login(par.user)
+        with mock.patch.object(messages, 'info') as info:
+            self.client.post(
+                '/preferences/lottery/pairing/', {'paired_with': other_par.pk}
+            )
+
+        info.assert_called_once()
+        msg = info.call_args[0][1]
+        self.assertTrue(
+            msg.startswith("You must both sign up for trips you're interested in:")
+        )
+
+        self.assertEqual(par.lotteryinfo.paired_with, other_par)
+        self.assertTrue(par.lotteryinfo.reciprocally_paired_with)
+
+
+class LotteryPrefsPostHelper:
     def _post(self, json_data):
         return self.client.post(
             '/preferences/lottery/', json_data, content_type='application/json',
         )
 
 
-class LotteryPreferencesDriverStatusTests(TestCase, PostHelper):
+class LotteryPreferencesDriverStatusTests(TestCase, LotteryPrefsPostHelper):
     # This dictionary doubles as both:
     # 1. All the valid arguments to CarForm except `participant`
     # 2. A valid form to be submitted in POST
@@ -175,7 +260,7 @@ class LotteryPreferencesDriverStatusTests(TestCase, PostHelper):
 
 
 @freeze_time("2019-01-08 12:25:00 EST")
-class LotteryPreferencesSignupTests(TestCase, PostHelper):
+class LotteryPreferencesSignupTests(TestCase, LotteryPrefsPostHelper):
     def test_missing_ordering(self):
         """ Signups must specify signup ID, deletion, and ordering. """
         par = factories.ParticipantFactory.create(lotteryinfo=None)
