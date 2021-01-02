@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple, Union
 
 from django import forms
 from django.core.exceptions import ValidationError
@@ -514,23 +514,39 @@ def LeaderApplicationForm(*args, **kwargs):
 def amount_choices(value_is_amount=False):
     """ Yield all affiliation choices with the price in the label.
 
-    if `value_is_amount` is True, we'll replace the two-letter affiliation
+    If `value_is_amount` is True, we'll replace the two-letter affiliation
     with the price as the choice's value.
     """
 
-    def include_amount_in_label(affiliation, label):
-        amount = models.Participant.affiliation_to_membership_price(affiliation)
-        value = amount if value_is_amount else affiliation
-        return (value, f"{label} (${amount})")
+    def include_amount_in_label(
+        affiliation_code: str, label: str
+    ) -> Tuple[Union[int, str], str]:
+        amount = models.Participant.affiliation_to_membership_price(affiliation_code)
+        annotated_label = f"{label} (${amount})"
+
+        if value_is_amount:
+            return (amount, annotated_label)
+        return (affiliation_code, annotated_label)
 
     for label, option in models.Participant.AFFILIATION_CHOICES:
         if isinstance(option, list):
+            # The options are a collection of affiliation codes
             yield label, [include_amount_in_label(*choice) for choice in option]
         else:
+            # It's a top-level choice - the label & option are actually switched
             yield include_amount_in_label(label, option)
 
 
 class DuesForm(NgFormValidationMixin, Bootstrap3FormMixin, NgForm):
+    """ Provide a form that's meant to submit its data to CyberSource.
+
+    Specifically, each of these named fields is what's expected for MIT's
+    payment system to process a credit card payment and link it to user-supplied
+    metadata. For example, `merchantDefinedData3` is the member's email address.
+
+    The expected URL is https://shopmitprd.mit.edu/controller/index.php
+    """
+
     required_css_class = 'required'
 
     merchant_id = CharField(widget=forms.HiddenInput(), initial=MERCHANT_ID)

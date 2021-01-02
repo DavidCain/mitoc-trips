@@ -1,5 +1,5 @@
 from datetime import date, datetime, timedelta
-from typing import Dict, List, Type
+from typing import Dict, List, Tuple, Type, Union
 
 from allauth.account.models import EmailAddress
 from django.conf import settings
@@ -296,7 +296,7 @@ class Participant(models.Model):
         Membership, null=True, blank=True, on_delete=models.CASCADE
     )
 
-    AFFILIATION_CHOICES = [
+    AFFILIATION_CHOICES: List[Tuple[str, Union[str, List[Tuple[str, str]]]]] = [
         (
             'Undergraduate student',
             [
@@ -356,7 +356,7 @@ class Participant(models.Model):
         return avatar_url(self, size)
 
     @staticmethod
-    def affiliation_to_membership_price(affiliation):
+    def affiliation_to_membership_price(affiliation: str) -> int:
         prices = {aff.CODE: aff.ANNUAL_DUES for aff in affiliations.ALL}
         return prices.get(affiliation, affiliations.NON_AFFILIATE.ANNUAL_DUES)
 
