@@ -244,8 +244,15 @@ class LotteryPreferencesView(TemplateView, LotteryPairingMixin):
         models.SignUp.objects.bulk_update(signups, ['order'])
 
     def handle_paired_signups(self):
+        """ For participants who might be paired, warn if other participant hasn't signed up.
+
+        We can only place paired participants on a trip together if *both* of them have signed up.
+        Accordingly, any paired participant trying to rank a trip for the two of them will be
+        warned if the other half of the pairing hasn't signed up yet.
+        """
         if not self.reciprocally_paired:
             return
+
         paired_par = self.paired_par
         # Don't just iterate through saved forms. This could miss signups
         # that participant ranks, then the other signs up for later

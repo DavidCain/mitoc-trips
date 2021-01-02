@@ -475,6 +475,57 @@ class LotteryPreferencesSignupTests(TestCase, LotteryPrefsPostHelper):
             len(not_deletable),
         )
 
+    def test_signups_as_paired(self):
+        """ We handle rankings from participants who are reciprocally paired.
+
+        Specifically, when a paired participant ranks trips, we apply the rankings
+        to *both* participants, and warn if there are any trips where just one
+        of the two have signed up.
+        """
+        par = factories.ParticipantFactory.create()
+        other_par = factories.ParticipantFactory.create(name="Ada Lovelace")
+
+        factories.LotteryInfoFactory.create(participant=par, paired_with=other_par)
+        factories.LotteryInfoFactory.create(participant=other_par, paired_with=par)
+
+        # Both participants sign up for a mutual trip
+        mutual_trip = factories.TripFactory.create()
+        mutual = factories.SignUpFactory.create(participant=par, trip=mutual_trip)
+        mutual_other = factories.SignUpFactory.create(
+            participant=other_par, trip=mutual_trip
+        )
+
+        # Only our subject signs up for a separate trip
+        only_one_trip = factories.TripFactory.create(name="Sweet Ice Climbing Trip")
+        lone = factories.SignUpFactory.create(participant=par, trip=only_one_trip)
+
+        self.client.force_login(par.user)
+        with mock.patch.object(messages, 'warning') as log_warning:
+            self._post(
+                {
+                    'signups': [
+                        {'id': mutual.pk, 'deleted': False, 'order': 2},
+                        {'id': lone.pk, 'deleted': False, 'order': 1},
+                    ],
+                    'car_status': 'none',
+                }
+            )
+
+        log_warning.assert_called_once_with(
+            mock.ANY, "Ada Lovelace hasn't signed up for Sweet Ice Climbing Trip."
+        )
+
+        # We accept the rankings for the participant's two signups
+        self.assertEqual(
+            [(s.pk, s.order) for s in par.signup_set.order_by('order')],
+            [(lone.pk, 1), (mutual.pk, 2)],
+        )
+        # We save the ranking numbers on the other participant's signups too
+        self.assertEqual(
+            [(s.pk, s.order) for s in other_par.signup_set.order_by('order')],
+            [(mutual_other.pk, 2)],
+        )
+
 
 class DiscountsTest(TestCase):
     def test_authenticated_users_only(self):
