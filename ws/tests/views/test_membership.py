@@ -1,4 +1,6 @@
-from ws import forms
+from unittest import mock
+
+from ws import forms, waivers
 from ws.tests import TestCase, factories
 
 
@@ -78,3 +80,117 @@ class PayDuesTests(TestCase):
         self.assertEqual(response.status_code, 405)
 
         # We can't test that CyberSource accepts the payload, so stop here
+
+
+class SignWaiverTests(TestCase):
+    def test_sign_as_anonymous_user(self):
+        """ You don't need to be logged in to sign a waiver. """
+        response = self.client.get('/profile/waiver/')
+        form = response.context['form']
+        # Form isn't valid as-is: users must add their name & email
+        self.assertFalse(form.is_valid())
+
+        with mock.patch.object(waivers, 'initiate_waiver') as initiate_waiver:
+            initiate_waiver.return_value = waivers.InitiatedWaiverResult(
+                email='tim@mit.edu', url=None
+            )
+            response = self.client.post(
+                '/profile/waiver/',
+                {'releasor.name': 'Tim Beaver', 'releasor.email': 'tim@mit.edu'},
+                follow=False,
+            )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, '/')
+        initiate_waiver.assert_called_once_with(
+            participant=None,
+            releasor=waivers.Person(name='Tim Beaver', email='tim@mit.edu'),
+            guardian=None,
+        )
+        redirected = self.client.get('/')
+        self.assertEqual(
+            [str(m) for m in redirected.context['messages']],
+            ['Waiver sent to tim@mit.edu'],
+        )
+
+    def test_sign_as_anonymous_with_guardian(self):
+        with mock.patch.object(waivers, 'initiate_waiver') as initiate_waiver:
+            initiate_waiver.return_value = waivers.InitiatedWaiverResult(
+                email='tim@mit.edu', url=None
+            )
+            response = self.client.post(
+                '/profile/waiver/',
+                {
+                    'releasor.name': 'Tim Beaver',
+                    'releasor.email': 'tim@mit.edu',
+                    'guardian.name': 'Timothy Beaver, Sr',
+                    'guardian.email': 'tim@alum.mit.edu',
+                },
+                follow=False,
+            )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, '/')
+        initiate_waiver.assert_called_once_with(
+            participant=None,
+            releasor=waivers.Person(name='Tim Beaver', email='tim@mit.edu'),
+            guardian=waivers.Person(
+                name='Timothy Beaver, Sr', email='tim@alum.mit.edu'
+            ),
+        )
+
+    def test_missing_email(self):
+        """ Users must give their name and email. """
+        with mock.patch.object(waivers, 'initiate_waiver') as initiate_waiver:
+            response = self.client.post(
+                '/profile/waiver/', {'releasor.name': 'Tim Beaver'},
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context['form'].errors['email'])
+        initiate_waiver.assert_not_called()
+
+    def test_sign_as_participant(self):
+        """ Participants need only visually verify their information & submit. """
+        par = factories.ParticipantFactory.create()
+        self.client.force_login(par.user)
+
+        dummy_embedded_url = 'https://na2.docusign.net/Signing/StartInSession.aspx?code=long-code-with-encoded-data&persistent_auth_token=no_client_token'
+        with mock.patch.object(waivers, 'initiate_waiver') as initiate_waiver:
+            initiate_waiver.return_value = waivers.InitiatedWaiverResult(
+                email=par.email, url=dummy_embedded_url
+            )
+            response = self.client.post(
+                '/profile/waiver/',
+                # No form data is needed! Information is pre-filled.
+                {},
+                # Don't actually try to load our dummy URL
+                follow=False,
+            )
+
+        # The participant is redirected immediately to the sign-in interface
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, dummy_embedded_url)
+
+    def test_sign_as_participant_with_guardian(self):
+        """ Participants can also specify a guardian. """
+        par = factories.ParticipantFactory.create()
+        self.client.force_login(par.user)
+
+        dummy_embedded_url = 'https://na2.docusign.net/Signing/StartInSession.aspx?code=long-code-with-encoded-data&persistent_auth_token=no_client_token'
+        with mock.patch.object(waivers, 'initiate_waiver') as initiate_waiver:
+            initiate_waiver.return_value = waivers.InitiatedWaiverResult(
+                email=par.email, url=dummy_embedded_url
+            )
+            response = self.client.post(
+                '/profile/waiver/',
+                # No form data is needed! Information is pre-filled.
+                {
+                    'guardian.name': 'Tim Beaver, Sr.',
+                    'guardian.email': 'tim@alum.mit.edu',
+                },
+                # Don't actually try to load our dummy URL
+                follow=False,
+            )
+
+        # The participant is redirected immediately to the sign-in interface
+        # Guardian info is given to DocuSign
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, dummy_embedded_url)
