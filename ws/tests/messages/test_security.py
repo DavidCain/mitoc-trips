@@ -59,7 +59,9 @@ class WarnIfPasswordInsecureTests(MessagesTestCase):
         """ Test core behavior of the generator - a known participant with a bad password. """
         # Use the test client, since RequestFactory can't handle messages
         user = UserFactory.create(email='fake@example.com', password='password')
-        par = ParticipantFactory.create(user=user, insecure_password=True)
+        par = ParticipantFactory.create(
+            email='fake@example.com', user=user, insecure_password=True
+        )
         self.client.login(email=user.email, password='password')
 
         with self._mock_info() as info, self._mock_add_message(True) as add_message:

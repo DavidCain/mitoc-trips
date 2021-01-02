@@ -1,4 +1,5 @@
 import unittest
+from unittest import mock
 
 from django.test import SimpleTestCase
 
@@ -109,8 +110,7 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
         return (one, two)
 
     def _place_participant(self, par):
-        if not hasattr(par, 'reciprocally_paired'):
-            par = self._with_annotation(par.pk)
+        par = self._with_annotation(par.pk)
         handler = handle.WinterSchoolParticipantHandler(par, self.runner)
         return handler.place_participant()
 
@@ -241,7 +241,7 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
                 'participant_pk': john.pk,
                 'paired_with_pk': alex.pk,
                 'is_paired': True,
-                'affiliation': unittest.mock.ANY,
+                'affiliation': mock.ANY,
                 # John ranked two trips! From his perspective, he had his second choice.
                 'ranked_trips': [other_trip.pk, self.trip.pk],
                 'placed_on_choice': 2,

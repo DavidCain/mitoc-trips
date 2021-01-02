@@ -63,7 +63,7 @@ class MutexTaskTests(SimpleTestCase):
 
         @tasks.mutex_task('do_thing-{unique_id}')
         def do_thing(unique_id):
-            inner_logic.run_after_lock_obtained()
+            inner_logic.run_after_lock_obtained()  # pragma: no cover
 
         # Add a lock to the cache (as if another worker started work already)
         locked = cache.add('do_thing-123', 'true', 5)
@@ -73,7 +73,7 @@ class MutexTaskTests(SimpleTestCase):
 
         # We tried to add to the cache, but it fails, and no code is run
         self.cache.add.assert_called_with('do_thing-123', 'true', 600)
-        inner_logic.run_after_lock_obtain.assert_not_called()
+        inner_logic.run_after_lock_obtained.assert_not_called()
 
         # We don't touch the lock, since the other task will do its own cleanup
         self.cache.delete.assert_not_called()

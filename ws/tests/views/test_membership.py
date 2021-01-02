@@ -48,7 +48,9 @@ class PayDuesTests(TestCase):
 
     def test_load_form_as_logged_in_participant(self):
         """ We pre-populate the form for participants with information on file. """
-        par = factories.ParticipantFactory.create(email='tim@mit.edu', affiliation='MA')
+        par = factories.ParticipantFactory.create(
+            user=factories.UserFactory.create(email='tim@mit.edu'), affiliation='MA'
+        )
         self.client.force_login(par.user)
         response = self.client.get('/profile/membership/')
         self.assertEqual(response.status_code, 200)
