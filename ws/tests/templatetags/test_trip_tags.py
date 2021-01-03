@@ -107,3 +107,47 @@ class TripTagsTest(TestCase):
                 },
             ],
         )
+
+    def test_feedback_for_trip_rated_leader(self):
+        leader = factories.ParticipantFactory.create(name='Janet Yellin')
+        rating = factories.LeaderRatingFactory.create(
+            participant=leader,
+            activity=models.BaseRating.CLIMBING,
+            rating='Leader',
+            active=True,
+        )
+        leader.leaderrating_set.add(rating)
+        feedback = factories.FeedbackFactory.create(
+            leader=leader,
+            participant__name="Jerome Powell",
+            comments="Shows promise",
+            trip__name='Free solo 5.13 finger crack climbing',
+            trip__program=enums.Program.CLIMBING.value,
+        )
+        self.assertEqual(str(feedback), 'Jerome Powell: "Shows promise" - Janet Yellin')
+
+        template = Template('{% load trip_tags %}{{ feedback|leader_display }}')
+        context = Context({'feedback': feedback})
+        self.assertEqual(template.render(context), 'Janet Yellin (Leader)')
+
+    def test_feedback_but_no_trip(self):
+        """ While it's rarely used, the data model supports feedback with a null trip. """
+        leader = factories.ParticipantFactory.create(name='Janet Yellin')
+        rating = factories.LeaderRatingFactory.create(
+            participant=leader,
+            activity=models.BaseRating.CLIMBING,
+            rating='Leader',
+            active=True,
+        )
+        leader.leaderrating_set.add(rating)
+        feedback = factories.FeedbackFactory.create(
+            leader=leader,
+            participant__name="Jerome Powell",
+            comments="Shows promise",
+            trip=None,
+        )
+        self.assertEqual(str(feedback), 'Jerome Powell: "Shows promise" - Janet Yellin')
+
+        template = Template('{% load trip_tags %}{{ feedback|leader_display }}')
+        context = Context({'feedback': feedback})
+        self.assertEqual(template.render(context), 'Janet Yellin')

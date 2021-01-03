@@ -64,7 +64,7 @@ def name_with_rating(leader, trip):
 
 
 @register.filter
-def leader_display(feedback):
+def leader_display(feedback) -> str:
     """ Give a relevant display of the leader for display alongside feedback. """
     if feedback.trip:
         return feedback.leader.name_with_rating(feedback.trip)

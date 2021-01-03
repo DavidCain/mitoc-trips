@@ -1224,7 +1224,7 @@ class Feedback(models.Model):
     time_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return '{}: "{}" - {}'.format(self.participant, self.comments, self.leader)
+        return f'{self.participant}: "{self.comments}" - {self.leader}'
 
     class Meta:
         ordering = ["participant", "-time_created"]
