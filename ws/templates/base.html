@@ -57,7 +57,7 @@
                 {% block login_button %}
                     {% if not user.is_authenticated %}
                         <ul class="nav pull-left">
-                            <li><a role="button" class="btn btn-primary" href="{% url 'account_login' %}">Log in</a></li>
+                            <li><a role="button" class="btn btn-primary" href="{% url 'account_login' %}{% if request.path != '/' %}?next={{ request.path }}{% endif %}">Log in</a></li>
                         </ul>
                     {% endif %}
                 {% endblock login_button %}

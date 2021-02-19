@@ -1,4 +1,6 @@
 import enum
+from typing import Dict
+from urllib.parse import urlencode
 
 from django.urls import reverse
 from django.utils.safestring import mark_safe
@@ -119,12 +121,18 @@ class TripIneligibilityReason(enum.Enum):
         trip_date = f'{dt:%B} {dt.day}, {dt.year}'
 
         edit_profile = reverse('edit_profile')
-        account_login = reverse('account_login')
+        account_login = (
+            reverse('account_login')
+            + '?'
+            # Probably overkill... f'?next=/trips/{trip.pk}' is plenty, but this is a better pattern
+            # (We'll be marking this string as safe, so the URL *must* be escaped to avoid injection)
+            + urlencode({'next': reverse('view_trip', args=(trip.pk,))})
+        )
         pay_dues = reverse('pay_dues')
         initiate_waiver = reverse('initiate_waiver')
 
         # "you must... "
-        mapping = {
+        mapping: Dict[ProfileProblem, str] = {
             self.NOT_LOGGED_IN: f'<a href="{account_login}">log in</a>',
             self.NO_PROFILE_INFO: f'provide <a href="{edit_profile}">personal information</a>',
             self.IS_TRIP_WIMP: 'be replaced in your role as the trip WIMP',

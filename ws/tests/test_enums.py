@@ -30,7 +30,7 @@ class TripIneligibilityReasonTest(SimpleTestCase):
         )
 
     def test_every_reason_has_how_to_fix(self):
-        trip = factories.TripFactory.build()
+        trip = factories.TripFactory.build(pk=5)  # (PK referenced in message)
         for reason_enum in enums.TripIneligibilityReason:
             self.assertTrue(reason_enum.how_to_fix_for(trip))
 
