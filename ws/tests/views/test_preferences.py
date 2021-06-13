@@ -98,7 +98,9 @@ class LotteryPairingViewTests(TestCase):
 class LotteryPrefsPostHelper:
     def _post(self, json_data):
         return self.client.post(
-            '/preferences/lottery/', json_data, content_type='application/json',
+            '/preferences/lottery/',
+            json_data,
+            content_type='application/json',
         )
 
 

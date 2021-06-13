@@ -56,7 +56,9 @@ class SignWaiverView(FormView):
     success_url = reverse_lazy('home')
 
     def send_waiver(
-        self, releasor: Optional[waivers.Person], guardian: Optional[waivers.Person],
+        self,
+        releasor: Optional[waivers.Person],
+        guardian: Optional[waivers.Person],
     ):
         email, embedded_url = waivers.initiate_waiver(
             participant=self.request.participant,  # type:ignore

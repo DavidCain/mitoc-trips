@@ -193,7 +193,9 @@ class AllTripsMedicalViewTest(TestCase):
         driver = factories.ParticipantFactory.create(
             name="Trip Driver",
             car=factories.CarFactory.create(
-                license_plate="559 DKP", make='Powell Motors', model='Homer',
+                license_plate="559 DKP",
+                make='Powell Motors',
+                model='Homer',
             ),
         )
         itinerary.drivers.add(driver)

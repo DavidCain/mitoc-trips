@@ -436,13 +436,15 @@ class ApproveTripsViewTest(TestCase):
         perm_utils.make_chair(self.user, enums.Activity.CLIMBING)
 
         sat_with_info = self._make_climbing_trip(
-            trip_date=date(2019, 7, 6), info=factories.TripInfoFactory.create(),
+            trip_date=date(2019, 7, 6),
+            info=factories.TripInfoFactory.create(),
         )
         sat_without_info = self._make_climbing_trip(
             trip_date=date(2019, 7, 6), info=None
         )
         sun_with_info = self._make_climbing_trip(
-            trip_date=date(2019, 7, 7), info=factories.TripInfoFactory.create(),
+            trip_date=date(2019, 7, 7),
+            info=factories.TripInfoFactory.create(),
         )
         sun_without_info = self._make_climbing_trip(
             trip_date=date(2019, 7, 7), info=None

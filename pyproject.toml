@@ -21,7 +21,7 @@ repository = "https://github.com/DavidCain/mitoc-trips/"
 authors = ["David Cain <davidjosephcain@gmail.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "^3.6.2"
 Django = "^2.2"
 PyJWT = ">= 2.0.0"  # 2.0.0 changed the return type of `jwt.encode()`
 # 4.4.4 had a KeyError from the `future` module
@@ -68,7 +68,7 @@ typing = ["django-stubs", "mypy"]
 
 [tool.poetry.dev-dependencies]
 beautifulsoup4 = "*"
-black = { version = "== 19.10b0", allow-prereleases = true }
+black = { version = "*", allow-prereleases = true }
 factory_boy = "*"
 freezegun = "*"
 isort = { version = "*", extras = ["pyproject"] }

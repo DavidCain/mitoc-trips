@@ -93,7 +93,8 @@ class ReasonsCannotAttendTest(TestCase):
 
         # For WS leaders, attendance in the most recent 4 years permits signup
         factories.LeaderRatingFactory.create(
-            participant=participant, activity=models.BaseRating.WINTER_SCHOOL,
+            participant=participant,
+            activity=models.BaseRating.WINTER_SCHOOL,
         )
         self.assertFalse(missed_lectures_for_trip_in_year(2016))  # Attended that year!
         # For 4 years after last attendance, we permit an active leader to sign up for WS trips
@@ -114,7 +115,8 @@ class ReasonsCannotAttendTest(TestCase):
             program=enums.Program.WINTER_SCHOOL.value, trip_date=date(2020, 1, 19)
         )
         factories.LeaderRatingFactory.create(
-            participant=participant, activity=models.BaseRating.WINTER_SCHOOL,
+            participant=participant,
+            activity=models.BaseRating.WINTER_SCHOOL,
         )
         with mock.patch.object(date_utils, 'ws_lectures_complete') as lectures_over:
             lectures_over.return_value = True  # (Otherwise, won't be "missed")

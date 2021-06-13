@@ -75,7 +75,9 @@ class ManageLeadersViewTest(TestCase):
     def test_update_ws_rating(self):
         perm_utils.make_chair(self.chair.user, enums.Activity.WINTER_SCHOOL)
         factories.LeaderRatingFactory.create(
-            participant=self.participant, rating="B coC", creator=self.chair,
+            participant=self.participant,
+            rating="B coC",
+            creator=self.chair,
         )
 
         resp = self.client.post(

@@ -76,7 +76,8 @@ class SeparationGraph:
         # If a participant is not taking part in a lottery, their block isn't relevant.
         # Be sure to exclude any blocks that will falsely denote cycles
         relevant_blocks = models.LotterySeparation.objects.filter(
-            initiator__in=participants, recipient__in=participants,
+            initiator__in=participants,
+            recipient__in=participants,
         )
         mapping = defaultdict(set)
         for block in relevant_blocks:

@@ -108,7 +108,8 @@ class WimpDisplayInProfileViewTests(TestCase):
 
         # Viewing participant is a WS leader
         factories.LeaderRatingFactory.create(
-            participant=self.participant, activity=enums.Activity.WINTER_SCHOOL.value,
+            participant=self.participant,
+            activity=enums.Activity.WINTER_SCHOOL.value,
         )
 
         # We have an assigned WIMP
