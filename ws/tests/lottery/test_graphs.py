@@ -67,9 +67,7 @@ class CycleTests(TestCase):
     def test_same_length_differing_contents(self):
         a, b, c, d = (factories.ParticipantFactory.create(name=l) for l in 'ABCD')
 
-        self.assertNotEqual(
-            graphs.Cycle([a, b]), graphs.Cycle([c, d]),
-        )
+        self.assertNotEqual(graphs.Cycle([a, b]), graphs.Cycle([c, d]))
 
     def test_differing_sizes_unequal(self):
         rock = factories.ParticipantFactory.create(name="Rock")

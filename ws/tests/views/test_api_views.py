@@ -19,7 +19,7 @@ class JWTSecurityTest(TestCase):
             key='this is definitely not the real secret',
         )
         response = self.client.get(
-            '/data/verified_emails/', HTTP_AUTHORIZATION=f'Bearer: {token}',
+            '/data/verified_emails/', HTTP_AUTHORIZATION=f'Bearer: {token}'
         )
         self.assertEqual(response.status_code, 401)
 
@@ -32,7 +32,7 @@ class JWTSecurityTest(TestCase):
             key='this is definitely not the real secret',
         )
         response = self.client.get(
-            '/data/verified_emails/', HTTP_AUTHORIZATION=f'Bearer: {token}',
+            '/data/verified_emails/', HTTP_AUTHORIZATION=f'Bearer: {token}'
         )
         self.assertEqual(response.status_code, 401)
 
@@ -45,7 +45,7 @@ class JWTSecurityTest(TestCase):
             key=settings.MEMBERSHIP_SECRET_KEY,
         )
         response = self.client.get(
-            '/data/verified_emails/', HTTP_AUTHORIZATION=f'Bearer: {real_token}',
+            '/data/verified_emails/', HTTP_AUTHORIZATION=f'Bearer: {real_token}'
         )
         self.assertEqual(response.status_code, 200)
 
@@ -58,7 +58,7 @@ class JWTSecurityTest(TestCase):
             key=settings.MEMBERSHIP_SECRET_KEY,
         )
         response = self.client.get(
-            '/data/verified_emails/', HTTP_AUTHORIZATION=f'Bearer: {real_token}',
+            '/data/verified_emails/', HTTP_AUTHORIZATION=f'Bearer: {real_token}'
         )
         self.assertEqual(response.status_code, 200)
 
@@ -71,7 +71,7 @@ class JWTSecurityTest(TestCase):
             key=settings.MEMBERSHIP_SECRET_KEY,
         )
         response = self.client.get(
-            '/data/verified_emails/', HTTP_AUTHORIZATION=f'Bearer: {real_token}',
+            '/data/verified_emails/', HTTP_AUTHORIZATION=f'Bearer: {real_token}'
         )
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.json(), {'message': 'invalid algorithm'})
@@ -93,7 +93,7 @@ class JWTSecurityTest(TestCase):
             {'exp': year_2525, 'email': 'tim@mit.edu'}, algorithm='none', key=None
         )
         response = self.client.get(
-            '/data/verified_emails/', HTTP_AUTHORIZATION=f'Bearer: {malicious_token}',
+            '/data/verified_emails/', HTTP_AUTHORIZATION=f'Bearer: {malicious_token}'
         )
         # Because the attacker gave a token without signing the secret, they get a 401
         self.assertEqual(response.status_code, 401)

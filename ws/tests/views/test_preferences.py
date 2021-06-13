@@ -153,7 +153,7 @@ class LotteryPreferencesDriverStatusTests(TestCase, LotteryPrefsPostHelper):
         par = factories.ParticipantFactory.create(lotteryinfo=None)
 
         self.client.force_login(par.user)
-        response = self._post({'signups': [], 'car_status': 'none'},)
+        response = self._post({'signups': [], 'car_status': 'none'})
 
         self.assertEqual(response.status_code, 200)
 
@@ -211,9 +211,7 @@ class LotteryPreferencesDriverStatusTests(TestCase, LotteryPrefsPostHelper):
         self.assertEqual(par.lotteryinfo.number_of_passengers, 4)
 
         # We created a new car entry for the participant.
-        self.assertEqual(
-            par.car, models.Car(id=par.car.id, **self.TEST_CAR_INFO),
-        )
+        self.assertEqual(par.car, models.Car(id=par.car.id, **self.TEST_CAR_INFO))
         self.assertEqual(
             par.lotteryinfo.last_updated,
             dateutil.parser.isoparse("2019-01-15T12:25:00-05:00"),
@@ -299,7 +297,7 @@ class LotteryPreferencesSignupTests(TestCase, LotteryPrefsPostHelper):
 
         response = self._post(
             {
-                'signups': [{'id': signup.pk, 'deleted': False, 'order': 'threeve'},],
+                'signups': [{'id': signup.pk, 'deleted': False, 'order': 'threeve'}],
                 'car_status': 'none',
             }
         )
@@ -604,7 +602,7 @@ class DiscountsTest(TestCase):
         self.assertFalse(par.discounts.exists())
 
         response = self.client.post(
-            '/preferences/discounts/', {'discounts': [student_only.pk]},
+            '/preferences/discounts/', {'discounts': [student_only.pk]}
         )
         self.assertIn('discounts', response.context['form'].errors)
         self.assertFalse(par.discounts.exists())

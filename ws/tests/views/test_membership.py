@@ -143,7 +143,7 @@ class SignWaiverTests(TestCase):
         """ Users must give their name and email. """
         with mock.patch.object(waivers, 'initiate_waiver') as initiate_waiver:
             response = self.client.post(
-                '/profile/waiver/', {'releasor.name': 'Tim Beaver'},
+                '/profile/waiver/', {'releasor.name': 'Tim Beaver'}
             )
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.context['form'].errors['email'])

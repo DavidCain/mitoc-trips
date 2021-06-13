@@ -72,7 +72,7 @@ class TripItineraryViewTest(TestCase):
 
         # Submitting does not work!
         resp = self.client.post(
-            f'/trips/{self.trip.pk}/itinerary/', self.VALID_FORM_BODY,
+            f'/trips/{self.trip.pk}/itinerary/', self.VALID_FORM_BODY
         )
         self.assertEqual(
             resp.context['form'].errors, {'__all__': ['Itinerary cannot be created']}
@@ -95,7 +95,7 @@ class TripItineraryViewTest(TestCase):
         # Posting at this URL creates an itinerary!
         self.assertIsNone(self.trip.info)
         creation_resp = self.client.post(
-            f'/trips/{self.trip.pk}/itinerary/', self.VALID_FORM_BODY,
+            f'/trips/{self.trip.pk}/itinerary/', self.VALID_FORM_BODY
         )
         self.assertEqual(creation_resp.status_code, 302)
         self.assertEqual(creation_resp.url, f'/trips/{self.trip.pk}/')
@@ -120,7 +120,7 @@ class TripItineraryViewTest(TestCase):
 
         # Submitting does not work!
         resp = self.client.post(
-            f'/trips/{self.trip.pk}/itinerary/', self.VALID_FORM_BODY,
+            f'/trips/{self.trip.pk}/itinerary/', self.VALID_FORM_BODY
         )
         self.assertEqual(
             resp.context['form'].errors, {'__all__': ['Itinerary cannot be created']}

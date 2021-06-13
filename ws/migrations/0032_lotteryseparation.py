@@ -55,6 +55,6 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.AlterUniqueTogether(
-            name='lotteryseparation', unique_together=set([('initiator', 'recipient')]),
+            name='lotteryseparation', unique_together={('initiator', 'recipient')}
         ),
     ]
