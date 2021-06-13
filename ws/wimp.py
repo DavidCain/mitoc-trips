@@ -4,7 +4,7 @@ from ws import models
 
 
 def active_wimps():
-    """ Yield all Participants that are currently WIMPs.
+    """Yield all Participants that are currently WIMPs.
 
     Generally speaking, we should have only one WIMP, but we should handle the
     case of there being more than one, since the data model supports that.

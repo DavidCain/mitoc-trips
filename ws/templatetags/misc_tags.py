@@ -7,7 +7,7 @@ register = template.Library()
 
 @register.filter
 def format_phone_number(number):
-    """ Format phone numbers with spacing & area code. """
+    """Format phone numbers with spacing & area code."""
     if not number:
         return ''
 
@@ -22,5 +22,5 @@ def format_phone_number(number):
 
 @register.filter
 def redact(content, should_redact):
-    """ Optionally replace content that should be redacted. """
+    """Optionally replace content that should be redacted."""
     return mark_safe("<em>redacted</em>") if should_redact else content

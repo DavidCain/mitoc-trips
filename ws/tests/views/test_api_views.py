@@ -11,7 +11,7 @@ from ws.tests import TestCase, factories
 
 class JWTSecurityTest(TestCase):
     def test_bad_secret_denied(self):
-        """ Tokens signed with the wrong secret should be denied for obvious reasons. """
+        """Tokens signed with the wrong secret should be denied for obvious reasons."""
         year_2525 = 17514144000
         token = jwt.encode(
             {'exp': year_2525, 'email': 'tim@mit.edu'},
@@ -25,7 +25,7 @@ class JWTSecurityTest(TestCase):
 
     @freeze_time("2019-02-22 12:25:00 EST")
     def test_expired_token_denied(self):
-        """ Expired tokens must not work. """
+        """Expired tokens must not work."""
         token = jwt.encode(
             {'exp': int(time.time()) - 1, 'email': 'tim@mit.edu'},
             algorithm='HS256',
@@ -37,7 +37,7 @@ class JWTSecurityTest(TestCase):
         self.assertEqual(response.status_code, 401)
 
     def test_real_secret_works(self):
-        """ First, we show that requests using a signed, non-expired token work. """
+        """First, we show that requests using a signed, non-expired token work."""
         year_2525 = 17514144000
         real_token = jwt.encode(
             {'exp': year_2525, 'email': 'tim@mit.edu'},
@@ -50,7 +50,7 @@ class JWTSecurityTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_real_secret_works_with_different_algorithm(self):
-        """ We also support HMAC with SHA-512. """
+        """We also support HMAC with SHA-512."""
         year_2525 = 17514144000
         real_token = jwt.encode(
             {'exp': year_2525, 'email': 'tim@mit.edu'},
@@ -63,7 +63,7 @@ class JWTSecurityTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_disallowed_algorithm(self):
-        """ A token signed with the correct secret but the wrong algorithm is denied. """
+        """A token signed with the correct secret but the wrong algorithm is denied."""
         year_2525 = 17514144000
         real_token = jwt.encode(
             {'exp': year_2525, 'email': 'tim@mit.edu'},
@@ -77,7 +77,7 @@ class JWTSecurityTest(TestCase):
         self.assertEqual(response.json(), {'message': 'invalid algorithm'})
 
     def test_attempted_attack_fails(self):
-        """ Assert that we *always* require a token signed with the secret.
+        """Assert that we *always* require a token signed with the secret.
 
         The special `none` algorithm in the JWT spec allows attackers to request
         data using a JWT which is not actually signed using a secret. If an API
@@ -127,7 +127,7 @@ class JsonProgramLeadersViewTest(TestCase):
         self.assertEqual(response.json(), {'leaders': []})
 
     def test_open_program(self):
-        """ Any active leader is allowed for an open program. """
+        """Any active leader is allowed for an open program."""
         factories.LeaderRatingFactory.create(
             rating='Inactive', activity=enums.Activity.BIKING.value, active=False
         )
@@ -161,7 +161,7 @@ class JsonProgramLeadersViewTest(TestCase):
         )
 
     def test_alphabetical(self):
-        """ Leaders are sorted by name. """
+        """Leaders are sorted by name."""
         c = factories.LeaderRatingFactory.create(participant__name='Carl', rating='A')
         b = factories.LeaderRatingFactory.create(participant__name='Bob', rating='B')
         d = factories.LeaderRatingFactory.create(participant__name='Dee', rating='I')
@@ -207,7 +207,7 @@ class JsonProgramLeadersViewTest(TestCase):
         )
 
     def test_latest_rating_taken(self):
-        """ If, somehow multiple active ratings exist, we don't duplicate! """
+        """If, somehow multiple active ratings exist, we don't duplicate!"""
         par = factories.ParticipantFactory.create(name='Steve O')
 
         with freeze_time("2019-02-22 12:25:00 EST"):
@@ -300,7 +300,7 @@ class JsonParticipantsTest(TestCase):
         self.assertCountEqual(no_self_matches, others)
 
     def test_exact_id(self):
-        """ Participants can be queried by an exact ID. """
+        """Participants can be queried by an exact ID."""
         one = factories.ParticipantFactory.create()
         two = factories.ParticipantFactory.create()
         factories.ParticipantFactory.create()

@@ -1,5 +1,5 @@
 def all_choices(choices):
-    """ Recursively extract the choices from a potentially nested set of choices. """
+    """Recursively extract the choices from a potentially nested set of choices."""
     for left, right in choices:
         if isinstance(right, str):
             # Right side is the label, left side is the value

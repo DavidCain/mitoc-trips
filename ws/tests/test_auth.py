@@ -24,7 +24,7 @@ login_required_routes = [
 
 
 class AuthTests(TestCase):
-    """ Test user authentication and authorization.
+    """Test user authentication and authorization.
 
     These tests hit a lot of major routes in checking our access control system,
     but this is not meant as an exhaustive test of all available routes. Rather,
@@ -57,7 +57,7 @@ class AuthTests(TestCase):
         return self.client.login(email=self.user.email, password='password')
 
     def assertProfileRedirectedTo(self, response, desired_page):
-        """ Check for edit profile redirect on a given response. """
+        """Check for edit profile redirect on a given response."""
         self.assertEqual(response.status_code, 302)
 
         parsed = urlparse(response.url)
@@ -66,7 +66,7 @@ class AuthTests(TestCase):
         self.assertEqual(qs['next'], [desired_page])
 
     def test_open_pages(self):
-        """ Anonymous users can browse a number of pages. """
+        """Anonymous users can browse a number of pages."""
         for open_url in [
             'contact',
             'help-home',
@@ -82,13 +82,13 @@ class AuthTests(TestCase):
             self.assertEqual(response.status_code, 200)
 
     def test_viewing_trips(self):
-        """ Anonymous users can view trips (they just can't sign up). """
+        """Anonymous users can view trips (they just can't sign up)."""
         trip = factories.TripFactory.create()
         view_trip = self.client.get(reverse('view_trip', kwargs={'pk': trip.pk}))
         self.assertEqual(view_trip.status_code, 200)
 
     def test_unregistered_participant_pages(self):
-        """ Unregistered users are prompted to log in on restricted pages. """
+        """Unregistered users are prompted to log in on restricted pages."""
         # Non-exhaustive list of restricted URLs (some require more than login)
         for login_required in login_required_routes:
             response = self.client.get(reverse(login_required))
@@ -96,7 +96,7 @@ class AuthTests(TestCase):
             self.assertIn('login', response.url)
 
     def test_registered_participant_pages(self):
-        """ Registered users will be redirected on participant-only pages. """
+        """Registered users will be redirected on participant-only pages."""
         desired_page = reverse('all_trips_medical')
         self.login()
         response = self.client.get(desired_page)
@@ -104,7 +104,7 @@ class AuthTests(TestCase):
 
     @unittest.mock.patch('ws.decorators.profile_needs_update')
     def test_participant_pages(self, profile_needs_update):
-        """ Participants are allowed to view certain pages. """
+        """Participants are allowed to view certain pages."""
         par_only_page = reverse('discounts')
         self.login()
 
@@ -121,7 +121,7 @@ class AuthTests(TestCase):
 
     @unittest.mock.patch('ws.decorators.profile_needs_update')
     def test_leader_pages(self, profile_needs_update):
-        """ Participants are given forbidden messages on leader-only pages.
+        """Participants are given forbidden messages on leader-only pages.
 
         Leaders are able to view these pages as normal.
         """

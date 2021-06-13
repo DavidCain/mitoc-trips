@@ -7,7 +7,7 @@ from ws.templatetags.trip_tags import annotated_for_trip_list
 
 
 def _eligible_trips():
-    """ Identify all trips that are open for signups, or will be. """
+    """Identify all trips that are open for signups, or will be."""
     now = date_utils.local_now()
 
     upcoming_trips = (
@@ -20,7 +20,7 @@ def _eligible_trips():
 
 
 def _trips_to_summarize():
-    """ Return trips which should be summarized in the email message.
+    """Return trips which should be summarized in the email message.
 
     Returns trips broken up into two different classifications:
     - Trips that are currently open for signup
@@ -38,7 +38,7 @@ def _trips_to_summarize():
 
 
 def send_trips_summary(recipient='mitoc-trip-announce@mit.edu'):
-    """ Send a weekly blast of upcoming trips! """
+    """Send a weekly blast of upcoming trips!"""
     open_for_signup, not_yet_open = _trips_to_summarize()
     if not (open_for_signup or not_yet_open):
         return  # No need to send empty email

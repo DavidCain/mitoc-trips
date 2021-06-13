@@ -166,7 +166,7 @@ class EditProfileViewTests(TestCase):
         self.client.force_login(self.user)
 
     def _assert_form_data_saved(self, participant):
-        """ Assert that the given participant has data from `form_data`. """
+        """Assert that the given participant has data from `form_data`."""
         self.assertEqual(participant.name, 'New Participant')
         self.assertEqual(participant.email, 'new.participant@example.com')
         self.assertEqual(participant.affiliation, 'NA')

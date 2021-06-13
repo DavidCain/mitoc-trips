@@ -131,7 +131,7 @@ class TripTagsTest(TestCase):
         self.assertEqual(template.render(context), 'Janet Yellin (Leader)')
 
     def test_feedback_but_no_trip(self):
-        """ While it's rarely used, the data model supports feedback with a null trip. """
+        """While it's rarely used, the data model supports feedback with a null trip."""
         leader = factories.ParticipantFactory.create(name='Janet Yellin')
         rating = factories.LeaderRatingFactory.create(
             participant=leader,

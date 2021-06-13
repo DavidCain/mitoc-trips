@@ -102,7 +102,7 @@ MANUAL_ACTIVITIES = {
 
 
 def set_trip_type(apps, schema_editor):
-    """ Migrate some activity types to use a program, don't trigger signals. """
+    """Migrate some activity types to use a program, don't trigger signals."""
     Trip = apps.get_model('ws', 'Trip')
 
     for activity, trip_type in ACTIVITY_TO_TRIP_TYPE.items():

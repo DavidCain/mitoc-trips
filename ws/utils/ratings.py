@@ -8,7 +8,7 @@ from ws import enums, models
 
 
 def deactivate_ratings(participant, activity):
-    """ Mark any existing ratings for the activity as inactive. """
+    """Mark any existing ratings for the activity as inactive."""
     find_ratings = Q(participant__pk=participant.pk, activity=activity, active=True)
     for existing in models.LeaderRating.objects.filter(find_ratings):
         existing.active = False
@@ -16,7 +16,7 @@ def deactivate_ratings(participant, activity):
 
 
 class LeaderApplicationMixin:
-    """ Some common tools for interacting with LeaderApplication objects.
+    """Some common tools for interacting with LeaderApplication objects.
 
     Requires self.activity
     """
@@ -25,7 +25,7 @@ class LeaderApplicationMixin:
 
     @property
     def num_chairs(self):
-        """ Return the number of chairs for this activity. """
+        """Return the number of chairs for this activity."""
 
         # It's important that this remain a property (dynamically requested, not stored at init)
         # This way, views that want to get activity from self.kwargs can inherit from the mixin
@@ -38,7 +38,7 @@ class LeaderApplicationMixin:
     # By defining it as a property, we upset mypy.
     @property
     def model(self) -> Type[db.models.Model]:
-        """ Return the application model for this activity type.
+        """Return the application model for this activity type.
 
         The model will be None if no application exists for the activity.
         """
@@ -47,7 +47,7 @@ class LeaderApplicationMixin:
         return self._model
 
     def joined_queryset(self):
-        """ Return applications, joined with commonly used attributes.
+        """Return applications, joined with commonly used attributes.
 
         Warning: Will raise an AttributeError if self.model failed to find
         an application type.
@@ -59,14 +59,14 @@ class LeaderApplicationMixin:
 
 
 class RatingsRecommendationsMixin:
-    """ Query tools for counting ratings & recs for LeaderApplications.
+    """Query tools for counting ratings & recs for LeaderApplications.
 
     Requires self.chair to to be a Participant object (that chairs the activity).
     """
 
     @property
     def gave_rec(self):
-        """ Select applications where the chair gave a recommendation. """
+        """Select applications where the chair gave a recommendation."""
         return Q(
             participant__leaderrecommendation__time_created__gte=F('time_created'),
             participant__leaderrecommendation__activity=self.activity,
@@ -75,7 +75,7 @@ class RatingsRecommendationsMixin:
 
     @property
     def gave_rating(self):
-        """ Select applications where a rating was created after app creation. """
+        """Select applications where a rating was created after app creation."""
         return Q(
             # NOTE: Rating doesn't need to be active (if the leader was
             # deactivated, we don't want their application to re-appear)
@@ -90,7 +90,7 @@ class RatingsRecommendationsMixin:
 
 
 class ApplicationManager(LeaderApplicationMixin, RatingsRecommendationsMixin):
-    """ Leader applications for an activity, to be displayed to the chair. """
+    """Leader applications for an activity, to be displayed to the chair."""
 
     def __init__(self, *args, **kwargs):
         # Set only if defined (so subclasses can instead define with @property)
@@ -103,7 +103,7 @@ class ApplicationManager(LeaderApplicationMixin, RatingsRecommendationsMixin):
         super().__init__(*args, **kwargs)
 
     def sorted_annotated_applications(self):
-        """ Sort all applications by order of attention they need. """
+        """Sort all applications by order of attention they need."""
         applications = self.joined_queryset()
 
         # Identify which have ratings and/or the leader's recommendation
@@ -116,7 +116,7 @@ class ApplicationManager(LeaderApplicationMixin, RatingsRecommendationsMixin):
         )
 
     def pending_applications(self):
-        """ All applications which do not yet have a rating.
+        """All applications which do not yet have a rating.
 
         NOTE: This immediately queries the database. If you need to deal with
         past applications in addition to pending ones, it's recommended to call
@@ -139,7 +139,7 @@ class ApplicationManager(LeaderApplicationMixin, RatingsRecommendationsMixin):
 
     @staticmethod
     def _chair_should_recommend(app):
-        """ Return if the chair should be expected to recommend this application.
+        """Return if the chair should be expected to recommend this application.
 
         This determines where the application appears in the queue of pending
         applications (assuming it's a pending application in the first place!).
@@ -153,7 +153,7 @@ class ApplicationManager(LeaderApplicationMixin, RatingsRecommendationsMixin):
         return True
 
     def needs_rec(self, applications):
-        """ Applications which need to be given a rating by the viewing chair.
+        """Applications which need to be given a rating by the viewing chair.
 
         If there's only one chair, then this will be a blank list (it makes no sense
         for a chair to make recommendations when there are no co-chairs to heed
@@ -177,7 +177,7 @@ class ApplicationManager(LeaderApplicationMixin, RatingsRecommendationsMixin):
         return True
 
     def needs_rating(self, applications):
-        """ Return applications which need a rating, but not a recommendation.
+        """Return applications which need a rating, but not a recommendation.
 
         When there are multiple chairs, we count certain applications as
         needing a recommendation first. It's true that these applications need

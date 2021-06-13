@@ -4,7 +4,7 @@ from ws import models
 
 
 def get_cars(trip):
-    """ Return cars of specified drivers, otherwise all drivers' cars.
+    """Return cars of specified drivers, otherwise all drivers' cars.
 
     If a trip leader says who's driving in the trip itinerary, then
     only return those participants' cars. Otherwise, gives all cars.

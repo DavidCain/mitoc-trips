@@ -19,7 +19,7 @@ def show_wimp(wimp):
 
 @register.inclusion_tag('for_templatetags/trip_itinerary.html')
 def trip_itinerary(trip):
-    """ Return a stripped form for read-only display.
+    """Return a stripped form for read-only display.
 
     Drivers will be displayed separately, and the 'accuracy' checkbox
     isn't needed for display.

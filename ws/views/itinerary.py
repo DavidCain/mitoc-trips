@@ -22,7 +22,7 @@ from ws.utils.dates import itinerary_available_at, local_date, local_now
 
 
 class TripItineraryView(UpdateView, TripLeadersOnlyView):
-    """ A hybrid view for creating/editing trip info for a given trip. """
+    """A hybrid view for creating/editing trip info for a given trip."""
 
     model = models.Trip
     context_object_name = 'trip'
@@ -94,7 +94,7 @@ class TripMedicalView(DetailView):
 
     @staticmethod
     def _can_view(trip, request):
-        """ Leaders, chairs, and a trip WIMP can view this page. """
+        """Leaders, chairs, and a trip WIMP can view this page."""
         return (
             perm_utils.in_any_group(request.user, ['WIMP'])
             or (trip.wimp and request.participant == trip.wimp)
@@ -104,7 +104,7 @@ class TripMedicalView(DetailView):
 
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
-        """ Only allow creator, leaders of the trip, WIMP, and chairs. """
+        """Only allow creator, leaders of the trip, WIMP, and chairs."""
         # The normal `dispatch()` will populate self.object
         normal_response = super().dispatch(request, *args, **kwargs)
 
@@ -114,7 +114,7 @@ class TripMedicalView(DetailView):
         return normal_response
 
     def get_context_data(self, **kwargs):
-        """ Get a trip info form for display as readonly. """
+        """Get a trip info form for display as readonly."""
         context_data = super().get_context_data(**kwargs)
         trip = self.object
         participant = self.request.participant
@@ -124,7 +124,7 @@ class TripMedicalView(DetailView):
 
 
 class ChairTripView(DetailView):
-    """ Give a view of the trip intended to let chairs approve or not.
+    """Give a view of the trip intended to let chairs approve or not.
 
     Will show just the important details, like leaders, description, & itinerary.
     """
@@ -137,7 +137,7 @@ class ChairTripView(DetailView):
         return self.kwargs['activity']
 
     def get_queryset(self):
-        """ All trips of this activity type.
+        """All trips of this activity type.
 
         For identifying only trips that need attention, callers
         should probably also filter on `trip_date` and `chair_approved`.
@@ -149,7 +149,7 @@ class ChairTripView(DetailView):
         return models.Trip.objects.filter(activity=self.activity)
 
     def get_other_trips(self):
-        """ Get the trips that come before and after this trip & need approval. """
+        """Get the trips that come before and after this trip & need approval."""
         this_trip = self.get_object()
 
         ordered_trips = iter(
@@ -180,7 +180,7 @@ class ChairTripView(DetailView):
         return context
 
     def post(self, request, *args, **kwargs):
-        """ Mark the trip approved and move to the next one, if any. """
+        """Mark the trip approved and move to the next one, if any."""
         trip = self.get_object()
         _, next_trip = self.get_other_trips()  # Do this before saving trip
         trip.chair_approved = True

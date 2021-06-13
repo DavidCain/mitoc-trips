@@ -23,14 +23,14 @@ class DateTimeFromIsoTests(unittest.TestCase):
             date_utils.datetime_from_iso('2019-06-99')
 
     def test_succesfully_parses_with_offset(self):
-        """ Times given in EST/EDT are properly handled. """
+        """Times given in EST/EDT are properly handled."""
         parsed_datetime = date_utils.datetime_from_iso('2020-12-16T20:55:15-05:00')
         self.assertEqual(
             parsed_datetime, date_utils.localize(datetime(2020, 12, 16, 20, 55, 15))
         )
 
     def test_succesfully_parses_with_zero_offset(self):
-        """ Times given in UTC are properly handled. """
+        """Times given in UTC are properly handled."""
         parsed_datetime = date_utils.datetime_from_iso('2020-12-16T00:55:15-00:00')
         self.assertEqual(
             parsed_datetime, timezone.utc.localize(datetime(2020, 12, 16, 0, 55, 15))
@@ -57,7 +57,7 @@ class DateFromIsoTests(unittest.TestCase):
 
 
 class DateUtilTests(TestCase):
-    """ Test the date utilities that lots of lottery logic depends on.
+    """Test the date utilities that lots of lottery logic depends on.
 
     These methods don't depend on models and don't expect any particular
     timezone, so we can test them in UTC.
@@ -131,7 +131,7 @@ class DateUtilTests(TestCase):
             )
 
     def test_is_currently_iap(self):
-        """ Test the method that approximates if it's Winter School. """
+        """Test the method that approximates if it's Winter School."""
         # December before Winter School
         with freeze_time("2016-12-28 12:00 EST"):
             self.assertFalse(date_utils.is_currently_iap())
@@ -191,7 +191,7 @@ class DateUtilTests(TestCase):
 
 
 class LecturesCompleteTests(TestCase):
-    """ Test the method that tries to infer when lectures are over. """
+    """Test the method that tries to infer when lectures are over."""
 
     @staticmethod
     def _create_ws_trip(trip_date, **kwargs):
@@ -201,7 +201,7 @@ class LecturesCompleteTests(TestCase):
 
     @freeze_time("Wednesday, Jan 3 2018 15:00:00 EST")
     def test_no_trips_yet(self):
-        """ When there are no trips this Winter School, lectures aren't complete.
+        """When there are no trips this Winter School, lectures aren't complete.
 
         (The first trips are posted on Thursday of the first lecture week - without
         these trips, we can reasonably infer that lectures are still ongoing)
@@ -214,12 +214,12 @@ class LecturesCompleteTests(TestCase):
 
     @freeze_time("Friday, Jan 13 2017 12:34:00 EST")
     def test_past_trips(self):
-        """ When trips have already completed, lectures are definitely over. """
+        """When trips have already completed, lectures are definitely over."""
         self._create_ws_trip(date(2017, 1, 12))
         self.assertTrue(date_utils.ws_lectures_complete())
 
     def test_future_trips(self):
-        """ When there are no past trips, but there are upcoming trips. """
+        """When there are no past trips, but there are upcoming trips."""
 
         self._create_ws_trip(date(2018, 1, 5))
         self._create_ws_trip(date(2018, 1, 6))

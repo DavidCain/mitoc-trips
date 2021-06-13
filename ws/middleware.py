@@ -5,7 +5,7 @@ from ws.models import Participant
 
 
 class PrefetchGroupsMiddleware:
-    """ Prefetch the user's groups for use in the requset.
+    """Prefetch the user's groups for use in the requset.
 
     We do a lot of group-centric logic - if the user's groups aren't
     prefetched, then we can easily have n+1 queries. This middleware
@@ -28,7 +28,7 @@ class PrefetchGroupsMiddleware:
 
 
 class ParticipantMiddleware:
-    """ Include the user's participant (used in most views) """
+    """Include the user's participant (used in most views)"""
 
     def __init__(self, get_response):
         self.get_response = get_response
@@ -39,7 +39,7 @@ class ParticipantMiddleware:
 
 
 class CustomMessagesMiddleware:
-    """ Render some custom messages on every page load.
+    """Render some custom messages on every page load.
 
     Caution: *must* be installed after both:
     - ParticipantMiddleware (to access participant info for messages)

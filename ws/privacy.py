@@ -16,7 +16,7 @@ class DataDump:
 
     @property
     def all_data(self):
-        """ Return all data in an ordered dictionary for presentation.
+        """Return all data in an ordered dictionary for presentation.
 
         This dictionary should be able to be serialized to JSON by Django
         (though not necessarily a raw `json.dumps()`)
@@ -47,7 +47,7 @@ class DataDump:
 
     @property
     def medical(self):
-        """ Represent emergency info & contact in one dictionary. """
+        """Represent emergency info & contact in one dictionary."""
         emergency_info = self.par.emergency_info
         emergency_contact = emergency_info.emergency_contact
         einfo = model_to_dict(emergency_info, exclude=['id', 'emergency_contact_id'])
@@ -57,18 +57,18 @@ class DataDump:
 
     @property
     def car(self):
-        """ Participant's car information. """
+        """Participant's car information."""
         return self.par.car and model_to_dict(self.par.car, exclude='id')
 
     @property
     def discounts(self):
-        """ Discounts where the participant elected to share their info. """
+        """Discounts where the participant elected to share their info."""
         for d in self.par.discounts.all():
             yield model_to_dict(d, fields=['name', 'active', 'summary', 'url'])
 
     @property
     def authored_feedback(self):
-        """ Feedback supplied by the participant. """
+        """Feedback supplied by the participant."""
         about_participant = Q(leader=self.par)
         all_feedback = models.Feedback.everything.filter(about_participant)
 
@@ -84,7 +84,7 @@ class DataDump:
 
     @property
     def received_feedback(self):
-        """ Feedback _about_ the participant. """
+        """Feedback _about_ the participant."""
         about_participant = Q(participant=self.par)
         all_feedback = models.Feedback.everything.filter(about_participant)
 
@@ -101,7 +101,7 @@ class DataDump:
 
     @property
     def winter_school_lecture_attendance(self):
-        """ Attendance to Winter School lectures. """
+        """Attendance to Winter School lectures."""
         for attendance in self.par.lectureattendance_set.all():
             yield {
                 'year': attendance.year,
@@ -110,7 +110,7 @@ class DataDump:
 
     @property
     def signups(self):
-        """ All signups, whether on the trip or not. """
+        """All signups, whether on the trip or not."""
         signups = self.par.signup_set
         for s in signups.all():
             yield {
@@ -123,7 +123,7 @@ class DataDump:
 
     @property
     def lottery_info(self):
-        """ Lottery information (excluding trip ranking, found in signups). """
+        """Lottery information (excluding trip ranking, found in signups)."""
         try:
             info = self.par.lotteryinfo
         except models.LotteryInfo.DoesNotExist:
@@ -137,7 +137,7 @@ class DataDump:
 
     @property
     def trips(self):
-        """ Trips that the participant WIMPed, led, or created. """
+        """Trips that the participant WIMPed, led, or created."""
 
         def repr_trips(manager):
             return [
@@ -152,7 +152,7 @@ class DataDump:
 
     @property
     def membership(self):
-        """ Cached membership information. """
+        """Cached membership information."""
         mem = self.par.membership
         if not mem:
             return None
@@ -161,7 +161,7 @@ class DataDump:
 
     @property
     def user(self):
-        """ Combine User and Participant record into one representation. """
+        """Combine User and Participant record into one representation."""
         user = self.par.user
         return {
             **model_to_dict(user, fields=['last_login', 'date_joined']),
@@ -177,7 +177,7 @@ class DataDump:
 
     @property
     def _ws_applications(self):
-        """ All Winter School leader applications by the user. """
+        """All Winter School leader applications by the user."""
         ws_apps = models.WinterSchoolLeaderApplication.objects.filter(
             participant=self.par
         ).prefetch_related('mentor_activities', 'mentee_activities')

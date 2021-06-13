@@ -27,7 +27,7 @@ class JwtTests(unittest.TestCase):
             api.jwt_token_from_headers(request)
 
     def test_auth_token_extracted(self):
-        """ A JWT is extracted from a bearer token. """
+        """A JWT is extracted from a bearer token."""
         request = HttpRequest()
         request.META['HTTP_AUTHORIZATION'] = f'Bearer: {TOKEN}'
         self.assertEqual(api.jwt_token_from_headers(request), TOKEN)

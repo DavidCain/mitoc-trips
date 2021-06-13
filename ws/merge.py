@@ -51,7 +51,7 @@ EXPECTED_USER_TABLES: Dict[str, Tuple[str, ...]] = {
 
 
 def simple_fk_update(cursor, table, col, old_pk, new_pk):
-    """ For tables that don't have unique constraints, copy over FKs.
+    """For tables that don't have unique constraints, copy over FKs.
 
     Note that this naive approach doesn't handle the case where you might
     end up with duplicate data in the same table. It's up to the caller
@@ -68,7 +68,7 @@ def simple_fk_update(cursor, table, col, old_pk, new_pk):
 
 
 def _fk_tables(cursor, src_table, col):
-    """ Identify all other tables that point to the source table's column.
+    """Identify all other tables that point to the source table's column.
 
     This is useful for ensuring that we migrate over all FKs.
     """
@@ -96,7 +96,7 @@ def _fk_tables(cursor, src_table, col):
 
 
 def check_fk_tables(cursor, src_table, column, expected):
-    """ Check that the foreign keys are what we expect them to be.
+    """Check that the foreign keys are what we expect them to be.
 
     Useful as a canary that things may go wrong if we've since added
     more foreign keys.
@@ -111,7 +111,7 @@ def check_fk_tables(cursor, src_table, column, expected):
 
 
 def _update_lotteryinfo(cursor, old_pk, new_pk):
-    """ Ensure one current lotteryinfo object per participant.
+    """Ensure one current lotteryinfo object per participant.
 
     Since each participant can only have one lotteryinfo object:
     - copy over the old if no new object present
@@ -139,7 +139,7 @@ def _update_lotteryinfo(cursor, old_pk, new_pk):
 
 
 def _migrate_user(old_pk, new_pk):
-    """ Copy over any email addresses and groups from the old user. """
+    """Copy over any email addresses and groups from the old user."""
     cursor = connections['auth_db'].cursor()
 
     check_fk_tables(cursor, 'auth_user', 'id', EXPECTED_USER_TABLES)
@@ -183,7 +183,7 @@ def _migrate_user(old_pk, new_pk):
 
 
 def _migrate_participant(old_pk, new_pk):
-    """ Copy over references to the old participant to belong to the new. """
+    """Copy over references to the old participant to belong to the new."""
     cursor = connections['default'].cursor()
 
     check_fk_tables(cursor, 'ws_participant', 'id', EXPECTED_PARTICIPANT_TABLES)

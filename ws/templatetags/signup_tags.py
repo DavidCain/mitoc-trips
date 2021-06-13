@@ -24,18 +24,18 @@ def missed_lectures_for(participant, trip):
 
 @register.filter
 def should_renew_for(participant, trip):
-    """ NOTE: This uses the cache, should only be called if cache was updated. """
+    """NOTE: This uses the cache, should only be called if cache was updated."""
     return participant.should_renew_for(trip)
 
 
 @register.filter
 def membership_active(participant):
-    """ NOTE: This uses the cache, should only be called if cache was updated. """
+    """NOTE: This uses the cache, should only be called if cache was updated."""
     return participant.membership_active
 
 
 def leader_signup_is_allowed(trip, participant):
-    """ Determine whether or not to display the leader signup form.
+    """Determine whether or not to display the leader signup form.
 
     Note: This is not validation - the user's ultimate ability to sign
     up by a leader is determined by the logic in the models and views.
@@ -53,7 +53,7 @@ def leader_signup_is_allowed(trip, participant):
 
 @register.inclusion_tag('for_templatetags/signup_for_trip.html', takes_context=True)
 def signup_for_trip(context, trip, participant, existing_signup):
-    """ Display the appropriate signup controls for a given trip.
+    """Display the appropriate signup controls for a given trip.
 
     Signups are forbidden in a number of cases (trip already happened, signups
     aren't open yet, et cetera). There are a number of special cases where
@@ -78,18 +78,18 @@ def signup_for_trip(context, trip, participant, existing_signup):
 
 @register.inclusion_tag('for_templatetags/signup_modes/anonymous_signup.html')
 def anonymous_signup(trip):
-    """ What to display in the signup section for anonymous users. """
+    """What to display in the signup section for anonymous users."""
     return {'trip': trip}
 
 
 @register.inclusion_tag('for_templatetags/signup_modes/already_signed_up.html')
 def already_signed_up(trip, signup):
-    """ What to display in the signup section when a SignUp object exists. """
+    """What to display in the signup section when a SignUp object exists."""
     return {'trip': trip, 'existing_signup': signup}
 
 
 def _same_day_trips(participant, trip):
-    """ Return other trips this participant is on that take place on the same day. """
+    """Return other trips this participant is on that take place on the same day."""
     if participant is None:
         return None
 
@@ -108,7 +108,7 @@ def _same_day_trips(participant, trip):
 
 @register.inclusion_tag('for_templatetags/signup_modes/signups_open.html')
 def signups_open(user, participant, trip, signup_form, leader_signup_allowed):
-    """ What to display when signups are open for a trip. """
+    """What to display when signups are open for a trip."""
     return {
         'user': user,
         'trip': trip,
@@ -121,7 +121,7 @@ def signups_open(user, participant, trip, signup_form, leader_signup_allowed):
 
 @register.inclusion_tag('for_templatetags/how_to_attend_trip.html')
 def how_to_attend(trip, trip_inelegibility_reasons, user):
-    """ Display messages instructing the user how they can attend this trip. """
+    """Display messages instructing the user how they can attend this trip."""
     return {
         'user': user,
         'show_membership_status': any(
@@ -135,7 +135,7 @@ def how_to_attend(trip, trip_inelegibility_reasons, user):
 
 @register.inclusion_tag('for_templatetags/signup_modes/not_yet_open.html')
 def not_yet_open(user, trip, signup_form, leader_signup_allowed):
-    """ What to display in the signup section when trip signups aren't open (yet). """
+    """What to display in the signup section when trip signups aren't open (yet)."""
     return {
         'trip': trip,
         'reasons_cannot_attend': list(reasons_cannot_attend(user, trip)),
@@ -151,7 +151,7 @@ def drop_off_trip(trip, existing_signup):
 
 @register.inclusion_tag('for_templatetags/signup_table.html')
 def signup_table(signups, has_notes=False, show_drivers=False, all_participants=None):
-    """ Display a table of signups (either leaders or participants).
+    """Display a table of signups (either leaders or participants).
 
     The all_participants argument is especially useful for including leaders
     who do not have a signup object associated with them (e.g. the people who created
@@ -189,7 +189,7 @@ def driver_table(cars):
 
 @register.inclusion_tag('for_templatetags/not_on_trip.html')
 def not_on_trip(trip, signups_on_trip, signups_off_trip, display_notes):
-    """ Display a table of participants who're not on the given trip.
+    """Display a table of participants who're not on the given trip.
 
     Handles displaying all participants who were:
         1. Interested in a lottery trip

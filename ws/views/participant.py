@@ -59,7 +59,7 @@ class DeleteParticipantView(OtherParticipantView, DeleteView):
 
 
 class ParticipantEditMixin(TemplateView):
-    """ Updates a participant. Requires self.participant and self.user. """
+    """Updates a participant. Requires self.participant and self.user."""
 
     template_name = 'profile/edit.html'
     update_msg = 'Personal information updated successfully'
@@ -77,7 +77,7 @@ class ParticipantEditMixin(TemplateView):
         return dict(prefix=base, scope_prefix=base + '_scope', **kwargs)
 
     def get_context_data(self, **kwargs):
-        """ Return a dictionary primarily of forms to for template rendering.
+        """Return a dictionary primarily of forms to for template rendering.
         Also includes a value for the "I have a car" checkbox.
 
         Outputs three types of forms:
@@ -140,7 +140,7 @@ class ParticipantEditMixin(TemplateView):
         return context
 
     def post(self, request, *args, **kwargs):
-        """ Validate POSTed forms, except CarForm if "no car" stated.
+        """Validate POSTed forms, except CarForm if "no car" stated.
 
         Upon validation, redirect to homepage or `next` url, if specified.
         """
@@ -181,7 +181,7 @@ class ParticipantEditMixin(TemplateView):
 
     @transaction.atomic
     def _save_forms(self, user, post_forms):
-        """ Given completed, validated forms, handle saving all.
+        """Given completed, validated forms, handle saving all.
 
         If no CarForm is supplied, a participant's existing car will be removed.
 
@@ -288,7 +288,7 @@ class ParticipantView(
     context_object_name = 'participant'
 
     def get_queryset(self):
-        """ Select related fields that will be displayed on the page. """
+        """Select related fields that will be displayed on the page."""
         par = super().get_queryset()
         return par.select_related(
             'emergency_info__emergency_contact', 'car', 'lotteryinfo'
@@ -413,7 +413,7 @@ class ParticipantView(
 
     @property
     def wimp(self):
-        """ Return the current WIMP, if there is one & it's appropriate to display them. """
+        """Return the current WIMP, if there is one & it's appropriate to display them."""
         participant = self.object
 
         # Regardless of time of year, or any upcoming WS trips, admins always see WIMP

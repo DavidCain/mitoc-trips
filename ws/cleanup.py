@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 def lapsed_participants():
-    """ Return all participants who've not used the system in a long time.
+    """Return all participants who've not used the system in a long time.
 
     We exclude anybody who's signed a waiver, paid dues, been on trips, or
     updated their profile recently. We consider a number of factors for
@@ -46,7 +46,7 @@ def lapsed_participants():
 
 
 def purge_non_student_discounts():
-    """ Purge non-students from student-only discounts.
+    """Purge non-students from student-only discounts.
 
     Student eligibility is enforced at the API and form level. If somebody was
     a student at the time of enrolling but is no longer a student, we should
@@ -63,7 +63,7 @@ def purge_non_student_discounts():
 
 @transaction.atomic
 def purge_old_medical_data():
-    """ For privacy reasons, purge old medical information.
+    """For privacy reasons, purge old medical information.
 
     We have a lot of people's medical information in our system.
     However, many people leave Boston, graduate MIT, or otherwise

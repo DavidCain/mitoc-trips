@@ -7,7 +7,7 @@ from ws.tests import TestCase, factories
 
 
 class MixedIn(mixins.LectureAttendanceMixin):
-    """ Dummy class that has a request! """
+    """Dummy class that has a request!"""
 
     def __init__(self, request):
         self.request = request
@@ -32,7 +32,7 @@ class LectureAttendanceMixinTest(TestCase):
 
     @freeze_time("2019-01-10 12:25:00 EST")
     def test_can_set_self_during_iap(self):
-        """ So long as the setting is on, setting one's own attendance is allowed during IAP!. """
+        """So long as the setting is on, setting one's own attendance is allowed during IAP!."""
         par = factories.ParticipantFactory.create()
 
         self.assertFalse(self._can_set_attendance(par, par))  # (No settings found)
@@ -45,7 +45,7 @@ class LectureAttendanceMixinTest(TestCase):
 
     @freeze_time("2019-08-15 12:25:00 EST")
     def test_cannot_set_outside_iap(self):
-        """ It must be during IAP in order to set attendance. """
+        """It must be during IAP in order to set attendance."""
         par = factories.ParticipantFactory.create()
 
         # Even if the setting is on, we deny due to time of year
@@ -54,7 +54,7 @@ class LectureAttendanceMixinTest(TestCase):
 
     @freeze_time("2019-08-15 12:25:00 EST")
     def test_wsc_can_always_set(self):
-        """ Regardless of time of year, the WSC can always set attendance. """
+        """Regardless of time of year, the WSC can always set attendance."""
         user = factories.UserFactory.create()
         perm_utils.make_chair(user, enums.Activity.WINTER_SCHOOL)
         par = factories.ParticipantFactory.create(user=user)
@@ -64,7 +64,7 @@ class LectureAttendanceMixinTest(TestCase):
 
     @freeze_time("2019-08-15 12:25:00 EST")
     def test_admin_can_always_set(self):
-        """ Regardless of time of year, a superuser can always set attendance. """
+        """Regardless of time of year, a superuser can always set attendance."""
         admin = factories.UserFactory.create(is_superuser=True)
         par = factories.ParticipantFactory.create(user=admin)
 

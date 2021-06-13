@@ -22,7 +22,7 @@ class MessageGeneratorTests(TestCase):
         self.client.force_login(user)
 
     def test_supply(self):
-        """ The `supply()` method must be overridden by children. """
+        """The `supply()` method must be overridden by children."""
         response = self.client.get('/')
         request = response.wsgi_request
         base_generator = MessageGenerator(request)
@@ -30,7 +30,7 @@ class MessageGeneratorTests(TestCase):
             base_generator.supply()
 
     def test_add_unique_message(self):
-        """ Once emitted, messages cannot be re-emitted! """
+        """Once emitted, messages cannot be re-emitted!"""
         response = self.client.get('/')
         request = response.wsgi_request
         generator = MessageGenerator(request)

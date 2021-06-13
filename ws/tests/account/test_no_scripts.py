@@ -24,19 +24,19 @@ class AccountTests(TestCase):
         self.assertFalse(nav_menu.find(class_="collapsed"))
 
     def test_unauthenticated_user_routes(self):
-        """ We load zero scripts on account management routes for anonymous_users. """
+        """We load zero scripts on account management routes for anonymous_users."""
         self._assert_no_scripts(self.client.get('/accounts/login/'))
         self._assert_no_scripts(self.client.get('/accounts/signup/'))
 
     def test_noscript_on_password_change(self):
-        """ For an authenticated user, we don't load JS for password change. """
+        """For an authenticated user, we don't load JS for password change."""
         user = factories.UserFactory.create()
         self.client.force_login(user)
 
         self._assert_no_scripts(self.client.get('/accounts/password/change/'), user)
 
     def test_acceptable_routes_for_javascript(self):
-        """ Pages in which secure credentials are not transmitted can have JS. """
+        """Pages in which secure credentials are not transmitted can have JS."""
         response = self.client.get('/accounts/password/reset/')
         self.assertEqual(response.status_code, 200)
         self.assertIn('<script', response.content.decode())

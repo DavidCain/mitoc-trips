@@ -42,7 +42,7 @@ ICON_BY_PROGRAM = {
 
 
 def fa_icon_for_trip(trip):
-    """ Return a FontAwesome icon that best describes this trip. """
+    """Return a FontAwesome icon that best describes this trip."""
     # Always give the same icon to certain programs
     if trip.program_enum in PRIMARY_PROGRAMS:
         return ICON_BY_PROGRAM[trip.program_enum]
@@ -56,14 +56,14 @@ def fa_icon_for_trip(trip):
 
 
 def _describe(trip):
-    """ Return a simple string describing the trip. """
+    """Return a simple string describing the trip."""
     if trip.trip_type_enum in {TripType.NONE, TripType.OTHER}:
         return trip.get_program_display()
     return trip.get_trip_type_display()
 
 
 def for_trip(trip):
-    """ Return (safe) HTML with an icon that describes the trip. """
+    """Return (safe) HTML with an icon that describes the trip."""
     icon = fa_icon_for_trip(trip)
     if not icon:
         return ''

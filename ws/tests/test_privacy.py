@@ -75,7 +75,7 @@ class DataDumpTest(TestCase):
         )
 
     def test_success(self):
-        """ Create a bunch of data about the participant, ensure that dumping it works. """
+        """Create a bunch of data about the participant, ensure that dumping it works."""
         participant = factories.ParticipantFactory.create()
         participant.discounts.add(factories.DiscountFactory.create())
         participant.car = factories.CarFactory.create()

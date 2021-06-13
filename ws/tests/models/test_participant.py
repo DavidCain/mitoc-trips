@@ -72,7 +72,7 @@ class ReasonsCannotAttendTest(TestCase):
         factories.LectureAttendanceFactory.create(participant=participant, year=2016)
 
         def missed_lectures_for_trip_in_year(year) -> bool:
-            """ Return if missing lectures for a trip in this year prohibits attendance. """
+            """Return if missing lectures for a trip in this year prohibits attendance."""
             trip = factories.TripFactory.create(
                 program=enums.Program.WINTER_SCHOOL.value, trip_date=date(year, 1, 19)
             )
@@ -106,7 +106,7 @@ class ReasonsCannotAttendTest(TestCase):
 
     @freeze_time("12 Jan 2020 12:00:00 EST")
     def test_missed_lectures_as_first_time_ws_leader(self):
-        """ If a first-time WS leader missed lectures, they are not allowed to participate. """
+        """If a first-time WS leader missed lectures, they are not allowed to participate."""
         participant = factories.ParticipantFactory.create()
         self.assertFalse(participant.lectureattendance_set.exists())
 
@@ -126,7 +126,7 @@ class ReasonsCannotAttendTest(TestCase):
 
     @freeze_time("25 Oct 2018 12:00:00 EST")
     def test_problem_with_profile_legacy(self):
-        """ If the affiliation was given before we started collecting more detail, warn! """
+        """If the affiliation was given before we started collecting more detail, warn!"""
         participant = factories.ParticipantFactory.create(
             membership=factories.MembershipFactory.create(
                 membership_expires=date(2019, 10, 10), waiver_expires=date(2019, 10, 10)
@@ -142,7 +142,7 @@ class ReasonsCannotAttendTest(TestCase):
         )
 
     def test_problems_with_profile_multiple(self):
-        """ If a participant has multiple profile problems, we give only one reason. """
+        """If a participant has multiple profile problems, we give only one reason."""
         participant = factories.ParticipantFactory.create(
             name="Cher",
             affiliation="S",
@@ -226,7 +226,7 @@ class ReasonsCannotAttendTest(TestCase):
 
 class ProblemsWithProfileTest(TestCase):
     def test_our_factory_is_okay(self):
-        """ The participant factory that we use is expected to have no problems. """
+        """The participant factory that we use is expected to have no problems."""
         participant = factories.ParticipantFactory.create()
         self.assertFalse(any(participant.problems_with_profile))
 
@@ -270,7 +270,7 @@ class ProblemsWithProfileTest(TestCase):
         )
 
     def test_not_updated_since_affiliation_overhaul(self):
-        """ Any participant with affiliation predating our new categories should re-submit! """
+        """Any participant with affiliation predating our new categories should re-submit!"""
         # This is right before the time when we released new categories!
         before_cutoff = date_utils.localize(datetime.datetime(2018, 10, 27, 3, 15))
 
@@ -287,13 +287,13 @@ class ProblemsWithProfileTest(TestCase):
 
 class LeaderTest(TestCase):
     def test_name_with_rating_no_rating(self):
-        """ Participants who aren't actively leaders just return their name. """
+        """Participants who aren't actively leaders just return their name."""
         trip = factories.TripFactory.create()
         participant = factories.ParticipantFactory.create(name='Tommy Caldwell')
         self.assertEqual('Tommy Caldwell', participant.name_with_rating(trip))
 
     def test_open_trip(self):
-        """ When ratings aren't required, only the name is returned. """
+        """When ratings aren't required, only the name is returned."""
         trip = factories.TripFactory.create(program=enums.Program.CIRCUS.value)
         participant = factories.ParticipantFactory.create(name='Tommy Caldwell')
 
@@ -307,7 +307,7 @@ class LeaderTest(TestCase):
         self.assertEqual('Tommy Caldwell', participant.name_with_rating(trip))
 
     def test_past_rating(self):
-        """ We will display a past rating that was applicable at the time! """
+        """We will display a past rating that was applicable at the time!"""
         alex = factories.ParticipantFactory.create(name='Alex Honnold')
 
         # Make an older rating to show this isn't used
@@ -388,7 +388,7 @@ class LeaderTest(TestCase):
 
 class MembershipActiveTest(unittest.TestCase):
     def test_no_cached_membership(self):
-        """ Convenience methods on the participant require membership/waiver!"""
+        """Convenience methods on the participant require membership/waiver!"""
         par = factories.ParticipantFactory.build(membership=None)
 
         trip = factories.TripFactory.build(membership_required=True)
@@ -505,10 +505,10 @@ class AffiliationTest(SimpleTestCase):
 
 
 class MissedLectureTests(TestCase):
-    """ Test the logic that checks if a participant has missed lectures. """
+    """Test the logic that checks if a participant has missed lectures."""
 
     def test_legacy_years(self):
-        """ Participants are not marked as missing lectures in first years. """
+        """Participants are not marked as missing lectures in first years."""
         # We lack records for these early years, so we just assume presence
         participant = factories.ParticipantFactory.create()
         # We can't say for sure that the participant attended for either year
@@ -525,7 +525,7 @@ class MissedLectureTests(TestCase):
 
     @freeze_time("Thursday, Jan 4 2018 15:00:00 EST")
     def test_lectures_incomplete(self):
-        """ If this year's lectures haven't completed, nobody can be absent. """
+        """If this year's lectures haven't completed, nobody can be absent."""
         participant = factories.ParticipantFactory.create()
 
         # Participant hasn't attended.
@@ -544,7 +544,7 @@ class MissedLectureTests(TestCase):
 
     @freeze_time("Thursday, Jan 19 2018 15:00:00 EST")
     def test_current_year(self):
-        """ Check attendance in current year, after lectures complete.
+        """Check attendance in current year, after lectures complete.
 
         We're in a year where attendance is recorded, and we're asking about the current
         year. Did the participant attend?

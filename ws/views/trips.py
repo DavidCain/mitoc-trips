@@ -35,7 +35,7 @@ from ws.utils.geardb import outstanding_items
 
 
 class TripView(DetailView):
-    """ Display the trip to both unregistered users and known participants.
+    """Display the trip to both unregistered users and known participants.
 
     For unregistered users, the page will have minimal information (a description,
     and leader names). For other participants, the controls displayed to them
@@ -53,7 +53,7 @@ class TripView(DetailView):
         return trips.prefetch_related('leaders', 'leaders__leaderrating_set')
 
     def get_participant_signup(self, trip=None):
-        """ Return viewer's signup for this trip (if one exists, else None) """
+        """Return viewer's signup for this trip (if one exists, else None)"""
         if not self.request.participant:
             return None
         trip = trip or self.get_object()
@@ -61,7 +61,7 @@ class TripView(DetailView):
 
     @staticmethod
     def rentals_by_participant(trip):
-        """ Yield all items rented by leaders & participants on this trip. """
+        """Yield all items rented by leaders & participants on this trip."""
         on_trip = trip.signup_set.filter(on_trip=True).select_related('participant')
         trip_participants = [s.participant for s in on_trip]
         leaders = list(trip.leaders.all())
@@ -103,7 +103,7 @@ class TripView(DetailView):
         return context
 
     def post(self, request, *args, **kwargs):
-        """ Add signup to trip or waitlist, if applicable.
+        """Add signup to trip or waitlist, if applicable.
 
         Used if the participant has signed up, but wasn't placed.
         """
@@ -121,7 +121,7 @@ class ReviewTripView(DetailView):
 
     @property
     def posted_feedback(self):
-        """ Convert named fields of POST data to participant -> feedback mapping.
+        """Convert named fields of POST data to participant -> feedback mapping.
 
         If the form data was garbled (intentionally or otherwise), this method
         will raise ValueError or TypeError (on either 'split' or `int`)
@@ -136,7 +136,7 @@ class ReviewTripView(DetailView):
             yield int(par_pk), comments.strip(), showed_up
 
     def post(self, request, *args, **kwargs):
-        """ Create or update all feedback passed along in form data. """
+        """Create or update all feedback passed along in form data."""
         trip = self.object = self.get_object()
         if trip.feedback_window_passed:
             messages.warning(
@@ -247,7 +247,7 @@ class CreateTripView(CreateView):
         return reverse('view_trip', args=(self.object.pk,))
 
     def get_initial(self):
-        """ Default with trip creator among leaders. """
+        """Default with trip creator among leaders."""
         initial = super().get_initial().copy()
         # It's possible for WSC to create trips while not being a leader
         if perm_utils.is_leader(self.request.user):
@@ -255,7 +255,7 @@ class CreateTripView(CreateView):
         return initial
 
     def form_valid(self, form):
-        """ After is_valid(), assign creator from User, add empty waitlist. """
+        """After is_valid(), assign creator from User, add empty waitlist."""
         creator = self.request.participant
         trip = form.save(commit=False)
         trip.creator = creator
@@ -272,7 +272,7 @@ class DeleteTripView(DeleteView, TripLeadersOnlyView):
     success_url = reverse_lazy('upcoming_trips')
 
     def get(self, request, *args, **kwargs):
-        """ Request is valid, but method is not (use POST). """
+        """Request is valid, but method is not (use POST)."""
         messages.warning(self.request, "Use delete button to remove trips.")
         return redirect(reverse('view_trip', kwargs=self.kwargs))
 
@@ -312,7 +312,7 @@ class EditTripView(UpdateView, TripLeadersOnlyView):
         return reverse('view_trip', args=(self.object.pk,))
 
     def _ignore_leaders_if_unchanged(self, form):
-        """ Don't update the leaders m2m field if unchanged.
+        """Don't update the leaders m2m field if unchanged.
 
         This is a hack to avoid updating the m2m set (normally cleared, then
         reset) Without this, post_add (signal used to send emails) will send
@@ -338,7 +338,7 @@ class EditTripView(UpdateView, TripLeadersOnlyView):
 
 
 class TripListView(ListView):
-    """ Superclass for any view that displays a list of trips.
+    """Superclass for any view that displays a list of trips.
 
     We support loading and displaying all trips (`/trips/all`). The SQL query
     is pretty efficient, though it results in a pretty large DOM for clients
@@ -360,7 +360,7 @@ class TripListView(ListView):
         return annotated_for_trip_list(trips)
 
     def _optionally_filter_from_args(self):
-        """ Return the date at which we want to omit previous trips, plus validity boolean.
+        """Return the date at which we want to omit previous trips, plus validity boolean.
 
         If the user passes an invalid date (for example, because they were
         manually building the query arguments), we don't want to 500 and
@@ -380,7 +380,7 @@ class TripListView(ListView):
         return (start_date, start_date_invalid)
 
     def get_context_data(self, **kwargs):
-        """ Sort trips into past and present trips. """
+        """Sort trips into past and present trips."""
         context = super().get_context_data(**kwargs)
         trips = context[self.context_object_name]
         today = local_date()
@@ -407,7 +407,7 @@ class TripListView(ListView):
 
 
 class UpcomingTripsView(TripListView):
-    """ By default, view only upcoming (future) trips.
+    """By default, view only upcoming (future) trips.
 
     If given a date, filter to only trips after that date (which may be past dates!)
     """
@@ -417,7 +417,7 @@ class UpcomingTripsView(TripListView):
 
 
 class AllTripsView(TripListView):
-    """ View all trips, past and present (optionally after a given date). """
+    """View all trips, past and present (optionally after a given date)."""
 
     include_past_trips = True
 
@@ -427,7 +427,7 @@ class ApproveTripsView(ListView):
     template_name = 'trips/all/manage.html'
 
     def get_queryset(self):
-        """ Filter to only *upcoming* trips needing approval, sort by those with itinerary!. """
+        """Filter to only *upcoming* trips needing approval, sort by those with itinerary!."""
         all_trips = super().get_queryset()
         return (
             all_trips.filter(

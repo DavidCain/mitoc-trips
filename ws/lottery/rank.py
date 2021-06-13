@@ -28,7 +28,7 @@ WEIGHTS['S'] = 0.0
 
 
 def seed_for(participant, lottery_key):
-    """ Return a seed to deterministically fetch pseudo-random numbers.
+    """Return a seed to deterministically fetch pseudo-random numbers.
 
     We want participants to be ranked based on (mostly) random criteria, but we
     also want the ability to deterministically figure the results of a lottery
@@ -73,7 +73,7 @@ def seed_for(participant, lottery_key):
 
 
 def affiliation_weighted_rand(participant, lottery_key):
-    """ Return a float that's meant to rank participants by affiliation.
+    """Return a float that's meant to rank participants by affiliation.
 
     A lower number is a "preferable" affiliation. That is to say, ranking
     participants by the result of this function will put MIT students towards
@@ -87,7 +87,7 @@ def affiliation_weighted_rand(participant, lottery_key):
 
 class ParticipantRanker:
     def __iter__(self):
-        """ Participants in the order they should be placed, with their score.
+        """Participants in the order they should be placed, with their score.
 
         We sort participants by a scoring algorithm. The results of this
         scoring algorithm are useful when investigating the logs of a lottery
@@ -102,11 +102,11 @@ class ParticipantRanker:
             yield participant, priority_key
 
     def participants_to_handle(self):
-        """ QuerySet of participants to be ranked. """
+        """QuerySet of participants to be ranked."""
         raise NotImplementedError
 
     def priority_key(self, participant):
-        """ Return a key that can be used to sort the participant. """
+        """Return a key that can be used to sort the participant."""
         raise NotImplementedError
 
 
@@ -160,7 +160,7 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
         ).distinct()
 
     def priority_key(self, participant):
-        """ Rank participants by:
+        """Rank participants by:
 
         1. Manual overrides (rare, should not apply for >99% of participants)
         2. flakiness (having flaked with offsetting attendence -> lower priority)
@@ -188,7 +188,7 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
         )
 
     def flake_factor(self, participant):
-        """ Return a number indicating past "flakiness".
+        """Return a number indicating past "flakiness".
 
         A lower score indicates a more reliable participant.
         """
@@ -197,7 +197,7 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
 
     @staticmethod
     def trips_flaked(participant):
-        """ Return a QuerySet of trip pk's on which the participant flaked. """
+        """Return a QuerySet of trip pk's on which the participant flaked."""
         return (
             participant.feedback_set.filter(
                 showed_up=False, trip__program=enums.Program.WINTER_SCHOOL.value
@@ -207,7 +207,7 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
         )
 
     def number_trips_led(self, participant):
-        """ Return the number of trips the participant has recently led.
+        """Return the number of trips the participant has recently led.
 
         (If we considered all the trips the participant has ever led,
         participants could easily jump the queue every Winter School if they
@@ -218,7 +218,7 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
         return participant.trips_led.filter(within_last_year).count()
 
     def number_ws_trips(self, participant):
-        """ Count trips the participant attended, flaked, and the total.
+        """Count trips the participant attended, flaked, and the total.
 
         More specifically, this returns the total number of trips where the participant
         signed up and was expected to attend.
@@ -245,13 +245,13 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
         return TripCounts(len(attended), len(flaked), len(total))
 
     def trips_led_balance(self, participant):
-        """ Especially active leaders get priority. """
+        """Especially active leaders get priority."""
         _, _, total = self.number_ws_trips(participant)
         surplus = self.number_trips_led(participant) - total
         return max(surplus, 0)  # Don't penalize anybody for a negative balance
 
     def lowest_non_driver(self, trip):
-        """ Return the lowest priority non-driver on the trip. """
+        """Return the lowest priority non-driver on the trip."""
         no_car = Q(participant__lotteryinfo__isnull=True) | Q(
             participant__lotteryinfo__car_status='none'
         )

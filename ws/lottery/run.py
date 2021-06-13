@@ -22,7 +22,7 @@ AFFILIATION_MAPPING = {
 
 
 class LotteryRunner:
-    """ Parent class for a lottery executor.
+    """Parent class for a lottery executor.
 
     Instances of this class may be executed to perform the lottery mechanism
     for one or more trips.
@@ -38,7 +38,7 @@ class LotteryRunner:
 
     @property
     def logger_id(self) -> str:
-        """ Get a unique logger object per each instance. """
+        """Get a unique logger object per each instance."""
         return f"{__name__}.{id(self)}"
 
     def handled(self, participant) -> bool:
@@ -55,7 +55,7 @@ class LotteryRunner:
 
     @staticmethod
     def signup_to_bump(trip):
-        """ Which participant to bump off the trip if another needs a place.
+        """Which participant to bump off the trip if another needs a place.
 
         By default, just goes with the last-ordered participant.
         Standard use case: Somebody needs to be bumped so a driver may join.
@@ -67,7 +67,7 @@ class LotteryRunner:
 
 
 class SingleTripLotteryRunner(LotteryRunner):
-    """ Place participants vying for spots on a single trip. """
+    """Place participants vying for spots on a single trip."""
 
     def __init__(self, trip):
         self.trip = trip
@@ -76,11 +76,11 @@ class SingleTripLotteryRunner(LotteryRunner):
 
     @property
     def logger_id(self) -> str:
-        """ Get a constant logger identifier for each trip. """
+        """Get a constant logger identifier for each trip."""
         return f"{__name__}.trip.{self.trip.pk}"
 
     def configure_logger(self):
-        """ Configure a stream to save the log to the trip. """
+        """Configure a stream to save the log to the trip."""
         self.log_stream = io.StringIO()
 
         self.handler = logging.StreamHandler(stream=self.log_stream)
@@ -88,7 +88,7 @@ class SingleTripLotteryRunner(LotteryRunner):
         self.logger.addHandler(self.handler)
 
     def _make_fcfs(self):
-        """ After lottery execution, mark the trip FCFS & write out the log. """
+        """After lottery execution, mark the trip FCFS & write out the log."""
         self.trip.algorithm = 'fcfs'
         self.trip.lottery_log = self.log_stream.getvalue()
         self.log_stream.close()
@@ -130,7 +130,7 @@ class WinterSchoolLotteryRunner(LotteryRunner):
         self.configure_logger()
 
     def configure_logger(self):
-        """ Configure a stream to save the log to the trip. """
+        """Configure a stream to save the log to the trip."""
         datestring = datetime.strftime(local_now(), "%Y-%m-%dT:%H:%M:%S")
         filename = Path(settings.WS_LOTTERY_LOG_DIR, f"ws_{datestring}.log")
         self.handler = logging.FileHandler(filename)
@@ -146,7 +146,7 @@ class WinterSchoolLotteryRunner(LotteryRunner):
         self.handler.close()
 
     def free_for_all(self):
-        """ Make trips first-come, first-serve.
+        """Make trips first-come, first-serve.
 
         Trips re-open Wednesday at noon, close at midnight on Thursday.
         """

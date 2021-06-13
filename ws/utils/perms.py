@@ -14,7 +14,7 @@ def all_group_names():
 
 
 def is_leader(user):
-    """ Return if the user is a trip leader.
+    """Return if the user is a trip leader.
 
     Take advantage of the prefetched 'leaders' group for more efficient
     querying of a user's leader status.
@@ -23,7 +23,7 @@ def is_leader(user):
 
 
 def leader_on_trip(participant, trip, creator_allowed=False):
-    """ Return if the participant is leading this trip.
+    """Return if the participant is leading this trip.
 
     Optionally, the trip creator can be included even if they are not
     leading the trip.
@@ -42,7 +42,7 @@ def chair_group(activity_enum):
 
 
 def in_any_group(user, group_names, allow_superusers=True):
-    """ Return if the user belongs to any of the passed groups.
+    """Return if the user belongs to any of the passed groups.
 
     Group access control is used a lot in the app, so attempt to
     use groups already present on the `user` object, or a cached list of all
@@ -60,13 +60,13 @@ def in_any_group(user, group_names, allow_superusers=True):
 
 
 def make_chair(user, activity_enum):
-    """ Make the given user an activity chair! """
+    """Make the given user an activity chair!"""
     group_name = chair_group(activity_enum)  # Raises ValueError on invalid activity
     Group.objects.get(name=group_name).user_set.add(user)
 
 
 def is_chair(user, activity_enum, allow_superusers=True):
-    """ Return if the activity has chairs, and the user is one.
+    """Return if the activity has chairs, and the user is one.
 
     If the user is an admin, return True if and only if that activity
     has chairs (e.g. even an admin can't be the chair of 'official events').
@@ -77,7 +77,7 @@ def is_chair(user, activity_enum, allow_superusers=True):
 
 
 def chair_or_admin(user, activity_enum):
-    """ Return if the user is the chair of the activity, or if they're an admin.
+    """Return if the user is the chair of the activity, or if they're an admin.
 
     This is needed because some activity types (open activities) don't have
     any chairs by definition, but we still want to grant admins access as if
@@ -92,7 +92,7 @@ def num_chairs(activity_enum):
 
 
 def chair_activities(user, allow_superusers=False):
-    """ All activities for which the user is the chair. """
+    """All activities for which the user is the chair."""
     return [
         activity_enum
         for activity_enum in enums.Activity

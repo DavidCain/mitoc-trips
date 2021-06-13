@@ -12,11 +12,11 @@ class MessageGenerator:
         self.request = request
 
     def supply(self):
-        """ Supply all messages for this request. """
+        """Supply all messages for this request."""
         raise NotImplementedError
 
     def add_unique_message(self, level, message, **kwargs):
-        """ Add a message, but only after first making sure it's not already been emitted.
+        """Add a message, but only after first making sure it's not already been emitted.
 
         This helps guard against any message generator adding the same message
         multiple times before the next time the messages are displayed. Once messages

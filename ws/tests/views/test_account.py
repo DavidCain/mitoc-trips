@@ -26,7 +26,7 @@ class LoginTests(TestCase):
         return self.client.post('/accounts/login/', self.form_data, follow=False)
 
     def test_previously_insecure_password_marked_secure(self):
-        """ A previously-marked insecure password can be marked as secure on login.
+        """A previously-marked insecure password can be marked as secure on login.
 
         Once a password is detected to be breached, it's not as if it would
         ever be *removed* from the database. That said, if there's an API
@@ -53,7 +53,7 @@ class LoginTests(TestCase):
 
     @mock.patch.object(account, 'settings')
     def test_known_bad_password(self, mocked_settings):
-        """ We include a debug mode that supports passing known bad passwords. """
+        """We include a debug mode that supports passing known bad passwords."""
         factories.ParticipantFactory.create(user_id=self.user.pk)
 
         # We only sidestep the API if `DEBUG` is true, and our password is whitelisted!
@@ -93,7 +93,7 @@ class LoginTests(TestCase):
         self.assertTrue(participant.insecure_password)
 
     def test_previously_secure_password(self):
-        """ The database is updated all the time - any user's password can become compromised! """
+        """The database is updated all the time - any user's password can become compromised!"""
         factories.ParticipantFactory.create(
             user_id=self.user.pk, insecure_password=False
         )
@@ -120,7 +120,7 @@ class LoginTests(TestCase):
         self.assertEqual(response.url, "/accounts/password/change/")
 
     def test_user_without_participant(self):
-        """ Users may log in without having an associated participant! """
+        """Users may log in without having an associated participant!"""
         self.assertIsNone(models.Participant.from_user(self.user))
 
         with mock.patch.object(account, 'pwned_password') as pwned_password:
@@ -146,7 +146,7 @@ class LoginTests(TestCase):
         )
 
     def test_password_is_marked_secure(self):
-        """ If the login's password returned no breaches, then we can mark it secure. """
+        """If the login's password returned no breaches, then we can mark it secure."""
         factories.ParticipantFactory.create(user_id=self.user.pk)
 
         with mock.patch.object(account, 'pwned_password') as pwned_password:
@@ -167,7 +167,7 @@ class LoginTests(TestCase):
         )
 
     def test_redirect_should_be_preserved(self):
-        """ If attempting to login with a redirect, it should be preserved!. """
+        """If attempting to login with a redirect, it should be preserved!."""
         with mock.patch.object(account, 'pwned_password') as pwned_password:
             pwned_password.return_value = 1  # Password has been breached once!
             response = self.client.post(
@@ -199,7 +199,7 @@ class PasswordChangeTests(TestCase):
         return self.client.post('/accounts/password/change/', form_data, follow=False)
 
     def test_change_password_fram_insecure(self):
-        """ Changing an insecure password to a secure one updates the participant. """
+        """Changing an insecure password to a secure one updates the participant."""
         factories.ParticipantFactory.create(
             user_id=self.user.pk, insecure_password=True
         )
@@ -224,7 +224,7 @@ class PasswordChangeTests(TestCase):
         )
 
     def test_user_without_participant(self):
-        """ It's possible for users to change password as a user without a participant. """
+        """It's possible for users to change password as a user without a participant."""
         user = factories.UserFactory.create(
             email='bad@example.com', password=self.password
         )
@@ -247,7 +247,7 @@ class PasswordChangeTests(TestCase):
         self.assertIsNone(models.Participant.from_user(user))
 
     def test_attempt_changing_to_insecure_password(self):
-        """ The password validator will stop insecure passwords from being accepted. """
+        """The password validator will stop insecure passwords from being accepted."""
         factories.ParticipantFactory.create(
             user_id=self.user.pk, insecure_password=False
         )

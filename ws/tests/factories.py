@@ -57,7 +57,7 @@ class UserFactory(DjangoModelFactory):
 
     @classmethod
     def _create(cls, model_class, *args, **kwargs):
-        """ Behave like `create_user` -- coerce password to a hashed/salted equivalent.
+        """Behave like `create_user` -- coerce password to a hashed/salted equivalent.
 
         We pretty much have no reason to initialize a user with a hashed/salted password,
         instead preferring to work with plaintext passwords.
@@ -99,7 +99,7 @@ class ParticipantFactory(DjangoModelFactory):
 
     @classmethod
     def create(cls, **kwargs):
-        """ If a user is specified, sync these two objects.
+        """If a user is specified, sync these two objects.
 
         (User records live in a different database, so we must do this fetch
         to keep them in sync).
@@ -117,7 +117,7 @@ class ParticipantFactory(DjangoModelFactory):
 
     @classmethod
     def _create(cls, model_class, *args, **kwargs):
-        """ Create a corresponding user whenever we make a Participant.
+        """Create a corresponding user whenever we make a Participant.
 
         Each Participant stores the ID of its user, but it's not truly a
         foreign key, since the row resides in another database. Accordingly,

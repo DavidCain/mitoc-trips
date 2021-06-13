@@ -12,7 +12,7 @@ from django.utils.safestring import mark_safe
 
 @enum.unique
 class ProfileProblem(enum.Enum):
-    """ A problem with the participant's profile that must be corrected. """
+    """A problem with the participant's profile that must be corrected."""
 
     NO_INFO = 1  # No Participant object!
     STALE_INFO = 2  # Hasn't been updated lately. Medical info may have been scrubbed!
@@ -23,7 +23,7 @@ class ProfileProblem(enum.Enum):
 
     @property
     def how_to_fix(self):
-        """ Return a message with instructions (to the user) on how to fix the problem.
+        """Return a message with instructions (to the user) on how to fix the problem.
 
         This includes URLs and should be marked as safe if for rendering in HTML.
         """
@@ -44,7 +44,7 @@ class ProfileProblem(enum.Enum):
 
 @enum.unique
 class TripIneligibilityReason(enum.Enum):
-    """ A (correctable) reason why a participant cannot attend a trip.
+    """A (correctable) reason why a participant cannot attend a trip.
 
     Each of these problems is a barrier to a participant being on a trip,
     but includes a solution as to how they can fix the problem.
@@ -84,7 +84,7 @@ class TripIneligibilityReason(enum.Enum):
 
     @property
     def related_to_membership(self):
-        """ Return if this problem relates to the MITOCer's membership.
+        """Return if this problem relates to the MITOCer's membership.
 
         Useful for determining if we need to hit the membership database to refresh
         the cache in the case of a problem preventing trip attendance.
@@ -98,7 +98,7 @@ class TripIneligibilityReason(enum.Enum):
 
     @property
     def label(self):
-        """ A generic label to be read by any consumer (i.e. the user, or another leader). """
+        """A generic label to be read by any consumer (i.e. the user, or another leader)."""
         mapping = {
             self.NOT_LOGGED_IN: 'Not logged in!',
             self.NO_PROFILE_INFO: 'No profile found!',
@@ -113,7 +113,7 @@ class TripIneligibilityReason(enum.Enum):
         return mapping[self]
 
     def how_to_fix_for(self, trip):
-        """ Return a message directed at the user with the problem containing clues on how to fix.
+        """Return a message directed at the user with the problem containing clues on how to fix.
 
         This includes URLs and should be marked as safe if for rendering in HTML.
         """
@@ -148,7 +148,7 @@ class TripIneligibilityReason(enum.Enum):
 
 @enum.unique
 class Activity(enum.Enum):
-    """ An activity for which a leader can be given a rating.
+    """An activity for which a leader can be given a rating.
 
     Identifying characteristics of an activity:
         - There are one or more chairs that handle rating leaders
@@ -182,7 +182,7 @@ class Activity(enum.Enum):
 
 @enum.unique
 class Program(enum.Enum):
-    """ A 'program' is a way to logically group related trips.
+    """A 'program' is a way to logically group related trips.
 
     For example, during January, most trips are part of the Winter School program.
     With this classification comes some special different behavior:
@@ -258,7 +258,7 @@ class Program(enum.Enum):
 
     @classmethod
     def choices(cls):
-        """ Group each value into named groups (for use in forms & models). """
+        """Group each value into named groups (for use in forms & models)."""
         ordered_choices = [
             cls.BIKING,
             cls.BOATING,
@@ -287,12 +287,12 @@ class Program(enum.Enum):
         ]
 
     def is_open(self):
-        """ Return if this program allows any leader to create trips. """
+        """Return if this program allows any leader to create trips."""
         return self._is_open(self.value)
 
     @classmethod
     def _is_open(cls, value):
-        """ Return True if any leader can lead. """
+        """Return True if any leader can lead."""
         return cls(value) in (cls.CIRCUS, cls.SERVICE, cls.NONE)
 
     def is_winter_school(self):
@@ -302,7 +302,7 @@ class Program(enum.Enum):
         return self in (self.WINTER_SCHOOL, self.WINTER_NON_IAP)
 
     def required_activity(self):
-        """ For the program, return a required leader rating to make trips.
+        """For the program, return a required leader rating to make trips.
 
         Returns None otherwise.
         """
@@ -325,7 +325,7 @@ class Program(enum.Enum):
 
 @enum.unique
 class TripType(enum.Enum):
-    """ A descriptor for what sort of things will be done on a trip.
+    """A descriptor for what sort of things will be done on a trip.
 
     This is distinct from leader ratings, which pertain to a certain class of activity.
     """
@@ -366,7 +366,7 @@ class TripType(enum.Enum):
 
     @classmethod
     def choices(cls):
-        """ Group into logical blocks for easy identification.
+        """Group into logical blocks for easy identification.
 
         In the future, we may tightly activity ratings with the options you can select below.
         """

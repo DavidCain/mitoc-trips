@@ -16,7 +16,7 @@ class ExpectationsTypeTest(unittest.TestCase):
         self.assertTrue(all(isinstance(cols, tuple) for cols in expectations.values()))
 
     def test_expectations(self):
-        """ Basic type checking to guard against silly typos. """
+        """Basic type checking to guard against silly typos."""
         self._assert_table_to_col_tuple(merge.EXPECTED_USER_TABLES)
         self._assert_table_to_col_tuple(merge.EXPECTED_PARTICIPANT_TABLES)
 
@@ -41,7 +41,7 @@ class MergeUtilTest(TestCase):
         )
 
     def test_simple_fk_update(self):
-        """ We can directly modify any rows that have FK constraints (without unique constraints) """
+        """We can directly modify any rows that have FK constraints (without unique constraints)"""
         cursor = connections['auth_db'].cursor()
 
         # Make Two users - we'll transfer the email address from one to the other
@@ -74,7 +74,7 @@ class MergeTest(TestCase):
         self.tim.refresh_from_db()
 
     def _assert_email_handling(self):
-        """  Tim retains his primary email address, but also gains his old MIT address! """
+        """Tim retains his primary email address, but also gains his old MIT address!"""
         self.assertEqual(self.tim.email, 'tim@alum.mit.edu')
         emails = {addr.email: addr for addr in self.tim.user.emailaddress_set.all()}
         self.assertCountEqual(emails, {'tim@mit.edu', 'tim@alum.mit.edu'})
@@ -84,18 +84,18 @@ class MergeTest(TestCase):
         self.assertEqual(emails['tim@alum.mit.edu'].user_id, self.tim.user_id)
 
     def _assert_user_handling(self):
-        """ Tim's old user is removed, but his groups & emails are preserved. """
+        """Tim's old user is removed, but his groups & emails are preserved."""
         self.assertFalse(User.objects.filter(pk=self.old.user_id))
 
     def test_migrate_participant(self):
-        """ Test the usual case of migrating a normal participant. """
+        """Test the usual case of migrating a normal participant."""
         self._migrate()
 
         self._assert_email_handling()
         self._assert_user_handling()
 
     def test_old_lotteryinfo_removed(self):
-        """ When the new participant has an up-to-date lottery info, we use that. """
+        """When the new participant has an up-to-date lottery info, we use that."""
         old_info = factories.LotteryInfoFactory.create(participant=self.old)
         new_info = factories.LotteryInfoFactory.create(participant=self.tim)
         self._migrate()
@@ -105,7 +105,7 @@ class MergeTest(TestCase):
             old_info.refresh_from_db()
 
     def test_old_lotteryinfo_migrated(self):
-        """ When only the old participant had lottery info, we migrate that. """
+        """When only the old participant had lottery info, we migrate that."""
         old_info = factories.LotteryInfoFactory.create(participant=self.old)
         self._migrate()
 
@@ -113,7 +113,7 @@ class MergeTest(TestCase):
         self.assertEqual(old_info.participant, self.tim)
 
     def test_permissions_not_handled(self):
-        """ We don't make use of permissions, so we don't attempt to migrate. """
+        """We don't make use of permissions, so we don't attempt to migrate."""
         permission = Permission.objects.first()  # Doesn't matter what for.
         self.assertIsNotNone(permission)
         self.old.user.user_permissions.add(permission)
@@ -123,7 +123,7 @@ class MergeTest(TestCase):
         self.old.refresh_from_db()  # Still exists! We rolled back.
 
     def test_feedback_migrated(self):
-        """ This is an example of a model with two separate FK's to the participant table. """
+        """This is an example of a model with two separate FK's to the participant table."""
         feedback_as_participant = factories.FeedbackFactory.create(participant=self.old)
         feedback_as_leader = factories.FeedbackFactory.create(leader=self.old)
 
@@ -134,7 +134,7 @@ class MergeTest(TestCase):
         self.assertEqual(feedback_as_leader.leader, self.tim)
 
     def test_conflicts(self):
-        """ We cannot merge participants who are clearly different people. """
+        """We cannot merge participants who are clearly different people."""
         trip = factories.TripFactory.create()
 
         # Each participant can have at most one signup per trip!

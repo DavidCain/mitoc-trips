@@ -41,7 +41,7 @@ class StudentTravelFormTest(TestCase):
         factories.WaitListSignupFactory.create(signup=on_waitlist)
 
     def _expect_plaintext_contents(self, msg):
-        """ The plaintext email contains basically the same contents as the HTML. """
+        """The plaintext email contains basically the same contents as the HTML."""
         self.assertTrue(
             msg.body.startswith(
                 '\nThis automated message is registering an official trip of the MIT Outing Club (MITOC)'
@@ -156,7 +156,7 @@ class StudentTravelFormTest(TestCase):
         )
 
     def test_has_drivers(self):
-        """ Both leaders and participants will be reported as drivers. """
+        """Both leaders and participants will be reported as drivers."""
         self.leader.car = factories.CarFactory(
             make='Toyota',
             model='Prius',

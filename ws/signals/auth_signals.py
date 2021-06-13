@@ -13,7 +13,7 @@ def update_leader_status(participant):
 
 @receiver(post_save, sender=LeaderRating)
 def modify_leader_perms(sender, instance, created, raw, using, update_fields, **kwargs):
-    """ When creating/updating leader permissions, update leader status.
+    """When creating/updating leader permissions, update leader status.
 
     Participants belong to the 'leaders' group when they have an active
     leader rating. This signal exists so that modifications to LeaderRating
@@ -28,7 +28,7 @@ def modify_leader_perms(sender, instance, created, raw, using, update_fields, **
 
 @receiver(post_delete, sender=LeaderRating)
 def remove_leader_perms(sender, instance, using, **kwargs):
-    """ After a rating is removed, check if the participant is still a leader.
+    """After a rating is removed, check if the participant is still a leader.
 
     In most cases, we'll probably just want to set the old rating as inactiive.
     However, this signal exists in case we wish to hard delete a rating.

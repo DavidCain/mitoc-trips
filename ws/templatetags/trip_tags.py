@@ -17,7 +17,7 @@ def trip_icon(trip):
 
 
 def annotated_for_trip_list(trips):
-    """ Modify a trips queryset to have annotated fields used in tags. """
+    """Modify a trips queryset to have annotated fields used in tags."""
     # Each trip will need information about its leaders, so prefetch models
     trips = trips.prefetch_related('leaders', 'leaders__leaderrating_set')
 
@@ -59,13 +59,13 @@ def feedback_table(all_feedback, scramble_contents=False, display_log_notice=Fal
 
 @register.filter
 def name_with_rating(leader, trip):
-    """ Give the leader's name plus rating at the time of the trip. """
+    """Give the leader's name plus rating at the time of the trip."""
     return leader.name_with_rating(trip)
 
 
 @register.filter
 def leader_display(feedback) -> str:
-    """ Give a relevant display of the leader for display alongside feedback. """
+    """Give a relevant display of the leader for display alongside feedback."""
     if feedback.trip:
         return feedback.leader.name_with_rating(feedback.trip)
     return feedback.leader.name
@@ -78,7 +78,7 @@ def activity_rating(leader, activity):
 
 @register.filter
 def pending_applications_count(chair, activity_enum):
-    """ Count applications where:
+    """Count applications where:
 
     - All chairs have given recs, rating is needed
     - Viewing user hasn't given a rec
@@ -125,7 +125,7 @@ def view_trip(trip, participant, user):
     #      prefetch_related('leaders', 'leaders__leaderrating_set')
 
     def get_signups(model=models.SignUp):
-        """ Signups, with related fields used in template preselected. """
+        """Signups, with related fields used in template preselected."""
         signups = model.objects.filter(trip=trip)
         signups = signups.select_related('participant', 'trip')
         return signups.select_related('participant__lotteryinfo')
@@ -158,7 +158,7 @@ def view_trip(trip, participant, user):
 
 @register.inclusion_tag('for_templatetags/wimp_trips.html')
 def wimp_trips(participant, user):
-    """ Give a quick list of the trips that the participant is a WIMP for. """
+    """Give a quick list of the trips that the participant is a WIMP for."""
     today = date_utils.local_date()
     next_week = today + timedelta(days=7)
     # Use Python to avoid an extra query into groups

@@ -10,7 +10,7 @@ from ws.utils.dates import local_now
 
 
 def refresh_all_membership_cache():
-    """ Refresh all membership caches in the system.
+    """Refresh all membership caches in the system.
 
     After this is run, every participant in the system will have membership
     information that is no more than a week old.
@@ -24,7 +24,7 @@ def refresh_all_membership_cache():
 
 
 def update_membership_cache(participant):
-    """ Use results from the gear database to update membership cache. """
+    """Use results from the gear database to update membership cache."""
     emails = geardb.verified_emails(participant.user)
 
     # If something is found, this method automatically updates the cache
@@ -36,7 +36,7 @@ def update_membership_cache(participant):
 
 
 def reasons_cannot_attend(user, trip):
-    """ Yield reasons why the user is not allowed to attend the trip.
+    """Yield reasons why the user is not allowed to attend the trip.
 
     Their cached membership may be sufficient to show that the last
     membership/waiver stored allows them to go on the trip. Otherwise, we

@@ -14,7 +14,7 @@ from ws.utils.dates import local_date
 class LotteryMessagesTest(MessagesTestCase):
     @freeze_time("2017-01-17 12:00:00 EST")
     def test_anonymous_user_during_ws(self):
-        """ Anonymous users shouldn't receive lottery warnings. """
+        """Anonymous users shouldn't receive lottery warnings."""
         request = self.factory.get('/')
 
         # Simulate the effects of the ParticipantMiddleware for an anonymous user
@@ -28,7 +28,7 @@ class LotteryMessagesTest(MessagesTestCase):
 
     @freeze_time("2019-06-22 14:30:00 EST")
     def test_outside_ws(self):
-        """ These lottery messages don't do anything outside Winter School. """
+        """These lottery messages don't do anything outside Winter School."""
         request = self._request_with_participant(factories.ParticipantFactory.create())
 
         with self._mock_add_message() as add_message:
@@ -38,7 +38,7 @@ class LotteryMessagesTest(MessagesTestCase):
 
     @freeze_time("2017-01-17 12:00:00 EST")
     def test_no_lottery_info(self):
-        """ During WS, we warn participants who haven't set lottery preferences. """
+        """During WS, we warn participants who haven't set lottery preferences."""
         par = factories.ParticipantFactory.create()
         with self.assertRaises(models.LotteryInfo.DoesNotExist):
             par.lotteryinfo  # pylint: disable=pointless-statement
@@ -56,7 +56,7 @@ class LotteryMessagesTest(MessagesTestCase):
 
     @freeze_time("2017-01-17 12:00:00 EST")
     def test_driver_with_no_info(self):
-        """ We ask participants who said they could drive to supply info. """
+        """We ask participants who said they could drive to supply info."""
 
         par = factories.ParticipantFactory.create()
         factories.LotteryInfoFactory.create(participant=par, car_status='own')
@@ -76,7 +76,7 @@ class LotteryMessagesTest(MessagesTestCase):
         )
 
     def test_dated_info_last_marked_a_driver(self):
-        """ We remind participants if their lottery information is dated. """
+        """We remind participants if their lottery information is dated."""
         par = factories.ParticipantFactory.create()
         with freeze_time("2017-01-07 12:00:00 EST"):
             factories.LotteryInfoFactory.create(participant=par, car_status='rent')
@@ -95,7 +95,7 @@ class LotteryMessagesTest(MessagesTestCase):
         )
 
     def test_dated_info_last_marked_non_driver(self):
-        """ We remind participants if their lottery information is dated. """
+        """We remind participants if their lottery information is dated."""
         par = factories.ParticipantFactory.create()
         with freeze_time("2017-01-12 11:40:00 EST"):
             factories.LotteryInfoFactory.create(participant=par, car_status='none')
@@ -115,7 +115,7 @@ class LotteryMessagesTest(MessagesTestCase):
 
     @staticmethod
     def _create_upcoming_ws_trip(participant, order=None):
-        """ Return an upcoming trip. """
+        """Return an upcoming trip."""
         next_week = local_date() + timedelta(days=7)
         return factories.SignUpFactory.create(
             participant=participant,
@@ -131,7 +131,7 @@ class LotteryMessagesTest(MessagesTestCase):
 
     @freeze_time("2017-01-17 13:25:00 EST")
     def test_has_not_ranked(self):
-        """ If participants don't rank their signups, we warn them to do so. """
+        """If participants don't rank their signups, we warn them to do so."""
         par = factories.ParticipantFactory.create()
         factories.LotteryInfoFactory.create(participant=par, car_status='none')
         request = self._request_with_participant(par)
@@ -165,7 +165,7 @@ class LotteryMessagesTest(MessagesTestCase):
         add_message.assert_not_called()
 
     def test_properly_configured(self):
-        """ Show that a WS participant with everything set up receives no warning. """
+        """Show that a WS participant with everything set up receives no warning."""
         with freeze_time("2017-01-15 13:25:00 EST"):
             par = factories.ParticipantFactory.create()
             factories.LotteryInfoFactory.create(participant=par, car_status='own')

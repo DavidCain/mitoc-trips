@@ -7,7 +7,7 @@ register = template.Library()
 
 @register.inclusion_tag('for_templatetags/form_error_list.html')
 def form_error_list(form):
-    """ Manually render all form errors.
+    """Manually render all form errors.
 
     Sometimes Djangular has problems rendering form errors. This can be used in
     cases where loading errors into Angular error lists isn't working.

@@ -6,7 +6,7 @@ from django.db import migrations, models
 
 
 def copy_last_edited(apps, schema_editor):
-    """ Use last_updated as the starting value for profile_last_updated. """
+    """Use last_updated as the starting value for profile_last_updated."""
     Participant = apps.get_model("ws", "Participant")
     for par in Participant.objects.all():
         par.profile_last_updated = par.last_updated

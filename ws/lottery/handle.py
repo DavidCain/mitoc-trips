@@ -15,7 +15,7 @@ def par_is_driver(participant):
 
 
 def ranked_signups(participant, after: date):
-    """ Return all future WS signups for the participant. """
+    """Return all future WS signups for the participant."""
     # Only consider lottery signups for future trips
     return participant.signup_set.filter(
         on_trip=False,
@@ -34,7 +34,7 @@ def place_on_trip(signup, logger):
 
 
 class ParticipantHandler:
-    """ Class to handle placement of a single participant or pair. """
+    """Class to handle placement of a single participant or pair."""
 
     is_driver_q = Q(participant__lotteryinfo__car_status__in=['own', 'rent'])
 
@@ -48,7 +48,7 @@ class ParticipantHandler:
 
     @property
     def logger(self):
-        """ All logging is routed through the runner's logger. """
+        """All logging is routed through the runner's logger."""
         return self.runner.logger
 
     @property
@@ -57,7 +57,7 @@ class ParticipantHandler:
 
     @property
     def paired(self) -> bool:
-        """ Efficiently return if this participant is reciprocally paired.
+        """Efficiently return if this participant is reciprocally paired.
 
         Other methods (in models.py, and mixins.py, among other places) can
         figure out if a participant was reciprocally paired. However, these
@@ -110,7 +110,7 @@ class ParticipantHandler:
         self.logger.info("Moved %s to the top of the waitlist", signup)
 
     def _try_to_place(self, signup: models.SignUp) -> bool:
-        """ Try to place participant (and partner) on the trip.
+        """Try to place participant (and partner) on the trip.
 
         Returns if successful.
         """
@@ -194,7 +194,7 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
         super().__init__(participant, runner, min_drivers=2, allow_pairs=True)
 
     def bump_participant(self, signup):
-        """ Try to place a bumped participant on a trip before waitlisting them.
+        """Try to place a bumped participant on a trip before waitlisting them.
 
         If a participant is placed on a trip, but later bumped off that trip to
         make room for a driver, we can generally assume that they would prefer
@@ -241,7 +241,7 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
         return ranked_signups(self.participant, after=self.lottery_rundate)
 
     def _desired_signups(self, signups):
-        """ Of a collection of signups, filter down to just those desired.
+        """Of a collection of signups, filter down to just those desired.
 
         In the normal case, *all* signups in a WS week indicate trips that the
         participant wants to go on. However, some special cases may reduce this subset.
@@ -254,7 +254,7 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
         return signups
 
     def place_participant(self) -> Optional[Dict]:
-        """ Attempt to place the participant (and their partner, if any) on the best trip.
+        """Attempt to place the participant (and their partner, if any) on the best trip.
 
         If it's not possible to place them yet, None will be returned (and they will
         be handled in the future).
@@ -284,7 +284,7 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
         return info
 
     def _placement_would_jeopardize_driver_bump(self, signup) -> bool:
-        """ Return if placing this participant (or pair) risks them later being bumped.
+        """Return if placing this participant (or pair) risks them later being bumped.
 
         For paired participants, this returns true if 2 slots remain & at least
         one more driver is required.

@@ -6,7 +6,7 @@ from ws.tests import TestCase, factories
 
 class PayDuesTests(TestCase):
     def test_load_form_as_anonymous_user(self):
-        """ Several hidden inputs are pre-filled for all members. """
+        """Several hidden inputs are pre-filled for all members."""
         response = self.client.get('/profile/membership/')
         form = response.context['form']
 
@@ -47,7 +47,7 @@ class PayDuesTests(TestCase):
         self.assertIsNone(form.fields['merchantDefinedData3'].initial)
 
     def test_load_form_as_logged_in_participant(self):
-        """ We pre-populate the form for participants with information on file. """
+        """We pre-populate the form for participants with information on file."""
         par = factories.ParticipantFactory.create(
             user=factories.UserFactory.create(email='tim@mit.edu'), affiliation='MA'
         )
@@ -64,7 +64,7 @@ class PayDuesTests(TestCase):
         self.assertEqual(form.fields['merchantDefinedData3'].initial, 'tim@mit.edu')
 
     def test_pay_anonymously(self):
-        """ Users need not log in to pay dues. """
+        """Users need not log in to pay dues."""
         valid_form_data = {
             'merchant_id': 'mit_sao_mitoc',
             'description': 'membership fees.',
@@ -86,7 +86,7 @@ class PayDuesTests(TestCase):
 
 class SignWaiverTests(TestCase):
     def test_sign_as_anonymous_user(self):
-        """ You don't need to be logged in to sign a waiver. """
+        """You don't need to be logged in to sign a waiver."""
         response = self.client.get('/profile/waiver/')
         form = response.context['form']
         # Form isn't valid as-is: users must add their name & email
@@ -140,7 +140,7 @@ class SignWaiverTests(TestCase):
         )
 
     def test_missing_email(self):
-        """ Users must give their name and email. """
+        """Users must give their name and email."""
         with mock.patch.object(waivers, 'initiate_waiver') as initiate_waiver:
             response = self.client.post(
                 '/profile/waiver/', {'releasor.name': 'Tim Beaver'}
@@ -150,7 +150,7 @@ class SignWaiverTests(TestCase):
         initiate_waiver.assert_not_called()
 
     def test_sign_as_participant(self):
-        """ Participants need only visually verify their information & submit. """
+        """Participants need only visually verify their information & submit."""
         par = factories.ParticipantFactory.create()
         self.client.force_login(par.user)
 
@@ -172,7 +172,7 @@ class SignWaiverTests(TestCase):
         self.assertEqual(response.url, dummy_embedded_url)
 
     def test_sign_as_participant_with_guardian(self):
-        """ Participants can also specify a guardian. """
+        """Participants can also specify a guardian."""
         par = factories.ParticipantFactory.create()
         self.client.force_login(par.user)
 

@@ -44,7 +44,7 @@ class AttendanceTest(TestCase):
 
     @freeze_time("Jan 12 2019 20:30:00 EST")
     def test_chair_viewing_other_participant(self):
-        """ Activity chairs can set attendance for other participants. """
+        """Activity chairs can set attendance for other participants."""
         participant = factories.ParticipantFactory.create(name='Delinquent Participant')
         html_template = Template(
             '{% load ws_tags %}{% lecture_attendance par user_viewing can_set %}'
@@ -66,7 +66,7 @@ class AttendanceTest(TestCase):
 
     @freeze_time("Jan 12 2019 20:30:00 EST")
     def test_leader_viewing_other_participant(self):
-        """ Leaders can view attendance for other participants. """
+        """Leaders can view attendance for other participants."""
         participant = factories.ParticipantFactory.create(name='Delinquent Participant')
         html_template = Template(
             '{% load ws_tags %}{% lecture_attendance par user_viewing can_set %}'
@@ -97,7 +97,7 @@ class AttendanceTest(TestCase):
 
     @freeze_time("Jan 12 2019 20:30:00 EST")
     def test_leader_viewing_other_participant_has_attended(self):
-        """ Leaders can view attendance for other participants. """
+        """Leaders can view attendance for other participants."""
         participant = factories.ParticipantFactory.create()
         factories.LectureAttendanceFactory.create(participant=participant, year=2019)
         html_template = Template(
@@ -111,7 +111,7 @@ class AttendanceTest(TestCase):
 
     @freeze_time("Jan 12 2019 20:30:00 EST")
     def test_self_has_attended(self):
-        """ We show nothing when participants have signed in and it's WS. """
+        """We show nothing when participants have signed in and it's WS."""
         participant = factories.ParticipantFactory.create()
         factories.LectureAttendanceFactory.create(participant=participant, year=2019)
         html_template = Template(

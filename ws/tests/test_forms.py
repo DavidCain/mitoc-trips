@@ -61,7 +61,7 @@ class FormTests(SimpleTestCase):
 
 class ParticipantFormTests(TestCase):
     def test_non_mit_affiliation(self):
-        """ It's valid to have a non-MIT email address with non-MIT affiliations. """
+        """It's valid to have a non-MIT email address with non-MIT affiliations."""
         user = factories.UserFactory.create()
         EmailAddress(
             user_id=user.pk, email='not_mit@example.com', primary=True, verified=True
@@ -78,7 +78,7 @@ class ParticipantFormTests(TestCase):
         self.assertTrue(form.is_valid())
 
     def test_mit_affiliation_without_mit_email(self):
-        """ You must have an MIT email address to be an MIT student. """
+        """You must have an MIT email address to be an MIT student."""
         user = factories.UserFactory.create()
         EmailAddress(
             user_id=user.pk,
@@ -101,7 +101,7 @@ class ParticipantFormTests(TestCase):
 class TripFormTests(TestCase):
     @freeze_time("Wed, 16 Oct 2019 20:30:00 EST")
     def test_default_signups_close_late_week(self):
-        """ On a Wednesday, we just default to midnight on the night before """
+        """On a Wednesday, we just default to midnight on the night before"""
         form = forms.TripForm()
         self.assertEqual(
             form.fields['signups_close_at'].initial(),
@@ -110,7 +110,7 @@ class TripFormTests(TestCase):
 
     @freeze_time("Mon, 14 Oct 2019 12:45:00 EST")
     def test_default_signups_close_early_week(self):
-        """ Early week, we default to Wednesday morning."""
+        """Early week, we default to Wednesday morning."""
         form = forms.TripForm()
         self.assertEqual(
             form.fields['signups_close_at'].initial(),

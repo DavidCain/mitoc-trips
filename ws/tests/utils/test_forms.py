@@ -17,7 +17,7 @@ class FormUtilTests(unittest.TestCase):
         )
 
     def test_mixed_named_groups(self):
-        """ It works mixing named groups & non-groups. """
+        """It works mixing named groups & non-groups."""
 
         choices = [
             (
@@ -42,7 +42,7 @@ class FormUtilTests(unittest.TestCase):
         )
 
     def test_nested_groups(self):
-        """ Nested named groups are handled properly. """
+        """Nested named groups are handled properly."""
 
         choices = [
             (

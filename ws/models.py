@@ -106,7 +106,7 @@ class LeaderManager(models.Manager):
 
 
 class Discount(models.Model):
-    """ Discount at another company available to MITOC members. """
+    """Discount at another company available to MITOC members."""
 
     administrators = models.ManyToManyField(
         'Participant',
@@ -156,7 +156,7 @@ class Discount(models.Model):
 
 
 class Membership(models.Model):
-    """ Cached data about a participant's MITOC membership.
+    """Cached data about a participant's MITOC membership.
 
     The gear database is the ultimate authority about a given participant's
     membership. However, since paying dues and signing waivers happens so
@@ -192,7 +192,7 @@ class Membership(models.Model):
         return expires and expires >= date_utils.local_date()
 
     def should_sign_waiver_for(self, trip):
-        """ Return if the waiver will be valid for the day of the trip.
+        """Return if the waiver will be valid for the day of the trip.
 
         We consider waivers "expired" 365 days after being signed.
         """
@@ -216,7 +216,7 @@ class Membership(models.Model):
         return trip.trip_date > self.waiver_expires
 
     def should_renew_for(self, trip):
-        """ Return if membership renewal is required to attend a future trip.
+        """Return if membership renewal is required to attend a future trip.
 
         If a participant's membership will expire on the given date, and it's
         close enough in the future that they can renew, we should not allow
@@ -254,7 +254,7 @@ class Membership(models.Model):
 
 
 class Participant(models.Model):
-    """ Anyone going on a trip needs WIMP info, and info about their car.
+    """Anyone going on a trip needs WIMP info, and info about their car.
 
     Even leaders will have a Participant record (see docstring of LeaderRating).
     """
@@ -335,17 +335,17 @@ class Participant(models.Model):
 
     @property
     def membership_active(self):
-        """ NOTE: This uses the cache, should only be called on a fresh cache. """
+        """NOTE: This uses the cache, should only be called on a fresh cache."""
         return bool(self.membership and self.membership.membership_active)
 
     def should_sign_waiver_for(self, trip):
-        """ NOTE: This uses the cache, should only be called on a fresh cache. """
+        """NOTE: This uses the cache, should only be called on a fresh cache."""
         if not self.membership:
             return True
         return self.membership.should_sign_waiver_for(trip)
 
     def should_renew_for(self, trip):
-        """ NOTE: This uses the cache, should only be called on a fresh cache. """
+        """NOTE: This uses the cache, should only be called on a fresh cache."""
         if not trip.membership_required:
             return False
         if not self.membership:
@@ -370,7 +370,7 @@ class Participant(models.Model):
 
     @property
     def problems_with_profile(self):
-        """ Yield any serious profile errors needing immediate correction.
+        """Yield any serious profile errors needing immediate correction.
 
         These profile errors should prevent the participant from attending a trip.
         """
@@ -392,7 +392,7 @@ class Participant(models.Model):
 
     @property
     def info_current(self):
-        """ Whether the participant has recently updated their information.
+        """Whether the participant has recently updated their information.
 
         This attribute must be true in order to participate on trips, but we
         do allow some browsing of the site before we collect information.
@@ -405,7 +405,7 @@ class Participant(models.Model):
 
     @property
     def affiliation_dated(self):
-        """ The affiliation we have on file is too general/dated.
+        """The affiliation we have on file is too general/dated.
 
         For the purposes of better record-keeping, we really need an updated
         affiliation. Redirect the participant urgently.
@@ -443,7 +443,7 @@ class Participant(models.Model):
         return self.lectureattendance_set.filter(year=year).exists()
 
     def missed_lectures(self, year):
-        """ Whether the participant missed WS lectures in the given year. """
+        """Whether the participant missed WS lectures in the given year."""
         if year < 2016:
             return False  # We lack records for 2014 & 2015; assume present
         if year == date_utils.ws_year() and not date_utils.ws_lectures_complete():
@@ -452,7 +452,7 @@ class Participant(models.Model):
         return not self.attended_lectures(year)
 
     def missed_lectures_for(self, trip):
-        """ Should we regard the participant as having missed lectures for this trip.
+        """Should we regard the participant as having missed lectures for this trip.
 
         This only applies to WS trips - all other trips will return False.
 
@@ -467,7 +467,7 @@ class Participant(models.Model):
         return self.missed_lectures(trip.trip_date.year)
 
     def _cannot_attend_because_missed_lectures(self, trip) -> bool:
-        """ Return if the participant's lack of attendance should prevent their attendance.
+        """Return if the participant's lack of attendance should prevent their attendance.
 
         This method exists to allow WS leaders to attend trips as a
         participant, even if they've missed lectures this year. So long as
@@ -494,7 +494,7 @@ class Participant(models.Model):
         return years_since_last_lecture > 4
 
     def reasons_cannot_attend(self, trip):
-        """ Can this participant attend the trip? (based off cached membership)
+        """Can this participant attend the trip? (based off cached membership)
 
         - If there are zero reasons, then the participant may attend the trip.
         - If there are one or more reasons, there may others once those are resolved,
@@ -545,7 +545,7 @@ class Participant(models.Model):
         return acct, created
 
     def ratings(self, must_be_active=True, at_time=None, after_time=None):
-        """ Return all ratings matching the supplied filters.
+        """Return all ratings matching the supplied filters.
 
         must_be_active: Only format a rating if it's still active
         at_time:        Only return ratings before the given time
@@ -564,7 +564,7 @@ class Participant(models.Model):
         return ratings
 
     def name_with_rating(self, trip):
-        """ Give the leader's name plus rating at the time of the trip.
+        """Give the leader's name plus rating at the time of the trip.
 
         Note: Some leaders from Winter School 2014 or 2015 may not have any
         ratings. In those years, we deleted all Winter School ratings at the
@@ -586,7 +586,7 @@ class Participant(models.Model):
         return f"{self.name} ({rating})" if rating else self.name
 
     def activity_rating(self, activity, **kwargs):
-        """ Return leader's rating for the given activity (if one exists). """
+        """Return leader's rating for the given activity (if one exists)."""
         ratings = [r for r in self.ratings(**kwargs) if r.activity == activity]
         if not ratings:
             return None
@@ -594,7 +594,7 @@ class Participant(models.Model):
 
     @property
     def allowed_programs(self):
-        """ Yield all programs which this participant can currently lead. """
+        """Yield all programs which this participant can currently lead."""
         active_ratings = self.leaderrating_set.filter(active=True)
         rated_activities = active_ratings.values_list('activity', flat=True)
         if not rated_activities:
@@ -611,7 +611,7 @@ class Participant(models.Model):
                 yield program_enum
 
     def can_lead(self, program_enum):
-        """ Can participant lead trips of the given activity type. """
+        """Can participant lead trips of the given activity type."""
         if program_enum.is_open():
             return self.is_leader
 
@@ -620,7 +620,7 @@ class Participant(models.Model):
 
     @property
     def is_leader(self):
-        """ Query ratings to determine if this participant is a leader.
+        """Query ratings to determine if this participant is a leader.
 
         When dealing with Users, it's faster to use utils.perms.is_leader
         """
@@ -651,7 +651,7 @@ class LectureAttendance(models.Model):
 
 
 class WinterSchoolSettings(SingletonModel):
-    """ Stores settings for the current Winter School.
+    """Stores settings for the current Winter School.
 
     These settings should only be modified by the WS chair.
     """
@@ -670,7 +670,7 @@ class WinterSchoolSettings(SingletonModel):
 
 
 class MentorActivity(models.Model):
-    """ An activity which can be mentored.
+    """An activity which can be mentored.
 
     NOTE: This is _not_ the same as activities for which we have activity
     chairs (and which one might receive a leader rating). These activities
@@ -736,7 +736,7 @@ class BaseRating(models.Model):
 
 
 class LeaderRating(BaseRating):
-    """ A leader is just a participant with ratings for at least one activity type.
+    """A leader is just a participant with ratings for at least one activity type.
 
     The same personal + emergency information is required of leaders, but
     additional fields are present. So, we keep a Participant record for any
@@ -774,7 +774,7 @@ class BaseSignUp(models.Model):
 
 
 class LeaderSignUp(BaseSignUp):
-    """ Represents a leader who has signed up to join a trip. """
+    """Represents a leader who has signed up to join a trip."""
 
     class Meta:
         ordering = ["time_created"]
@@ -782,7 +782,7 @@ class LeaderSignUp(BaseSignUp):
 
 
 class SignUp(BaseSignUp):
-    """ An editable record relating a Participant to a Trip.
+    """An editable record relating a Participant to a Trip.
 
     The time of creation determines ordering in first-come, first-serve.
     """
@@ -794,7 +794,7 @@ class SignUp(BaseSignUp):
 
     # pylint: disable=arguments-differ
     def save(self, **kwargs):
-        """ Assert that the Participant is not signing up twice.
+        """Assert that the Participant is not signing up twice.
 
         The AssertionError here should never be thrown - it's a last defense
         against a less-than-obvious implementation of adding Participant
@@ -958,7 +958,7 @@ class Trip(models.Model):
 
     @property
     def program_enum(self):
-        """ Convert the string constant value to an instance of the enum. """
+        """Convert the string constant value to an instance of the enum."""
         return enums.Program(self.program)
 
     def winter_rules_apply(self):
@@ -966,7 +966,7 @@ class Trip(models.Model):
 
     # TODO: activity is deprecated. Remove this once `trip.activity` purged.
     def get_legacy_activity(self):
-        """ Return an 'activity' from the given program. """
+        """Return an 'activity' from the given program."""
         activity_enum = self.program_enum.required_activity()
         return activity_enum.value if activity_enum else 'official_event'
 
@@ -975,7 +975,7 @@ class Trip(models.Model):
 
     @property
     def trip_type_enum(self):
-        """ Convert the string constant value to an instance of the enum. """
+        """Convert the string constant value to an instance of the enum."""
         return enums.TripType(self.trip_type)
 
     @property
@@ -984,17 +984,17 @@ class Trip(models.Model):
 
     @property
     def on_trip_or_waitlisted(self):
-        """ All signups for participants either on the trip or waitlisted. """
+        """All signups for participants either on the trip or waitlisted."""
         on_trip_or_waitlisted = Q(on_trip=True) | Q(waitlistsignup__isnull=False)
         return self.signup_set.filter(on_trip_or_waitlisted)
 
     @property
     def _within_three_days(self):
-        """ Return a date range for use with Django's `range` function. """
+        """Return a date range for use with Django's `range` function."""
         return (self.trip_date - timedelta(days=3), self.trip_date + timedelta(days=3))
 
     def other_signups(self, par_pks):
-        """ Return participant signups for trips happening around this time.
+        """Return participant signups for trips happening around this time.
 
         Specifically, for each given participant, find all other trips that
         they're on in a three day window around this trip.
@@ -1008,7 +1008,7 @@ class Trip(models.Model):
         )
 
     def other_trips_by_participant(self, for_participants=None):
-        """ Identify which other trips this trip's participants are on.
+        """Identify which other trips this trip's participants are on.
 
         Specifically, for each participant that is signed up for this trip,
         find all other trips that they're either leading or participating in
@@ -1049,7 +1049,7 @@ class Trip(models.Model):
 
     @property
     def single_trip_pairing(self):
-        """ Return if the trip will apply pairing as a single lottery trip. """
+        """Return if the trip will apply pairing as a single lottery trip."""
         if self.algorithm != "lottery":
             return False  # Trip is FCFS, or lottery has completed
         if self.program_enum == enums.Program.WINTER_SCHOOL:
@@ -1062,7 +1062,7 @@ class Trip(models.Model):
 
     @property
     def less_than_a_week_away(self) -> bool:
-        """ Return if the trip is taking place less than a week away.
+        """Return if the trip is taking place less than a week away.
 
         If true, this means we can refer to the trip's date unambiguously by
         just day of the week.
@@ -1078,7 +1078,7 @@ class Trip(models.Model):
 
     @property
     def _is_winter_school_trip_between_lotteries(self):
-        """ Return if this WS trip is between lotteries.
+        """Return if this WS trip is between lotteries.
 
         This exists to solve a specific edge case - a WS trip that's created
         on, say, a Friday night to take place the immediate Saturday
@@ -1112,12 +1112,12 @@ class Trip(models.Model):
 
     @property
     def signups_open(self):
-        """ If signups are currently open. """
+        """If signups are currently open."""
         return self.signups_opened and not self.signups_closed
 
     @property
     def signups_opened(self):
-        """ If signups opened at some time in the past.
+        """If signups opened at some time in the past.
 
         They may have since closed!
         """
@@ -1125,17 +1125,17 @@ class Trip(models.Model):
 
     @property
     def signups_closed(self):
-        """ If a close time is given, return if that time is passed. """
+        """If a close time is given, return if that time is passed."""
         return self.signups_close_at and timezone.now() > self.signups_close_at
 
     @property
     def signups_not_yet_open(self):
-        """ True if signups open at some point in the future, else False. """
+        """True if signups open at some point in the future, else False."""
         return timezone.now() < self.signups_open_at
 
     @property
     def last_of_priority(self):
-        """ The 'manual_order' value for a signup to be priority, but below others.
+        """The 'manual_order' value for a signup to be priority, but below others.
 
         That is, leader-ordered signups should go above other signups. (Let's
         say that a leader is organizing signups, but new signups come in before
@@ -1159,7 +1159,7 @@ class Trip(models.Model):
         return now > date_utils.itinerary_available_at(self.trip_date)
 
     def make_fcfs(self, signups_open_at=None):
-        """ Set the algorithm to FCFS, adjust signup times appropriately. """
+        """Set the algorithm to FCFS, adjust signup times appropriately."""
         self.algorithm = 'fcfs'
         now = date_utils.local_now()
         if signups_open_at:
@@ -1176,7 +1176,7 @@ class Trip(models.Model):
             self.signups_close_at = self.fcfs_close_time
 
     def clean(self):
-        """ Ensure that all trip dates are reasonable. """
+        """Ensure that all trip dates are reasonable."""
         if not self.time_created:  # Trip first being created
             if self.signups_closed:
                 raise ValidationError("Signups can't be closed already!")
@@ -1192,7 +1192,7 @@ class Trip(models.Model):
             raise ValidationError("Trips cannot open after they close.")
 
     def leaders_with_rating(self):
-        """ All leaders with the rating they had at the time of the trip. """
+        """All leaders with the rating they had at the time of the trip."""
         return [leader.name_with_rating(self) for leader in self.leaders.all()]
 
     class Meta:
@@ -1208,7 +1208,7 @@ class BygonesManager(models.Manager):
 
 
 class Feedback(models.Model):
-    """ Feedback given for a participant on one trip. """
+    """Feedback given for a participant on one trip."""
 
     objects = BygonesManager()  # By default, ignore feedback older than ~13 months
     everything = models.Manager()  # But give the option to look at older feedback
@@ -1231,7 +1231,7 @@ class Feedback(models.Model):
 
 
 class LotteryInfo(models.Model):
-    """ Persists from week-to-week, but can be changed. """
+    """Persists from week-to-week, but can be changed."""
 
     participant = models.OneToOneField(Participant, on_delete=models.CASCADE)
     car_status = models.CharField(
@@ -1259,7 +1259,7 @@ class LotteryInfo(models.Model):
 
     @property
     def reciprocally_paired_with(self):
-        """ Return requested partner if they also requested to be paired. """
+        """Return requested partner if they also requested to be paired."""
         if not (self.pk and self.paired_with):  # Must be saved & paired!
             return None
 
@@ -1288,7 +1288,7 @@ class LotteryInfo(models.Model):
 
 
 class LotterySeparation(models.Model):
-    """ When running the Winter School lottery, ensure that two participants are separate.
+    """When running the Winter School lottery, ensure that two participants are separate.
 
     This can be thought of as the opposite of LotteryInfo.paired_with
 
@@ -1324,7 +1324,7 @@ class LotterySeparation(models.Model):
 
 
 class LotteryAdjustment(models.Model):
-    """ A manual adjustment that can be made to the lottery.
+    """A manual adjustment that can be made to the lottery.
 
     In some exceptional circumstances, a participant may have an extremely
     unsavory outcome in the lottery. For instance, a driver may drop off a
@@ -1359,7 +1359,7 @@ class LotteryAdjustment(models.Model):
 
 
 class WaitListSignup(models.Model):
-    """ Intermediary between initial signup and the trip's waiting list. """
+    """Intermediary between initial signup and the trip's waiting list."""
 
     signup = models.OneToOneField(SignUp, on_delete=models.CASCADE)
     waitlist = models.ForeignKey("WaitList", on_delete=models.CASCADE)
@@ -1381,14 +1381,14 @@ class WaitListSignup(models.Model):
 
 
 class WaitList(models.Model):
-    """ Treat the waiting list as a simple FIFO queue. """
+    """Treat the waiting list as a simple FIFO queue."""
 
     trip = models.OneToOneField(Trip, on_delete=models.CASCADE)
     unordered_signups = models.ManyToManyField(SignUp, through=WaitListSignup)
 
     @property
     def signups(self):
-        """ Return signups ordered with the waitlist rules.
+        """Return signups ordered with the waitlist rules.
 
         This method is useful because the SignUp object has the useful information
         for display, but the WaitListSignup object has information for ordering.
@@ -1402,7 +1402,7 @@ class WaitList(models.Model):
 
     @property
     def first_of_priority(self):
-        """ The 'manual_order' value to be first in the waitlist. """
+        """The 'manual_order' value to be first in the waitlist."""
         # TODO (Django 2): Just use the below, refactor code to avoid extra lookups
         # first_wl_signup = self.waitlistsignup_set.first()
         first_signup = self.signups.first()
@@ -1412,7 +1412,7 @@ class WaitList(models.Model):
 
     @property
     def last_of_priority(self):
-        """ The 'manual_order' value to be below all manual orders, but above non-ordered.
+        """The 'manual_order' value to be below all manual orders, but above non-ordered.
 
         Waitlist signups are ordered first by `manual_order`, then by time created. This
         method is useful for the scenario when you want to give somebody priority in the
@@ -1434,7 +1434,7 @@ class WaitList(models.Model):
 
 
 class LeaderApplication(models.Model):
-    """ Abstract parent class for all leader applications (doubles as a factory)
+    """Abstract parent class for all leader applications (doubles as a factory)
 
     To create a new leader application, write the class:
 
@@ -1459,7 +1459,7 @@ class LeaderApplication(models.Model):
 
     @property
     def rating_given(self):
-        """ Return any activity rating created after this application. """
+        """Return any activity rating created after this application."""
         return self.participant.activity_rating(
             self.activity, must_be_active=True, after_time=self.time_created
         )
@@ -1486,7 +1486,7 @@ class LeaderApplication(models.Model):
 
     @staticmethod
     def can_apply_for_activity(activity) -> bool:
-        """ Return if an application exists for the activity. """
+        """Return if an application exists for the activity."""
         try:
             LeaderApplication.model_from_activity(activity)
         except NoApplicationDefined:
@@ -1495,7 +1495,7 @@ class LeaderApplication(models.Model):
 
     @classmethod
     def can_reapply(cls, latest_application):
-        """ Return if a participant can re-apply to the activity, given their latest application.
+        """Return if a participant can re-apply to the activity, given their latest application.
 
         This implements the default behavior for most activities.
         Other application types may subclass to implement their own behavior!
@@ -1507,7 +1507,7 @@ class LeaderApplication(models.Model):
 
     @property
     def activity(self):
-        """ Extract the activity name from the class name/db_name.
+        """Extract the activity name from the class name/db_name.
 
         Meant to be used by inheriting classes, for example:
             WinterSchoolLeaderApplication -> 'winter_school'
@@ -1522,7 +1522,7 @@ class LeaderApplication(models.Model):
 
     @staticmethod
     def model_from_activity(activity) -> Type[models.Model]:
-        """ Get the specific inheriting child from the activity.
+        """Get the specific inheriting child from the activity.
 
         Inverse of activity().
         """
@@ -1666,7 +1666,7 @@ class WinterSchoolLeaderApplication(LeaderApplication):
 
     @classmethod
     def can_reapply(cls, latest_application):
-        """ Participants may only apply once per year to be a WS leader! """
+        """Participants may only apply once per year to be a WS leader!"""
         return latest_application.year < date_utils.ws_year()
 
 
@@ -1758,7 +1758,7 @@ class ClimbingLeaderApplication(LeaderApplication):
 
 
 class DistinctAccounts(models.Model):
-    """ Pairs of participants that are cleared as potential duplicates. """
+    """Pairs of participants that are cleared as potential duplicates."""
 
     left = models.ForeignKey(
         Participant, on_delete=models.CASCADE, related_name='distinctions_left'

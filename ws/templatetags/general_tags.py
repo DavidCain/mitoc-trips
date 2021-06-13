@@ -16,14 +16,14 @@ def strip_empty_lines(value):
 
 @register.tag
 def gapless(parser, token):
-    """ Remove blank lines between `{% gapless %}` and `{% endgapless %}` """
+    """Remove blank lines between `{% gapless %}` and `{% endgapless %}`"""
     nodelist = parser.parse(('endgapless',))
     parser.delete_first_token()
     return GaplessNode(nodelist)
 
 
 class GaplessNode(Node):
-    """ Closely modeled after: https://djangosnippets.org/snippets/569/ """
+    """Closely modeled after: https://djangosnippets.org/snippets/569/"""
 
     def __init__(self, nodelist):
         self.nodelist = nodelist

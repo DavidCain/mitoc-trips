@@ -13,7 +13,7 @@ from ws.tests import TestCase, factories
 
 class LotteryPairingViewTests(TestCase):
     def test_authenticated_users_only(self):
-        """ Users must be signed in to set lottery pairing. """
+        """Users must be signed in to set lottery pairing."""
         response = self.client.get('/preferences/lottery/pairing/')
         self.assertEqual(response.status_code, 302)
         self.assertEqual(
@@ -21,7 +21,7 @@ class LotteryPairingViewTests(TestCase):
         )
 
     def test_users_with_info_only(self):
-        """ Participant records are required. """
+        """Participant records are required."""
         user = factories.UserFactory.create()
         self.client.force_login(user)
         response = self.client.get('/preferences/lottery/pairing/')
@@ -31,7 +31,7 @@ class LotteryPairingViewTests(TestCase):
         )
 
     def test_cannot_pair_with_self(self):
-        """ For obvious reasons, attempting to "pair up" with yourself is forbidden. """
+        """For obvious reasons, attempting to "pair up" with yourself is forbidden."""
         par = factories.ParticipantFactory.create()
         self.client.force_login(par.user)
         response = self.client.post(
@@ -44,7 +44,7 @@ class LotteryPairingViewTests(TestCase):
             par.lotteryinfo  # pylint: disable=pointless-statement
 
     def test_can_change_pairing(self):
-        """ Participants can change their pairing choices. """
+        """Participants can change their pairing choices."""
         other_par = factories.ParticipantFactory.create()
         par = factories.ParticipantFactory.create()
         factories.LotteryInfoFactory.create(participant=par, paired_with=other_par)
@@ -56,7 +56,7 @@ class LotteryPairingViewTests(TestCase):
         self.assertIsNone(par.lotteryinfo.paired_with)
 
     def test_non_reciprocated_pairing(self):
-        """ We handle a participant requesting pairing from somebody who hasn't done the same. """
+        """We handle a participant requesting pairing from somebody who hasn't done the same."""
         par = factories.ParticipantFactory.create()
         other_par = factories.ParticipantFactory.create(name="Freddie Mercury")
         self.client.force_login(par.user)
@@ -74,7 +74,7 @@ class LotteryPairingViewTests(TestCase):
         self.assertFalse(par.lotteryinfo.reciprocally_paired_with)
 
     def test_reciprocated_pairing(self):
-        """ We handle a participant being the second half to request pairing. """
+        """We handle a participant being the second half to request pairing."""
         par = factories.ParticipantFactory.create()
         other_par = factories.ParticipantFactory.create()
         factories.LotteryInfoFactory.create(participant=other_par, paired_with=par)
@@ -116,14 +116,14 @@ class LotteryPreferencesDriverStatusTests(TestCase, LotteryPrefsPostHelper):
     }
 
     def test_bad_lottery_form(self):
-        """ The lottery form must have all its keys specified. """
+        """The lottery form must have all its keys specified."""
         par = factories.ParticipantFactory.create(lotteryinfo=None)
         self.client.force_login(par.user)
         self.assertEqual(self._post({}).status_code, 400)
         self.assertEqual(self._post({'signups': []}).status_code, 400)
 
     def test_bad_car_form(self):
-        """ For car owners, the form must specify vehicle information. """
+        """For car owners, the form must specify vehicle information."""
         par = factories.ParticipantFactory.create(lotteryinfo=None)
         self.client.force_login(par.user)
 
@@ -149,7 +149,7 @@ class LotteryPreferencesDriverStatusTests(TestCase, LotteryPrefsPostHelper):
 
     @freeze_time("2019-01-15 12:25:00 EST")
     def test_no_car_no_trips_no_pairing(self):
-        """ Test the simplest submission of a user with no real preferences to express. """
+        """Test the simplest submission of a user with no real preferences to express."""
         par = factories.ParticipantFactory.create(lotteryinfo=None)
 
         self.client.force_login(par.user)
@@ -167,7 +167,7 @@ class LotteryPreferencesDriverStatusTests(TestCase, LotteryPrefsPostHelper):
         )
 
     def test_can_drive_current_car(self):
-        """ If a participant has a car on file, we default to using that car. """
+        """If a participant has a car on file, we default to using that car."""
         par = factories.ParticipantFactory.create(lotteryinfo=None)
         car = models.Car(participant=par, **self.TEST_CAR_INFO)
         car.save()
@@ -185,7 +185,7 @@ class LotteryPreferencesDriverStatusTests(TestCase, LotteryPrefsPostHelper):
 
     @freeze_time("2019-01-15 12:25:00 EST")
     def test_can_drive_new_car(self):
-        """ Participants who own a car can express their willingness to drive.
+        """Participants who own a car can express their willingness to drive.
 
         They can also give their car's information straight from the form, even
         if they hadn't previously given any info.
@@ -221,7 +221,7 @@ class LotteryPreferencesDriverStatusTests(TestCase, LotteryPrefsPostHelper):
         self.assertIsNone(par.lotteryinfo.paired_with)
 
     def test_willing_to_rent(self):
-        """ Participants can express a willingness to rent. """
+        """Participants can express a willingness to rent."""
         par = factories.ParticipantFactory.create(lotteryinfo=None, car=None)
 
         self.client.force_login(par.user)
@@ -237,7 +237,7 @@ class LotteryPreferencesDriverStatusTests(TestCase, LotteryPrefsPostHelper):
         self.assertIsNone(par.car)
 
     def test_willing_to_rent_unknown_seats(self):
-        """ It's valid to not know how many passengers your car would seat.
+        """It's valid to not know how many passengers your car would seat.
 
         It makes sense that if you're willing to rent, you can't know in
         advance how many people a hypothetical car would seat.
@@ -260,7 +260,7 @@ class LotteryPreferencesDriverStatusTests(TestCase, LotteryPrefsPostHelper):
 @freeze_time("2019-01-08 12:25:00 EST")
 class LotteryPreferencesSignupTests(TestCase, LotteryPrefsPostHelper):
     def test_missing_ordering(self):
-        """ Signups must specify signup ID, deletion, and ordering. """
+        """Signups must specify signup ID, deletion, and ordering."""
         par = factories.ParticipantFactory.create(lotteryinfo=None)
         self.client.force_login(par.user)
 
@@ -284,7 +284,7 @@ class LotteryPreferencesSignupTests(TestCase, LotteryPrefsPostHelper):
         self.assertEqual(response.json(), {'message': 'Unable to save signups'})
 
     def test_invalid_ordering(self):
-        """ Ordering must be null or numeric. """
+        """Ordering must be null or numeric."""
         par = factories.ParticipantFactory.create(lotteryinfo=None)
         self.client.force_login(par.user)
 
@@ -305,7 +305,7 @@ class LotteryPreferencesSignupTests(TestCase, LotteryPrefsPostHelper):
         self.assertEqual(response.json(), {'message': 'Unable to save signups'})
 
     def test_default_ranking(self):
-        """ By default, we list ranked signups by time of creation. """
+        """By default, we list ranked signups by time of creation."""
         par = factories.ParticipantFactory.create(lotteryinfo=None)
 
         okay, fave, hate = [
@@ -351,7 +351,7 @@ class LotteryPreferencesSignupTests(TestCase, LotteryPrefsPostHelper):
         self.assertEqual(response.context['ranked_signups'], json.dumps(expected))
 
     def test_delete_signups(self):
-        """ We allow participants to remove signups. """
+        """We allow participants to remove signups."""
         par = factories.ParticipantFactory.create(lotteryinfo=None)
 
         keep, kill = [
@@ -379,7 +379,7 @@ class LotteryPreferencesSignupTests(TestCase, LotteryPrefsPostHelper):
         self.assertFalse(models.SignUp.objects.filter(pk=kill.pk).exists())
 
     def test_rank_signups(self):
-        """ Participants may manually rank their signups in order of preference. """
+        """Participants may manually rank their signups in order of preference."""
         par = factories.ParticipantFactory.create(lotteryinfo=None)
 
         okay, fave, hate = [
@@ -411,7 +411,7 @@ class LotteryPreferencesSignupTests(TestCase, LotteryPrefsPostHelper):
         )
 
     def test_cannot_delete_others_signups(self):
-        """ For obvious reasons, participants should not be allowed to remove others' signups. """
+        """For obvious reasons, participants should not be allowed to remove others' signups."""
         attacker = factories.ParticipantFactory.create()
         victim = factories.ParticipantFactory.create()
 
@@ -434,7 +434,7 @@ class LotteryPreferencesSignupTests(TestCase, LotteryPrefsPostHelper):
         self.assertTrue(models.SignUp.objects.filter(pk=other_signup.pk).exists())
 
     def test_can_only_delete_ws_lottery_signups(self):
-        """ This route must not provide an undocumented means to drop off trips.
+        """This route must not provide an undocumented means to drop off trips.
 
         Deletion of signups should *only* be for signups where the user is not on
         the trip because it's in the lottery stage of a Winter School trip.
@@ -474,7 +474,7 @@ class LotteryPreferencesSignupTests(TestCase, LotteryPrefsPostHelper):
         )
 
     def test_signups_as_paired(self):
-        """ We handle rankings from participants who are reciprocally paired.
+        """We handle rankings from participants who are reciprocally paired.
 
         Specifically, when a paired participant ranks trips, we apply the rankings
         to *both* participants, and warn if there are any trips where just one
@@ -527,13 +527,13 @@ class LotteryPreferencesSignupTests(TestCase, LotteryPrefsPostHelper):
 
 class DiscountsTest(TestCase):
     def test_authenticated_users_only(self):
-        """ Users must be signed in to enroll in discounts. """
+        """Users must be signed in to enroll in discounts."""
         response = self.client.get('/preferences/discounts/')
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, '/accounts/login/?next=/preferences/discounts/')
 
     def test_users_with_info_only(self):
-        """ Participant records are required. """
+        """Participant records are required."""
         user = factories.UserFactory.create()
         self.client.force_login(user)
         response = self.client.get('/preferences/discounts/')
@@ -541,7 +541,7 @@ class DiscountsTest(TestCase):
         self.assertEqual(response.url, '/profile/edit/?next=/preferences/discounts/')
 
     def test_successful_enrollment(self):
-        """ Participants can enroll in a selection of discounts. """
+        """Participants can enroll in a selection of discounts."""
         par = factories.ParticipantFactory.create()
         gym = factories.DiscountFactory.create(ga_key='test-key-to-update-sheet')
         # Another discount exists, but they don't enroll in it
@@ -558,7 +558,7 @@ class DiscountsTest(TestCase):
         self.assertEqual([d.pk for d in par.discounts.all()], [gym.pk])
 
     def test_inactive_discounts_excluded(self):
-        """ We don't show inactive discounts to participants. """
+        """We don't show inactive discounts to participants."""
         par = factories.ParticipantFactory.create()
         active = factories.DiscountFactory.create(active=True, name='Active Discount')
         factories.DiscountFactory.create(active=False, name='Inactive Discount')
@@ -573,7 +573,7 @@ class DiscountsTest(TestCase):
         )
 
     def test_student_only_discounts_excluded(self):
-        """ If the participant is not a student, they cannot see student-only discounts. """
+        """If the participant is not a student, they cannot see student-only discounts."""
         par = factories.ParticipantFactory.create(
             affiliation=affiliations.NON_AFFILIATE.CODE
         )
@@ -608,7 +608,7 @@ class DiscountsTest(TestCase):
         self.assertFalse(par.discounts.exists())
 
     def test_students_can_use_student_only_discounts(self):
-        """ Students are obviously eligible for student-only discounts. """
+        """Students are obviously eligible for student-only discounts."""
         par = factories.ParticipantFactory.create(
             affiliation=affiliations.MIT_UNDERGRAD.CODE
         )
@@ -645,7 +645,7 @@ class DiscountsTest(TestCase):
         )
 
     def test_removal_from_discount(self):
-        """ Unenrollment is supported too. """
+        """Unenrollment is supported too."""
         par = factories.ParticipantFactory.create()
         discount = factories.DiscountFactory.create()
         par.discounts.add(discount)

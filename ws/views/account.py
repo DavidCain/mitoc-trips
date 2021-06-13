@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 class CustomPasswordChangeView(PasswordChangeView):
-    """ Custom password change view that makes two key changes:
+    """Custom password change view that makes two key changes:
 
     1. Redirects to login immediately after changing password
        (prevents an endless loop inherent in django-allaauth)
@@ -53,7 +53,7 @@ class CustomPasswordChangeView(PasswordChangeView):
 
 
 class CheckIfPwnedOnLoginView(LoginView):
-    """ Whenever users log in, we should check that their password has not been compromised.
+    """Whenever users log in, we should check that their password has not been compromised.
 
     There are two reasons to perform this check:
     - Because passwords are salted & hashed, we have no way of knowing either
@@ -64,7 +64,7 @@ class CheckIfPwnedOnLoginView(LoginView):
     """
 
     def _form_valid_perform_login(self, form):
-        """ Performs login with a correct username/password.
+        """Performs login with a correct username/password.
 
         Returns if this password has been seen in data breaches, plus the
         appropriate HTTP response for form_valid.
@@ -92,7 +92,7 @@ class CheckIfPwnedOnLoginView(LoginView):
         return times_seen, response
 
     def _post_login_update_password_validity(self, times_password_seen: Optional[int]):
-        """ After form.login has been invoked, handle password being breached or not.
+        """After form.login has been invoked, handle password being breached or not.
 
         This method exists to serve two types of users:
         - those who have a corresponding Participant model (most active users)

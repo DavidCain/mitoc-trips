@@ -18,7 +18,7 @@ from ws.decorators import participant_or_anon
 
 
 class PayDuesView(FormView):
-    """ Allow members to purchase a membership for an email address.
+    """Allow members to purchase a membership for an email address.
 
     NOTE: This view only *displays* the form. If users attempt
     to POST directly to the route, nothing will happen.
@@ -36,7 +36,7 @@ class PayDuesView(FormView):
         return kwargs
 
     def post(self, request, *args, **kwargs):
-        """ Inform users that posting the form is not allowed.
+        """Inform users that posting the form is not allowed.
 
         Instead, form contents should be submitted to CyberSource.
         """
@@ -83,7 +83,7 @@ class SignWaiverView(FormView):
         return context
 
     def guardian_from_form(self) -> Optional[waivers.Person]:
-        """ Build a Person object from the optional guardian form.
+        """Build a Person object from the optional guardian form.
 
         Only participants who are minors need to supply their guardian.
         This method should only be invoked for minors.
@@ -104,7 +104,7 @@ class SignWaiverView(FormView):
         return None
 
     def form_valid(self, form):
-        """ Handle a name & email (plus perhaps guardian) submission from anonymous users.
+        """Handle a name & email (plus perhaps guardian) submission from anonymous users.
 
         Authenticated users with a participant record can just use the overridden post()
         """
@@ -120,7 +120,7 @@ class SignWaiverView(FormView):
         return self.send_waiver(releasor=releasor, guardian=self.guardian_from_form())
 
     def post(self, request, *args, **kwargs):
-        """ Either use participant or a name+email form to submit a waiver. """
+        """Either use participant or a name+email form to submit a waiver."""
         # The user is logged in as a participant; we can bypass normal form validation
         # (the user need not give their name & email)
         if request.participant:

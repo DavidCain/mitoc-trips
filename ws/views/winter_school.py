@@ -19,7 +19,7 @@ from ws.utils.dates import ws_year
 
 
 class LectureAttendanceView(FormView, LectureAttendanceMixin):
-    """ Mark the participant as having attended lectures. """
+    """Mark the participant as having attended lectures."""
 
     form_class = forms.AttendedLecturesForm
 
@@ -27,7 +27,7 @@ class LectureAttendanceView(FormView, LectureAttendanceMixin):
         return redirect(reverse('home'))  # (View lacks its own template)
 
     def form_invalid(self, form):
-        """ Provide custom behavior on invalidation to compensate for lack of template.
+        """Provide custom behavior on invalidation to compensate for lack of template.
 
         The default behavior from FormView is to try rendering a template with
         errors for the user. However, since the attended lectures form is
@@ -76,7 +76,7 @@ class WinterSchoolSettingsView(CreateView):
     template_name = 'chair/settings.html'
 
     def get_form_kwargs(self):
-        """ Load existing settings. """
+        """Load existing settings."""
         kwargs = super().get_form_kwargs()
         kwargs['instance'] = models.WinterSchoolSettings.load()
         return kwargs

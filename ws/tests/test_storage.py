@@ -20,7 +20,7 @@ class ManifestStorageTestCase(TestCase):
         }
 
         def error_processing_bootstrap_path(paths, dry_run=False, **options):
-            """ Simulate an error processing a footable bootstrap file (missing path) """
+            """Simulate an error processing a footable bootstrap file (missing path)"""
             for path in paths:
                 if path == bootstrap:
                     processed_error = ValueError(

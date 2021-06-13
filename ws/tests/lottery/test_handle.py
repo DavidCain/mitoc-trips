@@ -9,12 +9,12 @@ from ws.tests import TestCase, factories
 
 class DriverTests(SimpleTestCase):
     def test_no_lotteryinfo(self):
-        """ Don't regard anybody as a driver if they didn't submit prefs. """
+        """Don't regard anybody as a driver if they didn't submit prefs."""
         par = factories.ParticipantFactory.build()
         self.assertFalse(handle.par_is_driver(par))
 
     def test_lotteryinfo(self):
-        """ Drivers are based off car status from that week. """
+        """Drivers are based off car status from that week."""
         par = factories.ParticipantFactory.build()
         par.lotteryinfo = models.LotteryInfo(car_status="none")
         self.assertFalse(handle.par_is_driver(par))
@@ -50,7 +50,7 @@ class Helpers:
 
 class SingleTripPlacementTests(TestCase, Helpers):
     def test_reciprocally_paired(self):
-        """ Handling a pair is only done once both have been seen. """
+        """Handling a pair is only done once both have been seen."""
         trip = factories.TripFactory.create(
             algorithm='lottery', program=enums.Program.CLIMBING.value
         )
@@ -114,7 +114,7 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
         return handler.place_participant()
 
     def test_no_signups(self):
-        """ Attempting to place a participant with no chosen signups is handled.
+        """Attempting to place a participant with no chosen signups is handled.
 
         Note that (at time of writing) the ranker does not actually pass in any participants
         who lack signups this particular week (since the number of other participants is in
@@ -136,7 +136,7 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
         self.assertTrue(self.runner.handled(par))
 
     def test_plenty_of_room(self):
-        """ Simplest case: participant's top choice has plenty of room. """
+        """Simplest case: participant's top choice has plenty of room."""
         par = factories.SignUpFactory.create(trip=self.trip).participant
 
         self._place_participant(par)
@@ -144,7 +144,7 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
         self._assert_on_trip(par, self.trip)
 
     def test_reciprocally_paired(self):
-        """ Handling a pair is only done once both have been seen. """
+        """Handling a pair is only done once both have been seen."""
         # Two participants, paired with each other!
         john = factories.ParticipantFactory.create()
         alex = factories.ParticipantFactory.create()
@@ -178,7 +178,7 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
         self.assertTrue(self.runner.handled(john))
 
     def test_reciprocally_paired_but_no_overlapping_trips(self):
-        """ Participants must both sign up for the same trips to be considered. """
+        """Participants must both sign up for the same trips to be considered."""
         john = factories.ParticipantFactory.create()
         alex = factories.ParticipantFactory.create()
         self._reciprocally_pair(john, alex)
@@ -214,7 +214,7 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
         )
 
     def test_reciprocally_paired_only_some_overlapping_trips(self):
-        """ Participants must both sign up for the same trips to be considered. """
+        """Participants must both sign up for the same trips to be considered."""
         john = factories.ParticipantFactory.create()
         alex = factories.ParticipantFactory.create()
         self._reciprocally_pair(john, alex)
@@ -249,7 +249,7 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
         )
 
     def test_waitlisted(self):
-        """ If your preferred trips are all full, you'll be waitlisted. """
+        """If your preferred trips are all full, you'll be waitlisted."""
         preferred_trip = factories.TripFactory.create(
             algorithm='lottery',
             program=enums.Program.WINTER_SCHOOL.value,
@@ -279,7 +279,7 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
         self.assertTrue(signup.waitlistsignup)
 
     def test_driver_bump(self):
-        """ Drivers can bump non-drivers off if it makes the trip possible. """
+        """Drivers can bump non-drivers off if it makes the trip possible."""
         trip = factories.TripFactory.create(
             algorithm='lottery',
             program=enums.Program.WINTER_SCHOOL.value,
@@ -335,7 +335,7 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
         self._assert_on_trip(dum, trip, on_trip=False)
 
     def test_avoid_placing_if_risking_bump(self):
-        """ We avoid placing participants on a top choice trip if they may be bumped! """
+        """We avoid placing participants on a top choice trip if they may be bumped!"""
         # Trip has 3 slots, needs 2 drivers
         preferred_trip = factories.TripFactory.create(
             algorithm='lottery',
@@ -371,7 +371,7 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
         self._assert_on_trip(par, second_trip)
 
     def test_avoid_placing_pair_if_risking_bump(self):
-        """ We avoid placing a pair of participants on a top choice trip if they may be bumped!
+        """We avoid placing a pair of participants on a top choice trip if they may be bumped!
 
         Instead, we fall back to putting them on their top-choice trip that has room for them.
         """
@@ -410,7 +410,7 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
         self._assert_on_trip(one, second_trip)
 
     def test_bump_paired_participants(self):
-        """ If a participant pair is bumped, we keep them on the same trip. """
+        """If a participant pair is bumped, we keep them on the same trip."""
         # Two paired participants rank two trips.
         preferred_trip = factories.TripFactory.create(
             algorithm='lottery',
@@ -453,7 +453,7 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
         self._assert_on_trip(driver, preferred_trip)
 
     def test_bump_single_participant(self):
-        """ We try to place a participant on less-preferred trips if possible. """
+        """We try to place a participant on less-preferred trips if possible."""
         (best, middle, worst) = [
             factories.TripFactory.create(
                 algorithm='lottery',
@@ -490,7 +490,7 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
         self.assertFalse(best.waitlist.signups.count())
 
     def test_enough_drivers_already_no_bump(self):
-        """ Participants can safely be placed on the last spot of a trip with enough drivers. """
+        """Participants can safely be placed on the last spot of a trip with enough drivers."""
         trip = factories.TripFactory.create(
             algorithm='lottery',
             program=enums.Program.WINTER_SCHOOL.value,
@@ -525,7 +525,7 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
         self._assert_on_trip(par, trip)
 
     def test_second_to_last_spot_no_bump(self):
-        """ Participants can be placed on the second-to-last spot without risking bump. """
+        """Participants can be placed on the second-to-last spot without risking bump."""
         trip = factories.TripFactory.create(
             algorithm='lottery',
             program=enums.Program.WINTER_SCHOOL.value,
@@ -553,7 +553,7 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
         self._assert_on_trip(par, trip)
 
     def test_bumped_bypassing_full_trip(self):
-        """ If a participant is bumped, their other signups' trips may be full. """
+        """If a participant is bumped, their other signups' trips may be full."""
         trip1, trip2, trip3 = [
             factories.TripFactory.create(
                 name=f"Trip {i}",
@@ -617,7 +617,7 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
         self._assert_on_trip(par, trip3)
 
     def test_driver_cannot_bump_full_trip_with_enough_drivers(self):
-        """ Drivers may not bump a trip with enough drivers on it. """
+        """Drivers may not bump a trip with enough drivers on it."""
         trip = factories.TripFactory.create(
             algorithm='lottery',
             program=enums.Program.WINTER_SCHOOL.value,

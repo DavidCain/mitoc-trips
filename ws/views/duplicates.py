@@ -21,13 +21,13 @@ class AdminOnlyView(View):
 
 
 class PotentialDuplicatesView(AdminOnlyView, TemplateView):
-    """ Show pairs of participants where the accounts may be duplicates. """
+    """Show pairs of participants where the accounts may be duplicates."""
 
     template_name = 'duplicates/index.html'
 
     @property
     def potential_duplicates(self):
-        """ Yield pairs of potential duplicates.
+        """Yield pairs of potential duplicates.
 
         Each pair of potential duplicates has the most recently active person
         listed last. It's suggested that the merge is done into that account.
@@ -89,7 +89,7 @@ def _participants(left_pk, right_pk):
 
 
 class MergeParticipantsView(AdminOnlyView):
-    """ Merge two duplicate accounts together. """
+    """Merge two duplicate accounts together."""
 
     def post(self, request, **kwargs):
         try:
@@ -124,7 +124,7 @@ class MergeParticipantsView(AdminOnlyView):
 
 
 class DistinctParticipantsView(AdminOnlyView):
-    """ Mark two seemingly related participants as being distinct. """
+    """Mark two seemingly related participants as being distinct."""
 
     def post(self, request, **kwargs):
         try:

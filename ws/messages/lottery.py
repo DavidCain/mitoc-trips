@@ -13,7 +13,7 @@ from . import MessageGenerator
 
 
 class Messages(MessageGenerator):
-    """ Supply messages relating to lottery status of one participant. """
+    """Supply messages relating to lottery status of one participant."""
 
     WARN_AFTER_DAYS_OLD = 5  # After these days, remind of lottery status
 
@@ -47,7 +47,7 @@ class Messages(MessageGenerator):
         return '<a href="{}">{}</a>'.format(reverse('lottery_preferences'), text)
 
     def warn_if_missing_lottery(self):
-        """ Warn if lottery information isn't found for the participant.
+        """Warn if lottery information isn't found for the participant.
 
         Because car information and ranked trips are submitted in one form,
         checking participant.lotteryinfo is sufficient to check both.
@@ -72,7 +72,7 @@ class Messages(MessageGenerator):
             self.add_unique_message(messages.WARNING, msg, extra_tags='safe')
 
     def warn_if_no_ranked_trips(self):
-        """ Warn the user if there are future signups, and none are ranked.
+        """Warn the user if there are future signups, and none are ranked.
 
         Some participants don't understand the significance of signing up for
         multiple trips: Namely, they miss the fact that there's an easy way to
@@ -94,7 +94,7 @@ class Messages(MessageGenerator):
             self.add_unique_message(messages.WARNING, msg, extra_tags='safe')
 
     def warn_if_dated_info(self):
-        """ Remind participants if they've not updated lottery preferences. """
+        """Remind participants if they've not updated lottery preferences."""
         if not self.lotteryinfo:
             return
 

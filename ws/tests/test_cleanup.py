@@ -8,7 +8,7 @@ from ws.tests import TestCase, factories
 
 
 def make_last_updated_on(participant, some_date):
-    """ Update the `profile_last_updated` field to be on some given date.
+    """Update the `profile_last_updated` field to be on some given date.
 
     We don't really care about the specific HMS on the day.
 
@@ -36,7 +36,7 @@ class LapsedTests(TestCase):
 
     @freeze_time("Tue, 31 Dec 2019 23:59:00 EST")
     def test_membership_current(self):
-        """ Members aren't lapsed if they have a membership, even with dated profile. """
+        """Members aren't lapsed if they have a membership, even with dated profile."""
         membership = models.Membership(
             membership_expires=date(2020, 1, 1),
             waiver_expires=None,
@@ -50,7 +50,7 @@ class LapsedTests(TestCase):
 
     @freeze_time("Tue, 31 Dec 2019 23:59:00 EST")
     def test_waiver_current(self):
-        """ Members aren't lapsed if they have a waiver, even with dated profile. """
+        """Members aren't lapsed if they have a waiver, even with dated profile."""
         membership = models.Membership(
             waiver_expires=date(2020, 1, 1),
             membership_expires=None,
@@ -64,7 +64,7 @@ class LapsedTests(TestCase):
 
     @freeze_time("Tue, 31 Dec 2019 23:59:00 EST")
     def test_recently_participated(self):
-        """ Members aren't lapsed if they participated in trips recently. """
+        """Members aren't lapsed if they participated in trips recently."""
         # Participant was on a trip in the last year
         trip = factories.TripFactory.create(trip_date=date(2019, 2, 28))
         signup = factories.SignUpFactory.create(
@@ -82,7 +82,7 @@ class LapsedTests(TestCase):
 
     @freeze_time("Tue, 31 Dec 2019 23:59:00 EST")
     def test_lapsed(self):
-        """ Participants are lapsed with expired membership, waiver, and dated profile. """
+        """Participants are lapsed with expired membership, waiver, and dated profile."""
         membership = models.Membership(
             membership_expires=date(2019, 12, 30),
             waiver_expires=date(2019, 12, 30),

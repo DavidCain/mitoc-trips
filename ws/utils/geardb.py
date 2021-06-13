@@ -31,7 +31,7 @@ AFFILIATION_MAPPING['N'] = affiliations.NON_AFFILIATE.VALUE
 
 
 class Rental(typing.NamedTuple):
-    """ An object representing a rental by a user in the gear database. """
+    """An object representing a rental by a user in the gear database."""
 
     email: str
     id: str  # Example, 'BK-19-04'
@@ -42,7 +42,7 @@ class Rental(typing.NamedTuple):
 
 
 def verified_emails(user) -> List[str]:
-    """ Return all email addresses that the user is verified to own. """
+    """Return all email addresses that the user is verified to own."""
     if not (user and user.is_authenticated):
         return []
     emails = user.emailaddress_set
@@ -50,7 +50,7 @@ def verified_emails(user) -> List[str]:
 
 
 def user_membership_expiration(user, try_cache=False):
-    """ Return membership information for the user.
+    """Return membership information for the user.
 
     If `try_cache` is True, then we'll first attempt to locate cached
     membership information. If any information exists, that will be returned.
@@ -74,7 +74,7 @@ def repr_blank_membership():
 
 
 def membership_expiration(emails):
-    """ Return the most recent expiration date for the given emails.
+    """Return the most recent expiration date for the given emails.
 
     The method is intended to allow looking up a single user's membership where
     they have multiple email addresses.
@@ -118,7 +118,7 @@ def membership_expiration(emails):
 
 
 def format_cached_membership(participant):
-    """ Format a ws.models.Membership object as a server response. """
+    """Format a ws.models.Membership object as a server response."""
     mem = participant.membership
     return format_membership(
         participant.email, mem.membership_expires, mem.waiver_expires
@@ -154,7 +154,7 @@ def format_membership(email, membership_expires, waiver_expires):
 
 
 def matching_info_for(emails):
-    """ Return all matching memberships under the email addresses.
+    """Return all matching memberships under the email addresses.
 
     Most participants will have just one membership, but some people may have
     multiple memberships! These memberships should be merged on the gear
@@ -219,7 +219,7 @@ def matching_info_for(emails):
 
 
 def _yield_matches(emails):
-    """ For each given email, yield a record about the person (if found).
+    """For each given email, yield a record about the person (if found).
 
     - The email addresses may or may not correspond to the same person.
     - Some email addresses may return the same membership record
@@ -232,7 +232,7 @@ def _yield_matches(emails):
 
 
 def matching_memberships(emails):
-    """ Return the most current membership found for each email in the list.
+    """Return the most current membership found for each email in the list.
 
     This method is used in two key ways:
     - Look up membership records for a single person, under all their emails
@@ -244,7 +244,7 @@ def matching_memberships(emails):
 def outstanding_items(
     emails: List[str], rented_on_or_before: Optional[datetime] = None
 ) -> Iterator[Rental]:
-    """ Yield all items that are currently checked out to the members.
+    """Yield all items that are currently checked out to the members.
 
     This method supports listing items for an individual participant (who may
     have multiple emails/gear accounts) as well as all participants on a trip.
@@ -315,7 +315,7 @@ def user_rentals(user) -> List[Rental]:
 
 
 def update_affiliation(participant):
-    """ Update the gear db if the affiliation of a participant has changed.
+    """Update the gear db if the affiliation of a participant has changed.
 
     This is useful in three scenarios:
     - Affiliation changes via a self-reported update
@@ -348,7 +348,7 @@ def update_affiliation(participant):
         return
 
     def last_updated_dates(info):
-        """ Yield the date (not timestamp!) of various updates. """
+        """Yield the date (not timestamp!) of various updates."""
         if info['membership_expires']:
             yield info['membership_expires'] - timedelta(days=365)
         if info['waiver_expires']:
@@ -357,7 +357,7 @@ def update_affiliation(participant):
             yield info['date_inserted']
 
     def last_updated(info):
-        """ Use the membership that was most recently updated. """
+        """Use the membership that was most recently updated."""
         dates = list(last_updated_dates(info))
         return max(dates) if dates else datetime.min.date()
 
@@ -398,7 +398,7 @@ def update_affiliation(participant):
 
 
 def all_active_members():
-    """ Yield emails and rental activity for all members with current dues. """
+    """Yield emails and rental activity for all members with current dues."""
     cursor = connections['geardb'].cursor()
     cursor.execute(
         '''
@@ -431,7 +431,7 @@ def all_active_members():
 
 
 def trips_information():
-    """ Give important counts, indexed by user IDs.
+    """Give important counts, indexed by user IDs.
 
     Each participant has a singular underlying user. This user has one or more
     email addresses, which form the link back to the gear database.
@@ -472,7 +472,7 @@ def trips_information():
 
 
 def membership_information():
-    """ All current active members, annotated with additional info.
+    """All current active members, annotated with additional info.
 
     For each paying member, we also mark if they:
     - have attended any trips

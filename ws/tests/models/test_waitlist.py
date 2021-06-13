@@ -4,7 +4,7 @@ from ws.tests import TestCase, factories
 
 class OrderingTests(TestCase):
     def test_created_first(self):
-        """ Without manual ordering, waitlist signups are ordered by creation time. """
+        """Without manual ordering, waitlist signups are ordered by creation time."""
         trip = factories.TripFactory()
 
         # Order in which the signups are created will not determine waitlist order!
@@ -25,7 +25,7 @@ class OrderingTests(TestCase):
         self.assertEqual(list(trip.waitlist.signups), [spot_1, spot_2, spot_3, spot_4])
 
     def test_model_ordering(self):
-        """ We can manually order some waitlist signups.
+        """We can manually order some waitlist signups.
 
         The primary use case for manually re-ordering the waitlist is for when a
         participant who was previously on the trip has to be removed for some reason

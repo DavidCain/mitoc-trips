@@ -84,7 +84,7 @@ class ChairActivitiesTest(TestCase):
         self.assertEqual(self._chair_activities(user), ['Climbing'])
 
     def test_superuser(self):
-        """ An optional flag indicates if superusers should be considered chairs. """
+        """An optional flag indicates if superusers should be considered chairs."""
         admin = factories.UserFactory.create(is_superuser=True)
 
         # True is useful for granting admins access to activity functions

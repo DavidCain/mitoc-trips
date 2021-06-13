@@ -14,7 +14,7 @@ from ws.tests import TestCase, factories, strip_whitespace
 class SignupForTripTests(TestCase):
     @staticmethod
     def _make_trip(**kwargs):
-        """ Create an upcoming FCFS trip. """
+        """Create an upcoming FCFS trip."""
         trip_kwargs = {
             'program': enums.Program.CLIMBING.value,
             'name': "Some Cool Upcoming Trip",
@@ -72,7 +72,7 @@ class SignupForTripTests(TestCase):
         self.assertIn('update your personal information', text)
 
     def test_wimp_cannot_sign_up_for_trip(self):
-        """" You can't be the emergency contact while attending a trip. """
+        """ " You can't be the emergency contact while attending a trip."""
         wimp_participant = factories.ParticipantFactory.create()
         trip = self._make_trip(wimp=wimp_participant)
         self.assertCountEqual(
@@ -92,7 +92,7 @@ class SignupForTripTests(TestCase):
         self.assertIsNone(soup.find('form'))
 
     def test_leader_signup_allowed_for_open_activities(self):
-        """ Any leader can sign up as a leader for open program trips. """
+        """Any leader can sign up as a leader for open program trips."""
         circus_trip = self._make_trip(
             allow_leader_signups=True,
             activity=models.LeaderRating.CIRCUS,
@@ -111,7 +111,7 @@ class SignupForTripTests(TestCase):
         self.assertTrue(soup.find('button', type='submit', text='Sign up as leader'))
 
     def test_leaders_with_rating_can_sign_up(self):
-        """ Leaders with an active rating in the activity can sign up as leaders. """
+        """Leaders with an active rating in the activity can sign up as leaders."""
         climbing_trip = self._make_trip(
             allow_leader_signups=True,
             activity=models.LeaderRating.CLIMBING,
@@ -172,7 +172,7 @@ class SignupForTripTests(TestCase):
         self.assertTrue(leader_soup.find('form'))
 
     def test_closed_trip(self):
-        """ Nobody may sign up after signups close. """
+        """Nobody may sign up after signups close."""
         trip = self._make_trip(
             signups_close_at=date_utils.localize(datetime(2025, 12, 11, 11, 11))
         )
@@ -185,7 +185,7 @@ class SignupForTripTests(TestCase):
         self.assertIsNone(soup.find('form'))
 
     def test_already_signed_up(self):
-        """ We prohibit people from signing up twice. """
+        """We prohibit people from signing up twice."""
         trip = self._make_trip()
         signup = factories.SignUpFactory.create(trip=trip, on_trip=True)
         self.assertTrue(trip.upcoming)
@@ -204,7 +204,7 @@ class SignupForTripTests(TestCase):
         )
 
     def test_signed_up_for_lottery_trip_but_may_drop(self):
-        """ Participants can always drop off of lottery trips. """
+        """Participants can always drop off of lottery trips."""
         trip = self._make_trip(algorithm='lottery', let_participants_drop=False)
         signup = factories.SignUpFactory.create(trip=trip, on_trip=False)
 
@@ -218,7 +218,7 @@ class SignupForTripTests(TestCase):
         self.assertTrue(soup.find('delete', attrs={'data-label': 'Drop off trip'}))
 
     def test_signed_up_for_fcfs_trip_but_may_drop(self):
-        """ FCFS trips can optionally support dropping off. """
+        """FCFS trips can optionally support dropping off."""
         trip = self._make_trip(algorithm='fcfs', let_participants_drop=True)
         signup = factories.SignUpFactory.create(trip=trip, on_trip=True)
 
@@ -301,12 +301,12 @@ class MembershipActiveTests(TestCase):
         return html_template.render(context).strip()
 
     def test_no_cached_membership(self):
-        """ The filter just naively treats a lacking cached membership as not active. """
+        """The filter just naively treats a lacking cached membership as not active."""
         raw_html = self._render(factories.ParticipantFactory.create(membership=None))
         self.assertEqual(raw_html, '')
 
     def test_active_membership(self):
-        """ Active memberships return True. """
+        """Active memberships return True."""
         active_membership = factories.MembershipFactory.create()
         self.assertTrue(active_membership.membership_active)
         par = factories.ParticipantFactory.create(membership=active_membership)
@@ -316,7 +316,7 @@ class MembershipActiveTests(TestCase):
 
     @freeze_time("11 Dec 2025 12:00:00 EST")
     def test_inactive_membership(self):
-        """ Active memberships return False. """
+        """Active memberships return False."""
         inactive_membership = factories.MembershipFactory.create(
             membership_expires=date(2023, 11, 15)  # In the past.
         )
@@ -341,14 +341,14 @@ class MissedLecturesForTest(TestCase):
         self.assertEqual(raw_html, '')
 
     def test_not_a_ws_trip(self):
-        """ WS trips don't regard participants as having 'missed' """
+        """WS trips don't regard participants as having 'missed'"""
         trip = factories.TripFactory.create(program=enums.Program.BIKING.value)
         par = factories.ParticipantFactory.create()
         self.assertEqual(self._render(par, trip), '')
 
     @freeze_time("Thu Jan 18 2018 12:00:00 EST")
     def test_missed(self):
-        """ We conditionally render content if the participant missed lectures. """
+        """We conditionally render content if the participant missed lectures."""
         par = factories.ParticipantFactory.create()
         trip = factories.TripFactory.create(
             program=enums.Program.WINTER_SCHOOL.value, trip_date=date(2018, 1, 20)

@@ -6,7 +6,7 @@ from ws.tests import factories
 
 class FontAwesomeIconTest(SimpleTestCase):
     def test_primary_program(self):
-        """ Some trip programs always use the same icon. """
+        """Some trip programs always use the same icon."""
         mrp_trip = factories.TripFactory.build(
             trip_type=enums.TripType.TRAD_CLIMBING.value,
             program=enums.Program.MITOC_ROCK_PROGRAM.value,
@@ -19,7 +19,7 @@ class FontAwesomeIconTest(SimpleTestCase):
         self.assertEqual(icons.fa_icon_for_trip(service_trip), 'hands-helping')
 
     def test_special_trip_types(self):
-        """ Most trip types have their own custom icon. """
+        """Most trip types have their own custom icon."""
         ice_trip = factories.TripFactory.build(
             trip_type=enums.TripType.ICE_CLIMBING.value,
             program=enums.Program.WINTER_SCHOOL.value,
@@ -34,14 +34,14 @@ class FontAwesomeIconTest(SimpleTestCase):
         self.assertEqual(icons.fa_icon_for_trip(ultimate_trip), 'compact-disc')
 
     def test_fall_back_on_program(self):
-        """ When lacking an icon for the trip type, we can fall back on program. """
+        """When lacking an icon for the trip type, we can fall back on program."""
         circus_trip = factories.TripFactory.build(
             trip_type=enums.TripType.NONE.value, program=enums.Program.CIRCUS.value
         )
         self.assertEqual(icons.fa_icon_for_trip(circus_trip), 'users')
 
     def test_no_known_icon(self):
-        """ We don't always have an icon for the program/trip type combo. """
+        """We don't always have an icon for the program/trip type combo."""
         other_trip = factories.TripFactory.build(
             trip_type=enums.TripType.OTHER.value, program=enums.Program.NONE.value
         )
@@ -49,7 +49,7 @@ class FontAwesomeIconTest(SimpleTestCase):
         self.assertEqual(icons.fa_icon_for_trip(other_trip), '')
 
     def test_every_program_has_an_icon(self):
-        """ Each specific program has a corresponding icon. """
+        """Each specific program has a corresponding icon."""
         # Specifically, we enumerate each program in the mapping
         self.assertCountEqual(enums.Program, icons.ICON_BY_PROGRAM)
 
@@ -68,14 +68,14 @@ class FontAwesomeIconTest(SimpleTestCase):
 
 class TripIconTest(SimpleTestCase):
     def test_no_icon(self):
-        """ Without sufficient information, no icon can be rendered. """
+        """Without sufficient information, no icon can be rendered."""
         misc_trip = factories.TripFactory.build(
             trip_type=enums.TripType.OTHER.value, program=enums.Program.NONE.value
         )
         self.assertEqual(icons.for_trip(misc_trip), '')
 
     def test_regular_icon(self):
-        """ Some icons will use FontAwesome 'regular' over solid. """
+        """Some icons will use FontAwesome 'regular' over solid."""
         climbing_trip = factories.TripFactory.build(
             trip_type=enums.TripType.GYM_CLIMBING.value,
             program=enums.Program.CLIMBING.value,
@@ -86,7 +86,7 @@ class TripIconTest(SimpleTestCase):
         )
 
     def test_no_trip_type(self):
-        """ For trips without a trip_type, we use program. """
+        """For trips without a trip_type, we use program."""
         circus_trip = factories.TripFactory.build(
             trip_type=enums.TripType.NONE.value, program=enums.Program.CIRCUS.value
         )

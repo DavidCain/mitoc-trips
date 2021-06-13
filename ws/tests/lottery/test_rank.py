@@ -34,27 +34,27 @@ class TestRanker(rank.ParticipantRanker):
 
 
 class ParticipantPairingTests(TestCase):
-    """ Test the logic on reciprocal participant pairing. """
+    """Test the logic on reciprocal participant pairing."""
 
     def expect_pairing(self, expected):
-        """ Run noted participants through ranking, expect pairing results. """
+        """Run noted participants through ranking, expect pairing results."""
         par_pks = set(par.pk for par in expected)
         ranker = TestRanker(participant_pks=par_pks)
         actual = {par: bool(par.reciprocally_paired) for par, _ in ranker}
         self.assertEqual(expected, actual)
 
     def test_no_lotteryinfo(self):
-        """ No lottery info still counts as not being paired. """
+        """No lottery info still counts as not being paired."""
         no_lotteryinfo = ParticipantFactory.create(lotteryinfo=None)
         self.expect_pairing({no_lotteryinfo: False})
 
     def test_on_their_own(self):
-        """ Participants who don't request pairing aren't paired. """
+        """Participants who don't request pairing aren't paired."""
         alone = LotteryInfoFactory.create(paired_with=None)
         self.expect_pairing({alone.participant: False})
 
     def test_unrequited_pairing(self):
-        """ Pairing must be bidirectional to be acted upon. """
+        """Pairing must be bidirectional to be acted upon."""
         wants_to_fly_solo = LotteryInfoFactory.create(paired_with=None)
         wants_to_be_together = LotteryInfoFactory.create(
             paired_with=wants_to_fly_solo.participant
@@ -67,7 +67,7 @@ class ParticipantPairingTests(TestCase):
         )
 
     def test_nulls_do_not_mean_equal(self):
-        """ Participants that want no pairing aren't accidentallly paired.
+        """Participants that want no pairing aren't accidentallly paired.
 
         This checks an implementation detail, ensuring that null==null doesn't
         amount to the SQL query mistakenly regarding participants as paired.
@@ -87,7 +87,7 @@ class ParticipantPairingTests(TestCase):
         )
 
     def test_reciprocal_pairing(self):
-        """ Two participants who request each other are reciprocally paired. """
+        """Two participants who request each other are reciprocally paired."""
         bonnie = ParticipantFactory.create()
         clyde = ParticipantFactory.create()
         LotteryInfoFactory.create(participant=bonnie, paired_with=clyde)
@@ -97,17 +97,17 @@ class ParticipantPairingTests(TestCase):
 
 class SeedTests(unittest.TestCase):
     def test_participant_must_be_saved_to_db(self):
-        """ We can't come up with a fair seed for a participant that lacks a pk. """
+        """We can't come up with a fair seed for a participant that lacks a pk."""
         with self.assertRaises(ValueError):
             rank.seed_for(models.Participant(name='Not Saved'), lottery_key='hi')
 
     def test_seed_contains_secret(self):
-        """ The seed should contain the secret that participant's don't know. """
+        """The seed should contain the secret that participant's don't know."""
         seed = rank.seed_for(models.Participant(pk=33), 'some extra seed')
         self.assertIn(settings.PRNG_SEED_SECRET, seed)
 
     def test_uniqueness(self):
-        """ Seeds should be different from one another. """
+        """Seeds should be different from one another."""
         seeds = [
             rank.seed_for(models.Participant(pk=33), '22'),
             rank.seed_for(models.Participant(pk=22), '33'),
@@ -116,7 +116,7 @@ class SeedTests(unittest.TestCase):
         self.assertEqual(len(seeds), len(set(seeds)))
 
     def test_deterministic(self):
-        """ Affiliation-weighted random numbers are deterministic with the same seed.
+        """Affiliation-weighted random numbers are deterministic with the same seed.
 
         This enables us to have repeatable lottery results.
         """
@@ -127,7 +127,7 @@ class SeedTests(unittest.TestCase):
         )
 
     def test_weight_subtraction(self):
-        """ Test the definition of affiliation-weighted randomness.
+        """Test the definition of affiliation-weighted randomness.
 
         Specifically, we take a random float from a particular seed, and
         subtract a known offset according to the participant's affiliation.
@@ -151,7 +151,7 @@ class SeedTests(unittest.TestCase):
 
 
 class ParticipantRankingTests(SimpleTestCase):
-    """ Test the logic by which we determine users with "first pick" status. """
+    """Test the logic by which we determine users with "first pick" status."""
 
     mocked_par_methods = ['number_trips_led', 'number_ws_trips', 'get_rank_override']
 
@@ -168,13 +168,13 @@ class ParticipantRankingTests(SimpleTestCase):
         self.ranker = rank.WinterSchoolParticipantRanker()
 
     def expect_ranking(self, *participants):
-        """ Any permutation of participant ordering results in the same output. """
+        """Any permutation of participant ordering results in the same output."""
         for permutation in itertools.permutations(participants):
             ranked = sorted(permutation, key=self.ranker.priority_key)
             self.assertEqual(list(participants), ranked)
 
     def test_flaking(self):
-        """ Those who flake on trips always come last. """
+        """Those who flake on trips always come last."""
         # Flaking participant is an MIT undergrad (would normally get priority)
         serial_flaker = models.Participant(pk=1, affiliation='MU', name='Serial Flaker')
         flaked_once = models.Participant(pk=2, affiliation='MG', name='One-time Flaker')
@@ -206,7 +206,7 @@ class ParticipantRankingTests(SimpleTestCase):
         self.expect_ranking(reliable, flaked_once, serial_flaker)
 
     def test_leader_bump(self):
-        """ All else held equal, the most active leaders get priority. """
+        """All else held equal, the most active leaders get priority."""
         # Both participants are MIT undergraduates, equally likely to flake
         novice = models.Participant(pk=1024, affiliation='MU', name='New Leader')
         veteran = models.Participant(pk=256, affiliation='MU', name='Veteran Leader')
@@ -227,7 +227,7 @@ class ParticipantRankingTests(SimpleTestCase):
         }
 
         def by_participant(attribute):
-            """ Quick closure for looking up the count. """
+            """Quick closure for looking up the count."""
             return lambda par: mocked_counts[par][attribute]
 
         self.ranker.get_rank_override.return_value = 0
@@ -242,7 +242,7 @@ class ParticipantRankingTests(SimpleTestCase):
         self.expect_ranking(veteran, novice)
 
     def test_sort_key_randomness(self):
-        """ We break ties with a random value. """
+        """We break ties with a random value."""
         tweedle_dee = models.Participant(pk=5, affiliation='NG')
         tweedle_dum = models.Participant(pk=6, affiliation='NG')
 
@@ -262,7 +262,7 @@ class ParticipantRankingTests(SimpleTestCase):
 class SingleTripParticipantRankerTests(TestCase):
     @factory.django.mute_signals(signals.post_save)
     def test_deterministic_ranking(self):
-        """ Ranking of a particular single trip is based on its pk. """
+        """Ranking of a particular single trip is based on its pk."""
         trip = TripFactory.create(activity='hiking', pk=822)
 
         # TODO: This test relies pretty heavily on the database and is very slow
@@ -290,7 +290,7 @@ class FlakeFactorTests(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        """ Create some trips to relate to the participant test object.
+        """Create some trips to relate to the participant test object.
 
         (We do not start with the participant actually signed up/on the trip).
         """
@@ -313,7 +313,7 @@ class FlakeFactorTests(TestCase):
         cls.all_trips = cls.last_season_trips + cls.three_trips
 
     def test_previous_seasons_omitted(self):
-        """ Only trips from the current Winter School are considered. """
+        """Only trips from the current Winter School are considered."""
         par_on_trip = {'participant': self.participant, 'on_trip': True}
         for trip in self.three_trips:
             models.SignUp.objects.create(trip=trip, **par_on_trip).save()
@@ -324,7 +324,7 @@ class FlakeFactorTests(TestCase):
         )
 
     def test_only_trips_attended_counted(self):
-        """ Signing up for a trip (but not being placed) is not counted. """
+        """Signing up for a trip (but not being placed) is not counted."""
         one, two, three = self.three_trips
         SignUpFactory.create(participant=self.participant, trip=one)
         SignUpFactory.create(participant=self.participant, trip=two, on_trip=True)
@@ -339,7 +339,7 @@ class FlakeFactorTests(TestCase):
         )
 
     def test_each_trip_counted_once(self):
-        """ Multiple trip leaders declaring a participant a flake is no worse than 1. """
+        """Multiple trip leaders declaring a participant a flake is no worse than 1."""
         flaked = {'participant': self.participant, 'showed_up': False}
         for trip in self.three_trips:
             for _ in range(3):
@@ -351,13 +351,13 @@ class FlakeFactorTests(TestCase):
         )
 
     def test_no_attendance(self):
-        """ The flake factor is set to zero for participants with no trips. """
+        """The flake factor is set to zero for participants with no trips."""
         self.assertFalse(self.participant.trip_set.exists())
         self.assertFalse(self.participant.feedback_set.exists())
         self.assertEqual(0, self.ranker.flake_factor(self.participant))
 
     def test_missed_each_trip(self):
-        """ Missing multiple trips gives you a very poor score.  """
+        """Missing multiple trips gives you a very poor score."""
         # (Each SignUp object was deleted by trip leaders to indicate that the
         # participant never actually went on the trip)
         for trip in self.three_trips:
@@ -375,7 +375,7 @@ class FlakeFactorTests(TestCase):
         self.assertEqual(15, self.ranker.flake_factor(self.participant))
 
     def test_perfect_attendance(self):
-        """ Participants who've showed up for every trip score well.  """
+        """Participants who've showed up for every trip score well."""
         # (The only trips considered are past trips from the current Winter School)
         par_on_trip = {'participant': self.participant, 'on_trip': True}
         for trip in self.three_trips:
@@ -392,7 +392,7 @@ class FlakeFactorTests(TestCase):
         self.assertEqual(-6, self.ranker.flake_factor(self.participant))
 
     def test_leader_disagreement(self):
-        """ If only one leader reports them as flaking, that's a flake. """
+        """If only one leader reports them as flaking, that's a flake."""
         subject = {'participant': self.participant, 'trip': self.three_trips[0]}
 
         models.SignUp(on_trip=True, **subject).save()

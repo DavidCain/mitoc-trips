@@ -16,12 +16,12 @@ def angular_templates(request):
 
 @functools.lru_cache(maxsize=None)
 def cached_templates():
-    """ Cache templates so that we don't need to lead with each request. """
+    """Cache templates so that we don't need to lead with each request."""
     return dict(get_all_angular_templates())
 
 
 def get_all_angular_templates():
-    """ Yield the filename and contents for use in populating the cache. """
+    """Yield the filename and contents for use in populating the cache."""
     template_dir = os.path.join(settings.STATIC_ROOT, 'template')
     for filename in os.listdir(template_dir):
         with open(os.path.join(template_dir, filename)) as handle:

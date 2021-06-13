@@ -11,7 +11,7 @@ from ws import enums, models
 
 
 def datetime_from_iso(datestring: str) -> datetime:
-    """ Convert an ISO 8601 datetime string (offset included) to a date object.
+    """Convert an ISO 8601 datetime string (offset included) to a date object.
 
     Throws ValueError or TypeError on invalid inputs.
     """
@@ -20,7 +20,7 @@ def datetime_from_iso(datestring: str) -> datetime:
 
 
 def date_from_iso(datestring):
-    """ Convert a YYYY-MM-DD datestring to a date object.
+    """Convert a YYYY-MM-DD datestring to a date object.
 
     Throws ValueError or TypeError on invalid inputs.
     """
@@ -30,7 +30,7 @@ def date_from_iso(datestring):
 
 
 def localize(dt_time):
-    """ Take a naive datetime and assign a time zone to it (without changing wall time).
+    """Take a naive datetime and assign a time zone to it (without changing wall time).
 
     >>> from datetime import datetime
     >>> localize(datetime(2018, 10, 27, 4, 30)
@@ -41,7 +41,7 @@ def localize(dt_time):
 
 
 def itinerary_available_at(trip_date):
-    """ Return the date & time at which the trip's itinerary may be submitted.
+    """Return the date & time at which the trip's itinerary may be submitted.
 
     We disallow submitting an itinerary too far in advance because weather
     changes, participants may be added/removed, and drivers may change. Only
@@ -55,13 +55,13 @@ def itinerary_available_at(trip_date):
 
 
 def late_at_night(date):
-    """ 23:59 on the date, since midnight is technically the next day. """
+    """23:59 on the date, since midnight is technically the next day."""
     dt = datetime(date.year, date.month, date.day, 23, 59, 59)
     return localize(dt)
 
 
 def fcfs_close_time(trip_date):
-    """ The time that a WS trip should close its first-come, first-serve signups.
+    """The time that a WS trip should close its first-come, first-serve signups.
 
     Winter School trips that are part of the weekly lottery typically take
     place on Saturday & Sunday (and occasionally Friday or Monday). After
@@ -91,7 +91,7 @@ def local_date():
 
 
 def nearest_sat():
-    """ Give the date of the nearest Saturday (next week if today is Saturday)
+    """Give the date of the nearest Saturday (next week if today is Saturday)
 
     Because most trips are posted during the week, and occur that weekend,
     defaulting to Saturday is reasonable. (It's rare that a trip posted on
@@ -106,7 +106,7 @@ def nearest_sat():
 
 
 def lottery_time(lottery_date):
-    """ Given a date, return the datetime when lottery trips should close.
+    """Given a date, return the datetime when lottery trips should close.
 
     If change the lottery time, modify just this method (others depend on it)
     """
@@ -138,14 +138,14 @@ def closest_wednesday():
 
 
 def closest_wed_at_noon():
-    """ Useful in case lottery is run slightly after noon on Wednesday. """
+    """Useful in case lottery is run slightly after noon on Wednesday."""
     closest_wed = closest_wednesday()
     ret = datetime.combine(closest_wed, datetime.min.time().replace(hour=12))
     return localize(ret)
 
 
 def is_currently_iap():
-    """ Returns if it's currently MIT's "Independent Activities Period"
+    """Returns if it's currently MIT's "Independent Activities Period"
 
     Winter School takes place during IAP each year. This (extremely opproximate!) method
     is used to infer if it's roughly the time of year that Winter School takes place. We
@@ -162,7 +162,7 @@ def is_currently_iap():
 
 
 def ws_year():
-    """ Returns the year of the nearest Winter School. """
+    """Returns the year of the nearest Winter School."""
     this_year = local_now().year
     return this_year if local_now().month <= 6 else this_year + 1
 
@@ -173,7 +173,7 @@ def jan_1():
 
 
 def default_signups_close_at():
-    """ Return the default for when signups should close.
+    """Return the default for when signups should close.
 
     This is mostly written to give reasonable defaults for Winter School, where all
     trips are posted during the week, for the coming weekend (and should close at 9 am
@@ -196,7 +196,7 @@ def default_signups_close_at():
 
 
 def ws_lectures_complete():
-    """ Return if the mandatory first two lectures have occurred.
+    """Return if the mandatory first two lectures have occurred.
 
     Because IAP varies every year, use traits of the first week of Winter
     School in order to determine if lectures have completed.

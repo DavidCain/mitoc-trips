@@ -12,7 +12,7 @@ from ws.tests.messages import MessagesTestCase
 
 
 class NotALeaderMessagesTest(MessagesTestCase):
-    """ For users that are not leaders, we never emit any messages. """
+    """For users that are not leaders, we never emit any messages."""
 
     def test_anonymous_user(self):
         request = self.factory.get('/')
@@ -53,7 +53,7 @@ class NotALeaderMessagesTest(MessagesTestCase):
 
 
 class LeaderMessagesTest(MessagesTestCase):
-    """ Test messages emitted to Winter School leaders. """
+    """Test messages emitted to Winter School leaders."""
 
     @property
     def _leader(self):
@@ -67,7 +67,7 @@ class LeaderMessagesTest(MessagesTestCase):
 
     @freeze_time("2020-01-15 14:56:00 EST")
     def test_complain_if_missing_feedback(self):
-        """ We warn leaders about recent trips missing feedback. """
+        """We warn leaders about recent trips missing feedback."""
         trip_leader = self._leader
 
         # Create a trip that's too old for us to care about missing feedback
@@ -112,7 +112,7 @@ class LeaderMessagesTest(MessagesTestCase):
 
     @freeze_time("2020-01-17 14:56:00 EST")
     def test_complain_if_missing_itineraries(self):
-        """ We warn leaders current/future trips missing itineraries. """
+        """We warn leaders current/future trips missing itineraries."""
         trip_leader = self._leader
 
         # Create 4 trips that are missing itineraries

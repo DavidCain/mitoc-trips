@@ -8,7 +8,7 @@ from . import MessageGenerator
 
 class Messages(MessageGenerator):
     def supply(self):
-        """ Create message if Participant info needs update. Otherwise, do nothing. """
+        """Create message if Participant info needs update. Otherwise, do nothing."""
         if not self.request.user.is_authenticated:
             return
 

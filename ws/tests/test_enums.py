@@ -41,7 +41,7 @@ class ProgramTest(unittest.TestCase):
             self.assertTrue(program_enum.label)
 
     def test_every_program_in_choices(self):
-        """ At present, every program is a valid choice.
+        """At present, every program is a valid choice.
 
         We may choose to deprecate some program later. For now, enforce presence.
         """
@@ -58,7 +58,7 @@ class ProgramTest(unittest.TestCase):
         self.assertFalse(enums.Program.WINTER_SCHOOL.is_open())
 
     def test_every_program_has_required_activity(self):
-        """ Every program explicitly has a required activity. """
+        """Every program explicitly has a required activity."""
         for program in enums.Program:
             activity = program.required_activity()
             if activity is not None:
@@ -91,7 +91,7 @@ class ProgramTest(unittest.TestCase):
 
 class TripTypeTest(unittest.TestCase):
     def test_every_program_in_choices(self):
-        """ Every trip type is a valid choice. """
+        """Every trip type is a valid choice."""
         self.assertCountEqual(
             all_choices(enums.TripType.choices()),
             [trip_type.value for trip_type in enums.TripType],

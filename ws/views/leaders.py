@@ -27,7 +27,7 @@ class AllLeadersView(ListView):
     template_name = 'leaders/all.html'
 
     def get_queryset(self):
-        """ Returns all leaders with active ratings. """
+        """Returns all leaders with active ratings."""
         return models.Participant.leaders.get_queryset()
 
     def get_context_data(self, **kwargs):
@@ -46,7 +46,7 @@ class AllLeadersView(ListView):
 
 
 class CreateRatingView(CreateView):
-    """ Should be inherited to provide a template. """
+    """Should be inherited to provide a template."""
 
     form_class = forms.LeaderForm
 
@@ -60,7 +60,7 @@ class CreateRatingView(CreateView):
         return kwargs
 
     def form_valid(self, form):
-        """ Ensure the leader can assign ratings, then apply assigned rating.
+        """Ensure the leader can assign ratings, then apply assigned rating.
 
         Any existing ratings for this activity will be marked as inactive.
         """
@@ -80,7 +80,7 @@ class CreateRatingView(CreateView):
 class OnlyForActivityChair(View):
     @property
     def activity(self):
-        """ The activity, should be verified by the dispatch method. """
+        """The activity, should be verified by the dispatch method."""
         return self.kwargs['activity']
 
     @property
@@ -132,7 +132,7 @@ class DeactivateLeaderRatingsView(OnlyForActivityChair):
 
 
 class ActivityLeadersView(OnlyForActivityChair, CreateRatingView):
-    """ Manage the leaders of a single activity. """
+    """Manage the leaders of a single activity."""
 
     template_name = 'leaders/by_activity.html'
 
@@ -147,7 +147,7 @@ class ActivityLeadersView(OnlyForActivityChair, CreateRatingView):
         return initial
 
     def get_ratings(self):
-        """ Returns all leaders with active ratings. """
+        """Returns all leaders with active ratings."""
         return (
             models.LeaderRating.objects.filter(activity=self.activity, active=True)
             .prefetch_related('participant__trips_led')
@@ -163,7 +163,7 @@ class ActivityLeadersView(OnlyForActivityChair, CreateRatingView):
 
 
 class ManageLeadersView(CreateRatingView):
-    """ A view to update the rating of any leader across all ratings. """
+    """A view to update the rating of any leader across all ratings."""
 
     form_class = forms.LeaderForm
     template_name = 'chair/leaders.html'

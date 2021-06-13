@@ -20,7 +20,7 @@ def chairs_only():
 
 
 def profile_needs_update(request):
-    """ Return if we need to redirect to 'edit_profile' for changes. """
+    """Return if we need to redirect to 'edit_profile' for changes."""
     if not request.user.is_authenticated:
         return False  # We can't be sure until the user logs in
 
@@ -44,7 +44,7 @@ def participant_required(view_func):
 
 
 def group_required(*group_names, **kwargs):
-    """ Requires user membership in at least one of the groups passed in.
+    """Requires user membership in at least one of the groups passed in.
 
     If the user does not belong to any of these groups and `redir_url` is
     specified, redirect them to that URL so that they may attempt again.

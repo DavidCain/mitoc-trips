@@ -26,19 +26,19 @@ class ParticipantMiddlewareTests(TestCase):
         cls.user = UserFactory.create()
 
     def test_anonymous_user(self):
-        """ When the user is anonymous, request.participant is None. """
+        """When the user is anonymous, request.participant is None."""
         self.request.user = AnonymousUser()
         self.pm(self.request)
         self.assertEqual(self.request.participant, None)
 
     def test_authenticated_user(self):
-        """ Participant is None when the user hasn't yet created one. """
+        """Participant is None when the user hasn't yet created one."""
         self.request.user = self.user
         self.pm(self.request)
         self.assertEqual(self.request.participant, None)
 
     def test_user_with_participant(self):
-        """ When the user has created a participant, it's injected into the request."""
+        """When the user has created a participant, it's injected into the request."""
         self.request.user = self.user
         participant = ParticipantFactory.create(user_id=self.user.pk)
 
@@ -61,7 +61,7 @@ class CustomMessagesMiddlewareTests(TestCase):
         cls.user = UserFactory.create()
 
     def test_anonymous_user(self):
-        """ No messages are generated on anonymous users. """
+        """No messages are generated on anonymous users."""
         self.request.user = AnonymousUser()
         self.request.participant = None
         with mock.patch.object(security.messages, 'add_message') as add_message:
@@ -69,7 +69,7 @@ class CustomMessagesMiddlewareTests(TestCase):
         add_message.assert_not_called()
 
     def test_authenticated_user(self):
-        """ No messages are generated on users without a participant. """
+        """No messages are generated on users without a participant."""
         self.request.user = self.user
         self.request.participant = None
         with mock.patch.object(security.messages, 'add_message') as add_message:
@@ -77,7 +77,7 @@ class CustomMessagesMiddlewareTests(TestCase):
         add_message.assert_not_called()
 
     def test_participant_with_insecure_password(self):
-        """ A participant with an insecure password will have a message generated."""
+        """A participant with an insecure password will have a message generated."""
         self.request.user = self.user
         self.request.participant = ParticipantFactory.create(
             user_id=self.user.pk, insecure_password=True
@@ -88,7 +88,7 @@ class CustomMessagesMiddlewareTests(TestCase):
         add_message.assert_called_once()
 
     def test_participant_with_secure_password(self):
-        """ A participant with secure password will have no messages generated."""
+        """A participant with secure password will have no messages generated."""
         self.request.user = self.user
         self.request.participant = ParticipantFactory.create(
             user_id=self.user.pk, insecure_password=False

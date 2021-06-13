@@ -6,7 +6,7 @@ from django.db import migrations
 
 
 def make_groups(apps, schema_editor):
-    """ Create groups that are expected by the software. """
+    """Create groups that are expected by the software."""
     Group = apps.get_model('auth', 'Group')
 
     Group.objects.get_or_create(name='leaders')

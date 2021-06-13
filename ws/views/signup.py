@@ -54,7 +54,7 @@ class BaseSignUpView(CreateView, LotteryPairingMixin):
         return super().form_valid(form)
 
     def get_errors(self, signup):
-        """ Take a signup (saved, but not committed), and validate. """
+        """Take a signup (saved, but not committed), and validate."""
         errors = []
         # (user_info_required ensures that participant is present & not None)
         if signup.trip in signup.participant.trip_set.all():
@@ -104,7 +104,7 @@ class LeaderSignUpView(BaseSignUpView):
 
 
 class SignUpView(BaseSignUpView):
-    """ Special view designed to be accessed only on invalid signup form
+    """Special view designed to be accessed only on invalid signup form
 
     The "select trip" field is hidden, as this page is meant to be accessed
     only from a Trip-viewing page. Technically, by manipulating POST data on
@@ -134,7 +134,7 @@ class DeleteSignupView(DeleteView):
     success_url = reverse_lazy('upcoming_trips')
 
     def get(self, request, *args, **kwargs):
-        """ Request is valid, but method is not (use POST). """
+        """Request is valid, but method is not (use POST)."""
         messages.warning(self.request, "Use delete button to remove signups.")
         trip = self.get_object().trip
         return redirect(reverse('view_trip', args=(trip.pk,)))

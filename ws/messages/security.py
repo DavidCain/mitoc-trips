@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 class Messages(MessageGenerator):
     def supply(self):
-        """ Warn if the participant's password is insecure.
+        """Warn if the participant's password is insecure.
 
         When a participant logs in with a known insecure password, they are
         redirected to the "change password" page. They *should* change their

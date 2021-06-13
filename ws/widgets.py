@@ -6,7 +6,7 @@ from django.utils.html import format_html
 
 
 class MarkdownTextarea(dj_widgets.Textarea):
-    """ Supply a textbox with some example Markdown in it.
+    """Supply a textbox with some example Markdown in it.
 
     The box will be at least as large as is necessary to display the Markdown.
     """
@@ -25,19 +25,19 @@ class MarkdownTextarea(dj_widgets.Textarea):
 
 
 class BootstrapDateInput(dj_widgets.DateInput):
-    """ Use the AngularUI datepicker element.
+    """Use the AngularUI datepicker element.
 
     If passing in "format," it must comply to Angular's date filter:
         https://docs.angularjs.org/api/ng/filter/date
     """
 
     def _set_datepicker_settings(self):
-        """ Configure the datepicker with directive arguments. """
+        """Configure the datepicker with directive arguments."""
         self.attrs['data-uib-datepicker-popup'] = self.format or 'yyyy-MM-dd'
         self.attrs['show-weeks'] = False
 
     def render(self, name, value, attrs=None, renderer=None):
-        """ Render normal date text input with a calendar dropdown. """
+        """Render normal date text input with a calendar dropdown."""
         for is_open in ['is-open', 'data-is-open']:
             if is_open in self.attrs:
                 break

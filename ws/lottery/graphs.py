@@ -22,7 +22,7 @@ class Cycle:
         yield from self._cycle
 
     def __eq__(self, other):
-        """ Return if two cycles represent the same cycle.
+        """Return if two cycles represent the same cycle.
 
         Cycles need not be expressed in the same order to be equal.
         """
@@ -56,7 +56,7 @@ class Cycle:
 
 class SeparationGraph:
     def __init__(self, relevant_participants):
-        """ Create the graph, ignores blocks by or against any excluded participants.
+        """Create the graph, ignores blocks by or against any excluded participants.
 
         This allows us to easily ignore participants who have a separation request
         in place, but have not signed up for trips on a given Winter School week.
@@ -66,7 +66,7 @@ class SeparationGraph:
 
     @staticmethod
     def _make_graph(participants):
-        """ Express all separations as a directed graph of participants.
+        """Express all separations as a directed graph of participants.
 
         This graph may be a tree (a directed acyclic graph, or DAG) or it could have cycles.
 
@@ -98,7 +98,7 @@ class SeparationGraph:
         return self._graph
 
     def remove(self, par):
-        """ Mark a participant as handled, so remove them from the graph. """
+        """Mark a participant as handled, so remove them from the graph."""
         # None of the blocks made by this participant are relevant anymore!
         self._graph.pop(par, None)
 
@@ -116,7 +116,7 @@ class SeparationGraph:
 
     @property
     def empty(self) -> bool:
-        """ Return true if all participants have been handled. """
+        """Return true if all participants have been handled."""
         # TODO: Should also allow a key with an empty set?
         return not bool(self._graph)
 
@@ -186,7 +186,7 @@ class SeparationGraph:
         path = []
 
         def dfs(par):
-            """ Depth-first search, starting with the participant
+            """Depth-first search, starting with the participant
 
             Yield any found cycles, note if a terminal node is found.
             """

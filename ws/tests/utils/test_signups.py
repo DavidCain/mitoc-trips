@@ -12,7 +12,7 @@ from ws.utils import signups as signup_utils
 class ManualOrderingTests(SimpleTestCase):
     @patch.object(models.SignUp, 'save')
     def test_manual_next(self, save):
-        """ The manual ordering is applied when the signup is on a trip. """
+        """The manual ordering is applied when the signup is on a trip."""
         signup = models.SignUp(on_trip=True)
         signup_utils.next_in_order(signup, 3)
 
@@ -21,7 +21,7 @@ class ManualOrderingTests(SimpleTestCase):
 
     @patch('ws.models.Trip.last_of_priority', new_callable=PropertyMock)
     def test_last_of_priority(self, last_of_priority):
-        """ The signup is placed in last priority if already on trip.
+        """The signup is placed in last priority if already on trip.
 
         This makes the signup "priority," but below others.
 
@@ -42,7 +42,7 @@ class ManualOrderingTests(SimpleTestCase):
 
     @patch.object(models.SignUp, 'save')
     def test_no_waitlist_entry(self, save):
-        """ When neither on the trip, nor the waitlist, nothing happens. """
+        """When neither on the trip, nor the waitlist, nothing happens."""
         signup = models.SignUp()  # No corresponding waitlist entry
 
         for manual_order in [None, 3, 5]:
@@ -52,7 +52,7 @@ class ManualOrderingTests(SimpleTestCase):
 
     @patch.object(models.WaitListSignup, 'save')
     def test_wl_invert_manual_order(self, wl_save):
-        """ Manual orderings are negative when updating waitlist entries.
+        """Manual orderings are negative when updating waitlist entries.
 
         (nulls come after integers when reverse sorted, so anyone with a manual
         ordering integer will be first)
@@ -66,7 +66,7 @@ class ManualOrderingTests(SimpleTestCase):
     @patch('ws.models.WaitList.last_of_priority', new_callable=PropertyMock)
     @patch.object(models.WaitListSignup, 'save')
     def test_wl_last_of_priority(self, wl_save, last_of_priority):
-        """ If no manual order is passed, `last_in_priority` is used. """
+        """If no manual order is passed, `last_in_priority` is used."""
         last_of_priority.return_value = 37
         wl_signup = models.WaitListSignup(waitlist=models.WaitList())
         signup = models.SignUp(waitlistsignup=wl_signup)
@@ -79,7 +79,7 @@ class ManualOrderingTests(SimpleTestCase):
 
 class NonTripParticipantsTests(TestCase):
     def test_creator_is_eligible_as_participant(self):
-        """ So long as the creator is not a leader, they count as a non-trip participant. """
+        """So long as the creator is not a leader, they count as a non-trip participant."""
         trip = factories.TripFactory()
         self.assertNotIn(trip.creator, trip.leaders.all())
         self.assertIn(trip.creator, signup_utils.non_trip_participants(trip))
@@ -90,7 +90,7 @@ class NonTripParticipantsTests(TestCase):
         self.assertNotIn(trip.creator, signup_utils.non_trip_participants(trip))
 
     def test_participants_on_trip(self):
-        """ All participants not signed up for the trip are returned. """
+        """All participants not signed up for the trip are returned."""
         trip = factories.TripFactory()
         on_trip = factories.ParticipantFactory.create()
         factories.SignUpFactory.create(participant=on_trip, trip=trip, on_trip=True)
@@ -111,7 +111,7 @@ class NonTripParticipantsTests(TestCase):
 
 class AddToWaitlistTests(TestCase):
     def test_already_on_trip(self):
-        """ Participants already on the trip will be waitlisted. """
+        """Participants already on the trip will be waitlisted."""
         signup = factories.SignUpFactory.create(on_trip=True)
         wl_signup = signup_utils.add_to_waitlist(signup)
         self.assertEqual(wl_signup.signup, signup)
@@ -131,7 +131,7 @@ class AddToWaitlistTests(TestCase):
         self.assertFalse(wl_signup.signup.on_trip)
 
     def test_can_add_to_top_of_list(self):
-        """ We can add somebody to the waitlist, passing all others. """
+        """We can add somebody to the waitlist, passing all others."""
         trip = factories.TripFactory()
 
         # Build a waitlist with a mixture of ordered by time added & manually ordered
@@ -152,7 +152,7 @@ class AddToWaitlistTests(TestCase):
         )
 
     def test_can_add_to_bottom_of_priority(self):
-        """ Adding signups with priority puts them beneath other priorities, but above non. """
+        """Adding signups with priority puts them beneath other priorities, but above non."""
         trip = factories.TripFactory()
 
         spot_3 = factories.SignUpFactory.create(trip=trip, on_trip=False)
@@ -200,7 +200,7 @@ class UpdateQueuesTest(TestCase):
         self.assertFalse(signup.on_trip)
 
     def test_full_trip_expanding(self):
-        """ If a full trip expands, we pull participants from the waitlist! """
+        """If a full trip expands, we pull participants from the waitlist!"""
         trip = factories.TripFactory.create(algorithm='fcfs', maximum_participants=2)
         self.assertTrue(trip.signups_open)
 

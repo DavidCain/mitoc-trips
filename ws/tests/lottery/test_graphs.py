@@ -104,9 +104,9 @@ class GraphTests(TestCase):
         self.assertCountEqual(graph.participants_affected_by_blocks, [])
 
     def test_bidirectional_blocking(self):
-        """ Test two participants blocking each other.
+        """Test two participants blocking each other.
 
-            A <----> B
+        A <----> B
         """
         a = factories.ParticipantFactory.create(name="A")
         b = factories.ParticipantFactory.create(name="B")
@@ -128,13 +128,13 @@ class GraphTests(TestCase):
         self.assertFalse(graph.isolated_cycles(b))
 
     def test_chordless_cycle_graph(self):
-        """ Test three participants blocking in a cycle
+        """Test three participants blocking in a cycle
 
-            A ------> B
-            ^         v
-            |         |
-            |         |
-            +--< C <--+
+        A ------> B
+        ^         v
+        |         |
+        |         |
+        +--< C <--+
         """
         a = factories.ParticipantFactory.create(name="A")
         b = factories.ParticipantFactory.create(name="B")
@@ -159,17 +159,17 @@ class GraphTests(TestCase):
         self.assertFalse(graph.isolated_cycles(c))
 
     def test_multiple_cycles(self):
-        """ Test two cycles existing.
+        """Test two cycles existing.
 
-            A ------> B
-            ^         |
-            |         |
-            |         v
-            E ------> C
-            ^         v
-            |         |
-            |         |
-            +--< D <--+
+        A ------> B
+        ^         |
+        |         |
+        |         v
+        E ------> C
+        ^         v
+        |         |
+        |         |
+        +--< D <--+
         """
         a, b, c, d, e = (
             factories.ParticipantFactory.create(name=letter) for letter in "ABCDE"
@@ -219,13 +219,13 @@ class GraphTests(TestCase):
             self.assertFalse(graph.isolated_cycles(par))
 
     def test_cycle_exists_but_with_termini(self):
-        """ Test when the directed graph has a cycle, but has termini
+        """Test when the directed graph has a cycle, but has termini
 
-            A ------> B ---> D
-            ^         v
-            |         |
-            |         |
-            +--< C <--+
+        A ------> B ---> D
+        ^         v
+        |         |
+        |         |
+        +--< C <--+
         """
         a, b, c, d = (
             factories.ParticipantFactory.create(name=letter) for letter in "ABCD"
@@ -251,13 +251,13 @@ class GraphTests(TestCase):
             self.assertEqual(graph.isolated_cycles(par), [expected_cycle])
 
     def test_cycle_exists_with_extra_nodes_but_no_termini(self):
-        """ Test when the directed graph has a cycle and non-directionally relevant nodes!
+        """Test when the directed graph has a cycle and non-directionally relevant nodes!
 
-            A ------> B <--- D
-            ^         v
-            |         |
-            |         |
-            +--< C <--+
+        A ------> B <--- D
+        ^         v
+        |         |
+        |         |
+        +--< C <--+
         """
         a, b, c, d = (
             factories.ParticipantFactory.create(name=letter) for letter in "ABCD"
@@ -282,13 +282,13 @@ class GraphTests(TestCase):
         self.assertEqual(graph.isolated_cycles(c), [expected_cycle])
 
     def test_cycle_exists_but_with_irrelevant_participans(self):
-        """ Participant B is not in this lottery! There's no cycles in this case.
+        """Participant B is not in this lottery! There's no cycles in this case.
 
-            A -----> (B) --> D
-            ^         v
-            |         |
-            |         |
-            +--< C <--+
+        A -----> (B) --> D
+        ^         v
+        |         |
+        |         |
+        +--< C <--+
         """
         a, b, c, d = (
             factories.ParticipantFactory.create(name=letter) for letter in "ABCD"

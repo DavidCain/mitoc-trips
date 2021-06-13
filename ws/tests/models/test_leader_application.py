@@ -18,21 +18,21 @@ ACTIVITIES_WITHOUT_APPLICATIONS = [
 
 class AcceptingApplicationsTest(TestCase):
     def test_enumerations_comprehensive(self):
-        """ The above categorizations are comprehensive. """
+        """The above categorizations are comprehensive."""
         self.assertCountEqual(
             enums.Activity,
             [*ACTIVITIES_WITH_APPLICATIONS, *ACTIVITIES_WITHOUT_APPLICATIONS],
         )
 
     def test_no_form_not_accepting(self):
-        """ Activities without a defined form are not accepting applications. """
+        """Activities without a defined form are not accepting applications."""
         for activity_enum in ACTIVITIES_WITHOUT_APPLICATIONS:
             activity = activity_enum.value
             self.assertFalse(models.LeaderApplication.can_apply_for_activity(activity))
             self.assertFalse(models.LeaderApplication.accepting_applications(activity))
 
     def test_always_accepting(self):
-        """ Some activities are always accepting applications. """
+        """Some activities are always accepting applications."""
         self.assertTrue(
             models.LeaderApplication.accepting_applications(
                 enums.Activity.CLIMBING.value

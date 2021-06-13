@@ -39,7 +39,7 @@ class LectureAttendanceViewTest(TestCase):
         self.assertEqual(resp.status_code, 302)
 
     def test_no_participant(self):
-        """ Users who have no participant cannot mark attendance. """
+        """Users who have no participant cannot mark attendance."""
         some_other_par = factories.ParticipantFactory.create()
         resp = self._mark_attendance_for(some_other_par)
 
@@ -50,7 +50,7 @@ class LectureAttendanceViewTest(TestCase):
         )
 
     def test_regular_participant_marking_another(self):
-        """ Regular participants may not mark for others! """
+        """Regular participants may not mark for others!"""
         self._allow_setting_attendance()
 
         par = factories.ParticipantFactory.create()
@@ -66,7 +66,7 @@ class LectureAttendanceViewTest(TestCase):
         self.assertEqual(redir_resp.status_code, 403)
 
     def test_cannot_mark_attendance(self):
-        """ Participants may not be able to set their own attendance. """
+        """Participants may not be able to set their own attendance."""
         self._allow_setting_attendance(False)
 
         par = factories.ParticipantFactory.create()
@@ -84,7 +84,7 @@ class LectureAttendanceViewTest(TestCase):
         self.assertIn("Unable to record your attendance at this time.", messages)
 
     def test_mark_attendance(self):
-        """ Regular participants may mark their attendance if settings allow. """
+        """Regular participants may mark their attendance if settings allow."""
         self._allow_setting_attendance()
 
         par = factories.ParticipantFactory.create()
@@ -102,7 +102,7 @@ class LectureAttendanceViewTest(TestCase):
         self.assertIn("Marked as having attended lectures!", messages)
 
     def test_wsc_can_mark_attendance(self):
-        """ The WSC can mark other participants as having attended. """
+        """The WSC can mark other participants as having attended."""
         wsc_member = factories.ParticipantFactory.create()
         perm_utils.make_chair(wsc_member.user, enums.Activity.WINTER_SCHOOL)
         self.client.force_login(wsc_member.user)
@@ -132,14 +132,14 @@ class WinterSchoolSettingsTest(TestCase):
         return self.client.get('/winter_school/settings/')
 
     def test_not_wsc(self):
-        """ Only the WSC can view/modify. """
+        """Only the WSC can view/modify."""
         par = factories.ParticipantFactory.create()
         self.client.force_login(par.user)
         resp = self.client.get('/winter_school/settings/')
         self.assertEqual(resp.status_code, 403)
 
     def test_no_settings_to_start(self):
-        """ We can load even without the singleton being in the database. """
+        """We can load even without the singleton being in the database."""
         with self.assertRaises(models.WinterSchoolSettings.DoesNotExist):
             models.WinterSchoolSettings.objects.get()
 
@@ -149,7 +149,7 @@ class WinterSchoolSettingsTest(TestCase):
         self.assertTrue(settings.accept_applications)
 
     def test_change_settings(self):
-        """ The Winter Safety Committee can change Winter School settings. """
+        """The Winter Safety Committee can change Winter School settings."""
         self._load_as_wsc()
 
         # We started false!

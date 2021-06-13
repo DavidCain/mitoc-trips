@@ -33,7 +33,7 @@ class ClimbingLeaderApplicationTest(TestCase, Helpers):
         self.assertEqual(soup.find('p').text, expected_preamble)
 
     def test_key_fields_hidden(self):
-        """ With no default filter, we only show upcoming trips. """
+        """With no default filter, we only show upcoming trips."""
         _response, soup = self._get('/climbing/leaders/apply/')
         # "Archived" is a value that's set by leaders on existing applications
         self.assertFalse(soup.find('input', attrs={'name': 'archived'}))

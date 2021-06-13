@@ -38,7 +38,7 @@ class TripsBlastTest(TestCase):
 
     @staticmethod
     def _create_trip(**kwargs):
-        """ Create a trip with signups opening one week before, closing night before. """
+        """Create a trip with signups opening one week before, closing night before."""
         trip_date = kwargs.pop('trip_date')
         open_date = trip_date - timedelta(days=7)
         day_before = trip_date - timedelta(days=1)
@@ -52,13 +52,13 @@ class TripsBlastTest(TestCase):
 
     @freeze_time("Wed, 15 Jan 2020 14:45:00 EST")
     def test_no_email_sent(self):
-        """ When there are no current or upcoming trips, no email is sent. """
+        """When there are no current or upcoming trips, no email is sent."""
         send_trips_summary()
         self.assertFalse(mail.outbox)
 
     @freeze_time("Wed, 1 Jan 2020 12:25:00 EST")
     def test_no_future_trips(self):
-        """ We only mention current trips if there are no future trips. """
+        """We only mention current trips if there are no future trips."""
         send_trips_summary()
         [msg, *other_msgs] = mail.outbox
         self.assertFalse(other_msgs)
@@ -105,7 +105,7 @@ class TripsBlastTest(TestCase):
 
     @freeze_time("Wed, 1 Jan 2020 12:25:00 EST")
     def test_upcoming_trips(self):
-        """ We break trips into those that are open now, and those open in the future. """
+        """We break trips into those that are open now, and those open in the future."""
         future = self._create_trip(
             trip_date=date(2021, 11, 21),
             name="Future trip",

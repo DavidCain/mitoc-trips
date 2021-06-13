@@ -9,7 +9,7 @@ from ws.tests.messages import MessagesTestCase
 
 class ParticipantMessagesTest(MessagesTestCase):
     def test_anonymous_user(self):
-        """ With no participant object, no messages should be emitted. """
+        """With no participant object, no messages should be emitted."""
         request = self.factory.get('/')
 
         # Simulate the effects of the ParticipantMiddleware for an anonymous user
@@ -22,7 +22,7 @@ class ParticipantMessagesTest(MessagesTestCase):
         add_message.assert_not_called()
 
     def test_participant_with_current_info(self):
-        """ In the usual case (participant with current info, we do nothing. """
+        """In the usual case (participant with current info, we do nothing."""
         request = self.factory.get('/')
 
         par = factories.ParticipantFactory.create()
@@ -36,7 +36,7 @@ class ParticipantMessagesTest(MessagesTestCase):
         add_message.assert_not_called()
 
     def test_user_but_no_participant_on_request(self):
-        """ Users must have a participant in order to be on trips. """
+        """Users must have a participant in order to be on trips."""
         request = self.factory.get('/')
 
         # Simulate the effects of the ParticipantMiddleware for a known user
@@ -54,7 +54,7 @@ class ParticipantMessagesTest(MessagesTestCase):
         )
 
     def test_dated_participant(self):
-        """ Users must have up-to-date information to go on trips. """
+        """Users must have up-to-date information to go on trips."""
         request = self.factory.get('/')
 
         with freeze_time("2017-01-17 14:56:00 EST"):

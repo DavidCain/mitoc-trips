@@ -33,7 +33,7 @@ class RequiredModelForm(forms.ModelForm):
 
 class DiscountForm(forms.ModelForm):
     def clean_discounts(self):
-        """ Ensure the participant meets the requirements for each discount. """
+        """Ensure the participant meets the requirements for each discount."""
         participant = self.instance
         discounts = self.cleaned_data['discounts']
 
@@ -82,7 +82,7 @@ class ParticipantForm(DjangularRequiredModelForm):
         self.fields['email'].widget.choices = choices
 
     def clean_affiliation(self):
-        """ Require a valid MIT email address for MIT student affiliation. """
+        """Require a valid MIT email address for MIT student affiliation."""
         mit_student_codes = {
             affiliations.MIT_UNDERGRAD.CODE,
             affiliations.MIT_GRAD_STUDENT.CODE,
@@ -99,7 +99,7 @@ class ParticipantForm(DjangularRequiredModelForm):
 
 
 class ParticipantLookupForm(forms.Form):
-    """ Perform lookup of a given participant, loading on selection. """
+    """Perform lookup of a given participant, loading on selection."""
 
     participant = forms.ModelChoiceField(queryset=models.Participant.objects.all())
 
@@ -153,7 +153,7 @@ class LeaderRecommendationForm(forms.ModelForm):
 
 
 class ApplicationLeaderForm(DjangularRequiredModelForm):
-    """ Form for assigning a rating from a leader application.
+    """Form for assigning a rating from a leader application.
 
     Since the participant and activity are given by the application itself,
     we need not include those an options in the form.
@@ -168,7 +168,7 @@ class ApplicationLeaderForm(DjangularRequiredModelForm):
 
 
 class LeaderForm(DjangularRequiredModelForm):
-    """ Allows assigning a rating to participants in any allowed activity. """
+    """Allows assigning a rating to participants in any allowed activity."""
 
     def __init__(self, *args, **kwargs):
         allowed_activities = kwargs.pop("allowed_activities", None)
@@ -278,7 +278,7 @@ class TripForm(DjangularRequiredModelForm):
         }
 
     def clean_membership_required(self):
-        """ Ensure that all WS trips require membership. """
+        """Ensure that all WS trips require membership."""
         if self.cleaned_data.get('program') == enums.Program.WINTER_SCHOOL.value:
             return True
         return self.cleaned_data['membership_required']
@@ -295,7 +295,7 @@ class TripForm(DjangularRequiredModelForm):
         return new_max
 
     def clean(self):
-        """ Ensure that all leaders can lead the trip. """
+        """Ensure that all leaders can lead the trip."""
         super().clean()
 
         if 'program' not in self.cleaned_data or 'leaders' not in self.cleaned_data:
@@ -316,7 +316,7 @@ class TripForm(DjangularRequiredModelForm):
         return self.cleaned_data
 
     def clean_level(self):
-        """ Remove extra whitespace from the level, strip if not WS. """
+        """Remove extra whitespace from the level, strip if not WS."""
         program = self.cleaned_data.get('program')
         program_enum = enums.Program(program) if program else None
         if program_enum and not program_enum.winter_rules_apply():
@@ -324,7 +324,7 @@ class TripForm(DjangularRequiredModelForm):
         return self.cleaned_data.get('level', '').strip()
 
     def _init_wimp(self):
-        """ Configure the WIMP widget, load saved participant if applicable. """
+        """Configure the WIMP widget, load saved participant if applicable."""
         wimp = self.fields['wimp'].widget
         wimp.attrs['msg'] = "'Nobody'"
         wimp.attrs['exclude_self'] = 'true'
@@ -386,7 +386,7 @@ class SignUpForm(DjangularRequiredModelForm):
         return signup_notes
 
     def __init__(self, *args, **kwargs):
-        """ Set notes to required if trip notes are present.
+        """Set notes to required if trip notes are present.
 
         Trips should always be given via initial. We can check if the trip
         has a notes field this way.
@@ -407,7 +407,7 @@ class LeaderSignUpForm(SignUpForm):
 
 
 class LeaderParticipantSignUpForm(RequiredModelForm):
-    """ For leaders to sign up participants. Notes aren't required. """
+    """For leaders to sign up participants. Notes aren't required."""
 
     top_spot = BooleanField(
         required=False,
@@ -484,7 +484,7 @@ class WinterSchoolSettingsForm(DjangularRequiredModelForm):
 
 # TODO: This should be a class, not a method.
 def LeaderApplicationForm(*args, **kwargs):
-    """ Factory form for applying to be a leader in any activity. """
+    """Factory form for applying to be a leader in any activity."""
     activity = kwargs.pop('activity')
 
     class DynamicActivityForm(DjangularRequiredModelForm):
@@ -512,7 +512,7 @@ def LeaderApplicationForm(*args, **kwargs):
 
 
 def amount_choices(value_is_amount=False):
-    """ Yield all affiliation choices with the price in the label.
+    """Yield all affiliation choices with the price in the label.
 
     If `value_is_amount` is True, we'll replace the two-letter affiliation
     with the price as the choice's value.
@@ -538,7 +538,7 @@ def amount_choices(value_is_amount=False):
 
 
 class DuesForm(NgFormValidationMixin, Bootstrap3FormMixin, NgForm):
-    """ Provide a form that's meant to submit its data to CyberSource.
+    """Provide a form that's meant to submit its data to CyberSource.
 
     Specifically, each of these named fields is what's expected for MIT's
     payment system to process a credit card payment and link it to user-supplied

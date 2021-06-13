@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 # Initialize just one client, which can be re-used & refreshed
 @functools.lru_cache(maxsize=None)
 def connect_to_sheets():
-    """ Returns a Google Sheets client and the creds used by that client.
+    """Returns a Google Sheets client and the creds used by that client.
 
     If intentionally disabling Google Sheets functionality, `None` will be
     returned as both the client and client credentials. This occurs even if the
@@ -63,7 +63,7 @@ def connect_to_sheets():
 
 
 def with_refreshed_token(func):
-    """ By default, tokens are limited to 60 minutes. Refresh if expired. """
+    """By default, tokens are limited to 60 minutes. Refresh if expired."""
 
     def func_wrapper(*args, **kwargs):
         client, credentials = connect_to_sheets()
@@ -91,7 +91,7 @@ class SpreadsheetLabels(typing.NamedTuple):
 
 
 class SheetWriter:
-    """ Utility methods for formatting a row in discount worksheets. """
+    """Utility methods for formatting a row in discount worksheets."""
 
     # Use constants to refer to columns
     labels = SpreadsheetLabels(
@@ -105,7 +105,7 @@ class SheetWriter:
     )
 
     def __init__(self, discount):
-        """ Identify the columns that will be used in the spreadsheet. """
+        """Identify the columns that will be used in the spreadsheet."""
         self.discount = discount
 
         # These columns appear in all discount sheets
@@ -124,7 +124,7 @@ class SheetWriter:
 
     @staticmethod
     def activity_descriptors(participant, user):
-        """ Yield a description for each activity the participant is a leader.
+        """Yield a description for each activity the participant is a leader.
 
         Mentions if the person is a leader or a chair, but does not give their
         specific ranking.
@@ -140,7 +140,7 @@ class SheetWriter:
 
     @staticmethod
     def school(participant):
-        """ Return what school participant goes to, if applicable. """
+        """Return what school participant goes to, if applicable."""
         if not participant.is_student:
             return 'N/A'
         if participant.affiliation in {'MU', 'MG'}:
@@ -148,7 +148,7 @@ class SheetWriter:
         return 'Other'  # We don't collect non-MIT affiliation
 
     def access_text(self, participant):
-        """ Simple string indicating level of access person should have. """
+        """Simple string indicating level of access person should have."""
         if self.discount.administrators.filter(pk=participant.pk).exists():
             return 'Admin'
         if participant.is_leader:
@@ -159,7 +159,7 @@ class SheetWriter:
 
     @staticmethod
     def membership_status(user):
-        """ Return membership status, irrespective of waiver status.
+        """Return membership status, irrespective of waiver status.
 
         (Companies don't care about participant waiver status, so ignore it).
         """
@@ -174,7 +174,7 @@ class SheetWriter:
         return 'Missing'
 
     def get_row(self, participant, user):
-        """ Get the row values that match the header for this discount sheet. """
+        """Get the row values that match the header for this discount sheet."""
         row_mapper = {
             self.labels.name: participant.name,
             self.labels.email: participant.email,
@@ -199,7 +199,7 @@ def assign(cells, values):
 
 @with_refreshed_token
 def update_participant(discount, participant):
-    """ Add or update the participant.
+    """Add or update the participant.
 
     Much more efficient than updating the entire sheet.
     """
@@ -227,7 +227,7 @@ def update_participant(discount, participant):
 
 @with_refreshed_token
 def update_discount_sheet(discount):
-    """ Update the entire worksheet, updating all members' status.
+    """Update the entire worksheet, updating all members' status.
 
     This will remove members who no longer wish to share their information,
     so it's important to run this periodically.

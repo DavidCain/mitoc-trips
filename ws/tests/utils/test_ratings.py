@@ -14,7 +14,7 @@ class ApplicationManagerHelper:
     @classmethod
     @contextmanager
     def _mock_for_climbing(cls, num_chairs):
-        """ Mock away the number of climbing chairs!
+        """Mock away the number of climbing chairs!
 
         Also mock the query from climbing activity to climbing application, so
         that we need not hit the database.
@@ -34,7 +34,7 @@ class ApplicationManagerHelper:
 
 class OneChairTests(TestCase):
     def test_everything_needs_rating_with_one_chair(self):
-        """ When there's only one chair, every application needs ratings! """
+        """When there's only one chair, every application needs ratings!"""
         chair = factories.ParticipantFactory.create()
         perm_utils.make_chair(chair.user, enums.Activity.CLIMBING)
         # Filtering is done in Python, no need to save to db
@@ -50,7 +50,7 @@ class OneChairTests(TestCase):
 
 class DatabaselessOneChairTests(SimpleTestCase, ApplicationManagerHelper):
     def test_no_recommendations_needed_with_one_chair(self):
-        """ When there's only one chair, no applications need recommendations!
+        """When there's only one chair, no applications need recommendations!
 
         Recommendations are a mechanism of multiple chairs coming to a consensus
         on a prospective leader's rating. It doesn't make sense for a chair to
@@ -105,7 +105,7 @@ class DatabaseApplicationManagerTests(TestCase):
         return rating
 
     def test_applications_needing_recommendation(self):
-        """ Consider applications without a chair recommendation as requiring one! """
+        """Consider applications without a chair recommendation as requiring one!"""
         # We have three chairs!
         self.assertEqual(perm_utils.num_chairs(enums.Activity.CLIMBING), 3)
 
@@ -129,7 +129,7 @@ class DatabaseApplicationManagerTests(TestCase):
             self.assertEqual(manager.needs_rec(pending_apps), [self.application])
 
     def test_rating_deactivated(self):
-        """ Application is always considered handled if a rating was given afterwards.
+        """Application is always considered handled if a rating was given afterwards.
 
         We only consider an application "pending" if the leader in question has
         not been given a leader rating after the date of the actual application.
@@ -163,7 +163,7 @@ class DatabaseApplicationManagerTests(TestCase):
         self.assertFalse(charlie_manager.pending_applications())
 
     def test_archived_application(self):
-        """ Archived applications are not shown as pending. """
+        """Archived applications are not shown as pending."""
         self.application.archived = True
         self.application.save()
         manager = self._manager_for(self.bob)

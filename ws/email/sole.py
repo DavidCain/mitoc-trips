@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 def send_email_to_funds(trip, recipient='sole-desk@mit.edu'):
-    """ Register the trip with SOLE for insurance & liability reasons.
+    """Register the trip with SOLE for insurance & liability reasons.
 
     This automated email is taking the place of SOLE's Student Travel Form.
 

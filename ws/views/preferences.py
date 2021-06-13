@@ -28,7 +28,7 @@ class LotteryPairingView(CreateView, LotteryPairingMixin):
     success_url = reverse_lazy('lottery_preferences')
 
     def get_context_data(self, **kwargs):
-        """ Get a list of all other participants who've requested pairing. """
+        """Get a list of all other participants who've requested pairing."""
         context = super().get_context_data(**kwargs)
         self.participant = self.request.participant
         context['pair_requests'] = self.pair_requests
@@ -36,7 +36,7 @@ class LotteryPairingView(CreateView, LotteryPairingMixin):
         return context
 
     def get_form_kwargs(self):
-        """ Edit existing instance, prevent user from pairing with self. """
+        """Edit existing instance, prevent user from pairing with self."""
         kwargs = super().get_form_kwargs()
         kwargs['participant'] = participant = self.request.participant
         kwargs['exclude_self'] = True
@@ -54,7 +54,7 @@ class LotteryPairingView(CreateView, LotteryPairingMixin):
         return super().form_valid(form)
 
     def add_pairing_messages(self):
-        """ Add messages that explain next steps for lottery pairing. """
+        """Add messages that explain next steps for lottery pairing."""
         self.participant = self.request.participant
         paired_par = self.paired_par
 
@@ -152,7 +152,7 @@ class LotteryPreferencesView(TemplateView, LotteryPairingMixin):
 
     @property
     def ranked_signups_dict(self):
-        """ Used by the Angular trip-ranking widget. """
+        """Used by the Angular trip-ranking widget."""
         return [
             {'id': s.pk, 'trip': {'id': s.trip.pk, 'name': s.trip.name}}
             for s in self.ranked_signups
@@ -216,7 +216,7 @@ class LotteryPreferencesView(TemplateView, LotteryPairingMixin):
         return JsonResponse(resp, status=status)
 
     def save_signups(self):
-        """ Save the rankings given by the participant, optionally removing any signups. """
+        """Save the rankings given by the participant, optionally removing any signups."""
         par = self.request.participant
         posted_signups = self.post_data['signups']
         required_fields: Set[str] = {'id', 'deleted', 'order'}
@@ -244,7 +244,7 @@ class LotteryPreferencesView(TemplateView, LotteryPairingMixin):
         models.SignUp.objects.bulk_update(signups, ['order'])
 
     def handle_paired_signups(self):
-        """ For participants who might be paired, warn if other participant hasn't signed up.
+        """For participants who might be paired, warn if other participant hasn't signed up.
 
         We can only place paired participants on a trip together if *both* of them have signed up.
         Accordingly, any paired participant trying to rank a trip for the two of them will be

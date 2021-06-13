@@ -28,7 +28,7 @@ from ws.decorators import chairs_only, user_info_required
 
 
 class LeaderApplicationMixin(ratings_utils.LeaderApplicationMixin):
-    """ Superclass for any view involving leader applications.
+    """Superclass for any view involving leader applications.
 
     (Either participants creating one, or chairs viewing application(s).
 
@@ -37,7 +37,7 @@ class LeaderApplicationMixin(ratings_utils.LeaderApplicationMixin):
 
     @property
     def activity(self):
-        """ The activity, should be verified by the dispatch method. """
+        """The activity, should be verified by the dispatch method."""
         # TODO: `self.kwargs` isn't obviously available...
         # I should probably just refactor this whole mixin hierarchy.
         return self.kwargs['activity']  # type: ignore
@@ -52,11 +52,11 @@ class LeaderApplicationMixin(ratings_utils.LeaderApplicationMixin):
 
 
 class ApplicationManager(ratings_utils.ApplicationManager, LeaderApplicationMixin):
-    """ Superclass for views where chairs are viewing one or more applications. """
+    """Superclass for views where chairs are viewing one or more applications."""
 
     @property
     def chair(self):
-        """ The viewing participant should be an activity chair. """
+        """The viewing participant should be an activity chair."""
         return self.request.participant
 
 
@@ -71,7 +71,7 @@ class LeaderApplyView(LeaderApplicationMixin, CreateView):  # type: ignore[misc]
         return reverse('become_leader', kwargs={'activity': self.activity})
 
     def get_form_kwargs(self):
-        """ Pass the needed "activity" parameter for dynamic form construction. """
+        """Pass the needed "activity" parameter for dynamic form construction."""
         kwargs = super().get_form_kwargs()
         kwargs['activity'] = self.activity
 
@@ -84,7 +84,7 @@ class LeaderApplyView(LeaderApplicationMixin, CreateView):  # type: ignore[misc]
         return kwargs
 
     def get_queryset(self):
-        """ For looking up if any recent applications have been completed. """
+        """For looking up if any recent applications have been completed."""
         applications = self.model.objects
         if self.activity == enums.Activity.WINTER_SCHOOL.value:
             return applications.filter(year=self.application_year)
@@ -99,7 +99,7 @@ class LeaderApplyView(LeaderApplicationMixin, CreateView):  # type: ignore[misc]
         return models.LeaderApplication.application_year_for_activity(self.activity)
 
     def form_valid(self, form):
-        """ Link the application to the submitting participant. """
+        """Link the application to the submitting participant."""
         application = form.save(commit=False)
         application.year = self.application_year
         application.participant = self.par
@@ -108,7 +108,7 @@ class LeaderApplyView(LeaderApplicationMixin, CreateView):  # type: ignore[misc]
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
-        """ Get any existing application and rating. """
+        """Get any existing application and rating."""
         context = super().get_context_data(**kwargs)
 
         context['activity_enum'] = enums.Activity(self.activity)
@@ -143,7 +143,7 @@ class AllLeaderApplicationsView(ApplicationManager, ListView):  # type: ignore[m
     template_name = 'chair/applications/all.html'
 
     def get_queryset(self):
-        """ Annotate each application with its number of recs & ratings. """
+        """Annotate each application with its number of recs & ratings."""
         return self.sorted_annotated_applications()
 
     @staticmethod
@@ -194,14 +194,14 @@ class AllLeaderApplicationsView(ApplicationManager, ListView):  # type: ignore[m
 
 # model is a property on LeaderApplicationMixin, but a class attribute on SingleObjectMixin
 class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type: ignore[misc]
-    """ Handle applications by participants to become leaders. """
+    """Handle applications by participants to become leaders."""
 
     form_class = forms.ApplicationLeaderForm
     context_object_name = 'application'
     template_name = 'chair/applications/view.html'
 
     def get_success_url(self):
-        """ Get the next application in this queue.
+        """Get the next application in this queue.
 
         (i.e. if this was an application needing a recommendation,
         move to the next application without a recommendation)
@@ -212,7 +212,7 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type:
         return reverse('manage_applications', args=(self.activity,))
 
     def get_other_apps(self):
-        """ Get the applications that come before and after this in the queue.
+        """Get the applications that come before and after this in the queue.
 
         Each "queue" is of applications that need recommendations or ratings.
         """
@@ -251,7 +251,7 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type:
 
     @property
     def existing_rec(self):
-        """ Load an existing recommendation for the viewing participant. """
+        """Load an existing recommendation for the viewing participant."""
         if not hasattr(self, '_existing_rec'):
             find_rec = Q(
                 creator=self.chair,
@@ -265,11 +265,11 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type:
         return self._existing_rec
 
     def default_to_recommendation(self):
-        """ Whether to default the form to a recommendation or not. """
+        """Whether to default the form to a recommendation or not."""
         return False if self.num_chairs < 2 else not self.existing_rec
 
     def get_initial(self):
-        """ Load an existing rating if one exists.
+        """Load an existing rating if one exists.
 
         Because these applications are supposed to be done with leaders that
         have no active rating in the activity, this should almost always be
@@ -284,7 +284,7 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type:
 
     @property
     def assigned_rating(self):
-        """ Return any rating given in response to this application. """
+        """Return any rating given in response to this application."""
         in_future = Q(
             participant=self.object.participant,
             activity=self.activity,
@@ -302,7 +302,7 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type:
         return Q()
 
     def get_recommendations(self, assigned_rating=None):
-        """ Get recommendations made by leaders/chairs for this application.
+        """Get recommendations made by leaders/chairs for this application.
 
         Only show recommendations that were made for this application. That is,
         don't show recommendations made before the application was created (they must
@@ -316,7 +316,7 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type:
         return recs.select_related('creator')
 
     def get_feedback(self):
-        """ Return all feedback for the participant.
+        """Return all feedback for the participant.
 
         Activity chairs see the complete history of feedback (without the normal
         "clean slate" period). The only exception is that activity chairs cannot
@@ -363,7 +363,7 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type:
         return context
 
     def form_valid(self, form):
-        """ Save the rating as a recommendation or a binding rating. """
+        """Save the rating as a recommendation or a binding rating."""
         # After saving, the order of applications changes
         _, self.next_app = self.get_other_apps()  # Obtain next in current order
 
@@ -395,7 +395,7 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type:
         return super().form_valid(form)
 
     def post(self, request, *args, **kwargs):
-        """ Create the leader's rating, redirect to other applications. """
+        """Create the leader's rating, redirect to other applications."""
         self.object = self.get_object()
         form = self.get_form()
 
@@ -405,7 +405,7 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type:
 
     @method_decorator(chairs_only())
     def dispatch(self, request, *args, **kwargs):
-        """ Redirect if anonymous, but deny permission if not a chair. """
+        """Redirect if anonymous, but deny permission if not a chair."""
         try:
             activity_enum = enums.Activity(self.activity)
         except ValueError:

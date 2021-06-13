@@ -19,7 +19,7 @@ class MutexTaskTests(SimpleTestCase):
         self.addCleanup(patched.stop)
 
     def test_lock_format_default_naming(self):
-        """ By default, we just use the function name as a unique lock ID. """
+        """By default, we just use the function name as a unique lock ID."""
 
         @tasks.mutex_task()
         def some_unique_task_name(positional_arg):
@@ -30,7 +30,7 @@ class MutexTaskTests(SimpleTestCase):
         self.cache.delete.assert_called_with('some_unique_task_name')
 
     def test_lock_format_custom_naming(self):
-        """ The decorator accepts a string that formats the task ID.
+        """The decorator accepts a string that formats the task ID.
 
         Specifically, this decorator can access both positional arguments
         and optional arguments.
@@ -45,7 +45,7 @@ class MutexTaskTests(SimpleTestCase):
         self.cache.delete.assert_called_with('hello-there')
 
     def test_lock_always_released(self):
-        """ Even when raising exceptions, the lock is released. """
+        """Even when raising exceptions, the lock is released."""
 
         @tasks.mutex_task()
         def divide(numerator, denominator):
@@ -58,7 +58,7 @@ class MutexTaskTests(SimpleTestCase):
         self.cache.delete.assert_called_with('divide')
 
     def test_lock_already_held(self):
-        """ Tasks don't execute when a lock is already held. """
+        """Tasks don't execute when a lock is already held."""
         inner_logic = mock.Mock()
 
         @tasks.mutex_task('do_thing-{unique_id}')
@@ -103,7 +103,7 @@ class TaskTests(TestCase):
     @freeze_time("Fri, 25 Jan 2019 03:00:00 EST")
     @mock.patch('ws.tasks.send_email_to_funds')
     def test_send_tomorrow_itiniraries(send_email_to_funds):
-        """ Only trips taking place the next day have itineraries sent out. """
+        """Only trips taking place the next day have itineraries sent out."""
         _yesterday, _today, tomorrow, _two_days_from_now = [
             factories.TripFactory.create(
                 trip_date=date(2019, 1, day), info=factories.TripInfoFactory.create()
@@ -144,7 +144,7 @@ class TaskTests(TestCase):
     def test_discount_tasks_share_same_key(
         update_participant, update_discount_sheet, mock_cache
     ):
-        """ All tasks modifying the same discount sheet must share a task ID.
+        """All tasks modifying the same discount sheet must share a task ID.
 
         This prevents multiple tasks modifying the Google Sheet at the same time.
         """
@@ -160,7 +160,7 @@ class TaskTests(TestCase):
 
 
 class DiscountsWithoutGaKeyTest(TestCase):
-    """ Test our handling of discounts which opt out of the Google Sheets flow. """
+    """Test our handling of discounts which opt out of the Google Sheets flow."""
 
     def setUp(self):
         self.par = factories.ParticipantFactory.create()
@@ -168,7 +168,7 @@ class DiscountsWithoutGaKeyTest(TestCase):
         self.discount = factories.DiscountFactory.create(ga_key='')
 
     def test_update_sheet_for_participant(self):
-        """ If we mistakenly wrote a discount without a Google Sheets key, Celery handles it. """
+        """If we mistakenly wrote a discount without a Google Sheets key, Celery handles it."""
         # Participants shouldn't be able to opt in to these discounts,
         # but make sure Celery doesn't choke if they do.
         self.par.discounts.add(self.discount)
@@ -183,7 +183,7 @@ class DiscountsWithoutGaKeyTest(TestCase):
         update_par.assert_not_called()
 
     def test_update_sheet(self):
-        """ Updating just a single sheet is handled if that sheet has no Google Sheets key. """
+        """Updating just a single sheet is handled if that sheet has no Google Sheets key."""
         with mock.patch.object(member_sheets, 'update_participant') as update_par:
             with mock.patch.object(tasks.logger, 'error') as log_error:
                 tasks.update_discount_sheet(self.discount.pk)
@@ -193,7 +193,7 @@ class DiscountsWithoutGaKeyTest(TestCase):
 
     @staticmethod
     def test_update_all():
-        """ When updating the sheets for all discounts, we exclude ones without a sheet. """
+        """When updating the sheets for all discounts, we exclude ones without a sheet."""
         # Because this discount has no Google Sheets key, we don't do anything
         with mock.patch.object(tasks.update_discount_sheet, 's') as update_sheet:
             tasks.update_all_discount_sheets()

@@ -11,14 +11,14 @@ from ws.utils.dates import localize
 
 class LotteryRulesTest(SimpleTestCase):
     def test_single_trip_pairing_winter_school(self):
-        """ If a former lottery trip is now FCFS, we don't consider pairing. """
+        """If a former lottery trip is now FCFS, we don't consider pairing."""
         fcfs_trip = factories.TripFactory.build(
             algorithm='lottery', program=enums.Program.WINTER_SCHOOL
         )
         self.assertFalse(fcfs_trip.single_trip_pairing)
 
     def test_single_trip_pairing_but_fcfs(self):
-        """ If a former lottery trip is now FCFS, we don't consider pairing. """
+        """If a former lottery trip is now FCFS, we don't consider pairing."""
         fcfs_trip = factories.TripFactory.build(
             algorithm='fcfs', honor_participant_pairing=True
         )
@@ -54,7 +54,7 @@ class FeedbackWindowTripTest(SimpleTestCase):
 
 class OtherTripsByParticipantTest(TestCase):
     def setUp(self):
-        """ Make three trips, and three participants signed up for a subset of each. """
+        """Make three trips, and three participants signed up for a subset of each."""
 
         def _place_on_trip(trip, par):
             return factories.SignUpFactory.create(
@@ -137,7 +137,7 @@ class OtherTripsByParticipantTest(TestCase):
 class CleanTest(SimpleTestCase):
     @freeze_time("2020-01-16 18:45:22 EST")
     def test_winter_school_trip_between_lotteries(self):
-        """ Any Winter School trip made between lotteries becomes a FCFS trip. """
+        """Any Winter School trip made between lotteries becomes a FCFS trip."""
         # This is a last-minute trip, will be coerced to FCFS
         trip = factories.TripFactory.build(
             algorithm='lottery',
@@ -158,7 +158,7 @@ class CleanTest(SimpleTestCase):
 
     @freeze_time("2020-01-16 18:45:22 EST")
     def test_non_winter_school_trip_between_lotteries(self):
-        """ We don't affect the lottery algorithm for non-WS trips! """
+        """We don't affect the lottery algorithm for non-WS trips!"""
         # This is a last-minute trip, but it will remain 'lottery' since it's not WS
         trip = factories.TripFactory.build(
             algorithm='lottery',

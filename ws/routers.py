@@ -3,7 +3,7 @@ def label_is_both(label):
 
 
 def label_is_auth(label):
-    """ Return if the label belongs exclusively to the auth_db. """
+    """Return if the label belongs exclusively to the auth_db."""
     return label in {'auth', 'account', 'admin', 'sessions'}
 
 

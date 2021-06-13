@@ -73,7 +73,7 @@ class UpdateMembershipCacheTest(TestCase):
         self.assertIsNone(participant.membership.waiver_expires)
 
     def test_refresh_targets(self):
-        """ We refresh any participant without a membership or with a stale cache. """
+        """We refresh any participant without a membership or with a stale cache."""
         # Participant has no cached membership!
         no_membership_participant = factories.ParticipantFactory.create(membership=None)
 
@@ -105,7 +105,7 @@ class UpdateMembershipCacheTest(TestCase):
 @freeze_time("2019-03-19 14:30:00 EST")
 class RefreshAllMembershipCacheTest(TestCase):
     def test_refresh_targets(self):
-        """ We refresh any participant without a membership or with a stale cache. """
+        """We refresh any participant without a membership or with a stale cache."""
         # Participant has no cached membership!
         no_membership_participant = factories.ParticipantFactory.create(membership=None)
 
@@ -172,7 +172,7 @@ class CanAttendTripTests(TestCase):
         update_cache.assert_not_called()
 
     def test_fails_to_update_cache(self):
-        """ If the gear database is down, we just allow participants to attend. """
+        """If the gear database is down, we just allow participants to attend."""
         participant = factories.ParticipantFactory.create(membership=None)
 
         with mock.patch.object(membership, 'update_membership_cache') as update_cache:
@@ -182,7 +182,7 @@ class CanAttendTripTests(TestCase):
         update_cache.assert_called_once_with(participant)
 
     def test_cache_updated(self):
-        """ If our local cache is outdated, we must hit the gear database for updates. """
+        """If our local cache is outdated, we must hit the gear database for updates."""
         with freeze_time("2018-10-23 14:55:45 EST"):  # (Will have old `last_cached`)
             dated_membership = factories.MembershipFactory.create(
                 membership_expires=date(2018, 11, 18),  # Active, expires before trip
@@ -198,7 +198,7 @@ class CanAttendTripTests(TestCase):
         )
 
         def update_participant_membership(par):
-            """ Update the membership record (as if they'd renewed today!) """
+            """Update the membership record (as if they'd renewed today!)"""
             par.update_membership(
                 membership_expires=date(2019, 11, 19), waiver_expires=date(2019, 11, 19)
             )

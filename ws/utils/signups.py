@@ -6,7 +6,7 @@ from ws import models
 
 
 def next_in_order(signup, manual_order=None):
-    """ Add the signup to the next-ordered spot on the trip or in waitlist.
+    """Add the signup to the next-ordered spot on the trip or in waitlist.
 
     Waitlists are ordered in reverse so that those without a manual override
     on their ordering (manual_order = None) will always appear below those that
@@ -36,7 +36,7 @@ def next_in_order(signup, manual_order=None):
 
 @transaction.atomic
 def add_to_waitlist(signup, request=None, prioritize=False, top_spot=False):
-    """ Add the given signup to the waitlist, optionally prioritizing it. """
+    """Add the given signup to the waitlist, optionally prioritizing it."""
     signup.on_trip = False
     signup.save()
 
@@ -57,7 +57,7 @@ def add_to_waitlist(signup, request=None, prioritize=False, top_spot=False):
 def trip_or_wait(
     signup, request=None, prioritize=False, top_spot=False, trip_must_be_open=False
 ):
-    """ Given a signup object, attempt to place the participant on the trip.
+    """Given a signup object, attempt to place the participant on the trip.
 
     If the trip is full, instead place that person on the waiting list.
 
@@ -95,7 +95,7 @@ def trip_or_wait(
 
 
 def update_queues_if_trip_open(trip):
-    """ Update queues if the trip is an open, first-come, first-serve trip.
+    """Update queues if the trip is an open, first-come, first-serve trip.
 
     This is intended to be used when the trip size changes (either from changing
     the maximum participants, or from somebody else dropping off).
@@ -120,7 +120,7 @@ def update_queues_if_trip_open(trip):
 
 
 def non_trip_participants(trip):
-    """ All participants not currently on the given trip. """
+    """All participants not currently on the given trip."""
     all_participants = models.Participant.objects.all()
     signups = trip.signup_set.filter(on_trip=True)
     par_on_trip = Q(pk__in=trip.leaders.all()) | Q(signup__in=signups)
@@ -128,7 +128,7 @@ def non_trip_participants(trip):
 
 
 def _prioritize_wl_signup(waitlist_signup, top_spot=False):
-    """ Add the signup towards the top of the list.
+    """Add the signup towards the top of the list.
 
     If top_spot=True, place above all waitlist spots. Otherwise,
     place below all other previous priority waitlist spots, but above

@@ -13,15 +13,15 @@ from ws.utils.dates import local_date
 
 
 class NoUserTests(SimpleTestCase):
-    """ Convenience methods neatly handle missing or anonymous users. """
+    """Convenience methods neatly handle missing or anonymous users."""
 
     def test_expiration_no_emails(self):
-        """ Test users with no email addresses. """
+        """Test users with no email addresses."""
         self.assertIsNone(geardb.user_membership_expiration(None))
         self.assertIsNone(geardb.user_membership_expiration(AnonymousUser()))
 
     def test_verified_email_no_user(self):
-        """ Test users with no email addresses. """
+        """Test users with no email addresses."""
         self.assertEqual(geardb.verified_emails(AnonymousUser()), [])
         self.assertEqual(geardb.verified_emails(None), [])
 
@@ -31,7 +31,7 @@ class MembershipExpirationTests(TestCase):
 
     @unittest.mock.patch('ws.utils.geardb.matching_memberships')
     def test_split_membership(self, matching_memberships):
-        """ We handle a membership and waiver split across two emails. """
+        """We handle a membership and waiver split across two emails."""
         memberships_by_email = {
             'active_waiver@example.com': {
                 'membership': {
@@ -62,7 +62,7 @@ class MembershipExpirationTests(TestCase):
 
     @unittest.mock.patch('ws.utils.geardb.matching_memberships')
     def test_newest_waiver_taken(self, matching_memberships):
-        """ If an old membership has an active waiver, use it! """
+        """If an old membership has an active waiver, use it!"""
         one_month_later = local_date() + timedelta(days=30)
         memberships_by_email = {
             '1@example.com': {
@@ -117,7 +117,7 @@ class MembershipExpirationTests(TestCase):
 
 class MembershipSQLHelpers:
     def tearDown(self):
-        """ Because of MySQL, each test's insertions aren't reverted. """
+        """Because of MySQL, each test's insertions aren't reverted."""
         with self.cursor as cursor:
             cursor.execute('delete from geardb_peopleemails;')
             cursor.execute('delete from people_waivers;')
@@ -170,12 +170,12 @@ class MembershipTests(MembershipSQLHelpers, TestCase):
     """ Test the underlying SQL that drives membership queries. """
 
     def test_no_people_record(self):
-        """ Without a match, nothing is returned. """
+        """Without a match, nothing is returned."""
         matches = geardb.matching_memberships(['not.in.database@example.com'])
         self.assertEqual(matches, OrderedDict())
 
     def test_no_membership_waiver(self):
-        """ People records can still be returned without a membership or waiver. """
+        """People records can still be returned without a membership or waiver."""
         self.create_tim()
         self.assertEqual(
             self.just_tim,
@@ -191,7 +191,7 @@ class MembershipTests(MembershipSQLHelpers, TestCase):
         )
 
     def test_just_waiver(self):
-        """ Participants can sign waivers without paying for a membership. """
+        """Participants can sign waivers without paying for a membership."""
         person_id = self.create_tim()
         with self.cursor as cursor:
             cursor.execute(
@@ -215,7 +215,7 @@ class MembershipTests(MembershipSQLHelpers, TestCase):
         )
 
     def test_just_membership(self):
-        """ Participants can have memberships without waivers. """
+        """Participants can have memberships without waivers."""
         person_id = self.create_tim()
         with self.cursor as cursor:
             cursor.execute(
@@ -252,7 +252,7 @@ class AlternateEmailTests(MembershipSQLHelpers, TestCase):
         self.assertEqual({email: expected}, dict(results))
 
     def test_just_one_record(self):
-        """ When requesting records under many emails, just one is returned.
+        """When requesting records under many emails, just one is returned.
 
         (Provided that the primary email is included in the lookup list)
         """
@@ -269,7 +269,7 @@ class AlternateEmailTests(MembershipSQLHelpers, TestCase):
         self.expect_under_email('tim@mit.edu', lookup=all_emails)
 
     def test_alternate_email(self):
-        """ We can look up participants by other emails. """
+        """We can look up participants by other emails."""
         person_id = self.create_tim()
 
         # First, there is no known membership for the other email
@@ -288,7 +288,7 @@ class AlternateEmailTests(MembershipSQLHelpers, TestCase):
 
 
 class MembershipFormattingTests(SimpleTestCase):
-    """ Test formatting of membership records, independent of the SQL. """
+    """Test formatting of membership records, independent of the SQL."""
 
     email = 'foo@example.com'
 
@@ -299,7 +299,7 @@ class MembershipFormattingTests(SimpleTestCase):
 
     @classmethod
     def setUp(cls):
-        """ Use some convenience dates.
+        """Use some convenience dates.
 
         All we care about when testing is that the dates are in the past or the
         future. Create two of each so we can be sure the right date was put
@@ -318,7 +318,7 @@ class MembershipFormattingTests(SimpleTestCase):
         )
 
     def test_membership_formatting(self):
-        """ Test formatting of a normal, non-expired membership. """
+        """Test formatting of a normal, non-expired membership."""
         formatted = self.fmt(membership_expires='future', waiver_expires='future2')
         expected = {
             'membership': {'expires': self.future, 'active': True, 'email': self.email},
@@ -328,7 +328,7 @@ class MembershipFormattingTests(SimpleTestCase):
         self.assertEqual(formatted, expected)
 
     def test_expired(self):
-        """ Check output when both membership and waiver expired. """
+        """Check output when both membership and waiver expired."""
         formatted = self.fmt(membership_expires='past', waiver_expires='past2')
         expected = {
             'membership': {'expires': self.past, 'active': False, 'email': self.email},
@@ -338,7 +338,7 @@ class MembershipFormattingTests(SimpleTestCase):
         self.assertEqual(formatted, expected)
 
     def test_bad_waiver(self):
-        """ Check output when membership is valid, but waiver is not. """
+        """Check output when membership is valid, but waiver is not."""
         # First, check an expired waiver
         formatted = self.fmt(membership_expires='future', waiver_expires='past')
         waiver = {'expires': self.past, 'active': False}
@@ -356,7 +356,7 @@ class MembershipFormattingTests(SimpleTestCase):
         self.assertEqual(no_waiver, expected)
 
     def test_bad_membership(self):
-        """ Check output when waiver is valid, but membership is not. """
+        """Check output when waiver is valid, but membership is not."""
         # First, check an expired membership
         formatted = self.fmt(membership_expires='past', waiver_expires='future')
         membership = {'expires': self.past, 'active': False, 'email': self.email}

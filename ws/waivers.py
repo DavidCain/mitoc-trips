@@ -11,7 +11,7 @@ AFFILIATION_MAPPING = {aff.CODE: aff.VALUE for aff in affiliations.ALL}
 
 
 class Person(typing.NamedTuple):
-    """ A human involved in the waiver process.
+    """A human involved in the waiver process.
 
     Generally, this is the Releasor (primary person signing the waiver).
     If the Releasor is a minor, though, this can be their guardian.
@@ -33,7 +33,7 @@ class InitiatedWaiverResult(typing.NamedTuple):
 
 
 def get_headers() -> Dict[str, str]:
-    """ Get standard headers to be used with every DocuSign API request. """
+    """Get standard headers to be used with every DocuSign API request."""
     creds = ET.Element('DocuSignCredentials')
     ET.SubElement(creds, 'Username').text = settings.DOCUSIGN_USERNAME
     ET.SubElement(creds, 'Password').text = settings.DOCUSIGN_PASSWORD
@@ -45,7 +45,7 @@ def get_headers() -> Dict[str, str]:
 
 
 def get_base_url() -> str:
-    """ Get the base URL from which API requests must be made.
+    """Get the base URL from which API requests must be made.
 
     DocuSign does not guarantee that this URL remains static, so query
     it every time we intend to use the API.
@@ -60,7 +60,7 @@ def get_base_url() -> str:
 
 
 def prefilled_tabs(participant):
-    """ Return tabs that are pre-filled for the Releasor role. """
+    """Return tabs that are pre-filled for the Releasor role."""
     e_contact = participant.emergency_info.emergency_contact
     docusign_affiliation = AFFILIATION_MAPPING[participant.affiliation]
     return {
@@ -88,7 +88,7 @@ def get_roles(
     participant: Optional[models.Participant] = None,
     guardian: Optional[Person] = None,
 ) -> List[Dict[str, str]]:
-    """ Return the role definitions, with pre-filled data if available.
+    """Return the role definitions, with pre-filled data if available.
 
     When we create the envelope, the waiver will be sent to the releasor (and a
     guardian, if one is given).
@@ -131,7 +131,7 @@ def sign_embedded(
     envelope_id: str,
     base_url: Optional[str] = None,
 ) -> str:
-    """ Take a known user and go straight to the waiver flow.
+    """Take a known user and go straight to the waiver flow.
 
     Normally, we would rely on a waiver being sent to a user's email address
     in order to know that they own the email address. However, in this case,
@@ -160,7 +160,7 @@ def initiate_waiver(
     releasor: Optional[Person],
     guardian: Optional[Person],
 ) -> InitiatedWaiverResult:
-    """ Create a waiver & send it to the participant (releasor).
+    """Create a waiver & send it to the participant (releasor).
 
     If the participant does not exist (i.e. somebody who's just signing with
     their name and email address), do not attempt to pre-fill the form.

@@ -56,7 +56,7 @@ class WarnIfPasswordInsecureTests(MessagesTestCase):
         add_message.assert_not_called()
 
     def test_participant_with_insecure_password(self):
-        """ Test core behavior of the generator - a known participant with a bad password. """
+        """Test core behavior of the generator - a known participant with a bad password."""
         # Use the test client, since RequestFactory can't handle messages
         user = UserFactory.create(email='fake@example.com', password='password')
         par = ParticipantFactory.create(
@@ -87,7 +87,7 @@ class WarnIfPasswordInsecureTests(MessagesTestCase):
         )
 
     def test_participant_with_insecure_password_on_change_password(self):
-        """ Make sure the message isn't rendered if already changing password.
+        """Make sure the message isn't rendered if already changing password.
 
         The change password template gives a full explanation of why the user's password
         is marked insecure, so there's no reason to also supply a message.

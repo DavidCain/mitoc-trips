@@ -50,7 +50,7 @@ MANUAL_MAPPING = {
 
 
 def migrate_activity_to_program(apps, schema_editor):
-    """ Migrate some activity types to use a program, don't trigger signals. """
+    """Migrate some activity types to use a program, don't trigger signals."""
     Trip = apps.get_model('ws', 'Trip')
     for activity, program in ACTIVITY_TO_PROGRAM.items():
         Trip.objects.filter(activity=activity).update(program=program)

@@ -7,7 +7,7 @@ class LotteryInfoTest(TestCase):
         self.assertFalse(info.reciprocally_paired_with)
 
     def test_not_saved_yet(self):
-        """ Handles the case of not being saved yet, where it has a null PK. """
+        """Handles the case of not being saved yet, where it has a null PK."""
         par = factories.ParticipantFactory.build()
         other = factories.ParticipantFactory.build()
         info = factories.LotteryInfoFactory.build(participant=par, paired_with=other)

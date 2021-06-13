@@ -4,7 +4,7 @@ from django.contrib.auth.models import Group
 class PermHelpers:
     @staticmethod
     def mark_leader(user):
-        """ Mark the user as belonging to the leaders group.
+        """Mark the user as belonging to the leaders group.
 
         Note that some views may expect a LeaderRating to be present for the
         user's Participant object. This is sufficient to pass access control, though.
@@ -14,7 +14,7 @@ class PermHelpers:
 
     @staticmethod
     def mark_participant(user):
-        """ Mark the user as having participation information.
+        """Mark the user as having participation information.
 
         Note that this may not be enough to allow access to participant-only
         pages. In the cases of bad phone numbers, non-verified emails, or any

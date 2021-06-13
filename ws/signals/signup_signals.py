@@ -24,9 +24,9 @@ logger = logging.getLogger(__name__)
 
 @receiver(post_save, sender=SignUp)
 def new_fcfs_signup(sender, instance, created, raw, using, update_fields, **kwargs):
-    """ Handles first-come, first-serve signups:
+    """Handles first-come, first-serve signups:
 
-        When a participant tries to sign up, put them on the trip, or its waiting list.
+    When a participant tries to sign up, put them on the trip, or its waiting list.
     """
     if created and not getattr(instance, 'skip_signals', False):
         trip_or_wait(instance)
@@ -34,7 +34,7 @@ def new_fcfs_signup(sender, instance, created, raw, using, update_fields, **kwar
 
 @receiver(pre_delete, sender=Trip)
 def empty_waitlist(sender, instance, using, **kwargs):
-    """ Before emptying a Trip, empty the waitlist.
+    """Before emptying a Trip, empty the waitlist.
 
     This is needed because `free_spot_on_trip` will be triggered as part of the
     trip deletion process. If signups on the trip are deleted with a waitlist
@@ -49,15 +49,14 @@ def empty_waitlist(sender, instance, using, **kwargs):
 
 @receiver(post_delete, sender=SignUp)
 def free_spot_on_trip(sender, instance, using, **kwargs):
-    """ When a participant deletes a signup, update queues if applicable. """
+    """When a participant deletes a signup, update queues if applicable."""
     if not getattr(instance, 'skip_signals', False):
         update_queues_if_trip_open(instance.trip)
 
 
 @receiver(post_save, sender=LeaderSignUp)
 def leader_signup(sender, instance, created, raw, using, update_fields, **kwargs):
-    """ Add the leader to the trip's list of leaders, decrement available spots.
-    """
+    """Add the leader to the trip's list of leaders, decrement available spots."""
     trip = instance.trip
     if created and trip.maximum_participants > 0 and trip.signups_not_yet_open:
         trip.maximum_participants -= 1
@@ -82,7 +81,7 @@ def add_waitlist(sender, instance, created, raw, using, update_fields, **kwargs)
 def delete_leader_signups(
     sender, instance, action, reverse, model, pk_set, using, **kwargs
 ):
-    """ When removing leaders from the trip, delete their signups.
+    """When removing leaders from the trip, delete their signups.
 
     Ideally, we should be able to use the pre_remove signal to detect which
     leaders in particular were removed. However, the pre_remove signal isn't
@@ -99,7 +98,7 @@ def delete_leader_signups(
 
 @receiver(pre_save, sender=Trip)
 def revoke_existing_task(sender, instance, raw, using, update_fields, **kwargs):
-    """ If updating a trip, revoke any existing lottery task.
+    """If updating a trip, revoke any existing lottery task.
 
     First-come, first-serve trips don't need a lottery task, and changing
     the lottery time must result in a new scheduled lottery time.
@@ -126,7 +125,7 @@ def revoke_existing_task(sender, instance, raw, using, update_fields, **kwargs):
 
 @receiver(post_save, sender=Trip)
 def add_lottery_task(sender, instance, created, raw, using, update_fields, **kwargs):
-    """ Add a task to execute the lottery at the time the trip closes.
+    """Add a task to execute the lottery at the time the trip closes.
 
     If the signups close at some point in the past, this will result in the
     lottery being executed immediately.
@@ -152,6 +151,6 @@ def add_lottery_task(sender, instance, created, raw, using, update_fields, **kwa
 
 @receiver(pre_delete, sender=Trip)
 def revoke_lottery_task(sender, instance, using, **kwargs):
-    """ Before deleting a Trip, de-schedule the lottery task. """
+    """Before deleting a Trip, de-schedule the lottery task."""
     if instance.lottery_task_id:
         app.control.revoke(instance.lottery_task_id)

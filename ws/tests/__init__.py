@@ -10,7 +10,7 @@ def strip_whitespace(text):
 
 
 class TestCase(DjangoTestCase):
-    """ Ensures multi-database behavior is always configured!
+    """Ensures multi-database behavior is always configured!
 
     Any unit test that deals with authentication affects the `auth_user`
     database. To ensure that tests can query that database (and that the

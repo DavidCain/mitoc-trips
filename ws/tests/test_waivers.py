@@ -52,7 +52,7 @@ class HeaderBaseTest(unittest.TestCase):
 
 class DocusignHeadersTests(HeaderBaseTest):
     def test_headers(self):
-        """ Authentication is provided as an XML object in HTTP headers. """
+        """Authentication is provided as an XML object in HTTP headers."""
         self.assertEqual(
             waivers.get_headers(),
             {
@@ -62,7 +62,7 @@ class DocusignHeadersTests(HeaderBaseTest):
         )
 
     def test_headers_used_fetching_base_url(self):
-        """ Authentication is provided as an XML object in HTTP headers. """
+        """Authentication is provided as an XML object in HTTP headers."""
         self.mocked_settings.DOCUSIGN_BASE = 'https://demo.docusign.net/restapi/v2/'
         login_info = mock.Mock(spec=requests.Response)
         login_info.json.return_value = {
@@ -97,12 +97,12 @@ def mock_base_url(url='https://demo.docusign.net/restapi/v2/accounts/123456'):
 
 class BasicWaiverTests(HeaderBaseTest):
     def test_must_provide_participant_or_releasor(self):
-        """ We need a name & and an email address somehow to complete a waiver. """
+        """We need a name & and an email address somehow to complete a waiver."""
         with self.assertRaises(ValueError):
             waivers.initiate_waiver(participant=None, releasor=None, guardian=None)
 
     def test_prefilled_tabs(self):
-        """ When a participant is given, we can prefill information.
+        """When a participant is given, we can prefill information.
 
         See the `mitoc-waiver` repository for the schema used here.
         """
@@ -195,7 +195,7 @@ class ParticipantWaiverTests(HeaderBaseTest, TestCase):
 
     @mock_base_url()
     def test_no_guardian(self):
-        """ When a participant submits the form, we start an embedded flow for them. """
+        """When a participant submits the form, we start an embedded flow for them."""
         participant = factories.ParticipantFactory.create(
             name='Tim Beaver', email='tim@mit.edu'
         )

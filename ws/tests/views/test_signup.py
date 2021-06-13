@@ -30,7 +30,7 @@ class SignupsViewTest(TestCase):
         return factories.TripFactory.create(**trip_kwargs)
 
     def test_signup(self):
-        """ Posting to the signup flow creates a SignUp object!
+        """Posting to the signup flow creates a SignUp object!
 
         In this case:
         - signups are currently open
@@ -54,7 +54,7 @@ class SignupsViewTest(TestCase):
         self.assertFalse(signup.on_trip)
 
     def test_wimp_cannot_attend(self):
-        """ For safety reasons, the WIMP should never be on the trip. """
+        """For safety reasons, the WIMP should never be on the trip."""
         par = self._active_member()
         trip = self._upcoming_trip(wimp=par)
 
@@ -67,7 +67,7 @@ class SignupsViewTest(TestCase):
         )
 
     def test_leader_cannot_signup(self):
-        """ Leaders cannot sign up as participants. """
+        """Leaders cannot sign up as participants."""
         par = self._active_member()
         trip = self._upcoming_trip()
         trip.leaders.add(par)
@@ -80,7 +80,7 @@ class SignupsViewTest(TestCase):
         )
 
     def test_already_on_trip(self):
-        """ If already signed up, signing up again does not create a duplicate. """
+        """If already signed up, signing up again does not create a duplicate."""
         par = self._active_member()
         trip = self._upcoming_trip()
         factories.SignUpFactory.create(participant=par, trip=trip, on_trip=False)
@@ -98,7 +98,7 @@ class SignupsViewTest(TestCase):
         self.assertFalse(signup.on_trip)
 
     def test_trip_not_open(self):
-        """ Cannot sign up for a trip that's not open! """
+        """Cannot sign up for a trip that's not open!"""
         not_yet_open_trip = factories.TripFactory.create(
             program=enums.Program.CLIMBING.value,
             signups_open_at=date_utils.localize(datetime(2019, 3, 20, 10, 0, 0)),
@@ -118,7 +118,7 @@ class SignupsViewTest(TestCase):
         self.assertFalse(not_yet_open_trip.signup_set.filter(participant=par).exists())
 
     def test_membership_required(self):
-        """ Only active members are allowed on the trip. """
+        """Only active members are allowed on the trip."""
         par = factories.ParticipantFactory.create(membership=None)
         trip = self._upcoming_trip(membership_required=True)
         self.assertTrue(par.should_renew_for(trip))
@@ -140,7 +140,7 @@ class SignupsViewTest(TestCase):
         self.assertFalse(trip.signup_set.filter(participant=par).exists())
 
     def test_active_waiver_required(self):
-        """ Only active members are allowed on the trip. """
+        """Only active members are allowed on the trip."""
         par = factories.ParticipantFactory.create(
             membership=factories.MembershipFactory.create(
                 membership_expires=date(2020, 1, 5), waiver_expires=None

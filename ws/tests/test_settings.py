@@ -21,7 +21,7 @@ MIN_PROD_SETTINGS = {
 class SettingsTests(unittest.TestCase):
     @staticmethod
     def _reimport_if_needed(name, *args):
-        """ If attempting to import a conf module, re-import eagerly (but only that module)
+        """If attempting to import a conf module, re-import eagerly (but only that module)
 
         This method is necessary so that we don't accidentally keep conf imports defined
         with values set by previous tests' imports. Additionally, we must spy on
@@ -45,13 +45,13 @@ class SettingsTests(unittest.TestCase):
         return real_import(name, *args)
 
     def _fresh_settings_load(self):
-        """ Do a fresh re-import of the settings module! """
+        """Do a fresh re-import of the settings module!"""
 
         with mock.patch('builtins.__import__', side_effect=self._reimport_if_needed):
             reload(settings)
 
     def test_unittests_default_to_test_settings(self):
-        """ By default, our test runner uses `test_settings`. """
+        """By default, our test runner uses `test_settings`."""
         with mock.patch('builtins.__import__', wraps=real_import) as import_spy:
             reload(settings)
 
@@ -62,7 +62,7 @@ class SettingsTests(unittest.TestCase):
         self.assertNotIn('conf.production_settings', imported_modules)
 
     def test_local_settings(self):
-        """ We can use an env var to import special local dev settings. """
+        """We can use an env var to import special local dev settings."""
         with mock.patch.dict('os.environ', {'WS_DJANGO_LOCAL': '1'}, clear=True):
             self._fresh_settings_load()
 
@@ -74,7 +74,7 @@ class SettingsTests(unittest.TestCase):
         )
 
     def test_production_settings_with_ec2_ip(self):
-        """ By default, we load production settings. """
+        """By default, we load production settings."""
         env_vars = {
             'EC2_IP': '10.1.2.3',  # (will actually be a public IP)
             **MIN_PROD_SETTINGS,
@@ -88,7 +88,7 @@ class SettingsTests(unittest.TestCase):
         self.assertEqual(settings.CORS_ORIGIN_WHITELIST, ('https://mitoc.mit.edu',))
 
     def test_local_development_with_debug_toolbar(self):
-        """ We configure the debug toolbar if installed. """
+        """We configure the debug toolbar if installed."""
 
         def fake_toolbar(name, *args):
             if name == 'debug_toolbar':
@@ -106,7 +106,7 @@ class SettingsTests(unittest.TestCase):
         )
 
     def test_local_development_without_debug_toolbar(self):
-        """ We configure installed applications properly when debug toolbar is absent.
+        """We configure installed applications properly when debug toolbar is absent.
 
 
         In most test builds, we won't have `debug_toolbar` installed, but this guarantees
@@ -127,7 +127,7 @@ class SettingsTests(unittest.TestCase):
         )
 
     def test_production_settings_without_ec2_ip(self):
-        """ We need not set an EC2_IP (especially if not actually running in AWS) """
+        """We need not set an EC2_IP (especially if not actually running in AWS)"""
         with mock.patch.dict('os.environ', MIN_PROD_SETTINGS, clear=True):
             self._fresh_settings_load()
 
@@ -135,7 +135,7 @@ class SettingsTests(unittest.TestCase):
         self.assertEqual(settings.CORS_ORIGIN_WHITELIST, ('https://mitoc.mit.edu',))
 
     def test_production_security(self):
-        """ Sanity check that some key values are set properly in production. """
+        """Sanity check that some key values are set properly in production."""
         with mock.patch.dict('os.environ', MIN_PROD_SETTINGS, clear=True):
             self._fresh_settings_load()
 
@@ -145,7 +145,7 @@ class SettingsTests(unittest.TestCase):
         )
 
     def test_sentry_not_initialized_if_envvar_present(self):
-        """ During local development, we can disable Sentry. """
+        """During local development, we can disable Sentry."""
 
         with mock.patch.dict('os.environ', {'WS_DJANGO_LOCAL': '1'}, clear=True):
             with mock.patch.object(settings.sentry_sdk, 'init') as init_sentry:
@@ -153,7 +153,7 @@ class SettingsTests(unittest.TestCase):
         init_sentry.assert_not_called()
 
     def test_sentry_initialized_from_envvar(self):
-        """ The DSN for Sentry comes from config. """
+        """The DSN for Sentry comes from config."""
         fake_dsn = 'https://hex-code@sentry.io/123446'
 
         with mock.patch.dict('os.environ', {'RAVEN_DSN': fake_dsn}):

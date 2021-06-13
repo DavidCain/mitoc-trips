@@ -30,7 +30,7 @@ class EmailTagsTests(TestCase):
         return annotated_for_trip_list(models.Trip.objects.filter(pk=trip.pk)).get()
 
     def test_text_template_no_program(self):
-        """ We exclude the program 'None.' """
+        """We exclude the program 'None.'"""
         trip = self._make_trip(trip_type=enums.TripType.NONE.value)
         txt_template = Template(
             '{% load email_tags %}{% upcoming_trip_summary_txt trip %}'
@@ -57,7 +57,7 @@ class EmailTagsTests(TestCase):
         self.assertEqual(rendered_txt, expected_txt)
 
     def test_text_template_no_trip_type(self):
-        """ We exclude the trip type 'None.' """
+        """We exclude the trip type 'None.'"""
         trip = self._make_trip(
             program=enums.Program.NONE.value,
             trip_type=enums.TripType.OTHER.value,
@@ -88,7 +88,7 @@ class EmailTagsTests(TestCase):
         self.assertEqual(rendered_txt, expected_txt)
 
     def test_text_template(self):
-        """ Test the textual template (used for clients that prefer not to use HTML). """
+        """Test the textual template (used for clients that prefer not to use HTML)."""
         trip = self._make_trip()
         txt_template = Template(
             '{% load email_tags %}{% upcoming_trip_summary_txt trip %}'
@@ -114,7 +114,7 @@ class EmailTagsTests(TestCase):
         self.assertEqual(rendered_txt, expected_txt)
 
     def test_html_template(self):
-        """ Test the HTML generation (for most email clients) """
+        """Test the HTML generation (for most email clients)"""
         trip = self._make_trip()
         html_template = Template(
             '{% load email_tags %}{% upcoming_trip_summary_html trip %}'

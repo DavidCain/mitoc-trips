@@ -27,7 +27,7 @@ from ws.views import AllLeadersView, TripLeadersOnlyView
 
 
 class SimpleSignupsView(DetailView):
-    """ Give the name and email of leaders and signed up participants. """
+    """Give the name and email of leaders and signed up participants."""
 
     model = models.Trip
 
@@ -55,7 +55,7 @@ class SimpleSignupsView(DetailView):
         )
 
     def dispatch(self, request, *args, **kwargs):
-        """ Participant object must exist, but it need not be current. """
+        """Participant object must exist, but it need not be current."""
         if not self.request.participant:
             return JsonResponse({}, status=403)
         return super().dispatch(request, *args, **kwargs)
@@ -63,7 +63,7 @@ class SimpleSignupsView(DetailView):
 
 class FormatSignupMixin:
     def describe_signup(self, signup, trip_participants, other_trips):
-        """ Yield everything used in the participant-selecting modal.
+        """Yield everything used in the participant-selecting modal.
 
         The signup object should come with related models already selected,
         or this could result in a _lot_ of extra queries.
@@ -117,7 +117,7 @@ class FormatSignupMixin:
 
 
 class SignupsChanged(Exception):
-    """ An exception to be raised when a trip's signups have changed.
+    """An exception to be raised when a trip's signups have changed.
 
     If a particular signup wasn't known to be on the trip when loading trip
     data, race conditions could arise. The leader may later request some trip
@@ -133,7 +133,7 @@ class AdminTripSignupsView(SingleObjectMixin, FormatSignupMixin, TripLeadersOnly
         return JsonResponse(self.describe_all_signups())
 
     def post(self, request, *args, **kwargs):
-        """ Take a list of exactly how signups should be ordered and apply it.
+        """Take a list of exactly how signups should be ordered and apply it.
 
         To avoid dealing with concurrency, calculating diffs, etc. we just
         assume that the leader posting these changes has the authoritative say
@@ -168,7 +168,7 @@ class AdminTripSignupsView(SingleObjectMixin, FormatSignupMixin, TripLeadersOnly
                 return JsonResponse({})
 
     def update(self, trip, signup_list, maximum_participants):
-        """ Take parsed input data and apply the changes. """
+        """Take parsed input data and apply the changes."""
         if maximum_participants:
             trip.maximum_participants = maximum_participants
             trip.full_clean()  # Raises ValidationError
@@ -178,7 +178,7 @@ class AdminTripSignupsView(SingleObjectMixin, FormatSignupMixin, TripLeadersOnly
 
     @staticmethod
     def signups_to_update(signup_list, trip):
-        """ From the payload, break signups into deletion & those that stay.
+        """From the payload, break signups into deletion & those that stay.
 
         All signups are given (in order) in `signup_list`. If the `deleted` key
         is true, then we should remove the signup. Otherwise, we'll add signups
@@ -211,7 +211,7 @@ class AdminTripSignupsView(SingleObjectMixin, FormatSignupMixin, TripLeadersOnly
         return (keep_on_trip, to_delete)
 
     def update_signups(self, signup_list, trip):
-        """ Mark all signups as not on trip, then add signups in order. """
+        """Mark all signups as not on trip, then add signups in order."""
         keep_on_trip, to_delete = self.signups_to_update(signup_list, trip)
 
         # Clear the trip first (delete removals, set others to not on trip)
@@ -229,7 +229,7 @@ class AdminTripSignupsView(SingleObjectMixin, FormatSignupMixin, TripLeadersOnly
             signup_utils.next_in_order(signup, order)
 
     def get_signups(self):
-        """ Trip signups with selected models for use in describe_signup. """
+        """Trip signups with selected models for use in describe_signup."""
         trip = self.get_object()
         return (
             trip.on_trip_or_waitlisted.select_related(
@@ -244,7 +244,7 @@ class AdminTripSignupsView(SingleObjectMixin, FormatSignupMixin, TripLeadersOnly
         )
 
     def describe_all_signups(self):
-        """ Get information about the trip's signups. """
+        """Get information about the trip's signups."""
         trip = self.get_object()
         signups = self.get_signups()
         trip_participants = {s.participant for s in signups}
@@ -269,7 +269,7 @@ class LeaderParticipantSignupView(
     model = models.Trip
 
     def post(self, request, *args, **kwargs):
-        """ Process the participant & trip, create or update signup as needed.
+        """Process the participant & trip, create or update signup as needed.
 
         This method handles two main cases:
         - Participant has never signed up for the trip, will be placed
@@ -369,14 +369,14 @@ class JsonParticipantsView(ListView):
 
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
-        """ Participant object must exist, but it need not be current. """
+        """Participant object must exist, but it need not be current."""
         if not self.request.participant:
             return JsonResponse({}, status=403)
         return super().dispatch(request, *args, **kwargs)
 
 
 class JsonProgramLeadersView(View):
-    """ Give basic information about leaders for a program. """
+    """Give basic information about leaders for a program."""
 
     @staticmethod
     def describe_leaders(program_enum):
@@ -421,7 +421,7 @@ class JsonProgramLeadersView(View):
 
 # TODO: DEPRECATED, remove once trips are created with program, not activity
 class JsonAllLeadersView(AllLeadersView):
-    """ Give basic information about leaders, viewable to the public. """
+    """Give basic information about leaders, viewable to the public."""
 
     def get_queryset(self):
         leaders = super().get_queryset()
@@ -434,7 +434,7 @@ class JsonAllLeadersView(AllLeadersView):
 
     @staticmethod
     def all_active_ratings():
-        """ Return all active ratings per leader, indexed by pk. """
+        """Return all active ratings per leader, indexed by pk."""
         ratings = models.LeaderRating.objects.filter(active=True)
         by_leader = defaultdict(list)
         for rating in ratings.values("participant_id", "activity", "rating"):
@@ -514,7 +514,7 @@ class UserView(DetailView):
 
 
 class UserMembershipView(UserView):
-    """ Fetch the user's membership information.
+    """Fetch the user's membership information.
 
     By default, this checks the gear database for the most current information,
     but the `try_cache` query arg can be passed to first consult the cache
@@ -530,7 +530,7 @@ class UserMembershipView(UserView):
 
 class UserRentalsView(UserView):
     def get(self, request, *args, **kwargs):
-        """ Describe all items the user has checked out from MITOC. """
+        """Describe all items the user has checked out from MITOC."""
         user = self.get_object()
         rented_items = [
             # TODO: Could instead use a dataclass with an `as_dict()` invocation
@@ -548,11 +548,11 @@ class UserRentalsView(UserView):
 
 
 class JWTView(View):
-    """ Superclass for views that use JWT's for auth & signed payloads. """
+    """Superclass for views that use JWT's for auth & signed payloads."""
 
     @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
-        """ Verify & decode JWT, storing its payload.
+        """Verify & decode JWT, storing its payload.
 
         Disable CSRF validation on these requests, since they will be
         all be cross-origin, and validation is done entirely by JWT.
@@ -575,7 +575,7 @@ class JWTView(View):
 
 class UpdateMembershipView(JWTView):
     def post(self, request, *args, **kwargs):
-        """ Receive a message that the user's membership was updated. """
+        """Receive a message that the user's membership was updated."""
 
         participant = models.Participant.from_email(self.payload['email'])
         if not participant:  # Not in our system, nothing to do
@@ -594,7 +594,7 @@ class UpdateMembershipView(JWTView):
 
 class OtherVerifiedEmailsView(JWTView):
     def get(self, request, *args, **kwargs):
-        """ Return any other verified emails that tie to the same user. """
+        """Return any other verified emails that tie to the same user."""
 
         email = self.payload['email']
 
@@ -614,7 +614,7 @@ class OtherVerifiedEmailsView(JWTView):
 
 class MembershipStatusesView(View):
     def post(self, request, *args, **kwargs):
-        """ Return a mapping of participant IDs to membership statuses. """
+        """Return a mapping of participant IDs to membership statuses."""
         postdata = json.loads(self.request.body)
         par_pks = postdata.get('participant_ids')
         if not isinstance(par_pks, list):

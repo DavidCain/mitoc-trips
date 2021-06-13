@@ -49,7 +49,7 @@ class Helpers:
 
     @staticmethod
     def _expect_upcoming_header(soup, expected_text):
-        """ Expect a text label on the header, plus the subscribe+digest buttons. """
+        """Expect a text label on the header, plus the subscribe+digest buttons."""
         header = soup.body.find('h3')
         header_text = strip_whitespace(header.get_text())
         # There is an RSS button and a weekly email digest button included in the header
@@ -64,7 +64,7 @@ class Helpers:
 @freeze_time("2019-02-15 12:25:00 EST")
 class UpcomingTripsViewTest(TestCase, Helpers):
     def test_upcoming_trips_without_filter(self):
-        """ With no default filter, we only show upcoming trips. """
+        """With no default filter, we only show upcoming trips."""
         response, soup = self._get('/trips/')
         # We don't bother rendering any past trips
         self.assertNotIn('past_trips', response.context)
@@ -73,7 +73,7 @@ class UpcomingTripsViewTest(TestCase, Helpers):
         self._expect_upcoming_header(soup, 'Upcoming trips')
 
     def test_invalid_filter(self):
-        """ When an invalid date is passed, we just ignore it. """
+        """When an invalid date is passed, we just ignore it."""
         # Make two trips that are in the future, but before the requested cutoff
         factories.TripFactory.create(trip_date='2019-02-28')
         factories.TripFactory.create(trip_date='2019-02-27')
@@ -95,7 +95,7 @@ class UpcomingTripsViewTest(TestCase, Helpers):
         self._expect_link_for_date(soup, '2018-02-15')
 
     def test_trips_with_filter(self):
-        """ We support filtering the responded list of trips. """
+        """We support filtering the responded list of trips."""
         # Make a very old trip that will not be in our filter
         factories.TripFactory.create(trip_date='2016-12-23')
 
@@ -113,7 +113,7 @@ class UpcomingTripsViewTest(TestCase, Helpers):
         self._expect_link_for_date(soup, '2016-11-15')
 
     def test_upcoming_trips_can_be_filtered(self):
-        """ If supplying an 'after' date in the future, that still permits filtering! """
+        """If supplying an 'after' date in the future, that still permits filtering!"""
         _next_week = factories.TripFactory.create(trip_date='2019-02-22')
         next_month = factories.TripFactory.create(trip_date='2019-03-22')
         response, soup = self._get('/trips/?after=2019-03-15')
@@ -130,13 +130,13 @@ class UpcomingTripsViewTest(TestCase, Helpers):
 @freeze_time("2019-02-15 12:25:00 EST")
 class AllTripsViewTest(TestCase, Helpers):
     def test_all_trips_with_no_past(self):
-        """ Even with no past trips, we still display 'All trips' """
+        """Even with no past trips, we still display 'All trips'"""
         response, soup = self._get('/trips/all/')
         self.assertFalse(response.context['past_trips'])
         self._expect_title(soup, 'All trips')
 
     def test_all_trips_with_past_trips(self):
-        """ Test the usual case - 'all trips' segmenting past & upcoming trips. """
+        """Test the usual case - 'all trips' segmenting past & upcoming trips."""
         next_week = factories.TripFactory.create(trip_date='2019-02-22')
         last_month = factories.TripFactory.create(trip_date='2019-01-15')
         years_ago = factories.TripFactory.create(trip_date='2010-11-15')
@@ -146,7 +146,7 @@ class AllTripsViewTest(TestCase, Helpers):
         self._expect_past_trips(response, [last_month.pk, years_ago.pk])
 
     def test_all_trips_with_filter(self):
-        """ We support filtering trips even on the 'all' page.
+        """We support filtering trips even on the 'all' page.
 
         The default interaction with filtering trips should instead just use
         the `/trips/` URL, but this test demonstrates that filtering works on
@@ -166,7 +166,7 @@ class AllTripsViewTest(TestCase, Helpers):
 class CreateTripViewTest(TestCase, Helpers):
     @freeze_time("2019-12-15 12:25:00 EST")
     def test_superuser_can_create_any_program(self):
-        """ Even though it's not IAP, the superuser can make any trip type. """
+        """Even though it's not IAP, the superuser can make any trip type."""
         user = factories.UserFactory.create(is_superuser=True)
         factories.ParticipantFactory.create(user_id=user.pk)
         self.client.force_login(user)
@@ -179,7 +179,7 @@ class CreateTripViewTest(TestCase, Helpers):
 
     @freeze_time("2019-12-15 12:25:00 EST")
     def test_winter_school_not_available_outside_iap(self):
-        """ Normal trip leaders can only make normal winter trips outside IAP. """
+        """Normal trip leaders can only make normal winter trips outside IAP."""
         leader = factories.ParticipantFactory.create()
         factories.LeaderRatingFactory.create(
             participant=leader, activity=models.LeaderRating.WINTER_SCHOOL
@@ -192,7 +192,7 @@ class CreateTripViewTest(TestCase, Helpers):
         self.assertNotIn(enums.Program.WINTER_SCHOOL.value, programs)
 
     def test_creation(self):
-        """ End-to-end test of form submission on creating a new trip.
+        """End-to-end test of form submission on creating a new trip.
 
         This is something of an integration test. Dealing with forms
         in this way is a bit of a hassle, but this ensures that we're handling
@@ -412,7 +412,7 @@ class ApproveTripsViewTest(TestCase):
 
     @freeze_time("2019-07-05 12:25:00 EST")
     def test_past_unapproved_trips_ignored(self):
-        """ We only prompt chairs to look at trips which are upcoming & unapproved. """
+        """We only prompt chairs to look at trips which are upcoming & unapproved."""
         # Unapproved, but it's in the past!
         self._make_climbing_trip(trip_date=date(2019, 7, 4))
 
@@ -432,7 +432,7 @@ class ApproveTripsViewTest(TestCase):
 
     @freeze_time("2019-07-05 12:25:00 EST")
     def test_trips_with_itinerary_first(self):
-        """ Trips that have an itinerary are first in the approval flow. """
+        """Trips that have an itinerary are first in the approval flow."""
         perm_utils.make_chair(self.user, enums.Activity.CLIMBING)
 
         sat_with_info = self._make_climbing_trip(

@@ -13,7 +13,7 @@ from ws.utils.dates import is_currently_iap
 
 
 class LotteryPairingMixin:
-    """ Gives information about lottery pairing.
+    """Gives information about lottery pairing.
 
     Requires a `participant` attribute.
     """
@@ -22,13 +22,13 @@ class LotteryPairingMixin:
 
     @property
     def pair_requests(self):
-        """ Participants who have requested to be paired with the given participant. """
+        """Participants who have requested to be paired with the given participant."""
         requested = Q(lotteryinfo__paired_with=self.participant)
         return models.Participant.objects.filter(requested)
 
     @property
     def paired_par(self):
-        """ The participant this one requested to be paired with (if any). """
+        """The participant this one requested to be paired with (if any)."""
         try:
             return self.participant.lotteryinfo.paired_with
         except models.LotteryInfo.DoesNotExist:
@@ -36,7 +36,7 @@ class LotteryPairingMixin:
 
     @property
     def reciprocally_paired(self):
-        """ Return if the participant is reciprocally paired with another. """
+        """Return if the participant is reciprocally paired with another."""
         paired_par = self.paired_par
         if paired_par:
             try:
@@ -47,7 +47,7 @@ class LotteryPairingMixin:
 
 
 class LectureAttendanceMixin:
-    """ Manage the participant's lecture attendance. """
+    """Manage the participant's lecture attendance."""
 
     def can_set_attendance(self, participant):
         # WS chairs can set any time for any user
@@ -68,7 +68,7 @@ class LectureAttendanceMixin:
 class TripLeadersOnlyView(View):
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
-        """ Only allow creator, leaders of the trip, and chairs. """
+        """Only allow creator, leaders of the trip, and chairs."""
         trip = self.get_object()
 
         activity_enum = trip.required_activity_enum()

@@ -22,7 +22,7 @@ class Messages(MessageGenerator):
         self._complain_if_missing_feedback()
 
     def _complain_if_missing_itineraries(self):
-        """ Create messages if the leader needs to complete trip itineraries. """
+        """Create messages if the leader needs to complete trip itineraries."""
         now = date_utils.local_now()
 
         # Most trips require itineraries, but some (TRS, etc.) do not
@@ -47,7 +47,7 @@ class Messages(MessageGenerator):
                 self.add_unique_message(messages.WARNING, msg, extra_tags='safe')
 
     def _complain_if_missing_feedback(self):
-        """ Create messages if the leader should supply feedback.
+        """Create messages if the leader should supply feedback.
 
         We request that leaders leave feedback on all trips they've led.
         """

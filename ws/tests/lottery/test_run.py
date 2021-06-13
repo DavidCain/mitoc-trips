@@ -13,7 +13,7 @@ from ws.tests import TestCase, factories
 
 class SingleTripLotteryTests(TestCase):
     def test_fcfs_not_run(self):
-        """ If a trip's algorithm is not 'lottery', nothing happens. """
+        """If a trip's algorithm is not 'lottery', nothing happens."""
         trip = factories.TripFactory.create(
             algorithm='fcfs', program=enums.Program.HIKING.value
         )
@@ -28,7 +28,7 @@ class SingleTripLotteryTests(TestCase):
         self.assertEqual(trip.algorithm, 'fcfs')
 
     def test_run_with_no_signups(self):
-        """ We still run the lottery when nobody signed up. """
+        """We still run the lottery when nobody signed up."""
         trip = factories.TripFactory.create(algorithm='lottery')
         runner = run.SingleTripLotteryRunner(trip)
         runner()
@@ -48,7 +48,7 @@ class SingleTripLotteryTests(TestCase):
     # See lottery.rank for more details
     @freeze_time("2019-10-22 10:30:00 EST")
     def test_run(self):
-        """ Test a full run of a single trip's lottery, demonstrating deterministic seeding.
+        """Test a full run of a single trip's lottery, demonstrating deterministic seeding.
 
         See lottery.rank for more detail on how the random seeding works.
         """
@@ -162,7 +162,7 @@ class WinterSchoolLotteryTests(TestCase):
         )
 
     def test_no_signups(self):
-        """ Trips are made FCFS, even if nobody signed up. """
+        """Trips are made FCFS, even if nobody signed up."""
         runner = run.WinterSchoolLotteryRunner()
         runner()
 
@@ -171,7 +171,7 @@ class WinterSchoolLotteryTests(TestCase):
             self._assert_fcfs_at_noon(trip)
 
     def test_non_ws_trips_ignored(self):
-        """ Participants with signups for non-WS trips are handled.
+        """Participants with signups for non-WS trips are handled.
 
         Namely,
         - a participant's signup for a non-WS trip does not affect the lottery

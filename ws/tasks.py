@@ -22,7 +22,7 @@ LOCK_EXPIRE = 10 * 60  # ten minutes
 
 @contextmanager
 def exclusive_lock(task_identifier):
-    """ Obtain an exclusively lock, using the task_identifier as a unique ID.
+    """Obtain an exclusively lock, using the task_identifier as a unique ID.
 
     This helps prevents the case of multiple workers executing the same task at
     the same time, which can cause unexpected side effects.
@@ -49,7 +49,7 @@ def exclusive_lock(task_identifier):
 
 
 def mutex_task(task_id_template=None, **shared_task_kwargs):
-    """ Wraps a task that must be executed only once.
+    """Wraps a task that must be executed only once.
 
     :param task_id_template: String that makes unique task IDs from passed args
         (If omitted, we just use the function name)
@@ -82,7 +82,7 @@ def mutex_task(task_id_template=None, **shared_task_kwargs):
 
 @mutex_task('update_discount-{discount_id}')
 def update_discount_sheet_for_participant(discount_id: int, participant_id: int):
-    """ Lock the sheet and add/update a single participant.
+    """Lock the sheet and add/update a single participant.
 
     This task should not run at the same time that we're updating the sheet for
     another participant (or for all participants, as we do nightly).
@@ -108,7 +108,7 @@ def update_discount_sheet_for_participant(discount_id: int, participant_id: int)
 
 @mutex_task('update_discount-{discount_id}')
 def update_discount_sheet(discount_id):
-    """ Overwrite the sheet to include all members desiring the discount.
+    """Overwrite the sheet to include all members desiring the discount.
 
     This is the only means of removing users if they no longer
     wish to share their information, so it should be run periodically.
@@ -145,20 +145,20 @@ def update_all_discount_sheets():
 
 @shared_task  # Harmless if we run it twice
 def update_participant_affiliation(participant_id):
-    """ Use the participant's affiliation to update the gear database. """
+    """Use the participant's affiliation to update the gear database."""
     participant = models.Participant.objects.get(pk=participant_id)
     geardb.update_affiliation(participant)
 
 
 @mutex_task()
 def send_trip_summaries_email():
-    """ Email summary of upcoming trips to mitoc-trip-announce@mit.edu """
+    """Email summary of upcoming trips to mitoc-trip-announce@mit.edu"""
     send_trips_summary()
 
 
 @mutex_task()
 def send_sole_itineraries():
-    """ Email trip itineraries to Student Organizations, Leadership and Engagement.
+    """Email trip itineraries to Student Organizations, Leadership and Engagement.
 
     This task should be run daily, so that it will always send SOLE
     this information _before_ the trip actually starts.
@@ -183,21 +183,21 @@ def run_ws_lottery():
 
 @mutex_task()
 def purge_non_student_discounts():
-    """ Purge non-students from student-only discounts. """
+    """Purge non-students from student-only discounts."""
     logger.info("Purging non-students from student-only discounts")
     cleanup.purge_non_student_discounts()
 
 
 @mutex_task()
 def purge_old_medical_data():
-    """ Purge old, dated medical information. """
+    """Purge old, dated medical information."""
     logger.info("Purging outdated medical information")
     cleanup.purge_old_medical_data()
 
 
 @mutex_task('single_trip_lottery-{trip_id}')
 def run_lottery(trip_id, lottery_config=None):
-    """ Run a lottery algorithm for the given trip (idempotent).
+    """Run a lottery algorithm for the given trip (idempotent).
 
     If running on a trip that isn't in lottery mode, this won't make
     any changes (making this task idempotent).
