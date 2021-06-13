@@ -41,7 +41,6 @@ oauth2client = "*"
 phonenumberslite = "*"
 psycopg2-binary = "*"
 pwned-passwords-django = "^1.4"
-pytz = "*"
 requests = "*"
 sentry-sdk = "*"
 
@@ -85,3 +84,4 @@ freezegun = "*"
 isort = { version = "^5.8", extras = ["pyproject"] }  # Version 5 introduces black compatibility
 lxml = "*"
 pylint = "^2.8"
+pytz = "*"  # (It's a production dependency by way of Django, but used directly in tests)

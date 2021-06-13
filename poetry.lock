@@ -1234,7 +1234,7 @@ typing = ["django-stubs", "mypy", "types-certifi", "types-cryptography", "types-
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6.2"
-content-hash = "a3e3072f43e5b413aebd5f7f9b07cb464841d460ee2f4293031c8119ee2d7dc7"
+content-hash = "c24cd1d95151f4a1362332ea7320b7d60ca39b0eff015988471b7610e10e6cb6"
 
 [metadata.files]
 amqp = [
