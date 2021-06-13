@@ -67,7 +67,7 @@ check: lint test
 .PHONY: fix
 fix: install-python-dev
 	poetry run black ws
-	poetry run isort --recursive ws
+	poetry run isort ws
 
 .PHONY: lint
 lint: lint-python typecheck-python lint-js
@@ -75,7 +75,7 @@ lint: lint-python typecheck-python lint-js
 .PHONY: lint-python
 lint-python: install-python-dev
 	poetry run black --fast --check ws
-	poetry run isort --recursive --check ws
+	poetry run isort --check ws
 	poetry run pylint --jobs 0 ws  # '0' tells pylint to auto-detect available processors
 
 .PHONY: typecheck-python

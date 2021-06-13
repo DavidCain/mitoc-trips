@@ -5,10 +5,7 @@ include = '\.py$'
 skip-string-normalization = true
 
 [tool.isort]
-line_length = 88
-known_first_party = "ws"
-multi_line_output = 3
-include_trailing_comma = true
+profile = "black"
 
 [tool.poetry]
 name = "ws"
@@ -71,6 +68,6 @@ beautifulsoup4 = "*"
 black = { version = "*", allow-prereleases = true }
 factory_boy = "*"
 freezegun = "*"
-isort = { version = "*", extras = ["pyproject"] }
+isort = { version = "^5.8", extras = ["pyproject"] }  # Version 5 introduces black compatibility
 lxml = "*"
 pylint = "^2.8"
