@@ -73,4 +73,4 @@ factory_boy = "*"
 freezegun = "*"
 isort = { version = "*", extras = ["pyproject"] }
 lxml = "*"
-pylint = "< 2.5.0"  # 2.5.0 currently reports duplicates from multiprocessing
+pylint = "^2.8"

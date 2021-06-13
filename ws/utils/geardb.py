@@ -296,9 +296,9 @@ def outstanding_items(
             alternates = alternate_emails.split(',')
             try:
                 email = next(e for e in alternates if e in to_original_case)
-            except StopIteration:
+            except StopIteration as e:
                 # This method is a generator - raising StopIteration would stop iteration
-                raise ValueError("Expected at least one email to match!")
+                raise ValueError("Expected at least one email to match!") from e
 
         yield Rental(
             email=to_original_case[email],

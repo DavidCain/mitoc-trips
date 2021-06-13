@@ -178,7 +178,7 @@ class AllLeaderApplicationsView(ApplicationManager, ListView):  # type: ignore[m
         try:
             activity_enum = enums.Activity(kwargs.get('activity'))
         except ValueError:
-            raise Http404
+            raise Http404  # pylint: disable=raise-missing-from
 
         if not perm_utils.chair_or_admin(request.user, activity_enum):
             raise PermissionDenied
@@ -409,7 +409,7 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type:
         try:
             activity_enum = enums.Activity(self.activity)
         except ValueError:
-            raise Http404
+            raise Http404  # pylint: disable=raise-missing-from
 
         if not perm_utils.chair_or_admin(request.user, activity_enum):
             raise PermissionDenied

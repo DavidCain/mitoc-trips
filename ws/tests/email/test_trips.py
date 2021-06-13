@@ -60,7 +60,8 @@ class TripsBlastTest(TestCase):
     def test_no_future_trips(self):
         """ We only mention current trips if there are no future trips. """
         send_trips_summary()
-        [msg] = mail.outbox
+        [msg, *other_msgs] = mail.outbox
+        self.assertFalse(other_msgs)
 
         # No future trips yet!
         expected_content = '\n'.join(
@@ -117,7 +118,8 @@ class TripsBlastTest(TestCase):
         )
 
         send_trips_summary()
-        [msg] = mail.outbox
+        [msg, *other_msgs] = mail.outbox
+        self.assertFalse(other_msgs)
 
         # The trip next week is open for signup
         # The future trips are not yet open for signup

@@ -132,6 +132,7 @@ class EmailTagsTests(TestCase):
         }
 
         expected_html = '\n'.join(
+            # pylint: disable=f-string-without-interpolation
             [
                 f'<h2 style="{inline["h2"]}">',
                 f'  <a href="{url}" style="{inline["a"]}">Some Cool Upcoming Trip</a>',

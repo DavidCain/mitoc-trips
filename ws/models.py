@@ -151,7 +151,7 @@ class Discount(models.Model):
         help_text="Report if participant should have leader, student, or admin level access",
     )
 
-    def __str__(self):
+    def __str__(self):  # pylint: disable=invalid-str-returned
         return self.name
 
 
@@ -630,7 +630,7 @@ class Participant(models.Model):
     def email_addr(self):
         return f'"{self.name}" <{self.email}>'
 
-    def __str__(self):
+    def __str__(self):  # pylint: disable=invalid-str-returned
         return self.name
 
     class Meta:
@@ -679,7 +679,7 @@ class MentorActivity(models.Model):
 
     name = models.CharField(max_length=31, unique=True)
 
-    def __str__(self):
+    def __str__(self):  # pylint: disable=invalid-str-returned
         return self.name
 
 
@@ -953,7 +953,7 @@ class Trip(models.Model):
     )
     lottery_log = models.TextField(null=True, blank=True)
 
-    def __str__(self):
+    def __str__(self):  # pylint: disable=invalid-str-returned
         return self.name
 
     @property
@@ -1529,8 +1529,8 @@ class LeaderApplication(models.Model):
         model = ''.join(activity.split('_')).lower() + 'leaderapplication'
         try:
             content_type = ContentType.objects.get(app_label="ws", model=model)
-        except ContentType.DoesNotExist:
-            raise NoApplicationDefined(f"No application for {activity}")
+        except ContentType.DoesNotExist as e:
+            raise NoApplicationDefined(f"No application for {activity}") from e
 
         model_class = content_type.model_class()
         if model_class is None:

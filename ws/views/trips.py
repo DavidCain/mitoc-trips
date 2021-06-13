@@ -446,7 +446,7 @@ class ApproveTripsView(ListView):
         try:
             activity_enum = enums.Activity(kwargs.get('activity'))
         except ValueError:
-            raise Http404
+            raise Http404  # pylint: disable=raise-missing-from
 
         if not perm_utils.is_chair(request.user, activity_enum):
             raise PermissionDenied
