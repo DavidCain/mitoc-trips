@@ -66,17 +66,17 @@ check: lint test
 # (might fix a broken `make check`)
 .PHONY: fix
 fix: install-python-dev
-	black ws
-	isort --recursive ws
+	poetry run black ws
+	poetry run isort --recursive ws
 
 .PHONY: lint
 lint: lint-python typecheck-python lint-js
 
 .PHONY: lint-python
 lint-python: install-python-dev
-	black --fast --check ws
-	isort --recursive --check ws
-	pylint --jobs 0 ws  # '0' tells pylint to auto-detect available processors
+	poetry run black --fast --check ws
+	poetry run isort --recursive --check ws
+	poetry run pylint --jobs 0 ws  # '0' tells pylint to auto-detect available processors
 
 .PHONY: typecheck-python
 typecheck-python: install-typecheck-python
@@ -93,7 +93,7 @@ test: test-python test-js
 
 .PHONY: test-python
 test-python: install-python-dev build-frontend
-	WS_DJANGO_TEST=1 python -Wd -m coverage run manage.py test --no-input
+	WS_DJANGO_TEST=1 poetry run python -Wd -m coverage run manage.py test --no-input
 
 .PHONY: test-js
 test-js: install-js
@@ -102,7 +102,7 @@ test-js: install-js
 # Production webservers won't run this way, so install dev dependencies
 .PHONY: run
 run: install-python-dev
-	python3 -Wd manage.py runserver
+	poetry run python -Wd manage.py runserver
 
 .PHONY: run-js
 run-js: install-js
