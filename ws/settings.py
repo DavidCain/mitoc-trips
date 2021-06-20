@@ -176,15 +176,6 @@ DATABASES = {
         'PORT': os.getenv('DATABASE_PORT', '5432'),
         'TEST': {'DEPENDENCIES': ['geardb']},
     },
-    'auth_db': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('AUTH_DATABASE_NAME', 'auth_db'),
-        'USER': os.getenv('DATABASE_USER', 'ws'),
-        'PASSWORD': os.getenv('DATABASE_PASSWORD', 'password'),
-        'HOST': os.getenv('DATABASE_HOST', 'localhost'),
-        'PORT': os.getenv('DATABASE_PORT', '5432'),
-        'TEST': {'DEPENDENCIES': ['geardb']},
-    },
     'geardb': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': os.getenv('GEAR_DATABASE_NAME', 'geardb'),
@@ -196,7 +187,7 @@ DATABASES = {
         'TEST': {'DEPENDENCIES': []},
     },
 }
-DATABASE_ROUTERS = ['ws.routers.AuthRouter']
+DATABASE_ROUTERS = ['ws.routers.DefaultOnlyRouter']
 
 
 FORM_RENDERER = 'djng.forms.renderers.DjangoAngularBootstrap3Templates'

@@ -27,7 +27,7 @@ class NoUserTests(SimpleTestCase):
 
 
 class MembershipExpirationTests(TestCase):
-    databases = {'geardb', 'default', 'auth_db'}
+    databases = {'geardb', 'default'}
 
     @unittest.mock.patch('ws.utils.geardb.matching_memberships')
     def test_split_membership(self, matching_memberships):
@@ -166,7 +166,7 @@ class MembershipSQLHelpers:
 
 
 class MembershipTests(MembershipSQLHelpers, TestCase):
-    databases = {'geardb', 'default', 'auth_db'}
+    databases = {'geardb', 'default'}
     """ Test the underlying SQL that drives membership queries. """
 
     def test_no_people_record(self):
@@ -242,7 +242,7 @@ class MembershipTests(MembershipSQLHelpers, TestCase):
 
 
 class AlternateEmailTests(MembershipSQLHelpers, TestCase):
-    databases = {'geardb', 'default', 'auth_db'}
+    databases = {'geardb', 'default'}
 
     def expect_under_email(self, email, lookup=None):
         expected = self.just_tim

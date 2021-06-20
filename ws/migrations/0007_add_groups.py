@@ -35,6 +35,5 @@ class Migration(migrations.Migration):
         migrations.RunPython(
             make_groups,
             reverse_code=do_nothing,
-            hints={'model_name': 'auth_group', 'target_db': 'auth_db'},
         )
     ]

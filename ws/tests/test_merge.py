@@ -23,7 +23,7 @@ class ExpectationsTypeTest(unittest.TestCase):
 
 class MergeUtilTest(TestCase):
     def test_check_fk_tables_missing_fk(self):
-        cursor = connections['auth_db'].cursor()
+        cursor = connections['default'].cursor()
         expected = {
             'auth_user_user_permissions': 'user_id',
             'auth_user_groups': 'user_id',
@@ -42,7 +42,7 @@ class MergeUtilTest(TestCase):
 
     def test_simple_fk_update(self):
         """We can directly modify any rows that have FK constraints (without unique constraints)"""
-        cursor = connections['auth_db'].cursor()
+        cursor = connections['default'].cursor()
 
         # Make Two users - we'll transfer the email address from one to the other
         user = factories.UserFactory.create(email='primary@example.com')

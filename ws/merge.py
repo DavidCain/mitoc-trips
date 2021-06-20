@@ -40,7 +40,7 @@ EXPECTED_PARTICIPANT_TABLES: Dict[str, Tuple[str, ...]] = {
     'ws_signup': ('participant_id',),
 }
 
-# An enumeration of columns that we explicitly intend to migrate in `auth_db`
+# An enumeration of (non-ws) columns that we explicitly intend to migrate
 # Each one must be *manually handled!*
 EXPECTED_USER_TABLES: Dict[str, Tuple[str, ...]] = {
     'auth_user_groups': ('user_id',),
@@ -140,7 +140,7 @@ def _update_lotteryinfo(cursor, old_pk, new_pk):
 
 def _migrate_user(old_pk, new_pk):
     """Copy over any email addresses and groups from the old user."""
-    cursor = connections['auth_db'].cursor()
+    cursor = connections['default'].cursor()
 
     check_fk_tables(cursor, 'auth_user', 'id', EXPECTED_USER_TABLES)
 
