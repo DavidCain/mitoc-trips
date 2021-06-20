@@ -259,7 +259,7 @@ class Participant(models.Model):
     Even leaders will have a Participant record (see docstring of LeaderRating).
     """
 
-    user_id = models.IntegerField()  # Technically a FK, but to another DB
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
 
     objects = models.Manager()
     leaders = LeaderManager()
@@ -415,10 +415,6 @@ class Participant(models.Model):
 
         force_reset = date_utils.localize(datetime(2018, 10, 27, 4, 30))
         return self.profile_last_updated < force_reset
-
-    @property
-    def user(self):
-        return User.objects.prefetch_related('groups').get(pk=self.user_id)
 
     @classmethod
     def from_email(cls, email, join_membership=False):

@@ -29,6 +29,7 @@ class MergeUtilTest(TestCase):
             'auth_user_groups': 'user_id',
             'account_emailaddress': 'user_id',
             # 'django_admin_log': 'user_id',
+            'ws_participant': 'user_id',
         }
         with self.assertRaises(ValueError) as err:
             merge.check_fk_tables(

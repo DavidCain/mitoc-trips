@@ -40,13 +40,14 @@ EXPECTED_PARTICIPANT_TABLES: Dict[str, Tuple[str, ...]] = {
     'ws_signup': ('participant_id',),
 }
 
-# An enumeration of (non-ws) columns that we explicitly intend to migrate
+# An enumeration of user FK columns that we explicitly intend to migrate
 # Each one must be *manually handled!*
 EXPECTED_USER_TABLES: Dict[str, Tuple[str, ...]] = {
     'auth_user_groups': ('user_id',),
     'auth_user_user_permissions': ('user_id',),
     'account_emailaddress': ('user_id',),
     'django_admin_log': ('user_id',),
+    'ws_participant': ('user_id',),
 }
 
 
@@ -95,7 +96,9 @@ def _fk_tables(cursor, src_table, col):
     return cursor.fetchall()
 
 
-def check_fk_tables(cursor, src_table, column, expected):
+def check_fk_tables(
+    cursor, src_table: str, column: str, expected: Dict[str, Tuple[str, ...]]
+) -> None:
     """Check that the foreign keys are what we expect them to be.
 
     Useful as a canary that things may go wrong if we've since added
