@@ -11,6 +11,5 @@ def strip_whitespace(text):
 
 class TestCase(DjangoTestCase):
     # Don't bother with `geardb` by default unless test explicitly needs it!
-    # Tests that need to hit `geardb` should specify that directly.
-    # A broader project is to stop querying `geardb` directly and move to an API instead.
+    # Though, no tests should be hitting `geardb` at all - we've deprecated support.
     databases = {'default'}

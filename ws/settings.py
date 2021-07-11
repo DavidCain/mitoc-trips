@@ -79,8 +79,6 @@ AUTH_PASSWORD_VALIDATORS = [
 LOGIN_REDIRECT_URL = '/'
 ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 
-TEST_RUNNER = 'ws.tests.runner.SetupGearDbTestRunner'
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -177,8 +175,10 @@ DATABASES = {
         'PASSWORD': os.getenv('DATABASE_PASSWORD', 'password'),
         'HOST': os.getenv('DATABASE_HOST', 'localhost'),
         'PORT': os.getenv('DATABASE_PORT', '5432'),
-        'TEST': {'DEPENDENCIES': ['geardb']},
     },
+    # DEPRECATED!
+    # We still read from this database in production, but we're phasing that out.
+    # To ease the deprecation & repo maintenance, do not test against this database.
     'geardb': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': os.getenv('GEAR_DATABASE_NAME', 'geardb'),

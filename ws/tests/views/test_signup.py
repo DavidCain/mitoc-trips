@@ -1,16 +1,18 @@
+from collections import OrderedDict
+from contextlib import contextmanager
 from datetime import date, datetime
+from unittest import mock
 
 from freezegun import freeze_time
 
 import ws.utils.dates as date_utils
 from ws import enums
 from ws.tests import TestCase, factories
+from ws.utils import geardb, membership
 
 
 @freeze_time("2019-01-15 12:25:00 EST")
 class SignupsViewTest(TestCase):
-    databases = {'geardb', 'default'}
-
     def _signup(self, trip):
         return self.client.post('/trips/signup/', {'trip': trip.pk}, follow=False)
 
@@ -29,6 +31,16 @@ class SignupsViewTest(TestCase):
         }
         return factories.TripFactory.create(**trip_kwargs)
 
+    @staticmethod
+    @contextmanager
+    def _spy_on_update_membership_cache():
+        with mock.patch.object(
+            membership,
+            'update_membership_cache',
+            wraps=membership.update_membership_cache,
+        ) as update_cache:
+            yield update_cache
+
     def test_signup(self):
         """Posting to the signup flow creates a SignUp object!
 
@@ -43,7 +55,11 @@ class SignupsViewTest(TestCase):
         self.assertFalse(par.should_renew_for(trip))
 
         self.client.force_login(par.user)
-        resp = self._signup(trip)
+        with self._spy_on_update_membership_cache() as update_cache:
+            resp = self._signup(trip)
+
+        # The user's membership & waiver were current enough, no need to update.
+        update_cache.assert_not_called()
 
         # Sign up was successful, and we're redirected to the trip page!
         self.assertEqual(resp.status_code, 302)
@@ -119,12 +135,25 @@ class SignupsViewTest(TestCase):
 
     def test_membership_required(self):
         """Only active members are allowed on the trip."""
-        par = factories.ParticipantFactory.create(membership=None)
+        par = factories.ParticipantFactory.create(
+            membership=None, email='par@example.com'
+        )
         trip = self._upcoming_trip(membership_required=True)
         self.assertTrue(par.should_renew_for(trip))
 
+        def fake_lookup(emails):
+            """Check the gear database for memberships under the email, find none."""
+            self.assertCountEqual(emails, ['par@example.com'])
+            return OrderedDict()
+
         self.client.force_login(par.user)
-        resp = self._signup(trip)
+        with mock.patch.object(geardb, 'matching_memberships', side_effect=fake_lookup):
+            with self._spy_on_update_membership_cache() as update_cache:
+                resp = self._signup(trip)
+
+        # Because the user had an out-of-date membership, we checked for the latest
+        update_cache.assert_called_once_with(par)
+
         form = resp.context['form']
         self.assertEqual(
             form.errors,
@@ -151,8 +180,39 @@ class SignupsViewTest(TestCase):
         # Membership is not required for the mini trip, but a waiver is!
         self.assertFalse(par.should_renew_for(mini_trip))
 
+        def fake_lookup(emails):
+            """Check the gear database for memberships under the email, find only waiver.
+
+            Note that the onlly reason we mock this is since we'll
+            automatically update the cache when we see that the user has an
+            expired waiver. (Maybe our cache is stale, & an active one exists)
+            """
+            self.assertCountEqual(emails, [par.email])
+            return OrderedDict(
+                [
+                    (
+                        par.email,
+                        {
+                            'membership': {
+                                'expires': date(2020, 1, 5),
+                                'active': True,  # (time is mocked)
+                                'email': par.email,
+                            },
+                            'waiver': {'expires': None, 'active': False},
+                            'status': 'Missing Waiver',
+                        },
+                    )
+                ]
+            )
+
         self.client.force_login(par.user)
-        resp = self._signup(mini_trip)
+        with mock.patch.object(geardb, 'matching_memberships', side_effect=fake_lookup):
+            with self._spy_on_update_membership_cache() as update_cache:
+                resp = self._signup(mini_trip)
+
+        # Because the user had an out-of-date waiver, we checked for the latest
+        update_cache.assert_called_once_with(par)
+
         form = resp.context['form']
         self.assertEqual(form.errors, {'__all__': ["A current waiver is required"]})
 
