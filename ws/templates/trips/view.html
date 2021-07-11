@@ -19,7 +19,7 @@
 
   <div data-ng-controller="tripTabManager">
     <uib-tabset id="admin-trip-tabs">
-      <uib-tab heading="Trip" data-select="refreshIfStale()">
+      <uib-tab heading="Trip">
 
         <div data-ng-show="stale" data-ng-cloak>
           <br>
@@ -68,14 +68,25 @@
         </uib-tab>
       {% endif %}
 
-      <uib-tab heading="Rentals">
-        {% if trip.algorithm == 'fcfs' %}
-          {% trip_rental_table trip leader_on_trip rentals_by_par True %}
-        {% else %}
-          <h3>Trip still in lottery mode</h3>
-          <p>Once this trip's lottery completes, you can see which participants have checked out gear.</p>
-        {% endif %}
-      </uib-tab>
+      {% if can_see_rentals %}
+        {# Hackery below on showing rentals inline, since this makes the server do an API call.   #}
+        {# Eagerly loading this background content on an API call is wasteful and bad UX.         #}
+        {# Of course, making a tab trigger a hard refresh is terrible UX too.                     #}
+        {# But at time of writing, MITOC does no rentals for trips.                               #}
+        {# Hopefully, we use a frontend component which makes API calls in time for Winter School #}
+        <uib-tab heading="Rentals" {% if trip.algorithm == 'fcfs' and not show_rentals_inline %}data-select="inlineRentals({{ trip.pk }})"{% endif %}>
+          <br>
+          <div data-ng-show="reloading" data-ng-cloak class="alert alert-info">
+            Fetching participant rentals...
+          </div>
+          {% if trip.algorithm == 'lottery' %}
+            <h3>Trip still in lottery mode</h3>
+            <p>Once this trip's lottery completes, you can see which participants have checked out gear.</p>
+          {% elif show_rentals_inline %}
+            {% trip_rental_table trip leader_on_trip rentals_by_par True %}
+          {% endif %}
+        </uib-tab>
+      {% endif %}
 
     </uib-tabset>
   </div>

@@ -61,7 +61,15 @@ class TripView(DetailView):
 
     @staticmethod
     def rentals_by_participant(trip):
-        """Yield all items rented by leaders & participants on this trip."""
+        """Yield all items rented by leaders & participants on this trip.
+
+        WARNING: This makes an API call and can block page load.
+        We should probably make this method into its own view, or instead make
+        a frontend component do the fetching asynchronously.
+
+        Alternately, we could introduce a caching layer to make this viable hitting
+        the database directly (like we do with the Membership model).
+        """
         on_trip = trip.signup_set.filter(on_trip=True).select_related('participant')
         trip_participants = [s.participant for s in on_trip]
         leaders = list(trip.leaders.all())
@@ -98,8 +106,16 @@ class TripView(DetailView):
         context['can_admin'] = context['leader_on_trip'] or perm_utils.chair_or_admin(
             self.request.user, trip.required_activity_enum()
         )
+
+        context['can_see_rentals'] = context['can_admin'] or perm_utils.is_leader(
+            self.request.user
+        )
+
         if context['can_admin'] or perm_utils.is_leader(self.request.user):
-            context['rentals_by_par'] = list(self.rentals_by_participant(trip))
+            context['show_rentals_inline'] = 'show_rentals_inline' in self.request.GET
+            if context['show_rentals_inline']:
+                context['rentals_by_par'] = list(self.rentals_by_participant(trip))
+
         return context
 
     def post(self, request, *args, **kwargs):
