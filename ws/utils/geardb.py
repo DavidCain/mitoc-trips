@@ -201,7 +201,7 @@ def format_membership(email, membership_expires, waiver_expires):
     return person
 
 
-def matching_info_for(emails):
+def _matching_info_for(emails):
     """Return all matching memberships under the email addresses.
 
     Most participants will have just one membership, but some people may have
@@ -266,19 +266,6 @@ def matching_info_for(emails):
         }
 
 
-def _yield_matches(emails):
-    """For each given email, yield a record about the person (if found).
-
-    - The email addresses may or may not correspond to the same person.
-    - Some email addresses may return the same membership record
-    """
-    for info in matching_info_for(emails):
-        formatted = format_membership(
-            info['email'], info['membership_expires'], info['waiver_expires']
-        )
-        yield info['email'], formatted
-
-
 def matching_memberships(emails):
     """Return the most current membership found for each email in the list.
 
@@ -286,6 +273,19 @@ def matching_memberships(emails):
     - Look up membership records for a single person, under all their emails
     - Look up memberships for many participants, under all their emails
     """
+
+    def _yield_matches(emails):
+        """For each given email, yield a record about the person (if found).
+
+        - The email addresses may or may not correspond to the same person.
+        - Some email addresses may return the same membership record
+        """
+        for info in _matching_info_for(emails):
+            formatted = format_membership(
+                info['email'], info['membership_expires'], info['waiver_expires']
+            )
+            yield info['email'], formatted
+
     return OrderedDict(_yield_matches(emails))
 
 
@@ -351,6 +351,8 @@ def user_rentals(user) -> List[Rental]:
     return list(outstanding_items(verified_emails(user)))
 
 
+# NOTE: This is the last (frequently-called) method which hits the db directly.
+# We should replace this with an API call.
 def update_affiliation(participant):
     """Update the gear db if the affiliation of a participant has changed.
 
@@ -380,7 +382,7 @@ def update_affiliation(participant):
     emails = models.EmailAddress.objects.filter(
         verified=True, user_id=participant.user_id
     ).values_list('email', flat=True)
-    matches = list(matching_info_for(emails))
+    matches = list(_matching_info_for(emails))
     if not matches:
         return
 
@@ -434,7 +436,7 @@ def update_affiliation(participant):
         )
 
 
-def all_active_members():
+def _stats_only_all_active_members():
     """Yield emails and rental activity for all members with current dues."""
     cursor = connections['geardb'].cursor()
     cursor.execute(
@@ -508,6 +510,10 @@ def trips_information():
         yield user_id, info
 
 
+# NOTE: This method is only used for the (leaders-only, hacky, `/stats` endpoint)
+# We of course should avoid direct database access, but I'm okay with this not being tested.
+# Worst case, it just breaks a stats-reporting page that I wrote as a one-off.
+# I should make better dashboards in the long run anyway.
 def membership_information():
     """All current active members, annotated with additional info.
 
@@ -541,7 +547,7 @@ def membership_information():
     # Map from the gear database's person ID to stats about the member
     all_members = {}
 
-    for email, info in all_active_members():
+    for email, info in _stats_only_all_active_members():
         existing_record = all_members.get(info['person_id'])
 
         if existing_record:
