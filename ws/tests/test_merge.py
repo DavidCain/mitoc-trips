@@ -134,6 +134,13 @@ class MergeTest(TestCase):
         self.assertEqual(feedback_as_participant.participant.pk, self.tim.pk)
         self.assertEqual(feedback_as_leader.leader, self.tim)
 
+    def test_password_quality(self):
+        """Only password quality from the newer participant is kept."""
+        factories.PasswordQualityFactory.create(participant=self.old, is_insecure=True)
+        factories.PasswordQualityFactory.create(participant=self.tim, is_insecure=False)
+        self._migrate()
+        self.assertFalse(self.tim.passwordquality.is_insecure)
+
     def test_conflicts(self):
         """We cannot merge participants who are clearly different people."""
         trip = factories.TripFactory.create()

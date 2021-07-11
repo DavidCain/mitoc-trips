@@ -277,14 +277,6 @@ class Participant(models.Model):
             url=reverse_lazy('account_email'),
         ),
     )
-    insecure_password = models.BooleanField(
-        default=False, verbose_name="Password shown to be insecure"
-    )
-    password_last_checked = models.DateTimeField(
-        null=True,
-        blank=True,
-        verbose_name="Last time password was checked against HaveIBeenPwned's database",
-    )
     gravatar_opt_out = models.BooleanField(
         default=False,
         verbose_name="Opt out of Gravatar",
@@ -631,6 +623,28 @@ class Participant(models.Model):
 
     class Meta:
         ordering = ['name', 'email']
+
+
+class PasswordQuality(models.Model):
+    """For a given user, information about their password strength.
+
+    This class exists to help us migrate users with known bad passwords
+    (checked with the HIBP API) over to more secure options.
+    """
+
+    participant = models.OneToOneField(Participant, on_delete=models.CASCADE)
+    is_insecure = models.BooleanField(
+        default=False, verbose_name="Password shown to be insecure"
+    )
+    last_checked = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Last time password was checked against HaveIBeenPwned's database",
+    )
+
+    def __str__(self):  # pylint: disable=invalid-str-returned
+        label = 'INSECURE' if self.is_insecure else 'not known to be breached'
+        return f"{label} (as of {self.last_checked})"
 
 
 class LectureAttendance(models.Model):

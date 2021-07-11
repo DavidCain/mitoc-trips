@@ -13,6 +13,8 @@ from typing import Dict, Tuple
 
 from django.db import connections, transaction
 
+from ws import models
+
 # An enumeration of columns that we explicitly intend to migrate in `ws`, grouped by table
 # If any table has a column with a foreign key to ws_participant that is not in here, we will error
 # Unless explicitly handled, each will be automatically migrated
@@ -31,13 +33,15 @@ EXPECTED_PARTICIPANT_TABLES: Dict[str, Tuple[str, ...]] = {
     'ws_winterschoolsettings': ('last_updated_by_id',),
     'ws_discount_administrators': ('participant_id',),
     'ws_distinctaccounts': ('left_id', 'right_id'),
-    # All these should only have one participant each
-    # (In practice, we should rarely see the old & the new on the same object)
+    # Each of these tables should only have one row for the given person.
+    # (For example, it's possible that two participants representing the same human are on the same trip.
+    # In practice, though, this should never actually be happening. Uniqueness constraints will protect us.
     'ws_tripinfo_drivers': ('participant_id',),
     'ws_participant_discounts': ('participant_id',),
     'ws_trip_leaders': ('participant_id',),
     'ws_leadersignup': ('participant_id',),
     'ws_signup': ('participant_id',),
+    'ws_passwordquality': ('participant_id',),
 }
 
 # An enumeration of user FK columns that we explicitly intend to migrate
@@ -193,7 +197,15 @@ def _migrate_participant(old_pk, new_pk):
 
     _update_lotteryinfo(cursor, old_pk, new_pk)
 
-    for table, cols in EXPECTED_PARTICIPANT_TABLES.items():
+    simple_updates = EXPECTED_PARTICIPANT_TABLES.copy()
+
+    # When we merge participants, we'll be merging user records.
+    # Accordingly, we're keeping the password from the "new" participant's user.
+    # Just delete any record of password quallity on the old participant.
+    simple_updates.pop('ws_passwordquality')
+    models.PasswordQuality.objects.filter(participant_id=old_pk).delete()
+
+    for table, cols in simple_updates.items():
         for col in cols:
             simple_fk_update(cursor, table, col, old_pk, new_pk)
 

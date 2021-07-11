@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.contrib.auth.models import AnonymousUser
 
 from ws.messages import security
-from ws.tests.factories import ParticipantFactory, UserFactory
+from ws.tests.factories import ParticipantFactory, PasswordQualityFactory, UserFactory
 from ws.tests.messages import MessagesTestCase
 
 
@@ -45,9 +45,9 @@ class WarnIfPasswordInsecureTests(MessagesTestCase):
     def test_participant_with_secure_password(self):
         request = self.factory.get('/')
         # Simulate the effects of the ParticipantMiddleware for a known participant
-        par = ParticipantFactory.create(insecure_password=False)
-        request.participant = par
-        request.user = par.user
+        quality = PasswordQualityFactory.create(is_insecure=False)
+        request.participant = quality.participant
+        request.user = quality.participant.user
 
         with self._mock_info() as info, self._mock_add_message() as add_message:
             security.Messages(request).supply()
@@ -59,9 +59,8 @@ class WarnIfPasswordInsecureTests(MessagesTestCase):
         """Test core behavior of the generator - a known participant with a bad password."""
         # Use the test client, since RequestFactory can't handle messages
         user = UserFactory.create(email='fake@example.com', password='password')
-        par = ParticipantFactory.create(
-            email='fake@example.com', user=user, insecure_password=True
-        )
+        par = ParticipantFactory.create(email='fake@example.com', user=user)
+        PasswordQualityFactory.create(participant=par, is_insecure=True)
         self.client.login(email=user.email, password='password')
 
         with self._mock_info() as info, self._mock_add_message(True) as add_message:
@@ -93,11 +92,9 @@ class WarnIfPasswordInsecureTests(MessagesTestCase):
         is marked insecure, so there's no reason to also supply a message.
         """
         request = self.factory.get('/accounts/password/change/?query_args=are_ignored')
-        par = ParticipantFactory.create(
-            email='oops@example.com', insecure_password=True
-        )
-        request.participant = par
-        request.user = par.user
+        quality = PasswordQualityFactory.create(is_insecure=True)
+        request.participant = quality.participant
+        request.user = quality.participant.user
 
         with self._mock_add_message() as add_message:
             security.Messages(request).supply()

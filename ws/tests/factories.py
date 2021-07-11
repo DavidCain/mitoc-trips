@@ -130,6 +130,13 @@ class ParticipantFactory(DjangoModelFactory):
         return super()._create(model_class, *args, **kwargs)
 
 
+class PasswordQualityFactory(DjangoModelFactory):
+    class Meta:
+        model = models.PasswordQuality
+
+    participant = factory.SubFactory(ParticipantFactory)
+
+
 class CarFactory(DjangoModelFactory):
     class Meta:
         model = models.Car

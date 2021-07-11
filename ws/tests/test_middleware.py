@@ -8,7 +8,7 @@ from ws import models
 from ws.messages import security
 from ws.middleware import CustomMessagesMiddleware, ParticipantMiddleware
 from ws.tests import TestCase
-from ws.tests.factories import ParticipantFactory, UserFactory
+from ws.tests.factories import ParticipantFactory, PasswordQualityFactory, UserFactory
 
 
 class ParticipantMiddlewareTests(TestCase):
@@ -80,7 +80,8 @@ class CustomMessagesMiddlewareTests(TestCase):
         """A participant with an insecure password will have a message generated."""
         self.request.user = self.user
         self.request.participant = ParticipantFactory.create(
-            user_id=self.user.pk, insecure_password=True
+            user_id=self.user.pk,
+            passwordquality=PasswordQualityFactory(is_insecure=True),
         )
 
         with mock.patch.object(security.messages, 'add_message') as add_message:
@@ -91,7 +92,8 @@ class CustomMessagesMiddlewareTests(TestCase):
         """A participant with secure password will have no messages generated."""
         self.request.user = self.user
         self.request.participant = ParticipantFactory.create(
-            user_id=self.user.pk, insecure_password=False
+            user_id=self.user.pk,
+            passwordquality=PasswordQualityFactory(is_insecure=False),
         )
 
         with mock.patch.object(security.messages, 'add_message') as add_message:

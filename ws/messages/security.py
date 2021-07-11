@@ -3,6 +3,8 @@ import logging
 from django.contrib import messages
 from django.urls import reverse
 
+from ws import models
+
 from . import MessageGenerator
 
 logger = logging.getLogger(__name__)
@@ -31,16 +33,23 @@ class Messages(MessageGenerator):
             return
 
         par = self.request.participant
-        if par and par.insecure_password:
-            msg = (
-                'Your password is insecure! '
-                f'Please <a href="{change_password_url}">change your password.</a>'
-            )
-            warned = self.add_unique_message(messages.ERROR, msg, extra_tags='safe')
+        try:
+            breached = par and par.passwordquality.is_insecure
+        except models.PasswordQuality.DoesNotExist:
+            breached = False
 
-            if warned:
-                logger.info(
-                    "Warned participant %s (%s) about insecure password",
-                    par.pk,
-                    par.email,
-                )
+        if not breached:
+            return
+
+        msg = (
+            'Your password is insecure! '
+            f'Please <a href="{change_password_url}">change your password.</a>'
+        )
+        warned = self.add_unique_message(messages.ERROR, msg, extra_tags='safe')
+
+        if warned:
+            logger.info(
+                "Warned participant %s (%s) about insecure password",
+                par.pk,
+                par.email,
+            )

@@ -33,9 +33,8 @@ class LoginTests(TestCase):
         outage, we'd rather mark people as having secure passwords than block
         them from using the site (we'll check again on their next login).
         """
-        factories.ParticipantFactory.create(
-            user_id=self.user.pk, insecure_password=True
-        )
+        par = factories.ParticipantFactory.create(user=self.user)
+        factories.PasswordQualityFactory.create(participant=par, is_insecure=True)
         with mock.patch.object(account, 'pwned_password') as pwned_password:
             pwned_password.return_value = None  # (API was down)
             response = self._login()
@@ -45,16 +44,16 @@ class LoginTests(TestCase):
 
         pwned_password.assert_called_once_with('football')
 
-        participant = models.Participant.from_user(self.user)
-        self.assertFalse(participant.insecure_password)
+        quality = models.PasswordQuality.objects.get(participant=par)
+        self.assertFalse(quality.is_insecure)
 
-        # Because the API was down, we did not write to `password_last_checked`
-        self.assertIsNone(participant.password_last_checked)
+        # Because the API was down, we did not write that we checked the password
+        self.assertIsNone(quality.last_checked)
 
     @mock.patch.object(account, 'settings')
     def test_known_bad_password(self, mocked_settings):
         """We include a debug mode that supports passing known bad passwords."""
-        factories.ParticipantFactory.create(user_id=self.user.pk)
+        par = factories.ParticipantFactory.create(user_id=self.user.pk)
 
         # We only sidestep the API if `DEBUG` is true, and our password is whitelisted!
         mocked_settings.DEBUG = True
@@ -69,12 +68,11 @@ class LoginTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/")
 
-        participant = models.Participant.from_user(self.user)
-
+        quality = models.PasswordQuality.objects.get(participant=par)
         # The participant's password was hard-coded to be in zero breaches, so we update the record!
-        self.assertFalse(participant.insecure_password)
+        self.assertFalse(quality.is_insecure)
         self.assertEqual(
-            participant.password_last_checked,
+            quality.last_checked,
             datetime(2019, 8, 29, 16, 25, tzinfo=pytz.utc),
         )
 
@@ -90,12 +88,13 @@ class LoginTests(TestCase):
             response = self.client.post('/accounts/login/', self.form_data)
         pwned_password.assert_called_once_with('football')
         participant = models.Participant.from_user(self.user)
-        self.assertTrue(participant.insecure_password)
+        self.assertTrue(participant.passwordquality.is_insecure)
 
     def test_previously_secure_password(self):
         """The database is updated all the time - any user's password can become compromised!"""
-        factories.ParticipantFactory.create(
-            user_id=self.user.pk, insecure_password=False
+        participant = factories.ParticipantFactory.create(user=self.user)
+        factories.PasswordQualityFactory.create(
+            participant=participant, is_insecure=True
         )
         with mock.patch.object(account, 'pwned_password') as pwned_password:
             pwned_password.return_value = 15  # password found in 15 separate breaches!
@@ -103,15 +102,15 @@ class LoginTests(TestCase):
                 response = self._login()
 
         pwned_password.assert_called_once_with('football')
-        participant = models.Participant.from_user(self.user)
         logger_info.assert_called_once_with(
-            "%s logged in with a breached password", f"Participant {participant.pk}"
+            "Participant %s logged in with a breached password", participant.pk
         )
 
         # The participant's password was found to be in breaches, so we update the record!
-        self.assertTrue(participant.insecure_password)
+        quality = models.PasswordQuality.objects.get(participant=participant)
+        self.assertTrue(quality.is_insecure)
         self.assertEqual(
-            participant.password_last_checked,
+            quality.last_checked,
             datetime(2019, 8, 29, 16, 25, tzinfo=pytz.utc),
         )
 
@@ -133,7 +132,7 @@ class LoginTests(TestCase):
 
         redirected_response = self.client.get(response.url)
         logger_info.assert_called_once_with(
-            "%s logged in with a breached password", f"User {self.user.pk}"
+            "User %s logged in with a breached password", self.user.pk
         )
         pwned_password.assert_called_once_with('football')
 
@@ -160,9 +159,9 @@ class LoginTests(TestCase):
         participant = models.Participant.from_user(self.user)
 
         # The participant's password was found to be in zero breaches, so we update the record!
-        self.assertFalse(participant.insecure_password)
+        self.assertFalse(participant.passwordquality.is_insecure)
         self.assertEqual(
-            participant.password_last_checked,
+            participant.passwordquality.last_checked,
             datetime(2019, 8, 29, 16, 25, tzinfo=pytz.utc),
         )
 
@@ -200,9 +199,8 @@ class PasswordChangeTests(TestCase):
 
     def test_change_password_fram_insecure(self):
         """Changing an insecure password to a secure one updates the participant."""
-        factories.ParticipantFactory.create(
-            user_id=self.user.pk, insecure_password=True
-        )
+        par = factories.ParticipantFactory.create(user=self.user)
+        factories.PasswordQualityFactory.create(participant=par, is_insecure=True)
         # Simulate login (skip the normal login flow)
         self.client.login(email='strong@example.com', password=self.password)
         new_password = str(uuid.uuid4())
@@ -215,11 +213,11 @@ class PasswordChangeTests(TestCase):
         self.assertEqual(response.status_code, 302)
         pwned_password.assert_called_once_with(new_password)
 
-        participant = models.Participant.from_user(self.user)
+        par.passwordquality.refresh_from_db()
         # The participant's password was found to be in zero breaches, so we update the record!
-        self.assertFalse(participant.insecure_password)
+        self.assertFalse(par.passwordquality.is_insecure)
         self.assertEqual(
-            participant.password_last_checked,
+            par.passwordquality.last_checked,
             datetime(2019, 7, 15, 16, 45, tzinfo=pytz.utc),
         )
 
@@ -248,9 +246,8 @@ class PasswordChangeTests(TestCase):
 
     def test_attempt_changing_to_insecure_password(self):
         """The password validator will stop insecure passwords from being accepted."""
-        factories.ParticipantFactory.create(
-            user_id=self.user.pk, insecure_password=False
-        )
+        par = factories.ParticipantFactory.create(user=self.user)
+        factories.PasswordQualityFactory.create(participant=par, is_insecure=False)
         # Simulate login (skip the normal login flow)
         self.client.login(email='strong@example.com', password=self.password)
         new_insecure_password = 'letmeinplease'

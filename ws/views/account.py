@@ -41,14 +41,17 @@ class CustomPasswordChangeView(PasswordChangeView):
 
     def form_valid(self, form):
         response = super().form_valid(form)
-
         if self.request.participant:
-            self.request.participant.insecure_password = False
-            # NOTE: Technically, we cannot know for sure if the API call to HIBP failed
-            # (and thus, we might be updating this timestamp incorrectly)
-            # However, we log API failures and could use that information to identify the last success
-            self.request.participant.password_last_checked = local_now()
-            self.request.participant.save()
+            models.PasswordQuality.objects.update_or_create(
+                participant=self.request.participant,
+                defaults={
+                    'is_insecure': False,
+                    # NOTE: Technically, we cannot know for sure if the API call to HIBP failed
+                    # (and thus, we might be updating this timestamp incorrectly)
+                    # However, we log API failures and could use that information to identify the last success.
+                    'last_checked': local_now(),
+                },
+            )
         return response
 
 
@@ -105,25 +108,30 @@ class CheckIfPwnedOnLoginView(LoginView):
         # If they do have a participant, set the password as insecure (or not)
         participant = models.Participant.from_user(user)
         if participant:
-            participant.insecure_password = bool(times_password_seen)
-            if times_password_seen is not None:  # (None indicates an API failure)
-                participant.password_last_checked = local_now()
-            participant.save()
-
-        if times_password_seen:
-            subject = (
-                f"Participant {participant.pk}" if participant else f"User {user.pk}"
+            quality, _created = models.PasswordQuality.objects.get_or_create(
+                participant=participant
             )
-            logger.info("%s logged in with a breached password", subject)
+            if times_password_seen is not None:  # (None indicates an API failure)
+                quality.last_checked = local_now()
+            quality.is_insecure = bool(times_password_seen)
+            quality.save()
 
-            if not participant:
-                # For non-new users lacking a participant (very rare), a message + redirect is fine.
-                # If they ignore the reset, they'll be locked out once creating a Participant record.
-                messages.error(
-                    self.request,
-                    'This password has been compromised! Please choose a new password. '
-                    'If you use this password on any other sites, we recommend changing it immediately.',
-                )
+        if not times_password_seen:  # Password okay? Nothing more to do here.
+            return
+
+        if participant:
+            logger.info(
+                "Participant %s logged in with a breached password", participant.pk
+            )
+        else:
+            logger.info("User %s logged in with a breached password", user.pk)
+            # For non-new users lacking a participant (very rare), a message + redirect is fine.
+            # If they ignore the reset, they'll be locked out once creating a Participant record.
+            messages.error(
+                self.request,
+                'This password has been compromised! Please choose a new password. '
+                'If you use this password on any other sites, we recommend changing it immediately.',
+            )
 
     def form_valid(self, form):
         times_password_breached, response = self._form_valid_perform_login(form)

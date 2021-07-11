@@ -34,6 +34,7 @@ class ParticipantMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
+        # TODO: We check for `password_quality` on every request. We should join that.
         request.participant = Participant.from_user(request.user)
         return self.get_response(request)
 
