@@ -18,7 +18,7 @@ from sentry_sdk.integrations.django import DjangoIntegration
 # TODO: Rename env var - Raven was the name of the legacy client
 if 'RAVEN_DSN' in os.environ:
     # See: https://docs.sentry.io/platforms/python/django/
-    sentry_sdk.init(
+    sentry_sdk.init(  # pylint: disable=abstract-class-instantiated
         os.environ['RAVEN_DSN'],
         integrations=[DjangoIntegration(), CeleryIntegration()],
         # This attaches basic user data to the event

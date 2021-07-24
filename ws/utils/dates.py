@@ -7,7 +7,8 @@ from datetime import datetime, time, timedelta
 import dateutil.parser
 from django.utils import timezone
 
-from ws import enums, models
+# TODO: stop import `models` here! Refactor.
+from ws import enums, models  # pylint:disable=cyclic-import
 
 
 def datetime_from_iso(datestring: str) -> datetime:
@@ -207,6 +208,7 @@ def ws_lectures_complete():
     """
     now = local_now()
     today = now.date()
+    # TODO: This is cyclic, refactor.
     trips_this_ws = models.Trip.objects.filter(
         trip_date__gte=jan_1(), program=enums.Program.WINTER_SCHOOL.value
     )

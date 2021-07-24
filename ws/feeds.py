@@ -19,20 +19,20 @@ class UpcomingTripsFeed(Feed):
         upcoming_trips = Trip.objects.filter(trip_date__gte=local_date())
         return upcoming_trips.order_by('-trip_date')
 
-    def item_title(self, trip):
-        return trip.name
+    def item_title(self, item):
+        return item.name
 
-    def item_description(self, trip):
-        return trip.description
+    def item_description(self, item):
+        return item.description
 
-    def item_link(self, trip):
-        return reverse('view_trip', args=[trip.pk])
+    def item_link(self, item):
+        return reverse('view_trip', args=[item.pk])
 
-    def item_pubdate(self, trip):
-        return trip.time_created.astimezone(DEFAULT_TIMEZONE)
+    def item_pubdate(self, item):
+        return item.time_created.astimezone(DEFAULT_TIMEZONE)
 
-    def item_author_name(self, trip):
-        return trip.creator.name
+    def item_author_name(self, item):
+        return item.creator.name
 
-    def item_updateddate(self, trip):
-        return trip.last_edited.astimezone(DEFAULT_TIMEZONE)
+    def item_updateddate(self, item):
+        return item.last_edited.astimezone(DEFAULT_TIMEZONE)
