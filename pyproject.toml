@@ -56,7 +56,7 @@ pylint = "^2.8"
 pytz = "*"  # (It's a production dependency by way of Django, but used directly in tests)
 
 # Dependencies for static type checking
-django-stubs = { git = "https://github.com/typeddjango/django-stubs.git", rev = "397e3f3dacdd963995ae55600a376a9e69de563d" }  # Awaiting 1.9.0 release
+django-stubs = { url = "https://github.com/typeddjango/django-stubs/archive/397e3f3dacdd963995ae55600a376a9e69de563d.tar.gz" }  # Awaiting 1.9.0 release
 mypy = { version = "*"}
 types-certifi = { version = "*" }
 types-cryptography = { version = "*" }

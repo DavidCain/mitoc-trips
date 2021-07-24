@@ -348,7 +348,6 @@ description = ""
 category = "dev"
 optional = false
 python-versions = ">=3.6"
-develop = false
 
 [package.dependencies]
 django = "*"
@@ -359,11 +358,8 @@ types-pytz = "*"
 typing-extensions = "*"
 
 [package.source]
-type = "git"
-url = "https://github.com/typeddjango/django-stubs.git"
-reference = "397e3f3dacdd963995ae55600a376a9e69de563d"
-resolved_reference = "397e3f3dacdd963995ae55600a376a9e69de563d"
-
+type = "url"
+url = "https://github.com/typeddjango/django-stubs/archive/397e3f3dacdd963995ae55600a376a9e69de563d.tar.gz"
 [[package]]
 name = "django-stubs-ext"
 version = "0.2.0"
@@ -1225,7 +1221,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=1.2.3)", "pytest-flake8", "pyt
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6.2"
-content-hash = "ac5cdf28352a829980458ea36ed4196a1b32161aa45ad0707dcb93f3f436156c"
+content-hash = "1fc280a8beee3e825b49a0ccfb0d99442db343590f2aec989bc36c42b3592e58"
 
 [metadata.files]
 amqp = [
