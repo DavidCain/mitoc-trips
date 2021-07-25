@@ -84,6 +84,9 @@ RUN npm --prefix=frontend/ run build
 COPY manage.py .
 COPY ws ./ws
 
+# NOTE: For the legacy AngularJS build, setting `WS_DJANGO_TEST` bypasses compressors
+# (yuglify, specifically). Not a problem for tests, but does break production.
+# Hopefully we've dropped the legacy setup & can just use webpack.
 RUN WS_DJANGO_TEST=1 ./manage.py collectstatic
 
 # ------------------------------------------------------------------------
