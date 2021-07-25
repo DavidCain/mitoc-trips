@@ -7,7 +7,6 @@ from django.contrib.auth.views import redirect_to_login
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import resolve_url
 from django.urls import reverse, reverse_lazy
-from django.utils.decorators import available_attrs
 
 import ws.utils.perms as perm_utils
 from ws import enums
@@ -28,7 +27,7 @@ def profile_needs_update(request):
 
 
 def participant_required(view_func):
-    @wraps(view_func, assigned=available_attrs(view_func))
+    @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
         if request.participant:
             return view_func(request, *args, **kwargs)
@@ -69,7 +68,7 @@ def group_required(*group_names, **kwargs):
     # This is a simplified version of the user_passes_test decorator
     # We extended it to allow `redir_url` to depend on authentication
     def decorator(view_func):
-        @wraps(view_func, assigned=available_attrs(view_func))
+        @wraps(view_func)
         def _wrapped_view(request, *args, **kwargs):
             if allow_anonymous and not request.user.is_authenticated:
                 return view_func(request, *args, **kwargs)
