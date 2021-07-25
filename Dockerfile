@@ -56,6 +56,22 @@ ENV PATH="/app/.venv/bin:$PATH"
 
 COPY pyproject.toml .
 
+# Janky hackage follows: make Poetry & Docker caching play nicely together.
+# -------------------------------------------------------------------------
+# Docker will cache a layer if it sees that pyproject.toml hasn't changed.
+# We specify our dependencies in the `[tool.poetry]` section of `pyproject.toml`
+# If dependencies haven't changed in '[tool.poetry]` (or in `poetry.lock`),
+# we can use Docker layers to avoid re-installing deps due to unrelated file changes.
+# Unrelated changes in `pyproject.toml` can come from editing other tools, or even just comments.
+# Extract *just* the sections for Poetry, removing comments and applying a consistent format.
+# Since Poetry's `content-hash` is a hashed dictionary, not the file itself, so this works!
+RUN pip install toml  # No need to uninstall; poetry will overwrite anyway
+RUN python3 -c 'import toml; toml.dump({"tool": {"poetry": toml.load("pyproject.toml")["tool"]["poetry"]}}, open("pyproject.toml", "w"))'
+RUN poetry install --no-root
+
+# Copy the *full* pyproject.toml, which has config for black, isort, pylint, mypy
+COPY pyproject.toml .
+
 # Install legacy frontend
 COPY package.json package-lock.json ./
 RUN npm ci
