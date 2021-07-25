@@ -56,7 +56,7 @@ pylint = "^2.8"
 pytz = "*"  # (It's a production dependency by way of Django, but used directly in tests)
 
 # Dependencies for static type checking
-django-stubs = { version = "*" }
+django-stubs = { git = "https://github.com/typeddjango/django-stubs.git", rev = "397e3f3dacdd963995ae55600a376a9e69de563d" }  # Awaiting 1.9.0 release
 mypy = { version = "*"}
 types-certifi = { version = "*" }
 types-cryptography = { version = "*" }
@@ -68,3 +68,40 @@ types-requests = { version = "*" }
 django-debug-toolbar = { version = "*" }
 ipdb = { version = "*" }
 jedi = { version = "<0.18.0" }  # https://github.com/ipython/ipython/issues/12740
+
+
+[tool.mypy]
+python_version = "3.6"
+show_error_codes = true
+plugins = ["mypy_django_plugin.main"]
+
+[[tool.mypy.overrides]]
+# Explicitly ignore imports that do not have type hints or library stubs
+# Periodically, it's worth checking in to see which of these may have types later!
+# (After dropping support for Python versions before 3.5, it's easy to just type annotate directly
+module = [
+    "django_stubs_ext",  # TODO: revisit if we need this after 1.9.0 release
+
+    "allauth.*",
+    "bs4",
+    "celery.*",
+    "debug_toolbar",
+    "djng.*",
+    "factory.*",
+    "freezegun",
+    "gspread",
+    "httplib2",
+    "kombu.*",
+    "localflavor.*",
+    "markdown2",
+    "oauth2client.*",
+    "phonenumber_field.*",
+    "phonenumbers",
+    "pipeline.*",
+    "pwned_passwords_django.*",
+
+]
+ignore_missing_imports = true
+
+[tool.django-stubs]
+django_settings_module = "ws.settings"

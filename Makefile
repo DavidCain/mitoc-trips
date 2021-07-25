@@ -66,9 +66,7 @@ lint-python: install-python-dev
 
 .PHONY: typecheck-python
 typecheck-python: install-python-dev
-	@# TODO: mypy will start being able to read from pyproject.toml soon
-	@# (leaving the superfluous `--config-file` argument here to make that clear)
-	poetry run mypy --config-file mypy.ini ws
+	poetry run mypy --config-file pyproject.toml ws
 
 .PHONY: lint-js
 lint-js: install-js
