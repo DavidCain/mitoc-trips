@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/DavidCain/mitoc-trips.svg?branch=master)](https://travis-ci.org/DavidCain/mitoc-trips)
+[![Build Status](https://github.com/DavidCain/mitoc-trips/actions/workflows/ci.yml/badge.svg)](https://github.com/DavidCain/mitoc-trips/actions)
 [![Code Coverage](https://codecov.io/gh/DavidCain/mitoc-trips/branch/master/graph/badge.svg)](https://codecov.io/gh/DavidCain/mitoc-trips)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 

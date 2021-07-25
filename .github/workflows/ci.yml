@@ -1,0 +1,72 @@
+name: CI
+
+on: [push]
+
+jobs:
+  ci:
+    strategy:
+      fail-fast: false
+      matrix:
+        command:
+          - "black --diff --check ws"
+          - "isort --diff --check ws"
+          - "mypy ws"
+          - "pylint --jobs=0 ws"
+          - "python -Wd -m coverage run manage.py test"
+    runs-on: ubuntu-18.04
+    services:
+      # TODO: Only the `test` step in the matrix needs this service up and running.
+      # All others have no need to hit the database.
+      postgres:
+        image: postgres:12.4
+        env:
+          POSTGRES_USER: ws
+          POSTGRES_PASSWORD: password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 3
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: "Clone repo"
+        uses: actions/checkout@v2
+
+      - name: "Install buildx"
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: "Restore Docker cache"
+        uses: actions/cache@v2
+        id: cache
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-ws-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-ws-buildx-
+
+      - name: "Build CI container"
+        run: |
+          docker buildx build \
+            --cache-from "type=local,src=/tmp/.buildx-cache" \
+            --cache-to   "type=local,dest=/tmp/.buildx-cache" \
+            --load \
+            --tag ws \
+            --target build \
+            .
+
+      - name: ${{ matrix.command }}
+        env:
+          WS_DJANGO_TEST: "1"
+          DB_HOST: "localhost"
+          DB_PASSWORD: "password"
+        run: |
+          docker run \
+            --network host \
+            --env WS_DJANGO_TEST \
+            --env DB_HOST \
+            --env DB_PASSWORD \
+            --rm ws \
+            ${{ matrix.command }}
