@@ -13,7 +13,7 @@ class StudentTravelFormTest(TestCase):
     def setUp(self):
         super().setUp()
         self.leader = factories.ParticipantFactory.create(
-            name="Tim Beaver", email="tim@mit.edu", cell_phone="+6172531000"
+            name="Tim Beaver", email="tim@mit.edu", cell_phone="+16172531000"
         )
         self.trip = factories.TripFactory.create(
             name="Mt. Lafayette",
@@ -91,8 +91,13 @@ class StudentTravelFormTest(TestCase):
             .find_all('li')
         )
         self.assertEqual(len(leaders), 1)
-        self.assertEqual(leaders[0].get_text(' ', strip=True), 'Tim Beaver')
-        self.assertEqual(leaders[0].find('a')['href'], 'mailto:tim@mit.edu')
+        self.assertEqual(
+            leaders[0].get_text(' ', strip=True),
+            'Tim Beaver +16172531000',
+        )
+        leader_link = leaders[0].find('a')
+        self.assertEqual(leader_link.text, 'Tim Beaver')
+        self.assertEqual(leader_link['href'], 'mailto:tim@mit.edu')
 
         # We list trip participants
         participants = (
