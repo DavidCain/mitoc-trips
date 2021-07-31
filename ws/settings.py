@@ -193,9 +193,6 @@ DATABASES = {
 DATABASE_ROUTERS = ['ws.routers.DefaultOnlyRouter']
 
 
-FORM_RENDERER = 'djng.forms.renderers.DjangoAngularBootstrap3Templates'
-
-
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'djng.middleware.AngularUrlMiddleware',
