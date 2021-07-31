@@ -36,7 +36,7 @@ $(poetry_prod_bootstrap_file): poetry.lock
 install-js: $(npm_bootstrap_file)
 $(npm_bootstrap_file): frontend/package.json frontend/package-lock.json
 	touch $(npm_bootstrap_file).notyet
-	npm --prefix=frontend/ install
+	npm --prefix=frontend/ ci
 	mv $(npm_bootstrap_file).notyet $(npm_bootstrap_file)
 
 # Build webpack-stats.json, which Django webpack loader will serve
