@@ -75,10 +75,17 @@
         </table>
       {% else %}  {# There aren't any applications that need recommendations. #}
         <div class="alert alert-info">
-          {% if num_chairs == 1 %}
-            <p>When there are multiple activity chairs, co-chairs can make
-            recommendations to one another. However, this doesn't really
-            make sense when there's a single chair.</p>
+          {% if num_chairs <= 1 %}
+            <p>
+              When there are multiple activity chairs, co-chairs can make recommendations to one another.
+              However, this doesn't really make sense when
+              {% if num_chairs == 1 %}
+                there's a single chair.
+              {% else %}
+                {# For example, following elections in 2021, no hiking chair existed. #}
+                there is not an acting chair.
+              {% endif %}
+            </p>
           {% else %}
             You've given recommendations on all open applications!
           {% endif %}

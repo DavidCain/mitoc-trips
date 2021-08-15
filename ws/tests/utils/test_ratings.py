@@ -85,14 +85,12 @@ class DatabaseApplicationManagerTests(TestCase):
         )
 
     def _make_recommendation(self, creator):
-        rec = models.LeaderRecommendation(
+        return factories.LeaderRecommendationFactory.create(
             creator=creator,
             participant=self.participant,
             activity=enums.Activity.CLIMBING.value,
             rating='Single pitch, maybe?',  # Comments don't really matter
         )
-        rec.save()
-        return rec
 
     def _make_rating(self, creator):
         rating = models.LeaderRating(

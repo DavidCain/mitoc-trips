@@ -160,6 +160,16 @@ class LeaderRatingFactory(DjangoModelFactory):
     active = True
 
 
+class LeaderRecommendationFactory(DjangoModelFactory):
+    class Meta:
+        model = models.LeaderRecommendation
+
+    activity = models.LeaderRating.HIKING
+    rating = 'Should co-lead two trips'
+    creator = factory.SubFactory(ParticipantFactory)
+    participant = factory.SubFactory(ParticipantFactory)
+
+
 class LotteryInfoFactory(DjangoModelFactory):
     class Meta:
         model = models.LotteryInfo
@@ -263,6 +273,18 @@ class ClimbingLeaderApplicationFactory(DjangoModelFactory):
     notable_climbs = "The Nose of El Capitan"
     favorite_route = "Jaws II"
     extra_info = "An extinct giant sloth is largely responsible for the existence of the avocado."
+
+
+class HikingLeaderApplicationFactory(DjangoModelFactory):
+    class Meta:
+        model = models.HikingLeaderApplication
+
+    participant = factory.SubFactory(ParticipantFactory)
+    desired_rating = "Leader"
+
+    mitoc_experience = "Member for 3 years, been to 2 Circuses, never led a trip"
+    formal_training = "Wilderness First Responder"
+    leadership_experience = "Leader in my college outing club"
 
 
 class WinterSchoolLeaderApplicationFactory(DjangoModelFactory):
