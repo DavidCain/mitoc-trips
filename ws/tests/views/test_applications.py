@@ -19,27 +19,102 @@ class Helpers:
 
 
 class ClimbingLeaderApplicationTest(TestCase, Helpers):
+    """Climbing leaders apply via a special Google Form."""
+
+    BASE_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSeWeIjtQ-p4mH_zGS-YvedvkbmVzBQOarIvzfzBzEgHMKuZzw'
+
+    @staticmethod
+    def _create_application_and_approve():
+        application = factories.ClimbingLeaderApplicationFactory.create(
+            # Note that the form logic usually handles this
+            year=date_utils.local_date().year,
+        )
+        factories.LeaderRatingFactory.create(
+            activity=enums.Activity.CLIMBING.value,
+            participant=application.participant,
+        )
+        return application
+
+    def setUp(self):
+        self.participant = factories.ParticipantFactory.create(name='Tim Beaver')
+        self.client.force_login(self.participant.user)
+
+    def test_climbing_application_via_google_form(self):
+        _response, soup = self._get('/climbing/leaders/apply/')
+
+        soup.find(
+            'a',
+            attrs={
+                'href': f'{self.BASE_FORM_URL}/viewform?entry.1371106720=Tim+Beaver',
+            },
+        )
+
+        # Page also includes our general description on climbing ratings
+        help_section_start = soup.find('h3')
+        self.assertEqual(help_section_start.text, 'For all climbing leaders:')
+        self.assertEqual(
+            help_section_start.find_next('li').text,
+            'You have strong group management skills.',
+        )
+
+    def test_submission_blocked(self):
+        """Even though the ClimbingLeaderApplication model exists, you can't apply."""
+        resp = self.client.post(
+            '/climbing/leaders.apply',
+            {'outdoor_sport_leading_grade': '5.11d'},
+        )
+        self.assertEqual(resp.status_code, 404)
+
+    def test_old_applications_climbing(self):
+        with freeze_time("2018-08-13 18:45 EDT"):
+            self._create_application_and_approve()
+        with freeze_time("2019-06-22 12:23 EDT"):
+            self._create_application_and_approve()
+
+        # make_chair(self.participant.user, Activity.CLIMBING)
+        Group.objects.get(name='climbing_chair').user_set.add(self.participant.user)
+        _response, soup = self._get('/climbing/applications/')
+        self.assertEqual(
+            soup.find('p').text,
+            'Only archived climbing leader applications appear here.',
+        )
+        self.assertEqual(
+            [h2.text for h2 in soup.find_all('h2')],
+            [
+                'Leader Applications',
+                'Past Applications - 2019',
+                'Past Applications - 2018',
+            ],
+        )
+
+    def test_no_applications_climbing(self):
+        # make_chair(self.participant.user, Activity.CLIMBING)
+        Group.objects.get(name='climbing_chair').user_set.add(self.participant.user)
+        _response, soup = self._get('/climbing/applications/')
+
+        self.assertEqual(
+            soup.find('p').text,
+            'Only archived climbing leader applications appear here.',
+        )
+
+
+class HikingLeaderApplicationTest(TestCase, Helpers):
     def setUp(self):
         self.participant = factories.ParticipantFactory.create()
         self.client.force_login(self.participant.user)
 
     def test_preamble(self):
-        _response, soup = self._get('/climbing/leaders/apply/')
-        expected_preamble = (
-            'Please fill out the form below to apply to become a climbing leader. '
-            'In addition to this form, we require that applicants have '
-            'two recommendations from current MITOC climbing leaders.'
+        _response, soup = self._get('/hiking/leaders/apply/')
+        self.assertEqual(
+            strip_whitespace(soup.find('h1').text), 'Hiking Leader Application'
         )
         self.assertEqual(
-            strip_whitespace(soup.find('h1').text), 'Climbing Leader Application'
+            soup.find('p').text,
+            "Please complete and submit the form below if you're interested in becoming a MITOC Hiking Leader.",
         )
-        self.assertEqual(soup.find('p').text, expected_preamble)
 
     def test_key_fields_hidden(self):
-        """With no default filter, we only show upcoming trips."""
         _response, soup = self._get('/climbing/leaders/apply/')
-        # "Archived" is a value that's set by leaders on existing applications
-        self.assertFalse(soup.find('input', attrs={'name': 'archived'}))
         # The year is automatically added by the server.
         self.assertFalse(soup.find('input', attrs={'name': 'year'}))
         # The participant is given by the session, and added to the form by the server.

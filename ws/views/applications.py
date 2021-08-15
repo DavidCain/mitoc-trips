@@ -95,7 +95,7 @@ class LeaderApplyView(LeaderApplicationMixin, CreateView):  # type: ignore[misc]
         return self.request.participant
 
     @property
-    def application_year(self):
+    def application_year(self) -> int:
         return models.LeaderApplication.application_year_for_activity(self.activity)
 
     def form_valid(self, form):

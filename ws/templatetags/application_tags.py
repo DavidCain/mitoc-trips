@@ -39,9 +39,17 @@ def application_details(application):
     return {'familiarities': familiarities, 'text_fields': text_fields}
 
 
-@register.inclusion_tag('for_templatetags/application_description.html')
-def application_description(activity):
-    return {'activity': activity}
+@register.inclusion_tag(
+    'for_templatetags/application_description.html',
+    takes_context=True,
+)
+def application_description(context, activity):
+    return {
+        'activity': activity,
+        'climbing_application_url': models.ClimbingLeaderApplication.google_form_url(
+            participant=context['viewing_participant'],
+        ),
+    }
 
 
 @register.inclusion_tag('for_templatetags/application_status.html')

@@ -46,35 +46,42 @@
 
 {% endif %}
 
-<div class="row">
-
-  {% if can_apply %}
-    <div class="col-md-6">
-      <h3><i class="fas fa-book"></i> Application</h3>
-
-      <form name="{{ form.form_name }}" method="post" action="." novalidate data-submit-if-valid>
-        {% csrf_token %}
-        {% if activity_enum.is_winter_school %}
-          {% ws_application form %}
-        {% else %}
-          {{ form.as_div }}
-        {% endif %}
-        <div class="alert alert-danger" data-ng-cloak data-ng-show="{{ form.form_name }}.$submitted && {{ form.form_name }}.$invalid">
-          Please correct the above errors.
-        </div>
-        <button type="submit" class="btn btn-primary">Submit application</button>
-      </form>
+{% if activity == 'climbing' %}
+  <div class="row">
+    <div class="col-md-12" >
+        <hr />
+      {% include 'snippets/climbing_ratings.html' %}
     </div>
-  {% endif %}
+  </div>
+{% else %}
+  <div class="row">
+    {% if can_apply %}
+      <div class="col-md-6">
+        <h3><i class="fas fa-book"></i> Application</h3>
 
-  {% if application %}
-    <div class="col-md-6">
-      <h3><i class="fas fa-book"></i> Most Recent Application</h3>
-      {% application_summary application %}
-      {% application_details application %}
-    </div>
-  {% endif %}
+        <form name="{{ form.form_name }}" method="post" action="." novalidate data-submit-if-valid>
+          {% csrf_token %}
+          {% if activity_enum.is_winter_school %}
+            {% ws_application form %}
+          {% else %}
+            {{ form.as_div }}
+          {% endif %}
+          <div class="alert alert-danger" data-ng-cloak data-ng-show="{{ form.form_name }}.$submitted && {{ form.form_name }}.$invalid">
+            Please correct the above errors.
+          </div>
+          <button type="submit" class="btn btn-primary">Submit application</button>
+        </form>
+      </div>
+    {% endif %}
 
-</div>
+    {% if application %}
+      <div class="col-md-6">
+        <h3><i class="fas fa-book"></i> Most Recent Application</h3>
+        {% application_summary application %}
+        {% application_details application %}
+      </div>
+    {% endif %}
+  </div>
+{% endif %}
 
 {% endblock content %}

@@ -18,24 +18,34 @@
 
 {% if not pending %}
   <h2>Leader Applications</h2>
-  <p class="lead">There are no leader applications pending your review.</p>
-
-  {% if missing_form %}
+  {% if activity == 'climbing' %}
+    {% if apps_by_year %}
+      <p class="lead">Only archived climbing leader applications appear here.</p>
+    {% endif %}
     <div class="alert alert-warning">
-      <p>You don't have any application form defined for {{ activity_enum.label }}!</p>
-
-      <p>
-        If you'd like to enable leader applications through the web site, prepare
-        your form questions then send an email to
-        <a href="mailto:davidjosephcain@gmail.com">David Cain</a>.
-      </p>
+      New leader applications will come in via the Google Form
+      on the <a href="{% url 'become_leader' activity %}">leader application page</a>.
     </div>
   {% else %}
-    <p>
-      Once participants complete
-      a <a href="{% url 'become_leader' activity %}">leader application</a>, you
-      will be able to assign them ratings based on their responses.
-    </p>
+
+    <p class="lead">There are no leader applications pending your review.</p>
+    {% if missing_form %}
+      <div class="alert alert-warning">
+        <p>You don't have any application form defined for {{ activity_enum.label }}!</p>
+
+        <p>
+          If you'd like to enable leader applications through the web site, prepare
+          your form questions then send an email to
+          <a href="mailto:davidjosephcain@gmail.com">David Cain</a>.
+        </p>
+      </div>
+    {% else %}
+      <p>
+        Once participants complete
+        a <a href="{% url 'become_leader' activity %}">leader application</a>, you
+        will be able to assign them ratings based on their responses.
+      </p>
+  {% endif %}
   {% endif %}
 
 {% else %}  {# Some applications need recommendations and/or ratings #}

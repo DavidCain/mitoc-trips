@@ -4,7 +4,7 @@ from ws import enums, models
 from ws.tests import TestCase, factories
 
 ACTIVITIES_WITH_APPLICATIONS = [
-    enums.Activity.CLIMBING,
+    enums.Activity.CLIMBING,  # Special case: it's a Google form
     enums.Activity.HIKING,
     enums.Activity.WINTER_SCHOOL,
 ]
@@ -33,11 +33,6 @@ class AcceptingApplicationsTest(TestCase):
 
     def test_always_accepting(self):
         """Some activities are always accepting applications."""
-        self.assertTrue(
-            models.LeaderApplication.accepting_applications(
-                enums.Activity.CLIMBING.value
-            )
-        )
         self.assertTrue(
             models.LeaderApplication.accepting_applications(enums.Activity.HIKING.value)
         )
@@ -77,12 +72,12 @@ class CanReapplyTest(TestCase):
         participant = factories.ParticipantFactory.create()
 
         with freeze_time("2019-04-02 09:00:00 EST"):
-            last_app = factories.ClimbingLeaderApplicationFactory.create(
+            last_app = factories.HikingLeaderApplicationFactory.create(
                 participant=participant
             )
 
         def can_reapply():
-            return models.ClimbingLeaderApplication.can_reapply(last_app)
+            return models.HikingLeaderApplication.can_reapply(last_app)
 
         # 6 months must pass to re-apply!
         with freeze_time("2019-09-28 09:00:00 EST"):
@@ -92,7 +87,7 @@ class CanReapplyTest(TestCase):
 
         # An upgrade is allowed after 2 weeks, though!
         factories.LeaderRatingFactory.create(
-            participant=participant, activity=models.LeaderRating.CLIMBING
+            participant=participant, activity=models.LeaderRating.HIKING
         )
         with freeze_time("2019-04-12 09:00:00 EST"):
             self.assertFalse(can_reapply())

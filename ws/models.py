@@ -1,5 +1,6 @@
 from datetime import date, datetime, timedelta
 from typing import Dict, List, Tuple, Type, Union
+from urllib.parse import urlencode
 
 from allauth.account.models import EmailAddress
 from django.conf import settings
@@ -1476,14 +1477,21 @@ class LeaderApplication(models.Model):
         )
 
     @classmethod
-    def application_year_for_activity(cls, activity):
+    def application_year_for_activity(cls, activity: str) -> int:
         if activity == enums.Activity.WINTER_SCHOOL.value:
             return date_utils.ws_year()
         return date_utils.local_date().year
 
     @classmethod
-    def accepting_applications(cls, activity):
+    def accepting_applications(cls, activity: str) -> bool:
         application_defined = cls.can_apply_for_activity(activity)
+
+        # The climbing activity is accepting applications, but through a form.
+        # We want to make sure that we still regard applications as being accepted.
+        # (In the future, we might delete the `ClimbingLeaderApplication` model entirely
+        if activity == enums.Activity.CLIMBING.value:
+            return True
+
         if activity != enums.Activity.WINTER_SCHOOL.value:
             # For non-WS activity types, it's sufficient to just have a form defined.
             # (These activities do not support turning on & off the ability to apply)
@@ -1496,7 +1504,7 @@ class LeaderApplication(models.Model):
         return ws_settings.accept_applications
 
     @staticmethod
-    def can_apply_for_activity(activity) -> bool:
+    def can_apply_for_activity(activity: str) -> bool:
         """Return if an application exists for the activity."""
         try:
             LeaderApplication.model_from_activity(activity)
@@ -1532,7 +1540,7 @@ class LeaderApplication(models.Model):
         return 'winter_school' if activity == 'winterschool' else activity
 
     @staticmethod
-    def model_from_activity(activity) -> Type[models.Model]:
+    def model_from_activity(activity: str) -> Type[models.Model]:
         """Get the specific inheriting child from the activity.
 
         Inverse of activity().
@@ -1682,6 +1690,8 @@ class WinterSchoolLeaderApplication(LeaderApplication):
 
 
 class ClimbingLeaderApplication(LeaderApplication):
+    GOOGLE_FORM_ID = '1FAIpQLSeWeIjtQ-p4mH_zGS-YvedvkbmVzBQOarIvzfzBzEgHMKuZzw'
+
     FAMILIARITY_CHOICES = [
         ('none', "not at all"),
         ('some', "some exposure"),
@@ -1766,6 +1776,19 @@ class ClimbingLeaderApplication(LeaderApplication):
     extra_info = models.TextField(
         blank=True, help_text="Is there anything else you would like us to know?"
     )
+
+    @classmethod
+    def google_form_url(cls, participant=None) -> str:
+        """For newer applications, they should complete a Google form.
+
+        Return the URL, optionally prefilling participant information.
+        """
+        kwargs: Dict[str, str] = {}
+        if participant:
+            # Sadly, Google forms cannot pre-fill an email address.
+            # But we can at least pre-fill a name
+            kwargs['entry.1371106720'] = participant.name
+        return f"https://docs.google.com/forms/d/e/{cls.GOOGLE_FORM_ID}/viewform?{urlencode(kwargs)}"
 
 
 class DistinctAccounts(models.Model):
