@@ -42,6 +42,17 @@ class ClimbingLeaderApplicationTest(TestCase, Helpers):
     def test_climbing_application_via_google_form(self):
         _response, soup = self._get('/climbing/leaders/apply/')
 
+        # For clients on tablets or larger, we embed a form
+        soup.find(
+            'iframe',
+            attrs={
+                'class': 'hidden-sm',
+                # Form is embedded, pre-filled with participant's name
+                'src': f'{self.BASE_FORM_URL}/viewform?embedded=true&entry.1371106720=Tim+Beaver',
+            },
+        )
+
+        # We link straight to the form, for those on mobile (or who prefer to not use embedded)
         soup.find(
             'a',
             attrs={

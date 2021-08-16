@@ -48,8 +48,18 @@
 
 {% if activity == 'climbing' %}
   <div class="row">
-    <div class="col-md-12" >
-        <hr />
+    <div class="col-lg-7 col-md-8 hidden-sm" >
+      <iframe src="{{ climbing_form_url }}"
+              class="hidden-sm"
+              width="650px"
+              height="2500px"
+              frameborder="0"
+              marginheight="0"
+              marginwidth="0">
+          Loading…
+      </iframe>
+    </div>
+    <div class="col-lg-5 col-md-4">
       {% include 'snippets/climbing_ratings.html' %}
     </div>
   </div>

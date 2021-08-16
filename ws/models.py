@@ -1778,12 +1778,14 @@ class ClimbingLeaderApplication(LeaderApplication):
     )
 
     @classmethod
-    def google_form_url(cls, participant=None) -> str:
+    def google_form_url(cls, embedded=False, participant=None) -> str:
         """For newer applications, they should complete a Google form.
 
-        Return the URL, optionally prefilling participant information.
+        Return the URL, optionally prefilling participant information or embedding.
         """
         kwargs: Dict[str, str] = {}
+        if embedded:
+            kwargs['embedded'] = 'true'
         if participant:
             # Sadly, Google forms cannot pre-fill an email address.
             # But we can at least pre-fill a name

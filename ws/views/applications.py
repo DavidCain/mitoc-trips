@@ -127,6 +127,11 @@ class LeaderApplyView(LeaderApplicationMixin, CreateView):  # type: ignore[misc]
         else:
             context['can_apply'] = accepting_apps
 
+        context['climbing_form_url'] = models.ClimbingLeaderApplication.google_form_url(
+            participant=self.request.participant,
+            embedded=True,
+        )
+
         return context
 
     @method_decorator(user_info_required)
