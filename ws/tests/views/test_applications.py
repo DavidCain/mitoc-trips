@@ -3,6 +3,7 @@ from django.contrib.auth.models import Group
 from django.test import Client
 from freezegun import freeze_time
 
+import ws.utils.dates as date_utils
 from ws import enums
 from ws.tests import TestCase, factories, strip_whitespace
 
@@ -109,6 +110,14 @@ class AllLeaderApplicationsRecommendationTest(TestCase, Helpers):
         # Neither chair have recommended one application
         no_recs_application = factories.HikingLeaderApplicationFactory.create()
 
+        response_1, soup_1 = self._get('/hiking/applications/')
+        self.assertEqual(response_1.context_data['needs_rec'], [no_recs_application])
+        self.assertEqual(response_1.context_data['needs_rating'], [])
+        self.assertEqual(
+            strip_whitespace(soup_1.find('div', attrs={'class', 'alert-info'}).text),
+            'Recommend some leader ratings for other applications to populate this list.',
+        )
+
         # Viewing chair gave a recommendation for one application
         one_rec_application = factories.HikingLeaderApplicationFactory.create()
         factories.LeaderRecommendationFactory.create(
@@ -121,3 +130,56 @@ class AllLeaderApplicationsRecommendationTest(TestCase, Helpers):
         self.assertEqual(response.context_data['needs_rec'], [no_recs_application])
         self.assertEqual(response.context_data['needs_rating'], [one_rec_application])
         self.assertIsNone(soup.find('div', attrs={'class', 'alert-info'}))
+
+
+class AllLeaderApplicationsTest(TestCase, Helpers):
+    def setUp(self):
+        self.participant = factories.ParticipantFactory.create()
+        self.client.force_login(self.participant.user)
+
+    @staticmethod
+    def _create_application_and_approve():
+        application = factories.HikingLeaderApplicationFactory.create(
+            # Note that the form logic usually handles this
+            year=date_utils.local_date().year,
+        )
+        factories.LeaderRatingFactory.create(
+            activity=enums.Activity.HIKING.value, participant=application.participant
+        )
+        return application
+
+    def test_no_applications(self):
+        Group.objects.get(name='hiking_chair').user_set.add(self.participant.user)
+        _response, soup = self._get('/hiking/applications/')
+        self.assertEqual(
+            soup.find('p').text, 'There are no leader applications pending your review.'
+        )
+
+    def test_only_approved_applications(self):
+        Group.objects.get(name='hiking_chair').user_set.add(self.participant.user)
+        with freeze_time("2018-08-13 18:45 EDT"):
+            self._create_application_and_approve()
+
+        _response, soup = self._get('/hiking/applications/')
+        self.assertEqual(
+            soup.find('p').text, 'There are no leader applications pending your review.'
+        )
+        self.assertEqual(
+            [h2.text for h2 in soup.find_all('h2')],
+            [
+                'Leader Applications',
+                'Past Applications - 2018',
+            ],
+        )
+
+    def test_no_form_defined(self):
+        Group.objects.get(name='boating_chair').user_set.add(self.participant.user)
+
+        _response, soup = self._get('/boating/applications/')
+        self.assertEqual(
+            soup.find('p').text, 'There are no leader applications pending your review.'
+        )
+        self.assertIn(
+            "You don't have any application form defined for Boating!",
+            soup.find('div', attrs={'class': 'alert-warning'}).text,
+        )

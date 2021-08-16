@@ -1463,6 +1463,7 @@ class LeaderApplication(models.Model):
     # desired_rating = ... (a CharField, but can vary per application)
     year = models.PositiveIntegerField(
         validators=[MinValueValidator(2014)],
+        # TODO: Don't define a `default` at all, just let forms populate it.
         default=date_utils.ws_year,
         help_text="Year this application pertains to.",
     )
