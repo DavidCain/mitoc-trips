@@ -33,7 +33,7 @@ django-phonenumber-field = { version = ">= 2.0", extras = ["phonenumberslite"] }
 django-pipeline = "*"  # TODO: To eventually be replaced by webpack-loader
 django-smtp-ssl = "*"
 django-webpack-loader = "*"
-gspread = "^3.0.1"
+gspread = "^4.0.0"
 markdown2 = "*"
 mitoc-const = "^1.0.0"  # (1.0.0 includes type hints)
 mysqlclient = "^1.3.14"  # TODO: Delete once `util/geardb.py` is migrated
