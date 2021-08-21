@@ -3,9 +3,9 @@ import logging
 from contextlib import contextmanager
 from datetime import timedelta
 from functools import wraps
+from time import monotonic
 
 from celery import group, shared_task
-from celery.five import monotonic  # pylint: disable=no-name-in-module
 from django.core.cache import cache
 
 from ws import cleanup, models, settings
