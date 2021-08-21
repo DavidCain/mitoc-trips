@@ -22,7 +22,7 @@ from mitoc_const import affiliations
 
 from ws import models, settings
 from ws.utils import api as api_util
-from ws.utils.dates import datetime_from_iso, local_date
+from ws.utils.dates import local_date
 
 logger = logging.getLogger(__name__)
 # In all cases, we should use the MITOC Trips affiliation instead
@@ -327,7 +327,7 @@ def outstanding_items(emails: List[str]) -> Iterator[Rental]:
             # We should never get a result for a user whose email was not queried
             raise ValueError("Expected at least one email to match!") from err
 
-        checkout_date = datetime_from_iso(result['checkedout']).date()
+        checkout_date = datetime.fromisoformat(result['checkedout']).date()
         yield Rental(
             email=to_original_case[email.lower()],
             id=gear['id'],

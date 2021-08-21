@@ -1,5 +1,6 @@
 import json
 from collections import defaultdict
+from datetime import date
 
 import jwt
 import jwt.exceptions
@@ -15,7 +16,6 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import DetailView, ListView, View
 from django.views.generic.detail import SingleObjectMixin
 
-import ws.utils.dates as date_utils
 import ws.utils.geardb as geardb_utils
 import ws.utils.perms as perm_utils
 import ws.utils.signups as signup_utils
@@ -584,7 +584,7 @@ class UpdateMembershipView(JWTView):
 
         keys = ('membership_expires', 'waiver_expires')
         update_fields = {
-            key: date_utils.date_from_iso(self.payload[key])
+            key: date.fromisoformat(self.payload[key])
             for key in keys
             if self.payload.get(key)
         }

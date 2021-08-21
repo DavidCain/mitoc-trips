@@ -1,59 +1,12 @@
-import unittest
 from datetime import date, datetime, timedelta
 from unittest import mock
 
 import pytz
-from django.utils import timezone
 from freezegun import freeze_time
 
 from ws import enums
 from ws.tests import TestCase, factories
 from ws.utils import dates as date_utils
-
-
-class DateTimeFromIsoTests(unittest.TestCase):
-    def test_raises_type_error(self):
-        with self.assertRaises(TypeError):
-            date_utils.datetime_from_iso(None)
-        with self.assertRaises(TypeError):
-            date_utils.datetime_from_iso(37)
-
-    def test_raises_value_error(self):
-        with self.assertRaises(ValueError):
-            date_utils.datetime_from_iso('2019-06-99')
-
-    def test_succesfully_parses_with_offset(self):
-        """Times given in EST/EDT are properly handled."""
-        parsed_datetime = date_utils.datetime_from_iso('2020-12-16T20:55:15-05:00')
-        self.assertEqual(
-            parsed_datetime, date_utils.localize(datetime(2020, 12, 16, 20, 55, 15))
-        )
-
-    def test_succesfully_parses_with_zero_offset(self):
-        """Times given in UTC are properly handled."""
-        parsed_datetime = date_utils.datetime_from_iso('2020-12-16T00:55:15-00:00')
-        self.assertEqual(
-            parsed_datetime, timezone.utc.localize(datetime(2020, 12, 16, 0, 55, 15))
-        )
-        self.assertEqual(
-            parsed_datetime, date_utils.localize(datetime(2020, 12, 15, 19, 55, 15))
-        )
-
-
-class DateFromIsoTests(unittest.TestCase):
-    def test_raises_type_error(self):
-        with self.assertRaises(TypeError):
-            date_utils.date_from_iso(None)
-        with self.assertRaises(TypeError):
-            date_utils.date_from_iso(37)
-
-    def test_raises_value_error(self):
-        with self.assertRaises(ValueError):
-            date_utils.date_from_iso('2019-06-99')
-
-    def test_succesfully_parses(self):
-        parsed_date = date_utils.date_from_iso('2019-06-19')
-        self.assertEqual(parsed_date, date(2019, 6, 19))
 
 
 class DateUtilTests(TestCase):

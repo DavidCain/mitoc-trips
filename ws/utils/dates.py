@@ -9,26 +9,6 @@ from django.utils import timezone
 from ws import enums, models  # pylint:disable=cyclic-import
 
 
-# TODO: Delete this. We don't need a wrapper on a stdlib method.
-# (Keeping it for now, so we can demonstrate it works as our old implementation did)
-def datetime_from_iso(datestring: str) -> datetime:
-    """Convert an ISO 8601 datetime string (offset included) to a date object.
-
-    Throws ValueError or TypeError on invalid inputs.
-    """
-    return datetime.fromisoformat(datestring)
-
-
-# TODO: Delete this. We don't need a wrapper on a stdlib method.
-# (Keeping it for now, so we can demonstrate it works as our old implementation did)
-def date_from_iso(datestring):
-    """Convert a YYYY-MM-DD datestring to a date object.
-
-    Throws ValueError or TypeError on invalid inputs.
-    """
-    return date.fromisoformat(datestring)
-
-
 def localize(dt_time):
     """Take a naive datetime and assign a time zone to it (without changing wall time).
 

@@ -5,7 +5,7 @@ A "trip" is any official trip registered in the system - created by leaders, to 
 attended by any interested participants.
 """
 from collections import defaultdict
-from datetime import timedelta
+from datetime import date, timedelta
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -30,7 +30,7 @@ from ws.decorators import group_required
 from ws.lottery.run import SingleTripLotteryRunner
 from ws.mixins import TripLeadersOnlyView
 from ws.templatetags.trip_tags import annotated_for_trip_list
-from ws.utils.dates import date_from_iso, is_currently_iap, local_date
+from ws.utils.dates import is_currently_iap, local_date
 from ws.utils.geardb import outstanding_items
 
 
@@ -387,7 +387,7 @@ class TripListView(ListView):
         if 'after' in self.request.GET:
             after = self.request.GET['after']
             try:
-                start_date = date_from_iso(after)
+                start_date = date.fromisoformat(after)
             except (TypeError, ValueError):
                 start_date_invalid = True
             else:
