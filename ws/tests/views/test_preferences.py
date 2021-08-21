@@ -1,8 +1,7 @@
 import json
-from datetime import date
+from datetime import date, datetime
 from unittest import mock
 
-import dateutil.parser
 from django.contrib import messages
 from freezegun import freeze_time
 from mitoc_const import affiliations
@@ -149,13 +148,13 @@ class LotteryPreferencesDriverStatusTests(TestCase, LotteryPrefsPostHelper):
             400,
         )
 
-    @freeze_time("2019-01-15 12:25:00 EST")
     def test_no_car_no_trips_no_pairing(self):
         """Test the simplest submission of a user with no real preferences to express."""
-        par = factories.ParticipantFactory.create(lotteryinfo=None)
+        with freeze_time("2019-01-15 12:25:00 EST"):
+            par = factories.ParticipantFactory.create(lotteryinfo=None)
 
-        self.client.force_login(par.user)
-        response = self._post({'signups': [], 'car_status': 'none'})
+            self.client.force_login(par.user)
+            response = self._post({'signups': [], 'car_status': 'none'})
 
         self.assertEqual(response.status_code, 200)
 
@@ -165,7 +164,7 @@ class LotteryPreferencesDriverStatusTests(TestCase, LotteryPrefsPostHelper):
         self.assertIsNone(par.lotteryinfo.paired_with)
         self.assertEqual(
             par.lotteryinfo.last_updated,
-            dateutil.parser.isoparse("2019-01-15T12:25:00-05:00"),
+            datetime.fromisoformat("2019-01-15T12:25:00-05:00"),
         )
 
     def test_can_drive_current_car(self):
@@ -185,26 +184,26 @@ class LotteryPreferencesDriverStatusTests(TestCase, LotteryPrefsPostHelper):
         # They must explicitly consent to do so
         self.assertEqual(response.context['lottery_form'].initial, {})
 
-    @freeze_time("2019-01-15 12:25:00 EST")
     def test_can_drive_new_car(self):
         """Participants who own a car can express their willingness to drive.
 
         They can also give their car's information straight from the form, even
         if they hadn't previously given any info.
         """
-        par = factories.ParticipantFactory.create(lotteryinfo=None, car=None)
+        with freeze_time("2019-01-15 12:25:00 EST"):
+            par = factories.ParticipantFactory.create(lotteryinfo=None, car=None)
 
-        self.client.force_login(par.user)
-        response = self._post(
-            {
-                'signups': [],
-                'car_status': 'own',
-                'number_of_passengers': 4,
-                # These fields all correspond to CarForm
-                # (In the future, we should probably use a form prefix)
-                **self.TEST_CAR_INFO,
-            },
-        )
+            self.client.force_login(par.user)
+            response = self._post(
+                {
+                    'signups': [],
+                    'car_status': 'own',
+                    'number_of_passengers': 4,
+                    # These fields all correspond to CarForm
+                    # (In the future, we should probably use a form prefix)
+                    **self.TEST_CAR_INFO,
+                },
+            )
 
         self.assertEqual(response.status_code, 200)
 
@@ -216,7 +215,7 @@ class LotteryPreferencesDriverStatusTests(TestCase, LotteryPrefsPostHelper):
         self.assertEqual(par.car, models.Car(id=par.car.id, **self.TEST_CAR_INFO))
         self.assertEqual(
             par.lotteryinfo.last_updated,
-            dateutil.parser.isoparse("2019-01-15T12:25:00-05:00"),
+            datetime.fromisoformat("2019-01-15T12:25:00-05:00"),
         )
 
         # Participant still isn't paired with anybody

@@ -1,33 +1,32 @@
 """
 Some shortcuts to retrieve meaningful dates.
 """
+from datetime import date, datetime, time, timedelta
 
-from datetime import datetime, time, timedelta
-
-import dateutil.parser
 from django.utils import timezone
 
 # TODO: stop import `models` here! Refactor.
 from ws import enums, models  # pylint:disable=cyclic-import
 
 
+# TODO: Delete this. We don't need a wrapper on a stdlib method.
+# (Keeping it for now, so we can demonstrate it works as our old implementation did)
 def datetime_from_iso(datestring: str) -> datetime:
     """Convert an ISO 8601 datetime string (offset included) to a date object.
 
     Throws ValueError or TypeError on invalid inputs.
     """
-    # TODO (Python 3.7): Just use datetime.fromisoformat()
-    return dateutil.parser.isoparse(datestring)
+    return datetime.fromisoformat(datestring)
 
 
+# TODO: Delete this. We don't need a wrapper on a stdlib method.
+# (Keeping it for now, so we can demonstrate it works as our old implementation did)
 def date_from_iso(datestring):
     """Convert a YYYY-MM-DD datestring to a date object.
 
     Throws ValueError or TypeError on invalid inputs.
     """
-    # Might throw ValueError or TypeError
-    moment = datetime.strptime(datestring, '%Y-%m-%d')
-    return moment.date()
+    return date.fromisoformat(datestring)
 
 
 def localize(dt_time):
@@ -55,10 +54,14 @@ def itinerary_available_at(trip_date):
     return localize(thursday_evening)
 
 
-def late_at_night(date):
+def late_at_night(dt: date):
     """23:59 on the date, since midnight is technically the next day."""
-    dt = datetime(date.year, date.month, date.day, 23, 59, 59)
-    return localize(dt)
+    # Note that this function *could* work with a `datetime` object.
+    # However, timezones can make date identification tricky.
+    # This method just means to give "shy of midnight" in Eastern time, on the date.
+    # If `dt` were a datetime representing 2 am in England, what's the date?
+    # Depends if you're asking from the perspective of those in England, or New England
+    return localize(datetime(dt.year, dt.month, dt.day, 23, 59, 59))
 
 
 def fcfs_close_time(trip_date):

@@ -22,7 +22,6 @@ python = "^3.8.10"
 Django = "^2.2"
 PyJWT = ">= 2.0.0"  # 2.0.0 changed the return type of `jwt.encode()`
 celery = "^5.1"
-python-dateutil = "*"  # TODO (Can remove once on Python 3.7)
 django-allauth = ">= 0.41.0"  # See CVE-2019-19844
 django-angular = "^2.1"
 django-cors-headers = "*"
@@ -58,7 +57,6 @@ django-stubs = { url = "https://github.com/typeddjango/django-stubs/archive/397e
 mypy = { version = "*"}
 types-certifi = { version = "*" }
 types-cryptography = { version = "*" }
-types-python-dateutil = { version = "*" }
 types-pytz = { version = "*" }
 types-requests = { version = "*" }
 
