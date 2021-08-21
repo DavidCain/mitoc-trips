@@ -18,7 +18,7 @@ repository = "https://github.com/DavidCain/mitoc-trips/"
 authors = ["David Cain <davidjosephcain@gmail.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.6.2"
+python = "^3.8.10"
 Django = "^2.2"
 PyJWT = ">= 2.0.0"  # 2.0.0 changed the return type of `jwt.encode()`
 celery = "^5.1"
@@ -69,7 +69,7 @@ jedi = { version = "<0.18.0" }  # https://github.com/ipython/ipython/issues/1274
 
 
 [tool.mypy]
-python_version = "3.6"
+python_version = "3.8"
 show_error_codes = true
 plugins = ["mypy_django_plugin.main"]
 

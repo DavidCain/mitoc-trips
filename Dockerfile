@@ -1,6 +1,5 @@
 # TODO:
-# - Consider Ubuntu 20.04 once moving off Python 3.6
-# - Once we drop direct MySQL access, consider python:3.6-slim
+# - Once we drop direct MySQL access, consider python:3.8-slim
 # - Once dropping legacy AngularJS, build FE bundles separately
 
 # Things needed to use this in production:
@@ -8,7 +7,7 @@
 # - Ensure that Celery works as well
 # - Run WSGI with an ENTRYPOINT
 
-FROM ubuntu:18.04 as build
+FROM ubuntu:20.04 as build
 
 WORKDIR /app/
 
@@ -25,8 +24,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     locales \
     # Postgres client (for accessing RDS in production) \
     postgresql-client postgresql-contrib libpq-dev \
-    # NOTE: python3.6 is not available on Ubuntu 20.04. Upgrade Python before moving to 22.04 LTS. \
-    python3.6 python3-dev python3-pip \
+    python3.8 python3-dev python3-pip \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
