@@ -94,7 +94,7 @@ FROM build as installer
 # Remove dev dependencies (smaller venv, no dev deps in prod)
 RUN poetry install --no-root --no-dev
 
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 
 WORKDIR /app/
 ENV PATH="/app/.venv/bin:$PATH"
