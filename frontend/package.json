@@ -35,6 +35,6 @@
     "ts-jest": "^23.0.0",
     "typescript": "^3.9.10",
     "vue-template-compiler": "^2.6.14",
-    "webpack-bundle-tracker": "^0.4.3"
+    "webpack-bundle-tracker": "^1.2.0"
   }
 }
