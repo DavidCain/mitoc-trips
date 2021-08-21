@@ -24,6 +24,6 @@ def get_all_angular_templates():
     """Yield the filename and contents for use in populating the cache."""
     template_dir = os.path.join(settings.STATIC_ROOT, 'template')
     for filename in os.listdir(template_dir):
-        with open(os.path.join(template_dir, filename)) as handle:
+        with open(os.path.join(template_dir, filename), encoding='utf-8') as handle:
             url = os.path.join(settings.STATIC_URL, 'template', filename)
             yield url, handle.read()

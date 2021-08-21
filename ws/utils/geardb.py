@@ -323,9 +323,9 @@ def outstanding_items(emails: List[str]) -> Iterator[Rental]:
         all_known_emails: List[str] = [person['email'], *person['alternate_emails']]
         try:
             email = next(e for e in all_known_emails if e.lower() in to_original_case)
-        except StopIteration as e:
+        except StopIteration as err:
             # We should never get a result for a user whose email was not queried
-            raise ValueError("Expected at least one email to match!") from e
+            raise ValueError("Expected at least one email to match!") from err
 
         checkout_date = datetime_from_iso(result['checkedout']).date()
         yield Rental(
