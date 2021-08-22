@@ -98,7 +98,7 @@ class SignWaiverTests(TestCase):
             )
             response = self.client.post(
                 '/profile/waiver/',
-                {'releasor.name': 'Tim Beaver', 'releasor.email': 'tim@mit.edu'},
+                {'releasor-name': 'Tim Beaver', 'releasor-email': 'tim@mit.edu'},
                 follow=False,
             )
         self.assertEqual(response.status_code, 302)
@@ -122,10 +122,10 @@ class SignWaiverTests(TestCase):
             response = self.client.post(
                 '/profile/waiver/',
                 {
-                    'releasor.name': 'Tim Beaver',
-                    'releasor.email': 'tim@mit.edu',
-                    'guardian.name': 'Timothy Beaver, Sr',
-                    'guardian.email': 'tim@alum.mit.edu',
+                    'releasor-name': 'Tim Beaver',
+                    'releasor-email': 'tim@mit.edu',
+                    'guardian-name': 'Timothy Beaver, Sr',
+                    'guardian-email': 'tim@alum.mit.edu',
                 },
                 follow=False,
             )

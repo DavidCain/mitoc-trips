@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load crispy_forms_tags %}
 {% load trip_tags %}
 
 {% block head_title %}Leaders{% endblock head_title %}
@@ -57,7 +58,7 @@
     <h2> Create or Update Ratings</h2>
     <form ng-controller="leaderRating" name="{{ form.form_name }}" method="post" action="." novalidate data-submit-if-valid>
       {% csrf_token %}
-      {{ form.as_div }}
+      {{ form|crispy }}
       <button type="submit" class="btn btn-primary">Submit</button>
     </form>
   </div>

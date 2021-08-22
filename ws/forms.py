@@ -204,10 +204,10 @@ class LeaderForm(DjangularRequiredModelForm):
         }
 
 
-class TripInfoForm(DjangularRequiredModelForm):
-    accurate = BooleanField(
+class TripInfoForm(forms.ModelForm):
+    accurate = forms.BooleanField(
         required=True,
-        label=('I affirm that all participant ' 'and driver information is correct'),
+        label='I affirm that all participant and driver information is correct',
     )
 
     class Meta:
@@ -476,7 +476,7 @@ class AttendedLecturesForm(forms.Form):
     participant = forms.ModelChoiceField(queryset=models.Participant.objects.all())
 
 
-class WinterSchoolSettingsForm(DjangularRequiredModelForm):
+class WinterSchoolSettingsForm(forms.ModelForm):
     class Meta:
         model = models.WinterSchoolSettings
         fields = ['allow_setting_attendance', 'accept_applications']
@@ -584,10 +584,9 @@ class DuesForm(NgFormValidationMixin, Bootstrap3FormMixin, NgForm):
             self.fields['amount'].initial = ''
 
 
-class WaiverForm(NgFormValidationMixin, Bootstrap3FormMixin, NgForm):
-    required_css_class = 'required'
-    name = CharField(required=True)
-    email = EmailField(required=True)
+class WaiverForm(forms.Form):
+    name = forms.CharField(required=True)
+    email = forms.EmailField(required=True)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -595,10 +594,9 @@ class WaiverForm(NgFormValidationMixin, Bootstrap3FormMixin, NgForm):
         self.fields['email'].widget.attrs['placeholder'] = 'tim@mit.edu'
 
 
-class GuardianForm(NgFormValidationMixin, Bootstrap3FormMixin, NgForm):
-    required_css_class = 'required'
-    name = CharField(required=True, label='Parent or Guardian Name')
-    email = EmailField(required=True, label='Parent or Guardian Email')
+class GuardianForm(forms.Form):
+    name = forms.CharField(required=True, label='Parent or Guardian Name')
+    email = forms.EmailField(required=True, label='Parent or Guardian Email')
 
 
 class PrivacySettingsForm(DjangularRequiredModelForm):

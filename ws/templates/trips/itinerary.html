@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load crispy_forms_tags %}
 {% load medical_tags %}
 
 {% block head_title %}Submit itinerary - {{ trip.name }}{% endblock head_title %}
@@ -59,12 +60,7 @@
       The "Drivers" list below is a multi-select widget (by default, no drivers are selected).
       Hold Control (Cmd on a Mac) and click different rows to indicate multiple drivers.
     </div>
-    {{ form.as_div }}
-    <div class="alert alert-danger"
-         data-ng-cloak
-         data-ng-show="{{ form.form_name }}.$submitted && {{ form.form_name }}.$invalid">
-      Please correct the above errors.
-    </div>
+    {{ form|crispy }}
     <button type="submit" class="btn btn-primary">Submit</button>
   </form>
 {% else %}
