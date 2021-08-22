@@ -1,4 +1,5 @@
 {% extends "base_no_scripts.html" %}
+{% load crispy_forms_tags %}
 
 {% block head_title %}Log In{% endblock head_title %}
 {% block login_button %}{% endblock login_button%}
@@ -11,34 +12,19 @@
   If you have not created an account yet, then please <a href="{{ signup_url }}">sign up</a> first.
 </p>
 
-<form class="login" method="POST" action="{% url 'account_login' %}">
-  {% csrf_token %}
-  <span class="text-danger">
-    {{ form.non_field_errors }}
-  </span>
-  <table>
-    <tr>
-      <th>{{ form.login.label_tag }}</th>
-      <td>{{ form.login.errors }}{{ form.login }}</td>
-    </tr>
-    <tr>
-      <th>{{ form.password.label_tag }}</th>
-      <td>{{ form.password.errors }}{{ form.password }}</td>
-    </tr>
-    <tr>
-      <th></th>
-      <td>
-        <br>
-        <input class="btn btn-primary" type="submit" value="Log In" />
-        <small><a href="{% url 'account_reset_password' %}">Forgot your password?</a></small>
-      </td>
-    </tr>
-  </table>
+<div class="row">
+  <div class="col-sm-6">
+    <form class="login" method="POST" action="{% url 'account_login' %}">
+      {% csrf_token %}
+      {{ form|crispy }}
+      <input class="btn btn-primary" type="submit" value="Log In" />
+      <small><a href="{% url 'account_reset_password' %}">Forgot your password?</a></small>
 
-  {% if redirect_field_value %}
-    <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
-  {% endif %}
-
-</form>
+      {% if redirect_field_value %}
+        <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+      {% endif %}
+    </form>
+  </div>
+</div>
 
 {% endblock content %}

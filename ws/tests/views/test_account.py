@@ -261,6 +261,6 @@ class PasswordChangeTests(TestCase):
         pwned_password.assert_called_once_with('letmeinplease')
 
         soup = BeautifulSoup(response.content, 'html.parser')
-        errorlist = soup.find(class_='errorlist')
-        self.assertTrue(errorlist)
-        self.assertTrue(errorlist.find(text='This password is too common.'))
+        form_group = soup.find(class_='has-error')
+        self.assertTrue(form_group)
+        self.assertTrue(form_group.find(text='This password is too common.'))
