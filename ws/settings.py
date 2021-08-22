@@ -71,7 +71,6 @@ STATICFILES_FINDERS = (
     'pipeline.finders.ManifestFinder',
 )
 
-# auth and allauth settings
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'pwned_passwords_django.validators.PwnedPasswordsValidator'}
 ]
@@ -238,8 +237,7 @@ TEMPLATES = [
     }
 ]
 
-# auth and allauth settings
-SITE_ID = "1"
+SITE_ID = 1
 
 # Log in with only email
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
