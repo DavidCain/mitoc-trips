@@ -166,6 +166,9 @@ elif os.environ.get('WS_DJANGO_LOCAL'):
 else:
     from .conf.production_settings import *  # pylint: disable=wildcard-import,unused-wildcard-import
 
+# 32 bit signed integers (default before Django 3.2) are plenty big enough for our purposes.
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
