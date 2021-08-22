@@ -90,6 +90,7 @@ INSTALLED_APPS = [
     'phonenumber_field',
     'allauth',
     'allauth.account',
+    'crispy_forms',
     'djng',
     'pipeline',
     'ws.apps.TripsConfig',
@@ -153,6 +154,8 @@ CELERY_BEAT_SCHEDULE = {
 }
 
 CELERY_TIMEZONE = 'UTC'
+
+CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
 # A list of known "bad" passwords for which we don't want to hit the HIBP API.
 # This will *never* be honored in production -- it's just a local testing tool.

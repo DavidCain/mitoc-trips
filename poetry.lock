@@ -333,6 +333,14 @@ python-versions = ">=3.6"
 Django = ">=2.2"
 
 [[package]]
+name = "django-crispy-forms"
+version = "1.12.0"
+description = "Best way to have Django DRY forms"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[[package]]
 name = "django-debug-toolbar"
 version = "3.2.2"
 description = "A configurable set of panels that display various debug information about the current request/response."
@@ -407,6 +415,7 @@ typing-extensions = "*"
 [package.source]
 type = "url"
 url = "https://github.com/typeddjango/django-stubs/archive/397e3f3dacdd963995ae55600a376a9e69de563d.tar.gz"
+
 [[package]]
 name = "django-stubs-ext"
 version = "0.2.0"
@@ -1219,7 +1228,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8.10"
-content-hash = "af4cbd29ed6d934e6c1f4b3ce498facfacfd64da565c2ecc592150b11c0985ee"
+content-hash = "7505596d828b7d2f3c7d1817bc9fd8bbe0a11d953d6bf8f283da4c7781e5abbf"
 
 [metadata.files]
 amqp = [
@@ -1428,6 +1437,10 @@ django-angular = [
 django-cors-headers = [
     {file = "django-cors-headers-3.8.0.tar.gz", hash = "sha256:4b8e13bf8d3df50ac4b986bd87085c3073dd56402ede109222ea34a774f9ec1b"},
     {file = "django_cors_headers-3.8.0-py3-none-any.whl", hash = "sha256:425c20ceffa42b9ac11b02611eece4ae6c5fef2ff0f039c14c1df20e00c80df8"},
+]
+django-crispy-forms = [
+    {file = "django-crispy-forms-1.12.0.tar.gz", hash = "sha256:d196db62ee8b4fc32d1f9583d0e4be1bb17328b662682c1ecb9fb77bbc0fcf77"},
+    {file = "django_crispy_forms-1.12.0-py3-none-any.whl", hash = "sha256:a3320356c84d0cdc631e1ec7b8908aa0117bc2a5f0ab1d053d33eba08f584808"},
 ]
 django-debug-toolbar = [
     {file = "django-debug-toolbar-3.2.2.tar.gz", hash = "sha256:8c5b13795d4040008ee69ba82dcdd259c49db346cf7d0de6e561a49d191f0860"},
