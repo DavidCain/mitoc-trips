@@ -64,7 +64,13 @@ class ParticipantForm(DjangularRequiredModelForm):
     class Meta:
         model = models.Participant
         fields = ['name', 'email', 'cell_phone', 'affiliation']
-        widgets = {'email': forms.Select(), 'cell_phone': widgets.PhoneInput}
+        widgets = {
+            'name': forms.TextInput(
+                attrs={'title': 'Full name', 'pattern': r'^.* .*$'}
+            ),
+            'email': forms.Select(),
+            'cell_phone': widgets.PhoneInput,
+        }
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user')
@@ -136,7 +142,13 @@ class EmergencyContactForm(DjangularRequiredModelForm):
     class Meta:
         model = models.EmergencyContact
         fields = ['name', 'email', 'cell_phone', 'relationship']
-        widgets = {'email': forms.TextInput(), 'cell_phone': widgets.PhoneInput}
+        widgets = {
+            'name': forms.TextInput(
+                attrs={'title': 'Full name', 'pattern': r'^.* .*$'}
+            ),
+            'email': forms.TextInput(),
+            'cell_phone': widgets.PhoneInput,
+        }
 
 
 class EmergencyInfoForm(DjangularRequiredModelForm):
