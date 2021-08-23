@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load crispy_forms_tags %}
 {% load form_tags %}
 
 {% block head_title %}
@@ -11,21 +12,18 @@ Edit profile {% if participant %} - {{ participant.name }}{% endif %}
 
 <form name="{{ participant_form.form_name }}"
       action=""
-      method="post"
-      novalidate
-      data-submit-if-valid>
+      method="post">
     {% csrf_token %}
     <div class="row">
         <div class="col-sm-6">
             <h3 id="personal_info"><i class="fas fa-user"></i> Personal info</h3>
-            {{ participant_form.as_div }}
-            {% form_error_list participant_form %}
+            {{ participant_form|crispy }}
 
             {% if not has_mit_email %}
               {# Form will not submit without an MIT email address on file #}
               <div class="alert alert-danger"
                    data-ng-cloak
-                   data-ng-show="['MU', 'MG'].includes(participant_scope['participant.affiliation'])">
+                   data-ng-show="['MU', 'MG'].includes(affiliation)">
                 You must have a <a href="{% url 'account_email' %}">verified MIT email address</a>
                 in order to claim MIT student status.
               </div>
@@ -33,7 +31,7 @@ Edit profile {% if participant %} - {{ participant.name }}{% endif %}
               {# We allow people to claim MIT affiliation without an MIT email, but warn all the same #}
               <div class="alert alert-warning"
                    data-ng-cloak
-                   data-ng-show="participant_scope['participant.affiliation'] === 'MA'">
+                   data-ng-show="affiliation === 'MA'">
                 Are you <strong>current</strong> staff or faculty at MIT?
                 You don't appear to have a <a href="{% url 'account_email' %}">verified MIT email address</a>.
               </div>
@@ -51,8 +49,7 @@ Edit profile {% if participant %} - {{ participant.name }}{% endif %}
             </h3>
             <div data-ng-switch="car.owner" data-ng-cloak>
                 <div data-ng-switch-when="true">
-                    {{ car_form.as_div }}
-                    {% form_error_list car_form %}
+                    {{ car_form|crispy }}
                 </div>
                 <div data-ng-switch-when="false">
                     {% if currently_has_car %}
@@ -98,8 +95,7 @@ Edit profile {% if participant %} - {{ participant.name }}{% endif %}
           Regardless of what you choose to share, we encourage you to
           always discuss relevant medical issues with your trip leaders.
         </p>
-        {{ emergency_info_form.as_div }}
-        {% form_error_list emergency_info_form %}
+        {{ emergency_info_form|crispy }}
       </div>
 
       <div class="col-sm-6">
@@ -108,19 +104,15 @@ Edit profile {% if participant %} - {{ participant.name }}{% endif %}
           Please consider an alternate person if your primary contact
           will be on trips with you.
         </p>
-        {{ emergency_contact_form.as_div }}
-        {% form_error_list emergency_contact_form %}
+        {{ emergency_contact_form|crispy }}
       </div>
     </div>
 
-    <div class="alert alert-danger" data-ng-cloak data-ng-show="{{ participant_form.form_name }}.$submitted && {{ participant_form.form_name }}.$invalid">
-      Please correct the above errors.
-    </div>
     <button
       type="submit"
       class="btn btn-primary"
       {% if not has_mit_email %}
-        data-ng-disabled="['MU', 'MG'].includes(participant_scope['participant.affiliation'])"
+        data-ng-disabled="['MU', 'MG'].includes(affiliation)"
       {% endif %}
       >
       Submit

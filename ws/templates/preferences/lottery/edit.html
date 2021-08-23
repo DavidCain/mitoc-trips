@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load crispy_forms_tags %}
 {% block head_title %}Lottery preferences {% endblock head_title %}
 
 {% block js %}
@@ -68,7 +69,7 @@ participants. </p>
     <p>Please ensure that the form below matches the car you'll be driving.</p>
     <div class="row">
       <div class="col-md-4 col-sm-6">
-        {{ car_form.as_div }}
+        {{ car_form|crispy }}
       </div>
     </div>
   </div>

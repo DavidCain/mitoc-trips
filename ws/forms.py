@@ -4,13 +4,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.db.models.fields import TextField
 from djng.forms import NgForm, NgFormValidationMixin, NgModelForm, NgModelFormMixin
-from djng.forms.fields import (
-    BooleanField,
-    CharField,
-    ChoiceField,
-    EmailField,
-    RegexField,
-)
+from djng.forms.fields import BooleanField, CharField, ChoiceField, EmailField
 from djng.styling.bootstrap3.forms import Bootstrap3FormMixin
 from localflavor.us.us_states import US_STATES
 from mitoc_const import affiliations
@@ -56,11 +50,7 @@ class DiscountForm(forms.ModelForm):
         widgets = {'discounts': forms.CheckboxSelectMultiple}
 
 
-class ParticipantForm(DjangularRequiredModelForm):
-    name = RegexField(
-        regex=r'^.* ', error_messages={"invalid": "Please use your full name"}
-    )
-
+class ParticipantForm(forms.ModelForm):
     class Meta:
         model = models.Participant
         fields = ['name', 'email', 'cell_phone', 'affiliation']
@@ -79,13 +69,17 @@ class ParticipantForm(DjangularRequiredModelForm):
         # (Will properly trigger a "complete this field" warning)
         if kwargs.get('instance') and len(kwargs['instance'].affiliation) == 1:
             kwargs['instance'].affiliation = ''
+
         super().__init__(*args, **kwargs)
 
         self.verified_emails = user.emailaddress_set.filter(verified=True).values_list(
             'email', flat=True
         )
-        choices = [(email, email) for email in self.verified_emails]
-        self.fields['email'].widget.choices = choices
+        self.fields['email'].widget.choices = [
+            (email, email) for email in self.verified_emails
+        ]
+
+        self.fields['affiliation'].widget.attrs['data-ng-model'] = 'affiliation'
 
     def clean_affiliation(self):
         """Require a valid MIT email address for MIT student affiliation."""
@@ -121,7 +115,7 @@ class ParticipantLookupForm(forms.Form):
         participant_field.widget.attrs['onchange'] = 'this.form.submit();'
 
 
-class CarForm(DjangularRequiredModelForm):
+class CarForm(forms.ModelForm):
     form_name = 'car_form'
 
     def clean_license_plate(self):
@@ -138,7 +132,7 @@ class CarForm(DjangularRequiredModelForm):
         }
 
 
-class EmergencyContactForm(DjangularRequiredModelForm):
+class EmergencyContactForm(forms.ModelForm):
     class Meta:
         model = models.EmergencyContact
         fields = ['name', 'email', 'cell_phone', 'relationship']
@@ -151,7 +145,7 @@ class EmergencyContactForm(DjangularRequiredModelForm):
         }
 
 
-class EmergencyInfoForm(DjangularRequiredModelForm):
+class EmergencyInfoForm(forms.ModelForm):
     class Meta:
         model = models.EmergencyInfo
         fields = ['allergies', 'medications', 'medical_history']

@@ -83,12 +83,19 @@ class ParticipantSelect(dj_widgets.Select):
 
 class PhoneInput(dj_widgets.Input):
     def render(self, name, value, attrs=None, renderer=None):
+        attrs = attrs or {}
         attrs.update(
             {'default-country': 'us', 'preferred-countries': 'us ca', 'name': name}
         )
         final_attrs = self.build_attrs(self.attrs, attrs)
-        # Use a hack to init ng-model
-        ng_model_init = {'ng-model': final_attrs['ng-model'], 'value': value}
+
+        # Use a hack to init ng-model. We take the provided value & populate a hidden input.
+        # When the `bc-phone-number` input updates, we update the hidden input's value.
+        # TODO: We should provide a plain E.164 <input type="tel"/> for `<noscript/>`
+        ng_model = name.replace('-', '_')
+        final_attrs['ng-model'] = ng_model
+        ng_model_init = {'ng-model': ng_model, 'value': value}
+
         return format_html(
             '<input type="hidden" {}/>' + '<bc-phone-number {}></bc-phone-number>',
             flatatt(ng_model_init),

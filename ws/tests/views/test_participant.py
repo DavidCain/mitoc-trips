@@ -146,19 +146,19 @@ class EditProfileViewTests(TestCase):
     # 3 separate forms (does not include a car!)
     form_data = {
         # Participant
-        'participant.name': 'New Participant',
-        'participant.email': 'new.participant@example.com',
-        'participant.cell_phone': '+1 800-555-0000',
-        'participant.affiliation': 'NA',
+        'participant-name': 'New Participant',
+        'participant-email': 'new.participant@example.com',
+        'participant-cell_phone': '+1 800-555-0000',
+        'participant-affiliation': 'NA',
         # Emergency information
-        'einfo.allergies': 'N/A',
-        'einfo.medications': 'N/A',
-        'einfo.medical_history': 'Nothing relevant',
+        'einfo-allergies': 'N/A',
+        'einfo-medications': 'N/A',
+        'einfo-medical_history': 'Nothing relevant',
         # Emergency contact
-        'econtact.name': 'Participant Sister',
-        'econtact.email': 'sister@example.com',
-        'econtact.cell_phone': '+1 800-555-1234',
-        'econtact.relationship': 'Sister',
+        'econtact-name': 'Participant Sister',
+        'econtact-email': 'sister@example.com',
+        'econtact-cell_phone': '+1 800-555-1234',
+        'econtact-relationship': 'Sister',
     }
 
     def setUp(self):

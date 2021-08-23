@@ -161,7 +161,7 @@ class LotteryPreferencesView(TemplateView, LotteryPairingMixin):
     def get_car_form(self, use_post=True):
         car = self.request.participant.car
         post = self.post_data if use_post else None
-        return forms.CarForm(post, instance=car, scope_prefix=self.car_prefix)
+        return forms.CarForm(post, instance=car)
 
     def get_lottery_form(self):
         participant = self.request.participant

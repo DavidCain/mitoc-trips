@@ -72,10 +72,6 @@ class ParticipantEditMixin(TemplateView):
     def has_car(self):
         return 'has_car' in self.request.POST
 
-    @staticmethod
-    def prefix(base, **kwargs):
-        return dict(prefix=base, scope_prefix=base + '_scope', **kwargs)
-
     def get_context_data(self, **kwargs):
         """Return a dictionary primarily of forms to for template rendering.
         Also includes a value for the "I have a car" checkbox.
@@ -95,9 +91,11 @@ class ParticipantEditMixin(TemplateView):
         e_info = participant and participant.emergency_info
         e_contact = e_info and e_info.emergency_contact
 
-        # If no Participant object, fill at least with User email
-        par_kwargs = self.prefix("participant", instance=participant)
-        par_kwargs["user"] = self.user
+        par_kwargs = {
+            'prefix': 'participant',
+            'instance': participant,
+            'user': self.user,
+        }
         if not participant:
             par_kwargs["initial"] = {'email': self.user.email}
         elif participant.affiliation_dated or not participant.info_current:
@@ -119,12 +117,12 @@ class ParticipantEditMixin(TemplateView):
             'has_mit_email': verified_mit_emails.exists(),
             'currently_has_car': bool(car),
             'participant_form': forms.ParticipantForm(post, **par_kwargs),
-            'car_form': forms.CarForm(post, instance=car, **self.prefix('car')),
+            'car_form': forms.CarForm(post, instance=car, prefix='car'),
             'emergency_info_form': forms.EmergencyInfoForm(
-                post, instance=e_info, **self.prefix('einfo')
+                post, instance=e_info, prefix='einfo'
             ),
             'emergency_contact_form': forms.EmergencyContactForm(
-                post, instance=e_contact, **self.prefix('econtact')
+                post, instance=e_contact, prefix='econtact'
             ),
         }
 
@@ -146,9 +144,10 @@ class ParticipantEditMixin(TemplateView):
         """
         context = self.get_context_data()
         required_dict = {
-            key: val
-            for key, val in context.items()
-            if isinstance(val, forms.NgModelForm)
+            'participant_form': context['participant_form'],
+            'car_form': context['car_form'],
+            'emergency_info_form': context['emergency_info_form'],
+            'emergency_contact_form': context['emergency_contact_form'],
         }
 
         if not self.has_car:
