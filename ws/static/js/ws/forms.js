@@ -1,4 +1,4 @@
-angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
+angular.module('ws.forms', ['ui.select', 'ngSanitize'])
 .factory('formatEmail', function () {
   return function (participant) {
     return participant.name + ' <' + participant.email + '>';
@@ -76,11 +76,10 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
     }
   };
 })
-.controller('leaderRating', function($scope, $http, djangoUrl) {
+.controller('leaderRating', function($scope, $http) {
   $scope.$watchGroup(['participant', 'activity'], function() {
     if ($scope.participant && $scope.activity) {
-      var args = [$scope.participant.id, $scope.activity];
-      var getRatingUrl = djangoUrl.reverse('json-ratings', args);
+      const getRatingUrl = `/leaders/${$scope.participant.id}/ratings/${$scope.activity}.json`;
       $http.get(getRatingUrl).then(function (response) {
         $scope.rating = response.data.rating;
         $scope.notes = response.data.notes;
@@ -114,7 +113,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
     },
   };
 })
-.directive('emailTripMembers', function($http, djangoUrl, formatEmail) {
+.directive('emailTripMembers', function($http, formatEmail) {
   return {
     restrict: 'E',
     scope: {
@@ -127,7 +126,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
     templateUrl: '/static/template/email-trip-members.html',
     link: function (scope, element, attrs) {
       if (scope.tripId && !_.every([scope.creator, scope.leaders, scope.signups])) {
-        $http.get(djangoUrl.reverse('json-signups', [scope.tripId]))
+        $http.get(`/trips/${scope.tripId}/signups/`)
           .success(function(data) {
             scope.signups = data.signups;
             scope.leaders = data.leaders;
@@ -218,7 +217,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
     }
   };
 })
-.directive('adminTripSignups', function($http, filterFilter, $window, $uibModal, djangoUrl, formatEmail) {
+.directive('adminTripSignups', function($http, filterFilter, $window, $uibModal, formatEmail) {
   return {
     restrict: 'E',
     scope: {
@@ -269,7 +268,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
         if (participantIds.length === 0) {
           return;
         }
-        var url = djangoUrl.reverse("json-membership_statuses");
+        const url = '/participants/membership_statuses/';
         $http.post(url, {participant_ids: participantIds}).then(function(response) {
           var memberships = response.data.memberships;
           scope.allSignups.forEach(function(signup) {
@@ -283,7 +282,8 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
         signup.participant.formattedEmail = formatEmail(signup.participant);
       };
 
-      var url = djangoUrl.reverse('json-admin_trip_signups', [scope.tripId]);
+      const url = `/trips/${scope.tripId}/admin/signups/`;
+
       $http.get(url).then(function(response) {
         scope.allSignups = response.data.signups;
         scope.allSignups.forEach(formatSignupEmail);
@@ -315,9 +315,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
 
       scope.signUp = function(participant, notes) {
         var payload = {participant_id: participant.id, notes: notes};
-        var tripSignup = djangoUrl.reverse('json-leader_participant_signup',
-                                           [scope.tripId]);
-        $http.post(tripSignup, payload).then(
+        $http.post(`/trips/${scope.tripId}/signup/`, payload).then(
           function success(response) {
             var signup = response.data.signup;
             formatSignupEmail(signup);
@@ -382,7 +380,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
     }
   };
 })
-.directive('approveTrip', function($http, djangoUrl) {
+.directive('approveTrip', function($http) {
   return {
     restrict: 'E',
     replace: true,
@@ -392,10 +390,9 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
     },
     templateUrl: '/static/template/approve-trip.html',
     link: function (scope, element, attrs) {
-      var url = djangoUrl.reverse("json-approve_trip", [scope.tripId]);
       scope.toggleApproval = function(){
         scope.approved = !scope.approved;
-        $http.post(url, {approved: scope.approved});
+        $http.post(`/trips/${scope.tripId}/approve/`, {approved: scope.approved});
       };
     }
   };
@@ -443,7 +440,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
     },
   };
 })
-.directive('participantSelect', function($http, djangoUrl) {
+.directive('participantSelect', function($http) {
   return {
     restrict: 'E',
     require: '?ngModel',
@@ -476,7 +473,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
         });
       }
 
-      var url = djangoUrl.reverse("json-participants");
+      const url = '/participants.json';
       scope.getMatchingParticipants = function(search) {
         var queryArgs = {search: search};
         if (scope.excludeSelf) {
@@ -514,7 +511,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
     },
   };
 })
-.directive('leaderSelect', function($http, $q, djangoUrl) {
+.directive('leaderSelect', function($http, $q) {
   return {
     restrict: 'E',
     require: 'ngModel',
@@ -550,7 +547,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
         if (!scope.leaderIds || !scope.leaderIds.length) {
           return $q.when([]);  // No initial leaders.
         }
-        var url = djangoUrl.reverse("json-participants");
+        const url = '/participants.json';
         var queryArgs = {'id': scope.leaderIds};
 
         return $http.get(url, {params: queryArgs}).then(function (response) {
@@ -630,7 +627,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize', 'djng.urls'])
 
       /* Fetch all leaders and their ratings for the program. */
       var fetchProgramLeaders = function() {
-        var url = djangoUrl.reverse("json-program-leaders", [scope.program]);
+        const url = `/programs/${scope.program}/leaders.json`;
         return $http.get(url).then(function (response) {
           return response.data.leaders;
         });

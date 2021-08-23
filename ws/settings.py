@@ -200,7 +200,6 @@ DATABASE_ROUTERS = ['ws.routers.DefaultOnlyRouter']
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
-    'djng.middleware.AngularUrlMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -210,6 +209,11 @@ MIDDLEWARE = [
     'ws.middleware.PrefetchGroupsMiddleware',
     'ws.middleware.ParticipantMiddleware',
     'ws.middleware.CustomMessagesMiddleware',
+    # TODO: Remove this middleware.
+    # New bundled JavaScript won't reference the routes provided by this middleware.
+    # However, it's possible that stale pages make use of it.
+    # To ensure backwards compatibility, we keep this middleware installed for now.
+    'djng.middleware.AngularUrlMiddleware',
 ]
 if 'debug_toolbar' in INSTALLED_APPS:
     MIDDLEWARE.append('debug_toolbar.middleware.DebugToolbarMiddleware')
