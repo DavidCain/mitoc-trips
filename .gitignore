@@ -1,10 +1,8 @@
 /.poetry_prod_up_to_date
 /.poetry_dev_up_to_date
-/.poetry_typing_up_to_date
 /.node_packages_up_to_date
 /.coverage
 /.mypy_cache
-/.python-version
 /node_modules
 /frontend/coverage
 /frontend/dist
@@ -13,7 +11,6 @@
 /frontend/webpack-stats.json
 /static
 /env
-/test_env
 /scripts
 *.py[cod]
 oauth_credentials.json
