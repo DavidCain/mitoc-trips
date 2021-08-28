@@ -4,7 +4,7 @@ from django.test import Client
 from freezegun import freeze_time
 
 import ws.utils.dates as date_utils
-from ws import enums
+from ws import enums, models
 from ws.tests import TestCase, factories, strip_whitespace
 
 
@@ -268,4 +268,89 @@ class AllLeaderApplicationsTest(TestCase, Helpers):
         self.assertIn(
             "You don't have any application form defined for Boating!",
             soup.find('div', attrs={'class': 'alert-warning'}).text,
+        )
+
+
+class LeaderApplicationsTest(TestCase, Helpers):
+    """Tests an activity chair's interaction with applications, making ratings/recs."""
+
+    def setUp(self):
+        self.participant = factories.ParticipantFactory.create()
+        self.client.force_login(self.participant.user)
+
+        # make_chair(self.participant.user, Activity.HIKING)
+        Group.objects.get(name='hiking_chair').user_set.add(self.participant.user)
+
+    def test_one_chair_one_application(self):
+        """Test an activity with only one chair, viewing the only application."""
+        application = factories.HikingLeaderApplicationFactory.create()
+        url = f'/hiking/applications/{application.pk}/'
+        _response, soup = self._get(url)
+
+        # There are no other applications needing attention
+        prev_button, next_button = soup.find_all(
+            'a', attrs={'role': 'button', 'class': 'prev-next-app'}
+        )
+        self.assertIn('disabled', prev_button.attrs)
+        self.assertIn('disabled', next_button.attrs)
+
+        # Because there's only one chair, we default to ratings, not recommendations
+        submit_txt = soup.find('button', attrs={'type': 'submit'}).text
+        # (AngularJS quirk: The raw HTML says "Creating rating" twice)
+        self.assertTrue(strip_whitespace(submit_txt).startswith('Create rating'))
+
+        # Submitting the form on the page creates a rating!
+        self.client.post(
+            url,
+            {
+                'rating': 'Co-leader',
+                'notes': 'Request an upgrade after leading 2 trips',
+                'is_recommendation': False,
+            },
+        )
+
+        rating = models.LeaderRating.objects.get(participant=application.participant)
+
+        self.assertEqual(rating.creator, self.participant)
+        self.assertEqual(rating.participant, application.participant)
+        self.assertTrue(rating.active)
+        self.assertEqual(rating.rating, 'Co-leader')
+        self.assertEqual(rating.activity, enums.Activity.HIKING.value)
+
+    def test_recommendation_only(self):
+        """When there are two or more chairs, we encourage recommendations first."""
+        Group.objects.get(name='hiking_chair').user_set.add(
+            factories.UserFactory.create()
+        )
+
+        application = factories.HikingLeaderApplicationFactory.create()
+        url = f'/hiking/applications/{application.pk}/'
+        _response, soup = self._get(url)
+
+        # Because there are two chairs, we default to suggesting a recommendation
+        submit_txt = soup.find('button', attrs={'type': 'submit'}).text
+        # (AngularJS quirk: The raw HTML says "Creating recommendation" twice)
+        self.assertTrue(
+            strip_whitespace(submit_txt).startswith('Create recommendation')
+        )
+
+        # Submitting the form on the page creates a recommendation!
+        self.client.post(
+            url,
+            {'rating': 'Co-leader', 'notes': '', 'is_recommendation': True},
+        )
+
+        self.assertFalse(
+            models.LeaderRating.objects.filter(
+                participant=application.participant
+            ).exists()
+        )
+
+        self.assertTrue(
+            models.LeaderRecommendation.objects.filter(
+                participant=application.participant,
+                creator=self.participant,
+                rating='Co-leader',
+                notes='',
+            ).exists()
         )

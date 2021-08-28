@@ -158,19 +158,25 @@ class LeaderRecommendationForm(forms.ModelForm):
         exclude: List[str] = []
 
 
-class ApplicationLeaderForm(DjangularRequiredModelForm):
+class ApplicationLeaderForm(forms.ModelForm):
     """Form for assigning a rating from a leader application.
 
     Since the participant and activity are given by the application itself,
     we need not include those an options in the form.
     """
 
-    recommendation = BooleanField(required=False, label="Is a recommendation")
+    is_recommendation = BooleanField(required=False, label="Is a recommendation")
 
     class Meta:
         model = models.LeaderRating
         fields = ['rating', 'notes']
         widgets = {'notes': forms.Textarea(attrs={'rows': 1})}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # We bind the field to an ng-model to enable conditional content on submit button
+        self.fields['is_recommendation'].widget.attrs['data-ng-model'] = 'is_rec'
 
 
 class LeaderForm(DjangularRequiredModelForm):

@@ -269,7 +269,7 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type:
             ).first()
         return self._existing_rec
 
-    def default_to_recommendation(self):
+    def should_default_to_recommendation(self) -> bool:
         """Whether to default the form to a recommendation or not."""
         return False if self.num_chairs < 2 else not self.existing_rec
 
@@ -280,7 +280,7 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type:
         have no active rating in the activity, this should almost always be
         blank.
         """
-        initial = {'recommendation': self.default_to_recommendation()}
+        initial = {'is_recommendation': self.should_default_to_recommendation()}
         existing = self.existing_rating or self.existing_rec
         if existing:
             initial['rating'] = existing.rating
@@ -377,7 +377,7 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type:
         rating.participant = self.object.participant
         rating.activity = self.object.activity
 
-        is_rec = form.cleaned_data['recommendation']
+        is_rec = form.cleaned_data['is_recommendation']
         if is_rec:
             # Hack to convert the (unsaved) rating to a recommendation
             # (Both models have the exact same fields)
@@ -389,12 +389,11 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type:
             ratings_utils.deactivate_ratings(rating.participant, rating.activity)
             rating.save()
 
-        fmt = {
-            'verb': "Recommended" if is_rec else "Created",
-            'rating': rating.rating,
-            'participant': rating.participant.name,
-        }
-        msg = "{verb} {rating} rating for {participant}".format(**fmt)
+        msg = "{verb} {rating} rating for {participant}".format(
+            verb="Recommended" if is_rec else "Created",
+            rating=rating.rating,
+            participant=rating.participant.name,
+        )
         messages.success(self.request, msg)
 
         return super().form_valid(form)

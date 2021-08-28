@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load crispy_forms_tags %}
 {% load application_tags %}
 {% load messages_tags %}
 {% load avatar_tags %}
@@ -50,31 +51,27 @@
       {% csrf_token %}
       <div class="row">
         <div class="col-sm-3">
-          {{ leader_form.rating.label_tag }}
-          {{ leader_form.rating }}
-          {{ leader_form.rating.errors }}
+          {{ leader_form.rating|as_crispy_field }}
         </div>
         <div class="col-sm-5">
-          {{ leader_form.notes.label_tag }}
-          {{ leader_form.notes }}
-          {{ leader_form.notes.errors }}
+          {{ leader_form.notes|as_crispy_field }}
         </div>
         <div class="col-sm-4">
-          <div>{{ leader_form.recommendation }}</div>
+          <div>{{ leader_form.is_recommendation|as_crispy_field }}</div>
           <button type="submit"
                   class="btn btn-primary">
-              <span data-ng-show="recommendation"
+              <span data-ng-show="is_rec"
                     data-ng-bind="' {{ existing_rec|yesno:'Update,Create' }} recommendation'">
 
-                  {# Avoid flickering button while Angular populates scope.recommendation #}
+                  {# Avoid flickering button while Angular populates scope.is_rec #}
                   {# This works because ng-bind overrides the contents once it evaluates. #}
-                  {% if leader_form.initial.recommendation %}
+                  {% if leader_form.initial.is_recommendation %}
                     {{ existing_rec|yesno:'Update,Create' }} recommendation
                   {% else %}
                     {{ existing_rating|yesno:'Update,Create' }} rating
                   {% endif %}
               </span>
-              <span data-ng-hide="recommendation" data-ng-cloak>
+              <span data-ng-hide="is_rec" data-ng-cloak>
                 {{ existing_rating|yesno:'Update,Create' }} rating
               </span>
           </button>
