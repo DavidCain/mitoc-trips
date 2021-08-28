@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load crispy_forms_tags %}
 {% load discount_tags %}
 {% block head_title %}Privacy Settings{% endblock head_title %}
 
@@ -20,7 +21,7 @@
 
 <form id="settings_form" method="post" action="{% url "privacy_settings" %}">
   {% csrf_token %}
-  {{ form.as_div }}
+  {{ form|crispy }}
   <input class="btn btn-primary" type="submit" value="Save" />
 </form>
 

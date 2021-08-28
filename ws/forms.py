@@ -605,7 +605,7 @@ class GuardianForm(forms.Form):
     email = forms.EmailField(required=True, label='Parent or Guardian Email')
 
 
-class PrivacySettingsForm(DjangularRequiredModelForm):
+class PrivacySettingsForm(forms.ModelForm):
     class Meta:
         model = models.Participant
         fields = ['gravatar_opt_out']
