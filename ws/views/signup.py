@@ -32,7 +32,7 @@ class BaseSignUpView(CreateView, LotteryPairingMixin):
 
     # Both model & form class will be overridden by children
     model: Type[db.models.Model]
-    form_class: Type[django_forms.Form]
+    form_class: Type[django_forms.ModelForm]
 
     @property
     def participant(self):

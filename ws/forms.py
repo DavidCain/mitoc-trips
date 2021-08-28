@@ -378,7 +378,7 @@ class TripForm(DjangularRequiredModelForm):
         self._init_wimp()
 
 
-class SignUpForm(DjangularRequiredModelForm):
+class SignUpForm(forms.ModelForm):
     class Meta:
         model = models.SignUp
         fields = ['trip', 'notes']

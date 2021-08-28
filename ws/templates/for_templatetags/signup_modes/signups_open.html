@@ -1,4 +1,5 @@
 {% load signup_tags %}
+{% load crispy_forms_tags %}
 
 <div class="alert alert-info">
   Signups are open!
@@ -7,28 +8,13 @@
 {% if reasons_cannot_attend %}
   {% how_to_attend trip reasons_cannot_attend user %}
 {% else %}
-
-  {% if leader_signup_allowed %}
-    {# By using the same form name, the ng-model on comments fields will be shared! #}
-    <form name="{{ signup_form.form_name }}"
-          action="{% url 'leader_trip_signup' %}"
-          method="post"
-          novalidate>
-      {% csrf_token %}
-      {{ signup_form.as_div }}
-      <button type="submit" class="btn btn-success optional-leader-signup">Sign up as leader</button>
-    </form>
-  {% endif %}
-
   <form name="{{ signup_form.form_name }}"
+        {# Note that leader signups will override this action, via formaction on the submit button #}
         action="{% url 'trip_signup' %}"
-        method="post"
-        data-submit-if-valid
-        novalidate>
+        method="post">
     {% csrf_token %}
-    <div {% if leader_signup_allowed %}class="hidden"{% endif %}>
-      {{ signup_form.as_div }}
-    </div>
+    {{ signup_form|crispy }}
+
     {% if same_day_trips %}
       <div class="alert alert-danger">
         <strong>Are you sure you can attend?</strong>
@@ -37,6 +23,10 @@
           <a href="{% url 'view_trip' trip.pk %}">{{ trip.name }}</a>{% if forloop.last %}.{% else %},{% endif %}
         {% endfor %}
       </div>
+    {% endif %}
+
+    {% if leader_signup_allowed %}
+      <button type="submit" formaction="{% url 'leader_trip_signup' %}" class="btn btn-success">Sign up as leader</button>
     {% endif %}
     <button type="submit" class="btn btn-primary">Sign up{% if leader_signup_allowed %} as participant{% endif %}</button>
   </form>

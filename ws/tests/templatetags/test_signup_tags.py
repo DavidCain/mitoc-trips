@@ -120,11 +120,22 @@ class SignupForTripTests(TestCase):
         climbing_leader = self._leader(models.LeaderRating.CLIMBING)
 
         climbing_soup = self._render(climbing_leader, climbing_trip)
+        climbing_form = climbing_soup.find('form', attrs={'action': '/trips/signup/'})
         self.assertTrue(
-            climbing_soup.find('button', type='submit', text='Sign up as participant')
+            climbing_form.find(
+                'button',
+                type='submit',
+                text='Sign up as participant',
+                attrs={'formaction': None},  # Uses default form `action`
+            )
         )
         self.assertTrue(
-            climbing_soup.find('button', type='submit', text='Sign up as leader')
+            climbing_form.find(
+                'button',
+                type='submit',
+                text='Sign up as leader',
+                attrs={'formaction': '/trips/signup/leader/'},
+            )
         )
 
         hiking_leader = self._leader(models.LeaderRating.HIKING)
