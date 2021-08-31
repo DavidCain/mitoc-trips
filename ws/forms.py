@@ -179,7 +179,7 @@ class ApplicationLeaderForm(forms.ModelForm):
         self.fields['is_recommendation'].widget.attrs['data-ng-model'] = 'is_rec'
 
 
-class LeaderForm(DjangularRequiredModelForm):
+class LeaderForm(forms.ModelForm):
     """Allows assigning a rating to participants in any allowed activity."""
 
     def __init__(self, *args, **kwargs):
@@ -206,6 +206,11 @@ class LeaderForm(DjangularRequiredModelForm):
                 self.fields['activity'].initial = activities[0]
         if hide_activity:
             self.fields['activity'].widget = forms.HiddenInput()
+
+        # Give each field an ng-model so that the `leaderRating` controller can manage the form.
+        # (We query ratings for a given participant + activity, then set rating & notes with the result)
+        for field_name in ['participant', 'activity', 'rating', 'notes']:
+            self.fields[field_name].widget.attrs['data-ng-model'] = field_name
 
     class Meta:
         model = models.LeaderRating
