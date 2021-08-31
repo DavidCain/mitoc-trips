@@ -72,8 +72,7 @@ class CreateRatingView(CreateView):
         rating = form.save(commit=False)
         rating.creator = self.request.participant
 
-        msg = "Gave {} rating of '{}'".format(participant, rating.rating)
-        messages.success(self.request, msg)
+        messages.success(self.request, f"Gave {participant} rating: '{rating.rating}'")
         return super().form_valid(form)
 
 
@@ -162,6 +161,8 @@ class ActivityLeadersView(OnlyForActivityChair, CreateRatingView):
         return context_data
 
 
+# TODO: Consider deleting this view.
+# It's not really used, since leaders are typically managed per activity.
 class ManageLeadersView(CreateRatingView):
     """A view to update the rating of any leader across all ratings."""
 
