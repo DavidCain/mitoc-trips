@@ -263,6 +263,7 @@ class LeaderSignupViewTest(TestCase):
     def setUp(self):
         self.participant = factories.ParticipantFactory.create()
         self.client.force_login(self.participant.user)
+        super().setUp()
 
     def test_trip_must_be_specified(self):
         """Ensure that we don't 500 on an odd edge case - no trip specified!
@@ -366,3 +367,63 @@ class LeaderSignupViewTest(TestCase):
         self.client.post('/trips/signup/leader/', {'trip': trip.pk})
         models.LeaderSignUp.objects.get(trip=trip, participant=self.participant)
         self.assertIn(self.participant, trip.leaders.all())
+
+
+class DeleteSignupViewTest(TestCase):
+    def setUp(self):
+        self.participant = factories.ParticipantFactory.create()
+        self.client.force_login(self.participant.user)
+        super().setUp()
+
+    def test_get(self):
+        """You cannot delete via a GET (could be exploited by malicious users)."""
+        signup = factories.SignUpFactory.create(participant=self.participant)
+        resp = self.client.get(f'/signups/{signup.pk}/delete/')
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(resp.url, f'/trips/{signup.trip.pk}/')
+        self.assertTrue(models.SignUp.objects.filter(pk=signup.pk).exists())
+
+    def test_must_be_logged_in(self):
+        signup = factories.SignUpFactory.create()
+        self.client.logout()
+        resp = self.client.post(f'/signups/{signup.pk}/delete/')
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(
+            resp.url, f'/accounts/login/?next=/signups/{signup.pk}/delete/'
+        )
+        self.assertTrue(models.SignUp.objects.filter(pk=signup.pk).exists())
+
+    def test_cannot_delete_somebody_elses(self):
+        other_signup = factories.SignUpFactory.create()
+        resp = self.client.post(f'/signups/{other_signup.pk}/delete/')
+        self.assertEqual(resp.status_code, 403)
+        self.assertTrue(models.SignUp.objects.filter(pk=other_signup.pk).exists())
+
+    def test_cannot_drop_if_trip_forbids_it(self):
+        trip = factories.TripFactory.create(
+            let_participants_drop=False, algorithm='fcfs'
+        )
+        signup = factories.SignUpFactory.create(participant=self.participant, trip=trip)
+        resp = self.client.post(f'/signups/{signup.pk}/delete/')
+        self.assertEqual(resp.status_code, 403)
+        self.assertTrue(models.SignUp.objects.filter(pk=signup.pk).exists())
+
+    def test_can_always_drop_off_during_lottery(self):
+        trip = factories.TripFactory.create(
+            let_participants_drop=False, algorithm='lottery'
+        )
+        signup = factories.SignUpFactory.create(participant=self.participant, trip=trip)
+        resp = self.client.post(f'/signups/{signup.pk}/delete/')
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(resp.url, '/trips/')
+        self.assertFalse(models.SignUp.objects.filter(pk=signup.pk).exists())
+
+    def test_can_drop_off_if_trip_allows_it(self):
+        trip = factories.TripFactory.create(
+            let_participants_drop=True, algorithm='fcfs'
+        )
+        signup = factories.SignUpFactory.create(participant=self.participant, trip=trip)
+        resp = self.client.post(f'/signups/{signup.pk}/delete/')
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(resp.url, '/trips/')
+        self.assertFalse(models.SignUp.objects.filter(pk=signup.pk).exists())
