@@ -396,8 +396,11 @@ class SignUpForm(forms.ModelForm):
         widgets = {'notes': forms.Textarea(attrs={'rows': 4})}
 
     def clean_notes(self):
-        trip = self.cleaned_data['trip']
         signup_notes = self.cleaned_data['notes'].strip()
+        if 'trip' not in self.cleaned_data:
+            return signup_notes
+
+        trip = self.cleaned_data['trip']
         if trip.notes and not signup_notes:
             raise ValidationError("Please complete notes to sign up!")
         return signup_notes

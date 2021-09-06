@@ -69,6 +69,20 @@ class SignupsViewTest(TestCase):
         signup = trip.signup_set.get(participant=par)
         self.assertFalse(signup.on_trip)
 
+    def test_no_such_trip(self):
+        self.client.force_login(self._active_member().user)
+        resp = self.client.post('/trips/signup/', {'trip': -10}, follow=False)
+        self.assertIn('trip', resp.context['form'].errors)
+
+    def test_notes_required_if_on_trip(self):
+        trip = self._upcoming_trip(notes='Can you drive?')
+        self.client.force_login(self._active_member().user)
+        resp = self._signup(trip)
+        self.assertEqual(
+            resp.context['form'].errors,
+            {'notes': ['Please complete notes to sign up!']},
+        )
+
     def test_wimp_cannot_attend(self):
         """For safety reasons, the WIMP should never be on the trip."""
         par = self._active_member()
@@ -249,6 +263,23 @@ class LeaderSignupViewTest(TestCase):
     def setUp(self):
         self.participant = factories.ParticipantFactory.create()
         self.client.force_login(self.participant.user)
+
+    def test_trip_must_be_specified(self):
+        """Ensure that we don't 500 on an odd edge case - no trip specified!
+
+        This should really only be possible via direct API hits.
+        Otherwise, all forms are rendered with a trip's primary key.
+        """
+        # Give a rating, so we don't get a 403
+        factories.LeaderRatingFactory.create(
+            participant=self.participant,
+            activity=enums.Activity.CLIMBING.value,
+        )
+
+        resp = self.client.post('/trips/signup/leader/', {})
+        self.assertEqual(
+            resp.context['form'].errors, {'trip': ['This field is required.']}
+        )
 
     def test_leader_with_rating_can_sign_up(self):
         trip = factories.TripFactory.create(
