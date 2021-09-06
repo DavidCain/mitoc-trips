@@ -252,6 +252,7 @@ class LeaderSignupViewTest(TestCase):
 
     def test_leader_with_rating_can_sign_up(self):
         trip = factories.TripFactory.create(
+            allow_leader_signups=True,
             program=enums.Program.CLIMBING.value,
             notes='Favorite passive protection?',
         )
@@ -277,7 +278,9 @@ class LeaderSignupViewTest(TestCase):
 
     def test_must_be_leader(self):
         """Obviously, only leaders may sign up as a leader."""
-        trip = factories.TripFactory.create(program=enums.Program.NONE.value)
+        trip = factories.TripFactory.create(
+            allow_leader_signups=True, program=enums.Program.NONE.value
+        )
         self.assertFalse(set(self.participant.reasons_cannot_attend(trip)))
 
         resp = self.client.post('/trips/signup/leader/', {'trip': trip.pk})
@@ -287,7 +290,7 @@ class LeaderSignupViewTest(TestCase):
     def test_must_be_able_to_lead_for_trip_program(self):
         """It's not sufficient to just be a leader, you must be rated accordingly."""
         trip = factories.TripFactory.create(
-            program=enums.Program.CLIMBING.value, notes=''
+            allow_leader_signups=True, program=enums.Program.CLIMBING.value, notes=''
         )
         self.participant.leaderrating_set.add(
             factories.LeaderRatingFactory.create(
@@ -301,3 +304,34 @@ class LeaderSignupViewTest(TestCase):
             resp.context['form'].errors, {'__all__': ["Can't lead Climbing trips!"]}
         )
         self.assertFalse(models.LeaderSignUp.objects.filter(trip=trip).exists())
+
+    def test_trip_must_allow_leader_signups(self):
+        trip = factories.TripFactory.create(
+            allow_leader_signups=False,
+            # No particular type leader rating is required to lead;
+            # Leaders of *any* type can attend
+            program=enums.Program.NONE.value,
+            # No notes required
+            notes='',
+        )
+        self.participant.leaderrating_set.add(
+            factories.LeaderRatingFactory.create(
+                participant=self.participant,
+                activity=enums.Activity.HIKING.value,
+            )
+        )
+        self.assertTrue(self.participant.can_lead(trip.program_enum))
+
+        resp = self.client.post('/trips/signup/leader/', {'trip': trip.pk})
+        self.assertEqual(
+            resp.context['form'].errors,
+            {'__all__': ['Trip is not currently accepting leader signups.']},
+        )
+        self.assertFalse(models.LeaderSignUp.objects.filter(trip=trip).exists())
+
+        # However, if we enable the setting, the participant can indeed sign up
+        trip.allow_leader_signups = True
+        trip.save()
+        self.client.post('/trips/signup/leader/', {'trip': trip.pk})
+        models.LeaderSignUp.objects.get(trip=trip, participant=self.participant)
+        self.assertIn(self.participant, trip.leaders.all())
