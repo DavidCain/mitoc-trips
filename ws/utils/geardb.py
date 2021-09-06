@@ -9,9 +9,8 @@ externally-hosted MySQL database.
 """
 import logging
 import typing
-from collections import OrderedDict
 from datetime import date, datetime, timedelta
-from typing import Any, Dict, Iterator, List
+from typing import Any, Dict, Iterable, Iterator, List, Literal, Optional, TypedDict
 from urllib.parse import urljoin
 
 import requests
@@ -38,6 +37,33 @@ AFFILIATION_MAPPING['N'] = affiliations.NON_AFFILIATE.VALUE
 API_BASE = 'https://mitoc-gear.mit.edu/api-auth/v1/'
 
 JsonDict = Dict[str, Any]
+
+
+Status = Literal[
+    "Missing",
+    "Missing Waiver",
+    "Waiver Expired",
+    "Active",
+    "Missing Membership",
+    "Expired",
+]
+
+
+class _OnlyMembershipDict(TypedDict):
+    expires: Optional[date]
+    active: bool
+    email: Optional[str]
+
+
+class _OnlyWaiverDict(TypedDict):
+    expires: Optional[date]
+    active: bool
+
+
+class MembershipDict(TypedDict):
+    membership: _OnlyMembershipDict
+    waiver: _OnlyWaiverDict
+    status: Status
 
 
 class APIError(Exception):
@@ -97,7 +123,7 @@ def verified_emails(user) -> List[str]:
     return list(emails.filter(verified=True).values_list('email', flat=True))
 
 
-def user_membership_expiration(user, try_cache=False):
+def user_membership_expiration(user, try_cache=False) -> Optional[MembershipDict]:
     """Return membership information for the user.
 
     If `try_cache` is True, then we'll first attempt to locate cached
@@ -108,12 +134,12 @@ def user_membership_expiration(user, try_cache=False):
     if try_cache:
         participant = models.Participant.from_user(user, join_membership=True)
         if participant and participant.membership:
-            return format_cached_membership(participant)
+            return _format_cached_membership(participant)
 
     return membership_expiration(verified_emails(user))
 
 
-def repr_blank_membership():
+def repr_blank_membership() -> MembershipDict:
     return {
         'membership': {'expires': None, 'active': False, 'email': None},
         'waiver': {'expires': None, 'active': False},
@@ -165,15 +191,35 @@ def membership_expiration(emails):
     return most_recent
 
 
-def format_cached_membership(participant):
+def _format_cached_membership(participant: models.Participant) -> MembershipDict:
     """Format a ws.models.Membership object as a server response."""
     mem = participant.membership
-    return format_membership(
+    assert mem is not None
+    return _format_membership(
         participant.email, mem.membership_expires, mem.waiver_expires
     )
 
 
-def format_membership(email, membership_expires, waiver_expires):
+def _represent_status(
+    membership: _OnlyMembershipDict,
+    waiver: _OnlyWaiverDict,
+) -> Status:
+    """Generate a human-readable status (for use in the UI)."""
+    if not membership['active']:
+        return "Missing Membership" if waiver['active'] else "Expired"
+
+    if not waiver['expires']:
+        return "Missing Waiver"
+    if not waiver['active']:
+        return "Waiver Expired"
+    return "Active"
+
+
+def _format_membership(
+    email: str,
+    membership_expires: Optional[date],
+    waiver_expires: Optional[date],
+) -> MembershipDict:
     person = repr_blank_membership()
     membership, waiver = person['membership'], person['waiver']
     membership['email'] = email
@@ -185,18 +231,7 @@ def format_membership(email, membership_expires, waiver_expires):
         component['expires'] = expires
         component['active'] = bool(expires and expires >= local_date())
 
-    # Generate a human-readable status
-    if membership['active']:  # Membership is active and up-to-date
-        if not waiver['expires']:
-            status = "Missing Waiver"
-        elif not waiver['active']:
-            status = "Waiver Expired"
-        else:
-            status = "Active"
-    else:
-        status = "Missing Membership" if waiver['active'] else "Expired"
-
-    person['status'] = status
+    person['status'] = _represent_status(membership, waiver)
 
     return person
 
@@ -266,7 +301,7 @@ def _matching_info_for(emails):
         }
 
 
-def matching_memberships(emails):
+def matching_memberships(emails: Iterable[str]) -> Dict[str, MembershipDict]:
     """Return the most current membership found for each email in the list.
 
     This method is used in two key ways:
@@ -274,19 +309,19 @@ def matching_memberships(emails):
     - Look up memberships for many participants, under all their emails
     """
 
-    def _yield_matches(emails):
+    def _yield_matches():
         """For each given email, yield a record about the person (if found).
 
         - The email addresses may or may not correspond to the same person.
         - Some email addresses may return the same membership record
         """
         for info in _matching_info_for(emails):
-            formatted = format_membership(
+            formatted = _format_membership(
                 info['email'], info['membership_expires'], info['waiver_expires']
             )
             yield info['email'], formatted
 
-    return OrderedDict(_yield_matches(emails))
+    return dict(_yield_matches())
 
 
 def outstanding_items(emails: List[str]) -> Iterator[Rental]:
