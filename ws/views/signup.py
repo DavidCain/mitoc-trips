@@ -74,7 +74,7 @@ class BaseSignUpView(CreateView, LotteryPairingMixin):
         # If the lottery will run in single-trip mode,
         # inform participants about pairing effects
         if trip.single_trip_pairing and self.reciprocally_paired:
-            msg += f" You're paired with {self.paired_par.name}"
+            msg += f" You're paired with {self.paired_par.name}."
             if trip.signup_set.filter(participant=self.paired_par).exists():
                 msg += " The lottery will attempt to place you together."
             else:

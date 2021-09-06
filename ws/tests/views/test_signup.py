@@ -3,6 +3,7 @@ from contextlib import contextmanager
 from datetime import date, datetime
 from unittest import mock
 
+from django.contrib import messages
 from freezegun import freeze_time
 
 import ws.utils.dates as date_utils
@@ -256,6 +257,69 @@ class SignupsViewTest(TestCase):
         # However, since they might pay dues, then be frustrated that they cannot attend, we don't.
         self.assertEqual(
             form.errors, {'__all__': ["Must have attended mandatory safety lectures"]}
+        )
+
+
+class PairedParticipantSignupTest(TestCase):
+    def setUp(self):
+        self.bert = factories.ParticipantFactory.create(name="Bert B")
+        self.ernie = factories.ParticipantFactory.create(name="Ernie E")
+
+        # Reciprocally pair them
+        factories.LotteryInfoFactory.create(
+            participant=self.bert, paired_with=self.ernie
+        )
+        factories.LotteryInfoFactory.create(
+            participant=self.ernie, paired_with=self.bert
+        )
+        super().setUp()
+
+    @staticmethod
+    @contextmanager
+    def _spy_on_message_success():
+        patched = mock.patch.object(messages, 'success', wraps=messages.success)
+        with patched as success:
+            yield success
+
+    def test_pairing_ignored_if_trip_ignores_it(self):
+        trip = factories.TripFactory.create(
+            program=enums.Program.CLIMBING.value,
+            algorithm='lottery',
+            honor_participant_pairing=False,
+        )
+        self.client.force_login(self.bert.user)
+        with self._spy_on_message_success() as bert_success:
+            self.client.post('/trips/signup/', {'trip': trip.pk})
+        models.SignUp.objects.get(participant=self.bert, trip=trip, on_trip=False)
+        bert_success.assert_called_once_with(mock.ANY, "Signed up!")
+
+    def test_single_trip_reciprocal_pairing(self):
+        trip = factories.TripFactory.create(
+            program=enums.Program.CLIMBING.value,
+            algorithm='lottery',
+            honor_participant_pairing=True,
+        )
+
+        # Bert signs up first, is told that Ernie has not.
+        self.client.force_login(self.bert.user)
+        with self._spy_on_message_success() as bert_success:
+            self.client.post('/trips/signup/', {'trip': trip.pk})
+        models.SignUp.objects.get(participant=self.bert, trip=trip, on_trip=False)
+        bert_success.assert_called_once_with(
+            mock.ANY,  # (The request object)
+            "Signed up! You're paired with Ernie E. "
+            "If they do not sign up for this trip, the lottery will attempt to place you alone on this trip.",
+        )
+
+        # Ernie signs up next; they'll be paired together
+        self.client.force_login(self.ernie.user)
+        with self._spy_on_message_success() as ernie_success:
+            self.client.post('/trips/signup/', {'trip': trip.pk})
+        models.SignUp.objects.get(participant=self.ernie, trip=trip, on_trip=False)
+        ernie_success.assert_called_once_with(
+            mock.ANY,  # (The request object)
+            "Signed up! You're paired with Bert B. "
+            "The lottery will attempt to place you together.",
         )
 
 
