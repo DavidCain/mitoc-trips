@@ -6,7 +6,7 @@ from unittest import mock
 from freezegun import freeze_time
 
 import ws.utils.dates as date_utils
-from ws import enums
+from ws import enums, models
 from ws.tests import TestCase, factories
 from ws.utils import geardb, membership
 
@@ -243,3 +243,61 @@ class SignupsViewTest(TestCase):
         self.assertEqual(
             form.errors, {'__all__': ["Must have attended mandatory safety lectures"]}
         )
+
+
+class LeaderSignupViewTest(TestCase):
+    def setUp(self):
+        self.participant = factories.ParticipantFactory.create()
+        self.client.force_login(self.participant.user)
+
+    def test_leader_with_rating_can_sign_up(self):
+        trip = factories.TripFactory.create(
+            program=enums.Program.CLIMBING.value,
+            notes='Favorite passive protection?',
+        )
+        self.participant.leaderrating_set.add(
+            factories.LeaderRatingFactory.create(
+                participant=self.participant,
+                activity=enums.Activity.CLIMBING.value,
+            )
+        )
+
+        # After successful signup, participant is routed back to the trip
+        resp = self.client.post(
+            '/trips/signup/leader/', {'trip': trip.pk, 'notes': 'Tricams'}
+        )
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(resp.url, f'/trips/{trip.pk}/')
+
+        # Signup object is written & leader is also added to the trip
+        models.LeaderSignUp.objects.get(
+            trip=trip, participant=self.participant, notes='Tricams'
+        )
+        self.assertIn(self.participant, trip.leaders.all())
+
+    def test_must_be_leader(self):
+        """Obviously, only leaders may sign up as a leader."""
+        trip = factories.TripFactory.create(program=enums.Program.NONE.value)
+        self.assertFalse(set(self.participant.reasons_cannot_attend(trip)))
+
+        resp = self.client.post('/trips/signup/leader/', {'trip': trip.pk})
+        self.assertEqual(resp.status_code, 403)
+        self.assertFalse(models.LeaderSignUp.objects.filter(trip=trip).exists())
+
+    def test_must_be_able_to_lead_for_trip_program(self):
+        """It's not sufficient to just be a leader, you must be rated accordingly."""
+        trip = factories.TripFactory.create(
+            program=enums.Program.CLIMBING.value, notes=''
+        )
+        self.participant.leaderrating_set.add(
+            factories.LeaderRatingFactory.create(
+                participant=self.participant,
+                activity=enums.Activity.HIKING.value,
+            )
+        )
+
+        resp = self.client.post('/trips/signup/leader/', {'trip': trip.pk})
+        self.assertEqual(
+            resp.context['form'].errors, {'__all__': ["Can't lead Climbing trips!"]}
+        )
+        self.assertFalse(models.LeaderSignUp.objects.filter(trip=trip).exists())
