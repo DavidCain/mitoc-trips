@@ -1,12 +1,19 @@
 {% extends "base.html" %}
 {% load form_tags %}
 
-{% block head_title %}
-Membership dues
-{% endblock head_title %}
+{% block head_title %}Membership dues{% endblock head_title %}
 
 {% block content %}
-  {% include 'snippets/covid.html' %}
+  <div class="alert alert-warning">
+    <p>Please note that <strong>the MITOC office is not yet open for gear rentals</strong>.</p>
+
+    <p>
+      We will announce on the <a href="https://mitoc.mit.edu/rentals">rentals page</a>
+      and on our <a href="https://mitoc.mit.edu/mailing-lists">mailing lists</a> when
+      the office is open again.
+    </p>
+  </div>
+
   <h1>Pay MITOC membership dues</h1>
 
   <p class="lead">
