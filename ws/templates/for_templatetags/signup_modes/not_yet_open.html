@@ -1,4 +1,5 @@
 {% load signup_tags %}
+{% load crispy_forms_tags %}
 
 <div class="alert alert-info">
   Signups for this trip are not yet open.
@@ -12,11 +13,9 @@
   {% else %}
     <form name="{{ signup_form.form_name }}"
           action="{% url 'leader_trip_signup' %}"
-          method="post"
-          novalidate
-          data-submit-if-valid>
+          method="post">
       {% csrf_token %}
-      {{ signup_form.as_div }}
+      {{ signup_form|crispy }}
       <button type="submit" class="btn btn-success">Leader Sign Up</button>
     </form>
   {% endif %}
