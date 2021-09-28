@@ -1,98 +1,106 @@
 {% extends "base.html" %}
-{% load form_tags %}
+{% load crispy_forms_tags %}
 
 {% block content %}
 {{ block.super }}
 
-<form name="{{ form.form_name }}" method="post" action="." novalidate data-ng-cloak data-submit-if-valid>
+<form name="{{ form.form_name }}" method="post" action=".">
   {% csrf_token %}
   <div class="row">
     <div class="col-md-6">
       <h2>Basics</h2>
 
-      {% form_group form.name %}
+      {{ form.name|as_crispy_field }}
 
       <div class="row">
         <div class="col-xs-6">
-          {% form_group form.program %}
+          {{ form.program|as_crispy_field }}
         </div>
         <div class="col-xs-6">
-          {% form_group form.trip_type %}
+          {{ form.trip_type|as_crispy_field }}
         </div>
       </div>
 
       <div class="row">
         <div class="col-xs-6">
-          {% form_group form.maximum_participants %}
+          {{ form.maximum_participants|as_crispy_field }}
         </div>
         <div class="col-xs-6">
-          {% form_group form.difficulty_rating %}
+          {{ form.difficulty_rating|as_crispy_field }}
         </div>
       </div>
 
       <div class="row" data-ng-if="program === 'winter_school' || program === 'winter_non_iap'">
         <div class="col-sm-12">
-          {% form_group form.level %}
+          {{ form.level|as_crispy_field }}
         </div>
       </div>
 
-      {% form_group form.leaders %}
+      {{ form.leaders|as_crispy_field }}
 
       <div data-ng-if="program !== 'winter_school'">
-        {% form_group form.wimp %}
+        {{ form.wimp|as_crispy_field }}
       </div>
 
       <hr>
 
-      <h2>Signup</h2>
+      <h2>Settings</h2>
+      <div data-ng-if="program === 'winter_school'">
+        <p>Winter School trips are not configurable; all trips behave the same:</p>
 
-      <div class="row">
-        <div class="col-sm-6" data-ng-if="program !== 'winter_school'">
-          {% form_group form.membership_required True %}
-          {% form_group form.allow_leader_signups True %}
-        </div>
-        <div class="col-sm-6">
-          <div data-ng-if="(algorithm === 'lottery') && (program !== 'winter_school')">
-            {% form_group form.honor_participant_pairing True %}
-          </div>
-          <div data-ng-if="program !== 'winter_school'">
-            {% form_group form.let_participants_drop True %}
-          </div>
-        </div>
+        <ul>
+          <li>We make an effort to place paired participants on the same trip.</li>
+          <li>Participants may not drop off a trip without leader approval.</li>
+          <li>Each trip's leaders must be defined before the trip is approved by WSC.</li>
+          <li>Membership (&amp; lecture attendance) is required for all participants.</li>
+        </ul>
       </div>
 
-      {# Note: infinite recursion is caused here with the datepicker on jQuery 3.4.x #}
-      {% form_group form.trip_date %}
-
-      {% form_group form.algorithm %}
-      <div class="row">
-        <div class="col-sm-6">
-          {% form_group form.signups_open_at %}
-        </div>
-        <div class="col-sm-6">
-          {% form_group form.signups_close_at %}
-        </div>
+      <div data-ng-if="program !== 'winter_school'">
+        {{ form.membership_required|as_crispy_field }}
+        {{ form.allow_leader_signups|as_crispy_field }}
+      </div>
+      <div data-ng-if="(algorithm === 'lottery') && (program !== 'winter_school')">
+        {{ form.honor_participant_pairing|as_crispy_field }}
+      </div>
+      <div data-ng-if="program !== 'winter_school'">
+        {{ form.let_participants_drop|as_crispy_field }}
       </div>
 
     </div>
 
     <div class="col-md-6">
       <h2>About</h2>
-      {% form_group form.description %}
-      {% form_group form.prereqs %}
-      {% form_group form.notes %}
+      {{ form.description|as_crispy_field }}
+      {{ form.prereqs|as_crispy_field }}
+
+      <h2>Signup</h2>
+      {# Note: infinite recursion is caused here with the datepicker on jQuery 3.4.x #}
+      <div class="row">
+        <div class="col-xs-6">
+          {{ form.trip_date|as_crispy_field }}
+        </div>
+        <div class="col-xs-6">
+          {{ form.algorithm|as_crispy_field }}
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-sm-6">
+          {{ form.signups_open_at|as_crispy_field }}
+        </div>
+        <div class="col-sm-6">
+          {{ form.signups_close_at|as_crispy_field }}
+        </div>
+      </div>
+      {{ form.notes|as_crispy_field }}
+
+
     </div>
+
     <div class="col-md-6">
     </div>
-  </div>
 
-  <div class="alert alert-danger"
-       data-ng-show="{{ form.form_name }}.$submitted && {{ form.form_name }}.$invalid">
-    Please correct the above errors and submit again!
   </div>
-
-  {# If FE validation fails, explain errors directly. #}
-  {% form_error_list form %}
 
   <button type="submit" class="btn btn-primary">Submit</button>
   <a role="button" class="btn btn-default"

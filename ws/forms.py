@@ -240,7 +240,7 @@ class TripInfoForm(forms.ModelForm):
         ]
 
 
-class TripForm(DjangularRequiredModelForm):
+class TripForm(forms.ModelForm):
     class Meta:
         model = models.Trip
         fields = [
@@ -387,6 +387,10 @@ class TripForm(DjangularRequiredModelForm):
             )
 
         self._init_wimp()
+
+        # `trip_date` is particularly important to assign a model to!
+        for field_name in ('program', 'algorithm', 'leaders', 'trip_date'):
+            self.fields[field_name].widget.attrs['data-ng-model'] = field_name
 
 
 class SignUpForm(forms.ModelForm):

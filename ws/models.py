@@ -896,8 +896,8 @@ class Trip(models.Model):
     )
     allow_leader_signups = models.BooleanField(
         default=False,
-        help_text="Allow leaders to sign themselves up as trip leaders. "
-        "(Leaders can always sign up as participants). Recommended for Circuses!",
+        help_text="Leaders can add themselves directly to the list of trip leaders, even if trip is full or in lottery mode. "
+        "Recommended for Circuses!",
     )
     name = models.CharField(max_length=127)
     description = models.TextField(
@@ -940,12 +940,12 @@ class Trip(models.Model):
         "from the trip any time before its start date.",
     )
     honor_participant_pairing = models.BooleanField(
-        default=True, help_text="Try to place paired participants together on the trip."
+        default=True,
+        help_text="Try to place paired participants together on the trip (if both sign up).",
     )
     membership_required = models.BooleanField(
         default=True,
-        help_text="Require an active MITOC membership to participate. "
-        "If disabled, only waivers will be mandated.",
+        help_text="Require an active MITOC membership to participate (waivers are always required).",
     )
 
     info = models.OneToOneField(
