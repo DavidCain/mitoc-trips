@@ -7,6 +7,7 @@ from django.forms import HiddenInput
 from ws import models
 from ws.enums import Program, TripType
 from ws.forms import SignUpForm
+from ws.mixins import LotteryPairingMixin
 from ws.utils.dates import local_date
 from ws.utils.membership import reasons_cannot_attend
 
@@ -49,6 +50,28 @@ def leader_signup_is_allowed(trip, participant):
         and trip.allow_leader_signups
         and participant.can_lead(trip.program_enum)
     )
+
+
+@register.inclusion_tag('for_templatetags/pairing_info.html')
+def pairing_info(participant, user_viewing: bool = True, show_title: bool = False):
+    lotto = LotteryPairingMixin()
+    lotto.participant = participant
+
+    paired_par = lotto.paired_par
+    pair_requests = lotto.pair_requests.order_by('name')
+
+    # If paired with X, we don't want to say "X requested to be paired with you"
+    if paired_par:
+        pair_requests = pair_requests.exclude(pk=paired_par.pk)
+
+    return {
+        'participant': participant,
+        'show_title': show_title,
+        'user_viewing': user_viewing,
+        'reciprocally_paired': lotto.reciprocally_paired,
+        'paired_par': paired_par,
+        'pair_requests': pair_requests,
+    }
 
 
 @register.inclusion_tag('for_templatetags/signup_for_trip.html', takes_context=True)

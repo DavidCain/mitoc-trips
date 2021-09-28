@@ -5,6 +5,7 @@
 {% load messages_tags %}
 {% load misc_tags %}
 {% load perm_tags %}
+{% load signup_tags %}
 {% load trip_tags %}
 {% load ws_tags %}
 
@@ -257,60 +258,7 @@
       {% endif %}
     </div>
 
-    {% if paired_par or pair_requests %}
-      <div class="row">
-        <div class="col-md-12">
-          <h3>Lottery pairing</h3>
-          {% if paired_par %}
-            {% if reciprocally_paired %}
-              <div class="alert alert-success">
-                <p><i class="fas fa-link"></i> Paired with
-                  {% if not user_viewing %}
-                    <a href="{% url 'view_participant' paired_par.pk %}">{{ paired_par.name }}</a>
-                  {% else %}
-                    {{ paired_par.name }}
-                  {% endif %}
-                </p>
-              </div>
-              {% if user_viewing %}
-                <p>
-                  When lotteries run, either both of you will be placed on a trip
-                  or neither will.
-                </p>
-              {% endif %}
-            {% else %}
-              <div class="alert alert-warning">
-                <p>Requested to be paired with {{ paired_par.name }}.
-                  {% if user_viewing %}
-                    Until {{ paired_par.name }} does the same, no effort will be made to place you both
-                    on the same trip.
-                  {% endif %}
-                </p>
-              </div>
-            {% endif %}
-          {% endif %}
-
-          <ul>
-            {% for other_participant in pair_requests %}
-              <li>
-                {% if user_viewing %}
-                  {{ other_participant.name }}
-                  has requested to be paired with you.
-                {% else %}
-                  <a href="{% url 'view_participant' other_participant.pk %}">{{ other_participant.name }}</a>
-                  has requested to be paired with {{ participant.name }}.
-                {% endif %}
-              </li>
-            {% endfor %}
-          </ul>
-          {% if user_viewing %}
-            <p class="text-center">
-              <a href="{% url 'lottery_pairing' %}">Change your pairing preferences</a>
-            </p>
-          {% endif %}
-        </div>
-      </div>
-    {% endif %}
+    {% pairing_info participant user_viewing True %}
 
   </div>
 </div>

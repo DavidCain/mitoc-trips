@@ -25,7 +25,7 @@ import ws.utils.dates as date_utils
 import ws.utils.perms as perm_utils
 from ws import enums, forms, models, tasks, wimp
 from ws.decorators import admin_only, group_required, user_info_required
-from ws.mixins import LectureAttendanceMixin, LotteryPairingMixin
+from ws.mixins import LectureAttendanceMixin
 from ws.templatetags.trip_tags import annotated_for_trip_list
 from ws.utils.models import problems_with_profile
 
@@ -280,7 +280,6 @@ class ParticipantLookupView(TemplateView, FormView):
 class ParticipantView(
     ParticipantLookupView,
     SingleObjectMixin,
-    LotteryPairingMixin,
     LectureAttendanceMixin,
 ):
     model = models.Participant
@@ -358,13 +357,6 @@ class ParticipantView(
 
         return stats
 
-    def include_pairing(self, context):
-        self.participant = self.object
-        context['reciprocally_paired'] = self.reciprocally_paired
-        context['paired_par'] = self.paired_par
-        paired_id = {'pk': self.paired_par.pk} if self.paired_par else {}
-        context['pair_requests'] = self.pair_requests.exclude(**paired_id)
-
     def get_context_data(self, **kwargs):
         participant = self.object = self.get_object()
         user_viewing = self.request.participant == participant
@@ -390,7 +382,6 @@ class ParticipantView(
 
         context['trips'] = trips = self.get_trips()
         context['stats'] = self.get_stats(trips)
-        self.include_pairing(context)
 
         e_info = participant.emergency_info
         e_contact = e_info.emergency_contact
@@ -451,12 +442,14 @@ class ParticipantDetailView(ParticipantView, FormView, DetailView):
         args = self.request.GET
         show_feedback = args.get('show_feedback', '0') not in {'0', ''}
         if show_feedback:
+            participant = self.object
+
             logger.info(
                 "%s (#%d) viewed feedback for %s (#%d)",
                 self.request.participant,
                 self.request.participant.pk,
-                self.participant,
-                self.participant.pk,
+                participant,
+                participant.pk,
             )
         context['hide_comments'] = not show_feedback
         context['display_log_notice'] = show_feedback

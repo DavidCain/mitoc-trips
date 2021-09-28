@@ -367,3 +367,103 @@ class MissedLecturesForTest(TestCase):
         with mock.patch.object(date_utils, 'ws_lectures_complete') as lectures_complete:
             lectures_complete.return_value = True
             self.assertEqual(self._render(par, trip), 'Missed!')
+
+
+class PairingInfoTest(TestCase):
+    @staticmethod
+    def _render(participant, user_viewing):
+        context = Context({'participant': participant, 'user_viewing': user_viewing})
+        html_template = Template(
+            '{% load signup_tags %}{% pairing_info participant user_viewing %}'
+        )
+        raw_html = html_template.render(context).strip()
+        return BeautifulSoup(raw_html, 'html.parser')
+
+    def test_nothing_to_report(self):
+        par = factories.ParticipantFactory.create()
+        soup = self._render(par, user_viewing=True)
+        self.assertFalse(strip_whitespace(soup.text))
+
+    def test_unrequited_requests(self):
+        """We tell participants if others have requested to be paired with them."""
+        par = factories.ParticipantFactory.create()
+        factories.LotteryInfoFactory.create(paired_with=par, participant__name='Bob Li')
+        soup = self._render(par, user_viewing=True)
+        self.assertEqual(
+            strip_whitespace(soup.text),
+            'Bob Li has requested to be paired with you. Change your pairing preferences',
+        )
+
+        # Add one more request, note that they're alphabetized
+        factories.LotteryInfoFactory.create(paired_with=par, participant__name='Ana Ng')
+        soup = self._render(par, user_viewing=True)
+        self.assertEqual(
+            [strip_whitespace(tag.text) for tag in soup.find_all('li')],
+            [
+                'Ana Ng has requested to be paired with you.',
+                'Bob Li has requested to be paired with you.',
+            ],
+        )
+        # We don't link to any participant, since normal users cannot see that
+        self.assertEqual(soup.find('a').text, 'Change your pairing preferences')
+
+    def test_made_unrequited_requests(self):
+        """We warn users if they requested to be paired with somebody else."""
+        par = factories.ParticipantFactory.create()
+        ringo = factories.ParticipantFactory.create(name='Ringo Starr')
+        factories.LotteryInfoFactory.create(participant=par, paired_with=ringo)
+        soup = self._render(par, user_viewing=True)
+        self.assertEqual(
+            strip_whitespace(soup.text),
+            'Requested to be paired with Ringo Starr. '
+            'Until Ringo Starr does the same, no effort will be made to place you both on the same trip. '
+            'Change your pairing preferences',
+        )
+
+        self.assertEqual(
+            strip_whitespace(self._render(par, user_viewing=False).text),
+            'Requested to be paired with Ringo Starr.',
+        )
+
+    def test_user_is_not_viewing(self):
+        """We render links to other participants (for leaders and admins)."""
+        arthur = factories.ParticipantFactory.create(name='King Arthur')
+
+        # Bob (and bob's pairing request) come first, but we'll sort for consistency
+        bob = factories.ParticipantFactory.create(name='Bob Li')
+        ana = factories.ParticipantFactory.create(name='Ana Ng')
+        factories.LotteryInfoFactory.create(paired_with=arthur, participant=ana)
+        factories.LotteryInfoFactory.create(paired_with=arthur, participant=bob)
+
+        soup = self._render(arthur, user_viewing=False)
+        self.assertEqual(
+            [strip_whitespace(tag.text) for tag in soup.find_all('li')],
+            [
+                'Ana Ng has requested to be paired with King Arthur.',
+                'Bob Li has requested to be paired with King Arthur.',
+            ],
+        )
+
+        # We just link to the requesting users, no "change your preferences"
+        self.assertEqual(
+            [tag['href'] for tag in soup.find_all('a')],
+            [f'/participants/{ana.pk}/', f'/participants/{bob.pk}/'],
+        )
+
+    def test_reciprocally_paired(self):
+        """A successful pairing just warns users about what to expect."""
+        bert = factories.ParticipantFactory.create(name='Bert B')
+        ernie = factories.ParticipantFactory.create(name='Ernie E')
+
+        factories.LotteryInfoFactory.create(paired_with=bert, participant=ernie)
+        factories.LotteryInfoFactory.create(paired_with=ernie, participant=bert)
+
+        soup = self._render(bert, user_viewing=True)
+        self.assertEqual(
+            [strip_whitespace(tag.text) for tag in soup.find_all('p')],
+            [
+                'Paired with Ernie E',
+                'When lotteries run, either both of you will be placed on a trip or neither will.',
+                'Change your pairing preferences',
+            ],
+        )
