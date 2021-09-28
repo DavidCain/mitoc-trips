@@ -507,7 +507,7 @@ def LeaderApplicationForm(*args, **kwargs):
     """Factory form for applying to be a leader in any activity."""
     activity = kwargs.pop('activity')
 
-    class DynamicActivityForm(DjangularRequiredModelForm):
+    class DynamicActivityForm(forms.ModelForm):
         class Meta:
             exclude = ['archived', 'year', 'participant', 'previous_rating']
             model = models.LeaderApplication.model_from_activity(activity)
@@ -527,6 +527,17 @@ def LeaderApplicationForm(*args, **kwargs):
             # TODO: Errors on args, where args is a single tuple of the view
             # super().__init__(*args, **kwargs)
             super().__init__(**kwargs)
+
+            # For fields which are conditionally shown/hidden, set the required attr
+            # Critically, we must *not* actually make the *field* required.
+            # The idea is to just tell the browser that the input is required.
+            # (we don't want to fail a form submission for somebody who doesn't want mentorship)
+            #
+            # We should *perhaps* reconsider this hack to make the application work without JS
+            # (we use JavaScript to conditionally hide this div)
+            for conditional_field in ('mentee_activities', 'mentor_activities'):
+                if conditional_field in self.fields:
+                    self.fields[conditional_field].widget.attrs['required'] = True
 
     return DynamicActivityForm(*args, **kwargs)
 
