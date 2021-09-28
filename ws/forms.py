@@ -464,25 +464,25 @@ class LotteryInfoForm(DjangularRequiredModelForm):
         }
 
 
-class LotteryPairForm(DjangularRequiredModelForm):
+class LotteryPairForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         participant = kwargs.pop('participant')
-        exclude_self = kwargs.pop('exclude_self', False)
-        super().__init__(*args, **kwargs)
-        participants = models.Participant.objects.all()
-        all_but_user = participants.exclude(pk=participant.pk)
 
-        self.fields['paired_with'].queryset = all_but_user
-        self.fields['paired_with'].empty_label = 'Nobody'
+        super().__init__(*args, **kwargs)
+
+        paired_with = self.fields['paired_with']
+        paired_with.queryset = models.Participant.objects.exclude(pk=participant.pk)
+        paired_with.empty_label = 'Nobody'
 
         # Set up arguments to be passed to Angular directive
-        pair = self.fields['paired_with'].widget
-        pair.attrs['msg'] = "'Nobody'"
-        pair.attrs['exclude_self'] = 'true' if exclude_self else 'false'
+        widget = paired_with.widget
+        widget.attrs['data-ng-model'] = 'paired_with'
+        widget.attrs['data-msg'] = "'Nobody'"
+        widget.attrs['data-exclude_self'] = 'true'
 
         if self.instance.paired_with:
-            pair.attrs['selected-id'] = self.instance.paired_with.pk
-            pair.attrs['selected-name'] = self.instance.paired_with.name
+            widget.attrs['data-selected-id'] = self.instance.paired_with.pk
+            widget.attrs['data-selected-name'] = self.instance.paired_with.name
 
     class Meta:
         model = models.LotteryInfo

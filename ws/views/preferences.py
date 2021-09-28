@@ -39,7 +39,6 @@ class LotteryPairingView(CreateView, LotteryPairingMixin):
         """Edit existing instance, prevent user from pairing with self."""
         kwargs = super().get_form_kwargs()
         kwargs['participant'] = participant = self.request.participant
-        kwargs['exclude_self'] = True
         try:
             kwargs['instance'] = participant.lotteryinfo
         except models.LotteryInfo.DoesNotExist:
