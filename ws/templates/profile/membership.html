@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load form_tags %}
+{% load crispy_forms_tags %}
 
 {% block head_title %}Membership dues{% endblock head_title %}
 
@@ -67,22 +68,22 @@
           {{ form.description }}
           {{ form.merchantDefinedData1 }}
 
-          {% form_group form.merchantDefinedData3 %}  {# Email #}
-          {% form_group form.merchantDefinedData2 %}  {# Affiliation #}
+          {{ form.merchantDefinedData3|as_crispy_field }}  {# Email #}
+          {{ form.merchantDefinedData2|as_crispy_field }}  {# Affiliation #}
 
           {% if form.amount.initial %}
             {# Amount is set server-side already. Render it (will still be hidden for participants) #}
-            {% form_group form.amount %}
+            {{ form.amount|as_crispy_field }}
           {% else %}
             {# Amount must be set by choosing the right affiliation #}
 
             {# Automatically sets amount from the affiliation that's chosen #}
-            <amount-from-affiliation data-affiliation="merchantDefinedData2" data-amount="amount">
+            <amount-from-affiliation data-affiliation="affiliation" data-amount="amount">
             </amount-from-affiliation>
 
             {# Make amount selection (mostly) work on clients without JavaScript! #}
             <noscript>
-              {% form_group form.amount %}
+              {{ form.amount|as_crispy_field }}
               <div class="alert alert-warning">
                 <p>
                   While this form is designed to work without JavaScript,
@@ -103,7 +104,7 @@
 
         </div>
 
-        <div class="alert alert-warning" data-ng-cloak data-ng-show="membershipform.$valid && ['MU', 'MG'].includes(merchantDefinedData2) && !merchantDefinedData3.endsWith('mit.edu')">
+        <div class="alert alert-warning" data-ng-cloak data-ng-show="membershipform.$valid && ['MU', 'MG'].includes(affiliation) && !email.endsWith('mit.edu')">
           <p>
             <strong>You must own an MIT email address</strong> in order to claim the MIT student rate.
           </p>
@@ -115,7 +116,7 @@
           </p>
         </div>
 
-        <p data-ng-show="['MU', 'MG'].includes(merchantDefinedData2)">
+        <p data-ng-show="['MU', 'MG'].includes(affiliation)">
             If <noscript>you are an MIT student and</noscript> the cost of membership dues is prohibitive to your participation,
            please email <a href="mailto:mitoc-owner@mit.edu">mitoc-owner@mit.edu</a>
            to ask about this fee being waived.
@@ -128,7 +129,7 @@
           {% endif %}
           <button type="submit" class="btn btn-primary"
             {% if not viewing_participant %}
-              data-ng-disabled="!amount || ((merchantDefinedData2 === 'MU' || merchantDefinedData2 === 'MG') && !merchantDefinedData3.endsWith('mit.edu'))"
+              data-ng-disabled="!amount || ((affiliation === 'MU' || affiliation === 'MG') && !email.endsWith('mit.edu'))"
             {% endif %}
             >
             <i class="fas fa-credit-card"></i>&nbsp;Pay <span data-ng-bind="amount ? '$' + amount: ''"></span> {{ viewing_participant.get_affiliation_display }} dues

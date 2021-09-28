@@ -3,7 +3,7 @@ from typing import List, Tuple, Union
 from django import forms
 from django.core.exceptions import ValidationError
 from django.db.models.fields import TextField
-from djng.forms import NgForm, NgFormValidationMixin, NgModelForm, NgModelFormMixin
+from djng.forms import NgFormValidationMixin, NgModelForm, NgModelFormMixin
 from djng.forms.fields import BooleanField, CharField, ChoiceField, EmailField
 from djng.styling.bootstrap3.forms import Bootstrap3FormMixin
 from localflavor.us.us_states import US_STATES
@@ -568,7 +568,7 @@ def amount_choices(value_is_amount=False):
             yield include_amount_in_label(label, option)
 
 
-class DuesForm(NgFormValidationMixin, Bootstrap3FormMixin, NgForm):
+class DuesForm(forms.Form):
     """Provide a form that's meant to submit its data to CyberSource.
 
     Specifically, each of these named fields is what's expected for MIT's
@@ -577,8 +577,6 @@ class DuesForm(NgFormValidationMixin, Bootstrap3FormMixin, NgForm):
 
     The expected URL is https://shopmitprd.mit.edu/controller/index.php
     """
-
-    required_css_class = 'required'
 
     merchant_id = CharField(widget=forms.HiddenInput(), initial=MERCHANT_ID)
     description = CharField(widget=forms.HiddenInput(), initial='membership fees.')
@@ -604,6 +602,11 @@ class DuesForm(NgFormValidationMixin, Bootstrap3FormMixin, NgForm):
 
         super().__init__(*args, **kwargs)
         email = self.fields['merchantDefinedData3']
+
+        # We conditionally show messages about MIT affiliation, disable submission, etc.
+        self.fields['merchantDefinedData2'].widget.attrs['ng-model'] = 'affiliation'
+        self.fields['merchantDefinedData3'].widget.attrs['ng-model'] = 'email'
+
         if participant:
             email.initial = participant.email
             self.fields['merchantDefinedData2'].initial = participant.affiliation
