@@ -1,11 +1,16 @@
 angular.module('ws.lottery', ['ui.select', 'ui.sortable'])
 .controller('lotteryController', function($scope, $http, $window) {
-  $scope.ranked = $window.ranked; // Set in global via Django;
+  $scope.ranked = {
+    signups: JSON.parse(document.getElementById('jsonified-ranked-signups').textContent)
+  };
+
   $scope.submit = function() {
-    var payload = {signups: $scope.ranked.signups,
-                   car_status: $scope.car_status,
-                   number_of_passengers: $scope.number_of_passengers};
-    angular.extend(payload, $scope.car);
+    const payload = {
+      signups: $scope.ranked.signups,  // Array of objects with `id`, `deleted`, and `order`
+      car_status: $scope.car_status,
+      number_of_passengers: $scope.number_of_passengers || null,
+    };
+
     $http.post('/preferences/lottery/', payload).then(function() {
         $window.location.href = '/';
       },
@@ -15,7 +20,7 @@ angular.module('ws.lottery', ['ui.select', 'ui.sortable'])
     );
   };
 })
-.directive('tripRank', function(djangoUrl) {
+.directive('tripRank', function() {
   return {
     restrict: 'E',
     scope: {

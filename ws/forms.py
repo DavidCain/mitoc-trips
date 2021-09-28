@@ -3,21 +3,13 @@ from typing import List, Tuple, Union
 from django import forms
 from django.core.exceptions import ValidationError
 from django.db.models.fields import TextField
-from djng.forms import NgFormValidationMixin, NgModelForm, NgModelFormMixin
 from djng.forms.fields import BooleanField, CharField, ChoiceField, EmailField
-from djng.styling.bootstrap3.forms import Bootstrap3FormMixin
 from localflavor.us.us_states import US_STATES
 from mitoc_const import affiliations
 
 from ws import enums, models, widgets
 from ws.membership import MERCHANT_ID, PAYMENT_TYPE
 from ws.utils.signups import non_trip_participants
-
-
-class DjangularRequiredModelForm(
-    NgFormValidationMixin, NgModelFormMixin, Bootstrap3FormMixin, NgModelForm
-):
-    required_css_class = 'required'
 
 
 class RequiredModelForm(forms.ModelForm):
@@ -455,13 +447,21 @@ class LeaderParticipantSignUpForm(RequiredModelForm):
         self.fields['participant'].help_text = None  # Disable "Hold command..."
 
 
-class LotteryInfoForm(DjangularRequiredModelForm):
+class LotteryInfoForm(forms.ModelForm):
     class Meta:
         model = models.LotteryInfo
         fields = ['car_status', 'number_of_passengers']
         widgets = {
-            'car_status': forms.RadioSelect(attrs={'onclick': 'handle_driver(this);'})
+            'number_of_passengers': forms.NumberInput(
+                attrs={'min': 0, 'max': 13}  # hard-coded, but matches model
+            ),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        for field_name in ['car_status', 'number_of_passengers']:
+            self.fields[field_name].widget.attrs['data-ng-model'] = field_name
 
 
 class LotteryPairForm(forms.ModelForm):

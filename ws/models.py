@@ -1289,11 +1289,6 @@ class LotteryInfo(models.Model):
     def is_driver(self):
         return self.car_status in ['own', 'rent']
 
-    def clean(self):
-        # Renters might not yet know number of passengers
-        if self.car_status == 'own' and not self.number_of_passengers:
-            raise ValidationError("How many passengers can you bring?")
-
     class Meta:
         ordering = ["car_status", "number_of_passengers"]
 

@@ -1,4 +1,3 @@
-import json
 from datetime import date, datetime
 from unittest import mock
 
@@ -104,49 +103,12 @@ class LotteryPrefsPostHelper:
 
 
 class LotteryPreferencesDriverStatusTests(TestCase, LotteryPrefsPostHelper):
-    # This dictionary doubles as both:
-    # 1. All the valid arguments to CarForm except `participant`
-    # 2. A valid form to be submitted in POST
-    TEST_CAR_INFO = {
-        'license_plate': '559DKP',
-        'state': 'MA',
-        'make': 'Honda',
-        'model': 'Accord',
-        'year': 2001,
-        'color': 'Purple',
-    }
-
     def test_bad_lottery_form(self):
         """The lottery form must have all its keys specified."""
         par = factories.ParticipantFactory.create(lotteryinfo=None)
         self.client.force_login(par.user)
         self.assertEqual(self._post({}).status_code, 400)
         self.assertEqual(self._post({'signups': []}).status_code, 400)
-
-    def test_bad_car_form(self):
-        """For car owners, the form must specify vehicle information."""
-        par = factories.ParticipantFactory.create(lotteryinfo=None)
-        self.client.force_login(par.user)
-
-        # If specifying that you own a car you're willing to drive, you *must* give info
-        response = self._post(
-            {'signups': [], 'number_of_passengers': 4, 'car_status': 'own'}
-        )
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.json(), {'message': 'Car form invalid'})
-
-        # All fields on CarForm are required
-        self.assertEqual(
-            self._post(
-                {
-                    'signups': [],
-                    'car_status': 'own',
-                    'number_of_passengers': 4,
-                    'license_plate': '123ABC',
-                }
-            ).status_code,
-            400,
-        )
 
     def test_no_car_no_trips_no_pairing(self):
         """Test the simplest submission of a user with no real preferences to express."""
@@ -167,29 +129,8 @@ class LotteryPreferencesDriverStatusTests(TestCase, LotteryPrefsPostHelper):
             datetime.fromisoformat("2019-01-15T12:25:00-05:00"),
         )
 
-    def test_can_drive_current_car(self):
-        """If a participant has a car on file, we default to using that car."""
-        par = factories.ParticipantFactory.create(lotteryinfo=None)
-        car = models.Car(participant=par, **self.TEST_CAR_INFO)
-        car.save()
-        par.car = car
-        par.save()
-
-        self.client.force_login(par.user)
-        response = self.client.get('/preferences/lottery/')
-        self.assertEqual(response.status_code, 200)
-        # The car is given in the context to pre-fill the form
-        self.assertEqual(response.context['car_form'].instance, par.car)
-        # However, the user isn't defaulted to offering to drive.
-        # They must explicitly consent to do so
-        self.assertEqual(response.context['lottery_form'].initial, {})
-
     def test_can_drive_new_car(self):
-        """Participants who own a car can express their willingness to drive.
-
-        They can also give their car's information straight from the form, even
-        if they hadn't previously given any info.
-        """
+        """Participants who own a car can express their willingness to drive."""
         with freeze_time("2019-01-15 12:25:00 EST"):
             par = factories.ParticipantFactory.create(lotteryinfo=None, car=None)
 
@@ -199,9 +140,6 @@ class LotteryPreferencesDriverStatusTests(TestCase, LotteryPrefsPostHelper):
                     'signups': [],
                     'car_status': 'own',
                     'number_of_passengers': 4,
-                    # These fields all correspond to CarForm
-                    # (In the future, we should probably use a form prefix)
-                    **self.TEST_CAR_INFO,
                 },
             )
 
@@ -210,13 +148,6 @@ class LotteryPreferencesDriverStatusTests(TestCase, LotteryPrefsPostHelper):
         par.refresh_from_db()
         self.assertEqual(par.lotteryinfo.car_status, 'own')
         self.assertEqual(par.lotteryinfo.number_of_passengers, 4)
-
-        # We created a new car entry for the participant.
-        self.assertEqual(par.car, models.Car(id=par.car.id, **self.TEST_CAR_INFO))
-        self.assertEqual(
-            par.lotteryinfo.last_updated,
-            datetime.fromisoformat("2019-01-15T12:25:00-05:00"),
-        )
 
         # Participant still isn't paired with anybody
         self.assertIsNone(par.lotteryinfo.paired_with)
@@ -345,11 +276,11 @@ class LotteryPreferencesSignupTests(TestCase, LotteryPrefsPostHelper):
         response = self.client.get('/preferences/lottery/')
         self.assertEqual(response.status_code, 200)
         expected = [
-            {'id': okay.pk, 'trip': {'id': okay.trip.pk, 'name': 'So-so'}},
-            {'id': fave.pk, 'trip': {'id': fave.trip.pk, 'name': 'Amazing'}},
-            {'id': hate.pk, 'trip': {'id': hate.trip.pk, 'name': 'Blech'}},
+            {'id': okay.pk, 'trip__id': okay.trip.pk, 'trip__name': 'So-so'},
+            {'id': fave.pk, 'trip__id': fave.trip.pk, 'trip__name': 'Amazing'},
+            {'id': hate.pk, 'trip__id': hate.trip.pk, 'trip__name': 'Blech'},
         ]
-        self.assertEqual(response.context['ranked_signups'], json.dumps(expected))
+        self.assertEqual(response.context['ranked_signups'], expected)
 
     def test_delete_signups(self):
         """We allow participants to remove signups."""

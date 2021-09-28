@@ -157,11 +157,6 @@ class LotteryPreferencesView(TemplateView, LotteryPairingMixin):
             for s in self.ranked_signups
         ]
 
-    def get_car_form(self, use_post=True):
-        car = self.request.participant.car
-        post = self.post_data if use_post else None
-        return forms.CarForm(post, instance=car)
-
     def get_lottery_form(self):
         participant = self.request.participant
         try:
@@ -172,47 +167,40 @@ class LotteryPreferencesView(TemplateView, LotteryPairingMixin):
 
     def get_context_data(self, **kwargs):
         self.participant = self.request.participant
+        lottery_form = self.get_lottery_form()
+
         return {
             'currently_winter_school': is_currently_iap(),
-            'ranked_signups': json.dumps(self.ranked_signups_dict),
-            'car_form': self.get_car_form(use_post=True),
-            'lottery_form': self.get_lottery_form(),
-            'reciprocally_paired': self.reciprocally_paired,
-            'paired_par': self.paired_par,
+            'ranked_signups': list(
+                self.ranked_signups.values('id', 'trip__id', 'trip__name')
+            ),
+            'lottery_form': lottery_form,
+            # Avoid a redundant query! (We'll show full pairing info separately)
+            'has_paired_par': bool(
+                lottery_form.instance and lottery_form.instance.paired_with_id
+            ),
         }
 
     def post(self, request, *args, **kwargs):
         context = self.get_context_data()
         lottery_form = context['lottery_form']
-        car_form = context['car_form']
         if not lottery_form.is_valid():
             # Could use lottery_form.errors to give a better message...
             return JsonResponse({'message': 'Lottery form invalid'}, status=400)
 
-        skip_car_form = lottery_form.data['car_status'] != 'own'
-        if skip_car_form or car_form.is_valid():
-            if skip_car_form:  # New form so submission doesn't show errors
-                # (Only needed when doing a Django response)
-                context['car_form'] = self.get_car_form(use_post=False)
-            else:
-                self.request.participant.car = car_form.save()
-                self.request.participant.save()
-            lottery_info = lottery_form.save(commit=False)
-            lottery_info.participant = self.request.participant
-            if lottery_info.car_status == 'none':
-                lottery_info.number_of_passengers = None
-            lottery_info.save()
-            try:
-                self.save_signups()
-            except (ValueError, TypeError):
-                resp, status = {'message': 'Unable to save signups'}, 400
-            else:
-                self.handle_paired_signups()
-                resp, status = {'message': self.update_msg}, 200
-        else:
-            resp, status = {'message': "Car form invalid"}, 400
+        lottery_info = lottery_form.save(commit=False)
+        lottery_info.participant = self.request.participant
+        if lottery_info.car_status == 'none':
+            lottery_info.number_of_passengers = None
+        lottery_info.save()
 
-        return JsonResponse(resp, status=status)
+        try:
+            self.save_signups()
+        except (ValueError, TypeError):
+            return JsonResponse({'message': 'Unable to save signups'}, status=400)
+
+        self.handle_paired_signups()
+        return JsonResponse({'message': self.update_msg}, status=200)
 
     def save_signups(self):
         """Save the rankings given by the participant, optionally removing any signups."""
