@@ -401,7 +401,7 @@ class ApproveTripsViewTest(TestCase):
     def test_chair(self):
         self._make_climbing_trip(chair_approved=True)
         unapproved = factories.TripFactory.create(
-            program=enums.Program.MITOC_ROCK_PROGRAM.value,
+            program=enums.Program.SCHOOL_OF_ROCK.value,
             activity=enums.Activity.CLIMBING.value,
             chair_approved=False,
         )

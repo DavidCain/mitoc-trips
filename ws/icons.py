@@ -4,7 +4,7 @@ from django.utils.safestring import mark_safe
 from ws.enums import Program, TripType
 
 # If the trip is under this program, *always* use icon, regardless of trip type
-PRIMARY_PROGRAMS = {Program.SERVICE, Program.MITOC_ROCK_PROGRAM}
+PRIMARY_PROGRAMS = frozenset([Program.SERVICE, Program.SCHOOL_OF_ROCK])
 
 ICON_BY_TRIP_TYPE = {
     TripType.HIKING: 'hiking',
@@ -32,7 +32,7 @@ ICON_BY_PROGRAM = {
     Program.CIRCUS: 'users',
     Program.CLIMBING: 'hand-rock',  # (use regular with `far`)
     Program.HIKING: 'hiking',
-    Program.MITOC_ROCK_PROGRAM: 'school',
+    Program.SCHOOL_OF_ROCK: 'school',
     Program.SERVICE: 'hands-helping',
     Program.WINTER_NON_IAP: 'snowflake',
     Program.WINTER_SCHOOL: 'snowflake',

@@ -84,7 +84,7 @@ class ProgramTest(unittest.TestCase):
             enums.Program.CLIMBING.required_activity(), enums.Activity.CLIMBING
         )
         self.assertEqual(
-            enums.Program.MITOC_ROCK_PROGRAM.required_activity(),
+            enums.Program.SCHOOL_OF_ROCK.required_activity(),
             enums.Activity.CLIMBING,
         )
 

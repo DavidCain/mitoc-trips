@@ -1,7 +1,7 @@
 from django.db import migrations, models
 from django.db.models import Q
 
-# Once made, enum names are constant. It's safe to reference these.
+# Once made, enum names should be constant. It's generally safe to reference these.
 # On the other hand, activity names will be changed, so use strings
 from ws.enums import Program
 
@@ -60,7 +60,7 @@ def migrate_activity_to_program(apps, schema_editor):
         Q(name__contains='MRP')
         | Q(name__contains='SoR')
         | Q(name__contains='School of Rock')
-    ).update(program=Program.MITOC_ROCK_PROGRAM.value)
+    ).update(program='mitoc_rock_program')
 
     for program, pks in MANUAL_MAPPING.items():
         Trip.objects.filter(pk__in=pks).update(program=program.value)

@@ -9,7 +9,7 @@ class FontAwesomeIconTest(SimpleTestCase):
         """Some trip programs always use the same icon."""
         mrp_trip = factories.TripFactory.build(
             trip_type=enums.TripType.TRAD_CLIMBING.value,
-            program=enums.Program.MITOC_ROCK_PROGRAM.value,
+            program=enums.Program.SCHOOL_OF_ROCK.value,
         )
         self.assertEqual(icons.fa_icon_for_trip(mrp_trip), 'school')
 

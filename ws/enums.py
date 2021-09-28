@@ -213,14 +213,14 @@ class Program(enum.Enum):
     # Cabin work days (only managers can create for this program)
     CABIN = 'cabin'
 
-    # Climbing trips (taking place *outside* of MRP, or the MITOC Rock Program)
+    # Climbing trips (taking place *outside* of School of Rock)
     CLIMBING = 'climbing'
 
     # 3-season hiking (that is, hiking when the WSC has decided winter rules do *not* apply)
     HIKING = 'hiking'
 
-    # MRP - a special program that admits participants & conducts exclusive trips
-    MITOC_ROCK_PROGRAM = 'mitoc_rock_program'
+    # School of Rock - a special program that admits participants & conducts exclusive trips
+    SCHOOL_OF_ROCK = 'mitoc_rock_program'  # (formerly known as the MRP)
 
     # Winter School *during* IAP (weekend trip part of the normal lottery)
     WINTER_SCHOOL = 'winter_school'
@@ -246,7 +246,7 @@ class Program(enum.Enum):
             self.CABIN: 'Cabin',
             self.CLIMBING: 'Climbing',
             self.HIKING: '3-season hiking',
-            self.MITOC_ROCK_PROGRAM: 'MITOC Rock Program',
+            self.SCHOOL_OF_ROCK: 'School of Rock',
             self.WINTER_SCHOOL: 'Winter School',
             self.WINTER_NON_IAP: 'Winter (outside IAP)',
             # Open options!
@@ -265,7 +265,7 @@ class Program(enum.Enum):
             cls.CABIN,
             cls.CLIMBING,
             cls.HIKING,
-            cls.MITOC_ROCK_PROGRAM,
+            cls.SCHOOL_OF_ROCK,
             cls.WINTER_SCHOOL,
             cls.WINTER_NON_IAP,
             # Open options!
@@ -312,7 +312,7 @@ class Program(enum.Enum):
             self.CABIN: Activity.CABIN,  # TODO: Remove 'cabin' as a rating
             self.CLIMBING: Activity.CLIMBING,
             self.HIKING: Activity.HIKING,
-            self.MITOC_ROCK_PROGRAM: Activity.CLIMBING,
+            self.SCHOOL_OF_ROCK: Activity.CLIMBING,
             self.WINTER_SCHOOL: Activity.WINTER_SCHOOL,
             self.WINTER_NON_IAP: Activity.WINTER_SCHOOL,
             # No specific rating required, just _any_ rating
