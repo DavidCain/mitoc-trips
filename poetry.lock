@@ -385,23 +385,21 @@ python-versions = "*"
 
 [[package]]
 name = "django-stubs"
-version = "1.8.0"
-description = ""
+version = "1.9.0"
+description = "Mypy stubs for Django"
 category = "dev"
 optional = false
 python-versions = ">=3.6"
 
 [package.dependencies]
 django = "*"
-django-stubs-ext = "*"
-mypy = ">=0.900"
+django-stubs-ext = ">=0.3.0"
+mypy = ">=0.910"
 toml = "*"
 types-pytz = "*"
+types-PyYAML = "*"
 typing-extensions = "*"
 
-[package.source]
-type = "url"
-url = "https://github.com/typeddjango/django-stubs/archive/397e3f3dacdd963995ae55600a376a9e69de563d.tar.gz"
 [[package]]
 name = "django-stubs-ext"
 version = "0.3.1"
@@ -1150,6 +1148,14 @@ optional = false
 python-versions = "*"
 
 [[package]]
+name = "types-pyyaml"
+version = "5.4.10"
+description = "Typing stubs for PyYAML"
+category = "dev"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "types-requests"
 version = "2.25.9"
 description = "Typing stubs for requests"
@@ -1205,7 +1211,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8.10"
-content-hash = "736d6fa46c95e8a9b32ed718cb77df2fb80ac4b1c9e6fa4ff97520d8a71d29c6"
+content-hash = "5b56f78822f4f4f575760a0f4d8882293e169b6df577620202bfce02f1bb90f4"
 
 [metadata.files]
 amqp = [
@@ -1433,7 +1439,10 @@ django-pipeline = [
 django-smtp-ssl = [
     {file = "django-smtp-ssl-1.0.zip", hash = "sha256:282863d5905e03686b6555ac788aa732842695d6f9cf1dcfa66d898abb7565d0"},
 ]
-django-stubs = []
+django-stubs = [
+    {file = "django-stubs-1.9.0.tar.gz", hash = "sha256:664843091636a917faf5256d028476559dc360fdef9050b6df87ab61b21607bf"},
+    {file = "django_stubs-1.9.0-py3-none-any.whl", hash = "sha256:59c9f81af64d214b1954eaf90f037778c8d2b9c2de946a3cda177fefcf588fbd"},
+]
 django-stubs-ext = [
     {file = "django-stubs-ext-0.3.1.tar.gz", hash = "sha256:783c198d7e39a41be0b90fd843fa2770243a642922af679be4b19e03b82c8c28"},
     {file = "django_stubs_ext-0.3.1-py3-none-any.whl", hash = "sha256:a51a3e9e844d4e1cacaaedbb33bf3def78a3956eed5d9575a640bd97ccd99cec"},
@@ -1871,6 +1880,10 @@ types-ipaddress = [
 types-pytz = [
     {file = "types-pytz-2021.1.2.tar.gz", hash = "sha256:448828a06f2aaa840e57364d866c661645a045e532f817e4f10c8c3ab2b66651"},
     {file = "types_pytz-2021.1.2-py3-none-any.whl", hash = "sha256:28fb1c0f77f59aebe9b792d073ebfbbbf7b329f9d4af6a6079713a618a1c0f31"},
+]
+types-pyyaml = [
+    {file = "types-PyYAML-5.4.10.tar.gz", hash = "sha256:1d9e431e9f1f78a65ea957c558535a3b15ad67ea4912bce48a6c1b613dcf81ad"},
+    {file = "types_PyYAML-5.4.10-py3-none-any.whl", hash = "sha256:f1d1357168988e45fa20c65aecb3911462246a84809015dd889ebf8b1db74124"},
 ]
 types-requests = [
     {file = "types-requests-2.25.9.tar.gz", hash = "sha256:4ec8b71da73e5344adb9bee725a74ec8598e7286f9bcb17500d627f259fe4fb9"},
