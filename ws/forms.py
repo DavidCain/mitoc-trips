@@ -3,7 +3,6 @@ from typing import List, Tuple, Union
 from django import forms
 from django.core.exceptions import ValidationError
 from django.db.models.fields import TextField
-from djng.forms.fields import BooleanField, CharField, ChoiceField, EmailField
 from localflavor.us.us_states import US_STATES
 from mitoc_const import affiliations
 
@@ -157,7 +156,7 @@ class ApplicationLeaderForm(forms.ModelForm):
     we need not include those an options in the form.
     """
 
-    is_recommendation = BooleanField(required=False, label="Is a recommendation")
+    is_recommendation = forms.BooleanField(required=False, label="Is a recommendation")
 
     class Meta:
         model = models.LeaderRating
@@ -425,7 +424,7 @@ class LeaderSignUpForm(SignUpForm):
 class LeaderParticipantSignUpForm(RequiredModelForm):
     """For leaders to sign up participants. Notes aren't required."""
 
-    top_spot = BooleanField(
+    top_spot = forms.BooleanField(
         required=False,
         label='Move to top spot',
         help_text=(
@@ -582,19 +581,23 @@ class DuesForm(forms.Form):
     The expected URL is https://shopmitprd.mit.edu/controller/index.php
     """
 
-    merchant_id = CharField(widget=forms.HiddenInput(), initial=MERCHANT_ID)
-    description = CharField(widget=forms.HiddenInput(), initial='membership fees.')
+    merchant_id = forms.CharField(widget=forms.HiddenInput(), initial=MERCHANT_ID)
+    description = forms.CharField(
+        widget=forms.HiddenInput(), initial='membership fees.'
+    )
 
-    merchantDefinedData1 = CharField(widget=forms.HiddenInput(), initial=PAYMENT_TYPE)
-    merchantDefinedData2 = ChoiceField(
+    merchantDefinedData1 = forms.CharField(
+        widget=forms.HiddenInput(), initial=PAYMENT_TYPE
+    )
+    merchantDefinedData2 = forms.ChoiceField(
         required=True, label='Affiliation', choices=list(amount_choices())
     )
-    merchantDefinedData3 = EmailField(required=True, label='Email')
+    merchantDefinedData3 = forms.EmailField(required=True, label='Email')
 
     # For Participant-less users with JS enabled, this will be hidden & silently
     # set by an Angular directive that updates the amount based on the affiliation.
     # For users _without_ JavaScript, it will display as a Select widget.
-    amount = ChoiceField(
+    amount = forms.ChoiceField(
         label='Please confirm membership level',
         required=True,
         help_text="(We're showing this because you have scripts disabled)",

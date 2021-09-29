@@ -23,7 +23,6 @@ Django = "^2.2"
 PyJWT = ">= 2.0.0"  # 2.0.0 changed the return type of `jwt.encode()`
 celery = "^5.1"
 django-allauth = ">= 0.41.0"  # See CVE-2019-19844
-django-angular = "^2.1"
 django-cors-headers = "*"
 django-crispy-forms = "^1.12.0"
 django-localflavor = "*"
@@ -83,7 +82,6 @@ module = [
     "bs4",
     "celery.*",
     "debug_toolbar",
-    "djng.*",
     "factory.*",
     "freezegun",
     "gspread",

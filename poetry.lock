@@ -311,17 +311,6 @@ requests = "*"
 requests-oauthlib = ">=0.3.0"
 
 [[package]]
-name = "django-angular"
-version = "2.3"
-description = "Let Django play well with AngularJS"
-category = "main"
-optional = false
-python-versions = "*"
-
-[package.dependencies]
-django = ">=2.1"
-
-[[package]]
 name = "django-cors-headers"
 version = "3.8.0"
 description = "django-cors-headers is a Django application for handling the server headers required for Cross-Origin Resource Sharing (CORS)."
@@ -1228,7 +1217,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8.10"
-content-hash = "7505596d828b7d2f3c7d1817bc9fd8bbe0a11d953d6bf8f283da4c7781e5abbf"
+content-hash = "736d6fa46c95e8a9b32ed718cb77df2fb80ac4b1c9e6fa4ff97520d8a71d29c6"
 
 [metadata.files]
 amqp = [
@@ -1430,9 +1419,6 @@ django = [
 ]
 django-allauth = [
     {file = "django-allauth-0.45.0.tar.gz", hash = "sha256:6d46be0e1480316ccd45476db3aefb39db70e038d2a543112d314b76bb999a4e"},
-]
-django-angular = [
-    {file = "django-angular-2.3.tar.gz", hash = "sha256:f83b7d4dbc7bb8f7bd7ef7bc05a80faf50ec137963fbb45dace94b99bafdc190"},
 ]
 django-cors-headers = [
     {file = "django-cors-headers-3.8.0.tar.gz", hash = "sha256:4b8e13bf8d3df50ac4b986bd87085c3073dd56402ede109222ea34a774f9ec1b"},

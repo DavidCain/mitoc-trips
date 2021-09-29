@@ -633,7 +633,6 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize'])
         });
       };
 
-      // (Enable Djangular to display errors on the required validator)
       ngModelCtrl.$isEmpty = function(leaders) {
         return !(leaders && leaders.length);
       };
