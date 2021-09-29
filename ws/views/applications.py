@@ -389,11 +389,8 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type:
             ratings_utils.deactivate_ratings(rating.participant, rating.activity)
             rating.save()
 
-        msg = "{verb} {rating} rating for {participant}".format(
-            verb="Recommended" if is_rec else "Created",
-            rating=rating.rating,
-            participant=rating.participant.name,
-        )
+        verb = "Recommended" if is_rec else "Created"
+        msg = f"{verb} {rating.rating} rating for {rating.participant.name}"
         messages.success(self.request, msg)
 
         return super().form_valid(form)

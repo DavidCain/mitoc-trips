@@ -37,14 +37,14 @@ class Messages(MessageGenerator):
             self.warn_if_no_ranked_trips()
 
     @staticmethod
-    def profile_link(text):
+    def profile_link(text: str) -> str:
         # Remember to set extra_tags='safe' to avoid escaping HTML
-        return '<a href="{}">{}</a>'.format(reverse('edit_profile'), text)
+        return f'''<a href="{reverse('edit_profile')}">{text}</a>'''
 
     @staticmethod
-    def prefs_link(text='lottery preferences'):
+    def prefs_link(text: str = 'lottery preferences') -> str:
         # Remember to set extra_tags='safe' to avoid escaping HTML
-        return '<a href="{}">{}</a>'.format(reverse('lottery_preferences'), text)
+        return f'''<a href="{reverse('lottery_preferences')}">{text}</a>'''
 
     def warn_if_missing_lottery(self):
         """Warn if lottery information isn't found for the participant.

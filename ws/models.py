@@ -781,7 +781,7 @@ class BaseSignUp(models.Model):
         abstract = True
 
     def __str__(self):
-        return "{} on {}".format(self.participant.name, self.trip)
+        return f"{self.participant.name} on {self.trip}"
 
 
 class LeaderSignUp(BaseSignUp):

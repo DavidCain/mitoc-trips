@@ -170,7 +170,7 @@ class SheetWriter:
         if membership['active']:
             return 'Active'
         if membership['expires']:
-            return 'Expired {}'.format(membership['expires'].isoformat())
+            return f'Expired {membership["expires"].isoformat()}'
         return 'Missing'
 
     def get_row(self, participant, user):
