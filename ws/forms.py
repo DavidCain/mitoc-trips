@@ -282,7 +282,14 @@ class TripForm(forms.ModelForm):
             'wimp': widgets.ParticipantSelect,
             'description': widgets.MarkdownTextarea(ex_descr),
             'notes': widgets.MarkdownTextarea(ex_notes),
-            'trip_date': widgets.BootstrapDateInput(),
+            'trip_date': forms.DateInput(
+                format='%Y-%m-%d',  # (first value of DATE_INPUT_FORMATS)
+                attrs={
+                    'placeholder': nearest_sat().isoformat(),
+                    'pattern': r'^\d\d\d\d-\d\d-\d\d$',
+                    'title': 'YYYY-MM-DD',
+                },
+            ),
         }
 
     def clean_membership_required(self):

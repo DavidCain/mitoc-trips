@@ -24,43 +24,6 @@ class MarkdownTextarea(dj_widgets.Textarea):
         super().__init__(attrs)
 
 
-class BootstrapDateInput(dj_widgets.DateInput):
-    """Use the AngularUI datepicker element.
-
-    If passing in "format," it must comply to Angular's date filter:
-        https://docs.angularjs.org/api/ng/filter/date
-    """
-
-    def _set_datepicker_settings(self):
-        """Configure the datepicker with directive arguments."""
-        self.attrs['data-uib-datepicker-popup'] = self.format or 'yyyy-MM-dd'
-        self.attrs['show-weeks'] = False
-
-    def render(self, name, value, attrs=None, renderer=None):
-        """Render normal date text input with a calendar dropdown."""
-        for is_open in ['is-open', 'data-is-open']:
-            if is_open in self.attrs:
-                break
-        else:
-            self.attrs[is_open] = f'{name}_status.opened'
-
-        self._set_datepicker_settings()
-        self.attrs['data-ng-init'] = f"{self.attrs[is_open]}=false"
-
-        date_input = super().render(name, value, attrs)
-        return format_html(
-            f'''<span class="input-group">
-                  <span class="input-group-btn">
-                    <button type="button" class="btn btn-default"
-                            data-ng-click="{self.attrs[is_open]}=true">
-                      <i class="glyphicon glyphicon-calendar"></i>
-                    </button>
-                  </span>
-                  {date_input}
-               </span>'''
-        )
-
-
 class LeaderSelect(dj_widgets.SelectMultiple):
     def render(self, name, value, attrs=None, choices=(), renderer=None):
         attrs.update(program='program', name=name)
