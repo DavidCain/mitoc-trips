@@ -610,19 +610,38 @@ class DuesForm(forms.Form):
         super().__init__(*args, **kwargs)
         email = self.fields['merchantDefinedData3']
 
-        # We conditionally show messages about MIT affiliation, disable submission, etc.
-        self.fields['merchantDefinedData2'].widget.attrs['ng-model'] = 'affiliation'
-        self.fields['merchantDefinedData3'].widget.attrs['ng-model'] = 'email'
-
-        if participant:
-            email.initial = participant.email
-            self.fields['merchantDefinedData2'].initial = participant.affiliation
-            self.fields['amount'].initial = participant.annual_dues
-        else:
+        if not participant:
             email.widget.attrs['placeholder'] = 'tim@mit.edu'
             # Without this, the default choice is 'Undergraduate student'.
             # This heading doesn't render as a choice, but it behaves like one.
             self.fields['amount'].initial = ''
+        if participant:
+            email.initial = participant.email
+            self.fields['merchantDefinedData2'].initial = participant.affiliation
+            self.fields['amount'].initial = participant.annual_dues
+
+        # We need to set `ng-model` on these fields to support some UX niceties.
+        # All of these may be bypassed by users who have JS disabled.
+        angular_fields = [
+            # Affiliation is bound so that we can:
+            # - warn anybody selecting an MIT affiliation that a @*mit.edu email is required
+            # - set the amount to pay whenever affiliation changes
+            ('merchantDefinedData2', 'affiliation'),
+            # Email is bound so we can require an MIT email address for MIT rates
+            ('merchantDefinedData3', 'email'),
+            # Amount is bound so that we can:
+            # - set a value based on which affiliation is chosen
+            # - show the dollar amount to end users in the submit button
+            ('amount', 'amount'),
+        ]
+        for (field_name, ng_model) in angular_fields:
+            field = self.fields[field_name]
+            field.widget.attrs['data-ng-model'] = ng_model
+
+            if field.initial:  # (Participants have all three fields pre-populated)
+                assert isinstance(field.initial, (str, int))
+                # Hack to avoid `ng-model` clobbering `value=` (e.g. https://stackoverflow.com/q/10610282)
+                field.widget.attrs['data-ng-init'] = f"{ng_model} = '{field.initial}'"
 
 
 class WaiverForm(forms.Form):
