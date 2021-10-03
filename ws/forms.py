@@ -8,6 +8,7 @@ from mitoc_const import affiliations
 
 from ws import enums, models, widgets
 from ws.membership import MERCHANT_ID, PAYMENT_TYPE
+from ws.utils.dates import nearest_sat
 from ws.utils.signups import non_trip_participants
 
 
@@ -388,7 +389,22 @@ class TripForm(forms.ModelForm):
 
         # `trip_date` is particularly important to assign a model to!
         for field_name in ('program', 'algorithm', 'leaders', 'trip_date'):
-            self.fields[field_name].widget.attrs['data-ng-model'] = field_name
+            field = self.fields[field_name]
+            field.widget.attrs['data-ng-model'] = field_name
+
+        if not self.instance:
+            return
+        trip = self.instance
+
+        # This is a hack to prevent AngularJS' `ng-model` from clobbering existing values
+        angular_fields: List[Tuple[str, str]] = [
+            ('program', trip.program),
+            ('algorithm', trip.algorithm),
+            ('trip_date', trip.trip_date.isoformat()),
+        ]
+        for field_name, value in angular_fields:
+            expr = f"{field_name} = '{value}'"
+            self.fields[field_name].widget.attrs['data-ng-init'] = expr
 
 
 class SignUpForm(forms.ModelForm):
