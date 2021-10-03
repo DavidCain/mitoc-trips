@@ -1,4 +1,4 @@
-from typing import List, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 from django import forms
 from django.core.exceptions import ValidationError
@@ -10,6 +10,42 @@ from ws import enums, models, widgets
 from ws.membership import MERCHANT_ID, PAYMENT_TYPE
 from ws.utils.dates import nearest_sat
 from ws.utils.signups import non_trip_participants
+
+
+def _bind_input(
+    form: forms.Form,
+    field_name: str,
+    # Initial value - either from field initial, or instance value (or neither)
+    initial: Union[None, str, int, bool] = None,
+    # (Can optionally use a different model name)
+    model_name: Optional[str] = None,
+):
+    """Bind the field value in AngularJS.
+
+    This is a janky, home-grown approximation of what Django-Angular does.
+
+    Rather than attempting to bind *every* form field by default (and giving
+    the field an automatic `ng-model` setting based on its name), this method
+    instead allows selecting binding for just fields referenced in FE code.
+
+    We should aim to delete this entirely, since we want to get off AngularJS.
+    """
+    field = form.fields[field_name]
+    initial = field.initial if initial is None else initial
+
+    model_name = model_name or field_name
+    field.widget.attrs['data-ng-model'] = model_name
+
+    if initial:
+        if isinstance(initial, bool):
+            js_expr = 'true' if initial else 'false'
+        elif isinstance(initial, (str, int)):
+            js_expr = f"'{initial}'"  # (integers get string values)
+        else:
+            raise TypeError(f'Unexpected initial value {initial}')
+
+        # Hack to avoid `ng-model` clobbering `value=` (e.g. https://stackoverflow.com/q/10610282)
+        field.widget.attrs['data-ng-init'] = f"{model_name} = {js_expr}"
 
 
 class RequiredModelForm(forms.ModelForm):
@@ -71,7 +107,8 @@ class ParticipantForm(forms.ModelForm):
             (email, email) for email in self.verified_emails
         ]
 
-        self.fields['affiliation'].widget.attrs['data-ng-model'] = 'affiliation'
+        par = self.instance
+        _bind_input(self, 'affiliation', initial=par and par.affiliation)
 
     def clean_affiliation(self):
         """Require a valid MIT email address for MIT student affiliation."""
@@ -167,8 +204,12 @@ class ApplicationLeaderForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # We bind the field to an ng-model to enable conditional content on submit button
-        self.fields['is_recommendation'].widget.attrs['data-ng-model'] = 'is_rec'
+        _bind_input(
+            self,
+            'is_recommendation',
+            model_name='is_rec',
+            initial=self.initial.get('is_recommendation', False),
+        )
 
 
 class LeaderForm(forms.ModelForm):
@@ -196,13 +237,20 @@ class LeaderForm(forms.ModelForm):
             self.fields['activity'].choices = activities
             if activities:
                 self.fields['activity'].initial = activities[0]
-        if hide_activity:
+        if hide_activity:  # Note: We currently *always* hide the activity
             self.fields['activity'].widget = forms.HiddenInput()
 
         # Give each field an ng-model so that the `leaderRating` controller can manage the form.
         # (We query ratings for a given participant + activity, then set rating & notes with the result)
-        for field_name in ['participant', 'activity', 'rating', 'notes']:
-            self.fields[field_name].widget.attrs['data-ng-model'] = field_name
+
+        # (No `ng-init` since this is a plain widget & starts unselected)
+        self.fields['participant'].widget.attrs['data-ng-model'] = 'participant'
+
+        # Activity is *always* set, since it's a hidden field
+        _bind_input(self, 'activity', initial=self.initial['activity'])
+        # Technically, neither of these need the `ng-init` hack, since they start blank
+        _bind_input(self, 'rating')
+        _bind_input(self, 'notes')
 
     class Meta:
         model = models.LeaderRating
@@ -387,24 +435,14 @@ class TripForm(forms.ModelForm):
 
         self._init_wimp()
 
-        # `trip_date` is particularly important to assign a model to!
-        for field_name in ('program', 'algorithm', 'leaders', 'trip_date'):
-            field = self.fields[field_name]
-            field.widget.attrs['data-ng-model'] = field_name
+        # (No need for `ng-init`, we have a custom directive)
+        self.fields['leaders'].widget.attrs['data-ng-model'] = 'leaders'
 
-        if not self.instance:
-            return
         trip = self.instance
 
-        # This is a hack to prevent AngularJS' `ng-model` from clobbering existing values
-        angular_fields: List[Tuple[str, str]] = [
-            ('program', trip.program),
-            ('algorithm', trip.algorithm),
-            ('trip_date', trip.trip_date.isoformat()),
-        ]
-        for field_name, value in angular_fields:
-            expr = f"{field_name} = '{value}'"
-            self.fields[field_name].widget.attrs['data-ng-init'] = expr
+        _bind_input(self, 'program', initial=trip and trip.program)
+        _bind_input(self, 'algorithm', initial=trip and trip.algorithm)
+        _bind_input(self, 'trip_date', initial=trip and str(trip.trip_date))
 
 
 class SignUpForm(forms.ModelForm):
@@ -482,8 +520,8 @@ class LotteryInfoForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        for field_name in ['car_status', 'number_of_passengers']:
-            self.fields[field_name].widget.attrs['data-ng-model'] = field_name
+        for attr in ('car_status', 'number_of_passengers'):
+            _bind_input(self, attr, initial=getattr(self.instance, attr, None))
 
 
 class LotteryPairForm(forms.ModelForm):
@@ -643,28 +681,16 @@ class DuesForm(forms.Form):
             self.fields['merchantDefinedData2'].initial = participant.affiliation
             self.fields['amount'].initial = participant.annual_dues
 
-        # We need to set `ng-model` on these fields to support some UX niceties.
-        # All of these may be bypassed by users who have JS disabled.
-        angular_fields = [
-            # Affiliation is bound so that we can:
-            # - warn anybody selecting an MIT affiliation that a @*mit.edu email is required
-            # - set the amount to pay whenever affiliation changes
-            ('merchantDefinedData2', 'affiliation'),
-            # Email is bound so we can require an MIT email address for MIT rates
-            ('merchantDefinedData3', 'email'),
-            # Amount is bound so that we can:
-            # - set a value based on which affiliation is chosen
-            # - show the dollar amount to end users in the submit button
-            ('amount', 'amount'),
-        ]
-        for (field_name, ng_model) in angular_fields:
-            field = self.fields[field_name]
-            field.widget.attrs['data-ng-model'] = ng_model
-
-            if field.initial:  # (Participants have all three fields pre-populated)
-                assert isinstance(field.initial, (str, int))
-                # Hack to avoid `ng-model` clobbering `value=` (e.g. https://stackoverflow.com/q/10610282)
-                field.widget.attrs['data-ng-init'] = f"{ng_model} = '{field.initial}'"
+        # Affiliation is bound so that we can:
+        # - warn anybody selecting an MIT affiliation that a @*mit.edu email is required
+        # - set the amount to pay whenever affiliation changes
+        _bind_input(self, 'merchantDefinedData2', model_name='affiliation')
+        # Email is bound so we can require an MIT email address for MIT rates
+        _bind_input(self, 'merchantDefinedData3', model_name='email')
+        # Amount is bound so that we can:
+        # - set a value based on which affiliation is chosen
+        # - show the dollar amount to end users in the submit button
+        _bind_input(self, 'amount')
 
 
 class WaiverForm(forms.Form):

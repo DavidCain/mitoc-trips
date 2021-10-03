@@ -56,7 +56,7 @@
   </div>
   <div class="col-md-4">
     <h2> Create or Update Ratings</h2>
-    <form ng-controller="leaderRating" name="{{ form.form_name }}" method="post" action="." novalidate data-submit-if-valid>
+    <form data-ng-controller="leaderRating" name="{{ form.form_name }}" method="post" action=".">
       {% csrf_token %}
       {{ form|crispy }}
       <button type="submit" class="btn btn-primary">Submit</button>

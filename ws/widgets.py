@@ -46,7 +46,11 @@ class PhoneInput(dj_widgets.Input):
     def render(self, name, value, attrs=None, renderer=None):
         attrs = attrs or {}
         attrs.update(
-            {'default-country': 'us', 'preferred-countries': 'us ca', 'name': name}
+            {
+                'default-country': 'us',
+                'preferred-countries': 'us ca',
+                'name': name,
+            }
         )
         final_attrs = self.build_attrs(self.attrs, attrs)
 
@@ -55,7 +59,12 @@ class PhoneInput(dj_widgets.Input):
         # TODO: We should provide a plain E.164 <input type="tel"/> for `<noscript/>`
         ng_model = name.replace('-', '_')
         final_attrs['ng-model'] = ng_model
-        ng_model_init = {'ng-model': ng_model, 'value': value}
+
+        ng_model_init = {
+            'data-ng-model': ng_model,
+            'data-ng-init': f"{ng_model} = '{value or str()}'",
+            'value': str(value) if value else '',
+        }
 
         return format_html(
             '<input type="hidden" {}/>' + '<bc-phone-number {}></bc-phone-number>',
