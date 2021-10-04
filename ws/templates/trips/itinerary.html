@@ -52,7 +52,7 @@
     on {{ itinerary_available_at|date:"l, M jS" }}.
   </p>
 {% elif info_form_editable %}
-  <form name="{{ form.form_name }}" action="" method="post" novalidate data-submit-if-valid>
+  <form name="{{ form.form_name }}" action="" method="post">
     {% csrf_token %}
     <div class="alert alert-warning">
       {# Lots of people got confused about this widget. We really need to replace it with a better one. #}

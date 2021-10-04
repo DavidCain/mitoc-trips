@@ -35,47 +35,6 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize'])
     return out;
   };
 })
-.directive('submitIfValid', function($compile) {
-  return {
-    restrict: 'A',
-    require: 'form',
-    link: function (scope, element, attrs, formCtrl) {
-      if (!element.attr('data-ng-submit')) {
-        element.attr('data-ng-submit', 'submit($event)');
-        return $compile(element)(scope);
-      }
-
-      scope.submit = function($event) {
-        formCtrl.$setSubmitted();
-        if (formCtrl.$valid) {
-          return;  // Form should have normal action, submits normally
-        }
-
-        // Ugly hack to work around bug I can't identify.
-        // When the participant is present & valid, form validation still marks it
-        // as "required" with an undefined $modelValue
-        if (_.isEqual(_.keys(formCtrl.$error), ["required"])) {
-          var req = formCtrl.$error.required;
-          var justParticipant = req.length === 1 && req[0].$name === 'participant';
-          if (justParticipant && formCtrl.participant.$valid) {
-            return;
-          }
-        }
-
-        // Manually mark fields as dirty to display Django-Angular errors
-        angular.forEach(formCtrl.$error, function (field) {
-          angular.forEach(field, function(errorField) {
-            errorField.$setDirty();
-          });
-        });
-
-        // Stop form submission so client validation displays
-        $event.preventDefault();
-      };
-
-    }
-  };
-})
 .controller('leaderRating', function($scope, $http) {
   $scope.$watchGroup(['participant', 'activity'], function() {
     if ($scope.participant && $scope.activity) {
