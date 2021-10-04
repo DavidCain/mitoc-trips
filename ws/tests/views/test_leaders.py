@@ -5,105 +5,6 @@ from ws import enums, models
 from ws.tests import TestCase, factories
 
 
-class ManageLeadersViewTest(TestCase):
-    def setUp(self):
-        # Not actually chair!
-        self.chair = factories.ParticipantFactory.create()
-        self.client.force_login(self.chair.user)
-
-        self.participant = factories.ParticipantFactory.create()
-
-    def test_not_chair(self):
-        response = self.client.get('/chair/leaders/')
-        self.assertEqual(response.status_code, 403)
-
-    def test_totally_invalid_activity(self):
-        perm_utils.make_chair(self.chair.user, enums.Activity.CLIMBING)
-        resp = self.client.post(
-            '/chair/leaders/',
-            {
-                'participant': self.participant.pk,
-                'activity': "Curling",
-                'rating': "Curler",
-                'notes': "Drinks with the best of 'em",
-            },
-        )
-        self.assertFalse(resp.context['form'].is_valid())
-        self.assertFalse(perm_utils.is_leader(self.participant.user))
-
-    def test_chair_for_wrong_activity(self):
-        perm_utils.make_chair(self.chair.user, enums.Activity.CLIMBING)
-
-        # Not the biking chair, so can't make biking leaders!
-        self.assertFalse(perm_utils.is_chair(self.chair.user, enums.Activity.BIKING))
-        resp = self.client.post(
-            '/chair/leaders/',
-            {
-                'participant': self.participant.pk,
-                'activity': enums.Activity.BIKING.value,
-                'rating': "Leader",
-                'notes': "",
-            },
-        )
-        self.assertFalse(resp.context['form'].is_valid())
-        self.assertFalse(perm_utils.is_leader(self.participant.user))
-
-    def test_create_ws_rating(self):
-        perm_utils.make_chair(self.chair.user, enums.Activity.WINTER_SCHOOL)
-        resp = self.client.post(
-            '/chair/leaders/',
-            {
-                'participant': self.participant.pk,
-                'activity': enums.Activity.WINTER_SCHOOL.value,
-                'rating': "B coC",
-                'notes': "",
-            },
-        )
-        # We redirect back to the page
-        self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.url, '/chair/leaders/')
-
-        # The participant is now a WS leader, and we set the chair as the creator!
-        self.assertTrue(perm_utils.is_leader(self.participant.user))
-        rating = models.LeaderRating.objects.get(
-            activity=enums.Activity.WINTER_SCHOOL.value, participant=self.participant
-        )
-        self.assertTrue(rating.active)
-        self.assertEqual(rating.rating, "B coC")
-        self.assertEqual(rating.creator, self.chair)
-
-    def test_update_ws_rating(self):
-        perm_utils.make_chair(self.chair.user, enums.Activity.WINTER_SCHOOL)
-        factories.LeaderRatingFactory.create(
-            participant=self.participant,
-            rating="B coC",
-            creator=self.chair,
-        )
-
-        resp = self.client.post(
-            '/chair/leaders/',
-            {
-                'participant': self.participant.pk,
-                'activity': enums.Activity.WINTER_SCHOOL.value,
-                'rating': "C coI",
-                'notes': "Upgraded!",
-            },
-        )
-        # We redirect back to the page
-        self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.url, '/chair/leaders/')
-
-        # The participant has an upgrade now (& the old rating is inactive)
-        rating = models.LeaderRating.objects.get(
-            activity=enums.Activity.WINTER_SCHOOL.value,
-            participant=self.participant,
-            active=True,  # old rating is now inactive!
-        )
-        self.assertTrue(rating.active)
-        self.assertEqual(rating.rating, "C coI")
-        self.assertEqual(rating.creator, self.chair)
-
-
 class DeactivateLeaderRatingsViewTest(TestCase):
     def setUp(self):
         # Not actually chair!
@@ -277,3 +178,96 @@ class ActivityLeadersViewTest(TestCase):
         self.assertEqual(
             leader.find('a')['href'], f'/participants/{rating.participant_id}/'
         )
+
+    def test_rating_totally_invalid_activity(self):
+        perm_utils.make_chair(self.participant.user, enums.Activity.CLIMBING)
+
+        other_par = factories.ParticipantFactory.create()
+        resp = self.client.post(
+            '/climbing/leaders/',  # Valid activity URL
+            {
+                'participant': other_par.pk,
+                'activity': "Curling",  # Not a known activity
+                'rating': "Curler",
+                'notes': "Drinks with the best of 'em",
+            },
+        )
+        self.assertFalse(resp.context['form'].is_valid())
+        self.assertFalse(perm_utils.is_leader(other_par.user))
+
+    def test_chair_for_wrong_activity(self):
+        perm_utils.make_chair(self.participant.user, enums.Activity.CLIMBING)
+
+        # Not the biking chair, so can't make biking leaders!
+        other_par = factories.ParticipantFactory.create()
+        self.assertFalse(
+            perm_utils.is_chair(self.participant.user, enums.Activity.BIKING)
+        )
+        resp = self.client.post(
+            '/biking/leaders/',
+            {
+                'participant': other_par.pk,
+                'activity': enums.Activity.BIKING.value,
+                'rating': "Leader",
+                'notes': "",
+            },
+        )
+        self.assertEqual(resp.status_code, 403)
+        self.assertFalse(perm_utils.is_leader(other_par.user))
+
+    def test_create_ws_rating(self):
+        perm_utils.make_chair(self.participant.user, enums.Activity.WINTER_SCHOOL)
+        other_par = factories.ParticipantFactory.create()
+        resp = self.client.post(
+            '/winter_school/leaders/',
+            {
+                'participant': other_par.pk,
+                'activity': enums.Activity.WINTER_SCHOOL.value,
+                'rating': "B coC",
+                'notes': "",
+            },
+        )
+        # We redirect back to the page
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(resp.url, '/winter_school/leaders/')
+
+        # The participant is now a WS leader, and we set the chair as the creator!
+        self.assertTrue(perm_utils.is_leader(other_par.user))
+        rating = models.LeaderRating.objects.get(
+            activity=enums.Activity.WINTER_SCHOOL.value, participant=other_par
+        )
+        self.assertTrue(rating.active)
+        self.assertEqual(rating.rating, "B coC")
+        self.assertEqual(rating.creator, self.participant)
+
+    def test_update_ws_rating(self):
+        perm_utils.make_chair(self.participant.user, enums.Activity.WINTER_SCHOOL)
+        other_par = factories.ParticipantFactory.create()
+        factories.LeaderRatingFactory.create(
+            participant=other_par,
+            rating="B coC",
+            creator=self.participant,
+        )
+
+        resp = self.client.post(
+            '/winter_school/leaders/',
+            {
+                'participant': other_par.pk,
+                'activity': enums.Activity.WINTER_SCHOOL.value,
+                'rating': "C coI",
+                'notes': "Upgraded!",
+            },
+        )
+        # We redirect back to the page
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(resp.url, '/winter_school/leaders/')
+
+        # The participant has an upgrade now (& the old rating is inactive)
+        rating = models.LeaderRating.objects.get(
+            activity=enums.Activity.WINTER_SCHOOL.value,
+            participant=other_par,
+            active=True,  # old rating is now inactive!
+        )
+        self.assertTrue(rating.active)
+        self.assertEqual(rating.rating, "C coI")
+        self.assertEqual(rating.creator, self.participant)

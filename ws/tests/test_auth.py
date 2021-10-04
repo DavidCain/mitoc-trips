@@ -11,7 +11,6 @@ from ws.tests.helpers import PermHelpers
 login_required_routes = [
     'all_trips_medical',
     'account_change_password',
-    'manage_leaders',
     #'manage_applications',
     #'manage_trips',
     'participant_lookup',

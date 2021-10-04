@@ -53,8 +53,6 @@ urlpatterns = [
         views.DistinctParticipantsView.as_view(),
         name='distinct_participants',
     ),
-    # Activity Chair views
-    path('chair/leaders/', views.ManageLeadersView.as_view(), name='manage_leaders'),
     re_path(
         r'^(?P<activity>.+)/leaders/$',
         views.ActivityLeadersView.as_view(),

@@ -11,7 +11,7 @@ from django.core.exceptions import PermissionDenied
 from django.db.models import Max
 from django.http import Http404
 from django.shortcuts import redirect
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.generic import CreateView, ListView, View
 
@@ -43,37 +43,6 @@ class AllLeadersView(ListView):
     @method_decorator(group_required('leaders'))
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
-
-
-class CreateRatingView(CreateView):
-    """Should be inherited to provide a template."""
-
-    form_class = forms.LeaderForm
-
-    @property
-    def allowed_activities(self):
-        return perm_utils.chair_activities(self.request.user, True)
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['allowed_activities'] = self.allowed_activities
-        return kwargs
-
-    def form_valid(self, form):
-        """Ensure the leader can assign ratings, then apply assigned rating.
-
-        Any existing ratings for this activity will be marked as inactive.
-        """
-        activity_enum = enums.Activity(form.cleaned_data['activity'])
-        participant = form.cleaned_data['participant']
-
-        ratings_utils.deactivate_ratings(participant, activity_enum.value)
-
-        rating = form.save(commit=False)
-        rating.creator = self.request.participant
-
-        messages.success(self.request, f"Gave {participant} rating: '{rating.rating}'")
-        return super().form_valid(form)
 
 
 class OnlyForActivityChair(View):
@@ -130,17 +99,47 @@ class DeactivateLeaderRatingsView(OnlyForActivityChair):
         return self._success()
 
 
-class ActivityLeadersView(OnlyForActivityChair, CreateRatingView):
+class ActivityLeadersView(OnlyForActivityChair, CreateView):
     """Manage the leaders of a single activity."""
 
+    form_class = forms.LeaderForm
     template_name = 'leaders/by_activity.html'
 
     def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['hide_activity'] = True
-        return kwargs
+        return {
+            **super().get_form_kwargs(),
+            'allowed_activities': perm_utils.chair_activities(self.request.user, True),
+            'hide_activity': True,
+        }
+
+    def form_valid(self, form):
+        """Ensure the leader can assign ratings, then apply assigned rating.
+
+        Any existing ratings for this activity will be marked as inactive.
+        """
+        # TODO: Consider removing `activity` from the form and just using URL?
+        activity_enum = enums.Activity(form.cleaned_data['activity'])
+        participant = form.cleaned_data['participant']
+
+        ratings_utils.deactivate_ratings(participant, activity_enum.value)
+
+        rating = form.save(commit=False)
+        rating.creator = self.request.participant
+
+        messages.success(self.request, f"Gave {participant} rating: '{rating.rating}'")
+        return super().form_valid(form)
 
     def get_initial(self):
+        """Pre-populate the activity (we'll hide it in the form).
+
+        Note that one *technically* can use this route to create ratings for any activity,
+        not just the one that's present in the URL.
+
+        That's fine - we still do validation to make sure that the submitter has privileges
+        for the activity.
+
+        In the future, we might just use the URL to fill the form.
+        """
         initial = super().get_initial().copy()
         initial['activity'] = self.activity
         return initial
@@ -159,17 +158,3 @@ class ActivityLeadersView(OnlyForActivityChair, CreateRatingView):
         context_data['activity_enum'] = self.activity_enum
         context_data['ratings'] = self.get_ratings()
         return context_data
-
-
-# TODO: Consider deleting this view.
-# It's not really used, since leaders are typically managed per activity.
-class ManageLeadersView(CreateRatingView):
-    """A view to update the rating of any leader across all ratings."""
-
-    form_class = forms.LeaderForm
-    template_name = 'chair/leaders.html'
-    success_url = reverse_lazy('manage_leaders')
-
-    @method_decorator(chairs_only())
-    def dispatch(self, request, *args, **kwargs):
-        return super().dispatch(request, *args, **kwargs)
