@@ -1,7 +1,9 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 import allauth.account.models as account_models
 import factory
+import factory.fuzzy
+import pytz
 from factory.django import DjangoModelFactory
 from mitoc_const import affiliations
 
@@ -128,6 +130,16 @@ class ParticipantFactory(DjangoModelFactory):
             kwargs['user_id'] = user.pk
 
         return super()._create(model_class, *args, **kwargs)
+
+
+class MembershipReminderFactory(DjangoModelFactory):
+    class Meta:
+        model = models.MembershipReminder
+
+    participant = factory.SubFactory(ParticipantFactory)
+    reminder_sent_at = factory.fuzzy.FuzzyDateTime(
+        start_dt=datetime(2021, 11, 13, tzinfo=pytz.UTC)
+    )
 
 
 class PasswordQualityFactory(DjangoModelFactory):

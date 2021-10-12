@@ -1,0 +1,52 @@
+{# When modifying this message, be sure to update its text equivalent #}
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html charset=UTF-8" />
+  </head>
+  <body>
+
+    <p>
+      Your MITOC membership will expire on {{ participant.membership.membership_expires|date:"F j, Y" }}.
+    </p>
+
+    {% if discounts %}
+    <p>
+      <strong>Renewing is required to maintain access to <a href="https://mitoc.mit.edu/preferences/discounts/">your discounts</a> with
+      {% for discount in discounts %}
+        {% include 'snippets/oxford_comma.html' %}
+        {{ discount.name }}{% if forloop.last %}.{% endif %}
+      {% endfor %}
+      </strong>
+    </p>
+    {% endif %}
+
+    <p>
+      Renew today to <a href="https://https://mitoc-trips.mit.edu/profile/membership/">add another 365 days to your membership</a>.
+      (Renewing any time between now and {{ participant.membership.membership_expires|date:"F jS" }}
+      will ensure that your membership is valid until {{ expiry_if_renewing|date:"F j, Y" }}.
+    </p>
+
+    <p>
+      Your MITOC membership enables you to:
+      <ul>
+        <li><a href="https://mitoc.mit.edu/rentals">rent gear from the MITOC office</a></li>
+        <li><a href="https://mitoc.mit.edu/preferences/discounts/">enroll in discounts for club members</a></li>
+        <li><a href="https://mitoc-trips.mit.edu/trips/">go on official trips</a></li>
+        <li><a href="https://mitoc.mit.edu/rentals/cabins">stay in MITOC's cabins</a></li>
+      </ul>
+    </p>
+
+    <hr>
+
+    <p>
+      You can <a href="https://mitoc-trips.mit.edu/preferences/email/">unsubscribe</a> from membership renewal reminders</a>,
+      but note that we send at most one reminder per year, and will not email you again unless you renew.
+    </p>
+    <p>
+      Questions? <a href="https://mitoc-trips.mit.edu/contact/">Contact us</a>.
+    </p>
+
+  </body>
+</html>

@@ -7,8 +7,10 @@ from time import monotonic
 
 from celery import group, shared_task
 from django.core.cache import cache
+from django.db import transaction
 
 from ws import cleanup, models, settings
+from ws.email import renew
 from ws.email.sole import send_email_to_funds
 from ws.email.trips import send_trips_summary
 from ws.lottery.run import SingleTripLotteryRunner, WinterSchoolLotteryRunner
@@ -148,6 +150,79 @@ def update_participant_affiliation(participant_id):
     """Use the participant's affiliation to update the gear database."""
     participant = models.Participant.objects.get(pk=participant_id)
     geardb.update_affiliation(participant)
+
+
+@shared_task  # Locking done at db level to ensure idempotency
+def remind_lapsed_participant_to_renew(participant_id: int):
+    """A task which should only be called by `remind_participants_to_renew'.
+
+    Like its parent task, is designed to be idempotent (so we only notify
+    participants once per year).
+    """
+    participant = models.Participant.objects.get(pk=participant_id)
+
+    # It's technically possible that the participant opted out in between execution
+    if not participant.send_membership_reminder:
+        logger.info("Not reminding participant %s, who since opted out", participant.pk)
+        return
+
+    now = date_utils.local_now()
+    with transaction.atomic():
+        (reminder, created) = (
+            models.MembershipReminder.objects
+            # Make sure we get an exclusive lock to prevent sending a redundant email.
+            .select_for_update()
+            # It's possible this is the first reminder! If so, create it now.
+            # (the unique constraint on participant will ensure other queries can't insert
+            .get_or_create(
+                participant=participant,
+                defaults={'reminder_sent_at': now},
+            )
+        )
+
+        # Reminders should be sent ~40 days before the participant's membership has expired.
+        # We should only send one reminder every ~365 days or so.
+        # Pick 300 days as a sanity check that we send one message yearly (+/- some days)
+        if (not created) and (reminder.reminder_sent_at > (now - timedelta(days=300))):
+            raise ValueError(f"Mistakenly trying to notify {participant} to renew")
+
+        # (Note that this method makes some final assertions before delivering)
+        # If the email succeeds, we'll commit the reminder record (else rollback)
+        renew.send_email_reminding_to_renew(participant)
+
+
+@shared_task  # Locking done at db level to ensure idempotency
+def remind_participants_to_renew():
+    """Identify all participants who requested membership reminders, email them.
+
+    This method is designed to be idempotent (one email per participant).
+    """
+    now = date_utils.local_now()
+
+    # Reminders should be sent ~40 days before the participant's membership has expired.
+    # We should only send one reminder every ~365 days or so.
+    most_recent_allowed_reminder_time = now - timedelta(days=300)
+
+    participants_needing_reminder = models.Participant.objects.filter(
+        # Crucially, we *only* send these reminders to those who've opted in.
+        send_membership_reminder=True,
+        # Anybody with soon-expiring membership is eligible to renew.
+        membership__membership_expires__lte=(
+            now + models.Membership.RENEWAL_WINDOW
+        ).date(),
+        # While it should technically be okay to tell people to renew *after* expiry, don't.
+        # We'll run this task daily, targeting each participant for ~40 days before expiry.
+        # Accordingly, various edge cases should have been handled some time in those 40 days.
+        # The language in emails will suggest that renewal is for an active membership, too.
+        membership__membership_expires__gte=now.date(),
+    ).exclude(
+        # Don't attempt to remind anybody who has already been reminded.
+        membershipreminder__reminder_sent_at__gte=most_recent_allowed_reminder_time
+    )
+
+    # Farm out the delivery of individual emails to separate workers.
+    for pk in participants_needing_reminder.values_list('pk', flat=True):
+        remind_lapsed_participant_to_renew.delay(pk)
 
 
 @mutex_task()

@@ -42,6 +42,7 @@ EXPECTED_PARTICIPANT_TABLES: Dict[str, Tuple[str, ...]] = {
     'ws_leadersignup': ('participant_id',),
     'ws_signup': ('participant_id',),
     'ws_passwordquality': ('participant_id',),
+    'ws_membershipreminder': ('participant_id',),
 }
 
 # An enumeration of user FK columns that we explicitly intend to migrate
@@ -201,9 +202,18 @@ def _migrate_participant(old_pk, new_pk):
 
     # When we merge participants, we'll be merging user records.
     # Accordingly, we're keeping the password from the "new" participant's user.
-    # Just delete any record of password quallity on the old participant.
+    # Just delete any record of password quality on the old participant.
     simple_updates.pop('ws_passwordquality')
     models.PasswordQuality.objects.filter(participant_id=old_pk).delete()
+
+    # We want to be very sure that we don't notify the same human twice in one year.
+    # (We also can have only one row per participant)
+    # If two reminders are found, just keep the most recent one.
+    reminders = models.MembershipReminder.objects.filter(
+        participant_id__in=[old_pk, new_pk]
+    )
+    if len(reminders) == 2:
+        reminders.order_by('reminder_sent_at').first().delete()
 
     for table, cols in simple_updates.items():
         for col in cols:

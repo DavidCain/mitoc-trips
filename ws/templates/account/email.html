@@ -7,47 +7,55 @@
 {{ block.super }}
 <div class="row" id="account-emails">
   <div class="col-md-6">
-  <h3>E-mail Addresses</h3>
+    <h3>E-mail Addresses</h3>
 
+    <form action="{% url 'account_email' %}" class="well" method="post">
+      {% csrf_token %}
 
-  <form action="{% url 'account_email' %}" class="well" method="post">
-    {% csrf_token %}
+      <label for="all_email_addresses">Email addresses associated with your account:</label>
+      <div id="all_email_addresses">
+        {% for emailaddress in user.emailaddress_set.all %}
+        <div class="radio">
+          <label for="email_radio_{{forloop.counter}}">
 
-    <label for="all_email_addresses">Email addresses associated with your account:</label>
-    <div id="all_email_addresses">
-      {% for emailaddress in user.emailaddress_set.all %}
-      <div class="radio">
-        <label for="email_radio_{{forloop.counter}}">
+            <input id="email_radio_{{forloop.counter}}" type="radio" name="email" {% if emailaddress.primary %}checked="checked"{%endif %} value="{{emailaddress.email}}"/>
 
-          <input id="email_radio_{{forloop.counter}}" type="radio" name="email" {% if emailaddress.primary %}checked="checked"{%endif %} value="{{emailaddress.email}}"/>
-
-          {{ emailaddress.email }}
-          {% if not emailaddress.verified %}
-            <span class="label label-warning unverified">Unverified</span>
-          {% endif %}
-          {% if emailaddress.primary %}
-            <span class="label label-primary">Primary</span>
-          {% endif %}
-        </label>
+            {{ emailaddress.email }}
+            {% if not emailaddress.verified %}
+              <span class="label label-warning unverified">Unverified</span>
+            {% endif %}
+            {% if emailaddress.primary %}
+              <span class="label label-primary">Primary</span>
+            {% endif %}
+          </label>
+        </div>
+        {% endfor %}
       </div>
-      {% endfor %}
-    </div>
 
-    <div class="btn-group" role="group">
-      <button class="btn btn-default" type="submit" name="action_primary">Make Primary</button>
-      <button class="btn btn-default" type="submit" name="action_send">Re-send Verification</button>
-      <button class="btn btn-default" type="submit" name="action_remove">Remove</button>
-    </div>
-  </form>
+      <div class="btn-group" role="group">
+        <button class="btn btn-default" type="submit" name="action_primary">Make Primary</button>
+        <button class="btn btn-default" type="submit" name="action_send">Re-send Verification</button>
+        <button class="btn btn-default" type="submit" name="action_remove">Remove</button>
+      </div>
+    </form>
 
+    <h4>Add E-mail Address</h4>
+    <form method="post" action="{% url 'account_email' %}" class="well">
+      {% csrf_token %}
+      {{ form|crispy }}
+      <button class="btn btn-primary" name="action_add" type="submit">Add E-mail</button>
+    </form>
 
-  <h4>Add E-mail Address</h4>
+    {% if viewing_participant.membership %}
+      <h4>Membership reminders</h4>
+      {% if viewing_participant.send_membership_reminder %}
+        <p>We will remind you to renew your membership before it expires.</p>
+      {% else %}
+        <p>You will not receive emails reminding you to renew your membership.</p>
+      {% endif %}
+      <p><a href="{% url 'email_preferences' %}">Manage email preferences</a></p>
+    {% endif %}
 
-  <form method="post" action="{% url 'account_email' %}" class="well">
-    {% csrf_token %}
-    {{ form|crispy }}
-    <button class="btn btn-primary" name="action_add" type="submit">Add E-mail</button>
-  </form>
   </div>
 
   <div class="col-md-6">

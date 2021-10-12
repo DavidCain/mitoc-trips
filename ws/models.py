@@ -1,5 +1,5 @@
 from datetime import date, datetime, timedelta
-from typing import Dict, List, Tuple, Type, Union
+from typing import Dict, List, Optional, Tuple, Type, Union
 from urllib.parse import urlencode
 
 from allauth.account.models import EmailAddress
@@ -175,6 +175,12 @@ class Membership(models.Model):
     notify this system.
     """
 
+    # We allow renewing membership in the last 40 days of your membership
+    # (If you renew during this period, you get a full year + the remaining days)
+    # Remove two days to reduce possibility of an "off by one" error in renewal code
+    # (that is, somebody paying their dues, but not getting their remaining time added)
+    RENEWAL_WINDOW = timedelta(days=RENEWAL_ALLOWED_WITH_DAYS_LEFT - 2)
+
     membership_expires = models.DateField(
         null=True,
         blank=True,
@@ -216,6 +222,26 @@ class Membership(models.Model):
         # Participants should *always* sign if waiver will be dated by trip start.
         return trip.trip_date > self.waiver_expires
 
+    def date_when_renewal_is_recommended(
+        self, report_past_dates: bool
+    ) -> Optional[date]:
+        """Return the date on which we recommend the participant renews their membership.
+
+        (That date may have been in the past).
+
+        Dates are assumed to be as observed by Eastern time, but it's not important
+        that this be precise.
+        """
+        if not self.membership_expires:
+            return None
+
+        earliest_renewal_date = self.membership_expires - self.RENEWAL_WINDOW
+
+        if earliest_renewal_date < date_utils.local_date() and not report_past_dates:
+            return None
+
+        return earliest_renewal_date
+
     def should_renew_for(self, trip):
         """Return if membership renewal is required to attend a future trip.
 
@@ -232,11 +258,7 @@ class Membership(models.Model):
 
         today = date_utils.local_date()
 
-        # We allow renewing membership in the last 40 days of your membership
-        # (If you renew during this period, you get a full year + the remaining days)
-        # Remove one day to reduce possibility of an "off by one" error in renewal code
-        # (that is, somebody paying their dues, but not getting their remaining time added)
-        future = today + timedelta(days=RENEWAL_ALLOWED_WITH_DAYS_LEFT - 1)
+        future = today + self.RENEWAL_WINDOW
 
         if trip.trip_date > future:
             # Trip is too far in the future to request a renewal now
@@ -282,6 +304,11 @@ class Participant(models.Model):
         default=False,
         verbose_name="Opt out of Gravatar",
         help_text="Don't use Gravatar to show an avatar for this account",
+    )
+    send_membership_reminder = models.BooleanField(
+        default=False,
+        verbose_name="Send annual reminder to renew membership",
+        help_text="MITOC cannot automatically renew memberships, but we can send you an email when it's time to renew.",
     )
     car = models.OneToOneField(Car, null=True, blank=True, on_delete=models.CASCADE)
 
@@ -624,6 +651,24 @@ class Participant(models.Model):
 
     class Meta:
         ordering = ['name', 'email']
+
+
+class MembershipReminder(models.Model):
+    """A log of membership reminders that were sent.
+
+    We don't generally log much of anything (by design),
+    but this table logs reminder emails that were sent
+    (to prevent accidentally reminding the same person twice).
+    """
+
+    participant = models.OneToOneField(Participant, on_delete=models.CASCADE)
+    reminder_sent_at = models.DateTimeField(
+        verbose_name="Last time an email was sent reminding this participant to renew",
+    )
+
+    def __str__(self):  # pylint: disable=invalid-str-returned
+        timestamp = self.reminder_sent_at.isoformat(timespec="minutes")
+        return f'{self.participant}, last reminded at {timestamp}'
 
 
 class PasswordQuality(models.Model):

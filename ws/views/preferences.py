@@ -6,6 +6,7 @@ paired with another participant. All of these options are deemed "preferences"
 of the participant.
 """
 import json
+from datetime import datetime
 from typing import Dict, Set
 
 from django.contrib import messages
@@ -259,3 +260,50 @@ class LotteryPreferencesView(TemplateView, LotteryPairingMixin):
     @method_decorator(user_info_required)
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
+
+
+class EmailPreferencesView(CreateView):
+    """Let participants choose what sorts of emails are sent to them.
+
+    For now, this just controls membership reminders.
+    In the future, we might support controlling other types of emails.
+    """
+
+    form_class = forms.EmailPreferencesForm
+    template_name = 'preferences/email.html'
+    success_url = reverse_lazy('home')
+
+    def get_form_kwargs(self):
+        return {
+            **super().get_form_kwargs(),
+            'instance': self.request.participant,
+        }
+
+    @method_decorator(user_info_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    def _message(self, send_membership_reminder: bool) -> str:
+        """Explain to end users when/if email reminders will be sent."""
+        if not send_membership_reminder:
+            return "Will not send any emails reminding you to remind your membership."
+
+        participant = self.request.participant  # type:ignore
+        if not participant.membership:
+            return "If you sign up for a membership, we'll remind you when it's time to renew."
+
+        date_to_remind = participant.membership.date_when_renewal_is_recommended(
+            report_past_dates=False
+        )
+        if date_to_remind:
+            renewal = datetime.strftime(date_to_remind, '%b %-d, %Y')
+            return f"We'll send you an email on {renewal} reminding you to renew."
+
+        return "If you have an active membership, we'll remind you when it's time to renew."
+
+    def form_valid(self, form):
+        messages.success(
+            self.request, self._message(form.cleaned_data['send_membership_reminder'])
+        )
+
+        return super().form_valid(form)

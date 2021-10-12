@@ -1,12 +1,16 @@
-from datetime import date
+from datetime import date, datetime
 from unittest import mock
+from unittest.mock import patch
 
+import pytz
+from django.core import mail
 from django.core.cache import cache
 from django.test import SimpleTestCase
 from freezegun import freeze_time
 from mitoc_const import affiliations
 
-from ws import tasks
+from ws import models, tasks
+from ws.email import renew
 from ws.tests import TestCase, factories
 from ws.utils import member_sheets
 
@@ -14,7 +18,7 @@ from ws.utils import member_sheets
 class MutexTaskTests(SimpleTestCase):
     def setUp(self):
         super().setUp()
-        patched = mock.patch('ws.tasks.cache', wraps=cache)
+        patched = patch('ws.tasks.cache', wraps=cache)
         self.cache = patched.start()
         self.addCleanup(patched.stop)
 
@@ -84,14 +88,14 @@ class MutexTaskTests(SimpleTestCase):
 
 class TaskTests(TestCase):
     @staticmethod
-    @mock.patch('ws.utils.member_sheets.update_discount_sheet')
+    @patch('ws.utils.member_sheets.update_discount_sheet')
     def test_update_discount_sheet(update_discount_sheet):
         discount = factories.DiscountFactory.create(pk=9123, ga_key='test-key')
         tasks.update_discount_sheet(9123)
         update_discount_sheet.assert_called_with(discount)
 
     @staticmethod
-    @mock.patch('ws.utils.geardb.update_affiliation')
+    @patch('ws.utils.geardb.update_affiliation')
     def test_update_participant_affiliation(update_affiliation):
         participant = factories.ParticipantFactory.create(
             affiliation=affiliations.NON_AFFILIATE.CODE
@@ -101,7 +105,7 @@ class TaskTests(TestCase):
 
     @staticmethod
     @freeze_time("Fri, 25 Jan 2019 03:00:00 EST")
-    @mock.patch('ws.tasks.send_email_to_funds')
+    @patch('ws.tasks.send_email_to_funds')
     def test_send_tomorrow_itineraries(send_email_to_funds):
         """Only trips taking place the next day have itineraries sent out."""
         _yesterday, _today, tomorrow, _two_days_from_now = [
@@ -130,7 +134,7 @@ class TaskTests(TestCase):
             trip_date=date(2019, 1, 26), info=None
         )
 
-        with mock.patch('ws.tasks.send_email_to_funds') as send_email_to_funds:
+        with patch('ws.tasks.send_email_to_funds') as send_email_to_funds:
             tasks.send_sole_itineraries()
 
         # Emails were sent for *both* trips
@@ -140,9 +144,9 @@ class TaskTests(TestCase):
         )
 
     @staticmethod
-    @mock.patch('ws.tasks.cache', wraps=cache)
-    @mock.patch('ws.utils.member_sheets.update_discount_sheet')
-    @mock.patch('ws.utils.member_sheets.update_participant')
+    @patch('ws.tasks.cache', wraps=cache)
+    @patch('ws.utils.member_sheets.update_discount_sheet')
+    @patch('ws.utils.member_sheets.update_participant')
     def test_discount_tasks_share_same_key(
         update_participant, update_discount_sheet, mock_cache
     ):
@@ -175,8 +179,8 @@ class DiscountsWithoutGaKeyTest(TestCase):
         # but make sure Celery doesn't choke if they do.
         self.par.discounts.add(self.discount)
 
-        with mock.patch.object(member_sheets, 'update_participant') as update_par:
-            with mock.patch.object(tasks.logger, 'error') as log_error:
+        with patch.object(member_sheets, 'update_participant') as update_par:
+            with patch.object(tasks.logger, 'error') as log_error:
                 tasks.update_discount_sheet_for_participant(
                     self.discount.pk, self.par.pk
                 )
@@ -186,8 +190,8 @@ class DiscountsWithoutGaKeyTest(TestCase):
 
     def test_update_sheet(self):
         """Updating just a single sheet is handled if that sheet has no Google Sheets key."""
-        with mock.patch.object(member_sheets, 'update_participant') as update_par:
-            with mock.patch.object(tasks.logger, 'error') as log_error:
+        with patch.object(member_sheets, 'update_participant') as update_par:
+            with patch.object(tasks.logger, 'error') as log_error:
                 tasks.update_discount_sheet(self.discount.pk)
 
         log_error.assert_called()
@@ -197,14 +201,160 @@ class DiscountsWithoutGaKeyTest(TestCase):
     def test_update_all():
         """When updating the sheets for all discounts, we exclude ones without a sheet."""
         # Because this discount has no Google Sheets key, we don't do anything
-        with mock.patch.object(tasks.update_discount_sheet, 's') as update_sheet:
+        with patch.object(tasks.update_discount_sheet, 's') as update_sheet:
             tasks.update_all_discount_sheets()
         update_sheet.assert_not_called()
 
         # If we add another discount, we can bulk update but will exclude the current one
         other_discount = factories.DiscountFactory.create(ga_key='some-koy')
 
-        with mock.patch.object(tasks.update_discount_sheet, 's') as update_sheet:
-            with mock.patch.object(tasks, 'group'):
+        with patch.object(tasks.update_discount_sheet, 's') as update_sheet:
+            with patch.object(tasks, 'group'):
                 tasks.update_all_discount_sheets()
         update_sheet.assert_called_once_with(other_discount.pk)
+
+
+@freeze_time("2019-01-25 12:00:00 EST")
+class RemindAllParticipantsToRenewTest(TestCase):
+    @staticmethod
+    def test_nobody_needs_reminding():
+        for exp_date in [
+            date(2019, 1, 1),  # In the past
+            date(2019, 3, 5),  # Can't renew just yet
+            None,  # Never had a membership
+        ]:
+            factories.ParticipantFactory.create(
+                send_membership_reminder=True,
+                membership__membership_expires=exp_date,
+            )
+
+        # Participants with no known membership (or just a waiver) are never reminded
+        factories.ParticipantFactory.create(
+            send_membership_reminder=True, membership=None
+        )
+        # Waiver expires soon, but we won't remind about that.
+        factories.ParticipantFactory.create(
+            send_membership_reminder=True,
+            membership__waiver_expires=date(2019, 1, 28),
+            membership__membership_expires=None,
+        )
+
+        # We remind participants exactly once (per membership)
+        already_reminded = factories.ParticipantFactory.create(
+            send_membership_reminder=True,
+            membership__membership_expires=date(2019, 1, 28),
+        )
+        factories.MembershipReminderFactory.create(
+            participant=already_reminded,
+            reminder_sent_at=datetime(2020, 12, 25, tzinfo=pytz.UTC),
+        )
+
+        with patch.object(tasks.remind_lapsed_participant_to_renew, 'delay') as email:
+            tasks.remind_participants_to_renew()
+        email.assert_not_called()
+
+    @staticmethod
+    def test_delays_participants_who_are_eligible():
+        par = factories.ParticipantFactory.create(
+            send_membership_reminder=True,
+            membership__membership_expires=date(2019, 2, 2),
+        )
+        with patch.object(tasks.remind_lapsed_participant_to_renew, 'delay') as email:
+            tasks.remind_participants_to_renew()
+        email.assert_called_once_with(par.pk)
+
+    @staticmethod
+    def test_can_be_reminded_once_a_year():
+        par = factories.ParticipantFactory.create(
+            send_membership_reminder=True,
+            membership__membership_expires=date(2019, 2, 2),
+        )
+        # We reminded them once before, but it was for the previous year's membership
+        factories.MembershipReminderFactory.create(
+            participant=par,
+            reminder_sent_at=datetime(2017, 12, 25, tzinfo=pytz.UTC),
+        )
+        with patch.object(tasks.remind_lapsed_participant_to_renew, 'delay') as email:
+            tasks.remind_participants_to_renew()
+        email.assert_called_once_with(par.pk)
+
+
+@freeze_time("2019-01-25 12:00:00 EST")
+class RemindIndividualParticipantsToRenewTest(TestCase):
+    def test_success(self):
+        par = factories.ParticipantFactory.create(
+            name='Tim Beaver',
+            send_membership_reminder=True,
+            membership__membership_expires=date(2019, 1, 27),
+        )
+
+        with mock.patch.object(mail.EmailMultiAlternatives, 'send') as send:
+            tasks.remind_lapsed_participant_to_renew(par.pk)
+        send.assert_called_once()
+
+        reminder = models.MembershipReminder.objects.get()
+        self.assertEqual(
+            str(reminder), 'Tim Beaver, last reminded at 2019-01-25T17:00+00:00'
+        )
+        self.assertEqual(reminder.participant, par)
+        self.assertEqual(
+            reminder.reminder_sent_at, datetime(2019, 1, 25, 17, 0, tzinfo=pytz.UTC)
+        )
+
+    def test_idempotent(self):
+        """If we try to notify the same participant twice, only one email sent."""
+        par = factories.ParticipantFactory.create(
+            send_membership_reminder=True,
+            membership__membership_expires=date(2019, 1, 27),
+        )
+
+        with mock.patch.object(mail.EmailMultiAlternatives, 'send') as send:
+            tasks.remind_lapsed_participant_to_renew(par.pk)
+        send.assert_called_once()
+
+        with mock.patch.object(mail.EmailMultiAlternatives, 'send') as send2:
+            with self.assertRaises(ValueError):
+                tasks.remind_lapsed_participant_to_renew(par.pk)
+        send2.assert_not_called()
+
+    @staticmethod
+    def test_participant_has_opted_out():
+        """We cover the possibility of a participant opting out after a reminder was scheduled."""
+        par = factories.ParticipantFactory.create(
+            send_membership_reminder=False,
+            membership__membership_expires=date(2019, 1, 27),
+        )
+
+        with patch.object(renew, 'send_email_reminding_to_renew') as email:
+            tasks.remind_lapsed_participant_to_renew(par.pk)
+        email.assert_not_called()
+
+    def test_tried_to_remind_again_too_soon(self):
+        par = factories.ParticipantFactory.create(
+            send_membership_reminder=True,
+            membership__membership_expires=date(2019, 1, 27),
+        )
+        factories.MembershipReminderFactory.create(
+            participant=par,
+            reminder_sent_at=datetime(2018, 4, 25, tzinfo=pytz.UTC),
+        )
+
+        with patch.object(renew, 'send_email_reminding_to_renew') as email:
+            with self.assertRaises(ValueError) as cm:
+                tasks.remind_lapsed_participant_to_renew(par.pk)
+        self.assertIn("Mistakenly trying to notify", str(cm.exception))
+        email.assert_not_called()
+
+    def test_errors_actually_sending_mail_caught(self):
+        par = factories.ParticipantFactory.create(
+            send_membership_reminder=True,
+            # We obviously won't remind somebody to renew a null membership
+            membership=None,
+        )
+
+        with self.assertRaises(ValueError) as cm:
+            tasks.remind_lapsed_participant_to_renew(par.pk)
+        self.assertIn("no membership on file", str(cm.exception))
+
+        # We don't record a successful reminder being sent.
+        self.assertFalse(models.MembershipReminder.objects.exists())

@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% block head_title %}Email preferences{% endblock head_title %}
+
+{% block content %}
+{{ block.super }}
+
+<h1>Email preferences</h1>
+<em>Email on file: {{ viewing_participant.email }}</em> [<a href="{% url 'edit_profile' %}">edit</a>]
+
+<form method="post" action=".">
+  {% csrf_token %}
+  {{ form|crispy }}
+  <button class="btn btn-primary">Submit</button>
+</form>
+
+{% endblock content %}

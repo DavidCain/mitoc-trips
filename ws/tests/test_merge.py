@@ -1,5 +1,7 @@
 import unittest
+from datetime import datetime
 
+import pytz
 from django.contrib.auth.models import Permission, User
 from django.db import connections
 from django.db.utils import IntegrityError
@@ -140,6 +142,22 @@ class MergeTest(TestCase):
         factories.PasswordQualityFactory.create(participant=self.tim, is_insecure=False)
         self._migrate()
         self.assertFalse(self.tim.passwordquality.is_insecure)
+
+    def test_membership_reminders(self):
+        """The newest reminder is honored, even if delivered to the older participant."""
+        newer_reminder_sent_at = datetime(2020, 12, 25, tzinfo=pytz.UTC)
+        factories.MembershipReminderFactory.create(
+            participant=self.tim,
+            reminder_sent_at=datetime(2020, 10, 1, tzinfo=pytz.UTC),
+        )
+        factories.MembershipReminderFactory.create(
+            participant=self.old,
+            reminder_sent_at=newer_reminder_sent_at,
+        )
+
+        self._migrate()
+        reminder = models.MembershipReminder.objects.get(participant=self.tim)
+        self.assertEqual(reminder.reminder_sent_at, newer_reminder_sent_at)
 
     def test_conflicts(self):
         """We cannot merge participants who are clearly different people."""

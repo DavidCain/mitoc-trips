@@ -712,3 +712,9 @@ class PrivacySettingsForm(forms.ModelForm):
     class Meta:
         model = models.Participant
         fields = ['gravatar_opt_out']
+
+
+class EmailPreferencesForm(forms.ModelForm):
+    class Meta:
+        model = models.Participant
+        fields = ['send_membership_reminder']

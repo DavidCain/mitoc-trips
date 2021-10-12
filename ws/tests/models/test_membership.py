@@ -69,9 +69,9 @@ class ShouldRenewForTripTests(SimpleTestCase):
 
     def test_normal_renewal(self):
         """In normal cases (upcoming trip, membership required) we require renewal."""
-        # Trip takes place within the 40 day window (39 days)
+        # Trip takes place within the ~40 day window
         future_trip = TripFactory.build(
-            trip_date=date(2019, 11, 27), membership_required=True
+            trip_date=date(2019, 11, 25), membership_required=True
         )
 
         # Participants with no membership should renew

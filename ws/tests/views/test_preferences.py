@@ -589,3 +589,70 @@ class DiscountsTest(TestCase):
         task.delay.assert_not_called()
 
         self.assertFalse(par.discounts.exists())
+
+
+class EmailPreferencesTest(TestCase):
+    def _expect_success(self, par: models.Participant, msg: str, send_reminder: bool):
+        """Whether opting in or out, success looks the same!"""
+        self.client.force_login(par.user)
+
+        with mock.patch.object(messages, 'success') as success:
+            response = self.client.post(
+                '/preferences/email/',
+                {'send_membership_reminder': send_reminder},
+            )
+
+        # Obviously, we updated the participant's preferences
+        par.refresh_from_db()
+        self.assertIs(par.send_membership_reminder, send_reminder)
+
+        # We then communicate the change to them
+        success.assert_called_once_with(
+            mock.ANY,  # (Request object)
+            msg,
+        )
+
+        # Finally, we redirect home
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, '/')
+
+    def test_authenticated_users_only(self):
+        """Users must be signed in to set their email preferences."""
+        response = self.client.get('/preferences/email/')
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, '/accounts/login/?next=/preferences/email/')
+
+    def test_users_with_info_only(self):
+        """Participant records are required (we need them to save a preference)."""
+        user = factories.UserFactory.create()
+        self.client.force_login(user)
+        response = self.client.get('/preferences/email/')
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, '/profile/edit/?next=/preferences/email/')
+
+    def test_opt_into_reminders_before_paying(self):
+        self._expect_success(
+            factories.ParticipantFactory.create(membership=None),
+            msg="If you sign up for a membership, we'll remind you when it's time to renew.",
+            send_reminder=True,
+        )
+
+    @freeze_time("2019-01-15 12:25:00 EST")
+    def test_opt_into_reminders_as_a_member(self):
+        self._expect_success(
+            factories.ParticipantFactory.create(
+                membership__membership_expires=date(2019, 6, 1)
+            ),
+            msg="We'll send you an email on Apr 24, 2019 reminding you to renew.",
+            send_reminder=True,
+        )
+
+    @freeze_time("2019-01-15 12:25:00 EST")
+    def test_opt_into_reminders_as_an_expired_member(self):
+        self._expect_success(
+            factories.ParticipantFactory.create(
+                membership__membership_expires=date(2019, 1, 1)
+            ),
+            msg="If you have an active membership, we'll remind you when it's time to renew.",
+            send_reminder=True,
+        )

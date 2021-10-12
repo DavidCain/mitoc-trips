@@ -1,0 +1,32 @@
+{% load general_tags %}
+Your MITOC membership will expire on {{ participant.membership.membership_expires|date:"F j, Y" }}.
+{% if discounts %}
+{% gapless %}
+{% autoescape off %}
+Renewing is required to maintain access to your discounts with:
+{% for discount in discounts %}
+- {{ discount.name }}
+{% endfor %}
+{% endautoescape %}
+{% endgapless %}
+{% endif %}
+Renew today to add another 365 days to your membership:
+https://https://mitoc-trips.mit.edu/profile/membership/
+
+Renewing any time between now and {{ participant.membership.membership_expires|date:"F jS" }}
+will ensure that your membership is valid until {{ expiry_if_renewing|date:"F j, Y" }}.
+
+Your MITOC membership enables you to:
+- rent gear from the MITOC office
+- enroll in discounts for club members
+- go on official trips
+- stay in MITOC's cabins
+
+----------------------------------------------------------------------------
+
+You can unsubscribe from membership renewal reminders, but note that we send
+at most one reminder per year: we will not email you again unless you renew.
+
+https://mitoc-trips.mit.edu/preferences/email/
+
+Questions? Contact us: https://mitoc-trips.mit.edu/contact/

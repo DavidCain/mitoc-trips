@@ -142,6 +142,11 @@ CELERY_BEAT_SCHEDULE = {
         # Tuesdays around noon (ignore DST)
         'schedule': crontab(minute=0, hour=17, day_of_week=2),
     },
+    'remind-participants-to-renew': {
+        'task': 'ws.tasks.remind_participants_to_renew',
+        # Every day at 5pm EST (ignore DST)
+        'schedule': crontab(minute=0, hour=22),
+    },
     'send-sole-itineraries': {
         'task': 'ws.tasks.send_sole_itineraries',
         'schedule': crontab(minute=0, hour=4),

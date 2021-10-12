@@ -188,6 +188,11 @@ urlpatterns = [
     ),
     path('preferences/discounts/', views.DiscountsView.as_view(), name='discounts'),
     path(
+        'preferences/email/',
+        views.EmailPreferencesView.as_view(),
+        name='email_preferences',
+    ),
+    path(
         'preferences/lottery/',
         views.LotteryPreferencesView.as_view(),
         name='lottery_preferences',
