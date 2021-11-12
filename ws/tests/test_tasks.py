@@ -102,7 +102,7 @@ class TaskTests(TestCase):
     @staticmethod
     @freeze_time("Fri, 25 Jan 2019 03:00:00 EST")
     @mock.patch('ws.tasks.send_email_to_funds')
-    def test_send_tomorrow_itiniraries(send_email_to_funds):
+    def test_send_tomorrow_itineraries(send_email_to_funds):
         """Only trips taking place the next day have itineraries sent out."""
         _yesterday, _today, tomorrow, _two_days_from_now = [
             factories.TripFactory.create(
@@ -117,8 +117,7 @@ class TaskTests(TestCase):
         send_email_to_funds.assert_called_once_with(tomorrow)
 
     @freeze_time("Fri, 25 Jan 2019 03:00:00 EST")
-    @mock.patch('ws.tasks.send_email_to_funds')
-    def test_trips_without_itineraries_omitted(self, send_email_to_funds):
+    def test_trips_without_itineraries_included(self):
         trips_with_itinerary = [
             factories.TripFactory.create(
                 trip_date=date(2019, 1, 26), info=factories.TripInfoFactory.create()
@@ -127,14 +126,17 @@ class TaskTests(TestCase):
         ]
 
         # Create one trip without an itinerary, on the same day
-        factories.TripFactory.create(trip_date=date(2019, 1, 26), info=None)
+        no_itinerary_trip = factories.TripFactory.create(
+            trip_date=date(2019, 1, 26), info=None
+        )
 
-        tasks.send_sole_itineraries()
+        with mock.patch('ws.tasks.send_email_to_funds') as send_email_to_funds:
+            tasks.send_sole_itineraries()
 
-        # Emails were sent for only the trips with an itinerary
+        # Emails were sent for *both* trips
         self.assertCountEqual(
             [trip for (trip,), kwargs in send_email_to_funds.call_args_list],
-            trips_with_itinerary,
+            [*trips_with_itinerary, no_itinerary_trip],
         )
 
     @staticmethod

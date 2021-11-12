@@ -3,7 +3,7 @@ This automated message is registering an official trip of the MIT Outing Club (M
 
 Trip: {{ trip.name }}
 Date: {{ trip.trip_date|date:"Y-m-d" }}
-Start location: {{ trip.info.start_location }}
+{% if trip.info %}Start location: {{ trip.info.start_location }}{% endif %}
 
 Trip leaders:
 {% gapless %}

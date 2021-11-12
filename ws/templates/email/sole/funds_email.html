@@ -16,8 +16,10 @@
     <dl>
       <dt>Date</dt>
       <dd>{{ trip.trip_date|date:"Y-m-d" }}</dd>
+      {% if trip.info %}
       <dt>Start location</dt>
       <dd>{{ trip.info.start_location }}</dd>
+      {% endif %}
     </dl>
 
     <h3>Trip leaders</h3>

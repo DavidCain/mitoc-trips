@@ -163,8 +163,9 @@ def send_sole_itineraries():
     This task should be run daily, so that it will always send SOLE
     this information _before_ the trip actually starts.
     """
+    # TODO: Make this task idempotent, by actually logging when emails were sent
     tomorrow = date_utils.local_date() + timedelta(days=1)
-    trips = models.Trip.objects.filter(trip_date=tomorrow, info__isnull=False)
+    trips = models.Trip.objects.filter(trip_date=tomorrow)
     logger.info(
         "Sending itineraries for %d trips taking place tomorrow, %s",
         trips.count(),

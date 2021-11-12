@@ -9,7 +9,7 @@ from ws.utils import itinerary
 logger = logging.getLogger(__name__)
 
 
-def send_email_to_funds(trip, recipient='sole-desk@mit.edu'):
+def send_email_to_funds(trip):
     """Register the trip with SOLE for insurance & liability reasons.
 
     This automated email is taking the place of SOLE's Student Travel Form.
@@ -29,11 +29,17 @@ def send_email_to_funds(trip, recipient='sole-desk@mit.edu'):
 
     subject = f"MITOC-Trips registration: {trip.name}"
     bursar = 'mitoc-bursar@mit.edu'
+    recipients = [
+        'sole-desk@mit.edu',
+        'paulmurp@mit.edu',  # Associate Dean of SOLE, https://studentlife.mit.edu/sole/meet-staff
+    ]
     msg = EmailMultiAlternatives(
-        subject, text_content, to=[recipient], cc=[bursar], reply_to=[bursar]
+        subject,
+        text_content,
+        to=recipients,
+        cc=[bursar],
+        reply_to=[bursar],
     )
     msg.attach_alternative(html_content, "text/html")
     msg.send()
-    logger.info(
-        "Sent itinerary for trip #%d to %s, CCing %s", trip.pk, recipient, bursar
-    )
+    logger.info("Sent itinerary for trip #%d to %s, CCing %s", trip.pk, msg.to, msg.cc)

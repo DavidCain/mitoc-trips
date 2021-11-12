@@ -18,9 +18,9 @@ class StudentTravelFormTest(TestCase):
         self.trip = factories.TripFactory.create(
             name="Mt. Lafayette",
             trip_date=date(2019, 10, 12),
-            info=factories.TripInfoFactory.create(
-                start_location='Old Bridle Path trailhead'
-            ),
+        )
+        factories.TripInfoFactory.create(
+            trip=self.trip, start_location='Old Bridle Path trailhead'
         )
         self.trip.leaders.add(self.leader)
 
@@ -40,7 +40,7 @@ class StudentTravelFormTest(TestCase):
         on_waitlist = factories.SignUpFactory.create(trip=self.trip, on_trip=False)
         factories.WaitListSignupFactory.create(signup=on_waitlist)
 
-    def _expect_plaintext_contents(self, msg):
+    def _expect_plaintext_contents(self, msg, has_start_location=True):
         """The plaintext email contains basically the same contents as the HTML."""
         self.assertTrue(
             msg.body.startswith(
@@ -48,7 +48,8 @@ class StudentTravelFormTest(TestCase):
             )
         )
         self.assertIn('Date: 2019-10-12', msg.body)
-        self.assertIn('Start location: Old Bridle Path trailhead', msg.body)
+        if has_start_location:
+            self.assertIn('Start location: Old Bridle Path trailhead', msg.body)
 
         self.assertIn('Trip leaders:\n  - Tim Beaver (tim@mit.edu)', msg.body)
         on_trip = '\n'.join(
@@ -69,7 +70,7 @@ class StudentTravelFormTest(TestCase):
             self.assertEqual(dd.name, 'dd')
             yield dt.get_text(), dd.get_text()
 
-    def _expect_html_contents(self, msg):
+    def _expect_html_contents(self, msg, has_start_location=True):
         self.assertEqual(msg.alternatives, [(mock.ANY, 'text/html')])
         soup = BeautifulSoup(msg.alternatives[0][0], 'html.parser')
 
@@ -79,10 +80,10 @@ class StudentTravelFormTest(TestCase):
         )
 
         info = soup.find('h3', string='Mt. Lafayette').find_next_sibling('dl')
-        self.assertEqual(
-            dict(self._dl_elements(info)),
-            {'Date': '2019-10-12', 'Start location': 'Old Bridle Path trailhead'},
-        )
+        expected_dl = {'Date': '2019-10-12'}
+        if has_start_location:
+            expected_dl['Start location'] = 'Old Bridle Path trailhead'
+        self.assertEqual(dict(self._dl_elements(info)), expected_dl)
 
         # Trip leaders are enumerated, with contact info
         leaders = (
@@ -133,7 +134,7 @@ class StudentTravelFormTest(TestCase):
     def _expect_basics(self, msg):
         self.assertEqual(msg.subject, 'MITOC-Trips registration: Mt. Lafayette')
         self.assertEqual(msg.from_email, 'mitoc-trips@mit.edu')
-        self.assertEqual(msg.to, ['sole-desk@mit.edu'])
+        self.assertEqual(msg.to, ['sole-desk@mit.edu', 'paulmurp@mit.edu'])
         self.assertEqual(msg.cc, ['mitoc-bursar@mit.edu'])
         self.assertEqual(msg.reply_to, ['mitoc-bursar@mit.edu'])
 
@@ -159,6 +160,21 @@ class StudentTravelFormTest(TestCase):
             'Drivers:\n  Nobody on this trip submitted information for a car.\n',
             msg.body,
         )
+
+    def test_trip_without_itinerary(self):
+        """Prove that we can send emails without an itinerary (a former requirement)"""
+        self.trip.info.delete()
+        self.trip.refresh_from_db()
+
+        sole.send_email_to_funds(self.trip)
+
+        # Results in sending a single email
+        self.assertEqual(len(mail.outbox), 1)
+        msg = mail.outbox[0]
+
+        self._expect_basics(msg)
+        self._expect_plaintext_contents(msg, has_start_location=False)
+        self._expect_html_contents(msg, has_start_location=False)
 
     def test_has_drivers(self):
         """Both leaders and participants will be reported as drivers."""
