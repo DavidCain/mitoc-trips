@@ -622,7 +622,7 @@ class EmailPreferencesTest(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, '/accounts/login/?next=/preferences/email/')
 
-    def test_users_with_info_only(self):
+    def test_users_with_participants_only(self):
         """Participant records are required (we need them to save a preference)."""
         user = factories.UserFactory.create()
         self.client.force_login(user)
@@ -656,3 +656,23 @@ class EmailPreferencesTest(TestCase):
             msg="If you have an active membership, we'll remind you when it's time to renew.",
             send_reminder=True,
         )
+
+    def test_stale_info_okay(self):
+        """We don't make participants update their profiles just to edit email prefs."""
+        with freeze_time("2019-01-15 12:00:00 EST"):
+            par = factories.ParticipantFactory.create()
+
+        self.client.force_login(par.user)
+
+        with freeze_time("2021-01-15 12:00:00 EST"):
+            self.assertIn(enums.ProfileProblem.STALE_INFO, par.problems_with_profile)
+
+            # To demonstrate, we redirect on *other* views:
+            demo = self.client.get('/preferences/lottery/')
+            self.assertEqual(demo.status_code, 302)
+            self.assertEqual(demo.url, '/profile/edit/?next=/preferences/lottery/')
+
+            # But we won't redirect for updating email preferences.
+            # Even though their information is stale, we won't redirect them to update.
+            response = self.client.get('/preferences/email/')
+            self.assertEqual(response.status_code, 200)

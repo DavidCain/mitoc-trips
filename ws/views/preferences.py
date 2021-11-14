@@ -17,7 +17,7 @@ from django.utils.decorators import method_decorator
 from django.views.generic import CreateView, FormView, TemplateView
 
 from ws import enums, forms, models, tasks
-from ws.decorators import user_info_required
+from ws.decorators import participant_required, user_info_required
 from ws.mixins import LotteryPairingMixin
 from ws.utils.dates import is_currently_iap, local_date
 
@@ -279,7 +279,9 @@ class EmailPreferencesView(CreateView):
             'instance': self.request.participant,
         }
 
-    @method_decorator(user_info_required)
+    # Most views require up-to-date participant information.
+    # However, making people give us information just to opt out of emails is annoying.
+    @method_decorator(participant_required)
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
