@@ -11,7 +11,7 @@ Renewing is required to maintain access to your discounts with:
 {% endgapless %}
 {% endif %}
 Renew today to add another 365 days to your membership:
-https://https://mitoc-trips.mit.edu/profile/membership/
+https://mitoc-trips.mit.edu/profile/membership/
 
 Renewing any time between now and {{ participant.membership.membership_expires|date:"F jS" }}
 will ensure that your membership is valid until {{ expiry_if_renewing|date:"F j, Y" }}.

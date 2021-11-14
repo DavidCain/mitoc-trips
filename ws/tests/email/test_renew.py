@@ -79,7 +79,7 @@ class RenewTest(TestCase):
             Your MITOC membership will expire on February 5, 2020.
 
             Renew today to add another 365 days to your membership:
-            https://https://mitoc-trips.mit.edu/profile/membership/
+            https://mitoc-trips.mit.edu/profile/membership/
 
             Renewing any time between now and February 5th
             will ensure that your membership is valid until February 4, 2021.
@@ -130,7 +130,7 @@ class RenewTest(TestCase):
             - Zazu's Advisory Services
 
             Renew today to add another 365 days to your membership:
-            https://https://mitoc-trips.mit.edu/profile/membership/
+            https://mitoc-trips.mit.edu/profile/membership/
 
             Renewing any time between now and February 5th
             will ensure that your membership is valid until February 4, 2021.
@@ -165,7 +165,7 @@ class RenewTest(TestCase):
             [
                 # We link to the discounts immediately, since that's mentioned up-front
                 'https://mitoc.mit.edu/preferences/discounts/',
-                'https://https://mitoc-trips.mit.edu/profile/membership/',
+                'https://mitoc-trips.mit.edu/profile/membership/',
                 'https://mitoc.mit.edu/rentals',
                 # All MITOCers are told about discounts in their renewal email
                 'https://mitoc.mit.edu/preferences/discounts/',
