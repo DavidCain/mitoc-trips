@@ -1,12 +1,14 @@
+import contextlib
 from datetime import date, datetime
 from unittest import mock
 
+from bs4 import BeautifulSoup
 from django.contrib import messages
 from freezegun import freeze_time
 from mitoc_const import affiliations
 
-from ws import enums, models, tasks
-from ws.tests import TestCase, factories
+from ws import enums, models, tasks, unsubscribe
+from ws.tests import TestCase, factories, strip_whitespace
 
 
 class LotteryPairingViewTests(TestCase):
@@ -630,6 +632,22 @@ class EmailPreferencesTest(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, '/profile/edit/?next=/preferences/email/')
 
+    def test_opt_out(self):
+        par = factories.ParticipantFactory.create(send_membership_reminder=True)
+        self._expect_success(
+            par,
+            msg="Will not send any emails reminding you to remind your membership.",
+            send_reminder=False,
+        )
+
+    def test_opt_out_even_though_never_opted_in(self):
+        par = factories.ParticipantFactory.create(send_membership_reminder=False)
+        self._expect_success(
+            par,
+            msg="Will not send any emails reminding you to remind your membership.",
+            send_reminder=False,
+        )
+
     def test_opt_into_reminders_before_paying(self):
         self._expect_success(
             factories.ParticipantFactory.create(membership=None),
@@ -676,3 +694,143 @@ class EmailPreferencesTest(TestCase):
             # Even though their information is stale, we won't redirect them to update.
             response = self.client.get('/preferences/email/')
             self.assertEqual(response.status_code, 200)
+
+
+@freeze_time("2021-12-10 12:00:00 EST")
+class EmailUnsubscribeTest(TestCase):
+    @staticmethod
+    @contextlib.contextmanager
+    def _spy_on_add_message():
+        patched = mock.patch.object(messages, 'add_message', wraps=messages.add_message)
+        with patched as add_message:
+            yield add_message
+
+    def _get(self, url: str):
+        response = self.client.get(url)
+        assert response.status_code == 200
+        soup = BeautifulSoup(response.content, 'html.parser')
+        return soup
+
+    def test_success_unauthenticated(self):
+        """A user who is not logged in can use a token to unsubscribe."""
+        par = factories.ParticipantFactory.create(
+            pk=2348971, send_membership_reminder=True
+        )
+        token = 'eyJwayI6MjM0ODk3MSwiZW1haWxzIjpbMF19:1mvjFY:KR-_sCXU64PeJjRtce4KeNr6gBACxl1QX50WzVgQQZ8'
+        with self.settings(UNSUBSCRIBE_SECRET_KEY='sooper-secret'):
+            with self._spy_on_add_message() as add_message:
+                soup = self._get(f'/preferences/email/unsubscribe/{token}/')
+
+        add_message.assert_called_once_with(
+            mock.ANY, messages.SUCCESS, "Successfully unsubscribed"
+        )
+        par.refresh_from_db()
+        self.assertFalse(par.send_membership_reminder)
+        self.assertEqual(
+            ['Successfully unsubscribed'],
+            [alert.text.strip() for alert in soup.find_all(class_='alert')],
+        )
+        edit_link = soup.find('a', text='Edit your email preferences')
+        self.assertTrue(edit_link)
+        self.assertEqual(edit_link.attrs['href'], '/preferences/email/')
+
+    def test_success_logged_in(self):
+        """The token still works when logged in!."""
+        par = factories.ParticipantFactory.create()
+        self.client.force_login(par.user)
+        token = unsubscribe.generate_unsubscribe_token(par)
+        with self._spy_on_add_message() as add_message:
+            response = self.client.get(f'/preferences/email/unsubscribe/{token}/')
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, '/preferences/email/')
+
+        add_message.assert_called_once_with(
+            mock.ANY, messages.SUCCESS, "Successfully unsubscribed"
+        )
+        par.refresh_from_db()
+        self.assertFalse(par.send_membership_reminder)
+
+    def test_participant_since_deleted(self):
+        """We handle the case of a valid token for a since-deleted participant."""
+        par = factories.ParticipantFactory.create()
+        token = unsubscribe.generate_unsubscribe_token(par)
+        par.delete()
+        soup = self._get(f'/preferences/email/unsubscribe/{token}/')
+        self.assertEqual(
+            ['Participant no longer exists'],
+            [alert.text.strip() for alert in soup.find_all(class_='alert')],
+        )
+        self.assertTrue(soup.find('a', href='/preferences/email/'))
+        self.assertEqual(
+            strip_whitespace(soup.find('p', class_="lead").text),
+            "Edit your email preferences (login required)",
+        )
+
+    def test_bad_token_not_logged_in(self):
+        soup = self._get('/preferences/email/unsubscribe/bad_token/')
+        print(soup.text)
+        self.assertEqual(
+            ['Invalid token, cannot unsubscribe automatically.'],
+            [alert.text.strip() for alert in soup.find_all(class_='alert')],
+        )
+        self.assertTrue(soup.find('a', href='/preferences/email/'))
+        self.assertEqual(
+            strip_whitespace(soup.find('p', class_="lead").text),
+            "Edit your email preferences (login required)",
+        )
+
+    def test_bad_token_but_logged_in(self):
+        """If the participant has a bad token, but is logged in, let them manually opt out."""
+        participant = factories.ParticipantFactory.create()
+        self.client.force_login(participant.user)
+
+        with self._spy_on_add_message() as add_message:
+            response = self.client.get('/preferences/email/unsubscribe/bad_token/')
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, '/preferences/email/')
+
+        add_message.assert_has_calls(
+            [
+                mock.call(
+                    mock.ANY,
+                    messages.ERROR,
+                    'Invalid token, cannot unsubscribe automatically.',
+                ),
+                mock.call(
+                    mock.ANY,
+                    messages.INFO,
+                    'However, you are logged in and can directly edit your mail preferences.',
+                ),
+            ],
+            any_order=False,
+        )
+
+    def test_token_is_for_a_different_user(self):
+        """If you clicked an unsubscribe link for a different participant, it should still work."""
+        participant = factories.ParticipantFactory.create()
+        token = unsubscribe.generate_unsubscribe_token(participant)
+
+        self.client.force_login(factories.ParticipantFactory().user)
+
+        with self._spy_on_add_message() as add_message:
+            response = self.client.get(f'/preferences/email/unsubscribe/{token}/')
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, '/preferences/email/')
+
+        add_message.assert_has_calls(
+            [
+                mock.call(
+                    mock.ANY,
+                    messages.SUCCESS,
+                    'Successfully unsubscribed',
+                ),
+                mock.call(
+                    mock.ANY,
+                    messages.WARNING,
+                    'Note that the unsubscribe token was for a different participant! '
+                    'You may edit your own mail preferences below.',
+                ),
+            ],
+            any_order=False,
+        )

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% block head_title %}Unsubscribe{% endblock head_title %}
+
+{% block content %}
+{{ block.super }}
+
+<p class="lead">
+  <a href="{% url 'email_preferences' %}">Edit your email preferences</a>
+  {% if not viewing_user.is_authenticated %}(login required){% endif %}
+</p>
+
+{% endblock content %}

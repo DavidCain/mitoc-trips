@@ -401,7 +401,7 @@ python-versions = "*"
 [[package]]
 name = "django-stubs"
 version = "1.9.0"
-description = "Mypy stubs for Django"
+description = ""
 category = "dev"
 optional = false
 python-versions = ">=3.6"
@@ -415,6 +415,9 @@ types-pytz = "*"
 types-PyYAML = "*"
 typing-extensions = "*"
 
+[package.source]
+type = "url"
+url = "https://github.com/typeddjango/django-stubs/archive/331042d1c73e48adc3f7028c3887c0a2f7c66dac.tar.gz"
 [[package]]
 name = "django-stubs-ext"
 version = "0.3.1"
@@ -1230,7 +1233,7 @@ python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8.10"
-content-hash = "6c899d5c6c26b0421f5b75f61458e68a3e32238a1768a2216656e62d550b0093"
+content-hash = "d50c7d3d23a26a158f704b5ae693f1d1e6463f02d8efa81d80441ca7302b7234"
 
 [metadata.files]
 amqp = [
@@ -1466,10 +1469,7 @@ django-pipeline = [
 django-smtp-ssl = [
     {file = "django-smtp-ssl-1.0.zip", hash = "sha256:282863d5905e03686b6555ac788aa732842695d6f9cf1dcfa66d898abb7565d0"},
 ]
-django-stubs = [
-    {file = "django-stubs-1.9.0.tar.gz", hash = "sha256:664843091636a917faf5256d028476559dc360fdef9050b6df87ab61b21607bf"},
-    {file = "django_stubs-1.9.0-py3-none-any.whl", hash = "sha256:59c9f81af64d214b1954eaf90f037778c8d2b9c2de946a3cda177fefcf588fbd"},
-]
+django-stubs = []
 django-stubs-ext = [
     {file = "django-stubs-ext-0.3.1.tar.gz", hash = "sha256:783c198d7e39a41be0b90fd843fa2770243a642922af679be4b19e03b82c8c28"},
     {file = "django_stubs_ext-0.3.1-py3-none-any.whl", hash = "sha256:a51a3e9e844d4e1cacaaedbb33bf3def78a3956eed5d9575a640bd97ccd99cec"},

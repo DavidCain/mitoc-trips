@@ -5,7 +5,7 @@ from typing import Optional
 from django.core import mail
 from django.template.loader import get_template
 
-from ws import models
+from ws import models, unsubscribe
 from ws.utils import dates as date_utils
 
 logger = logging.getLogger(__name__)
@@ -44,6 +44,7 @@ def send_email_reminding_to_renew(participant):
         'participant': participant,
         'discounts': participant.discounts.all().order_by('name'),
         'expiry_if_renewing': membership.membership_expires + timedelta(days=365),
+        'unsubscribe_token': unsubscribe.generate_unsubscribe_token(participant),
     }
     text_content = get_template('email/membership/renew.txt').render(context)
     html_content = get_template('email/membership/renew.html').render(context)

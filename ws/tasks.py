@@ -180,11 +180,13 @@ def remind_lapsed_participant_to_renew(participant_id: int):
             )
         )
 
-        # Reminders should be sent ~40 days before the participant's membership has expired.
-        # We should only send one reminder every ~365 days or so.
-        # Pick 300 days as a sanity check that we send one message yearly (+/- some days)
-        if (not created) and (reminder.reminder_sent_at > (now - timedelta(days=300))):
-            raise ValueError(f"Mistakenly trying to notify {participant} to renew")
+        if not created:
+            logger.info("Last reminded %s: %s", participant, reminder.reminder_sent_at)
+            # Reminders should be sent ~40 days before the participant's membership has expired.
+            # We should only send one reminder every ~365 days or so.
+            # Pick 300 days as a sanity check that we send one message yearly (+/- some days)
+            if reminder.reminder_sent_at > (now - timedelta(days=300)):
+                raise ValueError(f"Mistakenly trying to notify {participant} to renew")
 
         # (Note that this method makes some final assertions before delivering)
         # If the email succeeds, we'll commit the reminder record (else rollback)
@@ -222,6 +224,7 @@ def remind_participants_to_renew():
 
     # Farm out the delivery of individual emails to separate workers.
     for pk in participants_needing_reminder.values_list('pk', flat=True):
+        logger.info("Identified participant %d as needing renewal reminder", pk)
         remind_lapsed_participant_to_renew.delay(pk)
 
 

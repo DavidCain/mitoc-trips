@@ -15,7 +15,7 @@ class MessageGenerator:
         """Supply all messages for this request."""
         raise NotImplementedError
 
-    def add_unique_message(self, level, message, **kwargs):
+    def add_unique_message(self, level: int, message: str, **kwargs):
         """Add a message, but only after first making sure it's not already been emitted.
 
         This helps guard against any message generator adding the same message

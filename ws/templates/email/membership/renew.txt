@@ -22,11 +22,15 @@ Your MITOC membership enables you to:
 - go on official trips
 - stay in MITOC's cabins
 
-----------------------------------------------------------------------------
+------------------------------------------------------
 
-You can unsubscribe from membership renewal reminders, but note that we send
-at most one reminder per year: we will not email you again unless you renew.
+You can unsubscribe from membership renewal reminders:
+https://mitoc-trips.mit.edu/preferences/email/{{ unsubscribe_token }}/
 
+Note that we send at most one reminder per year:
+we will not email you again unless you renew.
+
+You can also manage your email preferences directly:
 https://mitoc-trips.mit.edu/preferences/email/
 
 Questions? Contact us: https://mitoc-trips.mit.edu/contact/

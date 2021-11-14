@@ -28,6 +28,9 @@ if 'RAVEN_DSN' in os.environ:
 SECRET_KEY = os.getenv(
     'DJANGO_SECRET_KEY', '*this-is-obviously-not-secure-only-use-it-locally*'
 )
+UNSUBSCRIBE_SECRET_KEY = os.getenv(
+    'UNSUBSCRIBE_SECRET_KEY', '*secret-used-only-for-unsubscribe-tokens*'
+)
 # This secret is used as part of a complete seed for a pseudo-random number generator
 # Since random.random is not suitable for cryptographic applications, we use
 # a separate secret key rather than re-use SECRET_KEY

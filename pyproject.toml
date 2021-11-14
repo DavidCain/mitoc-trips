@@ -53,7 +53,8 @@ pylint = "^2.8"
 pytz = "*"  # (It's a production dependency by way of Django, but used directly in tests)
 
 # Dependencies for static type checking
-django-stubs = { version = ">= 1.9.0" }  # (1.9.0 was the first to support pyproject config)
+# Install directly from GitHub to get type signatures of `TimestampSigner`
+django-stubs = { url = "https://github.com/typeddjango/django-stubs/archive/331042d1c73e48adc3f7028c3887c0a2f7c66dac.tar.gz" }  # Awaiting > 1.9.0
 mypy = { version = "*"}
 types-certifi = { version = "*" }
 types-cryptography = { version = "*" }
@@ -76,8 +77,6 @@ plugins = ["mypy_django_plugin.main"]
 # Periodically, it's worth checking in to see which of these may have types later!
 # (After dropping support for Python versions before 3.5, it's easy to just type annotate directly
 module = [
-    "django_stubs_ext",  # TODO: revisit if we need this after 1.9.0 release
-
     "allauth.*",
     "bs4",
     "celery.*",

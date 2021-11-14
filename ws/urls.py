@@ -193,6 +193,11 @@ urlpatterns = [
         name='email_preferences',
     ),
     path(
+        'preferences/email/unsubscribe/<str:token>/',
+        views.EmailUnsubscribeView.as_view(),
+        name='email_unsubscribe',
+    ),
+    path(
         'preferences/lottery/',
         views.LotteryPreferencesView.as_view(),
         name='lottery_preferences',

@@ -12,11 +12,12 @@ from typing import Dict, Set
 from django.contrib import messages
 from django.db.models import Q
 from django.http import JsonResponse
-from django.urls import reverse_lazy
+from django.shortcuts import redirect
+from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.generic import CreateView, FormView, TemplateView
 
-from ws import enums, forms, models, tasks
+from ws import enums, forms, models, tasks, unsubscribe
 from ws.decorators import participant_required, user_info_required
 from ws.mixins import LotteryPairingMixin
 from ws.utils.dates import is_currently_iap, local_date
@@ -270,7 +271,7 @@ class EmailPreferencesView(CreateView):
     """
 
     form_class = forms.EmailPreferencesForm
-    template_name = 'preferences/email.html'
+    template_name = 'preferences/email/edit.html'
     success_url = reverse_lazy('home')
 
     def get_form_kwargs(self):
@@ -309,3 +310,50 @@ class EmailPreferencesView(CreateView):
         )
 
         return super().form_valid(form)
+
+
+class EmailUnsubscribeView(TemplateView):
+    """Allow unsubscribing whether or not the user is logged in!"""
+
+    template_name = 'preferences/email/unsubscribe.html'
+    success_url = reverse_lazy('email_preferences')
+
+    def get(self, request, *args, **kwargs):
+        token: str = self.kwargs['token']
+
+        try:
+            unsubscribed_par = unsubscribe.unsubscribe_from_token(token)
+        except unsubscribe.InvalidToken as e:
+            messages.add_message(request, messages.ERROR, str(e))
+            if request.participant:
+                # NOTE: we *could* just say "oh, hey, you're logged in - we'll just unsubscribe you."
+                # However, we can't be totally sure that the logged-in participant is the same as the token.
+                # To keep things simple, just have users handle this themselves
+                messages.add_message(
+                    request,
+                    messages.INFO,
+                    "However, you are logged in and can directly edit your mail preferences.",
+                )
+        else:
+            messages.add_message(request, messages.SUCCESS, "Successfully unsubscribed")
+            # This should hopefully be a very rare edge case.
+            if request.participant and unsubscribed_par.pk != request.participant.pk:
+                messages.add_message(
+                    request,
+                    messages.WARNING,
+                    "Note that the unsubscribe token was for a different participant! "
+                    "You may edit your own mail preferences below.",
+                )
+
+        # If the participant is logged-in, we should redirect them to the preferences view.
+        # In the usual case, this lets users see that they're unsubscribed, and manage prefs directly.
+        # This redirect also handles various edge cases:
+        # - Invalid token, but since they're logged in, they can just use the form
+        # - Participant in the token was deleted, but viewer is logged in, can use the form
+        # - Token was valid, but for another participant than the one that's logged in!
+        if request.participant:
+            return redirect(reverse('email_preferences'))
+
+        # The viewer is either not logged in, or just lacks a participant record.
+        # Just render a plain page with the message and a link to edit email preferences.
+        return super().get(request, *args, **kwargs)

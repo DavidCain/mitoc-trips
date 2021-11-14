@@ -63,12 +63,15 @@ class RenewTest(TestCase):
 
     def test_normal_renewal_no_discounts(self):
         par = ParticipantFactory.create(
+            # Exact token depends on the participant's PK
+            pk=881203,
             # Nearly expiring, less than a month to go.
-            membership__membership_expires=date(2020, 2, 5)
+            membership__membership_expires=date(2020, 2, 5),
         )
 
         with mock.patch.object(mail.EmailMultiAlternatives, 'send') as send:
-            msg = renew.send_email_reminding_to_renew(par)
+            with self.settings(UNSUBSCRIBE_SECRET_KEY='sooper-secret'):
+                msg = renew.send_email_reminding_to_renew(par)
         send.assert_called_once()
 
         expected_text = dedent(
@@ -87,11 +90,15 @@ class RenewTest(TestCase):
             - go on official trips
             - stay in MITOC's cabins
 
-            ----------------------------------------------------------------------------
+            ------------------------------------------------------
 
-            You can unsubscribe from membership renewal reminders, but note that we send
-            at most one reminder per year: we will not email you again unless you renew.
+            You can unsubscribe from membership renewal reminders:
+            https://mitoc-trips.mit.edu/preferences/email/eyJwayI6ODgxMjAzLCJlbWFpbHMiOlswXX0:1iqdma:E21Brio4e9XNfaBVGCSvSnEVo5CQX9mcUcuUAyL_dSw/
 
+            Note that we send at most one reminder per year:
+            we will not email you again unless you renew.
+
+            You can also manage your email preferences directly:
             https://mitoc-trips.mit.edu/preferences/email/
 
             Questions? Contact us: https://mitoc-trips.mit.edu/contact/
@@ -101,12 +108,17 @@ class RenewTest(TestCase):
 
     def test_participant_with_discounts(self):
         """We mention a participant's discounts when offering renewal."""
-        par = ParticipantFactory.create(membership__membership_expires=date(2020, 2, 5))
+        par = ParticipantFactory.create(
+            # Exact token depends on the participant's PK
+            pk=991838,
+            membership__membership_expires=date(2020, 2, 5),
+        )
         par.discounts.add(DiscountFactory.create(name="Zazu's Advisory Services"))
         par.discounts.add(DiscountFactory.create(name='Acme Corp'))
 
         with mock.patch.object(mail.EmailMultiAlternatives, 'send') as send:
-            msg = renew.send_email_reminding_to_renew(par)
+            with self.settings(UNSUBSCRIBE_SECRET_KEY='sooper-secret'):
+                msg = renew.send_email_reminding_to_renew(par)
         send.assert_called_once()
 
         expected_text = dedent(
@@ -129,11 +141,15 @@ class RenewTest(TestCase):
             - go on official trips
             - stay in MITOC's cabins
 
-            ----------------------------------------------------------------------------
+            ------------------------------------------------------
 
-            You can unsubscribe from membership renewal reminders, but note that we send
-            at most one reminder per year: we will not email you again unless you renew.
+            You can unsubscribe from membership renewal reminders:
+            https://mitoc-trips.mit.edu/preferences/email/eyJwayI6OTkxODM4LCJlbWFpbHMiOlswXX0:1iqdma:toxfJebkHgNNKTDNf42EiXTHT32ifB8EsqflXOED7R8/
 
+            Note that we send at most one reminder per year:
+            we will not email you again unless you renew.
+
+            You can also manage your email preferences directly:
             https://mitoc-trips.mit.edu/preferences/email/
 
             Questions? Contact us: https://mitoc-trips.mit.edu/contact/
@@ -155,6 +171,7 @@ class RenewTest(TestCase):
                 'https://mitoc.mit.edu/preferences/discounts/',
                 'https://mitoc-trips.mit.edu/trips/',
                 'https://mitoc.mit.edu/rentals/cabins',
+                'https://mitoc-trips.mit.edu/preferences/email/eyJwayI6OTkxODM4LCJlbWFpbHMiOlswXX0:1iqdma:toxfJebkHgNNKTDNf42EiXTHT32ifB8EsqflXOED7R8/',
                 'https://mitoc-trips.mit.edu/preferences/email/',
                 'https://mitoc-trips.mit.edu/contact/',
             ],
