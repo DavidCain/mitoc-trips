@@ -474,6 +474,38 @@ class DiscountsTest(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, '/profile/edit/?next=/preferences/discounts/')
 
+    def test_enrollment_without_a_membership(self):
+        """We allow (yet heavily warn against) users who lack a membership."""
+        par = factories.ParticipantFactory.create(membership=None)
+        gym = factories.DiscountFactory.create(ga_key='test-key-to-update-sheet')
+
+        self.client.force_login(par.user)
+        get_response = self.client.get('/preferences/discounts/')
+        soup = BeautifulSoup(get_response.content, 'html.parser')
+        self.assertEqual(
+            soup.find('strong').text, 'An active membership is required for discounts.'
+        )
+
+        with mock.patch.object(tasks, 'update_discount_sheet_for_participant') as task:
+            with mock.patch.object(messages, 'error') as error:
+                response = self.client.post(
+                    '/preferences/discounts/', {'discounts': str(gym.pk)}
+                )
+        # Immediately after signup, we sync this user to the sheet
+        task.delay.assert_called_once_with(gym.pk, par.pk)
+
+        # They won't actually be eligible, so we direct them to pay dues.
+        error.assert_called_once_with(
+            mock.ANY,  # request object
+            "You must be a current MITOC member to receive discounts. "
+            "We recorded your discount choices, but please pay dues to be eligible",
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, '/profile/membership/')
+
+        # We did at least accept their choices, though.
+        self.assertEqual([d.pk for d in par.discounts.all()], [gym.pk])
+
     def test_successful_enrollment(self):
         """Participants can enroll in a selection of discounts."""
         par = factories.ParticipantFactory.create()
@@ -769,7 +801,6 @@ class EmailUnsubscribeTest(TestCase):
 
     def test_bad_token_not_logged_in(self):
         soup = self._get('/preferences/email/unsubscribe/bad_token/')
-        print(soup.text)
         self.assertEqual(
             ['Invalid token, cannot unsubscribe automatically.'],
             [alert.text.strip() for alert in soup.find_all(class_='alert')],

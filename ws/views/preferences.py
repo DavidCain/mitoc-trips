@@ -108,17 +108,22 @@ class DiscountsView(FormView):
         return kwargs
 
     def form_valid(self, form):
-        form.save()
         participant = form.save()
         for discount in participant.discounts.all():
             tasks.update_discount_sheet_for_participant.delay(
                 discount.pk, participant.pk
             )
-        msg = (
-            "Discounts updated! Ensure your membership "
-            "is active for continued access to discounts."
-        )
-        messages.success(self.request, msg)
+
+        if participant.membership and participant.membership.membership_active:
+            messages.success(self.request, "Discount choices updated!")
+        else:
+            messages.error(
+                self.request,
+                "You must be a current MITOC member to receive discounts. "
+                "We recorded your discount choices, but please pay dues to be eligible",
+            )
+            return redirect(reverse('pay_dues'))
+
         return super().form_valid(form)
 
     @method_decorator(user_info_required)

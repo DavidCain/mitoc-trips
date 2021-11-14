@@ -61,6 +61,17 @@
       {% for err in form.non_field_errors %}
         <div class="alert alert-danger">{{ err }}</div>
       {% endfor %}
+
+      {# At least for now, we still allow people to submit the form. #}
+      {# This allows people to easily *unenroll*. #}
+      {# It also lets people enroll, then pay dues later. #}
+      {# To ease confusion, we might later consider just blocking form submission. #}
+      {% if not viewing_participant.membership.membership_active %}
+        <div class="alert alert-danger">
+          <strong>An active membership is <em>required</em> for discounts.</strong>
+          Please <a href="{% url 'pay_dues' %}">pay membership dues</a> in order to be eligible.
+        </div>
+      {% endif %}
       <button class="btn btn-primary">Submit</button>
     </form>
   </div>
