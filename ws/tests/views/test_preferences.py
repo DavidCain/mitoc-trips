@@ -517,9 +517,17 @@ class DiscountsTest(TestCase):
         # If the user tries to bypass the students-only rule, they still cannot enroll
         self.client.force_login(par.user)
         with mock.patch.object(tasks, 'update_discount_sheet_for_participant') as task:
-            self.client.post('/preferences/discounts/', {'discounts': str(gym.pk)})
+            self.client.post(
+                '/preferences/discounts/',
+                {'discounts': str(gym.pk), 'send_membership_reminder': True},
+            )
+
         # Immediately after signup, we sync this user to the sheet
         task.delay.assert_called_once_with(gym.pk, par.pk)
+
+        # The participant opted to be reminded when their membership expires
+        par.refresh_from_db()
+        self.assertTrue(par.send_membership_reminder)
 
         self.assertEqual([d.pk for d in par.discounts.all()], [gym.pk])
 
@@ -612,15 +620,22 @@ class DiscountsTest(TestCase):
 
     def test_removal_from_discount(self):
         """Unenrollment is supported too."""
-        par = factories.ParticipantFactory.create()
+        par = factories.ParticipantFactory.create(send_membership_reminder=True)
         discount = factories.DiscountFactory.create()
         par.discounts.add(discount)
 
         self.client.force_login(par.user)
         with mock.patch.object(tasks, 'update_discount_sheet_for_participant') as task:
-            self.client.post('/preferences/discounts/', {'discounts': []})
+            self.client.post(
+                '/preferences/discounts/',
+                {'discounts': [], 'send_membership_reminder': False},
+            )
         # We don't bother updating the sheet, instead relying on the daily removal script
         task.delay.assert_not_called()
+
+        # The participant opted out of reminder emails
+        par.refresh_from_db()
+        self.assertFalse(par.send_membership_reminder)
 
         self.assertFalse(par.discounts.exists())
 

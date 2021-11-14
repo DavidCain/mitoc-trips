@@ -54,6 +54,12 @@ class RequiredModelForm(forms.ModelForm):
 
 
 class DiscountForm(forms.ModelForm):
+    send_membership_reminder = forms.BooleanField(
+        label="Email me when it's time to renew my membership",
+        help_text="Ensure continued access to discounts (not required, but strongly recommended!)",
+        required=False,
+    )
+
     def clean_discounts(self):
         """Ensure the participant meets the requirements for each discount."""
         participant = self.instance
@@ -74,7 +80,7 @@ class DiscountForm(forms.ModelForm):
 
     class Meta:
         model = models.Participant
-        fields = ['discounts']
+        fields = ['discounts', 'send_membership_reminder']
         widgets = {'discounts': forms.CheckboxSelectMultiple}
 
 
