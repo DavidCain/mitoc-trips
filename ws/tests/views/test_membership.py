@@ -1,7 +1,11 @@
+from datetime import date
 from unittest import mock
 
+from bs4 import BeautifulSoup
+from freezegun import freeze_time
+
 from ws import forms, waivers
-from ws.tests import TestCase, factories
+from ws.tests import TestCase, factories, strip_whitespace
 
 
 class PayDuesTests(TestCase):
@@ -62,6 +66,28 @@ class PayDuesTests(TestCase):
         self.assertEqual(form.fields['merchantDefinedData1'].initial, 'membership')
         self.assertEqual(form.fields['merchantDefinedData2'].initial, 'MA')
         self.assertEqual(form.fields['merchantDefinedData3'].initial, 'tim@mit.edu')
+
+    @freeze_time("2021-12-10 12:00:00 EST")
+    def test_load_form_as_member_able_to_renew(self):
+        """We clearly communicate when membership ends if you renew."""
+        par = factories.ParticipantFactory.create(
+            membership__membership_expires=date(2021, 12, 25)
+        )
+        self.assertTrue(par.membership.in_early_renewal_period)
+        self.client.force_login(par.user)
+
+        response = self.client.get('/profile/membership/')
+
+        soup = BeautifulSoup(response.content, 'html.parser')
+        lead_par = soup.find('p', class_='lead')
+        self.assertEqual(
+            lead_par.text, 'To make the most of MITOC, you must be an active member.'
+        )
+        self.assertEqual(
+            strip_whitespace(lead_par.find_next('p').text),
+            'Renewing today keeps your membership active until Dec 25, 2022. '
+            "Membership enables you to rent gear from the office, participate in upcoming trips, and stay at MITOC's cabins.",
+        )
 
     def test_pay_anonymously(self):
         """Users need not log in to pay dues."""

@@ -30,10 +30,20 @@ class MembershipActiveTests(SimpleTestCase):
 
 @freeze_time("2019-10-19 12:00:00 EST")
 class ShouldRenewForTripTests(SimpleTestCase):
-    @staticmethod
-    def _should_renew_for(trip, membership_expires):
+    def _should_renew_for(self, trip, membership_expires) -> bool:
         membership = models.Membership(membership_expires=membership_expires)
-        return membership.should_renew_for(trip)
+        should_renew = membership.should_renew_for(trip)
+
+        # Test some nice helper methods while we're at it
+        if should_renew:
+            # We should only recommend renewal if it's possible
+            if membership_expires:
+                self.assertTrue(membership.in_early_renewal_period)
+
+            # First-time members *or* renewals should *always* be later than the trip
+            self.assertGreater(membership.expiry_if_paid_today, trip.trip_date)
+
+        return should_renew
 
     def test_mini_trips_not_covered(self):
         """Membership never needs to be renewed for 'mini trips'"""

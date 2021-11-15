@@ -6,11 +6,15 @@
 {% block content %}
   <h1>Pay MITOC membership dues</h1>
 
-  <p class="lead">
-    To make the most of MITOC, you must be an active member.
-  </p>
+  <p class="lead">To make the most of MITOC, you must be an active member.</p>
   <p>
-    Membership lasts for 365 days after dues are paid, and enables you to
+    {% if viewing_participant.membership.in_early_renewal_period %}
+      Renewing today keeps your membership active until {{ viewing_participant.membership.expiry_if_paid_today|date:"M j, Y" }}.
+      Membership
+    {% else %}
+      Membership lasts for 365 days after dues are paid, and
+    {% endif %}
+    enables you to
     <a href="https://mitoc.mit.edu/rentals">rent gear</a> from the office,
     participate in <a href="{% url 'upcoming_trips' %}">upcoming trips</a>,
     and stay at <a href="https://mitoc.mit.edu/rentals/cabins">MITOC's cabins</a>.

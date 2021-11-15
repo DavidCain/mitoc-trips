@@ -194,9 +194,9 @@ class Membership(models.Model):
     last_cached = models.DateTimeField(auto_now=True)
 
     @property
-    def membership_active(self):
+    def membership_active(self) -> bool:
         expires = self.membership_expires
-        return expires and expires >= date_utils.local_date()
+        return bool(expires) and expires >= date_utils.local_date()
 
     def should_sign_waiver_for(self, trip):
         """Return if the waiver will be valid for the day of the trip.
@@ -242,7 +242,22 @@ class Membership(models.Model):
 
         return earliest_renewal_date
 
-    def should_renew_for(self, trip):
+    @property
+    def in_early_renewal_period(self) -> bool:
+        """Return if the member is in their last ~40 days of membership, can renew."""
+        renewal_date = self.date_when_renewal_is_recommended(report_past_dates=True)
+        return bool(renewal_date) and renewal_date <= date_utils.local_date()
+
+    @property
+    def expiry_if_paid_today(self) -> date:
+        """Return the date which membership would expire, if paid today."""
+        if not self.in_early_renewal_period:
+            return date_utils.local_date() + timedelta(days=365)
+
+        assert self.membership_expires
+        return self.membership_expires + timedelta(days=365)
+
+    def should_renew_for(self, trip) -> bool:
         """Return if membership renewal is required to attend a future trip.
 
         If a participant's membership will expire on the given date, and it's
