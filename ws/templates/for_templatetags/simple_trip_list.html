@@ -14,9 +14,14 @@
     {% for trip in trip_list %}
       <tr>
         <td>
-          {% trip_icon trip %}<a href="{% url 'view_trip' trip.id %}">{{ trip.name|truncatechars:max_title_chars }}</a><br>
-          <strong>{{ trip.difficulty_rating }}</strong> {{ trip.description|truncatechars:max_description_chars }}
+          {# NOTE: A collapsed footable renders the plus icon before this, on the same line. #}
+          {% trip_icon trip %}<a href="{% url 'view_trip' trip.id %}">{{ trip.name|truncatechars:max_title_chars }}</a>
+          <ul class="list-unstyled">
+            {% if collapse_date %}<li><em>{{ trip.trip_date|date:"Y-m-d" }}</em></li>{% endif %}
+            <li><strong>{{ trip.difficulty_rating }}</strong> {{ trip.description|truncatechars:max_description_chars }}</li>
+          </ul>
         </td>
+
         {% if not collapse_date %}
           <td class="nowrap" data-value="{{ trip.trip_date|date:'U' }}">
             {% if trip.in_past %}
