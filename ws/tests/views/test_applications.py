@@ -293,6 +293,27 @@ class LeaderApplicationsTest(LeaderApplicationsBaseTest):
 
         perm_utils.make_chair(self.participant.user, enums.Activity.HIKING)
 
+    def test_unknown_activity(self):
+        response = self.client.get('/curling/applications/1/')
+        self.assertEqual(response.status_code, 404)
+
+    def test_not_a_chair_for_that_activity(self):
+        response = self.client.get('/climbing/applications/1/')
+        self.assertEqual(response.status_code, 403)
+
+    def test_invalid_post(self):
+        application = factories.HikingLeaderApplicationFactory.create()
+        response = self.client.post(
+            f'/hiking/applications/{application.pk}/',
+            {
+                'notes': 'I forgot the rating field',
+                'is_recommendation': False,
+            },
+        )
+        self.assertEqual(
+            response.context['form'].errors, {'rating': ['This field is required.']}
+        )
+
     def test_one_chair_one_application(self):
         """Test an activity with only one chair, viewing the only application."""
         application = factories.HikingLeaderApplicationFactory.create()
@@ -326,6 +347,30 @@ class LeaderApplicationsTest(LeaderApplicationsBaseTest):
         self.assertTrue(rating.active)
         self.assertEqual(rating.rating, 'Co-leader')
         self.assertEqual(rating.activity, enums.Activity.HIKING.value)
+
+    def test_multiple_applications(self):
+        """Applications can be navigated between with the previous & next buttons."""
+        app1 = factories.HikingLeaderApplicationFactory.create()
+        app2 = factories.HikingLeaderApplicationFactory.create()
+        app3 = factories.HikingLeaderApplicationFactory.create()
+
+        url = f'/hiking/applications/{app2.pk}/'
+        _response, soup = self._get(url)
+
+        # We can advance back to the first app, or forward to the second
+        prev_button, next_button = soup.find_all(
+            'a', attrs={'role': 'button', 'class': 'prev-next-app'}
+        )
+        self.assertEqual(prev_button.attrs['href'], f'/hiking/applications/{app1.pk}/')
+        self.assertEqual(next_button.attrs['href'], f'/hiking/applications/{app3.pk}/')
+
+        # Submitting a recommendation goes to the next application
+        response = self.client.post(
+            url,
+            {'rating': 'Full', 'notes': '', 'is_recommendation': False},
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, f'/hiking/applications/{app3.pk}/')
 
     def test_recommendation_only(self):
         """When there are two or more chairs, we encourage recommendations first."""
