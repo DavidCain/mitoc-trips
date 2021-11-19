@@ -52,12 +52,14 @@ class PermUtilTests(TestCase):
         # To begin with, our user is not a chair (nobody is, for that matter)
         user = UserFactory.create()
         self.assertFalse(perm_utils.is_chair(user, enums.Activity.CLIMBING))
-        self.assertEqual(perm_utils.num_chairs(enums.Activity.CLIMBING), 0)
+        self.assertFalse(perm_utils.activity_chairs(enums.Activity.CLIMBING))
 
         # We promote them to be a climbing chair
         perm_utils.make_chair(user, enums.Activity.CLIMBING)
         self.assertTrue(perm_utils.is_chair(user, enums.Activity.CLIMBING))
-        self.assertEqual(perm_utils.num_chairs(enums.Activity.CLIMBING), 1)
+        self.assertCountEqual(
+            perm_utils.activity_chairs(enums.Activity.CLIMBING), [user]
+        )
 
         # chair_or_admin works now too, and the user is definitely not a superuser
         self.assertTrue(perm_utils.chair_or_admin(user, enums.Activity.CLIMBING))
@@ -108,4 +110,4 @@ class SuperUserTestCase(TestCase):
 
     def test_admin_not_counted_in_list(self):
         """The admin isn't considered in the count of chairs."""
-        self.assertEqual(perm_utils.num_chairs(enums.Activity.CLIMBING), 0)
+        self.assertFalse(perm_utils.activity_chairs(enums.Activity.CLIMBING))

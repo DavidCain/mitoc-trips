@@ -5,12 +5,14 @@ Participants can express interest in becoming a leader for a specific activity,
 and activity chairs can respond to those applications with recommendations
 and/or ratings.
 """
+import functools
 from collections import defaultdict
+from typing import Dict, Optional, Union
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
-from django.db.models import Q
+from django.db.models import Q, QuerySet
 from django.db.models.fields import DateField
 from django.db.models.functions import Cast, Least
 from django.forms.models import model_to_dict
@@ -167,7 +169,7 @@ class AllLeaderApplicationsView(ApplicationManager, ListView):  # type: ignore[m
         context = super().get_context_data(**kwargs)
 
         apps = context['leader_applications']
-        context['num_chairs'] = self.num_chairs
+        context['num_chairs'] = len(self.activity_chairs())
         context['needs_rec'] = self.needs_rec(apps)
         context['needs_rating'] = self.needs_rating(apps)
         context['pending'] = context['needs_rating'] or context['needs_rec']
@@ -246,42 +248,41 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type:
         return if_valid(prev_app), if_valid(next_app)
 
     @property
-    def par_ratings(self):
-        find_ratings = Q(participant=self.object.participant, activity=self.activity)
-        return models.LeaderRating.objects.filter(find_ratings)
+    def par_ratings(self) -> QuerySet[models.LeaderRating]:
+        return models.LeaderRating.objects.filter(
+            participant=self.object.participant,
+            activity=self.activity,
+        )
 
-    @property
-    def existing_rating(self):
+    @functools.lru_cache(maxsize=None)
+    def existing_rating(self) -> Optional[models.LeaderRating]:
         return self.par_ratings.filter(active=True).first()
 
-    @property
-    def existing_rec(self):
+    @functools.lru_cache(maxsize=None)
+    def existing_rec(self) -> Optional[models.LeaderRecommendation]:
         """Load an existing recommendation for the viewing participant."""
-        if not hasattr(self, '_existing_rec'):
-            find_rec = Q(
-                creator=self.chair,
-                participant=self.object.participant,
-                activity=self.activity,
-                time_created__gte=self.object.time_created,
-            )
-            self._existing_rec = models.LeaderRecommendation.objects.filter(
-                find_rec
-            ).first()
-        return self._existing_rec
+        return models.LeaderRecommendation.objects.filter(
+            creator=self.chair,
+            participant=self.object.participant,
+            activity=self.activity,
+            time_created__gte=self.object.time_created,
+        ).first()
 
-    def should_default_to_recommendation(self) -> bool:
+    def _should_default_to_recommendation(self) -> bool:
         """Whether to default the form to a recommendation or not."""
-        return False if self.num_chairs < 2 else not self.existing_rec
+        return False if len(self.activity_chairs()) < 2 else not self.existing_rec()
 
-    def get_initial(self):
+    def get_initial(self) -> Dict[str, Union[str, bool]]:
         """Load an existing rating if one exists.
 
         Because these applications are supposed to be done with leaders that
         have no active rating in the activity, this should almost always be
         blank.
         """
-        initial = {'is_recommendation': self.should_default_to_recommendation()}
-        existing = self.existing_rating or self.existing_rec
+        initial: Dict[str, Union[str, bool]] = {
+            'is_recommendation': self._should_default_to_recommendation()
+        }
+        existing = self.existing_rating() or self.existing_rec()
         if existing:
             initial['rating'] = existing.rating
             initial['notes'] = existing.notes
@@ -306,7 +307,8 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type:
             return Q(time_created__lte=self.assigned_rating.time_created)
         return Q()
 
-    def get_recommendations(self, assigned_rating=None):
+    @functools.lru_cache(maxsize=None)
+    def get_recommendations(self) -> QuerySet[models.LeaderRecommendation]:
         """Get recommendations made by leaders/chairs for this application.
 
         Only show recommendations that were made for this application. That is,
@@ -343,7 +345,7 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type:
         context = super().get_context_data(**kwargs)
         assigned_rating = self.assigned_rating
         context['assigned_rating'] = assigned_rating
-        context['recommendations'] = self.get_recommendations(assigned_rating)
+        context['recommendations'] = self.get_recommendations()
         context['leader_form'] = self.get_form()
         context['all_feedback'] = self.get_feedback()
         context['prev_app'], context['next_app'] = self.get_other_apps()
@@ -358,8 +360,8 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type:
             for (activity, label) in models.LeaderRating.ACTIVITY_CHOICES
             if activity in participant_chair_activities
         ]
-        context['existing_rating'] = self.existing_rating
-        context['existing_rec'] = self.existing_rec
+        context['existing_rating'] = self.existing_rating()
+        context['existing_rec'] = self.existing_rec()
         context['hide_recs'] = not (assigned_rating or context['existing_rec'])
 
         all_trips_led = self.object.participant.trips_led
@@ -382,7 +384,7 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type:
             # Hack to convert the (unsaved) rating to a recommendation
             # (Both models have the exact same fields)
             rec = forms.LeaderRecommendationForm(
-                model_to_dict(rating), instance=self.existing_rec
+                model_to_dict(rating), instance=self.existing_rec()
             )
             rec.save()
         else:

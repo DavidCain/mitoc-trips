@@ -1,7 +1,9 @@
-from typing import Type
+import functools
+from typing import List, Type
 
 from django import db
-from django.db.models import Case, F, IntegerField, Q, Sum, When
+from django.contrib.auth.models import User
+from django.db.models import Case, F, IntegerField, Q, QuerySet, Sum, When
 
 import ws.utils.perms as perm_utils
 from ws import enums, models
@@ -23,16 +25,13 @@ class LeaderApplicationMixin:
 
     activity: str
 
-    @property
-    def num_chairs(self):
-        """Return the number of chairs for this activity."""
+    @functools.lru_cache(maxsize=None)
+    def activity_chairs(self) -> QuerySet[User]:
+        """Return the chairs for this activity."""
 
-        # It's important that this remain a property (dynamically requested, not stored at init)
+        # It's important that this remain a method, not stored at init.
         # This way, views that want to get activity from self.kwargs can inherit from the mixin
-        if not hasattr(self, '_num_chairs'):
-            activity_enum = enums.Activity(self.activity)
-            self._num_chairs = perm_utils.num_chairs(activity_enum)
-        return self._num_chairs
+        return perm_utils.activity_chairs(enums.Activity(self.activity))
 
     # The model is meant to be a class attribute of SingleObjectMixin
     # By defining it as a property, we upset mypy.
@@ -152,7 +151,7 @@ class ApplicationManager(LeaderApplicationMixin, RatingsRecommendationsMixin):
             return False
         return True
 
-    def needs_rec(self, applications):
+    def needs_rec(self, applications) -> List[models.LeaderApplication]:
         """Applications which need to be given a rating by the viewing chair.
 
         If there's only one chair, then this will be a blank list (it makes no sense
@@ -161,22 +160,22 @@ class ApplicationManager(LeaderApplicationMixin, RatingsRecommendationsMixin):
         """
         if not models.LeaderApplication.can_apply_for_activity(self.activity):
             return []
-        if self.num_chairs < 2:
+        if len(self.activity_chairs()) < 2:
             return []
 
         return [app for app in applications if self._chair_should_recommend(app)]
 
-    def _should_rate(self, app):
+    def _should_rate(self, app) -> bool:
         if app.archived:  # The application is no longer pending
             return False
         if app.num_ratings:  # The application received a rating
             return False
         # If there are multiple chairs, we request recommendations first
-        if self.num_chairs > 1:
+        if len(self.activity_chairs()) > 1:
             return bool(app.num_recs)
         return True
 
-    def needs_rating(self, applications):
+    def needs_rating(self, applications) -> List[models.LeaderApplication]:
         """Return applications which need a rating, but not a recommendation.
 
         When there are multiple chairs, we count certain applications as

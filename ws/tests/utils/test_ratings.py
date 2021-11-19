@@ -1,6 +1,7 @@
 from contextlib import contextmanager
 from unittest import mock
 
+from django.contrib.auth.models import User
 from django.test import SimpleTestCase
 from freezegun import freeze_time
 
@@ -13,23 +14,23 @@ from ws.utils import ratings
 class ApplicationManagerHelper:
     @classmethod
     @contextmanager
-    def _mock_for_climbing(cls, num_chairs):
+    def _mock_for_climbing(cls, num_chairs: int):
         """Mock away the number of climbing chairs!
 
         Also mock the query from climbing activity to climbing application, so
         that we need not hit the database.
         """
-        get_num_chairs = mock.patch.object(perm_utils, 'num_chairs')
+        activity_chairs = mock.patch.object(perm_utils, 'activity_chairs')
         model_from_activity = mock.patch.object(
             models.LeaderApplication, 'model_from_activity'
         )
-        with get_num_chairs as mock_num_chairs, model_from_activity as mock_app_model:
+        with activity_chairs as mock_chairs, model_from_activity as mock_app_model:
             mock_app_model.return_value = models.ClimbingLeaderApplication
-            mock_num_chairs.return_value = num_chairs
+            mock_chairs.return_value = [User() for _ in range(num_chairs)]
             yield
 
         mock_app_model.assert_called_with(enums.Activity.CLIMBING.value)
-        mock_num_chairs.assert_called_with(enums.Activity.CLIMBING)
+        mock_chairs.assert_called_with(enums.Activity.CLIMBING)
 
 
 class OneChairTests(TestCase):
@@ -105,7 +106,7 @@ class DatabaseApplicationManagerTests(TestCase):
     def test_applications_needing_recommendation(self):
         """Consider applications without a chair recommendation as requiring one!"""
         # We have three chairs!
-        self.assertEqual(perm_utils.num_chairs(enums.Activity.CLIMBING), 3)
+        self.assertEqual(len(perm_utils.activity_chairs(enums.Activity.CLIMBING)), 3)
 
         # The application is in a pending state, while awaiting recommendation & rating
         alice_manager = self._manager_for(self.alice)

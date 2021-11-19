@@ -1,6 +1,7 @@
 import functools
 
 from django.contrib.auth.models import Group, User
+from django.db.models import QuerySet
 
 from ws import enums
 
@@ -86,9 +87,8 @@ def chair_or_admin(user, activity_enum):
     return True if user.is_superuser else is_chair(user, activity_enum, True)
 
 
-def num_chairs(activity_enum):
-    group = chair_group(activity_enum)
-    return User.objects.filter(groups__name=group).count()
+def activity_chairs(activity_enum) -> QuerySet[User]:
+    return User.objects.filter(groups__name=chair_group(activity_enum))
 
 
 def chair_activities(user, allow_superusers=False):
