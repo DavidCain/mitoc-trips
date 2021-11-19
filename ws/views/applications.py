@@ -268,25 +268,76 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type:
             time_created__gte=self.object.time_created,
         ).first()
 
-    def _should_default_to_recommendation(self) -> bool:
-        """Whether to default the form to a recommendation or not."""
-        return False if len(self.activity_chairs()) < 2 else not self.existing_rec()
+    def _rating_to_prefill(self) -> Optional[str]:
+        """Return the rating that we should prefill the form with (if applicable).
+
+        Possible return values:
+        - None: We're not ready for the rating step yet.
+        - Empty string: We should rate, but we have nothing to pre-fill.
+        - Non-empty string: We should rate and we have a pre-filled value!
+        """
+        # Note that the below logic technically allows admins to weigh in with a rec.
+        # Admins can break consensus, but they're not required to *declare* consensus.
+        all_recs = self.get_recommendations()
+
+        proposed_ratings = {rec.rating for rec in all_recs}
+
+        chairs = self.activity_chairs()
+        users_making_recs = {rec.creator.user for rec in all_recs}
+
+        if set(chairs).difference(users_making_recs):
+            if self.activity != enums.Activity.WINTER_SCHOOL.value:
+                return None
+
+            # As always, Winter School is special.
+            # We regard both the WS chair(s) *and* the WSC as the chairs.
+            # However, only the WSC gives ratings.
+            # Thus, we can be missing ratings from some "chairs" but really have WSC consensus.
+            assert len(chairs) >= 3, "WSC + WS chairs fewer than 3 people!?"
+            if len(users_making_recs.intersection(chairs)) < 3:
+                # We're definitely missing recommendations from some of the WSC.
+                return None
+
+        if len(proposed_ratings) != 1:
+            return ''  # No consensus
+        return proposed_ratings.pop()
 
     def get_initial(self) -> Dict[str, Union[str, bool]]:
-        """Load an existing rating if one exists.
+        """Pre-populate the rating/recommendation form.
 
-        Because these applications are supposed to be done with leaders that
-        have no active rating in the activity, this should almost always be
-        blank.
+        This method tries to provide convenience for common scenarios:
+
+        - activity has only 1 chair, so default to a plain rating
+        - all activity chairs have made recommendations, and they agree!
+        - the viewing chair wishes to revise their recommendation
+        - activity chairs have different recommendations
+
+        Each of the above scenarios has different behaviors.
         """
-        initial: Dict[str, Union[str, bool]] = {
-            'is_recommendation': self._should_default_to_recommendation()
-        }
-        existing = self.existing_rating() or self.existing_rec()
-        if existing:
-            initial['rating'] = existing.rating
-            initial['notes'] = existing.notes
-        return initial
+        # Allow for editing a given rating simply by loading an old form.
+        rating = self.existing_rating()
+        if rating:
+            return {
+                'rating': rating.rating,
+                'notes': rating.notes,
+                'is_recommendation': False,
+            }
+
+        rec = self.existing_rec()
+
+        # No recommendation or rating from the viewer? Blank form.
+        if not rec:
+            # Recommendations only make sense with multiple chairs.
+            return {'is_recommendation': len(self.activity_chairs()) > 1}
+
+        # We may be ready to assign a rating (and we may even have a pre-fillable one)
+        prefill_rating = self._rating_to_prefill()
+        if prefill_rating is not None:
+            return {'is_recommendation': False, 'rating': prefill_rating, 'notes': ''}
+
+        # Viewer has given a recommendation, but we're still waiting on others.
+        # Prefill their present recommendation, in case they want to edit it.
+        return {'is_recommendation': True, 'rating': rec.rating, 'notes': rec.notes}
 
     @property
     def assigned_rating(self):
@@ -320,7 +371,7 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type:
         rec_after_creation = Q(time_created__gte=self.object.time_created)
         find_recs = match & self.before_rating & rec_after_creation
         recs = models.LeaderRecommendation.objects.filter(find_recs)
-        return recs.select_related('creator')
+        return recs.select_related('creator__user')  # (User used for WSC)
 
     def get_feedback(self):
         """Return all feedback for the participant.

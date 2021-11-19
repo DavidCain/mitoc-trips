@@ -4,6 +4,7 @@ from django.test import Client
 from freezegun import freeze_time
 
 import ws.utils.dates as date_utils
+import ws.utils.perms as perm_utils
 from ws import enums, models
 from ws.tests import TestCase, factories, strip_whitespace
 
@@ -13,7 +14,7 @@ class Helpers:
 
     def _get(self, url: str):
         response = self.client.get(url)
-        assert response.status_code == 200
+        assert response.status_code == 200, str(response.status_code)
         soup = BeautifulSoup(response.content, 'html.parser')
         return response, soup
 
@@ -82,8 +83,7 @@ class ClimbingLeaderApplicationTest(TestCase, Helpers):
         with freeze_time("2019-06-22 12:23 EDT"):
             self._create_application_and_approve()
 
-        # make_chair(self.participant.user, Activity.CLIMBING)
-        Group.objects.get(name='climbing_chair').user_set.add(self.participant.user)
+        perm_utils.make_chair(self.participant.user, enums.Activity.CLIMBING)
         _response, soup = self._get('/climbing/applications/')
         self.assertEqual(
             soup.find('p').text,
@@ -99,8 +99,7 @@ class ClimbingLeaderApplicationTest(TestCase, Helpers):
         )
 
     def test_no_applications_climbing(self):
-        # make_chair(self.participant.user, Activity.CLIMBING)
-        Group.objects.get(name='climbing_chair').user_set.add(self.participant.user)
+        perm_utils.make_chair(self.participant.user, enums.Activity.CLIMBING)
         _response, soup = self._get('/climbing/applications/')
 
         self.assertEqual(
@@ -271,15 +270,28 @@ class AllLeaderApplicationsTest(TestCase, Helpers):
         )
 
 
-class LeaderApplicationsTest(TestCase, Helpers):
+class LeaderApplicationsBaseTest(TestCase, Helpers):
+    def _expect_form_contents(self, soup, rating: str, notes: str, submit: str):
+        form = soup.find('form')
+        rating_input = form.find('input', attrs={'name': 'rating'})
+        notes_textarea = form.find('textarea', attrs={'name': 'notes'})
+        submit_btn = form.find('button', attrs={'type': 'submit'})
+
+        self.assertEqual(notes_textarea.text.strip(), notes)
+        self.assertEqual(rating_input.attrs.get('value', ''), rating)
+        # (AngularJS quirk: The submit button has two spans for conditional content rendering.
+        # Just use the first one, which is set by the server until AngularJS overrides.
+        self.assertEqual(submit_btn.find('span').text.strip(), submit)
+
+
+class LeaderApplicationsTest(LeaderApplicationsBaseTest):
     """Tests an activity chair's interaction with applications, making ratings/recs."""
 
     def setUp(self):
         self.participant = factories.ParticipantFactory.create()
         self.client.force_login(self.participant.user)
 
-        # make_chair(self.participant.user, Activity.HIKING)
-        Group.objects.get(name='hiking_chair').user_set.add(self.participant.user)
+        perm_utils.make_chair(self.participant.user, enums.Activity.HIKING)
 
     def test_one_chair_one_application(self):
         """Test an activity with only one chair, viewing the only application."""
@@ -295,9 +307,7 @@ class LeaderApplicationsTest(TestCase, Helpers):
         self.assertIn('disabled', next_button.attrs)
 
         # Because there's only one chair, we default to ratings, not recommendations
-        submit_txt = soup.find('button', attrs={'type': 'submit'}).text
-        # (AngularJS quirk: The raw HTML says "Creating rating" twice)
-        self.assertTrue(strip_whitespace(submit_txt).startswith('Create rating'))
+        self._expect_form_contents(soup, rating='', notes='', submit='Create rating')
 
         # Submitting the form on the page creates a rating!
         self.client.post(
@@ -319,19 +329,15 @@ class LeaderApplicationsTest(TestCase, Helpers):
 
     def test_recommendation_only(self):
         """When there are two or more chairs, we encourage recommendations first."""
-        Group.objects.get(name='hiking_chair').user_set.add(
-            factories.UserFactory.create()
-        )
+        perm_utils.make_chair(factories.UserFactory.create(), enums.Activity.HIKING)
 
         application = factories.HikingLeaderApplicationFactory.create()
         url = f'/hiking/applications/{application.pk}/'
         _response, soup = self._get(url)
 
         # Because there are two chairs, we default to suggesting a recommendation
-        submit_txt = soup.find('button', attrs={'type': 'submit'}).text
-        # (AngularJS quirk: The raw HTML says "Creating recommendation" twice)
-        self.assertTrue(
-            strip_whitespace(submit_txt).startswith('Create recommendation')
+        self._expect_form_contents(
+            soup, rating='', notes='', submit='Create recommendation'
         )
 
         # Submitting the form on the page creates a recommendation!
@@ -341,9 +347,7 @@ class LeaderApplicationsTest(TestCase, Helpers):
         )
 
         self.assertFalse(
-            models.LeaderRating.objects.filter(
-                participant=application.participant
-            ).exists()
+            models.LeaderRating.objects.filter(participant=application.participant)
         )
 
         self.assertTrue(
@@ -353,4 +357,177 @@ class LeaderApplicationsTest(TestCase, Helpers):
                 rating='Co-leader',
                 notes='',
             ).exists()
+        )
+
+    def test_already_has_rating(self):
+        """When viewing an application with a rating, you can update it.."""
+        application = factories.HikingLeaderApplicationFactory.create()
+        url = f'/hiking/applications/{application.pk}/'
+
+        # Use the flow itself to make a rating.
+        self.client.post(
+            url,
+            {'rating': 'Co-leader', 'notes': '', 'is_recommendation': False},
+        )
+
+        _response, soup = self._get(url)
+        self._expect_form_contents(
+            soup, rating='Co-leader', notes='', submit='Update rating'
+        )
+
+        self.client.post(
+            url,
+            {'rating': 'Leader', 'notes': 'Upgrade!', 'is_recommendation': False},
+        )
+
+        # We updated the rating by creating a new one and deactivating the old one
+        rating = models.LeaderRating.objects.get(
+            participant=application.participant, active=True
+        )
+        self.assertEqual(rating.rating, 'Leader')
+        self.assertEqual(rating.notes, 'Upgrade!')
+
+    def test_all_chairs_gave_differing_recommendations(self):
+        other_chair = factories.ParticipantFactory.create()
+        perm_utils.make_chair(other_chair.user, enums.Activity.HIKING)
+
+        application = factories.HikingLeaderApplicationFactory.create()
+
+        for chair, rating in [(self.participant, 'full'), (other_chair, 'co-lead')]:
+            factories.LeaderRecommendationFactory.create(
+                creator=chair,
+                participant=application.participant,
+                activity=enums.Activity.HIKING.value,
+                rating=rating,
+                notes='Not sure about this one',
+            )
+
+        _response, soup = self._get(f'/hiking/applications/{application.pk}/')
+
+        # We prompt them to make a rating, but we don't pre-fill
+        self._expect_form_contents(soup, rating='', notes='', submit='Create rating')
+
+    def test_all_chairs_unanimous(self):
+        """When all chairs gave the same recommendation, we pre-fill."""
+        other_chair_1 = factories.ParticipantFactory.create(name='Pooh Bear')
+        other_chair_2 = factories.ParticipantFactory.create()
+        perm_utils.make_chair(other_chair_1.user, enums.Activity.HIKING)
+        perm_utils.make_chair(other_chair_2.user, enums.Activity.HIKING)
+
+        application = factories.HikingLeaderApplicationFactory.create()
+
+        for chair in (self.participant, other_chair_1, other_chair_2):
+            factories.LeaderRecommendationFactory.create(
+                creator=chair,
+                participant=application.participant,
+                activity=enums.Activity.HIKING.value,
+                rating="Full rating",
+                # Consensus doesn't care about this.
+                notes=f'Confident - sincerely, {chair.name} (#{chair.pk})',
+            )
+
+        _response, soup = self._get(f'/hiking/applications/{application.pk}/')
+
+        # We prompt them to make a rating, with rating pre-filled!
+        self._expect_form_contents(
+            soup, rating='Full rating', notes='', submit='Create rating'
+        )
+
+        # Note that should an admin create an extra rating, we no longer pre-fill
+        # This shouldn't really happen (admins don't make recs), but it's handled.
+        factories.LeaderRecommendationFactory.create(
+            creator=factories.ParticipantFactory.create(
+                user=factories.UserFactory.create(is_superuser=True)
+            ),
+            participant=application.participant,
+            activity=enums.Activity.HIKING.value,
+            rating="I don't think we should",
+        )
+        _response, soup2 = self._get(f'/hiking/applications/{application.pk}/')
+        self._expect_form_contents(soup2, rating='', notes='', submit='Create rating')
+
+    def test_waiting_on_other_chairs(self):
+        """We still default to recommendations while waiting for other chairs."""
+        other_chair_1 = factories.ParticipantFactory.create()
+        other_chair_2 = factories.ParticipantFactory.create()
+        perm_utils.make_chair(other_chair_1.user, enums.Activity.HIKING)
+        perm_utils.make_chair(other_chair_2.user, enums.Activity.HIKING)
+
+        application = factories.HikingLeaderApplicationFactory.create()
+
+        for chair in (self.participant, other_chair_1):
+            factories.LeaderRecommendationFactory.create(
+                creator=chair,
+                participant=application.participant,
+                activity=enums.Activity.HIKING.value,
+                rating="Full rating",
+            )
+
+        url = f'/hiking/applications/{application.pk}/'
+        _response, soup = self._get(url)
+
+        self._expect_form_contents(
+            soup, rating='Full rating', notes='', submit='Update recommendation'
+        )
+        self.client.post(url, {'rating': 'co', 'notes': '', 'is_recommendation': True})
+        rec = models.LeaderRecommendation.objects.get(
+            participant=application.participant, creator=self.participant
+        )
+        self.assertEqual(rec.rating, 'co')
+        self.assertFalse(
+            models.LeaderRating.objects.filter(participant=application.participant)
+        )
+
+
+class WinterSchoolLeaderApplicationsTest(LeaderApplicationsBaseTest):
+    """Test the WS-specific special behavior for chairs interacting with applications."""
+
+    def setUp(self):
+        five_wsc = [factories.ParticipantFactory.create() for i in range(5)]
+        for par in five_wsc:
+            perm_utils.make_chair(par.user, enums.Activity.WINTER_SCHOOL)
+        (_ws_chair1, _ws_chair2, self.wsc1, self.wsc2, self.wsc3) = five_wsc
+        self.client.force_login(self.wsc1.user)
+
+    def test_consensus_among_wsc(self):
+        """The WS chairs are not counted when trying to identify consensus."""
+        application = factories.WinterSchoolLeaderApplicationFactory.create()
+        for chair in (self.wsc1, self.wsc2, self.wsc3):
+            factories.LeaderRecommendationFactory.create(
+                creator=chair,
+                participant=application.participant,
+                activity=enums.Activity.WINTER_SCHOOL.value,
+                rating="A coB",
+            )
+        url = f'/winter_school/applications/{application.pk}/'
+
+        _response, soup = self._get(url)
+
+        self._expect_form_contents(
+            soup, rating='A coB', notes='', submit='Create rating'
+        )
+
+    def test_awaiting_one_wsc_member(self):
+        """We need three WSC members to give a rating for consensus."""
+        application = factories.WinterSchoolLeaderApplicationFactory.create()
+        factories.LeaderRecommendationFactory.create(
+            creator=self.wsc1,
+            participant=application.participant,
+            activity=enums.Activity.WINTER_SCHOOL.value,
+            rating="coB",
+            notes="No WFA",
+        )
+        factories.LeaderRecommendationFactory.create(
+            creator=self.wsc2,
+            participant=application.participant,
+            activity=enums.Activity.WINTER_SCHOOL.value,
+            rating="coC",
+            notes="Notes from the other participant",
+        )
+        url = f'/winter_school/applications/{application.pk}/'
+
+        _response, soup = self._get(url)
+
+        self._expect_form_contents(
+            soup, rating="coB", notes="No WFA", submit='Update recommendation'
         )
