@@ -107,6 +107,28 @@ class ClimbingLeaderApplicationTest(TestCase, Helpers):
             'Only archived climbing leader applications appear here.',
         )
 
+    def test_invalid_activity(self):
+        response = self.client.get('/ice-fishing/applications/')
+        self.assertEqual(response.status_code, 404)
+
+    def test_not_a_chair(self):
+        response = self.client.get('/climbing/applications/')
+        self.assertEqual(response.status_code, 403)
+
+    def test_not_a_chair_for_the_activity(self):
+        perm_utils.make_chair(self.participant.user, enums.Activity.CLIMBING)
+        response = self.client.get('/hiking/applications/')
+        self.assertEqual(response.status_code, 403)
+
+
+class BikingLeaderApplicationTest(TestCase):
+    """We don't have a biking leader application."""
+
+    def test_404(self):
+        self.client.force_login(factories.ParticipantFactory.create().user)
+        response = self.client.get('/biking/leaders/apply/')
+        self.assertEqual(response.status_code, 404)
+
 
 class HikingLeaderApplicationTest(TestCase, Helpers):
     def setUp(self):
@@ -124,13 +146,83 @@ class HikingLeaderApplicationTest(TestCase, Helpers):
         )
 
     def test_key_fields_hidden(self):
-        _response, soup = self._get('/climbing/leaders/apply/')
+        _response, soup = self._get('/hiking/leaders/apply/')
         # The year is automatically added by the server.
         self.assertFalse(soup.find('input', attrs={'name': 'year'}))
         # The participant is given by the session, and added to the form by the server.
         self.assertFalse(soup.find('input', attrs={'name': 'participant'}))
         # Previous rating is provided by the system.
         self.assertFalse(soup.find('input', attrs={'name': 'previous_rating'}))
+
+    def test_submission(self):
+        response = self.client.post(
+            '/hiking/leaders/apply/',
+            {
+                'desired_rating': 'Co-Leader',
+                'mitoc_experience': 'No club experience - I just moved to Cambridge!',
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, "/hiking/leaders/apply/")
+
+    def test_existing_application_cannot_reapply(self):
+        self.client.post(
+            '/hiking/leaders/apply/',
+            {
+                'desired_rating': 'Leader',
+                'mitoc_experience': 'Never been hiking before',
+            },
+        )
+        response, soup = self._get('/hiking/leaders/apply/')
+        self.assertFalse(response.context['can_apply'])
+        self.assertEqual(
+            soup.find('div', class_='alert-info').text.strip(),
+            "You've submitted your leader application, and it's awaiting review.",
+        )
+        self.assertTrue(soup.find('p', text='Never been hiking before'))
+
+    def test_can_reapply_if_old_application_ignored(self):
+        with freeze_time("2020-10-01 12:00 EST"):
+            self.client.post(
+                '/hiking/leaders/apply/',
+                {
+                    'desired_rating': 'Co-Leader',
+                    'mitoc_experience': 'No club experience - I just moved to Cambridge!',
+                },
+            )
+
+        # At least 180 days have passed.
+        with freeze_time("2021-08-01 12:00 EST"):
+            # Maybe this leader wants to upgrade to be a full leader.
+            response, soup = self._get('/hiking/leaders/apply/')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context['can_apply'])
+        self.assertTrue(response.context['application'])
+
+        self.assertEqual(
+            soup.find('p').text,
+            "Please complete and submit the form below if you're interested in becoming a MITOC Hiking Leader.",
+        )
+        self.assertEqual(soup.find_all('h3')[1].text.strip(), "Most Recent Application")
+
+    def test_can_apply_as_a_current_leader(self):
+        factories.LeaderRatingFactory.create(
+            activity=enums.Activity.HIKING.value,
+            participant=self.participant,
+            rating="Co-Leader",
+        )
+
+        response, soup = self._get('/hiking/leaders/apply/')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context['can_apply'])
+
+        # We should probably say "if you want to upgrade" but maybe another day.
+        self.assertEqual(
+            soup.find('p').text,
+            "Please complete and submit the form below if you're interested in becoming a MITOC Hiking Leader.",
+        )
 
 
 @freeze_time("2020-10-20 14:56:00 EST")
