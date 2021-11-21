@@ -16,12 +16,12 @@ describe("getMemberStatus", () => {
       membership: {
         expires: "2019-03-08",
         active: false,
-        email: "mitoc.member@example.com"
+        email: "mitoc.member@example.com",
       },
       waiver: { expires: "2020-02-02", active: true },
-      status: "Missing Membership"
+      status: "Missing Membership",
     };
-    mockAxios.onGet("/users/37/membership.json").replyOnce(config => {
+    mockAxios.onGet("/users/37/membership.json").replyOnce((config) => {
       return [200, rawResp];
     });
 
@@ -43,15 +43,15 @@ describe("getMemberStatus", () => {
         email: "mitoc.member@example.com",
         active: false,
         // (We compared earlier, just re-use the actual object)
-        expires: memExpires
+        expires: memExpires,
       },
       waiver: {
         active: true,
         // (We compared earlier, just re-use the actual object)
-        expires: waiverExpires
+        expires: waiverExpires,
       },
       // Renamed from the keyword `status`
-      membershipStatus: "Missing Membership"
+      membershipStatus: "Missing Membership",
     };
     expect(data).toEqual(expectedData);
   });
@@ -61,12 +61,12 @@ describe("getMemberStatus", () => {
       membership: {
         expires: null,
         active: false,
-        email: "mitoc.member@example.com"
+        email: "mitoc.member@example.com",
       },
       waiver: { expires: null, active: false },
-      status: "Missing"
+      status: "Missing",
     };
-    mockAxios.onGet("/users/42/membership.json").replyOnce(config => {
+    mockAxios.onGet("/users/42/membership.json").replyOnce((config) => {
       return [200, rawResp];
     });
 
@@ -77,14 +77,14 @@ describe("getMemberStatus", () => {
       membership: {
         email: "mitoc.member@example.com",
         active: false,
-        expires: null
+        expires: null,
       },
       waiver: {
         active: false,
-        expires: null
+        expires: null,
       },
       // Renamed from the keyword `status`
-      membershipStatus: "Missing"
+      membershipStatus: "Missing",
     };
     expect(data).toEqual(expectedData);
   });

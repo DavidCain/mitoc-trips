@@ -22,7 +22,7 @@ function makeDate(date: string): Moment {
 const ACTIVE_MEMBERSHIP = {
   expires: makeDate("1999-01-23"),
   active: true,
-  email: "bob@example.com"
+  email: "bob@example.com",
 };
 
 const ACTIVE_WAIVER = { expires: makeDate("1999-01-19"), active: true };
@@ -44,9 +44,9 @@ describe("current membership - 'Active' and 'Expiring Soon'", () => {
         data: {
           membership: ACTIVE_MEMBERSHIP,
           waiver: ACTIVE_WAIVER,
-          membershipStatus: "Active"
-        }
-      }
+          membershipStatus: "Active",
+        },
+      },
     });
     const paragraphs = wrapper.findAll("p");
     expect(strippedText(paragraphs.at(0))).toEqual(
@@ -64,15 +64,15 @@ describe("current membership - 'Active' and 'Expiring Soon'", () => {
           membership: {
             expires: makeDate("2025-10-02"),
             active: true,
-            email: "bob@example.com"
+            email: "bob@example.com",
           },
           waiver: {
             expires: makeDate("2025-10-02"),
-            active: true
+            active: true,
           },
-          membershipStatus: "Expiring Soon"
-        }
-      }
+          membershipStatus: "Expiring Soon",
+        },
+      },
     });
 
     expect(strippedText(wrapper)).toContain(
@@ -88,9 +88,9 @@ describe("bad membership - 'Expired,' 'Missing,' and 'Missing Membership'", () =
         data: {
           membership: { email: null, expires: null, active: false },
           waiver: { expires: null, active: false },
-          membershipStatus: "Missing"
-        }
-      }
+          membershipStatus: "Missing",
+        },
+      },
     });
     expect(strippedText(wrapper)).toEqual(
       "We have no membership information on file for any of your verified email addresses. " +
@@ -108,9 +108,9 @@ describe("bad waiver - 'Missing Waiver' and 'Waiver Expired'", () => {
         data: {
           membership: ACTIVE_MEMBERSHIP,
           waiver: { expires: null, active: false },
-          membershipStatus: "Missing Waiver"
-        }
-      }
+          membershipStatus: "Missing Waiver",
+        },
+      },
     });
     expect(wrapper.text()).toEqual("Please sign a waiver.");
     expect(wrapper.html()).toContain('href="/profile/waiver/"');
@@ -122,9 +122,9 @@ describe("bad waiver - 'Missing Waiver' and 'Waiver Expired'", () => {
         data: {
           membership: ACTIVE_MEMBERSHIP,
           waiver: { expires: makeDate("1982-11-12"), active: false },
-          membershipStatus: "Waiver Expired"
-        }
-      }
+          membershipStatus: "Waiver Expired",
+        },
+      },
     });
     expect(wrapper.text()).toEqual("Please sign a new waiver.");
     expect(wrapper.html()).toContain('href="/profile/waiver/"');

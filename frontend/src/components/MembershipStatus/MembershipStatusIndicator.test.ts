@@ -4,7 +4,7 @@ import { MembershipStatus } from "@/modules/membership/status";
 
 it("renders the active state", () => {
   const wrapper = shallowMount(MembershipStatusIndicator, {
-    propsData: { membershipStatus: "Active" }
+    propsData: { membershipStatus: "Active" },
   });
   expect(wrapper.text()).toEqual("Active");
   expect(wrapper.classes()).toEqual(["label", "label-success"]);
@@ -14,11 +14,11 @@ it("renders warning statuses", () => {
   const warningStatuses = [
     "Waiver Expired",
     "Missing Waiver",
-    "Missing Membership"
+    "Missing Membership",
   ];
-  warningStatuses.forEach(membershipStatus => {
+  warningStatuses.forEach((membershipStatus) => {
     const wrapper = shallowMount(MembershipStatusIndicator, {
-      propsData: { membershipStatus }
+      propsData: { membershipStatus },
     });
     expect(wrapper.text()).toEqual(membershipStatus);
     expect(wrapper.classes()).toEqual(["label", "label-warning"]);
@@ -27,9 +27,9 @@ it("renders warning statuses", () => {
 
 it("renders 'danger' statuses", () => {
   const warningStatuses = ["Expired", "Missing"];
-  warningStatuses.forEach(membershipStatus => {
+  warningStatuses.forEach((membershipStatus) => {
     const wrapper = shallowMount(MembershipStatusIndicator, {
-      propsData: { membershipStatus }
+      propsData: { membershipStatus },
     });
     expect(wrapper.text()).toEqual(membershipStatus);
     expect(wrapper.classes()).toEqual(["label", "label-danger"]);
@@ -38,7 +38,7 @@ it("renders 'danger' statuses", () => {
 
 it("renders the special 'expiring soon' status", () => {
   const wrapper = shallowMount(MembershipStatusIndicator, {
-    propsData: { membershipStatus: "Expiring Soon" }
+    propsData: { membershipStatus: "Expiring Soon" },
   });
   expect(wrapper.text()).toEqual("Expiring Soon");
   expect(wrapper.classes()).toEqual(["label", "label-info"]);

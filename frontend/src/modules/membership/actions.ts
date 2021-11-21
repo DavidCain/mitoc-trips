@@ -64,12 +64,12 @@ export async function getMemberStatus(userId: number): Promise<MembershipData> {
   return {
     membership: {
       ...data.membership,
-      expires: localizeExpiration(data.membership)
+      expires: localizeExpiration(data.membership),
     },
     waiver: {
       ...data.waiver,
-      expires: localizeExpiration(data.waiver)
+      expires: localizeExpiration(data.waiver),
     },
-    membershipStatus: data["status"]
+    membershipStatus: data["status"],
   };
 }

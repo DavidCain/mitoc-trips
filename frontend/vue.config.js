@@ -14,7 +14,7 @@ const config = {
   // "instead of modifying output.path, you should use the outputDir option in vue.config.js"
   outputDir: "./dist/",
 
-  chainWebpack: config => {
+  chainWebpack: (config) => {
     config.optimization.splitChunks(false);
     config
       .plugin("BundleTracker")
@@ -33,7 +33,7 @@ const config = {
     config.plugins.delete("html");
     config.plugins.delete("preload");
     config.plugins.delete("prefetch");
-  }
+  },
 };
 
 if (process.env.NODE_ENV === "development") {

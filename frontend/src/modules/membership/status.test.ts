@@ -3,7 +3,7 @@ import {
   earlyRenewalAllowed,
   expirationIfRenewingToday,
   expiringSoon,
-  statusIsActive
+  statusIsActive,
 } from "./status";
 import moment from "moment";
 

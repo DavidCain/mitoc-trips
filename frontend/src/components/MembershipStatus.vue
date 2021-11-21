@@ -38,15 +38,15 @@ import MembershipStatusSummaryPersonal from "./MembershipStatus/MembershipStatus
 import MembershipStatusFaq from "./MembershipStatus/MembershipStatusFaq.vue";
 
 function sleep(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 @Component({
   components: {
     MembershipStatusIndicator,
     MembershipStatusFaq,
-    MembershipStatusSummaryPersonal
-  }
+    MembershipStatusSummaryPersonal,
+  },
 })
 export default class MembershipStatus extends Vue {
   @Prop() private userId!: number;

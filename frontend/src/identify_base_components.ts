@@ -25,7 +25,7 @@ export function pathToComponentName(componentPath: string): string {
  */
 export default function registerBaseComponents(): void {
   const requireComponent = baseComponentsRequireContext();
-  requireComponent.keys().forEach(filename => {
+  requireComponent.keys().forEach((filename) => {
     const componentConfig = requireComponent(filename);
     const componentName = pathToComponentName(filename);
 

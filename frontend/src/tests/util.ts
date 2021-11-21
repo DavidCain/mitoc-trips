@@ -14,7 +14,7 @@ export function flushPromises() {
    *
    * [timer-mocks]: https://jestjs.io/docs/en/timer-mocks
    */
-  return new Promise(resolve => setTimeout(resolve));
+  return new Promise((resolve) => setTimeout(resolve));
 }
 
 export function setTimeTo(datestring: string | Moment): jest.SpyInstance {

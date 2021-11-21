@@ -16,7 +16,7 @@ interface MockedWindow extends Window {
 const baseUrl = "https://mitoc-trips.mit.edu";
 export function mockWindow(win: Window = window, href = win.location.href) {
   const locationMocks: Partial<MockedLocation> = {
-    assign: jest.fn().mockImplementation(replaceLocation)
+    assign: jest.fn().mockImplementation(replaceLocation),
   };
 
   return replaceLocation(href);
@@ -48,8 +48,8 @@ describe("LogOut", () => {
   it("posts to the logout route on click", async () => {
     const wrapper = shallowMount(LogOut, {
       slots: {
-        default: "End session"
-      }
+        default: "End session",
+      },
     });
     expect(wrapper.text()).toEqual("End session");
 
@@ -67,8 +67,8 @@ describe("LogOut", () => {
   it("redirects to the logout page on any API failure", async () => {
     const wrapper = shallowMount(LogOut, {
       slots: {
-        default: "Log out"
-      }
+        default: "Log out",
+      },
     });
     expect(wrapper.text()).toEqual("Log out");
 

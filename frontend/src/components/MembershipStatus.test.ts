@@ -16,10 +16,10 @@ const MEMBERSHIP_RESPONSE: MembershipResponse = {
   membership: {
     expires: "2019-03-08",
     active: false,
-    email: "foo@example.com"
+    email: "foo@example.com",
   },
   waiver: { expires: "2020-02-02", active: true },
-  status: "Missing Membership"
+  status: "Missing Membership",
 };
 let mockAxios: MockAdapter;
 
@@ -27,14 +27,14 @@ let mockAxios: MockAdapter;
  * Shorthand for expecting a one-time 200 response.
  */
 function respondsWith(resp: MembershipResponse): void {
-  mockAxios.onGet(ROUTE_REGEX).replyOnce(config => {
+  mockAxios.onGet(ROUTE_REGEX).replyOnce((config) => {
     return [200, resp];
   });
 }
 
 function render(props?: Object): Wrapper<Vue> {
   return shallowMount(MembershipStatus, {
-    propsData: { userId: 42, ...props }
+    propsData: { userId: 42, ...props },
   });
 }
 
@@ -92,10 +92,10 @@ describe("Expiring Soon", () => {
         // Active, but expiring in a couple days!
         expires: "2019-02-25",
         active: true,
-        email: "foo@example.com"
+        email: "foo@example.com",
       },
       waiver: { expires: "2010-03-01", active: true },
-      status: "Active"
+      status: "Active",
     });
     const wrapper = render();
     await flushPromises();
@@ -110,10 +110,10 @@ describe("Expiring Soon", () => {
         // Active, plenty of time left
         expires: "2019-04-01",
         active: true,
-        email: "foo@example.com"
+        email: "foo@example.com",
       },
       waiver: { expires: "2010-03-01", active: true },
-      status: "Active"
+      status: "Active",
     });
     const wrapper = render();
     await flushPromises();
@@ -165,13 +165,13 @@ describe("FAQ", () => {
       membership: {
         active: false,
         expires: "1963-12-28",
-        email: "member.email@example.com"
+        email: "member.email@example.com",
       },
       waiver: {
         active: false,
-        expires: "1963-12-28"
+        expires: "1963-12-28",
       },
-      status: "Expired"
+      status: "Expired",
     });
     const wrapper = render({ showFullFaq: true });
 
@@ -183,7 +183,7 @@ describe("FAQ", () => {
     const faq = wrapper.find(MembershipStatusFaq);
     expect(faq.props()).toEqual({
       membershipStatus: "Expired",
-      email: "member.email@example.com"
+      email: "member.email@example.com",
     });
   });
 });
@@ -210,7 +210,7 @@ describe("justSigned", () => {
         ...MEMBERSHIP_RESPONSE,
         // This date is exactly one year in the future, which appears active!
         waiver: { active: true, expires: "2020-02-22" },
-        status: "Active"
+        status: "Active",
       });
 
       const wrapper = render({ justSigned: true });

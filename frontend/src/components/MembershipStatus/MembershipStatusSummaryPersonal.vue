@@ -28,9 +28,7 @@
       <p>Your waiver will expire on {{ data.waiver.expires | formatDate }}.</p>
     </div>
     <div v-else-if="membershipStatus === 'Missing Membership'">
-      <p>
-        We have a current waiver on file, but no active membership.
-      </p>
+      <p>We have a current waiver on file, but no active membership.</p>
       <p>
         You can still participate in mini-trips, but you'll need
         <a href="/profile/membership/">a full MITOC membership</a>
@@ -69,7 +67,7 @@ import "@/filters";
 
 import {
   MembershipStatus,
-  expirationIfRenewingToday
+  expirationIfRenewingToday,
 } from "@/modules/membership/status";
 import { localize } from "@/modules/dateutil";
 import { MembershipData } from "@/modules/membership/actions";

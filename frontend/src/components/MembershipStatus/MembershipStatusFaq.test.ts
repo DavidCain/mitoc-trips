@@ -4,14 +4,14 @@ import MembershipStatusFaq from "./MembershipStatusFaq.vue";
 describe("active statuses", () => {
   it("displays nothing if active", () => {
     const wrapper = shallowMount(MembershipStatusFaq, {
-      propsData: { membershipStatus: "Active" }
+      propsData: { membershipStatus: "Active" },
     });
     expect(wrapper.text()).toEqual("");
   });
 
   it("displays nothing if expiring soon (since it is still active)", () => {
     const wrapper = shallowMount(MembershipStatusFaq, {
-      propsData: { membershipStatus: "Expiring Soon" }
+      propsData: { membershipStatus: "Expiring Soon" },
     });
     expect(wrapper.text()).toEqual("");
   });
@@ -20,7 +20,7 @@ describe("active statuses", () => {
 describe("inactive statuses", () => {
   it("handles missing or expired memberships", () => {
     const wrapper = shallowMount(MembershipStatusFaq, {
-      propsData: { membershipStatus: "Missing" }
+      propsData: { membershipStatus: "Missing" },
     });
     expect(wrapper.text()).toContain("Why isn't my membership showing up?");
     expect(wrapper.text()).toContain("But I'm positive");
@@ -30,8 +30,8 @@ describe("inactive statuses", () => {
     const wrapper = shallowMount(MembershipStatusFaq, {
       propsData: {
         membershipStatus: "Missing Waiver",
-        email: "joe@example.com"
-      }
+        email: "joe@example.com",
+      },
     });
     expect(wrapper.text()).toContain("Why isn't my waiver showing up?");
     expect(wrapper.html()).toContain('<a href="/profile/waiver/"');

@@ -16,7 +16,7 @@ const statusToBootstrapClass: Record<MembershipStatus, string> = {
   "Waiver Expired": "label-warning",
   "Missing Waiver": "label-warning",
   "Missing Membership": "label-warning",
-  "Expiring Soon": "label-info" // Special front-end only status
+  "Expiring Soon": "label-info", // Special front-end only status
 };
 
 @Component
