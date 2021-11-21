@@ -22,6 +22,7 @@ export function mockWindow(win: Window = window, href = win.location.href) {
   return replaceLocation(href);
 
   function replaceLocation(url: string) {
+    // @ts-ignore
     delete win.location;
     win.location = Object.assign(new URL(url, baseUrl), locationMocks) as any;
     return win as MockedWindow;
@@ -39,6 +40,7 @@ describe("LogOut", () => {
   });
 
   afterAll(() => {
+    // @ts-ignore
     delete window.location;
     window.location = saveLocation;
   });

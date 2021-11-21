@@ -87,8 +87,6 @@ describe("Expiring Soon", () => {
   });
 
   it("Applies a special status for active memberships soon expiring", async () => {
-    const wrapper = render();
-
     respondsWith({
       membership: {
         // Active, but expiring in a couple days!
@@ -99,14 +97,14 @@ describe("Expiring Soon", () => {
       waiver: { expires: "2010-03-01", active: true },
       status: "Active"
     });
+    const wrapper = render();
     await flushPromises();
+
     const statusIndicator = wrapper.find(MembershipStatusIndicator);
     expect(statusIndicator.props("membershipStatus")).toEqual("Expiring Soon");
   });
 
   it("Leaves memberships with plenty of time remaining as 'Active'", async () => {
-    const wrapper = render();
-
     respondsWith({
       membership: {
         // Active, plenty of time left
@@ -117,7 +115,9 @@ describe("Expiring Soon", () => {
       waiver: { expires: "2010-03-01", active: true },
       status: "Active"
     });
+    const wrapper = render();
     await flushPromises();
+
     const statusIndicator = wrapper.find(MembershipStatusIndicator);
     expect(statusIndicator.props("membershipStatus")).toEqual("Active");
   });
