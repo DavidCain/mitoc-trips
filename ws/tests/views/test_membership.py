@@ -89,6 +89,29 @@ class PayDuesTests(TestCase):
             "Membership enables you to rent gear from the office, participate in upcoming trips, and stay at MITOC's cabins.",
         )
 
+    @freeze_time("2021-12-10 12:00:00 EST")
+    def test_load_form_as_lapsed_member(self):
+        par = factories.ParticipantFactory.create(
+            membership__membership_expires=date(2021, 1, 2)
+        )
+        self.assertFalse(par.membership.in_early_renewal_period)
+        self.assertEqual(par.membership.expiry_if_paid_today, date(2022, 12, 10))
+
+        self.client.force_login(par.user)
+
+        response = self.client.get('/profile/membership/')
+
+        soup = BeautifulSoup(response.content, 'html.parser')
+        lead_par = soup.find('p', class_='lead')
+        self.assertEqual(
+            lead_par.text, 'To make the most of MITOC, you must be an active member.'
+        )
+        self.assertEqual(
+            strip_whitespace(lead_par.find_next('p').text),
+            "Membership lasts for 365 days after dues are paid, and enables you to "
+            "rent gear from the office, participate in upcoming trips, and stay at MITOC's cabins.",
+        )
+
     def test_pay_anonymously(self):
         """Users need not log in to pay dues."""
         valid_form_data = {

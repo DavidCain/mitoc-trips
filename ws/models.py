@@ -245,6 +245,8 @@ class Membership(models.Model):
     @property
     def in_early_renewal_period(self) -> bool:
         """Return if the member is in their last ~40 days of membership, can renew."""
+        if not self.membership_active:
+            return False
         renewal_date = self.date_when_renewal_is_recommended(report_past_dates=True)
         return bool(renewal_date) and renewal_date <= date_utils.local_date()
 
