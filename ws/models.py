@@ -1273,11 +1273,21 @@ class Trip(models.Model):
 
 
 class BygonesManager(models.Manager):
+    """Automatically exclude feedback that's sufficiently far in the past."""
+
     def get_queryset(self):
         feedback = super().get_queryset()
-        fuggedaboutit = date_utils.local_now() - timedelta(days=390)
+        now = date_utils.local_now()
 
-        return feedback.exclude(trip__trip_date__lt=fuggedaboutit)
+        bygones_window = timedelta(days=13 * 30)
+        # Only for WS 2022: we temporarily show feedback for 25 months
+        if date(2021, 12, 19) < now.date() < date(2022, 2, 1):
+            # TEMPORARY: Use a ~25 month window until the end of WS 2022
+            # (we can clean this up later)
+            bygones_window = timedelta(days=25 * 30)
+
+        feedback_cutoff = now - bygones_window
+        return feedback.exclude(trip__trip_date__lt=feedback_cutoff)
 
 
 class Feedback(models.Model):
