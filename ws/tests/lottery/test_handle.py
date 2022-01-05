@@ -248,6 +248,45 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
             },
         )
 
+    def test_unreciprocated_pairing(self):
+        """We handle when two participants both sign up for trips, but the pairing is incomplete."""
+        sonny = factories.ParticipantFactory.create()
+        cher = factories.ParticipantFactory.create()
+        factories.LotteryInfoFactory.create(participant=sonny, paired_with=cher)
+
+        # Both sign up for trips, with some slight differentiation
+        factories.SignUpFactory.create(participant=sonny, trip=self.trip)
+        other_trip = self._ws_trip()
+        factories.SignUpFactory.create(participant=cher, trip=other_trip)
+        factories.SignUpFactory.create(participant=cher, trip=self.trip)
+
+        # Place both in succession.
+        self._place_participant(sonny)
+        self.assertTrue(self.runner.handled(sonny))
+        self.assertFalse(self.runner.handled(cher))
+
+        cher_summary = self._place_participant(cher)
+
+        self.assertTrue(self.runner.handled(cher))
+        self.assertTrue(self.runner.handled(sonny))
+        self._assert_on_trip(cher, other_trip)
+        self._assert_on_trip(sonny, self.trip)
+
+        self.assertEqual(
+            cher_summary,
+            {
+                'participant_pk': cher.pk,
+                # Sonny requested to be paired with Cher, but Cher didn't reciprocate
+                'paired_with_pk': None,
+                'is_paired': False,
+                'affiliation': mock.ANY,
+                # Cher ranked two trips, got her first choice
+                'ranked_trips': [other_trip.pk, self.trip.pk],
+                'placed_on_choice': 1,
+                'waitlisted': False,
+            },
+        )
+
     def test_waitlisted(self):
         """If your preferred trips are all full, you'll be waitlisted."""
         preferred_trip = factories.TripFactory.create(

@@ -3,6 +3,7 @@ import json
 import logging
 from datetime import datetime
 from pathlib import Path
+from typing import Dict
 
 from mitoc_const import affiliations
 
@@ -33,8 +34,8 @@ class LotteryRunner:
         self.logger = logging.getLogger(self.logger_id)
         self.logger.setLevel(logging.DEBUG)
 
-        self.participants_seen = {}  # Key: pk, gives boolean if number came up
-        self.participants_handled = {}  # Key: pk, gives boolean if handled
+        self._participants_seen: Dict[int, bool] = {}
+        self._participants_handled: Dict[int, bool] = {}
 
     @property
     def logger_id(self) -> str:
@@ -42,16 +43,16 @@ class LotteryRunner:
         return f"{__name__}.{id(self)}"
 
     def handled(self, participant) -> bool:
-        return self.participants_handled.get(participant.pk, False)
+        return self._participants_handled.get(participant.pk, False)
 
     def seen(self, participant) -> bool:
-        return self.participants_seen.get(participant.pk, False)
+        return self._participants_seen.get(participant.pk, False)
 
     def mark_handled(self, participant, handled=True):
-        self.participants_handled[participant.pk] = handled
+        self._participants_handled[participant.pk] = handled
 
     def mark_seen(self, participant, seen=True):
-        self.participants_seen[participant.pk] = seen
+        self._participants_seen[participant.pk] = seen
 
     @staticmethod
     def signup_to_bump(trip):

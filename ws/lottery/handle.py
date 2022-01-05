@@ -270,6 +270,10 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
             if not self.runner.seen(self.paired_par):
                 self.logger.info(f"Will handle signups when {self.paired_par} comes")
                 return None
+        elif self.paired_par:
+            self.logger.info(
+                f"{self.participant} requested pairing with {self.paired_par}, but not reciprocated"
+            )
 
         # Identify all the signups that this participant elected, then the subset
         # of the trips that they would currently want to be placed on.
@@ -278,7 +282,7 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
 
         info = self._place_or_waitlist(all_future_signups, desired_signups)
         self.runner.mark_handled(self.participant)
-        if self.paired_par:
+        if self.paired and self.paired_par:
             self.runner.mark_handled(self.paired_par)
 
         return info
