@@ -128,7 +128,7 @@ def closest_wed_at_noon():
     return localize(ret)
 
 
-def is_currently_iap():
+def is_currently_iap() -> bool:
     """Returns if it's currently MIT's "Independent Activities Period"
 
     Winter School takes place during IAP each year. This (extremely opproximate!) method

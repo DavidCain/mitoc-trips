@@ -21,6 +21,15 @@
         </div>
       </div>
 
+      {% if is_currently_iap %}
+        <div data-ng-if="program === 'winter_non_iap'" data-ng-cloak>
+          <div class="alert alert-warning">
+            <p>This will make a standalone trip, <strong>separate from the normal WS lottery</strong>.</p>
+            <p>If you mean to create a normal Winter School trip, select "Winter School."</p>
+          </div>
+        </div>
+      {% endif %}
+
       <div class="row">
         <div class="col-xs-6">
           {{ form.maximum_participants|as_crispy_field }}

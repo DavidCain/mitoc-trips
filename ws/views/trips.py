@@ -278,6 +278,11 @@ class CreateTripView(CreateView):
         trip.activity = trip.get_legacy_activity()
         return super().form_valid(form)
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['is_currently_iap'] = is_currently_iap()
+        return context
+
     @method_decorator(group_required('leaders'))
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
@@ -307,7 +312,7 @@ class EditTripView(UpdateView, TripLeadersOnlyView):
         return kwargs
 
     @property
-    def update_rescinds_approval(self):
+    def update_rescinds_approval(self) -> bool:
         trip = self.object
         activity_enum = trip.required_activity_enum()
         if activity_enum is None:
