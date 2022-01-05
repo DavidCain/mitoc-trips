@@ -1066,7 +1066,7 @@ class Trip(models.Model):
         """Return a date range for use with Django's `range` function."""
         return (self.trip_date - timedelta(days=3), self.trip_date + timedelta(days=3))
 
-    def other_signups(self, par_pks):
+    def _other_signups(self, par_pks):
         """Return participant signups for trips happening around this time.
 
         Specifically, for each given participant, find all other trips that
@@ -1076,6 +1076,8 @@ class Trip(models.Model):
             SignUp.objects.filter(on_trip=True, participant_id__in=par_pks)
             .exclude(trip=self)
             .filter(trip__trip_date__range=self._within_three_days)
+            # Manual hack for weekend 1 of WS: don't count the lectures special trip or gear sale
+            .exclude(trip_id__in=[1426, 1440])
             .select_related('trip')
             .order_by('trip__trip_date')
         )
@@ -1099,7 +1101,7 @@ class Trip(models.Model):
         trips_by_par: Dict[int, List[Trip]] = {pk: [] for pk in par_pks}
 
         # Start by identifying trips the participants are attending as participants
-        for signup in self.other_signups(par_pks):
+        for signup in self._other_signups(par_pks):
             trips_by_par[signup.participant_id].append(signup.trip)
 
         # Some participants may also be leading other trips. Include those!
