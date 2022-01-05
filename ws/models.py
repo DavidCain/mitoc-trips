@@ -1321,8 +1321,9 @@ class LotteryInfo(models.Model):
         max_length=7,
         choices=[
             ("none", "Not driving"),
-            ("own", "Can drive own car"),
+            ("own", "Can drive others"),
             ("rent", "Willing to rent"),
+            ("self", "Can drive self"),
         ],
         default="none",
     )

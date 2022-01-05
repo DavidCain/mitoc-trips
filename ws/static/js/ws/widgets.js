@@ -9,9 +9,11 @@ angular.module('ws.widgets', [])
     templateUrl: '/static/template/car-badge.html',
     link: function (scope, element, attrs) {
       if (scope.carStatus === 'own') {
-        scope.msg = 'Owns a car';
+        scope.msg = 'Can drive others';
       } else if (scope.carStatus === 'rent') {
         scope.msg = 'Willing to rent';
+      } else if (scope.carStatus === 'self') {
+        scope.msg = 'Will drive self';
       }
 
       if (scope.msg && scope.numberOfPassengers) {

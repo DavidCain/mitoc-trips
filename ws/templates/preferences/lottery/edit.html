@@ -41,9 +41,8 @@
         </div>
       {% else %}
         <p>
-          Drivers are {% if not currently_winter_school %} occasionally {% endif %} given
-          priority on trips that would not otherwise be able to transport
-          lottery-winning participants.
+          Drivers are occasionally given
+          <a href="{% url 'help-lottery' %}#driver_priority">priority placement on trips</a>.
         </p>
       {% endif %}
 
@@ -52,7 +51,8 @@
       <div class="btn-group" data-ng-cloak>
         <label class="btn btn-default" data-ng-model="car_status" uib-btn-radio="'none'"><i class="fas fa-times"></i>&nbsp;Not driving</label>
         <label class="btn btn-default" data-ng-model="car_status" uib-btn-radio="'rent'"><i class="fas fa-taxi"></i>&nbsp;Willing to rent</label>
-        <label class="btn btn-default" data-ng-model="car_status" uib-btn-radio="'own'" ><i class="fas fa-car"></i>&nbsp;Can drive own car</label>
+        <label class="btn btn-default" data-ng-model="car_status" uib-btn-radio="'own'" ><i class="fas fa-car"></i>&nbsp;Can drive others</label>
+        <label class="btn btn-default" data-ng-model="car_status" uib-btn-radio="'self'" ><i class="fas fa-car-alt"></i>&nbsp;Will drive self</label>
       </div>
 
       <div class="clearfix"></div>
@@ -76,10 +76,27 @@
         <div class="alert alert-info">
           <p><strong>If placed on a trip, you'll be expected to transport other participants.</strong></p>
           <p>
-            If you're not sure you can drive, or not comfortable driving others, please select "Not driving."
-            This will help us better plan trips.
+            <ul>
+              <li>If you're not sure you can drive, please select "Not driving."</li>
+              <li>If you're not comfortable driving others, please select "Will drive self."</li>
+            </ul>
+          </p>
+          <p>
+            Accurately reporting your driving plans help MITOC organize trips.
           </p>
         </div>
+      </div>
+
+      <div data-ng-show="car_status == 'self'" data-ng-cloak>
+        <p>
+          If you're comfortable transporting other participants{% if has_paired_par %} (apart from your partner){% endif %},
+          selecting "Can drive others"
+          will grant you <a href="{% url 'help-lottery' %}#driver_priority">a small advantage in the lottery.</a>
+        </p>
+        <p>
+          If you'd prefer just to drive yourself{% if has_paired_par %} and your lottery partner{% endif %},
+          this is the correct status to choose.
+        </p>
       </div>
 
     </div>

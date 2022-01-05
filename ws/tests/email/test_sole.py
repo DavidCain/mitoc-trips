@@ -238,7 +238,7 @@ class StudentTravelFormTest(TestCase):
                 ('State', 'VT'),
                 ('Year', '2001'),
                 ('Color', 'Green'),
-                ('Car Status', 'Can drive own car'),
+                ('Car Status', 'Can drive others'),
             ],
         ]
         self.assertCountEqual([list(driver) for driver in drivers], expected)
