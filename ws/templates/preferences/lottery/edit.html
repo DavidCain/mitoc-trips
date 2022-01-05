@@ -67,11 +67,21 @@
         {% endif %}
       </div>
 
-      <div class="row" data-ng-show="car_status == 'own' || car_status == 'rent'" data-ng-cloak>
-        <div class="col-sm-6">
-          {{ lottery_form.number_of_passengers|as_crispy_field }}
+      <div data-ng-show="car_status == 'own' || car_status == 'rent'" data-ng-cloak>
+        <div class="row">
+          <div class="col-sm-6">
+            {{ lottery_form.number_of_passengers|as_crispy_field }}
+          </div>
+        </div>
+        <div class="alert alert-info">
+          <p><strong>If placed on a trip, you'll be expected to transport other participants.</strong></p>
+          <p>
+            If you're not sure you can drive, or not comfortable driving others, please select "Not driving."
+            This will help us better plan trips.
+          </p>
         </div>
       </div>
+
     </div>
 
     <div class="col-md-6">
