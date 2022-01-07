@@ -184,7 +184,7 @@
 
     {% if user_viewing %}
       {% if wimp %}
-        <h3>This Week's WIMP</h3>
+        <h3>This Week's <a href="{% url 'help-wimp_guide' %}">WIMP</a></h3>
         {% show_wimp wimp %}
         <hr>
       {% endif %}
