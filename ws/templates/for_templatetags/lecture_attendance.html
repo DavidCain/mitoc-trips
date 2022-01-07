@@ -1,11 +1,15 @@
 {% if attended_lectures %}
-  {% if not user_viewing %} {# We don't show users that they've attended. #}
-    <h3>Lecture Attendance</h3>
-    <p>
-      <span class="label label-success">Attended</span>
-      {{ participant.name }} has attended this year's lectures!
-    </p>
-  {% endif %}
+  <h3>Lecture Attendance</h3>
+  <p>
+    <span class="label label-success">Attended</span>
+    {% if user_viewing %}
+      {# (Helps assure participants their submission went through) #}
+      You have
+    {% else %}
+      {{ participant.name }} has
+    {% endif %}
+    attended this year's lectures!
+  </p>
 {% elif can_set_attendance %}  {# User (or chair) can mark attendance. #}
   <form method="post" action="{% url 'lecture_attendance' %}">
     {% csrf_token %}
@@ -38,7 +42,7 @@
       </div>
     </div>
   </form>
-{% else %}  {# Any leader can see that the participant was absent. #}
+{% else %}
   <h3>Lecture Attendance</h3>
     <p>
       <span class="label label-danger">Absent</span>

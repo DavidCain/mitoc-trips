@@ -2,7 +2,7 @@ from bs4 import BeautifulSoup
 from django.template import Context, Template
 from freezegun import freeze_time
 
-from ws.tests import TestCase, factories
+from ws.tests import TestCase, factories, strip_whitespace
 
 
 class AttendanceTest(TestCase):
@@ -111,21 +111,38 @@ class AttendanceTest(TestCase):
 
     @freeze_time("Jan 12 2019 20:30:00 EST")
     def test_self_has_attended(self):
-        """We show nothing when participants have signed in and it's WS."""
+        """We affirm that participants have attended lectures during the first week!"""
         participant = factories.ParticipantFactory.create()
         factories.LectureAttendanceFactory.create(participant=participant, year=2019)
+
         html_template = Template(
             '{% load ws_tags %}{% lecture_attendance par user_viewing can_set %}'
         )
+        base_context = {'par': participant, 'user_viewing': True}
 
-        # Does not matter if able to set or not - we have nothing to display
-        self.assertFalse(
-            html_template.render(
-                Context({'par': participant, 'user_viewing': True, 'can_set': True})
-            ).strip()
+        html = html_template.render(Context({**base_context, 'can_set': True}))
+        paragraph = BeautifulSoup(html, 'html.parser').find('p')
+        self.assertEqual(
+            strip_whitespace(paragraph.text),
+            "Attended You have attended this year's lectures!",
         )
-        self.assertFalse(
-            html_template.render(
-                Context({'par': participant, 'user_viewing': True, 'can_set': False})
-            ).strip()
+
+        # We tell the participant they've attended (whether or not the form is open)
+        self.assertEqual(
+            html_template.render(Context({**base_context, 'can_set': False})),
+            html_template.render(Context({**base_context, 'can_set': True})),
+        )
+
+    @freeze_time("Jan 6 2022 20:00:00 EST")
+    def test_self_missing_lecture_attendance(self):
+        """We warn participants who are missing lecture attendance."""
+        participant = factories.ParticipantFactory.create()
+        html_template = Template(
+            '{% load ws_tags %}{% lecture_attendance par user_viewing %}'
+        )
+        context = Context({'par': participant, 'user_viewing': True})
+        soup = BeautifulSoup(html_template.render(context), 'html.parser')
+        self.assertEqual(
+            strip_whitespace(soup.find('p').text),
+            "Absent You did not attend this year's lectures!",
         )

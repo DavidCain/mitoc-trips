@@ -6,6 +6,7 @@ user who has completed the mandatory signup information is given a Participant
 object that's linked to their user account.
 """
 import logging
+from typing import Dict, List, Optional
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -337,11 +338,11 @@ class ParticipantView(
         }
 
     @staticmethod
-    def get_stats(trips):
+    def get_stats(trips) -> List[str]:
         if not any(trips['past'].values()):
             return []
 
-        def count(key):
+        def count(key) -> str:
             num = len(trips['past'][key])
             plural = '' if num == 1 else 's'
             return f"{num} trip{plural}"
@@ -357,52 +358,70 @@ class ParticipantView(
 
         return stats
 
+    def _lecture_info(self, participant, user_viewing: bool) -> Dict[str, bool]:
+        """Describe the participant's lecture attendance, if applicable."""
+        can_set_attendance = self.can_set_attendance(participant)
+
+        # There are only *two* times of year where it's important to show "yes, you attended"
+        # 1. The enrollment period where participants can record attendance (2nd lecture)
+        # 2. The first week of WS, after lectures but before weekend trips
+        #    (this is when participants may not have recorded attendance correctly)
+        #    In later weeks, we'll enforce lecture attendance as part of trip signup.
+        show_attendance = date_utils.is_currently_iap() and (
+            can_set_attendance or date_utils.ws_lectures_complete()
+        )
+
+        if show_attendance:
+            attended_lectures = participant.attended_lectures(date_utils.ws_year())
+
+            # We don't need to tell participants "You attended lectures!" later in WS.
+            # This is because signup rules enforce lecture attendance *after* week 1.
+            if user_viewing and models.Trip.objects.filter(
+                program=enums.Program.WINTER_SCHOOL.value,
+                trip_date__gte=date_utils.jan_1(),
+                trip_date__lt=date_utils.local_date(),
+            ):
+                show_attendance = False
+        else:  # Skip unnecessary db queries
+            attended_lectures = False  # Maybe they actually did, but we're not showing.
+
+        return {
+            'can_set_attendance': can_set_attendance,
+            'show_attendance': show_attendance,
+            'attended_lectures': attended_lectures,
+        }
+
     def get_context_data(self, **kwargs):
         participant = self.object = self.get_object()
-        user_viewing = self.request.participant == participant
-
-        context = super().get_context_data(**kwargs)
-
-        can_set_attendance = self.can_set_attendance(participant)
-        context['can_set_attendance'] = can_set_attendance
-        context['show_attendance'] = date_utils.is_currently_iap() and (
-            date_utils.ws_lectures_complete() or can_set_attendance
-        )
-        if can_set_attendance:
-            context['attended_lectures'] = models.LectureAttendance.objects.filter(
-                participant=participant, year=date_utils.ws_year()
-            ).exists()
-
-        context['user_viewing'] = user_viewing
-        if user_viewing:
-            user = self.request.user
-        else:
-            user = participant.user
-        context['par_user'] = user
-
-        context['trips'] = trips = self.get_trips()
-        context['stats'] = self.get_stats(trips)
+        trips = self.get_trips()
 
         e_info = participant.emergency_info
         e_contact = e_info.emergency_contact
-        context['emergency_info_form'] = forms.EmergencyInfoForm(instance=e_info)
-        context['emergency_contact_form'] = forms.EmergencyContactForm(
-            instance=e_contact
-        )
-        context['participant'] = participant
-        if not user_viewing:
-            feedback = participant.feedback_set.select_related('trip', 'leader')
-            feedback = feedback.prefetch_related('leader__leaderrating_set')
-            context['all_feedback'] = feedback
-        context['ratings'] = participant.ratings(must_be_active=True)
+        user_viewing = self.request.participant == participant
 
-        if participant.car:
-            context['car_form'] = forms.CarForm(instance=participant.car)
-        context['wimp'] = self.wimp
+        context = {
+            **super().get_context_data(**kwargs),
+            **self._lecture_info(participant, user_viewing),
+            'car_form': participant.car and forms.CarForm(instance=participant.car),
+            'emergency_contact_form': forms.EmergencyContactForm(instance=e_contact),
+            'emergency_info_form': forms.EmergencyInfoForm(instance=e_info),
+            'participant': participant,
+            'ratings': participant.ratings(must_be_active=True),
+            'stats': self.get_stats(trips),
+            'trips': trips,
+            'user_viewing': user_viewing,
+            'wimp': self.wimp,
+        }
+
+        if not user_viewing:
+            context['all_feedback'] = participant.feedback_set.select_related(
+                'trip', 'leader'
+            ).prefetch_related('leader__leaderrating_set')
+
         return context
 
     @property
-    def wimp(self):
+    def wimp(self) -> Optional[models.Participant]:
         """Return the current WIMP, if there is one & it's appropriate to display them."""
         participant = self.object
 

@@ -56,6 +56,102 @@ class LandingPageTests(TestCase):
         self.assertEqual(list(response.context['recent_trips']), ten_past_trips[:6])
 
 
+# NOTE: See test_ws_tags.py for direct testing of the templatetag too
+class LectureAttendanceTests(TestCase):
+    def setUp(self):
+        super().setUp()
+        self.participant = factories.ParticipantFactory.create()
+        self.client.force_login(self.participant.user)
+
+    @staticmethod
+    def _allow_setting_attendance(allow=True):
+        ws_settings = models.WinterSchoolSettings.load()
+        ws_settings.allow_setting_attendance = allow
+        ws_settings.save()
+
+    def test_success_is_shown_in_week_one(self):
+        """We show participants that yes, they did in fact attend lectures.
+
+        Participants have been confused if they submitted their attendance, then
+        refreshed the page and saw no indicator that their attendance was recorded.
+        """
+        self._allow_setting_attendance()
+        factories.LectureAttendanceFactory.create(
+            participant=self.participant, year=2022
+        )
+
+        with freeze_time("Jan 6 2022 20:00:00 EST"):
+            resp = self.client.get('/')
+        soup = BeautifulSoup(resp.content, 'html.parser')
+        attendance = soup.find('h3', text='Lecture Attendance')
+        self.assertEqual(
+            strip_whitespace(attendance.find_next('p').text),
+            "Attended You have attended this year's lectures!",
+        )
+
+    def test_warn_if_missing_after_lectures(self):
+        """If lectures have ended, we warn participants without attendance."""
+        factories.LectureAttendanceFactory.create(
+            participant=self.participant, year=2022
+        )
+        # Participants cannot set attendance; that time has passed.
+        self._allow_setting_attendance(False)
+
+        # A future WS trip exists, which is a strong clue: it must be first week of WS
+        with freeze_time("2022-01-04 12:00:00 EST"):
+            factories.TripFactory(
+                trip_date=date(2022, 1, 8),
+                program=enums.Program.WINTER_SCHOOL.value,
+            )
+
+        # It's after 9 pm on Thursday (with future WS trips). Must be lecture day.
+        with freeze_time("2022-01-06 22:00:00 EST"):
+            resp = self.client.get('/')
+
+        # This participant did not record their attendance!
+        soup = BeautifulSoup(resp.content, 'html.parser')
+        attendance = soup.find('h3', text='Lecture Attendance')
+        self.assertEqual(
+            strip_whitespace(attendance.find_next('p').text),
+            "Attended You have attended this year's lectures!",
+        )
+
+    def test_attendance_not_shown_in_week_two(self):
+        """We don't tell participants that they attended lectures after the first week."""
+        factories.LectureAttendanceFactory.create(
+            participant=self.participant, year=2022
+        )
+
+        # We created a trip for Saturday in the first weekend
+        with freeze_time("2022-01-04 12:00:00 EST"):
+            factories.TripFactory(
+                trip_date=date(2022, 1, 8),
+                program=enums.Program.WINTER_SCHOOL.value,
+            )
+
+        # It's Monday *after* the first week's trips.
+        # It's possible that no new future trips exist.
+        with freeze_time("2022-01-10 22:00:00 EST"):
+            resp = self.client.get('/')
+
+        # Because the participant *did* attend lectures, we don't take up space telling them that
+        soup = BeautifulSoup(resp.content, 'html.parser')
+        self.assertFalse(soup.find('h3', text='Lecture Attendance'))
+
+    def test_attendance_not_shown_outside_winter_school(self):
+        """We don't tell participants that they attended lectures, outside WS at least."""
+        factories.LectureAttendanceFactory.create(
+            participant=self.participant, year=2022
+        )
+        # We even account for the possibility that WS chairs left the setting on.
+        self._allow_setting_attendance()
+
+        with freeze_time("Feb 15 2022 12:00:00 EST"):
+            resp = self.client.get('/')
+        soup = BeautifulSoup(resp.content, 'html.parser')
+        self.assertFalse(soup.find('h3', text='Lecture Attendance'))
+
+
 class ProfileViewTests(TestCase):
     def test_dated_affiliation_redirect(self):
         # Make a participant with a legacy affiliation

@@ -131,7 +131,7 @@ def closest_wed_at_noon():
 def is_currently_iap() -> bool:
     """Returns if it's currently MIT's "Independent Activities Period"
 
-    Winter School takes place during IAP each year. This (extremely opproximate!) method
+    Winter School takes place during IAP each year. This (extremely approximate!) method
     is used to infer if it's roughly the time of year that Winter School takes place. We
     use it to give warnings about lottery preferences or other things that only make
     sense during IAP.
@@ -179,7 +179,7 @@ def default_signups_close_at():
     return late_at_night(trip_date - timedelta(days=1))
 
 
-def ws_lectures_complete():
+def ws_lectures_complete() -> bool:
     """Return if the mandatory first two lectures have occurred.
 
     Because IAP varies every year, use traits of the first week of Winter
@@ -189,11 +189,17 @@ def ws_lectures_complete():
     the first week, and lectures have completed. If it's at least Thursday
     night and there are future trips, we can deduce that lectures have ended.
     """
+    # Avoid hitting the database if we don't need to.
+    # The first week of Winter School always, always, is in early January.
+    if not is_currently_iap():
+        return False
+
     now = local_now()
     today = now.date()
-    # TODO: This is cyclic, refactor.
+
     trips_this_ws = models.Trip.objects.filter(
-        trip_date__gte=jan_1(), program=enums.Program.WINTER_SCHOOL.value
+        trip_date__gte=jan_1(),
+        program=enums.Program.WINTER_SCHOOL.value,
     )
 
     dow = now.weekday()

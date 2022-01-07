@@ -472,10 +472,10 @@ class Participant(models.Model):
         except cls.DoesNotExist:
             return None
 
-    def attended_lectures(self, year):
+    def attended_lectures(self, year: int) -> bool:
         return self.lectureattendance_set.filter(year=year).exists()
 
-    def missed_lectures(self, year):
+    def missed_lectures(self, year: int) -> bool:
         """Whether the participant missed WS lectures in the given year."""
         if year < 2016:
             return False  # We lack records for 2014 & 2015; assume present
@@ -484,7 +484,7 @@ class Participant(models.Model):
 
         return not self.attended_lectures(year)
 
-    def missed_lectures_for(self, trip):
+    def missed_lectures_for(self, trip) -> bool:
         """Should we regard the participant as having missed lectures for this trip.
 
         This only applies to WS trips - all other trips will return False.

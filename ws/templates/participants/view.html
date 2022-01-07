@@ -79,7 +79,7 @@
             </h1>
 
             <div class="leader-titles">
-              {% for activity_enum in par_user|chair_activities:False %}
+              {% for activity_enum in participant.user|chair_activities:False %}
                 <h4>{{ activity_enum.label }} Chair</h4>
               {% endfor %}
               {% for rating in ratings %}
@@ -203,13 +203,13 @@
     <div class="row">
       <div class="col-md-12 col-sm-6">
         <membership-status
-          user-id="{{ par_user.id }}"
+          user-id="{{ participant.user_id }}"
           v-bind:personalized="{{ user_viewing|yesno:"true,false" }}"
           v-bind:just-signed="{{ just_signed|yesno:"true,false" }}">
         </membership-status>
       </div>
       <div class="col-md-12 col-sm-6">
-        <outstanding-rentals data-user-id="{{ par_user.id }}">
+        <outstanding-rentals data-user-id="{{ participant.user_id }}">
         </outstanding-rentals>
       </div>
     </div>
@@ -233,7 +233,7 @@
           </h3>
 
           <ul class="list-unstyled">
-            {% for emailaddress in par_user.emailaddress_set.all %}
+            {% for emailaddress in participant.user.emailaddress_set.all %}
               <li>
                 {{ emailaddress.email }}
                 {% if not emailaddress.verified %}

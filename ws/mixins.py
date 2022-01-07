@@ -3,6 +3,7 @@ Mixins used across multiple views.
 """
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
+from django.http import HttpRequest
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views.generic import View
@@ -49,7 +50,10 @@ class LotteryPairingMixin:
 class LectureAttendanceMixin:
     """Manage the participant's lecture attendance."""
 
-    def can_set_attendance(self, participant):
+    request: HttpRequest
+
+    def can_set_attendance(self, participant_to_modify) -> bool:
+        """Return if the requesting user can set the participant's WS attendance."""
         # WS chairs can set any time for any user
         if perm_utils.is_chair(self.request.user, enums.Activity.WINTER_SCHOOL, True):
             return True
@@ -62,7 +66,7 @@ class LectureAttendanceMixin:
             return False
 
         # Non-chairs may only set attendance for themselves
-        return participant == self.request.participant
+        return participant_to_modify.user_id == self.request.user.id
 
 
 class TripLeadersOnlyView(View):
