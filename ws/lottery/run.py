@@ -3,7 +3,8 @@ import json
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Dict
+from types import MappingProxyType
+from typing import Dict, Mapping, Optional
 
 from mitoc_const import affiliations
 
@@ -15,11 +16,14 @@ from ws.lottery.handle import (
 from ws.lottery.rank import SingleTripParticipantRanker, WinterSchoolParticipantRanker
 from ws.utils.dates import closest_wed_at_noon, local_now
 
-AFFILIATION_MAPPING = {
-    # Excludes the deprecated student code, since new members don't have that
-    aff.CODE: aff.VALUE
-    for aff in affiliations.ALL
-}
+# Map two-letter codes to a human-readable label
+AFFILIATION_MAPPING: Mapping[str, str] = MappingProxyType(
+    {
+        # Excludes the deprecated student code, since new members don't have that
+        aff.CODE: aff.VALUE
+        for aff in affiliations.ALL
+    }
+)
 
 
 class LotteryRunner:
@@ -48,14 +52,15 @@ class LotteryRunner:
     def seen(self, participant) -> bool:
         return self._participants_seen.get(participant.pk, False)
 
-    def mark_handled(self, participant, handled=True):
+    def mark_handled(self, participant, handled=True) -> None:
         self._participants_handled[participant.pk] = handled
 
-    def mark_seen(self, participant, seen=True):
+    def mark_seen(self, participant, seen=True) -> None:
         self._participants_seen[participant.pk] = seen
 
-    @staticmethod
-    def signup_to_bump(trip):
+    def signup_to_bump(  # pylint: disable=no-self-use
+        self, trip
+    ) -> Optional[models.SignUp]:
         """Which participant to bump off the trip if another needs a place.
 
         By default, just goes with the last-ordered participant.
@@ -80,7 +85,7 @@ class SingleTripLotteryRunner(LotteryRunner):
         """Get a constant logger identifier for each trip."""
         return f"{__name__}.trip.{self.trip.pk}"
 
-    def configure_logger(self):
+    def configure_logger(self) -> None:
         """Configure a stream to save the log to the trip."""
         self.log_stream = io.StringIO()
 
@@ -88,14 +93,14 @@ class SingleTripLotteryRunner(LotteryRunner):
         self.handler.setLevel(logging.DEBUG)
         self.logger.addHandler(self.handler)
 
-    def _make_fcfs(self):
+    def _make_fcfs(self) -> None:
         """After lottery execution, mark the trip FCFS & write out the log."""
         self.trip.algorithm = 'fcfs'
         self.trip.lottery_log = self.log_stream.getvalue()
         self.log_stream.close()
         self.trip.save()
 
-    def __call__(self):
+    def __call__(self) -> None:
         if self.trip.algorithm != 'lottery':
             self.log_stream.close()
             return
@@ -124,13 +129,13 @@ class SingleTripLotteryRunner(LotteryRunner):
 
 
 class WinterSchoolLotteryRunner(LotteryRunner):
-    def __init__(self, execution_datetime=None):
+    def __init__(self, execution_datetime: Optional[datetime] = None):
         self.execution_datetime = execution_datetime or local_now()
         self.ranker = WinterSchoolParticipantRanker(self.execution_datetime)
         super().__init__()
         self.configure_logger()
 
-    def configure_logger(self):
+    def configure_logger(self) -> None:
         """Configure a stream to save the log to the trip."""
         datestring = datetime.strftime(local_now(), "%Y-%m-%dT:%H:%M:%S")
         filename = Path(settings.WS_LOTTERY_LOG_DIR, f"ws_{datestring}.log")
@@ -138,7 +143,7 @@ class WinterSchoolLotteryRunner(LotteryRunner):
         self.handler.setLevel(logging.DEBUG)
         self.logger.addHandler(self.handler)
 
-    def __call__(self):
+    def __call__(self) -> None:
         self.logger.info(
             "Running the Winter School lottery for %s", self.execution_datetime
         )
@@ -146,7 +151,7 @@ class WinterSchoolLotteryRunner(LotteryRunner):
         self.free_for_all()
         self.handler.close()
 
-    def free_for_all(self):
+    def free_for_all(self) -> None:
         """Make trips first-come, first-serve.
 
         Trips re-open Wednesday at noon, close at midnight on Thursday.
@@ -158,10 +163,10 @@ class WinterSchoolLotteryRunner(LotteryRunner):
             trip.make_fcfs(signups_open_at=noon)
             trip.save()
 
-    def signup_to_bump(self, trip):
+    def signup_to_bump(self, trip) -> Optional[models.SignUp]:
         return self.ranker.lowest_non_driver(trip)
 
-    def assign_trips(self):
+    def assign_trips(self) -> None:
         num_participants = self.ranker.participants_to_handle().count()
         self.logger.info(
             "%s participants signed up for trips this week", num_participants

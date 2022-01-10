@@ -1,8 +1,9 @@
 import random
-from collections import namedtuple
-from datetime import timedelta
+from datetime import datetime, timedelta
+from types import MappingProxyType
+from typing import Dict, Mapping, NamedTuple, Optional, Set
 
-from django.db.models import Q
+from django.db.models import Q, QuerySet
 from mitoc_const import affiliations
 
 from ws import enums, models, settings
@@ -10,7 +11,7 @@ from ws.utils.dates import local_now
 
 from . import annotate_reciprocally_paired
 
-WEIGHTS = {
+_normal_weights: Dict[str, float] = {
     affiliations.MIT_UNDERGRAD.CODE: 0.3,
     affiliations.MIT_GRAD_STUDENT.CODE: 0.2,
     affiliations.MIT_AFFILIATE.CODE: 0.1,
@@ -19,15 +20,20 @@ WEIGHTS = {
     affiliations.NON_MIT_GRAD_STUDENT.CODE: 0.0,
     affiliations.NON_AFFILIATE.CODE: 0.0,
 }
-assert set(WEIGHTS) == {aff.CODE for aff in affiliations.ALL}
+assert set(_normal_weights) == {aff.CODE for aff in affiliations.ALL}
 
-# Old, deprecated status codes
-WEIGHTS['M'] = WEIGHTS[affiliations.MIT_AFFILIATE.CODE]
-WEIGHTS['N'] = WEIGHTS[affiliations.NON_AFFILIATE.CODE]
-WEIGHTS['S'] = 0.0
+WEIGHTS: Mapping[str, float] = MappingProxyType(
+    {
+        **_normal_weights,
+        # Old, deprecated status codes
+        'M': _normal_weights[affiliations.MIT_AFFILIATE.CODE],
+        'N': _normal_weights[affiliations.NON_AFFILIATE.CODE],
+        'S': 0.0,
+    }
+)
 
 
-def seed_for(participant, lottery_key):
+def seed_for(participant: models.Participant, lottery_key: str) -> str:
     """Return a seed to deterministically fetch pseudo-random numbers.
 
     We want participants to be ranked based on (mostly) random criteria, but we
@@ -72,7 +78,9 @@ def seed_for(participant, lottery_key):
     return f"{participant.pk}-{lottery_key}-{settings.PRNG_SEED_SECRET}"
 
 
-def affiliation_weighted_rand(participant, lottery_key):
+def affiliation_weighted_rand(
+    participant: models.Participant, lottery_key: str
+) -> float:
     """Return a float that's meant to rank participants by affiliation.
 
     A lower number is a "preferable" affiliation. That is to say, ranking
@@ -111,28 +119,46 @@ class ParticipantRanker:
 
 
 class SingleTripParticipantRanker(ParticipantRanker):
-    def __init__(self, trip):
+    def __init__(self, trip: models.Trip):
         self.trip = trip
 
-    def priority_key(self, participant):
+    def priority_key(self, participant) -> float:
         lottery_key = f"trip-{self.trip.pk}"
         return affiliation_weighted_rand(participant, lottery_key)
 
-    def participants_to_handle(self):
+    def participants_to_handle(self) -> QuerySet[models.Participant]:
         return models.Participant.objects.filter(signup__trip=self.trip)
 
 
-TripCounts = namedtuple('TripCounts', ['attended', 'flaked', 'total'])
+class TripCounts(NamedTuple):
+    """Counts of past Winter School trips a participant attended this year."""
+
+    attended: int
+    flaked: int
+    total: int
 
 
-WinterSchoolPriorityRank = namedtuple(
-    'WinterSchoolPriorityRank',
-    ['adjustment', 'flake_factor', 'leader_bump', 'affiliation_weight'],
-)
+class WinterSchoolPriorityRank(NamedTuple):
+    """An ordered list of factors for identifying a participant's rank, or lottery number.
+
+    Ties are resolved by going to the next ordered ranking factor.
+    """
+
+    # A manual adjustment to put the participant early or later in ranking
+    adjustment: int
+
+    # Flakiness: normally zero, but can be higher if flaking on multiple trips
+    flake_factor: int
+
+    # Active leaders get to choose their trips earlier
+    leader_bump: int
+
+    # MIT affiliates get top priarity
+    affiliation_weight: float
 
 
 class WinterSchoolParticipantRanker(ParticipantRanker):
-    def __init__(self, execution_datetime=None):
+    def __init__(self, execution_datetime: Optional[datetime] = None):
         # It's important that we be able to simulate the future time with `execution_datetime`
         # If test-running the lottery in advance, we want the same ranking to be used later
         self.lottery_runtime = execution_datetime or local_now()
@@ -141,7 +167,9 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
         self.jan_1st = self.today.replace(month=1, day=1)
         self.lottery_key = f"ws-{today.isoformat()}"
 
-    def get_rank_override(self, participant):
+    def get_rank_override(self, participant: models.Participant) -> int:
+        """Return any present rank overrides. For 99% of people, returns 0."""
+        # TODO: Use a cleaner memoization pattern, lru_cache maybe.
         if not hasattr(self, 'adjustments_by_participant'):
             adjustments = models.LotteryAdjustment.objects.filter(
                 expires__gt=self.lottery_runtime
@@ -151,7 +179,7 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
             )
         return self.adjustments_by_participant.get(participant.pk, 0)
 
-    def participants_to_handle(self):
+    def participants_to_handle(self) -> QuerySet[models.Participant]:
         # For simplicity, only look at participants who actually have signups
         return models.Participant.objects.filter(
             signup__trip__trip_date__gt=self.today,
@@ -159,11 +187,11 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
             signup__trip__program=enums.Program.WINTER_SCHOOL.value,
         ).distinct()
 
-    def priority_key(self, participant):
+    def priority_key(self, participant) -> WinterSchoolPriorityRank:
         """Rank participants by:
 
         1. Manual overrides (rare, should not apply for >99% of participants)
-        2. flakiness (having flaked with offsetting attendence -> lower priority)
+        2. flakiness (having flaked, even w/ offsetting attendance, -> lower priority)
         3. leader activity (active leaders get a boost in the lottery)
         4. affiliation (MIT affiliated is higher priority)
         5. randomness (factored into an affiliation weighting, breaks ties)
@@ -184,10 +212,13 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
 
         # Lower = higher in the list
         return WinterSchoolPriorityRank(
-            override, flaky_or_neutral, leader_bump, affiliation_weight
+            override,
+            flaky_or_neutral,
+            leader_bump,
+            affiliation_weight,
         )
 
-    def flake_factor(self, participant):
+    def flake_factor(self, participant: models.Participant) -> int:
         """Return a number indicating past "flakiness".
 
         A lower score indicates a more reliable participant.
@@ -196,9 +227,9 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
         return (flaked * 5) - (2 * attended)
 
     @staticmethod
-    def trips_flaked(participant):
-        """Return a QuerySet of trip pk's on which the participant flaked."""
-        return (
+    def trips_flaked(participant: models.Participant) -> Set[int]:
+        """Return the IDs of trips the participant has flaked on."""
+        return set(
             participant.feedback_set.filter(
                 showed_up=False, trip__program=enums.Program.WINTER_SCHOOL.value
             )
@@ -206,7 +237,7 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
             .distinct()
         )
 
-    def number_trips_led(self, participant):
+    def number_trips_led(self, participant: models.Participant) -> int:
         """Return the number of trips the participant has recently led.
 
         (If we considered all the trips the participant has ever led,
@@ -217,7 +248,7 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
         within_last_year = Q(trip_date__gt=last_year, trip_date__lt=self.today)
         return participant.trips_led.filter(within_last_year).count()
 
-    def number_ws_trips(self, participant):
+    def number_ws_trips(self, participant: models.Participant) -> TripCounts:
         """Count trips the participant attended, flaked, and the total.
 
         More specifically, this returns the total number of trips where the participant
@@ -235,7 +266,7 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
             .filter(trip_date__gt=self.jan_1st, trip_date__lt=self.today)
             .values_list('pk', flat=True)
         )
-        flaked = set(self.trips_flaked(participant))
+        flaked = self.trips_flaked(participant)
 
         # Some leaders mark flakes, but don't remove participants
         # To calculate total, we can't double-count trips
@@ -244,13 +275,13 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
 
         return TripCounts(len(attended), len(flaked), len(total))
 
-    def trips_led_balance(self, participant):
+    def trips_led_balance(self, participant: models.Participant) -> int:
         """Especially active leaders get priority."""
         _, _, total = self.number_ws_trips(participant)
         surplus = self.number_trips_led(participant) - total
         return max(surplus, 0)  # Don't penalize anybody for a negative balance
 
-    def lowest_non_driver(self, trip):
+    def lowest_non_driver(self, trip: models.Trip) -> Optional[models.SignUp]:
         """Return the lowest priority non-driver on the trip."""
         no_car = Q(participant__lotteryinfo__isnull=True) | Q(
             participant__lotteryinfo__car_status='none'
@@ -263,5 +294,6 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
             return None
 
         return max(
-            non_drivers, key=lambda signup: self.priority_key(signup.participant)
+            non_drivers,
+            key=lambda signup: self.priority_key(signup.participant),
         )
