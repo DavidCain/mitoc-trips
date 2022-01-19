@@ -281,6 +281,15 @@ class CreateTripView(CreateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['is_currently_iap'] = is_currently_iap()
+
+        # There is separate logic for determining if we allow choosing the WS program.
+        # Rather than duplicate that logic here, just see if it's a selectable choice.
+        form: forms.TripForm = context['form']
+        context['can_select_ws_program'] = any(
+            enums.Program(value) == enums.Program.WINTER_SCHOOL
+            for category, choices in form.fields['program'].choices
+            for value, label in choices
+        )
         return context
 
     @method_decorator(group_required('leaders'))

@@ -177,6 +177,23 @@ class CreateTripViewTest(TestCase, Helpers):
             [program.value for program in enums.Program],
         )
 
+    @freeze_time("2022-01-24 12:25:00 EST")
+    def test_winter_school_is_default_during_iap(self):
+        """For simplicity, we assume that new trips in IAP are in the WS program."""
+        leader = factories.ParticipantFactory.create()
+        factories.LeaderRatingFactory.create(
+            participant=leader, activity=models.LeaderRating.WINTER_SCHOOL
+        )
+        self.client.force_login(leader.user)
+        _resp, soup = self._get('/trips/create/')
+        select = soup.find('select', attrs={'name': 'program'})
+        self.assertEqual(
+            [opt.text for opt in select.find_all('option')],
+            ['Winter School', 'Winter (outside IAP)', 'Circus', 'Service', 'None'],
+        )
+        ws_option = select.find('option', value=enums.Program.WINTER_SCHOOL.value)
+        self.assertIn('selected', ws_option.attrs)
+
     @freeze_time("2019-12-15 12:25:00 EST")
     def test_winter_school_not_available_outside_iap(self):
         """Normal trip leaders can only make normal winter trips outside IAP."""
@@ -186,9 +203,12 @@ class CreateTripViewTest(TestCase, Helpers):
         )
         self.client.force_login(leader.user)
         _resp, soup = self._get('/trips/create/')
-        options = soup.find('select', attrs={'name': 'program'}).find_all('option')
-        programs = [opt['value'] for opt in options]
-        self.assertIn(enums.Program.WINTER_NON_IAP.value, programs)
+        select = soup.find('select', attrs={'name': 'program'})
+
+        winter_option = select.find('option', value=enums.Program.WINTER_NON_IAP.value)
+        self.assertIn('selected', winter_option.attrs)
+
+        programs = [opt['value'] for opt in select.find_all('option')]
         self.assertNotIn(enums.Program.WINTER_SCHOOL.value, programs)
 
     def test_creation(self):
@@ -264,6 +284,31 @@ class EditTripViewTest(TestCase, Helpers):
         _edit_resp, soup = self._get(f'/trips/{trip.pk}/edit/')
         self.assertTrue(soup.find('h2', text='Must be a leader to administrate trip'))
         self.assertFalse(soup.find('form'))
+
+    @freeze_time("2022-01-15 12:25:00 EST")
+    def test_editing_non_ws_trip_during_iap(self):
+        """Existing trips, which are not WS, don't have the program enum changed.
+
+        This test ensures that we don't accidentally change an existing trip's program,
+        due to logic which is meant to default a *new* trip to being WS during IAP.
+        """
+        leader = factories.ParticipantFactory.create()
+        self.client.force_login(leader.user)
+        factories.LeaderRatingFactory.create(
+            participant=leader, activity=models.LeaderRating.WINTER_SCHOOL
+        )
+        trip = factories.TripFactory.create(
+            creator=leader, program=enums.Program.NONE.value
+        )
+        trip.leaders.add(leader)
+        _edit_resp, soup = self._get(f'/trips/{trip.pk}/edit/')
+
+        select = soup.find('select', attrs={'name': 'program'})
+        # WS is given as an *option* for this trip, but not selected
+        self.assertIn('Winter School', [opt.text for opt in select.find_all('option')])
+        # The existing trip's program is selected
+        ws_option = select.find('option', value=enums.Program.NONE.value)
+        self.assertIn('selected', ws_option.attrs)
 
     def test_editing(self):
         user = factories.UserFactory.create(email='leader@example.com')

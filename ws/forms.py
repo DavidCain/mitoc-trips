@@ -8,7 +8,7 @@ from mitoc_const import affiliations
 
 from ws import enums, models, widgets
 from ws.membership import MERCHANT_ID, PAYMENT_TYPE
-from ws.utils.dates import nearest_sat
+from ws.utils.dates import is_currently_iap, nearest_sat
 from ws.utils.signups import non_trip_participants
 
 
@@ -421,6 +421,8 @@ class TripForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         allowed_programs = kwargs.pop("allowed_programs", None)
         super().__init__(*args, **kwargs)
+        trip = self.instance
+
         # Use the participant queryset to cover an edge case:
         # editing an old trip where one of the leaders is no longer a leader!
         self.fields['leaders'].queryset = models.Participant.objects.get_queryset()
@@ -434,19 +436,27 @@ class TripForm(forms.ModelForm):
             program_enum and program_enum.winter_rules_apply()
         )
 
+        initial_program: Optional[enums.Program] = trip.pk and trip.program_enum
+
         if allowed_programs is not None:
             self.fields['program'].choices = list(
                 self._allowed_program_choices(allowed_programs)
             )
+
+            # If it's currently WS, the WS program is almost certainly what's desired for new trips.
+            if (
+                enums.Program.WINTER_SCHOOL in allowed_programs
+                and is_currently_iap()
+                and not trip.pk
+            ):
+                initial_program = enums.Program.WINTER_SCHOOL
 
         self._init_wimp()
 
         # (No need for `ng-init`, we have a custom directive)
         self.fields['leaders'].widget.attrs['data-ng-model'] = 'leaders'
 
-        trip = self.instance
-
-        _bind_input(self, 'program', initial=trip and trip.program)
+        _bind_input(self, 'program', initial=initial_program and initial_program.value)
         _bind_input(self, 'algorithm', initial=trip and trip.algorithm)
         _bind_input(self, 'trip_date', initial=trip and str(trip.trip_date))
 

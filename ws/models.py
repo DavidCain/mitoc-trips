@@ -1,5 +1,5 @@
 from datetime import date, datetime, timedelta
-from typing import Dict, List, Optional, Tuple, Type, Union
+from typing import Dict, Iterator, List, Optional, Tuple, Type, Union
 from urllib.parse import urlencode
 
 from allauth.account.models import EmailAddress
@@ -626,7 +626,7 @@ class Participant(models.Model):
         return max(ratings, key=lambda rating: rating.time_created).rating
 
     @property
-    def allowed_programs(self):
+    def allowed_programs(self) -> Iterator[enums.Program]:
         """Yield all programs which this participant can currently lead."""
         active_ratings = self.leaderrating_set.filter(active=True)
         rated_activities = active_ratings.values_list('activity', flat=True)
