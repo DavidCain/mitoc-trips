@@ -1076,8 +1076,8 @@ class Trip(models.Model):
             SignUp.objects.filter(on_trip=True, participant_id__in=par_pks)
             .exclude(trip=self)
             .filter(trip__trip_date__range=self._within_three_days)
-            # Manual hack for weekend 1 of WS: don't count the lectures special trip or gear sale
-            .exclude(trip_id__in=[1426, 1440])
+            # Manual hack for weekend 3 of WS: don't count lectures or shuttles
+            .exclude(trip_id__in=[1506, 1476, 1477])
             .select_related('trip')
             .order_by('trip__trip_date')
         )
