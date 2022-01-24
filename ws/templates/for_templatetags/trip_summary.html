@@ -11,6 +11,9 @@
           {% if show_contacts %}<a href="mailto:{{ leader.email }}">{% endif %}
           {{ leader|name_with_rating:trip }}{% if show_contacts %}</a>{% endif %}{% if not forloop.last %}, {% endif %}
         {% endfor %}
+        {% if show_email_box %}
+          <pre style="font-size: 10px" class="wrapped-emails">{% for leader in trip.leaders.all %}{{ leader.email_addr }}{% if not forloop.last %}, {% endif %}{% endfor %}</pre>
+        {% endif %}
       </dd>
     {% else %}
       <dt>Creator</dt>

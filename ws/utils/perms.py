@@ -1,6 +1,7 @@
 import functools
+from typing import Iterable, Union
 
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import AnonymousUser, Group, User
 from django.db.models import QuerySet
 
 from ws import enums
@@ -14,7 +15,7 @@ def all_group_names():
     return set(Group.objects.values_list('name', flat=True))
 
 
-def is_leader(user):
+def is_leader(user: Union[AnonymousUser, User]) -> bool:
     """Return if the user is a trip leader.
 
     Take advantage of the prefetched 'leaders' group for more efficient
@@ -23,7 +24,7 @@ def is_leader(user):
     return in_any_group(user, ['leaders'], allow_superusers=False)
 
 
-def leader_on_trip(participant, trip, creator_allowed=False):
+def leader_on_trip(participant, trip, creator_allowed: bool = False) -> bool:
     """Return if the participant is leading this trip.
 
     Optionally, the trip creator can be included even if they are not
@@ -42,14 +43,20 @@ def chair_group(activity_enum):
     return activity_enum.value + '_chair'
 
 
-def in_any_group(user, group_names, allow_superusers=True):
+def in_any_group(
+    user: Union[AnonymousUser, User],
+    group_names: Iterable[str],
+    allow_superusers: bool = True,
+):
     """Return if the user belongs to any of the passed groups.
 
     Group access control is used a lot in the app, so attempt to
     use groups already present on the `user` object, or a cached list of all
     group names. This will reduce needless queries.
     """
-    if not (user and user.is_authenticated):
+    if not user:  # TODO: I don't think this method ever has a null User called...
+        return False
+    if not user.is_authenticated:
         return False
 
     if allow_superusers and user.is_superuser:
@@ -60,13 +67,17 @@ def in_any_group(user, group_names, allow_superusers=True):
     return any(g in group_names for g in search_groups)
 
 
-def make_chair(user, activity_enum):
+def make_chair(user: User, activity_enum):
     """Make the given user an activity chair!"""
     group_name = chair_group(activity_enum)  # Raises ValueError on invalid activity
     Group.objects.get(name=group_name).user_set.add(user)
 
 
-def is_chair(user, activity_enum, allow_superusers=True):
+def is_chair(
+    user: Union[AnonymousUser, User],
+    activity_enum: enums.Activity,
+    allow_superusers: bool = True,
+) -> bool:
     """Return if the activity has chairs, and the user is one.
 
     If the user is an admin, return True if and only if that activity

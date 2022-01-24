@@ -4,6 +4,7 @@ from django import template
 from django.db.models import Q
 from django.forms import HiddenInput
 
+import ws.utils.perms as perm_utils
 from ws import models
 from ws.enums import Program, TripType
 from ws.forms import SignUpForm
@@ -194,6 +195,11 @@ def signup_table(signups, has_notes=False, show_drivers=False, all_participants=
 def trip_summary(context, trip):
     return {
         'show_contacts': context['user'].is_authenticated,
+        'show_email_box': perm_utils.is_chair(
+            context['user'],
+            trip.required_activity_enum(),
+            allow_superusers=False,
+        ),
         'show_program': trip.program_enum != Program.NONE,
         'show_trip_type': trip.trip_type_enum != TripType.NONE,
         'trip': trip,
