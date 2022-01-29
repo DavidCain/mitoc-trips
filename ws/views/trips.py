@@ -467,8 +467,7 @@ class ApproveTripsView(ListView):
             )
             .select_related('info')
             .prefetch_related('leaders', 'leaders__leaderrating_set')
-            # TODO (Django 2): Be more explicit about nulls last
-            .order_by('trip_date', 'info')
+            .order_by('trip_date', 'trip_type', 'info')
         )
 
     @method_decorator(login_required)
