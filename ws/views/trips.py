@@ -467,7 +467,7 @@ class ApproveTripsView(ListView):
             )
             .select_related('info')
             .prefetch_related('leaders', 'leaders__leaderrating_set')
-            .order_by('trip_date', 'trip_type', 'info')
+            .order_by(*models.Trip.ordering_for_approval)
         )
 
     @method_decorator(login_required)

@@ -146,7 +146,10 @@ class ChairTripView(DetailView):
         (In other words, a trip in the past that may or may not have been
         approved can still be viewed as it would have been for activity chairs)
         """
-        return models.Trip.objects.filter(activity=self.activity)
+        # Order by the same ordering that's given on the "Trips needing approval" table
+        return models.Trip.objects.filter(activity=self.activity).order_by(
+            *models.Trip.ordering_for_approval
+        )
 
     def get_other_trips(self):
         """Get the trips that come before and after this trip & need approval."""

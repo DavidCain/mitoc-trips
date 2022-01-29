@@ -368,17 +368,30 @@ class ChairTripViewTest(TestCase):
         self.assertTrue(soup.find('button', text='Approved!'))
 
     def test_upcoming_trips(self):
-        four = self._make_climbing_trip(trip_date=date(2019, 3, 4), name='four')
-        two = self._make_climbing_trip(trip_date=date(2019, 3, 2), name='two')
-        three = self._make_climbing_trip(trip_date=date(2019, 3, 3), name='three')
-        one = self._make_climbing_trip(trip_date=date(2019, 3, 1), name='one')
+        # Make each of these the same trip type, so we sort just by date
+        four = self._make_climbing_trip(
+            trip_date=date(2019, 3, 4),
+            trip_type=enums.TripType.BOULDERING.value,
+        )
+        two = self._make_climbing_trip(
+            trip_date=date(2019, 3, 2),
+            trip_type=enums.TripType.BOULDERING.value,
+        )
+        three = self._make_climbing_trip(
+            trip_date=date(2019, 3, 3),
+            trip_type=enums.TripType.BOULDERING.value,
+        )
+        one = self._make_climbing_trip(
+            trip_date=date(2019, 3, 1),
+            trip_type=enums.TripType.BOULDERING.value,
+        )
 
         perm_utils.make_chair(self.user, enums.Activity.CLIMBING)
 
-        # "Next" and "previous" are in reverse chronological order!
+        # "Next" and "previous" are in chronological order!
         response = self.client.get(f'/climbing/trips/{two.pk}/')
-        self.assertEqual(response.context['prev_trip'], three)
-        self.assertEqual(response.context['next_trip'], one)
+        self.assertEqual(response.context['prev_trip'], one)
+        self.assertEqual(response.context['next_trip'], three)
 
         # Because we have a next trip, the button to approve it links to "& next"
         soup = BeautifulSoup(response.content, 'html.parser')
@@ -389,17 +402,17 @@ class ChairTripViewTest(TestCase):
         three.chair_approved = True
         three.save()
         response = self.client.get(f'/climbing/trips/{two.pk}/')
-        self.assertEqual(response.context['prev_trip'], four)
-        self.assertEqual(response.context['next_trip'], one)
+        self.assertEqual(response.context['prev_trip'], one)
+        self.assertEqual(response.context['next_trip'], four)
 
         # Finally, approving a trip brings us straight to the page for the next.
         approve_resp = self.client.post(f'/climbing/trips/{two.pk}/')
         self.assertEqual(approve_resp.status_code, 302)
-        self.assertEqual(approve_resp.url, f'/climbing/trips/{one.pk}/')
+        self.assertEqual(approve_resp.url, f'/climbing/trips/{four.pk}/')
 
         # The last trip in the series has no "next" button
         resp = self.client.get(approve_resp.url)
-        self.assertEqual(resp.context['prev_trip'], four)
+        self.assertEqual(resp.context['prev_trip'], one)
         self.assertIsNone(resp.context['next_trip'])
 
     def test_no_navigation_between_old_trips(self):

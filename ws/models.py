@@ -927,6 +927,10 @@ class TripInfo(models.Model):
 
 
 class Trip(models.Model):
+    # When ordering trips which need approval, apply consistent ordering
+    # (Defined here to keep the table's default ordering in sync with prev/next buttons
+    ordering_for_approval: Tuple[str, ...] = ('trip_date', 'trip_type', 'info', 'level')
+
     program = models.CharField(
         max_length=255,
         choices=enums.Program.choices(),
