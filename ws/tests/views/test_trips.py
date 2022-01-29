@@ -443,6 +443,20 @@ class ApproveTripsViewTest(TestCase):
         self.assertEqual(response.context['trips_needing_approval'], [])
         self.assertIsNone(response.context['first_unapproved_trip'])
 
+    def test_level_column(self):
+        """The "level" column only appears for activity chairs."""
+        self._make_climbing_trip(chair_approved=True)
+        perm_utils.make_chair(self.user, enums.Activity.CLIMBING)
+        soup = BeautifulSoup(self.client.get('/climbing/trips/').content, 'html.parser')
+        self.assertFalse(soup.find('th', text='Level'))
+
+        perm_utils.make_chair(self.user, enums.Activity.WINTER_SCHOOL)
+        factories.TripFactory.create(program=enums.Program.WINTER_SCHOOL.value)
+        ws_soup = BeautifulSoup(
+            self.client.get('/winter_school/trips/').content, 'html.parser'
+        )
+        self.assertTrue(ws_soup.find('th', text='Level'))
+
     def test_chair(self):
         self._make_climbing_trip(chair_approved=True)
         unapproved = factories.TripFactory.create(

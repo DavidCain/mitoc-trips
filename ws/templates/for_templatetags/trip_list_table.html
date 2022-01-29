@@ -5,6 +5,9 @@
     <tr>
       <th>Name</th>  {# Link out #}
       <th data-type="numeric" class="nowrap">Date</th>
+      {% if approve_mode and trip_list.0.activity == 'winter_school' %}
+        <th data-hide="phone,tablet" class="nowrap">Level</th>
+      {% endif %}
       <th data-hide="phone,tablet" data-sort-ignore="true">Description</th>
       {% if not approve_mode %}
         <th data-type="numeric" class="nowrap" data-hide="phone">Signups</th>
@@ -37,6 +40,10 @@
             {{ trip.trip_date|date:"D, M j" }}
           {% endif %}
         </td>
+
+        {% if approve_mode and trip.activity == 'winter_school' %}
+          <td>{{ trip.level }}</td>
+        {% endif %}
 
         <td>
             {% if approve_mode %}
