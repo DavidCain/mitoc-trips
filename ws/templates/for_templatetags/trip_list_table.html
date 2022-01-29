@@ -21,22 +21,14 @@
     {% for trip in trip_list %}
       <tr>
         <td>
+          {% trip_icon trip %}
           {% if approve_mode %}
-            {% if trip.info %}
-              <span uib-tooltip="Itinerary submitted">
-                <i class="fas fa-fw fa-check text-success"></i>
-              </span>
-            {% else %}
-              <span uib-tooltip="No itinerary!">
-                <i class="fas fa-fw fa-exclamation-triangle text-danger"></i>
-              </span>
-            {% endif %}
             <a href="{% url 'view_trip_for_approval' trip.activity trip.pk %}">
           {% else %}
-            {% trip_icon trip %}<a href="{% url 'view_trip' trip.pk %}">
-          {% endif  %}
+            <a href="{% url 'view_trip' trip.pk %}">
+          {% endif %}
               {{ trip.name|truncatechars:45 }}
-          </a>
+            </a>
         </td>
         <td class="nowrap" data-value="{{ trip.trip_date|date:'U' }}">
           {% if trip.in_past %}
@@ -47,7 +39,19 @@
         </td>
 
         <td>
-          <strong>{{ trip.difficulty_rating }}</strong> {{ trip.description|truncatechars:50 }}
+            {% if approve_mode %}
+              {% if trip.info %}
+                <span uib-tooltip="Itinerary submitted">
+                  <i class="fas fa-fw fa-check text-success"></i>
+                </span>
+              {% else %}
+                <span uib-tooltip="No itinerary!">
+                  <i class="fas fa-fw fa-exclamation-triangle text-danger"></i>
+                </span>
+              {% endif %}
+            {% endif %}
+            <strong>{{ trip.difficulty_rating }}</strong>
+          {{ trip.description|truncatechars:80 }}
         </td>
 
         {% if not approve_mode %}

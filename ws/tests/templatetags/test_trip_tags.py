@@ -53,10 +53,16 @@ class TripTagsTest(TestCase):
             )
 
         has_itinerary = _ws_trip(
-            date(2019, 1, 11), info=factories.TripInfoFactory.create()
+            date(2019, 1, 11),
+            info=factories.TripInfoFactory.create(),
+            trip_type=enums.TripType.HIKING.value,
         )
-        no_itinerary1 = _ws_trip(date(2019, 1, 11))
-        no_itinerary2 = _ws_trip(date(2019, 1, 11))
+        no_itinerary1 = _ws_trip(
+            date(2019, 1, 11), trip_type=enums.TripType.BC_SKIING.value
+        )
+        no_itinerary2 = _ws_trip(
+            date(2019, 1, 11), trip_type=enums.TripType.ICE_CLIMBING.value
+        )
 
         html_template = Template('{% load trip_tags %}{% trip_list_table trips True %}')
         context = Context({'trips': models.Trip.objects.all().order_by('pk')})
@@ -73,37 +79,26 @@ class TripTagsTest(TestCase):
         trip_info = [
             {
                 'link': row[0].find('a').attrs['href'],
-                'icon_classes': row[0].find('i', class_='fas').attrs['class'],
+                'icon_classes': row[0].find('i').attrs['class'],
             }
             for row in rows
         ]
 
         # For each trip, we give a link to the approve page
-        # We also include an icon indicating if the trip has an itinerary or not
         self.assertEqual(
             trip_info,
             [
                 {
                     'link': f'/winter_school/trips/{has_itinerary.pk}/',
-                    'icon_classes': ['fas', 'fa-fw', 'fa-check', 'text-success'],
+                    'icon_classes': ['fa', 'fa-fw', 'fa-hiking'],
                 },
                 {
                     'link': f'/winter_school/trips/{no_itinerary1.pk}/',
-                    'icon_classes': [
-                        'fas',
-                        'fa-fw',
-                        'fa-exclamation-triangle',
-                        'text-danger',
-                    ],
+                    'icon_classes': ['fa', 'fa-fw', 'fa-skiing'],
                 },
                 {
                     'link': f'/winter_school/trips/{no_itinerary2.pk}/',
-                    'icon_classes': [
-                        'fas',
-                        'fa-fw',
-                        'fa-exclamation-triangle',
-                        'text-danger',
-                    ],
+                    'icon_classes': ['fa', 'fa-fw', 'fa-icicles'],
                 },
             ],
         )
