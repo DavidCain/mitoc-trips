@@ -364,6 +364,71 @@ class TripType(enum.Enum):
     ICE_SKATING = 'ice_skating'
     ULTIMATE = 'ultimate'
 
+    @property
+    def label(self):
+        mapping = {
+            self.BC_SKIING: 'Backcountry skiing',
+            self.BOULDERING: 'Bouldering',
+            self.CANOEING: 'Canoeing',
+            self.GYM_CLIMBING: 'Gym climbing',
+            self.HIKING: 'Hiking',
+            self.ICE_CLIMBING: 'Ice climbing',
+            self.ICE_SKATING: 'Ice skating',
+            self.KAYAKING: 'Kayaking',
+            self.MOUNTAIN_BIKING: 'Mountain biking',
+            self.NONE: 'None, or not applicable',
+            self.OTHER: 'Other',
+            self.RESORT_SKIING: 'Resort skiing',
+            self.ROAD_BIKING: 'Road biking',
+            self.SEA_KAYAKING: 'Sea kayaking',
+            self.SPORT_CLIMBING: 'Sport climbing, top rope',
+            self.SURFING: 'Surfing',
+            self.TRAD_CLIMBING: 'Trad climbing',
+            self.TRAIL_RUNNING: 'Trail running',
+            self.ULTIMATE: 'Ultimate',
+            self.XC_SKIING: 'Cross-country skiing',
+        }
+        return mapping[self]
+
+    @classmethod
+    def _categorized(cls):
+        return {
+            'Biking': [
+                cls.ROAD_BIKING,
+                cls.MOUNTAIN_BIKING,
+            ],
+            'Boating': [
+                cls.CANOEING,
+                cls.KAYAKING,
+                cls.SEA_KAYAKING,
+                cls.SURFING,
+            ],
+            'Climbing': [
+                cls.BOULDERING,
+                cls.GYM_CLIMBING,
+                cls.ICE_CLIMBING,
+                cls.SPORT_CLIMBING,
+                cls.TRAD_CLIMBING,
+            ],
+            'Hiking': [
+                cls.HIKING,
+                cls.TRAIL_RUNNING,
+            ],
+            'Skiing': [
+                cls.BC_SKIING,
+                cls.XC_SKIING,
+                cls.RESORT_SKIING,
+            ],
+            'Miscellaneous': [
+                cls.ICE_SKATING,
+                cls.ULTIMATE,
+            ],
+            'Other, N/A': [
+                cls.NONE,
+                cls.OTHER,
+            ],
+        }
+
     @classmethod
     def choices(cls):
         """Group into logical blocks for easy identification.
@@ -371,59 +436,6 @@ class TripType(enum.Enum):
         In the future, we may tightly activity ratings with the options you can select below.
         """
         return [
-            (
-                'Biking',
-                [
-                    (cls.ROAD_BIKING.value, 'Road biking'),
-                    (cls.MOUNTAIN_BIKING.value, 'Mountain biking'),
-                ],
-            ),
-            (
-                'Boating',
-                [
-                    (cls.CANOEING.value, 'Canoeing'),
-                    (cls.KAYAKING.value, 'Kayaking'),
-                    (cls.SEA_KAYAKING.value, 'Sea kayaking'),
-                    (cls.SURFING.value, 'Surfing'),
-                ],
-            ),
-            (
-                'Climbing',
-                [
-                    (cls.BOULDERING.value, 'Bouldering'),
-                    (cls.GYM_CLIMBING.value, 'Gym climbing'),
-                    (cls.ICE_CLIMBING.value, 'Ice climbing'),
-                    (cls.SPORT_CLIMBING.value, 'Sport climbing, top rope'),
-                    (cls.TRAD_CLIMBING.value, 'Trad climbing'),
-                ],
-            ),
-            (
-                'Hiking',
-                [
-                    (cls.HIKING.value, 'Hiking'),
-                    (cls.TRAIL_RUNNING.value, 'Trail running'),
-                ],
-            ),
-            (
-                'Skiing',
-                [
-                    (cls.BC_SKIING.value, 'Backcountry skiing'),
-                    (cls.XC_SKIING.value, 'Cross-country skiing'),
-                    (cls.RESORT_SKIING.value, 'Resort skiing'),
-                ],
-            ),
-            (
-                'Miscellaneous',
-                [
-                    (cls.ICE_SKATING.value, 'Ice skating'),
-                    (cls.ULTIMATE.value, 'Ultimate'),
-                ],
-            ),
-            (
-                'Other, N/A',
-                [
-                    (cls.NONE.value, 'None, or not applicable'),
-                    (cls.OTHER.value, 'Other'),
-                ],
-            ),
+            (category, [(trip_type.value, trip_type.label) for trip_type in trip_types])
+            for category, trip_types in cls._categorized().items()
         ]
