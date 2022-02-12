@@ -34,7 +34,8 @@ METRO_ROCK_TRIPS = [
 
 MANUAL_MAPPING = {
     Program.NONE: [
-        514, 808, 825, 1066, 1070, 1104, 1149, 1163, 1164, 1165, 1166
+        514, 808, 825, 1066, 1070, 1104, 1149, 1163, 1164, 1165, 1166,
+        *METRO_ROCK_TRIPS,
     ],
     Program.SERVICE: [
         514, 808, 825, 1066, 1070, 1104, 1149, 1163, 1164, 1165, 1166
@@ -43,8 +44,6 @@ MANUAL_MAPPING = {
         164, 174, 377, 378, 382, 384, 385, 388, 389, 528, 529, 532, 538, 685,
         686, 687, 688, 690, 830, 831, 832, 993, 1000, 1018, 1019, 1021, 1022,
     ],
-    # These will have a gym climbing activity later.
-    Program.NONE: [*METRO_ROCK_TRIPS],
 }
 # fmt: on
 
