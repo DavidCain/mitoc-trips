@@ -4,6 +4,10 @@
 {% block content %}
 {{ block.super }}
 
+{% for err in form.non_field_errors %}
+  <div class="alert alert-danger">{{ err }}</div>
+{% endfor %}
+
 <form name="{{ form.form_name }}" method="post" action=".">
   {% csrf_token %}
   <div class="row">
