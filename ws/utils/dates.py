@@ -156,7 +156,7 @@ def jan_1():
     return localize(jan_1st)
 
 
-def default_signups_close_at():
+def default_signups_close_at() -> datetime:
     """Return the default for when signups should close.
 
     This is mostly written to give reasonable defaults for Winter School, where all

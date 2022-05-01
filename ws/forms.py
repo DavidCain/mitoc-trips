@@ -8,7 +8,7 @@ from mitoc_const import affiliations
 
 from ws import enums, models, widgets
 from ws.membership import MERCHANT_ID, PAYMENT_TYPE
-from ws.utils.dates import is_currently_iap, nearest_sat
+from ws.utils.dates import is_currently_iap, local_now
 from ws.utils.signups import non_trip_participants
 
 
@@ -337,13 +337,24 @@ class TripForm(forms.ModelForm):
             'wimp': widgets.ParticipantSelect,
             'description': widgets.MarkdownTextarea(ex_descr),
             'notes': widgets.MarkdownTextarea(ex_notes),
-            'trip_date': forms.DateInput(
-                format='%Y-%m-%d',  # (first value of DATE_INPUT_FORMATS)
+            'trip_date': forms.DateInput(attrs={'type': 'date'}),
+            'signups_open_at': forms.DateTimeInput(
                 attrs={
-                    'placeholder': nearest_sat().isoformat(),
-                    'pattern': r'^\d\d\d\d-\d\d-\d\d$',
-                    'title': 'YYYY-MM-DD',
-                },
+                    'type': 'datetime-local',
+                    # It's important to specify step size
+                    # Without this, we can only change the time in increments of whole minutes.
+                    # (In other words, a trip created to open at 09:05:55, couldn't change to 09:06:00)
+                    'step': 'any',
+                }
+            ),
+            'signups_close_at': forms.DateTimeInput(
+                attrs={
+                    'type': 'datetime-local',
+                    # It's important to specify step size
+                    # Without this, we can only change the time in increments of whole minutes.
+                    # (In other words, a trip created to open at 09:05:55, couldn't change to 09:06:00)
+                    'step': 'any',
+                }
             ),
         }
 
@@ -423,6 +434,18 @@ class TripForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         trip = self.instance
 
+        if trip.pk is None:  # New trips must have *all* dates/times in the future
+            now = local_now()
+            # (the `datetime-local` inputs don't take timezones at all)
+            # We specify only to the minutes' place so that we don't display seconds
+            naive_iso_now = now.replace(tzinfo=None).isoformat(timespec='minutes')
+
+            self.fields['trip_date'].widget.attrs['min'] = now.date().isoformat()
+            # There is *extra* dynamic logic that (open < close at <= trip date)
+            # However, we can at minimum enforce that times occur in the future
+            self.fields['signups_open_at'].widget.attrs['min'] = naive_iso_now
+            self.fields['signups_close_at'].widget.attrs['min'] = naive_iso_now
+
         # Use the participant queryset to cover an edge case:
         # editing an old trip where one of the leaders is no longer a leader!
         self.fields['leaders'].queryset = models.Participant.objects.get_queryset()
@@ -458,7 +481,6 @@ class TripForm(forms.ModelForm):
 
         _bind_input(self, 'program', initial=initial_program and initial_program.value)
         _bind_input(self, 'algorithm', initial=trip and trip.algorithm)
-        _bind_input(self, 'trip_date', initial=trip and str(trip.trip_date))
 
 
 class SignUpForm(forms.ModelForm):

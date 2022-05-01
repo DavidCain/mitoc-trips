@@ -88,7 +88,6 @@
       {{ form.prereqs|as_crispy_field }}
 
       <h2>Signup</h2>
-      {# Note: infinite recursion is caused here with the datepicker on jQuery 3.4.x #}
       <div class="row">
         <div class="col-xs-6">
           {{ form.trip_date|as_crispy_field }}
