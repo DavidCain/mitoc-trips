@@ -70,6 +70,14 @@ def local_now():
     return timezone.localtime(timezone.now())
 
 
+def local_now_to_the_minute():
+    """Present time, rounded down to have zero seconds.
+
+    (This is a function only because Django can't serialize lambdas for a `default`).
+    """
+    return local_now().replace(second=0, microsecond=0)
+
+
 def local_date():
     return local_now().date()
 

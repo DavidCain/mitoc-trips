@@ -998,7 +998,7 @@ class Trip(models.Model):
     signups_open_at = models.DateTimeField(
         # Rounding to whole minutes simplifies UX on trip creation form
         # (seconds field will be hidden by most browsers, see `step` attribute too!)
-        default=lambda: timezone.now().replace(second=0)
+        default=date_utils.local_now_to_the_minute,
     )
     signups_close_at = models.DateTimeField(
         default=date_utils.default_signups_close_at, null=True, blank=True
