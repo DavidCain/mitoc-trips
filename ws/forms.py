@@ -338,24 +338,8 @@ class TripForm(forms.ModelForm):
             'description': widgets.MarkdownTextarea(ex_descr),
             'notes': widgets.MarkdownTextarea(ex_notes),
             'trip_date': forms.DateInput(attrs={'type': 'date'}),
-            'signups_open_at': forms.DateTimeInput(
-                attrs={
-                    'type': 'datetime-local',
-                    # It's important to specify step size
-                    # Without this, we can only change the time in increments of whole minutes.
-                    # (In other words, a trip created to open at 09:05:55, couldn't change to 09:06:00)
-                    'step': 'any',
-                }
-            ),
-            'signups_close_at': forms.DateTimeInput(
-                attrs={
-                    'type': 'datetime-local',
-                    # It's important to specify step size
-                    # Without this, we can only change the time in increments of whole minutes.
-                    # (In other words, a trip created to open at 09:05:55, couldn't change to 09:06:00)
-                    'step': 'any',
-                }
-            ),
+            'signups_open_at': widgets.DateTimeLocalInput,
+            'signups_close_at': widgets.DateTimeLocalInput,
         }
 
     def clean_membership_required(self):

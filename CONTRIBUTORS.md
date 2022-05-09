@@ -7,6 +7,7 @@ much-needed testing and detailed feedback.
 - Alastair Firth
 - Anna de Regt
 - Ariel Sommer
+- Asha Park-Carter
 - Ben Scandella
 - Chris Saulnier
 - Christie Ciarlo

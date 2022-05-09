@@ -71,3 +71,32 @@ class PhoneInput(dj_widgets.Input):
             flatatt(ng_model_init),
             flatatt(final_attrs),
         )
+
+
+class DateTimeLocalInput(dj_widgets.DateTimeInput):
+    """Custom widget to use the `datetime-local` widget to render a datetime.
+
+    Despite what the input type might imply, this is *not* localized (has no timezone).
+    Datetimes are assumed to mean Eastern Time.
+
+    This is expected to round to the minute, not the second!
+    """
+
+    def __init__(self, attrs=None, format=None):  # pylint:disable=redefined-builtin
+        attrs = attrs or {}
+        super().__init__(
+            attrs={
+                'type': 'datetime-local',
+                # It's important to specify step size
+                # Without this, we can only change the time in increments of whole minutes.
+                # (In other words, a trip created to open at 09:05:55, couldn't change to 09:06:00)
+                # We generally round to the whole minute *anyway*, but this is doubly important if:
+                # - the value being edited was rounded to the second
+                # - we only display to the minute
+                'step': 'any',
+                **attrs,
+            },
+            # Important: Firefox will work with `format=None`, where time is 'YYYY-MM-DD HH:MM'
+            # *However* Chrome requires the ISO-8601 spec and fails without the crucial `T` separator
+            format=format or '%Y-%m-%dT%H:%M',
+        )
