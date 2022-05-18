@@ -133,6 +133,8 @@ def view_trip(trip, participant, user):
         signups = signups.select_related('participant', 'trip')
         return signups.select_related('participant__lotteryinfo')
 
+    trip_leaders = trip.leaders.all()
+    leader_signups = get_signups(models.LeaderSignUp)
     context = {
         'trip': trip,
         'is_trip_leader': perm_utils.leader_on_trip(participant, trip),
@@ -149,12 +151,15 @@ def view_trip(trip, participant, user):
         'waitlist': wl_signups,
         'off_trip': signups.filter(on_trip=False).exclude(pk__in=wl_signups),
         'on_trip': signups.filter(on_trip=True),
-        'leader': get_signups(models.LeaderSignUp),
+        'leaders_on_trip': [s for s in leader_signups if s.participant in trip_leaders],
+        'leaders_off_trip': [
+            s for s in leader_signups if s.participant not in trip_leaders
+        ],
     }
     context['has_notes'] = (
         bool(trip.notes)
         or any(s.notes for s in signups)
-        or any(s.notes for s in context['signups']['leader'])
+        or any(s.notes for s in leader_signups)
     )
     return context
 

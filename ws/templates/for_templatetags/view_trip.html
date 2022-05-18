@@ -22,9 +22,20 @@
 
   {# The leader table is so participants can see leader notes #}
   {#   (or so leaders can see who's driving on other trips)   #}
-  {% if has_notes and signups.leader or viewing_participant.is_leader and trip.leaders.count %}
+  {% if has_notes and signups.leaders_on_trip or viewing_participant.is_leader and trip.leaders.count %}
     <h3>Leaders ({{ trip.leaders.count }})</h3>
-    {% signup_table signups.leader has_notes show_drivers=viewing_participant.is_leader all_participants=trip.leaders%}
+    {% signup_table signups.leaders_on_trip has_notes show_drivers=viewing_participant.is_leader all_participants=trip.leaders %}
+  {% endif %}
+
+  {# A list of previous leaders who signed up is useful to #}
+  {# - Any individuals in the list (who may be confused about their status) #}
+  {# - Trip creator, or other leaders curious about headcount #}
+  {% if has_notes and signups.leaders_off_trip %}
+    <h3>Leader signups, no longer on trip</h3>
+    <div class="alert alert-info">
+      These individuals previously signed up as leaders, but are no longer leaders on the trip.
+    </div>
+    {% signup_table signups.leaders_off_trip has_notes show_drivers=viewing_participant.is_leader %}
   {% endif %}
 
   {% if signups.on_trip %}
