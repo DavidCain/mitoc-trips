@@ -4,6 +4,7 @@ from datetime import date, datetime
 from unittest import mock
 
 from django.contrib import messages
+from django.db.utils import IntegrityError
 from freezegun import freeze_time
 
 import ws.utils.dates as date_utils
@@ -431,6 +432,28 @@ class LeaderSignupViewTest(TestCase):
         self.client.post('/trips/signup/leader/', {'trip': trip.pk})
         models.LeaderSignUp.objects.get(trip=trip, participant=self.participant)
         self.assertIn(self.participant, trip.leaders.all())
+
+    def test_signup_exists_but_no_longer_leader(self):
+        """Test the edge case where the user *was* signed up as a leader, but no longer is."""
+        trip = factories.TripFactory.create(
+            allow_leader_signups=True,
+            program=enums.Program.NONE.value,
+            notes='',
+        )
+        self.participant.leaderrating_set.add(
+            factories.LeaderRatingFactory.create(
+                participant=self.participant,
+                activity=enums.Activity.HIKING.value,
+            )
+        )
+
+        self.client.post('/trips/signup/leader/', {'trip': trip.pk})
+        self.assertTrue(models.LeaderSignUp.objects.filter(trip=trip).exists())
+
+        trip.leaders.clear()
+        # TODO: This is an uncaught 500, make sure we fix it!
+        with self.assertRaises(IntegrityError):
+            self.client.post('/trips/signup/leader/', {'trip': trip.pk})
 
 
 class DeleteSignupViewTest(TestCase):
