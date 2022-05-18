@@ -275,6 +275,7 @@ class CreateTripView(CreateView):
         creator = self.request.participant
         trip = form.save(commit=False)
         trip.creator = creator
+        trip.last_updated_by = creator
         trip.activity = trip.get_legacy_activity()
         return super().form_valid(form)
 
@@ -360,6 +361,7 @@ class EditTripView(UpdateView, TripLeadersOnlyView):
         self._ignore_leaders_if_unchanged(form)
 
         trip = form.save(commit=False)
+        trip.last_updated_by = self.request.participant
         if self.update_rescinds_approval:
             trip.chair_approved = False
 

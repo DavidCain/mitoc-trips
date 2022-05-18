@@ -290,6 +290,7 @@ class TripForm(forms.ModelForm):
     class Meta:
         model = models.Trip
         fields = [
+            'edit_revision',
             'program',
             'trip_type',
             'name',
@@ -340,6 +341,7 @@ class TripForm(forms.ModelForm):
             'trip_date': forms.DateInput(attrs={'type': 'date'}),
             'signups_open_at': widgets.DateTimeLocalInput,
             'signups_close_at': widgets.DateTimeLocalInput,
+            'edit_revision': forms.HiddenInput(),
         }
 
     def clean_membership_required(self):

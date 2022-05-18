@@ -931,6 +931,13 @@ class Trip(models.Model):
     # (Defined here to keep the table's default ordering in sync with prev/next buttons
     ordering_for_approval: Tuple[str, ...] = ('trip_date', 'trip_type', 'info', 'level')
 
+    last_updated_by = models.ForeignKey(
+        Participant,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="trips_updated",
+    )
     edit_revision = models.PositiveIntegerField(
         default=0,
         help_text="An incremented integer, to avoid simultaneous edits to the trip.",
