@@ -368,15 +368,15 @@ class EditTripView(UpdateView, TripLeadersOnlyView):
         if current_trip.edit_revision == new_trip.edit_revision:
             return None
 
-        fields_with_difference = {
+        fields_with_difference = [
             field
             for name, field in form.fields.items()
             if name != 'edit_revision'
             and getattr(current_trip, name) != getattr(new_trip, name)
-        }
+        ]
         # (Account for the fact that we might have stripped `leaders`)
         if 'leaders' in form.cleaned_data and self._leaders_changed(form):
-            fields_with_difference.add(form.fields['leaders'])
+            fields_with_difference.insert(0, form.fields['leaders'])
 
         if current_trip.last_updated_by is None:
             # This shouldn't ever happen, but the data model makes it possible

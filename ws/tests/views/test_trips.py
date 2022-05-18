@@ -439,7 +439,7 @@ class EditTripViewTest(TestCase, Helpers):
         self.assertIn(
             'To make updates to the trip, please load the page again.', warning
         )
-        self.assertIn('Fields which differ: Description, Leaders', warning)
+        self.assertIn('Fields which differ: Leaders, Description', warning)
 
         # No edit was made; we have form errors
         trip.refresh_from_db()
