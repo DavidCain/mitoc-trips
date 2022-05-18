@@ -3,13 +3,13 @@ from contextlib import contextmanager
 from datetime import date, datetime
 from unittest import mock
 
+from bs4 import BeautifulSoup
 from django.contrib import messages
-from django.db.utils import IntegrityError
 from freezegun import freeze_time
 
 import ws.utils.dates as date_utils
 from ws import enums, models
-from ws.tests import TestCase, factories
+from ws.tests import TestCase, factories, strip_whitespace
 from ws.utils import geardb, membership
 
 
@@ -451,9 +451,15 @@ class LeaderSignupViewTest(TestCase):
         self.assertTrue(models.LeaderSignUp.objects.filter(trip=trip).exists())
 
         trip.leaders.clear()
-        # TODO: This is an uncaught 500, make sure we fix it!
-        with self.assertRaises(IntegrityError):
-            self.client.post('/trips/signup/leader/', {'trip': trip.pk})
+        resp = self.client.post('/trips/signup/leader/', {'trip': trip.pk})
+        soup = BeautifulSoup(resp.content, 'html.parser')
+        warning = soup.find(class_='alert-danger')
+        # Note: This is a temporary solution.
+        # In the future, leaders should be able to self-add themselves back.
+        self.assertEqual(
+            strip_whitespace(warning.text),
+            'Already signed up as a leader on this trip! Contact the trip organizer to be re-added.',
+        )
 
 
 class DeleteSignupViewTest(TestCase):

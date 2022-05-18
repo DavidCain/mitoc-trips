@@ -99,6 +99,13 @@ class LeaderSignUpView(BaseSignUpView):
             errors.append(f"Can't lead {trip.get_program_display()} trips!")
         if not trip.allow_leader_signups:
             errors.append("Trip is not currently accepting leader signups.")
+        if models.LeaderSignUp.objects.filter(
+            trip=signup.trip, participant=signup.participant
+        ).exists():
+            errors.append(
+                "Already signed up as a leader on this trip! "
+                "Contact the trip organizer to be re-added."
+            )
         return errors
 
     @method_decorator(group_required('leaders'))
