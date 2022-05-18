@@ -291,24 +291,28 @@ class TripForm(forms.ModelForm):
         model = models.Trip
         fields = [
             'edit_revision',
+            # Basics
+            'name',
             'program',
             'trip_type',
-            'name',
+            'maximum_participants',
+            'difficulty_rating',
+            'level',
             'leaders',
             'wimp',
+            # Settings
+            'membership_required',
             'allow_leader_signups',
+            'honor_participant_pairing',
+            'let_participants_drop',
+            # About
             'description',
+            'prereqs',
+            # Signup
             'trip_date',
             'algorithm',
             'signups_open_at',
             'signups_close_at',
-            'let_participants_drop',
-            'honor_participant_pairing',
-            'membership_required',
-            'maximum_participants',
-            'difficulty_rating',
-            'level',
-            'prereqs',
             'notes',
         ]
         ex_notes = (
