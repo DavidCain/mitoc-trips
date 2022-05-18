@@ -19,7 +19,7 @@ from ws import models
 # If any table has a column with a foreign key to ws_participant that is not in here, we will error
 # Unless explicitly handled, each will be automatically migrated
 EXPECTED_PARTICIPANT_TABLES: Dict[str, Tuple[str, ...]] = {
-    'ws_trip': ('creator_id', 'wimp_id'),
+    'ws_trip': ('creator_id', 'wimp_id', 'last_updated_by_id'),
     'ws_leaderrating': ('participant_id', 'creator_id'),
     'ws_feedback': ('participant_id', 'leader_id'),
     'ws_lotteryinfo': ('participant_id', 'paired_with_id'),
