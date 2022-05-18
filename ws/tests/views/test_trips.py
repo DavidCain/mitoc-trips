@@ -19,7 +19,10 @@ class Helpers:
             yield elem['name'], elem.text
 
         for elem in form.find_all('input'):
-            yield elem['name'], elem.get('value', '')
+            if elem['type'] == 'checkbox' and elem.get('checked') is not None:
+                yield elem['name'], 'on'
+            else:
+                yield elem['name'], elem.get('value', '')
 
         for select in form.find_all('select'):
             selection = select.find('option', selected=True)
@@ -256,6 +259,8 @@ class CreateTripViewTest(TestCase, Helpers):
 
         trip = models.Trip.objects.get(pk=trip_pk)
         self.assertEqual(trip.creator, trip_leader)
+        self.assertEqual(trip.last_updated_by, trip_leader)
+        self.assertEqual(trip.edit_revision, 0)
         self.assertEqual(trip.name, 'My Great Trip')
 
 
@@ -397,6 +402,48 @@ class EditTripViewTest(TestCase, Helpers):
         # We can see that chair approval is now removed.
         trip = models.Trip.objects.get(pk=trip.pk)
         self.assertFalse(trip.chair_approved)
+
+    @freeze_time("2019-02-15 12:25:00 EST")
+    def test_updates_on_stale_trips(self):
+        leader = factories.ParticipantFactory.create()
+        self.client.force_login(leader.user)
+        factories.LeaderRatingFactory.create(
+            participant=leader, activity=enums.Activity.CLIMBING.value
+        )
+        trip = factories.TripFactory.create(
+            edit_revision=0,
+            creator=leader,
+            program=enums.Program.CLIMBING.value,
+            level=None,
+            trip_date=date(2019, 3, 2),
+        )
+
+        # Simulate a stale page content by loading data *first*
+        _edit_resp, initial_soup = self._get(f'/trips/{trip.pk}/edit/')
+        form_data = dict(self._form_data(initial_soup.find('form')))
+
+        # (Pretend that two others have updated edited the trip)
+        trip.edit_revision += 2
+        trip.leaders.add(factories.ParticipantFactory.create())
+        trip.description = 'Other edits changed this description!'
+        trip.last_updated_by = factories.ParticipantFactory.create(name='Joe Schmoe')
+        trip.save()
+
+        resp = self.client.post(f'/trips/{trip.pk}/edit/', form_data, follow=False)
+        soup = BeautifulSoup(resp.content, 'html.parser')
+        warning = strip_whitespace(soup.find(class_='alert alert-danger').text)
+        self.assertIn(
+            'This trip has already been edited 2 times, most recently by Joe Schmoe.',
+            warning,
+        )
+        self.assertIn(
+            'To make updates to the trip, please load the page again.', warning
+        )
+        self.assertIn('Fields which differ: Description, Leaders', warning)
+
+        # No edit was made; we have form errors
+        trip.refresh_from_db()
+        self.assertEqual(trip.edit_revision, 2)
 
 
 class ApproveTripsViewTest(TestCase):

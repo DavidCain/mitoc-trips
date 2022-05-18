@@ -6,10 +6,13 @@ attended by any interested participants.
 """
 from collections import defaultdict
 from datetime import date, timedelta
+from typing import Optional
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
+from django.db import transaction
+from django.forms.utils import ErrorList
 from django.http import Http404, HttpResponseBadRequest
 from django.shortcuts import redirect, render
 from django.urls import reverse, reverse_lazy
@@ -342,6 +345,11 @@ class EditTripView(UpdateView, TripLeadersOnlyView):
     def get_success_url(self):
         return reverse('view_trip', args=(self.object.pk,))
 
+    def _leaders_changed(self, form) -> bool:
+        old_pks = {leader.pk for leader in self.object.leaders.all()}
+        new_pks = {leader.pk for leader in form.cleaned_data['leaders']}
+        return bool(old_pks.symmetric_difference(new_pks))
+
     def _ignore_leaders_if_unchanged(self, form):
         """Don't update the leaders m2m field if unchanged.
 
@@ -352,21 +360,65 @@ class EditTripView(UpdateView, TripLeadersOnlyView):
         A compromise: Only send emails when the leader list is changed.
         See ticket 6707 for an eventual fix to this behavior
         """
-        old_pks = {leader.pk for leader in self.object.leaders.all()}
-        new_pks = {leader.pk for leader in form.cleaned_data['leaders']}
-        if not old_pks.symmetric_difference(new_pks):
+        if not self._leaders_changed(form):
             form.cleaned_data.pop('leaders')
+
+    def _stale_revision_message(self, form, current_trip, new_trip) -> Optional[str]:
+        """Produce a message describing a stale edit, if one exists.."""
+        if current_trip.edit_revision == new_trip.edit_revision:
+            return None
+
+        fields_with_difference = {
+            field
+            for name, field in form.fields.items()
+            if name != 'edit_revision'
+            and getattr(current_trip, name) != getattr(new_trip, name)
+        }
+        # (Account for the fact that we might have stripped `leaders`)
+        if 'leaders' in form.cleaned_data and self._leaders_changed(form):
+            fields_with_difference.add(form.fields['leaders'])
+
+        if current_trip.last_updated_by is None:
+            # This shouldn't ever happen, but the data model makes it possible
+            editor_name = "an unknown user"
+        elif current_trip.last_updated_by == self.request.participant:  # type: ignore
+            editor_name = "you"
+        else:
+            editor_name = current_trip.last_updated_by.name
+
+        assert current_trip.edit_revision > new_trip.edit_revision
+        edit_count = current_trip.edit_revision - new_trip.edit_revision
+        plural = '' if edit_count == 1 else 's'
+        return "\n".join(
+            [
+                f"This trip has already been edited {edit_count} time{plural}, most recently by {editor_name}.",
+                "To make updates to the trip, please load the page again.",
+                f"Fields which differ: {', '.join(field.label for field in fields_with_difference) or '???'}",
+            ]
+        )
 
     def form_valid(self, form):
         self._ignore_leaders_if_unchanged(form)
 
         trip = form.save(commit=False)
-        trip.last_updated_by = self.request.participant
         if self.update_rescinds_approval:
             trip.chair_approved = False
 
         trip.activity = trip.get_legacy_activity()
-        return super().form_valid(form)
+
+        # Make sure that nobody else edits the trip while doing this comparison!
+        # (We do this here instead of in form `clean` so we can guarantee lock at save)
+        with transaction.atomic():
+            current_trip = models.Trip.objects.select_for_update().get(pk=trip.pk)
+
+            stale_msg = self._stale_revision_message(form, current_trip, trip)
+            if stale_msg:
+                form.errors['__all__'] = ErrorList([stale_msg])
+                return self.form_invalid(form)
+
+            trip.last_updated_by = self.request.participant
+            trip.edit_revision += 1
+            return super().form_valid(form)
 
 
 class TripListView(ListView):

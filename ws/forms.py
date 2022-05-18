@@ -33,6 +33,10 @@ def _bind_input(
     field = form.fields[field_name]
     initial = field.initial if initial is None else initial
 
+    if field_name in form.data:
+        # (e.g. an invalid POST, we tell Angular about the submitted value)
+        initial = form.data[field_name]
+
     model_name = model_name or field_name
     field.widget.attrs['data-ng-model'] = model_name
 

@@ -10,6 +10,7 @@
 
 <form name="{{ form.form_name }}" method="post" action=".">
   {% csrf_token %}
+  {{ form.edit_revision }}
   <div class="row">
     <div class="col-md-6">
       <h2>Basics</h2>
