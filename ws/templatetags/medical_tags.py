@@ -4,16 +4,17 @@ from django import template
 
 import ws.utils.dates as date_utils
 import ws.utils.perms as perm_utils
-from ws import forms
+from ws import forms, models
 from ws.utils.itinerary import get_cars
 
 register = template.Library()
 
 
 @register.inclusion_tag('for_templatetags/show_wimp.html')
-def show_wimp(wimp):
+def show_wimp(wimp: models.Participant, show_wimp_at_mit: bool = False):
     return {
         'participant': wimp,
+        'show_wimp_at_mit': show_wimp_at_mit,
     }
 
 

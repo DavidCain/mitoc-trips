@@ -11,10 +11,12 @@
         {# A WIMP should _really_ have a mobile phone #}
         <li><i class="fa fa-fw fa-mobile"></i>{{ participant.cell_phone }}</li>
       {% endif %}
-      <li>
-        <i class="fas fa-fw fa-envelope"></i>
-        <a href="mailto:wimp@mit.edu">wimp@mit.edu</a>
-      </li>
+      {% if show_wimp_at_mit %}
+        <li>
+          <i class="fas fa-fw fa-envelope"></i>
+          <a href="mailto:wimp@mit.edu">wimp@mit.edu</a>
+        </li>
+      {% endif %}
       <li>
         <i class="far fa-fw fa-envelope"></i>
         <a href="mailto:{{ participant.email }}">{{ participant.email }}</a>

@@ -13,13 +13,24 @@ class ShowWimpTagsTests(TestCase):
             cell_phone='+13395551111', email='thewimp@example.com'
         )
         context = Context({'wimp': wimp})
-        template_to_render = Template('{% load medical_tags %}{% show_wimp wimp %}')
+        template_to_render = Template(
+            '{% load medical_tags %}{% show_wimp wimp True %}'
+        )
         html = template_to_render.render(context)
         soup = BeautifulSoup(html, 'xml')
 
         # We check that key contact information is shown!
         self.assertTrue(soup.find(text='+13395551111'))
         self.assertTrue(soup.find('a', href='mailto:wimp@mit.edu'))
+        self.assertTrue(soup.find('a', href='mailto:thewimp@example.com'))
+
+    def test_wimp_email_hidden(self):
+        """The wimp@mit.edu email can be hidden (as in for single trips)."""
+        wimp = factories.ParticipantFactory.create(email='thewimp@example.com')
+        template_to_render = Template('{% load medical_tags %}{% show_wimp wimp %}')
+        soup = BeautifulSoup(template_to_render.render(Context({'wimp': wimp})), 'xml')
+
+        self.assertFalse(soup.find('a', href='mailto:wimp@mit.edu'))
         self.assertTrue(soup.find('a', href='mailto:thewimp@example.com'))
 
 

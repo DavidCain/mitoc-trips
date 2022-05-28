@@ -19,6 +19,11 @@
   </div>
 {% endif %}
 
+{% if trip.wimp %}
+  <h3>Trip WIMP ("Worry If Missing Person")</h3>
+  {% show_wimp trip.wimp False %}
+{% endif %}
+
 {% if trip.info or show_participants_if_no_itinerary %}
   <h3>Medical information </h3>
   {% if hide_sensitive_info %}

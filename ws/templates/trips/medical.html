@@ -7,7 +7,7 @@
 {{ block.super }}
 
 <h2>
-  Trip Itinerary for '<a href="{% url 'view_trip' trip.pk %}">{{ trip.name }}</a>'
+  Itinerary for '<a href="{% url 'view_trip' trip.pk %}">{{ trip.name }}</a>'
   {% if is_trip_leader %}
     <a type="button" class="btn btn-default pull-right" href="{% url 'trip_itinerary' trip.pk %}">
       <i class="fas fa-edit"></i>&nbsp;Edit
