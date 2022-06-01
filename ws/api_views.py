@@ -601,14 +601,19 @@ class OtherVerifiedEmailsView(JWTView):
 
         addr = EmailAddress.objects.filter(email=email, verified=True).first()
         if not addr:  # Not in our system, so just return the original
-            return JsonResponse({'primary': email, 'emails': [email]})
+            # This API endpoint is for trusted entities; it's okay to give a null name.
+            # (in other words, there's no user enumeration vulnerability here)
+            return JsonResponse({'name': None, 'primary': email, 'emails': [email]})
 
         # Normal case: Email is verified. Return all other verified emails
         verifed_emails = addr.user.emailaddress_set.filter(verified=True)
+        participant = models.Participant.objects.filter(user=addr.user).first()
         return JsonResponse(
             {
+                'name': participant and participant.name,
                 'primary': addr.user.email,
-                'emails': list(verifed_emails.values_list('email', flat=True)),
+                # No real reason to sort these, apart from making return order deterministic)
+                'emails': sorted(verifed_emails.values_list('email', flat=True)),
             }
         )
 

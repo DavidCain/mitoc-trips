@@ -100,6 +100,78 @@ class JWTSecurityTest(TestCase):
         self.assertEqual(response.json(), {'message': 'invalid algorithm'})
 
 
+class OtherVerifiedEmailsTest(TestCase):
+    """We report what we know about a MITOCer to authenticated APIS."""
+
+    def _query_for(self, email: str):
+        real_token = jwt.encode(
+            {'exp': time.time() + 60, 'email': email},
+            algorithm='HS512',
+            key=settings.MEMBERSHIP_SECRET_KEY,
+        )
+        return self.client.get(
+            '/data/verified_emails/', HTTP_AUTHORIZATION=f'Bearer: {real_token}'
+        )
+
+    def test_unknown_user(self):
+        """We just report back the same email if we don't find a match."""
+        response = self._query_for('barry.o@whitehouse.gov')
+        self.assertEqual(
+            response.json(),
+            {
+                'name': None,
+                'primary': 'barry.o@whitehouse.gov',
+                'emails': ['barry.o@whitehouse.gov'],
+            },
+        )
+
+    def test_normal_participant(self):
+        """We handle the case of a participant with some verified & unverified emails."""
+        tim = factories.ParticipantFactory.create(
+            name='Tim Beaver', email='tim@example.com'
+        )
+
+        factories.EmailFactory.create(
+            user_id=tim.user_id,
+            verified=False,
+            primary=False,
+            # Tim clearly doesn't own this email
+            email='tim@whitehouse.gov',
+        )
+        factories.EmailFactory.create(
+            user_id=tim.user_id, verified=True, primary=False, email='tim@mit.edu'
+        )
+
+        response = self._query_for('tim@mit.edu')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json(),
+            {
+                'name': 'Tim Beaver',
+                'primary': 'tim@example.com',
+                'emails': ['tim@example.com', 'tim@mit.edu'],
+            },
+        )
+        # We get the same result when querying under a different known email!
+        self.assertEqual(response.json(), self._query_for('tim@example.com').json())
+
+    def test_user_without_participant(self):
+        """We handle the case of a user who never completed a participant record."""
+
+        factories.UserFactory.create(email='tim@mit.edu')
+        response = self._query_for('tim@mit.edu')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json(),
+            {
+                'name': None,
+                'primary': 'tim@mit.edu',
+                'emails': ['tim@mit.edu'],
+            },
+        )
+
+
 class JsonProgramLeadersViewTest(TestCase):
     def setUp(self):
         super().setUp()
