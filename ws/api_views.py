@@ -21,9 +21,10 @@ import ws.utils.perms as perm_utils
 import ws.utils.signups as signup_utils
 from ws import enums, models
 from ws.decorators import group_required
+from ws.mixins import JsonTripLeadersOnlyView, TripLeadersOnlyView
 from ws.templatetags.avatar_tags import avatar_url
 from ws.utils.api import jwt_token_from_headers
-from ws.views import AllLeadersView, TripLeadersOnlyView
+from ws.views.leaders import AllLeadersView
 
 
 class SimpleSignupsView(DetailView):
@@ -146,7 +147,7 @@ class AdminTripSignupsView(SingleObjectMixin, FormatSignupMixin, TripLeadersOnly
         """
         trip = self.object = self.get_object()
 
-        postdata = json.loads(self.request.body)
+        postdata = json.loads(self.request.body)  # TODO: assumes valid JSON.
         signup_list = postdata.get('signups', [])
         maximum_participants = postdata.get('maximum_participants')
 
@@ -264,7 +265,7 @@ class AdminTripSignupsView(SingleObjectMixin, FormatSignupMixin, TripLeadersOnly
 
 
 class LeaderParticipantSignupView(
-    SingleObjectMixin, FormatSignupMixin, TripLeadersOnlyView
+    SingleObjectMixin, FormatSignupMixin, JsonTripLeadersOnlyView
 ):
     model = models.Trip
 
@@ -278,6 +279,7 @@ class LeaderParticipantSignupView(
 
         postdata = json.loads(self.request.body)
         par_pk = postdata.get('participant_id')
+        notes = postdata.get('notes', '')
 
         try:
             par = models.Participant.objects.get(pk=par_pk)
@@ -286,7 +288,7 @@ class LeaderParticipantSignupView(
 
         trip = self.get_object()
         signup, created = models.SignUp.objects.get_or_create(
-            trip=trip, participant=par
+            trip=trip, participant=par, defaults={'notes': notes}
         )
 
         if not created:  # (SignUp exists, but participant may not be on trip)
@@ -301,7 +303,6 @@ class LeaderParticipantSignupView(
                     {'message': f"{par.name} is already on the {queue}"}, status=409
                 )
 
-        signup.notes = postdata.get('notes', '')
         signup = signup_utils.trip_or_wait(signup)
 
         trip_participants = {
@@ -322,7 +323,7 @@ class LeaderParticipantSignupView(
                 'signup': self.describe_signup(signup, trip_participants, other_trips),
                 'on_trip': signup.on_trip,
             },
-            status=201,
+            status=201 if (created or signup.on_trip) else 200,
         )
 
 

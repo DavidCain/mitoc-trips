@@ -5,8 +5,9 @@ import jwt
 from freezegun import freeze_time
 
 import ws.utils.perms as perm_utils
-from ws import enums, settings
+from ws import enums, models, settings
 from ws.tests import TestCase, factories
+from ws.utils.signups import add_to_waitlist
 
 
 class JWTSecurityTest(TestCase):
@@ -380,6 +381,175 @@ class JsonParticipantsTest(TestCase):
         response = self.client.get(f'/participants.json?id={one.pk}&id={two.pk}')
         self.assertEqual(
             response.json(), {'participants': [self._expect(one), self._expect(two)]}
+        )
+
+
+class JsonLeaderParticipantSignupTest(TestCase):
+    def setUp(self):
+        super().setUp()
+        self.trip = factories.TripFactory.create(algorithm='lottery')
+        self.url = f'/trips/{self.trip.pk}/signup/'
+        self.leader = factories.ParticipantFactory.create()
+        self.trip.leaders.add(self.leader)
+        self.client.force_login(self.leader.user)
+
+    def test_just_user(self):
+        """A user without a participant record gets a 403 trying to sign up a user."""
+        user = factories.UserFactory.create()
+        self.client.force_login(user)
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, 403)
+
+    def test_unauthenticated(self):
+        """One must obviously be logged in to sign up others."""
+        self.client.logout()
+        response = self.client.post(self.url)
+        # This is a JSON route - it probably shouldn't return with a redirect. Ah, well.
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, f"/accounts/login/?next={self.url}")
+
+    def test_not_a_leader(self):
+        """Participants must be a leader for the trip in question."""
+        par = factories.ParticipantFactory.create()
+        self.client.force_login(par.user)
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, 403)
+
+    def test_leader_but_not_on_the_trip(self):
+        """Participants must be a leader for the trip in question."""
+        other_trip = factories.TripFactory.create()
+        response = self.client.post(f'/trips/{other_trip.pk}/signup/')
+        self.assertEqual(response.status_code, 403)
+
+    def test_unknown_target_participant(self):
+        """If the caller is a leader, we'll tell them if the participant isn't found."""
+        response = self.client.post(
+            self.url,
+            {'participant_id': -37},
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.json(), {'message': "No participant found"})
+
+    def test_signup_exists_but_not_on_lottery_trip(self):
+        """We won't edit notes and the trip remains in lottery mode."""
+        signup = factories.SignUpFactory.create(
+            on_trip=False, trip=self.trip, notes='original, participant-supplied notes'
+        )
+        response = self.client.post(
+            self.url,
+            {'participant_id': signup.participant.pk, 'notes': 'leader notes'},
+            content_type='application/json',
+        )
+
+        # Participant was already signed up for the lottery
+        self.assertEqual(self.trip.algorithm, 'lottery')
+        self.assertEqual(response.status_code, 200)
+        signup.refresh_from_db()
+        self.assertFalse(signup.on_trip)
+        self.assertEqual(signup.notes, 'original, participant-supplied notes')
+
+    def test_signup_exists_but_not_on_fcfs_trip(self):
+        """We won't edit notes, but we can add the participant to the trip."""
+        signup = factories.SignUpFactory.create(
+            on_trip=False, trip=self.trip, notes='original, participant-supplied notes'
+        )
+
+        self.trip.algorithm = 'fcfs'
+        self.trip.save()
+
+        response = self.client.post(
+            self.url,
+            {'participant_id': signup.participant.pk, 'notes': 'leader notes'},
+            content_type='application/json',
+        )
+
+        self.assertEqual(response.status_code, 201)
+        signup.refresh_from_db()
+        self.assertTrue(signup.on_trip)
+        self.assertEqual(signup.notes, 'original, participant-supplied notes')
+
+    def test_new_signup_to_fcfs_trip(self):
+        """Test the simplest case: adding a participant to a FCFS trip with spaces."""
+        self.trip.algorithm = 'fcfs'
+        self.trip.save()
+
+        par = factories.ParticipantFactory.create()
+
+        response = self.client.post(
+            self.url,
+            {'participant_id': par.pk, 'notes': 'leader notes'},
+            content_type='application/json',
+        )
+
+        self.assertEqual(response.status_code, 201)
+        signup = models.SignUp.objects.get(participant=par, trip=self.trip)
+        self.assertTrue(signup.on_trip)
+        self.assertEqual(signup.notes, 'leader notes')
+
+    def test_add_new_waitlist_entry(self):
+        """We can add a participant to the waitlist for a full trip."""
+        self.trip.algorithm = 'fcfs'
+        self.trip.maximum_participants = 1
+        self.trip.save()
+
+        # Trip is full now
+        factories.SignUpFactory.create(trip=self.trip)
+
+        par = factories.ParticipantFactory.create()
+
+        response = self.client.post(
+            self.url,
+            {'participant_id': par.pk},
+            content_type='application/json',
+        )
+
+        self.assertEqual(response.status_code, 201)
+        signup = models.SignUp.objects.get(participant=par, trip=self.trip)
+        self.assertFalse(signup.on_trip)
+        self.assertTrue(signup.waitlistsignup)
+        self.assertEqual(signup.notes, '')
+
+    def test_already_on_trip(self):
+        """Leaders can't add a participant already on the trip!"""
+        signup = factories.SignUpFactory.create(
+            trip=self.trip, on_trip=True, participant__name='Abdul McTest'
+        )
+
+        response = self.client.post(
+            self.url,
+            {'participant_id': signup.participant_id},
+            content_type='application/json',
+        )
+
+        self.assertEqual(response.status_code, 409)
+        self.assertEqual(
+            response.json(), {'message': "Abdul McTest is already on the trip"}
+        )
+
+    def test_already_on_waitlist(self):
+        """Leaders can't add a participant already on the waitlist!"""
+        self.trip.algorithm = 'fcfs'
+        self.trip.maximum_participants = 1
+        self.trip.save()
+
+        # Trip is full now
+        factories.SignUpFactory.create(trip=self.trip)
+
+        signup = factories.SignUpFactory.create(
+            trip=self.trip, participant__name='Jane McJaney'
+        )
+        add_to_waitlist(signup)
+
+        response = self.client.post(
+            self.url,
+            {'participant_id': signup.participant_id},
+            content_type='application/json',
+        )
+
+        self.assertEqual(response.status_code, 409)
+        self.assertEqual(
+            response.json(), {'message': "Jane McJaney is already on the waitlist"}
         )
 
 

@@ -3,7 +3,7 @@ Mixins used across multiple views.
 """
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
-from django.http import HttpRequest
+from django.http import HttpRequest, JsonResponse
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views.generic import View
@@ -69,19 +69,33 @@ class LectureAttendanceMixin:
         return participant_to_modify.user_id == self.request.user.id
 
 
+def _allowed_to_modify_trip(trip: models.Trip, request: HttpRequest) -> bool:
+    activity_enum = trip.required_activity_enum()
+    if activity_enum:
+        is_chair = perm_utils.chair_or_admin(request.user, activity_enum)
+    else:  # (There is no required activity, so no chairs. Allow superusers, though)
+        is_chair = request.user.is_superuser
+
+    participant: models.Participant = request.participant  # type: ignore
+    trip_leader = perm_utils.leader_on_trip(participant, trip, True)
+    return is_chair or trip_leader
+
+
 class TripLeadersOnlyView(View):
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         """Only allow creator, leaders of the trip, and chairs."""
+
         trip = self.get_object()
-
-        activity_enum = trip.required_activity_enum()
-        if activity_enum:
-            is_chair = perm_utils.chair_or_admin(request.user, activity_enum)
-        else:  # (There is no required activity, so no chairs. Allow superusers, though)
-            is_chair = request.user.is_superuser
-
-        trip_leader = perm_utils.leader_on_trip(request.participant, trip, True)
-        if not (is_chair or trip_leader):
+        if not _allowed_to_modify_trip(trip, request):
             return render(request, 'not_your_trip.html', {'trip': trip})
+        return super().dispatch(request, *args, **kwargs)
+
+
+class JsonTripLeadersOnlyView(View):
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        """Only allow creator, leaders of the trip, and chairs."""
+        if not _allowed_to_modify_trip(self.get_object(), request):
+            return JsonResponse({"message": "Must be a leader"}, status=403)
         return super().dispatch(request, *args, **kwargs)
