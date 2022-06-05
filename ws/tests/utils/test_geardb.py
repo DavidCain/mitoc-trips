@@ -7,6 +7,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.test import SimpleTestCase
 from freezegun import freeze_time
 
+from ws.tests import TestCase, factories
 from ws.utils import geardb
 
 
@@ -99,6 +100,64 @@ class ApiTest(SimpleTestCase):
         )
         log_error.assert_called_once_with(
             "Results are paginated; this is not expected or handled."
+        )
+
+
+class UpdateAffiliationTest(TestCase):
+    def test_old_student_status(self):
+        participant = factories.ParticipantFactory.create(affiliation='S')
+
+        with mock.patch.object(requests, 'put') as fake_put:
+            response = geardb.update_affiliation(participant)
+        self.assertIsNone(response)
+        fake_put.assert_not_called()
+
+    @staticmethod
+    def test_reports_affiliation():
+        """We report affiliation for a simple user with just one email."""
+        participant = factories.ParticipantFactory.create(
+            affiliation='NA', email='tim@mit.edu'
+        )
+
+        with mock.patch.object(requests, 'put') as fake_put:
+            geardb.update_affiliation(participant)
+        fake_put.assert_called_once_with(
+            'https://mitoc-gear.mit.edu/api-auth/v1/affiliation/',
+            headers={'Authorization': mock.ANY},
+            json={
+                'email': 'tim@mit.edu',
+                'affiliation': 'NA',
+                'other_verified_emails': [],
+            },
+        )
+
+    @staticmethod
+    def test_reports_affiliation_with_other_emails():
+        """We report all known verified emails."""
+        tim = factories.ParticipantFactory.create(affiliation='NA', email='tim@mit.edu')
+
+        factories.EmailFactory.create(
+            user_id=tim.user_id,
+            verified=False,
+            primary=False,
+            # Tim clearly doesn't own this email
+            email='tim@whitehouse.gov',
+        )
+        for verified_email in ['tim@example.com', 'tim+two@mit.edu']:
+            factories.EmailFactory.create(
+                user_id=tim.user_id, verified=True, primary=False, email=verified_email
+            )
+
+        with mock.patch.object(requests, 'put') as fake_put:
+            geardb.update_affiliation(tim)
+        fake_put.assert_called_once_with(
+            'https://mitoc-gear.mit.edu/api-auth/v1/affiliation/',
+            headers={'Authorization': mock.ANY},
+            json={
+                'email': 'tim@mit.edu',
+                'affiliation': 'NA',
+                'other_verified_emails': ['tim+two@mit.edu', 'tim@example.com'],
+            },
         )
 
 

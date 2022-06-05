@@ -5,6 +5,7 @@ from datetime import timedelta
 from functools import wraps
 from time import monotonic
 
+import requests
 from celery import group, shared_task
 from django.core.cache import cache
 from django.db import transaction
@@ -145,11 +146,18 @@ def update_all_discount_sheets():
     group([update_discount_sheet.s(pk) for pk in discount_pks])()
 
 
-@shared_task  # Harmless if we run it twice
-def update_participant_affiliation(participant_id):
+@shared_task(
+    auto_retry_for=(requests.exceptions.HTTPError,),
+    # Account for brief outages by retrying after 1 minute, then 2, then 4, then 8
+    retry_backoff=60,
+    max_retries=4,
+)
+def update_participant_affiliation(participant_id: int):
     """Use the participant's affiliation to update the gear database."""
     participant = models.Participant.objects.get(pk=participant_id)
-    geardb.update_affiliation(participant)
+    response = geardb.update_affiliation(participant)
+    if response:  # `None` implies nothing to do
+        response.raise_for_status()
 
 
 @shared_task  # Locking done at db level to ensure idempotency

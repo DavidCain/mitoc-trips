@@ -17,24 +17,15 @@ import requests
 from django.db import connections
 from django.db.models import Case, Count, IntegerField, Sum, When
 from django.db.models.functions import Lower
-from mitoc_const import affiliations
 
 from ws import models, settings
 from ws.utils import api as api_util
 from ws.utils.dates import local_date
 
 logger = logging.getLogger(__name__)
-# In all cases, we should use the MITOC Trips affiliation instead
-DEPRECATED_GEARDB_AFFILIATIONS = {'Student'}
 
 
-AFFILIATION_MAPPING = {aff.CODE: aff.VALUE for aff in affiliations.ALL}
-# Deprecated statuses, but we can still map them
-AFFILIATION_MAPPING['M'] = affiliations.MIT_AFFILIATE.VALUE
-AFFILIATION_MAPPING['N'] = affiliations.NON_AFFILIATE.VALUE
-
-
-API_BASE = 'https://mitoc-gear.mit.edu/api-auth/v1/'
+API_BASE = 'https://mitoc-gear.mit.edu/'
 
 JsonDict = Dict[str, Any]
 
@@ -351,7 +342,7 @@ def outstanding_items(emails: List[str]) -> Iterator[Rental]:
 
     today = local_date()
 
-    for result in query_api('rentals/', email=emails):  # One row per item
+    for result in query_api('api-auth/v1/rentals/', email=emails):  # One row per item
         person, gear = result['person'], result['gear']
 
         # Map from the person record back to the requested email address
@@ -386,9 +377,7 @@ def user_rentals(user) -> List[Rental]:
     return list(outstanding_items(verified_emails(user)))
 
 
-# NOTE: This is the last (frequently-called) method which hits the db directly.
-# We should replace this with an API call.
-def update_affiliation(participant):
+def update_affiliation(participant: models.Participant) -> Optional[requests.Response]:
     """Update the gear db if the affiliation of a participant has changed.
 
     This is useful in three scenarios:
@@ -412,63 +401,29 @@ def update_affiliation(participant):
     """
     if participant.affiliation == 'S':
         # Deprecated status, participant hasn't logged on in years
-        return
+        return None
 
-    emails = models.EmailAddress.objects.filter(
+    all_verified_emails = models.EmailAddress.objects.filter(
         verified=True, user_id=participant.user_id
     ).values_list('email', flat=True)
-    matches = list(_matching_info_for(emails))
-    if not matches:
-        return
 
-    def last_updated_dates(info):
-        """Yield the date (not timestamp!) of various updates."""
-        if info['membership_expires']:
-            yield info['membership_expires'] - timedelta(days=365)
-        if info['waiver_expires']:
-            yield info['waiver_expires'] - timedelta(days=365)
-        if info['date_inserted']:  # Null for a few users!
-            yield info['date_inserted']
+    other_verified_emails = set(all_verified_emails) - {participant.email}
 
-    def last_updated(info):
-        """Use the membership that was most recently updated."""
-        dates = list(last_updated_dates(info))
-        return max(dates) if dates else datetime.min.date()
-
-    most_recent = max(matches, key=last_updated)
-
-    geardb_affiliation = AFFILIATION_MAPPING[participant.affiliation]
-
-    # If the database already has the same affiliation, no need to update
-    if geardb_affiliation == most_recent['affiliation']:
-        return
-
-    # We update in a few conditions:
-    # - the person has an affiliation that's less specific than this one
-    # - the gear database has no known affiliation
-    # - the affiliation was updated more recently than the gear database
-    should_update = (
-        most_recent['affiliation'] in DEPRECATED_GEARDB_AFFILIATIONS
-        or not most_recent['affiliation']
-        or participant.profile_last_updated.date() >= last_updated(most_recent)
+    payload = {
+        'email': participant.email,
+        'affiliation': participant.affiliation,
+        'other_verified_emails': sorted(other_verified_emails),
+    }
+    response = requests.put(
+        urljoin(API_BASE, 'api-auth/v1/affiliation/'),
+        # NOTE: We sign the payload here, even though current implementations just use the body.
+        # This does technically mean that anyone with a valid token can use the token to query any data.
+        # However, tokens aren't given to end users, only used on the systems which already have the secret.
+        headers={'Authorization': gear_bearer_jwt(**payload)},
+        json=payload,
     )
-
-    if should_update:
-        cursor = connections['geardb'].cursor()
-        logger.info(
-            "Updating affiliation for %s from %s to %s",
-            participant.name,
-            most_recent['affiliation'],
-            geardb_affiliation,
-        )
-        cursor.execute(
-            '''
-            update people
-               set affiliation = %(affiliation)s
-             where id = %(person_id)s
-            ''',
-            {'affiliation': geardb_affiliation, 'person_id': most_recent['person_id']},
-        )
+    # Note that this may be a 400!
+    return response
 
 
 def _stats_only_all_active_members():
