@@ -1,5 +1,5 @@
 # TODO:
-# - Once we drop direct MySQL access, consider python:3.8-slim
+# - Once we drop direct MySQL access, consider python:3.10-slim
 # - Once dropping legacy AngularJS, build FE bundles separately
 
 # Things needed to use this in production:
@@ -7,7 +7,7 @@
 # - Ensure that Celery works as well
 # - Run WSGI with an ENTRYPOINT
 
-FROM ubuntu:20.04 as build
+FROM ubuntu:22.04 as build
 
 WORKDIR /app/
 
@@ -24,14 +24,14 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     locales \
     # Postgres client (for accessing RDS in production) \
     postgresql-client postgresql-contrib libpq-dev \
-    python3.8 python3-dev python3-pip \
+    python3.10 python3-dev python3-pip \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 # Install node directly into the container we'll use for Django.
 # This is only necessary while we're still serving the legacy frontend.
 # Once we're on the new Vue setup, all we need to do is copy in the build bundle & webpack-stats.json
-RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_16.x | bash -
 RUN apt-get update && apt-get install --no-install-recommends -y nodejs
 
 RUN locale-gen en_US.UTF-8
@@ -42,10 +42,10 @@ ENV LANGUAGE=en_US.UTF-8
 ENV LANG=en_US.UTF-8
 ENV LC_ALL=en_US.UTF-8
 
-RUN pip3 install --upgrade pip==21.2.1
+RUN pip3 install --upgrade pip==22.0.4
 
 # TODO: Check asdf's .tool-versions
-RUN pip install poetry==1.1.7
+RUN pip install poetry==1.1.12
 COPY poetry.lock .
 
 # Instruct poetry to create a venv in `.venv`, then auto-add it to path
@@ -79,7 +79,7 @@ FROM build as installer
 # Remove dev dependencies (smaller venv, no dev deps in prod)
 RUN poetry install --no-root --no-dev
 
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
 WORKDIR /app/
 ENV PATH="/app/.venv/bin:$PATH"
