@@ -58,9 +58,7 @@ class LotteryRunner:
     def mark_seen(self, participant, seen=True) -> None:
         self._participants_seen[participant.pk] = seen
 
-    def signup_to_bump(  # pylint: disable=no-self-use
-        self, trip
-    ) -> Optional[models.SignUp]:
+    def signup_to_bump(self, trip) -> Optional[models.SignUp]:
         """Which participant to bump off the trip if another needs a place.
 
         By default, just goes with the last-ordered participant.

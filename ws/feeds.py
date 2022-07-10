@@ -1,5 +1,3 @@
-# Using static methods instead of normal methods seems to break feed functionality
-# pylint: disable=no-self-use
 from django.contrib.syndication.views import Feed
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
