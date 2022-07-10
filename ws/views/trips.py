@@ -160,7 +160,7 @@ class ReviewTripView(DetailView):
         if trip.feedback_window_passed:
             messages.warning(
                 self.request,
-                "Trip feedback window has passed. " "Feedback may not be updated.",
+                "Trip feedback window has passed. Feedback may not be updated.",
             )
             return redirect(reverse('review_trip', args=(trip.pk,)))
 

@@ -100,7 +100,7 @@ def update_discount_sheet_for_participant(discount_id: int, participant_id: int)
 
     if settings.DISABLE_GSHEETS:
         logger.warning(
-            "Google Sheets functionality is disabled, not updating " "'%s' for %s",
+            "Google Sheets functionality is disabled, not updating '%s' for %s",
             discount.name,
             participant.name,
         )
@@ -129,7 +129,7 @@ def update_discount_sheet(discount_id):
 
     if settings.DISABLE_GSHEETS:
         logger.warning(
-            "Google Sheets functionality is disabled, " "not updating sheet for '%s'",
+            "Google Sheets functionality is disabled, not updating sheet for '%s'",
             discount.name,
         )
         return
