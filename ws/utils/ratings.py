@@ -1,4 +1,3 @@
-import functools
 from typing import List, Type
 
 from django import db
@@ -25,7 +24,6 @@ class LeaderApplicationMixin:
 
     activity: str
 
-    @functools.lru_cache(maxsize=None)
     def activity_chairs(self) -> QuerySet[User]:
         """Return the chairs for this activity."""
 

@@ -5,7 +5,6 @@ Participants can express interest in becoming a leader for a specific activity,
 and activity chairs can respond to those applications with recommendations
 and/or ratings.
 """
-import functools
 from collections import defaultdict
 from typing import Dict, Optional, Union
 
@@ -254,11 +253,9 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type:
             activity=self.activity,
         )
 
-    @functools.lru_cache(maxsize=None)
     def existing_rating(self) -> Optional[models.LeaderRating]:
         return self.par_ratings.filter(active=True).first()
 
-    @functools.lru_cache(maxsize=None)
     def existing_rec(self) -> Optional[models.LeaderRecommendation]:
         """Load an existing recommendation for the viewing participant."""
         return models.LeaderRecommendation.objects.filter(
@@ -358,7 +355,6 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type:
             return Q(time_created__lte=self.assigned_rating.time_created)
         return Q()
 
-    @functools.lru_cache(maxsize=None)
     def get_recommendations(self) -> QuerySet[models.LeaderRecommendation]:
         """Get recommendations made by leaders/chairs for this application.
 
