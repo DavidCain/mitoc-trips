@@ -15,7 +15,7 @@ def bearer_jwt(secret: str, **payload) -> str:
     """Express a JWT as a Bearer token, meant for use with `Authorization` HTTP header.
 
     A few MITOC repositories are configured to talk to each other by using
-    requests signed with shared secrets. For example, the `mitoc-member`
+    requests signed with shared secrets. For example, Lambdas in the `mitoc-aws`
     repository can ask this project for all the emails known to be linked to a
     given email. This repository can ask the gear database for membership
     information.

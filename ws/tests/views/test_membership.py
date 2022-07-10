@@ -18,7 +18,7 @@ class PayDuesTests(TestCase):
         self.assertEqual(form.fields['description'].initial, 'membership fees.')
 
         # merchant* fields have special meaning for CyberSource.
-        # - The `'membership'` label is expected in mitoc-member
+        # - The `'membership'` label is expected in mitoc-aws' Lambdas
         # The Affiliation is also used to create the membership record
         self.assertEqual(form.fields['merchantDefinedData1'].initial, 'membership')
         self.assertEqual(

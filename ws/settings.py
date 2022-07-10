@@ -35,8 +35,9 @@ UNSUBSCRIBE_SECRET_KEY = os.getenv(
 # Since random.random is not suitable for cryptographic applications, we use
 # a separate secret key rather than re-use SECRET_KEY
 PRNG_SEED_SECRET = os.getenv('PRNG_SEED_SECRET', 'some-key-unknown-to-participants')
+
 MEMBERSHIP_SECRET_KEY = os.getenv(
-    'MEMBERSHIP_SECRET_KEY', 'secret shared with the mitoc-member repo'
+    'MEMBERSHIP_SECRET_KEY', 'secret shared with the mitoc-aws repo'
 )
 GEARDB_SECRET_KEY = os.getenv(
     'GEARDB_SECRET_KEY', 'secret shared with the mitoc-gear repo'
