@@ -25,7 +25,7 @@ class MarkdownTextarea(dj_widgets.Textarea):
 
 
 class LeaderSelect(dj_widgets.SelectMultiple):
-    def render(self, name, value, attrs=None, choices=(), renderer=None):
+    def render(self, name, value, attrs=None, renderer=None):
         attrs.update(program='program', name=name)
         if value:
             attrs['leader-ids'] = json.dumps(value)
@@ -34,7 +34,7 @@ class LeaderSelect(dj_widgets.SelectMultiple):
 
 
 class ParticipantSelect(dj_widgets.Select):
-    def render(self, name, value, attrs=None, choices=(), renderer=None):
+    def render(self, name, value, attrs=None, renderer=None):
         attrs.update(name=name)
         final_attrs = self.build_attrs(self.attrs, attrs)
         return format_html(
