@@ -1,5 +1,5 @@
 import typing
-import xml.etree.cElementTree as ET
+import xml.etree.ElementTree as ET
 from typing import Dict, List, Optional
 
 import requests
