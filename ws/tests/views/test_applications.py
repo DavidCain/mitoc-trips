@@ -179,7 +179,7 @@ class HikingLeaderApplicationTest(TestCase, Helpers):
             soup.find('div', class_='alert-info').text.strip(),
             "You've submitted your leader application, and it's awaiting review.",
         )
-        self.assertTrue(soup.find('p', text='Never been hiking before'))
+        self.assertTrue(soup.find('p', string='Never been hiking before'))
 
     def test_can_reapply_if_old_application_ignored(self):
         with freeze_time("2020-10-01 12:00 EST"):

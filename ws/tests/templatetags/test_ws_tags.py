@@ -16,7 +16,7 @@ class AttendanceTest(TestCase):
         soup = BeautifulSoup(html_template.render(context), 'html.parser')
 
         # The user is marked as absent!
-        self.assertTrue(soup.find(text='Absent', class_='label-danger'))
+        self.assertTrue(soup.find(string='Absent', class_='label-danger'))
 
         # There's no option to submit attendance, just an instruction to email the chair(s)
         self.assertFalse(soup.find('form'))
@@ -33,7 +33,7 @@ class AttendanceTest(TestCase):
 
         self.assertTrue(
             soup.find(
-                'p', text="We don't show you as having attended this year's lectures."
+                'p', string="We don't show you as having attended this year's lectures."
             )
         )
         self.assertTrue(
@@ -55,7 +55,7 @@ class AttendanceTest(TestCase):
         self.assertTrue(
             soup.find(
                 'p',
-                text="Delinquent Participant has not attended this year's lectures.",
+                string="Delinquent Participant has not attended this year's lectures.",
             )
         )
         self.assertTrue(
@@ -74,7 +74,7 @@ class AttendanceTest(TestCase):
         context = Context({'par': participant, 'user_viewing': False, 'can_set': False})
         soup = BeautifulSoup(html_template.render(context), 'html.parser')
 
-        self.assertTrue(soup.find(text='Absent', class_='label-danger'))
+        self.assertTrue(soup.find(string='Absent', class_='label-danger'))
         self.assertEqual(
             soup.find('p').get_text(' ', strip=True),
             "Absent Delinquent Participant did not attend this year's lectures!",
@@ -106,7 +106,7 @@ class AttendanceTest(TestCase):
         context = Context({'par': participant, 'user_viewing': False, 'can_set': False})
         soup = BeautifulSoup(html_template.render(context), 'html.parser')
 
-        self.assertTrue(soup.find(text='Attended', class_='label-success'))
+        self.assertTrue(soup.find(string='Attended', class_='label-success'))
         self.assertFalse(soup.find('form'))
 
     @freeze_time("Jan 12 2019 20:30:00 EST")

@@ -83,7 +83,7 @@ class LectureAttendanceTests(TestCase):
         with freeze_time("Jan 6 2022 20:00:00 EST"):
             resp = self.client.get('/')
         soup = BeautifulSoup(resp.content, 'html.parser')
-        attendance = soup.find('h3', text='Lecture Attendance')
+        attendance = soup.find('h3', string='Lecture Attendance')
         self.assertEqual(
             strip_whitespace(attendance.find_next('p').text),
             "Attended You have attended this year's lectures!",
@@ -110,7 +110,7 @@ class LectureAttendanceTests(TestCase):
 
         # This participant did not record their attendance!
         soup = BeautifulSoup(resp.content, 'html.parser')
-        attendance = soup.find('h3', text='Lecture Attendance')
+        attendance = soup.find('h3', string='Lecture Attendance')
         self.assertEqual(
             strip_whitespace(attendance.find_next('p').text),
             "Attended You have attended this year's lectures!",
@@ -136,7 +136,7 @@ class LectureAttendanceTests(TestCase):
 
         # Because the participant *did* attend lectures, we don't take up space telling them that
         soup = BeautifulSoup(resp.content, 'html.parser')
-        self.assertFalse(soup.find('h3', text='Lecture Attendance'))
+        self.assertFalse(soup.find('h3', string='Lecture Attendance'))
 
     def test_attendance_not_shown_outside_winter_school(self):
         """We don't tell participants that they attended lectures, outside WS at least."""
@@ -149,7 +149,7 @@ class LectureAttendanceTests(TestCase):
         with freeze_time("Feb 15 2022 12:00:00 EST"):
             resp = self.client.get('/')
         soup = BeautifulSoup(resp.content, 'html.parser')
-        self.assertFalse(soup.find('h3', text='Lecture Attendance'))
+        self.assertFalse(soup.find('h3', string='Lecture Attendance'))
 
 
 class ProfileViewTests(TestCase):

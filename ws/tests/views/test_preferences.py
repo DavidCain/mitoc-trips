@@ -777,7 +777,7 @@ class EmailUnsubscribeTest(TestCase):
             ['Successfully unsubscribed'],
             [alert.text.strip() for alert in soup.find_all(class_='alert')],
         )
-        edit_link = soup.find('a', text='Edit your email preferences')
+        edit_link = soup.find('a', string='Edit your email preferences')
         self.assertTrue(edit_link)
         self.assertEqual(edit_link.attrs['href'], '/preferences/email/')
 

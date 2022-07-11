@@ -43,5 +43,7 @@ class DiscountTagsTest(TestCase):
         )
 
         self.assertTrue(
-            soup.find('a', text='discount preferences', href="/preferences/discounts/")
+            soup.find(
+                'a', string='discount preferences', href="/preferences/discounts/"
+            )
         )

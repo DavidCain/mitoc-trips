@@ -152,8 +152,8 @@ class ActivityLeadersViewTest(TestCase):
         response = self.client.get('/climbing/leaders/')
         self.assertEqual(response.context['activity_enum'], enums.Activity.CLIMBING)
         soup = BeautifulSoup(response.content, 'html.parser')
-        self.assertTrue(soup.find('h2', text='Climbing Leaders'))
-        self.assertTrue(soup.find('p', text='No active leaders!'))
+        self.assertTrue(soup.find('h2', string='Climbing Leaders'))
+        self.assertTrue(soup.find('p', string='No active leaders!'))
 
     def test_active_leaders(self):
         rating = factories.LeaderRatingFactory.create(
@@ -173,8 +173,8 @@ class ActivityLeadersViewTest(TestCase):
         self.assertEqual(response.context['activity_enum'], enums.Activity.CLIMBING)
         soup = BeautifulSoup(response.content, 'html.parser')
 
-        self.assertFalse(soup.find('table').find(text='Alex Honnold'))
-        leader = soup.find('table').find('td', text='Tommy Caldwell')
+        self.assertFalse(soup.find('table').find(string='Alex Honnold'))
+        leader = soup.find('table').find('td', string='Tommy Caldwell')
         self.assertEqual(
             leader.find('a')['href'], f'/participants/{rating.participant_id}/'
         )

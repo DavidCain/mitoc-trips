@@ -45,7 +45,7 @@ class TripItineraryViewTest(TestCase):
     def test_not_leader(self):
         # Normal participants cannot view, but they get a 200 explaining why
         _, soup = self._render()
-        self.assertTrue(soup.find('h2', text='Must be a leader to administrate trip'))
+        self.assertTrue(soup.find('h2', string='Must be a leader to administrate trip'))
         self.assertFalse(soup.find('form'))
 
     def test_not_leader_on_trip(self):
@@ -53,7 +53,7 @@ class TripItineraryViewTest(TestCase):
         factories.LeaderRatingFactory.create(
             participant=self.participant, activity=enums.Activity.CLIMBING.value
         )
-        self.assertTrue(soup.find('h2', text='Must be a leader to administrate trip'))
+        self.assertTrue(soup.find('h2', string='Must be a leader to administrate trip'))
         self.assertFalse(soup.find('form'))
 
     @freeze_time("2018-02-14 12:25:00 EST")
@@ -62,7 +62,7 @@ class TripItineraryViewTest(TestCase):
 
         # Trip is Sunday. On Wednesday, we can't yet edit!
         _, soup = self._render()
-        heading = soup.find('h2', text='WIMP information submission')
+        heading = soup.find('h2', string='WIMP information submission')
         par = heading.find_next('p')
         self.assertEqual(
             strip_whitespace(par.text),
@@ -148,13 +148,13 @@ class AllTripsMedicalViewTest(TestCase):
 
         soup = BeautifulSoup(response.content, 'html.parser')
 
-        header = soup.find('h1', text="WIMP Information Sheet")
+        header = soup.find('h1', string="WIMP Information Sheet")
         self.assertTrue(header)
         self.assertEqual(
             strip_whitespace(header.find_next('p').text),
             "This page contains all known medical information for trips taking place on or after Jan. 1, 2020.",
         )
-        self.assertTrue(soup.find('p', text="No upcoming trips."))
+        self.assertTrue(soup.find('p', string="No upcoming trips."))
 
     def test_wimp(self):
         Group.objects.get(name='WIMP').user_set.add(self.user)
@@ -171,8 +171,8 @@ class AllTripsMedicalViewTest(TestCase):
         soup = BeautifulSoup(response.content, 'html.parser')
 
         # Both trips are described
-        self.assertTrue(soup.find('h3', text="2nd Trip"))
-        self.assertTrue(soup.find('h3', text="3rd Trip"))
+        self.assertTrue(soup.find('h3', string="2nd Trip"))
+        self.assertTrue(soup.find('h3', string="3rd Trip"))
 
     def test_key_data_present(self):
         Group.objects.get(name='WIMP').user_set.add(self.user)
@@ -214,24 +214,24 @@ class AllTripsMedicalViewTest(TestCase):
 
         # Both trip participants + the leader are given in the summary
         self.assertTrue(
-            soup.find('a', href=f'/participants/{non_driver.pk}/', text="Non Driver")
+            soup.find('a', href=f'/participants/{non_driver.pk}/', string="Non Driver")
         )
         self.assertTrue(
-            soup.find('a', href=f'/participants/{driver.pk}/', text="Trip Driver")
+            soup.find('a', href=f'/participants/{driver.pk}/', string="Trip Driver")
         )
         self.assertTrue(
-            soup.find('a', href=f'/participants/{leader.pk}/', text="Tim Beaver")
+            soup.find('a', href=f'/participants/{leader.pk}/', string="Tim Beaver")
         )
 
         # Signup not on the trip is omitted.
-        self.assertFalse(soup.find('a', text="NOT ON TRIP"))
+        self.assertFalse(soup.find('a', string="NOT ON TRIP"))
 
         # Key medical information is given
-        self.assertTrue(soup.find('td', text="Pollen"))
+        self.assertTrue(soup.find('td', string="Pollen"))
 
         # The driver's car info is given in a table.
-        self.assertTrue(soup.find('td', text="559 DKP"))
-        self.assertTrue(soup.find('td', text="Powell Motors Homer"))
+        self.assertTrue(soup.find('td', string="559 DKP"))
+        self.assertTrue(soup.find('td', string="Powell Motors Homer"))
 
         # The itinerary of the trip is also given
         self.assertIn(plan, soup.text)
@@ -245,7 +245,7 @@ class TripMedicalViewTest(TestCase):
     def _assert_cannot_view(self, trip):
         response = self.client.get(f'/trips/{trip.pk}/medical/')
         soup = BeautifulSoup(response.content, 'html.parser')
-        self.assertTrue(soup.find('h2', text="Must be a leader to administrate trip"))
+        self.assertTrue(soup.find('h2', string="Must be a leader to administrate trip"))
 
     def test_must_have_participant(self):
         self._assert_cannot_view(factories.TripFactory.create())
@@ -281,12 +281,14 @@ class TripMedicalViewTest(TestCase):
         soup = BeautifulSoup(response.content, 'html.parser')
 
         # Participant medical info is given
-        self.assertTrue(soup.find('td', text="Bee stings"))
+        self.assertTrue(soup.find('td', string="Bee stings"))
 
         # A link for leaders to supply an itinerary is also given
         self.assertTrue(
             soup.find(
-                'a', href=f'/trips/{trip.pk}/itinerary/', text="detailed trip itinerary"
+                'a',
+                href=f'/trips/{trip.pk}/itinerary/',
+                string="detailed trip itinerary",
             )
         )
 
@@ -302,7 +304,7 @@ class TripMedicalViewTest(TestCase):
         soup = BeautifulSoup(response.content, 'html.parser')
 
         # Participant medical info is given
-        self.assertTrue(soup.find('td', text="Bee stings"))
+        self.assertTrue(soup.find('td', string="Bee stings"))
 
         # The WIMP cannot provide an itinerary, they're not a leader
         self.assertFalse(soup.find('a', href=f'/trips/{trip.pk}/itinerary/'))
@@ -342,7 +344,7 @@ class ChairTripViewTest(TestCase):
 
         # Even though the trip is old, we can still approve it.
         form = soup.find('form', action='.')
-        self.assertTrue(form.find('button', text='Approve'))
+        self.assertTrue(form.find('button', string='Approve'))
 
         # There are no other unapproved trips to navigate between.
         self.assertIsNone(response.context['prev_trip'])
@@ -365,7 +367,7 @@ class ChairTripViewTest(TestCase):
 
         # There's no approval form, just an indicator that it's approved
         self.assertFalse(soup.find('form', action='.'))
-        self.assertTrue(soup.find('button', text='Approved!'))
+        self.assertTrue(soup.find('button', string='Approved!'))
 
     def test_upcoming_trips(self):
         # Make each of these the same trip type, so we sort just by date
@@ -396,7 +398,7 @@ class ChairTripViewTest(TestCase):
         # Because we have a next trip, the button to approve it links to "& next"
         soup = BeautifulSoup(response.content, 'html.parser')
         form = soup.find('form', action='.')
-        self.assertTrue(form.find('button', text='Approve & Next'))
+        self.assertTrue(form.find('button', string='Approve & Next'))
 
         # Also, next and previous only navigate between unapproved trips
         three.chair_approved = True

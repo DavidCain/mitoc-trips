@@ -106,9 +106,9 @@ class SignupForTripTests(TestCase):
 
         soup = self._render(leader, circus_trip)
         self.assertTrue(
-            soup.find('button', type='submit', text='Sign up as participant')
+            soup.find('button', type='submit', string='Sign up as participant')
         )
-        self.assertTrue(soup.find('button', type='submit', text='Sign up as leader'))
+        self.assertTrue(soup.find('button', type='submit', string='Sign up as leader'))
 
     def test_leaders_with_rating_can_sign_up(self):
         """Leaders with an active rating in the activity can sign up as leaders."""
@@ -125,7 +125,7 @@ class SignupForTripTests(TestCase):
             climbing_form.find(
                 'button',
                 type='submit',
-                text='Sign up as participant',
+                string='Sign up as participant',
                 attrs={'formaction': None},  # Uses default form `action`
             )
         )
@@ -133,15 +133,15 @@ class SignupForTripTests(TestCase):
             climbing_form.find(
                 'button',
                 type='submit',
-                text='Sign up as leader',
+                string='Sign up as leader',
                 attrs={'formaction': '/trips/signup/leader/'},
             )
         )
 
         hiking_leader = self._leader(models.LeaderRating.HIKING)
         soup = self._render(hiking_leader, climbing_trip)
-        self.assertTrue(soup.find('button', type='submit', text='Sign up'))
-        self.assertFalse(soup.find('button', type='submit', text='Sign up as leader'))
+        self.assertTrue(soup.find('button', type='submit', string='Sign up'))
+        self.assertFalse(soup.find('button', type='submit', string='Sign up as leader'))
 
     def test_not_yet_open(self):
         trip = self._make_trip(
@@ -210,7 +210,7 @@ class SignupForTripTests(TestCase):
         self.assertTrue(
             soup.find(
                 'p',
-                text='If you can no longer attend this trip, let your leaders know.',
+                string='If you can no longer attend this trip, let your leaders know.',
             )
         )
 

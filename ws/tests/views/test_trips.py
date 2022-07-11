@@ -287,7 +287,7 @@ class EditTripViewTest(TestCase, Helpers):
         )
 
         _edit_resp, soup = self._get(f'/trips/{trip.pk}/edit/')
-        self.assertTrue(soup.find('h2', text='Must be a leader to administrate trip'))
+        self.assertTrue(soup.find('h2', string='Must be a leader to administrate trip'))
         self.assertFalse(soup.find('form'))
 
     @freeze_time("2022-01-15 12:25:00 EST")
@@ -495,14 +495,14 @@ class ApproveTripsViewTest(TestCase):
         self._make_climbing_trip(chair_approved=True)
         perm_utils.make_chair(self.user, enums.Activity.CLIMBING)
         soup = BeautifulSoup(self.client.get('/climbing/trips/').content, 'html.parser')
-        self.assertFalse(soup.find('th', text='Level'))
+        self.assertFalse(soup.find('th', string='Level'))
 
         perm_utils.make_chair(self.user, enums.Activity.WINTER_SCHOOL)
         factories.TripFactory.create(program=enums.Program.WINTER_SCHOOL.value)
         ws_soup = BeautifulSoup(
             self.client.get('/winter_school/trips/').content, 'html.parser'
         )
-        self.assertTrue(ws_soup.find('th', text='Level'))
+        self.assertTrue(ws_soup.find('th', string='Level'))
 
     def test_chair(self):
         self._make_climbing_trip(chair_approved=True)

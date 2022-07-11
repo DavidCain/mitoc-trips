@@ -54,8 +54,8 @@ class PotentialDuplicatesViewewTest(TestCase):
         )
 
         # Neither participant appears anymore
-        self.assertIsNone(soup.find(text='Older Par'))
-        self.assertIsNone(soup.find(text='Newer Par'))
+        self.assertIsNone(soup.find(string='Older Par'))
+        self.assertIsNone(soup.find(string='Newer Par'))
 
     def test_same_name_mark_distinct(self):
         old = factories.ParticipantFactory.create(
@@ -80,7 +80,7 @@ class PotentialDuplicatesViewewTest(TestCase):
             f"Marked John Smith (#{old.pk}) as distinct from John Smith (#{new.pk})",
         )
         # Neither John Smith appears anymore.
-        self.assertIsNone(soup.find(text='John Smith'))
+        self.assertIsNone(soup.find(string='John Smith'))
 
     def test_merge_non_existent(self):
         old = factories.ParticipantFactory.create(name="Older Par")

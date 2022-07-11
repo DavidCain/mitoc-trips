@@ -20,7 +20,7 @@ class ShowWimpTagsTests(TestCase):
         soup = BeautifulSoup(html, 'xml')
 
         # We check that key contact information is shown!
-        self.assertTrue(soup.find(text='+13395551111'))
+        self.assertTrue(soup.find(string='+13395551111'))
         self.assertTrue(soup.find('a', href='mailto:wimp@mit.edu'))
         self.assertTrue(soup.find('a', href='mailto:thewimp@example.com'))
 
@@ -58,8 +58,8 @@ class TripItineraryTest(TestCase):
         )
         html = template_to_render.render(context)
         soup = BeautifulSoup(html, 'xml')
-        self.assertTrue(soup.find('dd', text="Old Bridle Path trailhead"))
-        self.assertTrue(soup.find('dd', text="9 am at the latest"))
+        self.assertTrue(soup.find('dd', string="Old Bridle Path trailhead"))
+        self.assertTrue(soup.find('dd', string="9 am at the latest"))
 
 
 class TripInfoTest(TestCase):
@@ -110,19 +110,19 @@ class TripInfoTest(TestCase):
         soup = self._render(trip, show_participants_if_no_itinerary=True)
 
         # We have a table of all participants
-        self.assertTrue(soup.find('h4', text='Participants'))
-        self.assertTrue(soup.find('td', text='Car Renter'))
-        self.assertTrue(soup.find('td', text='Car Owner'))
+        self.assertTrue(soup.find('h4', string='Participants'))
+        self.assertTrue(soup.find('td', string='Car Renter'))
+        self.assertTrue(soup.find('td', string='Car Owner'))
 
         # We show a table of all drivers out of caution
-        self.assertTrue(soup.find('h4', text='Drivers'))
+        self.assertTrue(soup.find('h4', string='Drivers'))
         warning = soup.find(class_='alert alert-warning')
         self.assertIn(
             "all trip-goers that submitted car information",
             strip_whitespace(warning.text),
         )
-        self.assertTrue(soup.find('td', text='Subaru Outback'))
-        self.assertTrue(soup.find('td', text='Honda Odyssey'))
+        self.assertTrue(soup.find('td', string='Subaru Outback'))
+        self.assertTrue(soup.find('td', string='Honda Odyssey'))
 
     def test_leaders_encouraged_to_submit(self):
         trip = factories.TripFactory.create(info=None)
@@ -147,5 +147,5 @@ class TripInfoTest(TestCase):
             "To preserve participant privacy, sensitive medical information has been redacted",
             strip_whitespace(info.text),
         )
-        self.assertFalse(soup.find(text="bee stings"))
-        self.assertTrue(soup.find(text="redacted"))
+        self.assertFalse(soup.find(string="bee stings"))
+        self.assertTrue(soup.find(string="redacted"))

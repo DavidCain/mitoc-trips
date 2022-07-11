@@ -16,8 +16,8 @@ class AccountTests(TestCase):
 
         nav_menu = soup.find(id='main-menu')
         # The minimal menu has the two key links anyone needs!
-        self.assertTrue(nav_menu.find('a', href='/help/', text='Help'))
-        self.assertTrue(nav_menu.find('a', href='/contact/', text='Contact'))
+        self.assertTrue(nav_menu.find('a', href='/help/', string='Help'))
+        self.assertTrue(nav_menu.find('a', href='/contact/', string='Contact'))
 
         # There is nothing using Bootstrap's collapsible classes
         self.assertFalse(nav_menu.find(class_="collapse"))

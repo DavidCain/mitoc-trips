@@ -263,4 +263,4 @@ class PasswordChangeTests(TestCase):
         soup = BeautifulSoup(response.content, 'html.parser')
         form_group = soup.find(class_='has-error')
         self.assertTrue(form_group)
-        self.assertTrue(form_group.find(text='This password is too common.'))
+        self.assertTrue(form_group.find(string='This password is too common.'))
