@@ -139,9 +139,7 @@ class SheetWriter:
         return tuple(header)
 
     @staticmethod
-    def activity_descriptors(
-        participant: models.Participant, user: models.User
-    ) -> Iterator[str]:
+    def activity_descriptors(participant: models.Participant) -> Iterator[str]:
         """Yield a description for each activity the participant is a leader.
 
         Mentions if the person is a leader or a chair, but does not give their
@@ -150,11 +148,15 @@ class SheetWriter:
         active_ratings = participant.leaderrating_set.filter(active=True)
         for activity in active_ratings.values_list('activity', flat=True):
             activity_enum = enums.Activity(activity)
-            position = 'chair' if is_chair(user, activity_enum, False) else 'leader'
+            position = (
+                'chair'
+                if is_chair(participant.user, activity_enum, False)
+                else 'leader'
+            )
             yield f"{activity_enum.label} {position}"
 
-    def leader_text(self, participant: models.Participant, user: models.User) -> str:
-        return ', '.join(self.activity_descriptors(participant, user))
+    def leader_text(self, participant: models.Participant) -> str:
+        return ', '.join(self.activity_descriptors(participant))
 
     @staticmethod
     def school(participant: models.Participant) -> str:
@@ -181,6 +183,10 @@ class SheetWriter:
 
         (Companies don't care about participant waiver status, so ignore it).
         """
+        # For most participants, the cache will have an active membership!
+        if participant and participant.membership_active:
+            return 'Active'
+
         # Status is one API query per user. Expensive! (We should refactor...)
         try:
             membership = membership_utils.get_latest_membership(participant)
@@ -198,9 +204,7 @@ class SheetWriter:
             return f'Expired {membership.membership_expires.isoformat()}'
         return 'Missing'
 
-    def get_row(
-        self, participant: models.Participant, user: models.User
-    ) -> Tuple[str, ...]:
+    def get_row(self, participant: models.Participant) -> Tuple[str, ...]:
         """Get the row values that match the header for this discount sheet."""
         row_mapper = {
             self.labels.name: participant.name,
@@ -212,7 +216,7 @@ class SheetWriter:
 
         # Only fetch these if needed, as we hit the database
         if self.labels.leader in self.header:
-            row_mapper[self.labels.leader] = self.leader_text(participant, user)
+            row_mapper[self.labels.leader] = self.leader_text(participant)
         if self.labels.access in self.header:
             row_mapper[self.labels.access] = self.access_text(participant)
 
@@ -233,12 +237,11 @@ def update_participant(
 
     Much more efficient than updating the entire sheet.
     """
-    user = models.User.objects.get(pk=participant.user_id)
     client, _ = connect_to_sheets()
     wks = client.open_by_key(discount.ga_key).sheet1
     writer = SheetWriter(discount)
 
-    new_row = writer.get_row(participant, user)
+    new_row = writer.get_row(participant)
 
     # Attempt to find existing row, update it if found
     last_col = len(writer.header)
@@ -267,10 +270,9 @@ def update_discount_sheet(discount: models.Discount) -> None:
     """
     client, _ = connect_to_sheets()
     wks = client.open_by_key(discount.ga_key).sheet1
-    participants = list(discount.participant_set.order_by('name'))
-
-    users = models.User.objects.filter(pk__in=[p.user_id for p in participants])
-    user_by_id = {user.pk: user for user in users}
+    participants = list(
+        discount.participant_set.select_related('membership', 'user').order_by('name')
+    )
 
     writer = SheetWriter(discount)
 
@@ -285,8 +287,7 @@ def update_discount_sheet(discount: models.Discount) -> None:
 
     # Update each row with current membership information
     for participant, row in zip(participants, rows):
-        user = user_by_id[participant.user_id]
-        _assign(row, writer.get_row(participant, user))
+        _assign(row, writer.get_row(participant))
 
     # Batch update to minimize API calls
     wks.update_cells(all_cells)
