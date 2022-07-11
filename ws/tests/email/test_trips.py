@@ -177,7 +177,7 @@ class TripsBlastTest(TestCase):
         self.assertEqual(msg.body, expected_content)
 
         # Check the HTML (which is chock full of email-specific CSS & structure)
-        content = msg.alternatives[0][0]  # type: ignore
+        content = msg.alternatives[0][0]
         soup = BeautifulSoup(content, 'html.parser')
         self.assertEqual(soup.title.text, 'Upcoming MITOC trips | Wednesday, January 1')
         self.assertIn(

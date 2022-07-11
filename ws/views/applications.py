@@ -39,9 +39,7 @@ class LeaderApplicationMixin(ratings_utils.LeaderApplicationMixin):
     @property
     def activity(self):
         """The activity, should be verified by the dispatch method."""
-        # TODO: `self.kwargs` isn't obviously available...
-        # I should probably just refactor this whole mixin hierarchy.
-        return self.kwargs['activity']  # type: ignore
+        return self.kwargs['activity']
 
     def get_queryset(self):
         return self.joined_queryset()
