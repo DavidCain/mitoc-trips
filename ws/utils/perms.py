@@ -1,5 +1,5 @@
 import functools
-from typing import Iterable, Union
+from typing import Iterable, Optional, Union
 
 from django.contrib.auth.models import AnonymousUser, Group, User
 from django.db.models import QuerySet
@@ -75,7 +75,7 @@ def make_chair(user: User, activity_enum):
 
 def is_chair(
     user: Union[AnonymousUser, User],
-    activity_enum: enums.Activity,
+    activity_enum: Optional[enums.Activity],
     allow_superusers: bool = True,
 ) -> bool:
     """Return if the activity has chairs, and the user is one.
