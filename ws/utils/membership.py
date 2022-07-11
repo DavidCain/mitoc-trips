@@ -1,7 +1,4 @@
-from datetime import timedelta
-
-from django.db.models import Q
-from django.db.utils import OperationalError
+import requests
 from sentry_sdk import capture_exception
 
 from ws import enums, models
@@ -9,30 +6,16 @@ from ws.utils import geardb
 from ws.utils.dates import local_now
 
 
-def refresh_all_membership_cache():
-    """Refresh all membership caches in the system.
-
-    After this is run, every participant in the system will have membership
-    information that is no more than a week old.
-    """
-    last_week = local_now() - timedelta(weeks=1)
-    needs_update = Q(membership__isnull=True) | Q(membership__last_cached__lt=last_week)
-
-    all_participants = models.Participant.objects.select_related('membership')
-    for par in all_participants.filter(needs_update):
-        update_membership_cache(par)
-
-
-def update_membership_cache(participant):
+def _update_membership_cache(participant):
     """Use results from the gear database to update membership cache."""
-    emails = geardb.verified_emails(participant.user)
+    membership_dict = geardb.query_geardb_for_membership(participant.user)
+    if membership_dict is None:  # No email edge case, should be impossible
+        return
 
-    # If something is found, this method automatically updates the cache
-    most_recent = geardb.membership_expiration(emails)
-
-    # However, if nothing is found, we'll need to set that ourselves
-    if not most_recent['membership']['email']:
-        participant.update_membership(membership_expires=None, waiver_expires=None)
+    participant.update_membership(
+        membership_expires=membership_dict['membership']['expires'],
+        waiver_expires=membership_dict['waiver']['expires'],
+    )
 
 
 def reasons_cannot_attend(user, trip):
@@ -58,16 +41,16 @@ def reasons_cannot_attend(user, trip):
         yield from iter(reasons)
         return
 
-    # The first check identified that the participant cannot attend due to membership problems
+    # The first check identified that the participant cannot attend due to membership problems.
     # It used the cache, so some reasons for failure may have been due to a stale cache.
-    # To be sure they can't attend, we must consult the gear database
+    # To be sure they can't attend, we must consult the gear database.
     membership = participant.membership
     before_refreshing_ts = local_now()
     original_ts = membership.last_cached if membership else before_refreshing_ts
 
     try:
-        update_membership_cache(participant)
-    except OperationalError:
+        _update_membership_cache(participant)
+    except requests.exceptions.RequestException:
         capture_exception()
         return
 

@@ -1,4 +1,5 @@
 import unittest
+from datetime import date
 from unittest import mock
 
 import jwt
@@ -173,12 +174,89 @@ class UpdateAffiliationTest(TestCase):
 class NoUserTests(SimpleTestCase):
     """Convenience methods neatly handle missing or anonymous users."""
 
-    def test_expiration_no_emails(self):
-        """Test users with no email addresses."""
-        self.assertIsNone(geardb.user_membership_expiration(None))
-        self.assertIsNone(geardb.user_membership_expiration(AnonymousUser()))
-
     def test_verified_email_no_user(self):
         """Test users with no email addresses."""
         self.assertEqual(geardb.verified_emails(AnonymousUser()), [])
         self.assertEqual(geardb.verified_emails(None), [])
+
+
+class QueryGearDBForMembershipTest(TestCase):
+    def test_user_without_any_emails(self):
+        """We don't bother hitting the API if missing verified emails to use.
+
+        (in practice, this should not happen - only participants can
+        use the API route which hits this helper).
+        """
+        user = factories.UserFactory(emailaddress__verified=False)
+        with responses.RequestsMock():  # (No API calls made)
+            membership = geardb.query_geardb_for_membership(user)
+        self.assertIsNone(membership)
+
+    @responses.activate
+    def test_no_membership_found(self):
+        user = factories.UserFactory(email='timothy@mit.edu')
+        responses.get(
+            url='https://mitoc-gear.mit.edu/api-auth/v1/membership_waiver/?email=timothy@mit.edu',
+            json={
+                "count": 0,
+                "next": None,
+                "previous": None,
+                "results": [
+                    {
+                        "email": "",
+                        "alternate_emails": [],
+                        "membership": {},
+                        "waiver": {},
+                    }
+                ],
+            },
+        )
+
+        membership = geardb.query_geardb_for_membership(user)
+        self.assertEqual(
+            membership,
+            {
+                'status': 'Expired',
+                'membership': {'active': False, 'email': '', 'expires': None},
+                'waiver': {'active': False, 'expires': None},
+            },
+        )
+
+    @responses.activate
+    @freeze_time('2022-07-11 22:00 EDT')
+    def test_success(self):
+        user = factories.UserFactory(email='bob@mit.edu')
+        factories.EmailFactory(email='robert@mit.edu', verified=True, user=user)
+        responses.get(
+            url='https://mitoc-gear.mit.edu/api-auth/v1/membership_waiver/?email=bob@mit.edu&email=robert@mit.edu',
+            json={
+                "count": 0,
+                "next": None,
+                "previous": None,
+                "results": [
+                    {
+                        "email": "robert@mit.edu",
+                        "alternate_emails": ["bob@mit.edu"],
+                        "membership": {
+                            "membership_type": "NA",
+                            "expires": "2023-05-05",
+                        },
+                        "waiver": {"expires": "2023-05-04"},
+                    }
+                ],
+            },
+        )
+
+        membership = geardb.query_geardb_for_membership(user)
+        self.assertEqual(
+            membership,
+            {
+                'status': 'Active',
+                'membership': {
+                    'active': True,
+                    'email': 'robert@mit.edu',
+                    'expires': date(2023, 5, 5),
+                },
+                'waiver': {'active': True, 'expires': date(2023, 5, 4)},
+            },
+        )

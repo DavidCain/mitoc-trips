@@ -131,23 +131,35 @@ def verified_emails(user) -> List[str]:
     if not (user and user.is_authenticated):
         return []
     emails = user.emailaddress_set
-    return list(emails.filter(verified=True).values_list('email', flat=True))
+    return sorted(emails.filter(verified=True).values_list('email', flat=True))
 
 
-def user_membership_expiration(user, try_cache=False) -> Optional[MembershipDict]:
-    """Return membership information for the user.
+def query_geardb_for_membership(user: models.User) -> Optional[MembershipDict]:
+    """Ask the gear database for the latest information, bypassing any caches."""
+    assert user.is_authenticated
 
-    If `try_cache` is True, then we'll first attempt to locate cached
-    membership information. If any information exists, that will be returned.
-    """
-    if not (user and user.is_authenticated):
+    emails = verified_emails(user)
+    if not emails:
+        logger.error("Cannot query for user without verified emails")
         return None
-    if try_cache:
-        participant = models.Participant.from_user(user, join_membership=True)
-        if participant and participant.membership:
-            return _format_cached_membership(participant)
 
-    return membership_expiration(verified_emails(user))
+    results = query_api('/api-auth/v1/membership_waiver/', email=emails)
+    if not results:
+        return repr_blank_membership()
+
+    assert len(results) == 1, "Unexpectedly got multiple members!"
+    result = results[0]
+
+    def expiration_from_payload(json_dict: JsonDict) -> Optional[date]:
+        if 'expires' not in json_dict:
+            return None
+        return date.fromisoformat(json_dict['expires'])
+
+    return _format_membership(
+        result.get('email', None),
+        expiration_from_payload(result['membership']),
+        expiration_from_payload(result['waiver']),
+    )
 
 
 def repr_blank_membership() -> MembershipDict:
@@ -156,50 +168,6 @@ def repr_blank_membership() -> MembershipDict:
         'waiver': {'expires': None, 'active': False},
         'status': 'Missing',
     }
-
-
-def membership_expiration(emails):
-    """Return the most recent expiration date for the given emails.
-
-    The method is intended to allow looking up a single user's membership where
-    they have multiple email addresses.
-
-    It also calculates whether or not the membership has expired.
-    """
-
-    def expiration_date(info):
-        mem_expires = info['membership']['expires']
-        return (mem_expires is not None, mem_expires, *waiver_date(info))
-
-    def waiver_date(info):
-        waiver_expires = info['waiver']['expires']
-        return (waiver_expires is not None, waiver_expires)
-
-    # Find all memberships under one or more of the participant's emails
-    memberships_by_email = matching_memberships(emails)
-    if not memberships_by_email:
-        return repr_blank_membership()
-
-    # The most recent account should be considered as their one membership
-    most_recent = max(memberships_by_email.values(), key=expiration_date)
-
-    # If there's an older membership with an active waiver, use that!
-    if not most_recent['membership']['active']:
-        last_waiver = max(memberships_by_email.values(), key=waiver_date)
-        if last_waiver['waiver']['active']:
-            most_recent = last_waiver
-
-    # Since we fetched the most current information from the db, update cache
-    # TODO: Should probably refactor this method so it doesn't have unclear side effects
-    email = most_recent['membership']['email']
-    participant = models.Participant.from_email(email)
-    if participant:
-        participant.update_membership(
-            membership_expires=most_recent['membership']['expires'],
-            waiver_expires=most_recent['waiver']['expires'],
-        )
-
-    return most_recent
 
 
 def _format_cached_membership(participant: models.Participant) -> MembershipDict:
@@ -227,7 +195,7 @@ def _represent_status(
 
 
 def _format_membership(
-    email: str,
+    email: Optional[str],
     membership_expires: Optional[date],
     waiver_expires: Optional[date],
 ) -> MembershipDict:

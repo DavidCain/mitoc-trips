@@ -11,11 +11,13 @@ import bisect
 import functools
 import logging
 import os.path
-import typing
 from itertools import zip_longest
+from typing import Iterator, NamedTuple, Tuple
 
 import gspread
 import httplib2
+import requests
+from mitoc_const import affiliations
 from oauth2client.service_account import ServiceAccountCredentials
 
 from ws import enums, models, settings
@@ -23,6 +25,13 @@ from ws.utils import geardb
 from ws.utils.perms import is_chair
 
 logger = logging.getLogger(__name__)
+
+MIT_STUDENT_AFFILIATIONS = frozenset(
+    [
+        affiliations.MIT_GRAD_STUDENT.CODE,
+        affiliations.MIT_UNDERGRAD.CODE,
+    ]
+)
 
 
 # Initialize just one client, which can be re-used & refreshed
@@ -80,7 +89,7 @@ def grouper(iterable, n, fillvalue=None):
     return zip_longest(*args, fillvalue=fillvalue)
 
 
-class SpreadsheetLabels(typing.NamedTuple):
+class SpreadsheetLabels(NamedTuple):
     name: str
     email: str
     membership: str
@@ -104,12 +113,17 @@ class SheetWriter:
         school='School',
     )
 
-    def __init__(self, discount):
+    discount: models.Discount
+    header: Tuple[str, ...]
+
+    def __init__(self, discount: models.Discount):
         """Identify the columns that will be used in the spreadsheet."""
         self.discount = discount
+        self.header = self._header_for_discount(discount)
 
+    def _header_for_discount(self, discount: models.Discount) -> Tuple[str, ...]:
         # These columns appear in all discount sheets
-        self.header = [self.labels.name, self.labels.email, self.labels.membership]
+        header = [self.labels.name, self.labels.email, self.labels.membership]
 
         # Depending on properties of the discount, include additional cols
         extra_optional_columns = [
@@ -120,10 +134,14 @@ class SheetWriter:
         ]
         for label, should_include in extra_optional_columns:
             if should_include:
-                self.header.append(label)
+                header.append(label)
+
+        return tuple(header)
 
     @staticmethod
-    def activity_descriptors(participant, user):
+    def activity_descriptors(
+        participant: models.Participant, user: models.User
+    ) -> Iterator[str]:
         """Yield a description for each activity the participant is a leader.
 
         Mentions if the person is a leader or a chair, but does not give their
@@ -135,19 +153,19 @@ class SheetWriter:
             position = 'chair' if is_chair(user, activity_enum, False) else 'leader'
             yield f"{activity_enum.label} {position}"
 
-    def leader_text(self, participant, user):
+    def leader_text(self, participant: models.Participant, user: models.User) -> str:
         return ', '.join(self.activity_descriptors(participant, user))
 
     @staticmethod
-    def school(participant):
+    def school(participant: models.Participant) -> str:
         """Return what school participant goes to, if applicable."""
         if not participant.is_student:
             return 'N/A'
-        if participant.affiliation in {'MU', 'MG'}:
+        if participant.affiliation in MIT_STUDENT_AFFILIATIONS:
             return 'MIT'
         return 'Other'  # We don't collect non-MIT affiliation
 
-    def access_text(self, participant):
+    def access_text(self, participant: models.Participant) -> str:
         """Simple string indicating level of access person should have."""
         if self.discount.administrators.filter(pk=participant.pk).exists():
             return 'Admin'
@@ -163,9 +181,16 @@ class SheetWriter:
 
         (Companies don't care about participant waiver status, so ignore it).
         """
-        # Status is one external query per user. Expensive! (We should refactor...)
-        # We definitely need to refactor now!
-        result = geardb.user_membership_expiration(user)
+        # Status is one API query per user. Expensive! (We should refactor...)
+        try:
+            result = geardb.query_geardb_for_membership(user)
+        except requests.exceptions.RequestException:
+            logger.exception("Error fetching membership information!")
+            # This is hopefully a temporary error...
+            # Discount sheets are re-generated every day at the very least.
+            # Avoid breaking the whole sheet for all users; continue on
+            return 'Unknown'
+
         assert result is not None, "Tried to get status for a bad user!"
 
         membership = result['membership']
@@ -176,7 +201,9 @@ class SheetWriter:
             return f'Expired {membership["expires"].isoformat()}'
         return 'Missing'
 
-    def get_row(self, participant: models.Participant, user: models.User):
+    def get_row(
+        self, participant: models.Participant, user: models.User
+    ) -> Tuple[str, ...]:
         """Get the row values that match the header for this discount sheet."""
         row_mapper = {
             self.labels.name: participant.name,
@@ -192,16 +219,19 @@ class SheetWriter:
         if self.labels.access in self.header:
             row_mapper[self.labels.access] = self.access_text(participant)
 
-        return [row_mapper[label] for label in self.header]
+        return tuple(row_mapper[label] for label in self.header)
 
 
-def assign(cells, values):
+def _assign(cells, values):
     for cell, value in zip(cells, values):
         cell.value = value
 
 
 @with_refreshed_token
-def update_participant(discount, participant):
+def update_participant(
+    discount: models.Discount,
+    participant: models.Participant,
+) -> None:
     """Add or update the participant.
 
     Much more efficient than updating the entire sheet.
@@ -219,7 +249,7 @@ def update_participant(discount, participant):
         if cell.col == 2:  # (Participants _could_ name themselves an email...)
             # pylint: disable=too-many-function-args
             row_cells = wks.range(cell.row, cell.col, cell.row, last_col)
-            assign(row_cells, new_row)
+            _assign(row_cells, new_row)
             return
 
     # Insert a new row if no existing row found
@@ -229,7 +259,7 @@ def update_participant(discount, participant):
 
 
 @with_refreshed_token
-def update_discount_sheet(discount):
+def update_discount_sheet(discount: models.Discount) -> None:
     """Update the entire worksheet, updating all members' status.
 
     This will remove members who no longer wish to share their information,
@@ -254,12 +284,12 @@ def update_discount_sheet(discount):
     all_cells = wks.range(1, 1, num_rows, num_cols)
     rows = grouper(all_cells, len(writer.header))
 
-    assign(next(rows), writer.header)
+    _assign(next(rows), writer.header)
 
     # Update each row with current membership information
     for participant, row in zip(participants, rows):
         user = user_by_id[participant.user_id]
-        assign(row, writer.get_row(participant, user))
+        _assign(row, writer.get_row(participant, user))
 
     # Batch update to minimize API calls
     wks.update_cells(all_cells)
