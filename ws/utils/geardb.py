@@ -8,9 +8,19 @@ In the meantime, this module contains some direct database access to an
 externally-hosted MySQL database.
 """
 import logging
-import typing
 from datetime import date, datetime, timedelta
-from typing import Any, Dict, Iterable, Iterator, List, Literal, Optional, TypedDict
+from typing import (
+    Any,
+    Dict,
+    Iterable,
+    Iterator,
+    List,
+    Literal,
+    NamedTuple,
+    Optional,
+    Tuple,
+    TypedDict,
+)
 from urllib.parse import urljoin
 
 import requests
@@ -57,6 +67,20 @@ class MembershipDict(TypedDict):
     status: Status
 
 
+class TripsInformation(NamedTuple):
+    num_trips_attended: int
+    num_trips_led: int
+    num_discounts: int
+
+
+class MembershipInformation(NamedTuple):
+    person_id: int
+    last_known_affiliation: str
+    num_rentals: int
+
+    trips_information: Optional[TripsInformation]
+
+
 class APIError(Exception):
     """Something went wrong in communicating with the API."""
 
@@ -92,7 +116,7 @@ def query_api(route: str, **params: Any) -> List[JsonDict]:
     return results
 
 
-class Rental(typing.NamedTuple):
+class Rental(NamedTuple):
     """An object representing a rental by a user in the gear database."""
 
     email: str
@@ -426,7 +450,7 @@ def update_affiliation(participant: models.Participant) -> Optional[requests.Res
     return response
 
 
-def _stats_only_all_active_members():
+def _stats_only_all_active_members() -> Iterator[Tuple[str, MembershipInformation]]:
     """Yield emails and rental activity for all members with current dues."""
     cursor = connections['geardb'].cursor()
     cursor.execute(
@@ -449,17 +473,19 @@ def _stats_only_all_active_members():
     for person_id, affiliation, main, alternate_email, num_rentals in cursor.fetchall():
         known_emails = (e for e in (main, alternate_email) if e)
         for email in known_emails:
-            info = {
+            info = MembershipInformation(
                 # NOTE: Anyone with >1 alternate email will have multiple rows!
                 # (We'll use multiple emails to look up). Ensure we enforce uniqueness
-                'person_id': person_id,
-                'last_known_affiliation': affiliation,
-                'num_rentals': num_rentals,
-            }
+                person_id=person_id,
+                last_known_affiliation=affiliation,
+                num_rentals=num_rentals,
+                # We don't have any trips information here.
+                trips_information=None,
+            )
             yield email, info
 
 
-def trips_information():
+def trips_information() -> Dict[int, TripsInformation]:
     """Give important counts, indexed by user IDs.
 
     Each participant has a singular underlying user. This user has one or more
@@ -472,7 +498,7 @@ def trips_information():
         When(signup__on_trip=True, then=1), default=0, output_field=IntegerField()
     )
 
-    trips_per_participant = dict(
+    trips_per_participant: Dict[int, int] = dict(
         models.Participant.objects.all()
         .annotate(
             # NOTE: Adding other annotations results in double-counting signups
@@ -482,7 +508,7 @@ def trips_information():
         .values_list('pk', 'num_trips_attended')
     )
 
-    additional_stats = (
+    additional_stats: Iterable[Tuple[int, int, int, int]] = (
         models.Participant.objects.all()
         .annotate(
             num_discounts=Count('discounts', distinct=True),
@@ -491,20 +517,21 @@ def trips_information():
         .values_list('pk', 'user_id', 'num_discounts', 'num_trips_led')
     )
 
-    for (pk, user_id, num_discounts, num_trips_led) in additional_stats:
-        info = {
-            'num_trips_attended': trips_per_participant[pk],
-            'num_trips_led': num_trips_led,
-            'num_discounts': num_discounts,
-        }
-        yield user_id, info
+    return {
+        user_id: TripsInformation(
+            num_trips_attended=trips_per_participant[pk],
+            num_trips_led=num_trips_led,
+            num_discounts=num_discounts,
+        )
+        for (pk, user_id, num_discounts, num_trips_led) in additional_stats
+    }
 
 
 # NOTE: This method is only used for the (leaders-only, hacky, `/stats` endpoint)
 # We of course should avoid direct database access, but I'm okay with this not being tested.
 # Worst case, it just breaks a stats-reporting page that I wrote as a one-off.
 # I should make better dashboards in the long run anyway.
-def membership_information():
+def membership_information() -> Dict[int, MembershipInformation]:
     """All current active members, annotated with additional info.
 
     For each paying member, we also mark if they:
@@ -513,42 +540,27 @@ def membership_information():
     - have rented gear
     - make use MITOC discounts
     """
-    # Get trips information indexed by Trips user ID's
-    info_by_user_id = dict(trips_information())
+    info_by_user_id = trips_information()
 
     # Bridge from a lowercase email address to a Trips user ID
-    email_to_user_id = dict(
+    email_to_user_id: Dict[str, int] = dict(
         models.EmailAddress.objects.filter(verified=True)
         .annotate(lower_email=Lower('email'))
         .values_list('lower_email', 'user_id')
     )
 
-    def trips_info_for(email):
+    def trips_info_for(email: str) -> Optional[TripsInformation]:
         try:
             user_id = email_to_user_id[email]
         except KeyError:  # No Trips account
-            return {}
+            return None
 
         try:
             return info_by_user_id[user_id]
         except KeyError:  # User, but no corresponding Participant
-            return {}
+            return None
 
-    # Map from the gear database's person ID to stats about the member
-    all_members = {}
-
-    for email, info in _stats_only_all_active_members():
-        existing_record = all_members.get(info['person_id'])
-
-        if existing_record:
-            # We already recorded them as a member, don't report twice
-            # However, we might only have trips info under an alternate email
-            existing_record.update(trips_info_for(email))
-            continue
-
-        all_members[info['person_id']] = {
-            'last_known_affiliation': info['last_known_affiliation'],
-            'num_rentals': info['num_rentals'],
-            **trips_info_for(email),
-        }
-    return all_members
+    return {
+        info.person_id: info._replace(trips_information=trips_info_for(email))
+        for email, info in _stats_only_all_active_members()
+    }

@@ -1,6 +1,7 @@
 import json
 from collections import defaultdict
 from datetime import date
+from typing import Dict, Iterator, Union
 
 import jwt
 import jwt.exceptions
@@ -534,8 +535,7 @@ class UserRentalsView(UserView):
         """Describe all items the user has checked out from MITOC."""
         user = self.get_object()
         rented_items = [
-            # TODO: Could instead use a dataclass with an `as_dict()` invocation
-            # Or a TypedDict once on Python 3.8
+            # TODO: Could instead use a dataclass with an `as_dict()` invocation or a TypedDict
             {
                 'email': r.email,
                 'id': r.id,
@@ -661,10 +661,21 @@ class MembershipStatusesView(View):
 
 class RawMembershipStatsView(View):
     @staticmethod
-    def get(request, *args, **kwargs):
-        return JsonResponse(
-            {'members': list(geardb_utils.membership_information().values())}
-        )
+    def _all_members_info() -> Iterator[Dict[str, Union[str, int]]]:
+        for info in geardb_utils.membership_information().values():
+            flat_info: Dict[str, Union[str, int]] = {
+                'last_known_affiliation': info.last_known_affiliation,
+                'num_rentals': info.num_rentals,
+            }
+
+            # TODO (Python 3.11, PEP 655): Could TypedDict w/ NotRequired fields
+            # Alternatively, could just fix the janky JS to handle.
+            if info.trips_information:
+                flat_info.update(info.trips_information._asdict())
+            yield flat_info
+
+    def get(self, request, *args, **kwargs):
+        return JsonResponse({'members': list(self._all_members_info())})
 
     @method_decorator(group_required('leaders'))
     def dispatch(self, request, *args, **kwargs):
