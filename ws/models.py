@@ -198,7 +198,7 @@ class Membership(models.Model):
         expires = self.membership_expires
         return bool(expires) and expires >= date_utils.local_date()
 
-    def should_sign_waiver_for(self, trip):
+    def should_sign_waiver_for(self, trip: 'Trip') -> bool:
         """Return if the waiver will be valid for the day of the trip.
 
         We consider waivers "expired" 365 days after being signed.
@@ -371,17 +371,17 @@ class Participant(models.Model):
     discounts = models.ManyToManyField(Discount, blank=True)
 
     @property
-    def membership_active(self):
+    def membership_active(self) -> bool:
         """NOTE: This uses the cache, should only be called on a fresh cache."""
         return bool(self.membership and self.membership.membership_active)
 
-    def should_sign_waiver_for(self, trip):
+    def should_sign_waiver_for(self, trip: 'Trip') -> bool:
         """NOTE: This uses the cache, should only be called on a fresh cache."""
         if not self.membership:
             return True
         return self.membership.should_sign_waiver_for(trip)
 
-    def should_renew_for(self, trip):
+    def should_renew_for(self, trip: 'Trip') -> bool:
         """NOTE: This uses the cache, should only be called on a fresh cache."""
         if not trip.membership_required:
             return False
@@ -389,7 +389,7 @@ class Participant(models.Model):
             return True
         return self.membership.should_renew_for(trip)
 
-    def avatar_url(self, size=100):
+    def avatar_url(self, size: int = 100) -> str:
         return avatar_url(self, size)
 
     @staticmethod
@@ -398,15 +398,15 @@ class Participant(models.Model):
         return prices.get(affiliation, affiliations.NON_AFFILIATE.ANNUAL_DUES)
 
     @property
-    def annual_dues(self):
+    def annual_dues(self) -> int:
         return self.affiliation_to_membership_price(self.affiliation)
 
     @property
-    def is_student(self):
+    def is_student(self) -> bool:
         return self.affiliation in self.STUDENT_AFFILIATIONS
 
     @property
-    def problems_with_profile(self):
+    def problems_with_profile(self) -> Iterator[enums.ProfileProblem]:
         """Yield any serious profile errors needing immediate correction.
 
         These profile errors should prevent the participant from attending a trip.
@@ -419,7 +419,7 @@ class Participant(models.Model):
         if ' ' not in self.name:  # pylint: disable=unsupported-membership-test
             yield enums.ProfileProblem.MISSING_FULL_NAME
 
-        emails = self.user.emailaddress_set
+        emails = self.user.emailaddress_set  # type: ignore [attr-defined]
 
         if not emails.filter(email=self.email, verified=True).exists():
             yield enums.ProfileProblem.PRIMARY_EMAIL_NOT_VALIDATED
@@ -428,7 +428,7 @@ class Participant(models.Model):
             yield enums.ProfileProblem.LEGACY_AFFILIATION
 
     @property
-    def info_current(self):
+    def info_current(self) -> bool:
         """Whether the participant has recently updated their information.
 
         This attribute must be true in order to participate on trips, but we
@@ -441,7 +441,7 @@ class Participant(models.Model):
         return since_last_update.days < settings.MUST_UPDATE_AFTER_DAYS
 
     @property
-    def affiliation_dated(self):
+    def affiliation_dated(self) -> bool:
         """The affiliation we have on file is too general/dated.
 
         For the purposes of better record-keeping, we really need an updated
@@ -565,7 +565,12 @@ class Participant(models.Model):
             else:
                 yield enums.TripIneligibilityReason.WAIVER_MISSING
 
-    def update_membership(self, membership_expires=None, waiver_expires=None):
+    def update_membership(
+        self,
+        membership_expires: Optional[date] = None,
+        waiver_expires: Optional[date] = None,
+    ) -> Tuple[Membership, bool]:
+        """Update our own cached membership with new information."""
         acct, created = Membership.objects.get_or_create(participant=self)
         if membership_expires:
             acct.membership_expires = membership_expires

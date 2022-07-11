@@ -158,14 +158,17 @@ class SheetWriter:
         return 'Standard'
 
     @staticmethod
-    def membership_status(user):
+    def membership_status(user: models.User) -> str:
         """Return membership status, irrespective of waiver status.
 
         (Companies don't care about participant waiver status, so ignore it).
         """
         # Status is one external query per user. Expensive! (We should refactor...)
-        membership = geardb.user_membership_expiration(user)['membership']
+        # We definitely need to refactor now!
+        result = geardb.user_membership_expiration(user)
+        assert result is not None, "Tried to get status for a bad user!"
 
+        membership = result['membership']
         # We report Active/Expired, since companies don't care about waiver status
         if membership['active']:
             return 'Active'
@@ -173,7 +176,7 @@ class SheetWriter:
             return f'Expired {membership["expires"].isoformat()}'
         return 'Missing'
 
-    def get_row(self, participant, user):
+    def get_row(self, participant: models.Participant, user: models.User):
         """Get the row values that match the header for this discount sheet."""
         row_mapper = {
             self.labels.name: participant.name,
