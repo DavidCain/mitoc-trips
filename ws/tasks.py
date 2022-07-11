@@ -8,7 +8,7 @@ from time import monotonic
 import requests
 from celery import group, shared_task
 from django.core.cache import cache
-from django.db import transaction
+from django.db import connections, transaction
 
 from ws import cleanup, models, settings
 from ws.email import renew
@@ -53,6 +53,12 @@ def exclusive_lock(task_identifier):
 
 def mutex_task(task_id_template=None, **shared_task_kwargs):
     """Wraps a task that must be executed only once.
+
+    This method primarily exists to cover an edge case where:
+
+    - Duplicate Celery workers are running (this can happen!)
+    - The task requires idempotency
+    - The task does not already use a preferable form of locking (e.g. db row locking)
 
     :param task_id_template: String that makes unique task IDs from passed args
         (If omitted, we just use the function name)
@@ -283,13 +289,33 @@ def purge_old_medical_data():
 
 
 @mutex_task('single_trip_lottery-{trip_id}')
-def run_lottery(trip_id, lottery_config=None):
+def run_lottery(
+    trip_id: int,
+    # NOTE: Can delete `kwargs` later.
+    # This exists to handle messages which are already queued,
+    # and may include the unused `lottery_config` argument
+    **_kwargs,
+):
     """Run a lottery algorithm for the given trip (idempotent).
 
     If running on a trip that isn't in lottery mode, this won't make
     any changes (making this task idempotent).
     """
-    logger.info("Running lottery for trip #%d", trip_id)
-    trip = models.Trip.objects.get(pk=trip_id)
+    try:
+        trip = models.Trip.objects.get(pk=trip_id)
+    except models.Trip.DoesNotExist:
+        logger.info("Trip #%d does not exist (most likely has been deleted)", trip_id)
+
+        # Make sure that we don't just silently ignore bogus trip IDs.
+        # That is, the ID sequence should give some clues that this once was a valid trip.
+        cursor = connections['default'].cursor()
+        cursor.execute("select currval('ws_trip_id_seq'::regclass)")
+        max_known_trip_pk = cursor.fetchone()[0]
+
+        if 0 < trip_id <= max_known_trip_pk:
+            return
+        raise  # Trip pk likely was never a trip in the first place.
+
+    logger.info("Running lottery for trip #%d", trip.pk)
     runner = SingleTripLotteryRunner(trip)
     runner()

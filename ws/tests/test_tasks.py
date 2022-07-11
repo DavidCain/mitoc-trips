@@ -358,3 +358,61 @@ class RemindIndividualParticipantsToRenewTest(TestCase):
 
         # We don't record a successful reminder being sent.
         self.assertFalse(models.MembershipReminder.objects.exists())
+
+
+class RunLotteryTest(TestCase):
+    def setUp(self):
+        # Create a trip to make sure the ID sequence is initialized.
+        # Without this step, Postgres may raise an exception on `select currval()`
+        # This is an okay assumption to make at test time:
+        # `run_lottery()` should only be invoked after at least one trip is created.
+        factories.TripFactory.create()
+
+        super().setUp()
+
+    def test_bogus_trip_pk(self):
+        """Make sure that the task fails if passed an ID that was never a real trip."""
+        # I sure hope `nextval()` never creates 32k trips in our test suite...
+        with self.assertRaises(models.Trip.DoesNotExist):
+            tasks.run_lottery(32_000)
+
+    def test_zero_pk(self):
+        """All our sequences start at 1; 0 is never a valid pk."""
+        with self.assertRaises(models.Trip.DoesNotExist):
+            tasks.run_lottery(0)
+
+    def test_non_integer_trip_id(self):
+        """Make sure that we raise *something* if given a non-integer ID.
+
+        We do some integer comparisons of the given ID & `currval()`,
+        and we don't want invalid IDs to be considered an ID of a
+        since-deleted trip.
+
+        This test is valuable because mypy type checking can easily
+        be bypassed at runtime.
+        """
+        with self.assertRaises(ValueError):
+            tasks.run_lottery('not-an-id')
+
+    def test_trip_deleted(self):
+        """We silently complete the task if the trip was deleted."""
+        trip = factories.TripFactory.create()
+        trip_id = trip.pk
+        trip.delete()
+        tasks.run_lottery(trip_id)
+
+    def test_trip_not_the_most_recent_deleted(self):
+        """Our `currval()` logic can handle trips which have PKs lower than the latest."""
+        trip = factories.TripFactory.create()
+        trip_id = trip.pk
+        newer_trip = factories.TripFactory.create()
+        self.assertGreater(newer_trip.pk, trip.pk)
+        trip.delete()
+        tasks.run_lottery(trip_id)
+
+    def test_success(self):
+        """Test the usual case: a real trip exists, needs a lottery run."""
+        trip = factories.TripFactory.create(algorithm='lottery')
+        tasks.run_lottery(trip.pk)
+        trip.refresh_from_db()
+        self.assertEqual(trip.algorithm, 'fcfs')
