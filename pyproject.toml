@@ -51,6 +51,7 @@ isort = { version = "^5.8", extras = ["pyproject"] }  # Version 5 introduces bla
 lxml = "*"
 pylint = "^2.8"
 pytz = "*"  # (It's a production dependency by way of Django, but used directly in tests)
+responses = "*"
 
 # Dependencies for static type checking
 # Install directly from GitHub to get type signatures of `TimestampSigner`

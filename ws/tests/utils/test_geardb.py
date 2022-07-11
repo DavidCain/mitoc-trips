@@ -3,6 +3,7 @@ from unittest import mock
 
 import jwt
 import requests
+import responses
 from django.contrib.auth.models import AnonymousUser
 from django.test import SimpleTestCase
 from freezegun import freeze_time
@@ -51,50 +52,53 @@ class JwtTest(unittest.TestCase):
 
 
 class ApiTest(SimpleTestCase):
+    @responses.activate
     def test_bad_status_code(self):
-        fake_response = mock.Mock(spec=requests.Response)
-        fake_response.status_code = 404
+        responses.get(
+            url="https://mitoc-gear.mit.edu/credentials",
+            status=404,
+        )
+        with self.assertRaises(requests.exceptions.HTTPError):
+            geardb.query_api('/credentials', user='admin')
 
-        with mock.patch.object(requests, 'get') as fake_get:
-            fake_get.return_value = fake_response
-            with self.assertRaises(geardb.APIError):
-                geardb.query_api('/credentials', user='admin')
-
+    @responses.activate
     @mock.patch.object(geardb, 'settings')
     def test_query_api(self, settings):
         settings.GEARDB_SECRET_KEY = 'sooper.secret'
 
-        fake_response = mock.Mock(spec=requests.Response)
-        fake_response.status_code = 200
-        fake_response.json.return_value = {
-            "count": 1,
-            "next": None,
-            "previous": None,
-            "results": [{'user': 'admin', 'password': 'plaintext.auth.rules'}],
-        }
+        responses.get(
+            url="https://mitoc-gear.mit.edu/credentials",
+            json={
+                "count": 1,
+                "next": None,
+                "previous": None,
+                "results": [{'user': 'admin', 'password': 'plaintext.auth.rules'}],
+            },
+            status=200,
+        )
 
-        with mock.patch.object(requests, 'get') as fake_get:
-            fake_get.return_value = fake_response
-            results = geardb.query_api('/credentials', user='admin')
+        results = geardb.query_api('/credentials', user='admin')
+
         self.assertEqual(
             results, [{'user': 'admin', 'password': 'plaintext.auth.rules'}]
         )
 
+    @responses.activate
     def test_pagination_not_handled(self):
         """At present, we don't handle any pagination of results."""
-        fake_response = mock.Mock(spec=requests.Response)
-        fake_response.status_code = 200
-        fake_response.json.return_value = {
-            "count": 10,
-            "next": 'https://mitoc-gear.mit.edu/api-auth/v1/credentials?page=2',
-            "previous": None,
-            "results": [{'user': 'admin', 'password': 'plaintext.auth.rules'}],
-        }
+        responses.get(
+            url="https://mitoc-gear.mit.edu/credentials",
+            json={
+                "count": 10,
+                "next": 'https://mitoc-gear.mit.edu/api-auth/v1/credentials?page=2',
+                "previous": None,
+                "results": [{'user': 'admin', 'password': 'plaintext.auth.rules'}],
+            },
+            status=200,
+        )
 
-        with mock.patch.object(requests, 'get') as fake_get:
-            fake_get.return_value = fake_response
-            with mock.patch.object(geardb.logger, 'error') as log_error:
-                results = geardb.query_api('/credentials', user='admin')
+        with mock.patch.object(geardb.logger, 'error') as log_error:
+            results = geardb.query_api('/credentials', user='admin')
         self.assertEqual(
             results, [{'user': 'admin', 'password': 'plaintext.auth.rules'}]
         )
@@ -107,29 +111,31 @@ class UpdateAffiliationTest(TestCase):
     def test_old_student_status(self):
         participant = factories.ParticipantFactory.create(affiliation='S')
 
-        with mock.patch.object(requests, 'put') as fake_put:
+        with responses.RequestsMock():
             response = geardb.update_affiliation(participant)
         self.assertIsNone(response)
-        fake_put.assert_not_called()
 
-    @staticmethod
-    def test_reports_affiliation():
+    @responses.activate
+    def test_reports_affiliation(self):
         """We report affiliation for a simple user with just one email."""
         participant = factories.ParticipantFactory.create(
             affiliation='NA', email='tim@mit.edu'
         )
 
-        with mock.patch.object(requests, 'put') as fake_put:
-            geardb.update_affiliation(participant)
-        fake_put.assert_called_once_with(
+        responses.put(
             'https://mitoc-gear.mit.edu/api-auth/v1/affiliation/',
-            headers={'Authorization': mock.ANY},
-            json={
-                'email': 'tim@mit.edu',
-                'affiliation': 'NA',
-                'other_verified_emails': [],
-            },
+            match=[
+                responses.matchers.json_params_matcher(
+                    {
+                        'email': 'tim@mit.edu',
+                        'affiliation': 'NA',
+                        'other_verified_emails': [],
+                    }
+                )
+            ],
         )
+
+        geardb.update_affiliation(participant)
 
     @staticmethod
     def test_reports_affiliation_with_other_emails():
@@ -148,17 +154,20 @@ class UpdateAffiliationTest(TestCase):
                 user_id=tim.user_id, verified=True, primary=False, email=verified_email
             )
 
-        with mock.patch.object(requests, 'put') as fake_put:
-            geardb.update_affiliation(tim)
-        fake_put.assert_called_once_with(
+        responses.put(
             'https://mitoc-gear.mit.edu/api-auth/v1/affiliation/',
-            headers={'Authorization': mock.ANY},
-            json={
-                'email': 'tim@mit.edu',
-                'affiliation': 'NA',
-                'other_verified_emails': ['tim+two@mit.edu', 'tim@example.com'],
-            },
+            match=[
+                responses.matchers.json_params_matcher(
+                    {
+                        'email': 'tim@mit.edu',
+                        'affiliation': 'NA',
+                        'other_verified_emails': ['tim+two@mit.edu', 'tim@example.com'],
+                    }
+                )
+            ],
         )
+
+        geardb.update_affiliation(tim)
 
 
 class NoUserTests(SimpleTestCase):

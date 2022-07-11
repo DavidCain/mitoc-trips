@@ -81,10 +81,6 @@ class MembershipInformation(NamedTuple):
     trips_information: Optional[TripsInformation]
 
 
-class APIError(Exception):
-    """Something went wrong in communicating with the API."""
-
-
 def gear_bearer_jwt(**payload) -> str:
     """Express a JWT for use on mitoc-gear.mit.edu as a bearer token.
 
@@ -98,14 +94,14 @@ def query_api(route: str, **params: Any) -> List[JsonDict]:
     """Request results from the API on mitoc-gear.mit.edu."""
     response = requests.get(
         urljoin(API_BASE, route),
+        timeout=5,
         # NOTE: We sign the payload here, even though current implementations only use query params.
         # This does technically mean that anyone with a valid token can use the token to query any data.
         # However, tokens aren't given to end users, only used on the systems which already have the secret.
         headers={'Authorization': gear_bearer_jwt(**params)},
         params=params,
     )
-    if response.status_code != 200:
-        raise APIError()
+    response.raise_for_status()
 
     body = response.json()
     results: List[JsonDict] = body['results']
