@@ -24,7 +24,6 @@ from typing import (
 from urllib.parse import urljoin
 
 import requests
-from django.db import connections
 from django.db.models import Case, Count, IntegerField, Sum, When
 
 from ws import models, settings
@@ -176,12 +175,15 @@ def repr_blank_membership() -> MembershipDict:
     }
 
 
-def _format_cached_membership(participant: models.Participant) -> MembershipDict:
+def format_cached_membership(participant: models.Participant) -> MembershipDict:
     """Format a ws.models.Membership object as a server response."""
     mem = participant.membership
-    assert mem is not None
+    if mem is None:
+        return repr_blank_membership()
     return _format_membership(
-        participant.email, mem.membership_expires, mem.waiver_expires
+        participant.email,
+        mem.membership_expires,
+        mem.waiver_expires,
     )
 
 
@@ -219,94 +221,6 @@ def _format_membership(
     person['status'] = _represent_status(membership, waiver)
 
     return person
-
-
-def _matching_info_for(emails):
-    """Return all matching memberships under the email addresses.
-
-    Most participants will have just one membership, but some people may have
-    multiple memberships! These memberships should be merged on the gear
-    database side, but we must handle them all the same.
-    """
-    if not emails:  # Passing an empty tuple will cause a SQL error
-        return
-
-    cursor = connections['geardb'].cursor()
-
-    # Get the most recent membership and most recent waiver per email
-    # It's possible the user has a newer waiver under another email address,
-    # but this is what the gear database reports (and we want consistency)
-    cursor.execute(
-        '''
-        select p.id as person_id,
-               p.affiliation,
-          date(p.date_inserted) as date_inserted,
-               lower(p.email),
-               lower(pe.alternate_email),
-               max(pm.expires)  as membership_expires,
-          date(max(pw.expires)) as waiver_expires
-          from people p
-               left join geardb_peopleemails pe on p.id = pe.person_id
-               left join people_memberships  pm on p.id = pm.person_id
-               left join people_waivers      pw on p.id = pw.person_id
-         where p.email in %(emails)s
-            or pe.alternate_email in %(emails)s
-         group by p.id, p.affiliation, p.email, pe.alternate_email
-         order by membership_expires, waiver_expires
-        ''',
-        {'emails': tuple(emails)},
-    )
-
-    # Email capitalization in the database may differ from what users report
-    # Map back to the case supplied in arguments for easier mapping
-    to_original_case = {email.lower(): email for email in emails}
-
-    for (
-        person_id,
-        affiliation,
-        date_inserted,
-        main,
-        alternate,
-        m_expires,
-        w_expires,
-    ) in cursor:
-        # We know that the either the main or alternate email was requested
-        # (It's possible that membership records were requested for _both_ emails)
-        # In case the alternate email was given alongside the primary email,
-        # always give preference to the primary email.
-        email = main if main in to_original_case else alternate
-
-        yield {
-            'person_id': person_id,
-            'affiliation': affiliation,
-            'date_inserted': date_inserted,
-            'email': to_original_case[email],
-            'membership_expires': m_expires,
-            'waiver_expires': w_expires,
-        }
-
-
-def matching_memberships(emails: Iterable[str]) -> Dict[str, MembershipDict]:
-    """Return the most current membership found for each email in the list.
-
-    This method is used in two key ways:
-    - Look up membership records for a single person, under all their emails
-    - Look up memberships for many participants, under all their emails
-    """
-
-    def _yield_matches():
-        """For each given email, yield a record about the person (if found).
-
-        - The email addresses may or may not correspond to the same person.
-        - Some email addresses may return the same membership record
-        """
-        for info in _matching_info_for(emails):
-            formatted = _format_membership(
-                info['email'], info['membership_expires'], info['waiver_expires']
-            )
-            yield info['email'], formatted
-
-    return dict(_yield_matches())
 
 
 def outstanding_items(emails: List[str]) -> Iterator[Rental]:

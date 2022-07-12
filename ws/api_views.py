@@ -617,6 +617,12 @@ class OtherVerifiedEmailsView(JWTView):
 
 
 class MembershipStatusesView(View):
+    """Bulk fetch a number of participants' (cached) membership status.
+
+    This view is used for leaders trying to make sure that all their trip
+    participants are actually able to go on the trip.
+    """
+
     def post(self, request, *args, **kwargs):
         """Return a mapping of participant IDs to membership statuses."""
         postdata = json.loads(self.request.body)
@@ -624,30 +630,12 @@ class MembershipStatusesView(View):
         if not isinstance(par_pks, list):
             return JsonResponse({'message': 'Bad request'}, status=400)
 
-        # Span databases to map from participants -> users -> email addresses
         participants = models.Participant.objects.filter(pk__in=par_pks)
-        user_to_par = dict(participants.values_list('user_id', 'pk'))
-        email_addresses = EmailAddress.objects.filter(
-            user_id__in=user_to_par, verified=True
-        )
-        email_to_user = dict(email_addresses.values_list('email', 'user_id'))
 
-        # Gives email -> membership info for all matches
-        matches = geardb_utils.matching_memberships(email_to_user)
-
-        # Default to blank memberships in case not found
         participant_memberships = {
-            pk: geardb_utils.repr_blank_membership() for pk in par_pks
+            participant.pk: geardb_utils.format_cached_membership(participant)
+            for participant in participants
         }
-
-        # Update participants where matching membership information was found
-        for email, membership in matches.items():
-            par_pk = user_to_par[email_to_user[email]]
-            # We might overwrite a previous membership record, but that will
-            # only happen if the user has memberships under 2+ emails
-            # (Older memberships come first, so this will safely yield the newest)
-            participant_memberships[par_pk] = membership
-
         return JsonResponse({'memberships': participant_memberships})
 
     def dispatch(self, request, *args, **kwargs):
