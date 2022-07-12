@@ -244,8 +244,6 @@ class CreateTripView(CreateView):
     form_class = forms.TripForm
     template_name = 'trips/create.html'
 
-    object: models.Trip
-
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs['initial'] = kwargs.get('initial', {})

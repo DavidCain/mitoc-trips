@@ -1,6 +1,6 @@
 import typing
 import xml.etree.ElementTree as ET
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional, TypedDict
 
 import requests
 from mitoc_const import affiliations
@@ -59,7 +59,10 @@ def get_base_url() -> str:
     return resp.json()['loginAccounts'][0]['baseUrl']
 
 
-def prefilled_tabs(participant):
+DocusignTabs = Dict[str, List[Dict[str, Any]]]
+
+
+def prefilled_tabs(participant) -> DocusignTabs:
     """Return tabs that are pre-filled for the Releasor role."""
     e_contact = participant.emergency_info.emergency_contact
     docusign_affiliation = AFFILIATION_MAPPING[participant.affiliation]
@@ -83,11 +86,24 @@ def prefilled_tabs(participant):
     }
 
 
+class _BaseDocusignRole(TypedDict):
+    roleName: str
+    name: str
+    email: str
+
+
+class DocusignRole(_BaseDocusignRole, total=False):
+    """Some extra information possible on a DocuSign role!"""
+
+    tabs: DocusignTabs
+    clientUserId: int
+
+
 def get_roles(
     releasor: Person,
     participant: Optional[models.Participant] = None,
     guardian: Optional[Person] = None,
-) -> List[Dict[str, str]]:
+) -> List[DocusignRole]:
     """Return the role definitions, with pre-filled data if available.
 
     When we create the envelope, the waiver will be sent to the releasor (and a
@@ -97,14 +113,12 @@ def get_roles(
         assert releasor.name == participant.name
         assert releasor.email == participant.email
 
-    # TODO (Python 3.8): Use TypedDict for these
-    # (though note that we're using the old DocuSign API)
-    releasor_dict = {
+    releasor_dict: DocusignRole = {
         'roleName': 'Releasor',
         'name': releasor.name,
         'email': releasor.email,
     }
-    desk = {
+    desk: DocusignRole = {
         'roleName': 'MITOC Desk',
         'name': 'MITOC Desk',
         'email': 'mitocdesk@gmail.com',
@@ -117,7 +131,7 @@ def get_roles(
     if not guardian:
         return [releasor_dict, desk]
 
-    guardian_dict = {
+    guardian_dict: DocusignRole = {
         'roleName': 'Parent or Guardian',
         'name': guardian.name,
         'email': guardian.email,
@@ -127,7 +141,7 @@ def get_roles(
 
 def sign_embedded(
     participant: models.Participant,
-    releasor_dict: Dict[str, str],
+    releasor_dict: DocusignRole,
     envelope_id: str,
     base_url: Optional[str] = None,
 ) -> str:
