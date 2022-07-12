@@ -686,6 +686,17 @@ class DuesForm(forms.Form):
         required=True, label='Affiliation', choices=list(amount_choices())
     )
     merchantDefinedData3 = forms.EmailField(required=True, label='Email')
+    merchantDefinedData4 = forms.CharField(
+        required=True,
+        label="Member name",
+        widget=forms.TextInput(
+            attrs={
+                'placeholder': "Tim Beaver",
+                'title': "Full name",
+                'pattern': r'^.* .*$',
+            },
+        ),
+    )
 
     # For Participant-less users with JS enabled, this will be hidden & silently
     # set by an Angular directive that updates the amount based on the affiliation.
@@ -710,6 +721,7 @@ class DuesForm(forms.Form):
             self.fields['amount'].initial = ''
         if participant:
             email.initial = participant.email
+            self.fields['merchantDefinedData4'].initial = participant.name
             self.fields['merchantDefinedData2'].initial = participant.affiliation
             self.fields['amount'].initial = participant.annual_dues
 

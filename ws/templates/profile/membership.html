@@ -62,6 +62,7 @@
           {{ form.merchantDefinedData1 }}
 
           {{ form.merchantDefinedData3|as_crispy_field }}  {# Email #}
+          {{ form.merchantDefinedData4|as_crispy_field }}  {# Name #}
           {{ form.merchantDefinedData2|as_crispy_field }}  {# Affiliation #}
 
           {% if form.amount.initial %}

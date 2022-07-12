@@ -46,14 +46,17 @@ class PayDuesTests(TestCase):
             ],
         )
 
-        # The user must self report their email address and select an affiliation
+        # The user must self report their name, email address, and affiliation
         self.assertEqual(form.fields['amount'].initial, '')
         self.assertIsNone(form.fields['merchantDefinedData3'].initial)
+        self.assertIsNone(form.fields['merchantDefinedData4'].initial)
 
     def test_load_form_as_logged_in_participant(self):
         """We pre-populate the form for participants with information on file."""
         par = factories.ParticipantFactory.create(
-            user=factories.UserFactory.create(email='tim@mit.edu'), affiliation='MA'
+            name='Timothy Beaver',
+            user=factories.UserFactory.create(email='tim@mit.edu'),
+            affiliation='MA',
         )
         self.client.force_login(par.user)
         response = self.client.get('/profile/membership/')
@@ -66,6 +69,7 @@ class PayDuesTests(TestCase):
         self.assertEqual(form.fields['merchantDefinedData1'].initial, 'membership')
         self.assertEqual(form.fields['merchantDefinedData2'].initial, 'MA')
         self.assertEqual(form.fields['merchantDefinedData3'].initial, 'tim@mit.edu')
+        self.assertEqual(form.fields['merchantDefinedData4'].initial, 'Timothy Beaver')
 
     @freeze_time("2021-12-10 12:00:00 EST")
     def test_load_form_as_member_able_to_renew(self):
@@ -120,6 +124,7 @@ class PayDuesTests(TestCase):
             'merchantDefinedData1': 'membership',
             'merchantDefinedData2': 'NA',
             'merchantDefinedData3': 'tim@mit.edu',
+            'merchantDefinedData4': 'Tim Beaver',
             'amount': 40,
         }
 
