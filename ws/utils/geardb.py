@@ -106,8 +106,15 @@ def query_api(route: str, **params: Any) -> List[JsonDict]:
     body = response.json()
     results: List[JsonDict] = body['results']
 
-    if body['next'] or len(results) != body['count']:
-        logger.error("Results are paginated; this is not expected or handled.")
+    if body['next']:
+        logger.error(
+            "Results are paginated; this is not expected or handled. "
+            "(%s / %s results), URL: %s, Next: %s",
+            len(results),
+            body['count'],
+            response.url,
+            body['next'],
+        )
 
     return results
 

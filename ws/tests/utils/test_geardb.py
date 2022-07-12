@@ -88,7 +88,7 @@ class ApiTest(SimpleTestCase):
     def test_pagination_not_handled(self):
         """At present, we don't handle any pagination of results."""
         responses.get(
-            url="https://mitoc-gear.mit.edu/credentials",
+            url="https://mitoc-gear.mit.edu/api-auth/v1/credentials",
             json={
                 "count": 10,
                 "next": 'https://mitoc-gear.mit.edu/api-auth/v1/credentials?page=2',
@@ -99,12 +99,16 @@ class ApiTest(SimpleTestCase):
         )
 
         with mock.patch.object(geardb.logger, 'error') as log_error:
-            results = geardb.query_api('/credentials', user='admin')
+            results = geardb.query_api('/api-auth/v1/credentials')
         self.assertEqual(
             results, [{'user': 'admin', 'password': 'plaintext.auth.rules'}]
         )
         log_error.assert_called_once_with(
-            "Results are paginated; this is not expected or handled."
+            "Results are paginated; this is not expected or handled. (%s / %s results), URL: %s, Next: %s",
+            1,
+            10,
+            'https://mitoc-gear.mit.edu/api-auth/v1/credentials',
+            'https://mitoc-gear.mit.edu/api-auth/v1/credentials?page=2',
         )
 
 
