@@ -663,7 +663,7 @@ class EmailPreferencesTest(TestCase):
 
         # Finally, we redirect home
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, '/')
+        self.assertEqual(response.url, '/')  # type: ignore [attr-defined]
 
     def test_authenticated_users_only(self):
         """Users must be signed in to set their email preferences."""
