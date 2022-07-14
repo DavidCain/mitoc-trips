@@ -23,15 +23,26 @@ def localize(dt_time: datetime) -> datetime:
 def itinerary_available_at(trip_date: date) -> datetime:
     """Return the date & time at which the trip's itinerary may be submitted.
 
+    We *always* require that the itinerary open at least 24 hours before departure.
+    The general assumption is that most trips leave on the weekend, and 6 pm
+    on Thursday is a good time to open up itinerary submission.
+
     We disallow submitting an itinerary too far in advance because weather
     changes, participants may be added/removed, and drivers may change. Only
     allowing itineraries to be submitted close to the start of a trip ensures
     the description is more accurate.
     """
     trip_dow = trip_date.weekday()
-    thursday_before = trip_date - timedelta(days=(trip_dow - 3) % 7)
-    thursday_evening = datetime.combine(thursday_before, time(18, 0))
-    return localize(thursday_evening)
+
+    # Most trips are on the weekend (or on Monday, when a holiday). Thursday is ideal.
+    thur_before = trip_date - timedelta(days=(trip_dow - 3) % 7)
+
+    # For midweek trips (Wed, Thursday, Friday), the Thursday before is inadequate:
+    # - Wed/Thursday trips: That's a full *week* too soon!
+    # - Friday trips: 24 hours is not enough time.
+    open_dt = (trip_date - timedelta(days=2)) if trip_dow in (2, 3, 4) else thur_before
+
+    return localize(datetime.combine(open_dt, time(hour=18, minute=0)))
 
 
 def late_at_night(dt: date) -> datetime:

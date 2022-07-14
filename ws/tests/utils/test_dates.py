@@ -1,5 +1,6 @@
 from datetime import date, datetime, timedelta
 from unittest import mock
+from zoneinfo import ZoneInfo
 
 import pytz
 from freezegun import freeze_time
@@ -9,27 +10,89 @@ from ws.tests import TestCase, factories
 from ws.utils import dates as date_utils
 
 
-class DateUtilTests(TestCase):
+class ItineraryAvailableAtTest(TestCase):
     """Test the date utilities that lots of lottery logic depends on.
 
     These methods don't depend on models and don't expect any particular
     timezone, so we can test them in UTC.
     """
 
+    eastern = ZoneInfo("America/New_York")
+
+    def test_sensible_range(self):
+        """We always allow at least 1 full day to submit, but never allow more than 5."""
+        for day_of_month in range(1, 31):
+            trip_date = date(2022, 1, day_of_month)
+            opens_at = date_utils.itinerary_available_at(trip_date)
+
+            self.assertEqual(opens_at.time().isoformat(), '18:00:00')
+
+            self.assertLess(opens_at.date(), trip_date)
+
+            days_lead_time = trip_date - opens_at.date()
+            self.assertGreater(days_lead_time, timedelta(days=1))
+            self.assertLess(days_lead_time, timedelta(days=6))
+
+    def test_weekend_trips(self):
+        """Trips on Saturday or Sunday have open itineraries on Thursday evening.
+
+        This enables ample lead time for the usual Winter School setup (where
+        there are no holidays on a Friday).
+        """
+        self.assertEqual(
+            date_utils.itinerary_available_at(date(2022, 1, 15)),
+            datetime(2022, 1, 13, 18, 0, 0, tzinfo=self.eastern),
+        )
+
+        self.assertEqual(
+            date_utils.itinerary_available_at(date(2022, 1, 16)),
+            datetime(2022, 1, 13, 18, 0, 0, tzinfo=self.eastern),
+        )
+
+    def test_mlk_day(self):
+        """Monday trips *might* be on a holiday weekend, so we allow Thursday submission.
+
+        It's important we allow submission *before* the weekend,
+        to accommodate leaders who may be going out on all three days.
+        """
+        self.assertEqual(
+            date_utils.itinerary_available_at(date(2022, 1, 17)),
+            datetime(2022, 1, 13, 18, 0, 0, tzinfo=self.eastern),
+        )
+
+    def test_wed_trips(self):
+        """Wednesday trips open on Monday night, even if Monday is a holiday."""
+        # All trips on Wednesday nights open on Monday night.
+        self.assertEqual(
+            date_utils.itinerary_available_at(date(2022, 7, 13)),
+            datetime(2022, 7, 11, 18, 0, 0, tzinfo=self.eastern),
+        )
+
+        # January 17th is MLK day (3-day weekend in WS). Consider a trip that Wednesday.
+        # If leaders are on a trip that day, we assume they'll be home to submit on Monday night.
+        # (Or ideally, that they can submit some time on Tuesday)
+        # Allowing itinerary submission Thursday before the long weekend is just too much time.
+        self.assertEqual(
+            date_utils.itinerary_available_at(date(2022, 1, 19)),
+            datetime(2022, 1, 17, 18, 0, 0, tzinfo=self.eastern),
+        )
+
+    def test_thursday_and_friday_trips(self):
+        """Trips on Thursday & Friday open two days before the trip date."""
+        self.assertEqual(
+            date_utils.itinerary_available_at(date(2022, 7, 14)),
+            datetime(2022, 7, 12, 18, 0, 0, tzinfo=self.eastern),
+        )
+        self.assertEqual(
+            date_utils.itinerary_available_at(date(2022, 7, 15)),
+            datetime(2022, 7, 13, 18, 0, 0, tzinfo=self.eastern),
+        )
+
+
+class DateUtilTests(TestCase):
     def setUp(self):
-        self.y2k = datetime(2000, 1, 1)
-        test_datetimes = [self.y2k + timedelta(days=i) for i in range(15)]
-        self.test_datetimes = [date_utils.localize(dt) for dt in test_datetimes]
-
-    def test_itinerary_available_at(self):
-        for test_dt in self.test_datetimes:
-            avail_datetime = date_utils.itinerary_available_at(test_dt)
-            self.assertEqual(avail_datetime.weekday(), 3)  # Is always a Thursday
-
-            if test_dt.weekday() == 3:
-                self.assertEqual(test_dt.date(), avail_datetime.date())
-            else:
-                self.assertGreater(test_dt, avail_datetime)
+        self.y2k = datetime(2000, 1, 1, 12, 0, 0, tzinfo=ZoneInfo("America/New_York"))
+        self.test_datetimes = [self.y2k + timedelta(days=i) for i in range(15)]
 
     @mock.patch('ws.utils.dates.local_now')
     def test_nearest_sat(self, local_now):
