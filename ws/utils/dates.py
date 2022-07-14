@@ -5,11 +5,11 @@ from datetime import date, datetime, time, timedelta
 
 from django.utils import timezone
 
-# TODO: stop import `models` here! Refactor.
+# TODO: stop importing `models` here! Refactor.
 from ws import enums, models  # pylint:disable=cyclic-import
 
 
-def localize(dt_time):
+def localize(dt_time: datetime) -> datetime:
     """Take a naive datetime and assign a time zone to it (without changing wall time).
 
     >>> from datetime import datetime
@@ -20,7 +20,7 @@ def localize(dt_time):
     return pytz_timezone.localize(dt_time)
 
 
-def itinerary_available_at(trip_date):
+def itinerary_available_at(trip_date: date) -> datetime:
     """Return the date & time at which the trip's itinerary may be submitted.
 
     We disallow submitting an itinerary too far in advance because weather
@@ -34,7 +34,7 @@ def itinerary_available_at(trip_date):
     return localize(thursday_evening)
 
 
-def late_at_night(dt: date):
+def late_at_night(dt: date) -> datetime:
     """23:59 on the date, since midnight is technically the next day."""
     # Note that this function *could* work with a `datetime` object.
     # However, timezones can make date identification tricky.
@@ -44,7 +44,7 @@ def late_at_night(dt: date):
     return localize(datetime(dt.year, dt.month, dt.day, 23, 59, 59))
 
 
-def fcfs_close_time(trip_date):
+def fcfs_close_time(trip_date: date) -> datetime:
     """The time that a WS trip should close its first-come, first-serve signups.
 
     Winter School trips that are part of the weekly lottery typically take
@@ -66,11 +66,11 @@ def fcfs_close_time(trip_date):
     return late_at_night(thur_before)
 
 
-def local_now():
+def local_now() -> datetime:
     return timezone.localtime(timezone.now())
 
 
-def local_now_to_the_minute():
+def local_now_to_the_minute() -> datetime:
     """Present time, rounded down to have zero seconds.
 
     (This is a function only because Django can't serialize lambdas for a `default`).
@@ -78,11 +78,11 @@ def local_now_to_the_minute():
     return local_now().replace(second=0, microsecond=0)
 
 
-def local_date():
+def local_date() -> date:
     return local_now().date()
 
 
-def nearest_sat():
+def nearest_sat() -> date:
     """Give the date of the nearest Saturday (next week if today is Saturday)
 
     Because most trips are posted during the week, and occur that weekend,
@@ -97,39 +97,39 @@ def nearest_sat():
     return (now + delta).date()
 
 
-def lottery_time(lottery_date):
+def lottery_time(lottery_date: datetime) -> datetime:
     """Given a date, return the datetime when lottery trips should close.
 
-    If change the lottery time, modify just this method (others depend on it)
+    If changing the lottery time, modify just this method (others depend on it).
     """
     return lottery_date.replace(hour=9, minute=0, second=0, microsecond=0)
 
 
-def next_lottery():
+def next_lottery() -> datetime:
     lottery_morning = wed_morning()  # Closest Wednesday, at 9 am
     if local_now() > lottery_morning:  # Today is Wednesday, after lottery
         return lottery_time(lottery_morning + timedelta(days=7))
     return lottery_morning
 
 
-def next_wednesday():
+def next_wednesday() -> datetime:
     now = local_now()
     days_til_wed = timedelta((9 - now.weekday()) % 7)
     return now + days_til_wed
 
 
-def wed_morning():
+def wed_morning() -> datetime:
     return lottery_time(next_wednesday())
 
 
-def closest_wednesday():
+def closest_wednesday() -> date:
     now = local_now()
     next_wed = next_wednesday()
     last_wed = next_wed - timedelta(7)
     return min([next_wed, last_wed], key=lambda dt: abs(now - dt)).date()
 
 
-def closest_wed_at_noon():
+def closest_wed_at_noon() -> datetime:
     """Useful in case lottery is run slightly after noon on Wednesday."""
     closest_wed = closest_wednesday()
     ret = datetime.combine(closest_wed, datetime.min.time().replace(hour=12))
@@ -153,13 +153,13 @@ def is_currently_iap() -> bool:
     return now.month == 1 or (now.month == 2 and now.day < 7)
 
 
-def ws_year():
+def ws_year() -> int:
     """Returns the year of the nearest Winter School."""
     this_year = local_now().year
     return this_year if local_now().month <= 6 else this_year + 1
 
 
-def jan_1():
+def jan_1() -> datetime:
     jan_1st = timezone.datetime(local_date().year, 1, 1)
     return localize(jan_1st)
 

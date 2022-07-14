@@ -196,7 +196,9 @@ class Membership(models.Model):
     @property
     def membership_active(self) -> bool:
         expires = self.membership_expires
-        return bool(expires) and expires >= date_utils.local_date()
+        if expires is None:
+            return False
+        return expires >= date_utils.local_date()
 
     def should_sign_waiver_for(self, trip: 'Trip') -> bool:
         """Return if the waiver will be valid for the day of the trip.
@@ -248,7 +250,9 @@ class Membership(models.Model):
         if not self.membership_active:
             return False
         renewal_date = self.date_when_renewal_is_recommended(report_past_dates=True)
-        return bool(renewal_date) and renewal_date <= date_utils.local_date()
+        if renewal_date is None:
+            return False
+        return renewal_date <= date_utils.local_date()
 
     @property
     def expiry_if_paid_today(self) -> date:
