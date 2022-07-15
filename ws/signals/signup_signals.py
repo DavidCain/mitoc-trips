@@ -64,12 +64,6 @@ def leader_signup(sender, instance, created, raw, using, update_fields, **kwargs
     trip.leaders.add(instance.participant)
 
 
-def get_trip_link(trip):
-    # trip_url = reverse('view_trip', args=(trip.id,))
-    # return '<a href="{}">"{}"</a>'.format(trip_url, trip)
-    return trip  # TODO: The link above only does relative URL
-
-
 @receiver(post_save, sender=Trip)
 def add_waitlist(sender, instance, created, raw, using, update_fields, **kwargs):
     if created:
