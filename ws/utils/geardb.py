@@ -1,11 +1,8 @@
 """
 Functions for interacting with the gear database.
 
-The gear database is itself a Django application (which we are in the processes
-of integrating with this one via an API layer).
-
-In the meantime, this module contains some direct database access to an
-externally-hosted MySQL database.
+The gear database is itself a Django application, which we interface with
+via machine-to-machine API endpoints.
 """
 import logging
 from datetime import date, datetime, timedelta

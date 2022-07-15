@@ -1,5 +1,5 @@
 # TODO:
-# - Once we drop direct MySQL access, consider python:3.10-slim
+# - Consider python:3.10-slim
 # - Once dropping legacy AngularJS, build FE bundles separately
 
 # Things needed to use this in production:
@@ -19,8 +19,6 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     curl \
     # Only needed to install legacy node dependencies from git \
     git \
-    # TODO: Remove these once we no longer need to support direct MySQL access \
-    mysql-client libmysqlclient-dev libssl-dev \
     locales \
     # Postgres client (for accessing RDS in production) \
     postgresql-client postgresql-contrib libpq-dev \

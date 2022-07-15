@@ -189,21 +189,7 @@ DATABASES = {
         'HOST': os.getenv('DATABASE_HOST', 'localhost'),
         'PORT': os.getenv('DATABASE_PORT', '5432'),
     },
-    # DEPRECATED!
-    # We still read from this database in production, but we're phasing that out.
-    # To ease the deprecation & repo maintenance, do not test against this database.
-    'geardb': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.getenv('GEAR_DATABASE_NAME', 'geardb'),
-        'OPTIONS': {'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"},
-        'USER': os.getenv('GEAR_DATABASE_USER', 'ws'),
-        'PASSWORD': os.getenv('GEAR_DATABASE_PASSWORD', 'password'),
-        'HOST': os.getenv('GEAR_DATABASE_HOST', 'localhost'),
-        'PORT': os.getenv('GEAR_DATABASE_PORT', '3306'),
-        'TEST': {'DEPENDENCIES': []},
-    },
 }
-DATABASE_ROUTERS = ['ws.routers.DefaultOnlyRouter']
 
 
 MIDDLEWARE = [

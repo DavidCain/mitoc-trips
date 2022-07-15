@@ -33,7 +33,6 @@ django-webpack-loader = "^1.1.0"  # Should maintain parity with frontend/package
 gspread = "*"
 markdown2 = "*"
 mitoc-const = "^1.0.0"  # (1.0.0 includes type hints)
-mysqlclient = "^2.0.3"  # TODO: Delete once `util/geardb.py` is migrated
 oauth2client = "*"
 phonenumberslite = "*"
 psycopg2 = "*"
