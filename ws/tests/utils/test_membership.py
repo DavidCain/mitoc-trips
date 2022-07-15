@@ -2,10 +2,11 @@ from datetime import date
 
 import responses
 from django.contrib.auth.models import AnonymousUser
+from django.test import TestCase
 from freezegun import freeze_time
 
 from ws import enums
-from ws.tests import TestCase, factories
+from ws.tests import factories
 from ws.utils import membership
 
 

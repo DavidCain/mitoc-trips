@@ -1,11 +1,11 @@
 from datetime import date, datetime
 
 from django.core.exceptions import ValidationError
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, TestCase
 from freezegun import freeze_time
 
 from ws import enums
-from ws.tests import TestCase, factories
+from ws.tests import factories
 from ws.utils.dates import localize
 
 

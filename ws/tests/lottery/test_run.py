@@ -2,13 +2,14 @@ from datetime import date, datetime
 from textwrap import dedent
 from unittest.mock import patch
 
+from django.test import TestCase
 from freezegun import freeze_time
 from mitoc_const import affiliations
 
 import ws.utils.dates as date_utils
 from ws import enums, models, settings
 from ws.lottery import run
-from ws.tests import TestCase, factories
+from ws.tests import factories
 
 
 class SingleTripLotteryTests(TestCase):

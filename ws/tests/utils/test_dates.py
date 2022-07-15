@@ -2,10 +2,11 @@ from datetime import date, datetime, timedelta
 from unittest import mock
 from zoneinfo import ZoneInfo
 
+from django.test import TestCase
 from freezegun import freeze_time
 
 from ws import enums
-from ws.tests import TestCase, factories
+from ws.tests import factories
 from ws.utils import dates as date_utils
 
 

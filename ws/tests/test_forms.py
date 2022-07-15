@@ -1,13 +1,13 @@
 from datetime import datetime
 
 from allauth.account.models import EmailAddress
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, TestCase
 from freezegun import freeze_time
 from mitoc_const import affiliations
 
 import ws.utils.dates as date_utils
 from ws import forms
-from ws.tests import TestCase, factories
+from ws.tests import factories
 
 
 class FormTests(SimpleTestCase):

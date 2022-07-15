@@ -4,10 +4,11 @@ from datetime import datetime, timezone
 from django.contrib.auth.models import Permission, User
 from django.db import connections
 from django.db.utils import IntegrityError
+from django.test import TestCase
 from mitoc_const import affiliations
 
 from ws import merge, models
-from ws.tests import TestCase, factories
+from ws.tests import factories
 
 
 # TODO (mypy): If/when using type checking, just get rid of this

@@ -1,8 +1,9 @@
+from django.test import TestCase
 from freezegun import freeze_time
 
 import ws.utils.perms as perm_utils
 from ws import enums, models
-from ws.tests import TestCase, factories
+from ws.tests import factories
 
 
 # Test as if during WSC. Underlying mixin covers other edge cases.

@@ -2,9 +2,10 @@ from datetime import date
 
 from bs4 import BeautifulSoup
 from django.template import Context, Template
+from django.test import TestCase
 from freezegun import freeze_time
 
-from ws.tests import TestCase, factories, strip_whitespace
+from ws.tests import factories, strip_whitespace
 
 
 class ShowWimpTagsTests(TestCase):

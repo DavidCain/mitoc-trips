@@ -2,12 +2,11 @@ from typing import ClassVar
 from unittest import mock
 
 from django.contrib.auth.models import AnonymousUser
-from django.test import RequestFactory
+from django.test import RequestFactory, TestCase
 
 from ws import models
 from ws.messages import security
 from ws.middleware import CustomMessagesMiddleware, ParticipantMiddleware
-from ws.tests import TestCase
 from ws.tests.factories import ParticipantFactory, PasswordQualityFactory, UserFactory
 
 

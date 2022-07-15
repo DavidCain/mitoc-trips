@@ -4,11 +4,12 @@ from unittest import mock
 
 from bs4 import BeautifulSoup
 from django.contrib import messages
+from django.test import TestCase
 from freezegun import freeze_time
 from mitoc_const import affiliations
 
 from ws import enums, models, tasks, unsubscribe
-from ws.tests import TestCase, factories, strip_whitespace
+from ws.tests import factories, strip_whitespace
 
 
 class LotteryPairingViewTests(TestCase):

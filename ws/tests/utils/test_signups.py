@@ -1,10 +1,10 @@
 from unittest.mock import PropertyMock, patch
 
 from django.contrib import messages
-from django.test import RequestFactory, SimpleTestCase
+from django.test import RequestFactory, SimpleTestCase, TestCase
 
 from ws import models
-from ws.tests import TestCase, factories
+from ws.tests import factories
 from ws.utils import signups as signup_utils
 
 

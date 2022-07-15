@@ -1,7 +1,8 @@
 from bs4 import BeautifulSoup
 from django.template import Context, Template
+from django.test import TestCase
 
-from ws.tests import TestCase, factories
+from ws.tests import factories
 
 
 class DiscountTagsTest(TestCase):

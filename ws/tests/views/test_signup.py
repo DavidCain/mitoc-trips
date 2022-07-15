@@ -5,11 +5,12 @@ from unittest import mock
 import responses
 from bs4 import BeautifulSoup
 from django.contrib import messages
+from django.test import TestCase
 from freezegun import freeze_time
 
 import ws.utils.dates as date_utils
 from ws import enums, models
-from ws.tests import TestCase, factories, strip_whitespace
+from ws.tests import factories, strip_whitespace
 
 
 @freeze_time("2019-01-15 12:25:00 EST")

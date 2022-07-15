@@ -2,10 +2,11 @@ from collections import OrderedDict
 from datetime import date, datetime
 from unittest import mock
 
+from django.test import TestCase
 from freezegun import freeze_time
 
 from ws.privacy import DataDump
-from ws.tests import TestCase, factories
+from ws.tests import factories
 from ws.utils.dates import localize
 
 

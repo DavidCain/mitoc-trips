@@ -3,11 +3,12 @@ from datetime import datetime, timezone
 from unittest import mock
 
 from bs4 import BeautifulSoup
+from django.test import TestCase
 from freezegun import freeze_time
 from pwned_passwords_django import api
 
 from ws import models
-from ws.tests import TestCase, factories
+from ws.tests import factories
 from ws.views import account
 
 

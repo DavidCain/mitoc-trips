@@ -1,8 +1,9 @@
 from bs4 import BeautifulSoup
+from django.test import TestCase
 
 import ws.utils.perms as perm_utils
 from ws import enums, models
-from ws.tests import TestCase, factories
+from ws.tests import factories
 
 
 class DeactivateLeaderRatingsViewTest(TestCase):

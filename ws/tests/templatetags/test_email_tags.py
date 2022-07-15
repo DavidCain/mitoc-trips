@@ -1,11 +1,12 @@
 from datetime import date, datetime
 
 from django.template import Context, Template
+from django.test import TestCase
 from freezegun import freeze_time
 
 from ws import enums, models
 from ws.templatetags.trip_tags import annotated_for_trip_list  # TODO: Move.
-from ws.tests import TestCase, factories
+from ws.tests import factories
 from ws.utils.dates import localize
 
 

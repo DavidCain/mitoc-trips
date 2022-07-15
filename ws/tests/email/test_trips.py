@@ -2,11 +2,12 @@ from datetime import date, datetime, time, timedelta
 
 from bs4 import BeautifulSoup
 from django.core import mail
+from django.test import TestCase
 from freezegun import freeze_time
 
 from ws import enums
 from ws.email.trips import send_trips_summary
-from ws.tests import TestCase, factories, strip_whitespace
+from ws.tests import factories, strip_whitespace
 from ws.utils.dates import localize
 
 

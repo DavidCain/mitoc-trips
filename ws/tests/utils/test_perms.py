@@ -1,9 +1,10 @@
 from typing import ClassVar
 
 from django.contrib.auth.models import AnonymousUser
+from django.test import TestCase
 
 from ws import enums, models
-from ws.tests import TestCase, factories
+from ws.tests import factories
 from ws.tests.factories import TripFactory, UserFactory
 from ws.utils import perms as perm_utils
 

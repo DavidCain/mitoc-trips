@@ -1,10 +1,10 @@
 from django.core import signing
 from django.core.signing import TimestampSigner
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, TestCase
 from freezegun import freeze_time
 
 from ws import unsubscribe
-from ws.tests import TestCase, factories
+from ws.tests import factories
 
 
 @freeze_time("2021-12-10 12:00:00 EST")

@@ -1,10 +1,11 @@
 from datetime import date, timedelta
 from unittest import mock
 
+from django.test import TestCase
 from freezegun import freeze_time
 
 from ws import cleanup, models, settings
-from ws.tests import TestCase, factories
+from ws.tests import factories
 
 
 def make_last_updated_on(participant, some_date):

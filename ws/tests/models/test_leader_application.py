@@ -1,7 +1,8 @@
+from django.test import TestCase
 from freezegun import freeze_time
 
 from ws import enums, models
-from ws.tests import TestCase, factories
+from ws.tests import factories
 
 ACTIVITIES_WITH_APPLICATIONS = [
     enums.Activity.CLIMBING,  # Special case: it's a Google form

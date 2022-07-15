@@ -4,10 +4,11 @@ import uuid
 from unittest import mock
 
 import requests
+from django.test import TestCase
 from mitoc_const import affiliations
 
 from ws import settings, waivers
-from ws.tests import TestCase, factories
+from ws.tests import factories
 
 
 class HeaderBaseTest(unittest.TestCase):

@@ -2,11 +2,12 @@ import time
 from unittest import mock
 
 import jwt
+from django.test import TestCase
 from freezegun import freeze_time
 
 import ws.utils.perms as perm_utils
 from ws import enums, models, settings
-from ws.tests import TestCase, factories
+from ws.tests import factories
 from ws.utils.signups import add_to_waitlist
 
 

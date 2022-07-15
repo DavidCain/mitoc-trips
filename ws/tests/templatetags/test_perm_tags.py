@@ -2,11 +2,12 @@ from datetime import date
 
 from django.contrib.auth.models import Group
 from django.template import Context, Template
+from django.test import TestCase
 from freezegun import freeze_time
 
 import ws.utils.perms as perm_utils
 from ws import enums
-from ws.tests import TestCase, factories
+from ws.tests import factories
 
 
 class IsTheWimpTest(TestCase):

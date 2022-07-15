@@ -4,11 +4,12 @@ from unittest import mock
 
 from bs4 import BeautifulSoup
 from django.contrib.auth.models import Group
+from django.test import TestCase
 from freezegun import freeze_time
 
 import ws.utils.perms as perm_utils
 from ws import enums, models, tasks
-from ws.tests import TestCase, factories, strip_whitespace
+from ws.tests import factories, strip_whitespace
 from ws.views.participant import logger
 
 

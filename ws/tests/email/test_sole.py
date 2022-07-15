@@ -3,10 +3,11 @@ from unittest import mock
 
 from bs4 import BeautifulSoup
 from django.core import mail
+from django.test import TestCase
 
 from ws import models
 from ws.email import sole
-from ws.tests import TestCase, factories
+from ws.tests import factories
 
 
 class StudentTravelFormTest(TestCase):

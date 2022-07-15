@@ -1,10 +1,10 @@
 from unittest import mock
 
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, TestCase
 
 from ws import enums, models
 from ws.lottery import annotate_reciprocally_paired, handle, run
-from ws.tests import TestCase, factories
+from ws.tests import factories
 
 
 class DriverTests(SimpleTestCase):

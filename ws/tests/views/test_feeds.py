@@ -1,7 +1,8 @@
 from bs4 import BeautifulSoup
+from django.test import TestCase
 from freezegun import freeze_time
 
-from ws.tests import TestCase, factories
+from ws.tests import factories
 
 
 @freeze_time("Wed, 1 Jan 2020 12:25:00 EST")

@@ -1,9 +1,9 @@
-from django.test import RequestFactory
+from django.test import RequestFactory, TestCase
 from freezegun import freeze_time
 
 import ws.utils.perms as perm_utils
 from ws import enums, mixins, models
-from ws.tests import TestCase, factories
+from ws.tests import factories
 
 
 class MixedIn(mixins.LectureAttendanceMixin):

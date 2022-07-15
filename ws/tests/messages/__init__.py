@@ -2,9 +2,7 @@ from contextlib import contextmanager
 from unittest import mock
 
 from django.contrib import messages
-from django.test import RequestFactory
-
-from ws.tests import TestCase
+from django.test import RequestFactory, TestCase
 
 
 class MessagesTestCase(TestCase):

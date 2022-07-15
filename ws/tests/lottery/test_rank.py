@@ -7,12 +7,11 @@ from unittest.mock import patch
 
 import factory
 from django.db.models import signals
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, TestCase
 from freezegun import freeze_time
 
 from ws import enums, models, settings
 from ws.lottery import rank
-from ws.tests import TestCase
 from ws.tests.factories import (
     FeedbackFactory,
     LotteryInfoFactory,

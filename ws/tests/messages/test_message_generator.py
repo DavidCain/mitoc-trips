@@ -2,9 +2,10 @@ from contextlib import contextmanager
 from unittest import mock
 
 from django.contrib import messages
+from django.test import TestCase
 
 from ws.messages import MessageGenerator
-from ws.tests import TestCase, factories
+from ws.tests import factories
 
 
 class MessageGeneratorTests(TestCase):

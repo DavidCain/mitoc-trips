@@ -2,12 +2,12 @@ from contextlib import contextmanager
 from unittest import mock
 
 from django.contrib.auth.models import User
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, TestCase
 from freezegun import freeze_time
 
 import ws.utils.perms as perm_utils
 from ws import enums, models
-from ws.tests import TestCase, factories
+from ws.tests import factories
 from ws.utils import ratings
 
 

@@ -1,4 +1,6 @@
-from ws.tests import TestCase, factories
+from django.test import TestCase
+
+from ws.tests import factories
 
 
 class PrivacyTest(TestCase):

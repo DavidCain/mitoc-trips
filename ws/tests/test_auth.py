@@ -2,10 +2,11 @@ import unittest.mock
 from typing import ClassVar
 from urllib.parse import parse_qs, urlparse
 
+from django.test import TestCase
 from django.urls import reverse
 
 from ws import models
-from ws.tests import TestCase, factories
+from ws.tests import factories
 from ws.tests.helpers import PermHelpers
 
 login_required_routes = [

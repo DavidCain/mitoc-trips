@@ -1,7 +1,8 @@
 from django.contrib.auth.models import Group
+from django.test import TestCase
 
 from ws import models, wimp
-from ws.tests import TestCase, factories
+from ws.tests import factories
 
 
 class WimpTests(TestCase):

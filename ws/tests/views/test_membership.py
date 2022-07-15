@@ -2,10 +2,11 @@ from datetime import date
 from unittest import mock
 
 from bs4 import BeautifulSoup
+from django.test import TestCase
 from freezegun import freeze_time
 
 from ws import forms, waivers
-from ws.tests import TestCase, factories, strip_whitespace
+from ws.tests import factories, strip_whitespace
 
 
 class PayDuesTests(TestCase):

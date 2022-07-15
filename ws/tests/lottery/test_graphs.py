@@ -1,5 +1,7 @@
+from django.test import TestCase
+
 from ws.lottery import graphs
-from ws.tests import TestCase, factories
+from ws.tests import factories
 
 
 class CycleTests(TestCase):

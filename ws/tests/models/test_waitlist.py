@@ -1,5 +1,7 @@
+from django.test import TestCase
+
 from ws import models
-from ws.tests import TestCase, factories
+from ws.tests import factories
 
 
 class OrderingTests(TestCase):
