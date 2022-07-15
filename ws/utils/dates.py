@@ -16,8 +16,7 @@ def localize(dt_time: datetime) -> datetime:
     >>> localize(datetime(2018, 10, 27, 4, 30)
     datetime.datetime(2018, 10, 27, 4, 30, tzinfo=<DstTzInfo 'America/New_York' EDT-1 day, 20:00:00 DST>)
     """
-    pytz_timezone = timezone.get_default_timezone()
-    return pytz_timezone.localize(dt_time)
+    return timezone.get_default_timezone().localize(dt_time)
 
 
 def itinerary_available_at(trip_date: date) -> datetime:

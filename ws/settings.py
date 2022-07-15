@@ -2,7 +2,7 @@
 Django settings for ws project.
 
 For more information on this file, see
-https://docs.djangoproject.com/en/2.2/topics/settings/
+https://docs.djangoproject.com/en/3.2/topics/settings/
 """
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)

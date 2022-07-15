@@ -1,9 +1,8 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import allauth.account.models as account_models
 import factory
 import factory.fuzzy
-import pytz
 from factory.django import DjangoModelFactory
 from mitoc_const import affiliations
 
@@ -138,7 +137,7 @@ class MembershipReminderFactory(DjangoModelFactory):
 
     participant = factory.SubFactory(ParticipantFactory)
     reminder_sent_at = factory.fuzzy.FuzzyDateTime(
-        start_dt=datetime(2021, 11, 13, tzinfo=pytz.UTC)
+        start_dt=datetime(2021, 11, 13, tzinfo=timezone.utc)
     )
 
 

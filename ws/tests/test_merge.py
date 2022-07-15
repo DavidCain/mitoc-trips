@@ -1,7 +1,6 @@
 import unittest
-from datetime import datetime
+from datetime import datetime, timezone
 
-import pytz
 from django.contrib.auth.models import Permission, User
 from django.db import connections
 from django.db.utils import IntegrityError
@@ -145,10 +144,10 @@ class MergeTest(TestCase):
 
     def test_membership_reminders(self):
         """The newest reminder is honored, even if delivered to the older participant."""
-        newer_reminder_sent_at = datetime(2020, 12, 25, tzinfo=pytz.UTC)
+        newer_reminder_sent_at = datetime(2020, 12, 25, tzinfo=timezone.utc)
         factories.MembershipReminderFactory.create(
             participant=self.tim,
-            reminder_sent_at=datetime(2020, 10, 1, tzinfo=pytz.UTC),
+            reminder_sent_at=datetime(2020, 10, 1, tzinfo=timezone.utc),
         )
         factories.MembershipReminderFactory.create(
             participant=self.old,

@@ -1,8 +1,7 @@
 import random
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from unittest import mock
 
-import pytz
 from bs4 import BeautifulSoup
 from django.contrib.auth.models import Group
 from freezegun import freeze_time
@@ -317,7 +316,7 @@ class EditProfileViewTests(TestCase):
         task_update.delay.assert_called_with(participant.pk)
 
         # We then update the timestamps!
-        now = datetime(2019, 2, 15, 17, 25, tzinfo=pytz.utc)
+        now = datetime(2019, 2, 15, 17, 25, tzinfo=timezone.utc)
         self.assertEqual(participant.last_updated, now)
         # Since the participant modified their own profile, we save `profile_last_updated`
         self.assertEqual(participant.profile_last_updated, now)

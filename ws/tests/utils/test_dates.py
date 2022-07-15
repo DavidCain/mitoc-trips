@@ -2,7 +2,6 @@ from datetime import date, datetime, timedelta
 from unittest import mock
 from zoneinfo import ZoneInfo
 
-import pytz
 from freezegun import freeze_time
 
 from ws import enums
@@ -123,27 +122,27 @@ class DateUtilTests(TestCase):
                 self.assertLess(test_date, closest_wed)
 
     def test_closest_wed_at_noon(self):
-        est = pytz.timezone('America/New_York')
+        eastern = ZoneInfo('America/New_York')
 
         # On Wednesday, we return the same day
         with freeze_time("2016-12-28 23:22 EST"):
             self.assertEqual(
                 date_utils.closest_wed_at_noon(),
-                est.localize(datetime(2016, 12, 28, 12, 0, 0)),
+                datetime(2016, 12, 28, 12, 0, 0, tzinfo=eastern),
             )
 
         # 3 days to the next Wednesday, 4 days to the previous
         with freeze_time("2016-12-25 10:00 EST"):
             self.assertEqual(
                 date_utils.closest_wed_at_noon(),
-                est.localize(datetime(2016, 12, 28, 12, 0, 0)),
+                datetime(2016, 12, 28, 12, 0, 0, tzinfo=eastern),
             )
 
         # 4 days to the next Wednesday, 3 days to the previous
         with freeze_time("2016-12-24 10:00 EST"):
             self.assertEqual(
                 date_utils.closest_wed_at_noon(),
-                est.localize(datetime(2016, 12, 21, 12, 0, 0)),
+                datetime(2016, 12, 21, 12, 0, 0, tzinfo=eastern),
             )
 
     def test_is_currently_iap(self):
@@ -165,8 +164,8 @@ class DateUtilTests(TestCase):
             self.assertFalse(date_utils.is_currently_iap())
 
     def test_fcfs_close_time(self):
-        est = pytz.timezone('America/New_York')
-        thur_night = est.localize(datetime(2019, 1, 24, 23, 59, 59))
+        eastern = ZoneInfo("America/New_York")
+        thur_night = datetime(2019, 1, 24, 23, 59, 59, tzinfo=eastern)
 
         # For the usual case (trips over the weekend), it's the Thursday beforehand
         (fri, sat, sun, mon) = (date(2019, 1, dom) for dom in [25, 26, 27, 28])
@@ -187,9 +186,9 @@ class DateUtilTests(TestCase):
         self.assertEqual(date_utils.fcfs_close_time(date(2019, 1, 24)), wed_night)
 
     def test_next_lottery(self):
-        est = pytz.timezone('America/New_York')
-        friday_the_23rd = est.localize(datetime(2019, 1, 23, 9, 0, 0))
-        friday_the_30th = est.localize(datetime(2019, 1, 30, 9, 0, 0))
+        eastern = ZoneInfo("America/New_York")
+        friday_the_23rd = datetime(2019, 1, 23, 9, 0, 0, tzinfo=eastern)
+        friday_the_30th = datetime(2019, 1, 30, 9, 0, 0, tzinfo=eastern)
 
         # Normal cases: lottery is always just the next Wednesday morning
         with freeze_time("Fri, 25 Jan 2019 03:00:00 EST"):

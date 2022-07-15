@@ -50,7 +50,6 @@ freezegun = "*"
 isort = { version = "^5.8", extras = ["pyproject"] }  # Version 5 introduces black compatibility
 lxml = "*"
 pylint = "^2.8"
-pytz = "*"  # (It's a production dependency by way of Django, but used directly in tests)
 responses = "*"
 
 # Dependencies for static type checking
@@ -58,7 +57,6 @@ django-stubs = { version = "^1.9" }
 mypy = { version = "*"}
 types-certifi = { version = "*" }
 types-cryptography = { version = "*" }
-types-pytz = { version = "*" }
 types-requests = { version = "*" }
 
 # Dependencies helpful for local development, not used otherwise
