@@ -105,6 +105,7 @@ def revoke_existing_task(sender, instance, raw, using, update_fields, **kwargs):
     except sender.DoesNotExist:  # New trip, initiated with no task
         return
 
+    # TODO: There's a race condition here; we should lock `trip` exclusively
     new_close_time = instance.signups_close_at != trip.signups_close_at
     needs_revoke = new_close_time or trip.algorithm != 'lottery'
     if trip.lottery_task_id and needs_revoke:
@@ -132,9 +133,7 @@ def add_lottery_task(sender, instance, created, raw, using, update_fields, **kwa
         return  # Only new lottery trips get a new task
 
     try:
-        task_id = tasks.run_lottery.apply_async(
-            (trip.pk, None), eta=trip.signups_close_at
-        )
+        task_id = tasks.run_lottery.apply_async((trip.pk,), eta=trip.signups_close_at)
     except OperationalError:
         logger.error("Failed to make lottery task for trip %s", trip.pk)
     else:

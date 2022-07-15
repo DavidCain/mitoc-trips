@@ -289,13 +289,7 @@ def purge_old_medical_data():
 
 
 @mutex_task('single_trip_lottery-{trip_id}')
-def run_lottery(
-    trip_id: int,
-    # NOTE: Can delete `kwargs` later.
-    # This exists to handle messages which are already queued,
-    # and may include the unused `lottery_config` argument
-    **_kwargs,
-):
+def run_lottery(trip_id: int):
     """Run a lottery algorithm for the given trip (idempotent).
 
     If running on a trip that isn't in lottery mode, this won't make
