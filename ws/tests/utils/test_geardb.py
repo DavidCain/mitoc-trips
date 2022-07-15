@@ -175,15 +175,6 @@ class UpdateAffiliationTest(TestCase):
         geardb.update_affiliation(tim)
 
 
-class NoUserTests(SimpleTestCase):
-    """Convenience methods neatly handle missing or anonymous users."""
-
-    def test_verified_email_no_user(self):
-        """Test users with no email addresses."""
-        self.assertEqual(geardb.verified_emails(AnonymousUser()), [])
-        self.assertEqual(geardb.verified_emails(None), [])
-
-
 class QueryGearDBForMembershipTest(TestCase):
     def test_user_without_any_emails(self):
         """We don't bother hitting the API if missing verified emails to use.

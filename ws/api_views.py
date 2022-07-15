@@ -18,6 +18,7 @@ from django.views.generic import DetailView, ListView, View
 from django.views.generic.detail import SingleObjectMixin
 
 import ws.utils.geardb as geardb_utils
+import ws.utils.membership as membership_utils
 import ws.utils.perms as perm_utils
 import ws.utils.signups as signup_utils
 from ws import enums, models
@@ -520,9 +521,19 @@ class UserMembershipView(UserView):
 
     def get(self, request, *args, **kwargs):
         user = self.get_object()
+
         # TODO: Hitting the gear database *every time* is probably not necessary.
         # For most people, knowing that their membership & waiver are active is enough.
         # (We can rely on the membership cache to tell us if somebody's active)
+        # Similarly, if mitoc-gear is down, falling back on the cache would be nice.
+
+        # Almost all people hitting this endpoint will have completed registration.
+        # In this case, use the opportunity to update the cache!
+        participant = models.Participant.from_user(user)
+        if participant:
+            membership_utils.get_latest_membership(participant)
+            return JsonResponse(geardb_utils.format_cached_membership(participant))
+
         membership = geardb_utils.query_geardb_for_membership(user)
         return JsonResponse(membership)
 

@@ -1,4 +1,7 @@
+from typing import Iterator, Optional, Union
+
 import requests
+from django.contrib.auth.models import AnonymousUser
 from sentry_sdk import capture_exception
 
 from ws import enums, models
@@ -6,19 +9,25 @@ from ws.utils import geardb
 from ws.utils.dates import local_now
 
 
-def _update_membership_cache(participant):
-    """Use results from the gear database to update membership cache."""
+def get_latest_membership(
+    participant: models.Participant,
+) -> Optional[models.Membership]:
+    """Request latest membership/waiver info from geardb, updating the cache."""
     membership_dict = geardb.query_geardb_for_membership(participant.user)
     if membership_dict is None:  # No email edge case, should be impossible
-        return
+        return None
 
-    participant.update_membership(
+    membership, _created = participant.update_membership(
         membership_expires=membership_dict['membership']['expires'],
         waiver_expires=membership_dict['waiver']['expires'],
     )
 
+    return membership
 
-def reasons_cannot_attend(user, trip):
+
+def reasons_cannot_attend(
+    user: Union[models.User, AnonymousUser], trip: models.Trip
+) -> Iterator[enums.TripIneligibilityReason]:
     """Yield reasons why the user is not allowed to attend the trip.
 
     Their cached membership may be sufficient to show that the last
@@ -49,7 +58,7 @@ def reasons_cannot_attend(user, trip):
     original_ts = membership.last_cached if membership else before_refreshing_ts
 
     try:
-        _update_membership_cache(participant)
+        get_latest_membership(participant)
     except requests.exceptions.RequestException:
         capture_exception()
         return

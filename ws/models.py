@@ -4,7 +4,7 @@ from urllib.parse import urlencode
 
 from allauth.account.models import EmailAddress
 from django.conf import settings
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AnonymousUser, User
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
@@ -463,7 +463,11 @@ class Participant(models.Model):
         return cls.from_user(addr.user, join_membership) if addr else None
 
     @classmethod
-    def from_user(cls, user, join_membership=False):
+    def from_user(
+        cls,
+        user: Union[User, AnonymousUser],
+        join_membership: bool = False,
+    ) -> Participant:
         if not user.is_authenticated:
             return None
 

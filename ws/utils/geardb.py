@@ -125,14 +125,15 @@ class Rental(NamedTuple):
     overdue: bool
 
 
-def verified_emails(user) -> List[str]:
+def _verified_emails(user: models.User) -> List[str]:
     """Return all email addresses that the user is verified to own.
 
     We should only ever report results for email addresses we know the user controls.
     """
     if not (user and user.is_authenticated):
         return []
-    emails = user.emailaddress_set
+    # (This relation is added by django-allauth, but django-stubs/mypy can't tell)
+    emails = user.emailaddress_set  # type: ignore [attr-defined]
     return sorted(emails.filter(verified=True).values_list('email', flat=True))
 
 
@@ -140,7 +141,7 @@ def query_geardb_for_membership(user: models.User) -> Optional[MembershipDict]:
     """Ask the gear database for the latest information, bypassing any caches."""
     assert user.is_authenticated
 
-    emails = verified_emails(user)
+    emails = _verified_emails(user)
     if not emails:
         logger.error("Cannot query for user without verified emails")
         return None
@@ -269,7 +270,7 @@ def outstanding_items(emails: List[str]) -> Iterator[Rental]:
         )
 
 
-def user_rentals(user) -> List[Rental]:
+def user_rentals(user: models.User) -> List[Rental]:
     """Return items which the user has rented (which can be reported to that user).
 
     It's very, very important that these emails be *verified*.
@@ -279,7 +280,7 @@ def user_rentals(user) -> List[Rental]:
     collision attacks where an attacker can register a similar email address
     which lowercases down to a victim's email.
     """
-    return list(outstanding_items(verified_emails(user)))
+    return list(outstanding_items(_verified_emails(user)))
 
 
 def update_affiliation(participant: models.Participant) -> Optional[requests.Response]:
