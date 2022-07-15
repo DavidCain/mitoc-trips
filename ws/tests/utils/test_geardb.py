@@ -187,6 +187,33 @@ class QueryGearDBForMembershipTest(TestCase):
         self.assertIsNone(membership)
 
     @responses.activate
+    def test_no_results(self):
+        """Test our handling of an empty `results` list.
+
+        (I don't think this presently happens, but it's good to check)
+        """
+        user = factories.UserFactory(email='timothy@mit.edu')
+        responses.get(
+            url='https://mitoc-gear.mit.edu/api-auth/v1/membership_waiver/?email=timothy@mit.edu',
+            json={
+                "count": 0,
+                "next": None,
+                "previous": None,
+                "results": [],
+            },
+        )
+
+        membership = geardb.query_geardb_for_membership(user)
+        self.assertEqual(
+            membership,
+            geardb.MembershipWaiver(
+                email=None,
+                membership_expires=None,
+                waiver_expires=None,
+            ),
+        )
+
+    @responses.activate
     def test_no_membership_found(self):
         user = factories.UserFactory(email='timothy@mit.edu')
         responses.get(
@@ -250,3 +277,11 @@ class QueryGearDBForMembershipTest(TestCase):
                 waiver_expires=date(2023, 5, 4),
             ),
         )
+
+
+class MembershipStatsTest(TestCase):
+    """Small stub class, to be completed once a full API integration returns."""
+
+    def test_currently_empty(self):
+        """We can at least *call* this method, it just returns nothing for now."""
+        self.assertEqual(geardb.membership_information(), {})
