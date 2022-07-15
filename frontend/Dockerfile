@@ -1,4 +1,4 @@
-FROM node:12.22.7-alpine as build
+FROM node:16.16.0-alpine as build
 
 COPY . /frontend
 WORKDIR /frontend
