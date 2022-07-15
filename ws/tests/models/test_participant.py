@@ -434,7 +434,7 @@ class MembershipActiveTest(unittest.TestCase):
         )
         self.assertTrue(membership.membership_active)
 
-        trip = factories.TripFactory.create(trip_date=date(2015, 11, 17))
+        trip = factories.TripFactory.build(trip_date=date(2015, 11, 17))
 
         self.assertFalse(membership.should_renew_for(trip))
         self.assertTrue(membership.should_sign_waiver_for(trip))
@@ -447,7 +447,7 @@ class MembershipActiveTest(unittest.TestCase):
             waiver_expires=date(2023, 11, 15),
         )
 
-        trip = factories.TripFactory.create(trip_date=date(2025, 12, 12))
+        trip = factories.TripFactory.build(trip_date=date(2025, 12, 12))
         self.assertFalse(membership.membership_active)
         self.assertTrue(membership.should_renew_for(trip))
         self.assertTrue(membership.should_sign_waiver_for(trip))
@@ -461,7 +461,7 @@ class MembershipActiveTest(unittest.TestCase):
         )
 
         # More than a year out!
-        trip = factories.TripFactory.create(trip_date=date(2026, 12, 13))
+        trip = factories.TripFactory.build(trip_date=date(2026, 12, 13))
 
         self.assertTrue(membership.membership_active)
 
