@@ -49,6 +49,9 @@ freezegun = "*"
 isort = { version = "^5.8", extras = ["pyproject"] }  # Version 5 introduces black compatibility
 lxml = "*"
 pylint = "^2.8"
+pytest = "*"
+pytest-django = "*"
+pytest-socket = "*"
 responses = "*"
 
 # Dependencies for static type checking
@@ -157,3 +160,11 @@ score = false
 
 [tool.pylint.FORMAT]
 max-module-lines = 2000
+
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "ws.settings"
+filterwarnings = [
+    "error",
+    "ignore:SelectableGroups dict interface is deprecated:DeprecationWarning",
+]

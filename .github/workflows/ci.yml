@@ -12,7 +12,7 @@ jobs:
           - "isort --diff --check ws"
           - "mypy ws"
           - "pylint --jobs=0 ws"
-          - "python -Wd -m coverage run manage.py test"
+          - "pytest"
     runs-on: ubuntu-20.04
     services:
       # TODO: Only the `test` step in the matrix needs this service up and running.

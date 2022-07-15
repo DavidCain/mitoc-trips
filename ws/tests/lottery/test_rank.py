@@ -22,7 +22,7 @@ from ws.tests.factories import (
 )
 
 
-class TestRanker(rank.ParticipantRanker):
+class DemoRanker(rank.ParticipantRanker):
     def __init__(self, participant_pks):
         self.participant_pks = participant_pks
 
@@ -39,7 +39,7 @@ class ParticipantPairingTests(TestCase):
     def expect_pairing(self, expected):
         """Run noted participants through ranking, expect pairing results."""
         par_pks = set(par.pk for par in expected)
-        ranker = TestRanker(participant_pks=par_pks)
+        ranker = DemoRanker(participant_pks=par_pks)
         actual = {par: bool(par.reciprocally_paired) for par, _ in ranker}
         self.assertEqual(expected, actual)
 

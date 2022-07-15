@@ -77,7 +77,7 @@ test: test-python test-js
 
 .PHONY: test-python
 test-python: install-python-dev build-frontend
-	WS_DJANGO_TEST=1 poetry run python -Wd -m coverage run manage.py test --no-input
+	WS_DJANGO_TEST=1 poetry run coverage run -m pytest
 
 .PHONY: test-js
 test-js: install-js
