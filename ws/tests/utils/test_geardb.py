@@ -5,7 +5,6 @@ from unittest import mock
 import jwt
 import requests
 import responses
-from django.contrib.auth.models import AnonymousUser
 from django.test import SimpleTestCase
 from freezegun import freeze_time
 
@@ -210,11 +209,11 @@ class QueryGearDBForMembershipTest(TestCase):
         membership = geardb.query_geardb_for_membership(user)
         self.assertEqual(
             membership,
-            {
-                'status': 'Expired',
-                'membership': {'active': False, 'email': '', 'expires': None},
-                'waiver': {'active': False, 'expires': None},
-            },
+            geardb.MembershipWaiver(
+                email=None,
+                membership_expires=None,
+                waiver_expires=None,
+            ),
         )
 
     @responses.activate
@@ -245,13 +244,9 @@ class QueryGearDBForMembershipTest(TestCase):
         membership = geardb.query_geardb_for_membership(user)
         self.assertEqual(
             membership,
-            {
-                'status': 'Active',
-                'membership': {
-                    'active': True,
-                    'email': 'robert@mit.edu',
-                    'expires': date(2023, 5, 5),
-                },
-                'waiver': {'active': True, 'expires': date(2023, 5, 4)},
-            },
+            geardb.MembershipWaiver(
+                email='robert@mit.edu',
+                membership_expires=date(2023, 5, 5),
+                waiver_expires=date(2023, 5, 4),
+            ),
         )

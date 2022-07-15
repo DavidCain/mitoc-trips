@@ -6,18 +6,7 @@ via machine-to-machine API endpoints.
 """
 import logging
 from datetime import date, datetime, timedelta
-from typing import (
-    Any,
-    Dict,
-    Iterable,
-    Iterator,
-    List,
-    Literal,
-    NamedTuple,
-    Optional,
-    Tuple,
-    TypedDict,
-)
+from typing import Any, Dict, Iterable, Iterator, List, NamedTuple, Optional, Tuple
 from urllib.parse import urljoin
 
 import requests
@@ -35,31 +24,26 @@ API_BASE = 'https://mitoc-gear.mit.edu/'
 JsonDict = Dict[str, Any]
 
 
-Status = Literal[
-    "Missing",
-    "Missing Waiver",
-    "Waiver Expired",
-    "Active",
-    "Missing Membership",
-    "Expired",
-]
+class MembershipWaiver(NamedTuple):
+    """Light wrapper type around response to /api-auth/v1/membership_waiver/"""
 
-
-class _OnlyMembershipDict(TypedDict):
-    expires: Optional[date]
-    active: bool
     email: Optional[str]
+    membership_expires: Optional[date]
+    waiver_expires: Optional[date]
 
 
-class _OnlyWaiverDict(TypedDict):
-    expires: Optional[date]
-    active: bool
+class Rental(NamedTuple):
+    """An object representing a rental by a user in the gear database.
 
+    Light wrapper type around response to api-auth/v1/rentals/
+    """
 
-class MembershipDict(TypedDict):
-    membership: _OnlyMembershipDict
-    waiver: _OnlyWaiverDict
-    status: Status
+    email: str
+    id: str  # Example, 'BK-19-04'
+    name: str
+    cost: float  # How much the daily cost for the item is
+    checkedout: date
+    overdue: bool
 
 
 class TripsInformation(NamedTuple):
@@ -114,17 +98,6 @@ def query_api(route: str, **params: Any) -> List[JsonDict]:
     return results
 
 
-class Rental(NamedTuple):
-    """An object representing a rental by a user in the gear database."""
-
-    email: str
-    id: str  # Example, 'BK-19-04'
-    name: str
-    cost: float  # How much the daily cost for the item is
-    checkedout: date
-    overdue: bool
-
-
 def _verified_emails(user: models.User) -> List[str]:
     """Return all email addresses that the user is verified to own.
 
@@ -137,7 +110,7 @@ def _verified_emails(user: models.User) -> List[str]:
     return sorted(emails.filter(verified=True).values_list('email', flat=True))
 
 
-def query_geardb_for_membership(user: models.User) -> Optional[MembershipDict]:
+def query_geardb_for_membership(user: models.User) -> Optional[MembershipWaiver]:
     """Ask the gear database for the latest information, bypassing any caches."""
     assert user.is_authenticated
 
@@ -148,7 +121,13 @@ def query_geardb_for_membership(user: models.User) -> Optional[MembershipDict]:
 
     results = query_api('/api-auth/v1/membership_waiver/', email=emails)
     if not results:
-        return repr_blank_membership()
+        # This is substantively different from a null result.
+        # Rather, it's a *successful* query -- no member found.
+        return MembershipWaiver(
+            email=None,
+            membership_expires=None,
+            waiver_expires=None,
+        )
 
     assert len(results) == 1, "Unexpectedly got multiple members!"
     result = results[0]
@@ -158,67 +137,11 @@ def query_geardb_for_membership(user: models.User) -> Optional[MembershipDict]:
             return None
         return date.fromisoformat(json_dict['expires'])
 
-    return _format_membership(
-        result.get('email', None),
+    return MembershipWaiver(
+        result.get('email') or None,  # (Blank emails can be returned)
         expiration_from_payload(result['membership']),
         expiration_from_payload(result['waiver']),
     )
-
-
-def repr_blank_membership() -> MembershipDict:
-    return {
-        'membership': {'expires': None, 'active': False, 'email': None},
-        'waiver': {'expires': None, 'active': False},
-        'status': 'Missing',
-    }
-
-
-def format_cached_membership(participant: models.Participant) -> MembershipDict:
-    """Format a ws.models.Membership object as a server response."""
-    mem = participant.membership
-    if mem is None:
-        return repr_blank_membership()
-    return _format_membership(
-        participant.email,
-        mem.membership_expires,
-        mem.waiver_expires,
-    )
-
-
-def _represent_status(
-    membership: _OnlyMembershipDict,
-    waiver: _OnlyWaiverDict,
-) -> Status:
-    """Generate a human-readable status (for use in the UI)."""
-    if not membership['active']:
-        return "Missing Membership" if waiver['active'] else "Expired"
-
-    if not waiver['expires']:
-        return "Missing Waiver"
-    if not waiver['active']:
-        return "Waiver Expired"
-    return "Active"
-
-
-def _format_membership(
-    email: Optional[str],
-    membership_expires: Optional[date],
-    waiver_expires: Optional[date],
-) -> MembershipDict:
-    person = repr_blank_membership()
-    membership, waiver = person['membership'], person['waiver']
-    membership['email'] = email
-
-    for component, expires in [
-        (membership, membership_expires),
-        (waiver, waiver_expires),
-    ]:
-        component['expires'] = expires
-        component['active'] = bool(expires and expires >= local_date())
-
-    person['status'] = _represent_status(membership, waiver)
-
-    return person
 
 
 def outstanding_items(emails: List[str]) -> Iterator[Rental]:

@@ -467,7 +467,7 @@ class Participant(models.Model):
         cls,
         user: Union[User, AnonymousUser],
         join_membership: bool = False,
-    ) -> Participant:
+    ) -> Optional['Participant']:
         if not user.is_authenticated:
             return None
 

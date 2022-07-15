@@ -25,6 +25,7 @@ from ws import enums, models
 from ws.decorators import group_required
 from ws.mixins import JsonTripLeadersOnlyView, TripLeadersOnlyView
 from ws.templatetags.avatar_tags import avatar_url
+from ws.utils import membership_api
 from ws.utils.api import jwt_token_from_headers
 from ws.views.leaders import AllLeadersView
 
@@ -532,10 +533,13 @@ class UserMembershipView(UserView):
         participant = models.Participant.from_user(user)
         if participant:
             membership_utils.get_latest_membership(participant)
-            return JsonResponse(geardb_utils.format_cached_membership(participant))
+            return JsonResponse(membership_api.format_cached_membership(participant))
 
-        membership = geardb_utils.query_geardb_for_membership(user)
-        return JsonResponse(membership)
+        return JsonResponse(
+            membership_api.jsonify_membership_waiver(
+                geardb_utils.query_geardb_for_membership(user)
+            )
+        )
 
 
 class UserRentalsView(UserView):
@@ -641,10 +645,12 @@ class MembershipStatusesView(View):
         if not isinstance(par_pks, list):
             return JsonResponse({'message': 'Bad request'}, status=400)
 
-        participants = models.Participant.objects.filter(pk__in=par_pks)
+        participants = models.Participant.objects.filter(pk__in=par_pks).select_related(
+            'membership'
+        )
 
         participant_memberships = {
-            participant.pk: geardb_utils.format_cached_membership(participant)
+            participant.pk: membership_api.format_cached_membership(participant)
             for participant in participants
         }
         return JsonResponse({'memberships': participant_memberships})

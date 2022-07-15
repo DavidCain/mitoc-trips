@@ -21,7 +21,7 @@ from mitoc_const import affiliations
 from oauth2client.service_account import ServiceAccountCredentials
 
 from ws import enums, models, settings
-from ws.utils import geardb
+from ws.utils import membership as membership_utils
 from ws.utils.perms import is_chair
 
 logger = logging.getLogger(__name__)
@@ -176,14 +176,14 @@ class SheetWriter:
         return 'Standard'
 
     @staticmethod
-    def membership_status(user: models.User) -> str:
+    def membership_status(participant: models.Participant) -> str:
         """Return membership status, irrespective of waiver status.
 
         (Companies don't care about participant waiver status, so ignore it).
         """
         # Status is one API query per user. Expensive! (We should refactor...)
         try:
-            result = geardb.query_geardb_for_membership(user)
+            membership = membership_utils.get_latest_membership(participant)
         except requests.exceptions.RequestException:
             logger.exception("Error fetching membership information!")
             # This is hopefully a temporary error...
@@ -191,14 +191,11 @@ class SheetWriter:
             # Avoid breaking the whole sheet for all users; continue on
             return 'Unknown'
 
-        assert result is not None, "Tried to get status for a bad user!"
-
-        membership = result['membership']
         # We report Active/Expired, since companies don't care about waiver status
-        if membership['active']:
+        if membership.membership_active:
             return 'Active'
-        if membership['expires']:
-            return f'Expired {membership["expires"].isoformat()}'
+        if membership.membership_expires:
+            return f'Expired {membership.membership_expires.isoformat()}'
         return 'Missing'
 
     def get_row(
@@ -208,7 +205,7 @@ class SheetWriter:
         row_mapper = {
             self.labels.name: participant.name,
             self.labels.email: participant.email,
-            self.labels.membership: self.membership_status(user),
+            self.labels.membership: self.membership_status(participant),
             self.labels.student: participant.get_affiliation_display(),
             self.labels.school: self.school(participant),
         }

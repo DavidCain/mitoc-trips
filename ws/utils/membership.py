@@ -1,4 +1,5 @@
-from typing import Iterator, Optional, Union
+import logging
+from typing import Iterator, Union
 
 import requests
 from django.contrib.auth.models import AnonymousUser
@@ -8,18 +9,17 @@ from ws import enums, models
 from ws.utils import geardb
 from ws.utils.dates import local_now
 
+logger = logging.getLogger(__name__)
 
-def get_latest_membership(
-    participant: models.Participant,
-) -> Optional[models.Membership]:
+
+def get_latest_membership(participant: models.Participant) -> models.Membership:
     """Request latest membership/waiver info from geardb, updating the cache."""
-    membership_dict = geardb.query_geardb_for_membership(participant.user)
-    if membership_dict is None:  # No email edge case, should be impossible
-        return None
+    membership_waiver = geardb.query_geardb_for_membership(participant.user)
+    assert membership_waiver, "Somehow we have a participant with no verified emails"
 
     membership, _created = participant.update_membership(
-        membership_expires=membership_dict['membership']['expires'],
-        waiver_expires=membership_dict['waiver']['expires'],
+        membership_expires=membership_waiver.membership_expires,
+        waiver_expires=membership_waiver.waiver_expires,
     )
 
     return membership
@@ -58,15 +58,15 @@ def reasons_cannot_attend(
     original_ts = membership.last_cached if membership else before_refreshing_ts
 
     try:
-        get_latest_membership(participant)
+        latest_membership = get_latest_membership(participant)
     except requests.exceptions.RequestException:
         capture_exception()
         return
 
-    participant.membership.refresh_from_db()
-
     # (When running tests we often mock away wall time so it's constant)
     if local_now() != before_refreshing_ts:
-        assert participant.membership.last_cached > original_ts
+        assert latest_membership.last_cached > original_ts
 
+    participant.refresh_from_db()
+    assert participant.membership is not None, "Cache refresh failed!"
     yield from participant.reasons_cannot_attend(trip)
