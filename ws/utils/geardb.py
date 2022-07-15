@@ -26,7 +26,6 @@ from urllib.parse import urljoin
 import requests
 from django.db import connections
 from django.db.models import Case, Count, IntegerField, Sum, When
-from django.db.models.functions import Lower
 
 from ws import models, settings
 from ws.utils import api as api_util
@@ -421,41 +420,6 @@ def update_affiliation(participant: models.Participant) -> Optional[requests.Res
     return response
 
 
-def _stats_only_all_active_members() -> Iterator[Tuple[str, MembershipInformation]]:
-    """Yield emails and rental activity for all members with current dues."""
-    cursor = connections['geardb'].cursor()
-    cursor.execute(
-        '''
-        -- NOTE: Will have one or more rows per active member
-        select p.id as person_id,
-               coalesce(p.affiliation, 'Unknown') as last_known_affiliation,
-               lower(p.email) as email,
-               lower(pe.alternate_email) as alternate_email,
-               count(r.id) as num_rentals
-          from people p
-               join people_memberships       pm on p.id = pm.person_id
-               left join geardb_peopleemails pe on p.id = pe.person_id
-               left join rentals             r  on p.id = r.person_id
-         where pm.expires > now()
-         group by p.id, p.affiliation, p.email, pe.alternate_email
-        '''
-    )
-
-    for person_id, affiliation, main, alternate_email, num_rentals in cursor.fetchall():
-        known_emails = (e for e in (main, alternate_email) if e)
-        for email in known_emails:
-            info = MembershipInformation(
-                # NOTE: Anyone with >1 alternate email will have multiple rows!
-                # (We'll use multiple emails to look up). Ensure we enforce uniqueness
-                person_id=person_id,
-                last_known_affiliation=affiliation,
-                num_rentals=num_rentals,
-                # We don't have any trips information here.
-                trips_information=None,
-            )
-            yield email, info
-
-
 def trips_information() -> Dict[int, TripsInformation]:
     """Give important counts, indexed by user IDs.
 
@@ -499,9 +463,6 @@ def trips_information() -> Dict[int, TripsInformation]:
 
 
 # NOTE: This method is only used for the (leaders-only, hacky, `/stats` endpoint)
-# We of course should avoid direct database access, but I'm okay with this not being tested.
-# Worst case, it just breaks a stats-reporting page that I wrote as a one-off.
-# I should make better dashboards in the long run anyway.
 def membership_information() -> Dict[int, MembershipInformation]:
     """All current active members, annotated with additional info.
 
@@ -511,27 +472,7 @@ def membership_information() -> Dict[int, MembershipInformation]:
     - have rented gear
     - make use MITOC discounts
     """
-    info_by_user_id = trips_information()
+    info_by_user_id = trips_information()  # pylint: disable=unused-variable
 
-    # Bridge from a lowercase email address to a Trips user ID
-    email_to_user_id: Dict[str, int] = dict(
-        models.EmailAddress.objects.filter(verified=True)
-        .annotate(lower_email=Lower('email'))
-        .values_list('lower_email', 'user_id')
-    )
-
-    def trips_info_for(email: str) -> Optional[TripsInformation]:
-        try:
-            user_id = email_to_user_id[email]
-        except KeyError:  # No Trips account
-            return None
-
-        try:
-            return info_by_user_id[user_id]
-        except KeyError:  # User, but no corresponding Participant
-            return None
-
-    return {
-        info.person_id: info._replace(trips_information=trips_info_for(email))
-        for email, info in _stats_only_all_active_members()
-    }
+    # This method should soon be replaced by an API call to mitoc-gear
+    return {}
