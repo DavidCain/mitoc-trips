@@ -34,7 +34,11 @@ class TripItineraryView(UpdateView, TripLeadersOnlyView):
         trip = context['trip']
         context['itinerary_available_at'] = itinerary_available_at(trip.trip_date)
         context['info_form_editable'] = trip.info_editable
-        context['waiting_to_open'] = local_now() < context['itinerary_available_at']
+        if local_now() < context['itinerary_available_at']:
+            context['waiting_to_open'] = True
+            context['form'].fields.pop('accurate')
+            for field in context['form'].fields.values():
+                field.disabled = True
         return context
 
     def get_initial(self):

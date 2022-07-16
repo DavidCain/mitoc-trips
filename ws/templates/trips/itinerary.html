@@ -47,10 +47,23 @@
 
 <h2>WIMP information submission</h2>
 {% if waiting_to_open %}
-  <p>
-    This form will become available at {{ itinerary_available_at|date:"g a" }}
-    on {{ itinerary_available_at|date:"l, M jS" }}.
-  </p>
+  <div class="alert alert-info">
+    <p>
+      This form will become available at
+      <strong>{{ itinerary_available_at|date:"g a" }} on {{ itinerary_available_at|date:"l, M jS" }}</strong>.
+    </p>
+    <p>
+      Why not sooner? It's critical that the submitted itinerary match the most up-to-date plan.
+      Any number of circumstances can cause you to change a trip's itinerary (a new weather
+      forecast, participants dropping off the trip, drivers shuffling about, etc.)
+      Requiring itinerary submission shortly before a trip increases the likelihood
+      of having accurate information to relay to emergency contacts and rescuers.
+    </p>
+
+  </div>
+  {# Per request from a leader, showing the form contents early can help leaders plan! #}
+  {# Notably, this form is disabled & submission is disallowed. #}
+  {{ form|crispy }}
 {% elif info_form_editable %}
   <form name="{{ form.form_name }}" action="" method="post">
     {% csrf_token %}
