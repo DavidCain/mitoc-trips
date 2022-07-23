@@ -4,7 +4,7 @@
   <hr>
   <h3>
     {% if trip.algorithm == 'fcfs' %} Other {% else %} All {% endif %}
-    Participant Signups
+    Participant Signups ({{ signups_off_trip|length }})
   </h3>
 
   {% if trip.algorithm == 'fcfs' %}
