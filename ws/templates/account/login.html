@@ -7,15 +7,13 @@
 {% block css %}
   {{ block.super }}
   {# Google's guidelines require Roboto: https://developers.google.com/identity/branding-guidelines #}
-  <link href='http://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
   <style>
-    button.google-login {
+    button.sso {
         font-family: 'Roboto', sans-serif;
         width: 100%;
 
         background-color: #fff;
-        {# https://commons.wikimedia.org/wiki/File:Google_%22G%22_Logo.svg #}
-        background-image: url({% static 'google.svg' %});
         background-repeat: no-repeat;
         background-size: 24px;
         background-position: 16px;
@@ -26,6 +24,14 @@
         position: relative;
         text-align: center;
     }
+
+    button.google-login {
+        background-image: url({% static 'google.svg' %});
+    }
+
+    button.mit-login {
+        background-image: url({% static 'mit.svg' %});
+    }
   </style>
 {% endblock css %}
 
@@ -35,10 +41,19 @@
 
 <div class="row">
   <div class="col-sm-6">
-    <form novalidate method="POST" action="{% provider_login_url 'google' %}">
+    <form method="POST" action="{% provider_login_url 'google' %}">
       {% csrf_token %}
-      <button class="btn btn-default google-login" type="submit">
+      <button class="btn btn-default sso google-login" type="submit">
         Sign in with Google
+      </button>
+    </form>
+
+    <form method="POST" action="{% provider_login_url 'mit_oidc' %}">
+      {% csrf_token %}
+      <button class="btn btn-default sso mit-login" type="submit">
+         Sign in with MIT Kerberos
+         <br>
+        <small>[experimental]</small>
       </button>
     </form>
 

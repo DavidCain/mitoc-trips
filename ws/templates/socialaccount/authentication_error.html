@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% load i18n %}
+
+{% block head_title %}Error completing Single Sign-on{% endblock %}
+
+{% block content %}
+<h1>Unable to complete SSO</h1>
+
+<p class="lead">
+  An unexpected error occurred while trying to complete the SSO flow.
+</p>
+<p>
+  If you'd like, you can also <a href="{% url 'contact' %}">contact us</a> with a bug report.
+  {# It's possible the whole contact page is down too. Provide an email directly. #}
+  (<a href="mailto:davidjosephcain@gmail.com">Email the administrator</a>).
+</p>
+<p>
+  In the meantime, you might
+  <a href="{% url 'account_login' %}">consider logging in with email and password </a>.
+</p>
+{% endblock %}

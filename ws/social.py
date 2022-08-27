@@ -39,9 +39,7 @@ class TrustGoogleEmailOwnershipAdapter(DefaultSocialAccountAdapter):
         if sociallogin.is_existing:  # Social account exists (normal login)
             return
 
-        # I don't think there's an easy way to identify the provider in use...
-        # `request.path` should be at least be '/accounts/google/login/callback/'
-        assert set(settings.SOCIALACCOUNT_PROVIDERS) == {'google'}
+        assert set(settings.SOCIALACCOUNT_PROVIDERS).issubset({'google', 'mit_oidc'})
 
         email: str = user_email(sociallogin.user)
 
@@ -57,3 +55,19 @@ class TrustGoogleEmailOwnershipAdapter(DefaultSocialAccountAdapter):
             return
 
         sociallogin.connect(request, verified_email.user)
+
+    def authentication_error(
+        self,
+        request,
+        provider_id,
+        error=None,
+        exception=None,
+        extra_context=None,
+    ):
+        """Log any failures to Sentry instead of just swallowing them & telling user 'oops!'"""
+        logger.error(
+            "Got an authentication error at end of OAuth flow: %s extra_context: %s error: %s",
+            exception,
+            extra_context,
+            error,
+        )

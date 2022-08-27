@@ -96,6 +96,7 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
+    'mit_oidc',
     'crispy_forms',
     'pipeline',
     'ws.apps.TripsConfig',
@@ -256,6 +257,14 @@ SOCIALACCOUNT_AUTO_SIGNUP = True
 SOCIALACCOUNT_ADAPTER = "ws.social.TrustGoogleEmailOwnershipAdapter"
 
 SOCIALACCOUNT_PROVIDERS = {
+    "mit_oidc": {
+        "APP": {
+            "client_id": "774dd983-7b9b-4eca-8feb-ad8e1da9f64e",
+            "secret": os.environ.get('OIDC_MIT_SECRET_KEY', ''),
+            "key": "",
+        },
+        "SCOPE": ["openid", "profile", "email"],
+    },
     "google": {
         "APP": {
             "client_id": "105568993872-llfunbenb7fndfl17b7bk4mv7uq1jgd5.apps.googleusercontent.com",
@@ -264,7 +273,7 @@ SOCIALACCOUNT_PROVIDERS = {
         },
         "SCOPE": ["email"],
         "AUTH_PARAMS": {"access_type": "online"},
-    }
+    },
 }
 
 BURSAR_NAME = os.getenv('BURSAR_NAME', 'MITOC Bursar')
