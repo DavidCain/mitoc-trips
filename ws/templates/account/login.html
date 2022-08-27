@@ -1,15 +1,58 @@
 {% extends "base_no_scripts.html" %}
+{% load static %}
 {% load crispy_forms_tags %}
+{% load socialaccount %}
 
 {% block head_title %}Log In{% endblock head_title %}
+{% block css %}
+  {{ block.super }}
+  {# Google's guidelines require Roboto: https://developers.google.com/identity/branding-guidelines #}
+  <link href='http://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
+  <style>
+    button.google-login {
+        font-family: 'Roboto', sans-serif;
+        width: 100%;
+
+        background-color: #fff;
+        {# https://commons.wikimedia.org/wiki/File:Google_%22G%22_Logo.svg #}
+        background-image: url({% static 'google.svg' %});
+        background-repeat: no-repeat;
+        background-size: 24px;
+        background-position: 16px;
+        font-size: 16px;
+        margin-top: 16px;
+        padding: 16px 50px;
+
+        position: relative;
+        text-align: center;
+    }
+  </style>
+{% endblock css %}
+
 {% block login_button %}{% endblock login_button%}
 
 {% block content %}
 
-<h1>Log In</h1>
+<div class="row">
+  <div class="col-sm-6">
+    <form novalidate method="POST" action="{% provider_login_url 'google' %}">
+      {% csrf_token %}
+      <button class="btn btn-default google-login" type="submit">
+        Sign in with Google
+      </button>
+    </form>
 
-<p class="lead">
+    <hr>
+  </div>
+</div>
+
+
+<h3>Or log in by email</h3>
+
+<p>
   If you have not created an account yet, then please <a href="{{ signup_url }}">sign up</a> first.
+  <br>
+  <small>(We do not automatically create an account after you pay dues or sign a waiver)</small>
 </p>
 
 <div class="row">

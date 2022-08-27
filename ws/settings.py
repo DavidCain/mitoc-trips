@@ -81,7 +81,6 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 LOGIN_REDIRECT_URL = '/'
-ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -252,6 +251,21 @@ ACCOUNT_CONFIRM_EMAIL_ON_GET = True
 
 # Always "remember me"
 ACCOUNT_SESSION_REMEMBER = True
+
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_ADAPTER = "ws.social.TrustGoogleEmailOwnershipAdapter"
+
+SOCIALACCOUNT_PROVIDERS = {
+    "google": {
+        "APP": {
+            "client_id": "105568993872-llfunbenb7fndfl17b7bk4mv7uq1jgd5.apps.googleusercontent.com",
+            "secret": os.environ.get('GOOGLE_OAUTH_SECRET_KEY', ''),
+            "key": "",
+        },
+        "SCOPE": ["email"],
+        "AUTH_PARAMS": {"access_type": "online"},
+    }
+}
 
 BURSAR_NAME = os.getenv('BURSAR_NAME', 'MITOC Bursar')
 
