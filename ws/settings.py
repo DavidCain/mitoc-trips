@@ -95,6 +95,8 @@ INSTALLED_APPS = [
     'phonenumber_field',
     'allauth',
     'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
     'crispy_forms',
     'pipeline',
     'ws.apps.TripsConfig',

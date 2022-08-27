@@ -52,6 +52,7 @@ EXPECTED_USER_TABLES: Dict[str, Tuple[str, ...]] = {
     'auth_user_user_permissions': ('user_id',),
     'account_emailaddress': ('user_id',),
     'django_admin_log': ('user_id',),
+    'socialaccount_socialaccount': ('user_id',),
     'ws_participant': ('user_id',),
 }
 
@@ -146,7 +147,7 @@ def _update_lotteryinfo(cursor, old_pk, new_pk):
     cursor.execute(sql, {'old_pk': old_pk, 'new_pk': new_pk})
 
 
-def _migrate_user(old_pk, new_pk):
+def _migrate_user(old_pk: int, new_pk: int) -> None:
     """Copy over any email addresses and groups from the old user."""
     cursor = connections['default'].cursor()
 
@@ -225,6 +226,6 @@ def _migrate_participant(old_pk, new_pk):
 
 
 def merge_participants(old, new):
-    with transaction.atomic():  # Rollback if FK migration fails
+    with transaction.atomic():  # Roll back if FK migration fails
         _migrate_user(old.user_id, new.user_id)
         _migrate_participant(old.pk, new.pk)
