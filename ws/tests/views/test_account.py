@@ -7,7 +7,7 @@ from django.test import TestCase
 from freezegun import freeze_time
 from pwned_passwords_django import api
 
-from ws import models
+from ws import auth, models
 from ws.tests import factories
 from ws.views import account
 
@@ -35,7 +35,7 @@ class LoginTests(TestCase):
         """
         par = factories.ParticipantFactory.create(user=self.user)
         factories.PasswordQualityFactory.create(participant=par, is_insecure=True)
-        with mock.patch.object(account, 'pwned_password') as pwned_password:
+        with mock.patch.object(auth, 'pwned_password') as pwned_password:
             pwned_password.return_value = None  # (API was down)
             response = self._login()
 
@@ -50,7 +50,7 @@ class LoginTests(TestCase):
         # Because the API was down, we did not write that we checked the password
         self.assertIsNone(quality.last_checked)
 
-    @mock.patch.object(account, 'settings')
+    @mock.patch.object(auth, 'settings')
     def test_known_bad_password(self, mocked_settings):
         """We include a debug mode that supports passing known bad passwords."""
         par = factories.ParticipantFactory.create(user_id=self.user.pk)
@@ -59,7 +59,7 @@ class LoginTests(TestCase):
         mocked_settings.DEBUG = True
         mocked_settings.WHITELISTED_BAD_PASSWORDS = ['football']
 
-        with mock.patch.object(account, 'pwned_password') as pwned_password:
+        with mock.patch.object(auth, 'pwned_password') as pwned_password:
             response = self.client.post('/accounts/login/', self.form_data)
 
         # We don't bother hitting the API!
@@ -83,7 +83,7 @@ class LoginTests(TestCase):
         self.assertEqual(mocked_settings.WHITELISTED_BAD_PASSWORDS, ['football'])
 
         # This time, we hit the API and mark the user as having an insecure password.
-        with mock.patch.object(account, 'pwned_password') as pwned_password:
+        with mock.patch.object(auth, 'pwned_password') as pwned_password:
             pwned_password.return_value = 2022
             response = self.client.post('/accounts/login/', self.form_data)
         pwned_password.assert_called_once_with('football')
@@ -96,7 +96,7 @@ class LoginTests(TestCase):
         factories.PasswordQualityFactory.create(
             participant=participant, is_insecure=True
         )
-        with mock.patch.object(account, 'pwned_password') as pwned_password:
+        with mock.patch.object(auth, 'pwned_password') as pwned_password:
             pwned_password.return_value = 15  # password found in 15 separate breaches!
             with mock.patch.object(account.logger, 'info') as logger_info:
                 response = self._login()
@@ -122,7 +122,7 @@ class LoginTests(TestCase):
         """Users may log in without having an associated participant!"""
         self.assertIsNone(models.Participant.from_user(self.user))
 
-        with mock.patch.object(account, 'pwned_password') as pwned_password:
+        with mock.patch.object(auth, 'pwned_password') as pwned_password:
             pwned_password.return_value = 1  # password found in 1 breach!
             with mock.patch.object(account.logger, 'info') as logger_info:
                 response = self._login()
@@ -148,7 +148,7 @@ class LoginTests(TestCase):
         """If the login's password returned no breaches, then we can mark it secure."""
         factories.ParticipantFactory.create(user_id=self.user.pk)
 
-        with mock.patch.object(account, 'pwned_password') as pwned_password:
+        with mock.patch.object(auth, 'pwned_password') as pwned_password:
             pwned_password.return_value = 0  # (0 breaches total)
             response = self.client.post('/accounts/login/', self.form_data)
         pwned_password.assert_called_once_with('football')
@@ -167,7 +167,7 @@ class LoginTests(TestCase):
 
     def test_redirect_should_be_preserved(self):
         """If attempting to login with a redirect, it should be preserved!."""
-        with mock.patch.object(account, 'pwned_password') as pwned_password:
+        with mock.patch.object(auth, 'pwned_password') as pwned_password:
             pwned_password.return_value = 1  # Password has been breached once!
             response = self.client.post(
                 '/accounts/login/?next=/preferences/lottery/', self.form_data
@@ -182,7 +182,7 @@ class LoginTests(TestCase):
         """Test a quick hack for often-breached passwords that include commas in the count."""
         participant = factories.ParticipantFactory.create(user_id=self.user.pk)
 
-        with mock.patch.object(account, 'pwned_password') as pwned_password:
+        with mock.patch.object(auth, 'pwned_password') as pwned_password:
             pwned_password.side_effect = lambda pw: int("1,234")
             self._login()
         pwned_password.assert_called_once_with('football')
@@ -194,7 +194,7 @@ class LoginTests(TestCase):
         """We don't block login if there was an unhandled error."""
         participant = factories.ParticipantFactory.create(user_id=self.user.pk)
 
-        with mock.patch.object(account, 'pwned_password') as pwned_password:
+        with mock.patch.object(auth, 'pwned_password') as pwned_password:
             pwned_password.side_effect = RuntimeError
             self._login()
         pwned_password.assert_called_once_with('football')

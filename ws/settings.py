@@ -76,7 +76,8 @@ STATICFILES_FINDERS = (
 )
 
 AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'pwned_passwords_django.validators.PwnedPasswordsValidator'}
+    # {'NAME': 'pwned_passwords_django.validators.PwnedPasswordsValidator'}
+    {'NAME': 'ws.auth.CommaPwnedPasswordsValidator'}
 ]
 
 LOGIN_REDIRECT_URL = '/'
