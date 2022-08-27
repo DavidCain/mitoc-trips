@@ -54,7 +54,9 @@ def get_base_url() -> str:
     https://na2.docusign.net/restapi/v2/accounts/<numeric_account_id>
     """
     v2_base = settings.DOCUSIGN_API_BASE  # (Demo or production)
-    resp = requests.get(v2_base + 'login_information', headers=get_headers())
+    resp = requests.get(
+        v2_base + 'login_information', headers=get_headers(), timeout=10
+    )
 
     return resp.json()['loginAccounts'][0]['baseUrl']
 
@@ -165,7 +167,9 @@ def sign_embedded(
         'returnUrl': 'https://mitoc-trips.mit.edu',
     }
     # Fetch a URL that can be used to sign the waiver (expires in 5 minutes)
-    redir_url = requests.post(recipient_url, json=user, headers=get_headers())
+    redir_url = requests.post(
+        recipient_url, json=user, headers=get_headers(), timeout=10
+    )
     return redir_url.json()['url']
 
 
@@ -208,7 +212,9 @@ def initiate_waiver(
         releasor_dict['clientUserId'] = participant.pk
 
     base_url = get_base_url()
-    env = requests.post(f'{base_url}/envelopes', json=new_env, headers=get_headers())
+    env = requests.post(
+        f'{base_url}/envelopes', json=new_env, headers=get_headers(), timeout=10
+    )
 
     # If there's no participant, an email will be sent; no need to redirect
     redir_url: Optional[str] = None

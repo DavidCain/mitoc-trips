@@ -250,6 +250,7 @@ def update_affiliation(participant: models.Participant) -> Optional[requests.Res
         # However, tokens aren't given to end users, only used on the systems which already have the secret.
         headers={'Authorization': gear_bearer_jwt(**payload)},
         json=payload,
+        timeout=10,
     )
     # Note that this may be a 400!
     return response
