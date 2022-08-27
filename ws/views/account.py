@@ -2,12 +2,14 @@
 Views relating to account management.
 """
 import logging
-from typing import Optional
+import re
+from typing import Optional, Tuple
 from urllib.parse import urlencode
 
 from allauth.account.views import LoginView, PasswordChangeView
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from pwned_passwords_django.api import pwned_password
@@ -16,6 +18,14 @@ from ws import models, settings
 from ws.utils.dates import local_now
 
 logger = logging.getLogger(__name__)
+
+
+# As of 2022-08-27, pwned_password sometimes includes commas in `times`
+# This hack can go away once the library is updated to handle commas
+# https://github.com/ubernostrum/pwned-passwords-django/issues/35
+INT_WITH_COMMA = re.compile(
+    r"invalid literal for int\(\) with base 10: '(?P<times>[\d,]+)'"
+)
 
 
 class CustomPasswordChangeView(PasswordChangeView):
@@ -66,7 +76,26 @@ class CheckIfPwnedOnLoginView(LoginView):
       of breached passwords - we should check on every login.
     """
 
-    def _form_valid_perform_login(self, form):
+    @staticmethod
+    def _times_seen(password: str) -> Optional[int]:
+        """Return times password has been seen in HIBP."""
+        if settings.DEBUG and password in settings.WHITELISTED_BAD_PASSWORDS:
+            return 0
+
+        try:
+            return pwned_password(password)
+        except ValueError as err:
+            has_comma = INT_WITH_COMMA.match(str(err))
+            if not has_comma:
+                raise
+            return int(has_comma.group('times').replace(',', ''))
+        except Exception:  # pylint: disable=broad-except
+            # Let Sentry know we had problems, but don't break the flow.
+            # Sentry should scrub `password` automatically.
+            logger.exception("Encountered an error with django-pwned-passwords")
+            return None
+
+    def _form_valid_perform_login(self, form) -> Tuple[Optional[int], HttpResponse]:
         """Performs login with a correct username/password.
 
         Returns if this password has been seen in data breaches, plus the
@@ -74,12 +103,7 @@ class CheckIfPwnedOnLoginView(LoginView):
 
         As a side effect, this populates `self.request.user`
         """
-        correct_password = form.cleaned_data['password']
-        times_seen: Optional[int] = None  # (None indicates an API failure)
-        if settings.DEBUG and correct_password in settings.WHITELISTED_BAD_PASSWORDS:
-            times_seen = 0
-        else:
-            times_seen = pwned_password(correct_password)
+        times_seen = self._times_seen(form.cleaned_data['password'])
 
         if times_seen:
             change_password_url = reverse('account_change_password')

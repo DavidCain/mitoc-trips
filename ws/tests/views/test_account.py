@@ -178,6 +178,30 @@ class LoginTests(TestCase):
             response.url, "/accounts/password/change/?next=%2Fpreferences%2Flottery%2F"
         )
 
+    def test_password_over_999_times(self):
+        """Test a quick hack for often-breached passwords that include commas in the count."""
+        participant = factories.ParticipantFactory.create(user_id=self.user.pk)
+
+        with mock.patch.object(account, 'pwned_password') as pwned_password:
+            pwned_password.side_effect = lambda pw: int("1,234")
+            self._login()
+        pwned_password.assert_called_once_with('football')
+
+        quality = models.PasswordQuality.objects.get(participant=participant)
+        self.assertTrue(quality.is_insecure)
+
+    def test_uncaught_error_with_django_hipb(self):
+        """We don't block login if there was an unhandled error."""
+        participant = factories.ParticipantFactory.create(user_id=self.user.pk)
+
+        with mock.patch.object(account, 'pwned_password') as pwned_password:
+            pwned_password.side_effect = RuntimeError
+            self._login()
+        pwned_password.assert_called_once_with('football')
+
+        quality = models.PasswordQuality.objects.get(participant=participant)
+        self.assertFalse(quality.is_insecure)
+
 
 @freeze_time("2019-07-15 12:45:00 EST")
 class PasswordChangeTests(TestCase):
