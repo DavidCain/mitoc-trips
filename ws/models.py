@@ -6,6 +6,8 @@ from allauth.account.models import EmailAddress
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser, User
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.postgres.indexes import GistIndex
+from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.db import models
@@ -939,6 +941,14 @@ class TripInfo(models.Model):
     )
 
 
+trips_search_vector = (
+    SearchVector('name', config='english', weight='A')
+    + SearchVector('description', config='english', weight='B')
+    + SearchVector('prereqs', config='english', weight='B')
+    + SearchVector('activity', 'trip_type', config='english', weight='C')
+)
+
+
 class Trip(models.Model):
     # When ordering trips which need approval, apply consistent ordering
     # (Defined here to keep the table's default ordering in sync with prev/next buttons
@@ -1302,8 +1312,25 @@ class Trip(models.Model):
         """All leaders with the rating they had at the time of the trip."""
         return [leader.name_with_rating(self) for leader in self.leaders.all()]
 
+    @classmethod
+    def search_trips(cls, text: str):
+        query = SearchQuery(text)
+        return (
+            cls.objects.annotate(
+                search=trips_search_vector, rank=SearchRank(trips_search_vector, query)
+            )
+            .filter(search=text, rank__gte=0.3)
+            .order_by('rank')[:100]
+        )
+
     class Meta:
         ordering = ["-trip_date", "-time_created"]
+        indexes = [
+            GistIndex(
+                trips_search_vector,
+                name='search_vector_idx',
+            )
+        ]
 
 
 class BygonesManager(models.Manager):

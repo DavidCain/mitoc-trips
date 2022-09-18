@@ -99,6 +99,11 @@ urlpatterns = [
         views.AllTripsMedicalView.as_view(),
         name='all_trips_medical',
     ),
+    path(
+        'trips/search/',
+        views.TripSearchView.as_view(),
+        name='trips_search',
+    ),
     # Leader views
     path('leaders/', views.AllLeadersView.as_view(), name='leaders'),
     path('trips/create/', views.CreateTripView.as_view(), name='create_trip'),

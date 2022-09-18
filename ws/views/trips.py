@@ -6,7 +6,8 @@ attended by any interested participants.
 """
 from collections import defaultdict
 from datetime import date, timedelta
-from typing import Optional
+from typing import Optional, cast
+from urllib.parse import urlencode
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -21,6 +22,7 @@ from django.views.generic import (
     CreateView,
     DeleteView,
     DetailView,
+    FormView,
     ListView,
     UpdateView,
 )
@@ -502,6 +504,30 @@ class AllTripsView(TripListView):
     """View all trips, past and present (optionally after a given date)."""
 
     include_past_trips = True
+
+
+class TripSearchView(ListView, FormView):
+    form_class = forms.TripSearchForm
+
+    model = models.Trip
+    template_name = 'trips/search.html'
+    context_object_name = 'matching_trips'
+
+    query: str = ''
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['query'] = self.request.GET.get('q', '')
+        return context
+
+    def form_valid(self, form: forms.TripSearchForm):
+        query = cast(str, form.cleaned_data['query'])
+        qs = urlencode({"q": query})
+        return redirect(reverse('trips_search') + f'?{qs}')
+
+    def get_queryset(self):
+        query = self.request.GET.get('q', '')
+        return annotated_for_trip_list(models.Trip.search_trips(query))
 
 
 class ApproveTripsView(ListView):

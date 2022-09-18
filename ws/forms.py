@@ -271,6 +271,15 @@ class LeaderForm(forms.ModelForm):
         }
 
 
+class TripSearchForm(forms.Form):
+    query = forms.CharField(required=True)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['query'].widget.attrs['placeholder'] = 'Franconia Notch...'
+        self.fields['query'].label = False
+
+
 class TripInfoForm(forms.ModelForm):
     accurate = forms.BooleanField(
         required=True,
