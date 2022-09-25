@@ -87,11 +87,11 @@ class MutexTaskTests(SimpleTestCase):
 
 class TaskTests(TestCase):
     @staticmethod
-    @patch('ws.utils.member_sheets.update_discount_sheet')
-    def test_update_discount_sheet(update_discount_sheet):
+    def test_update_discount_sheet():
         discount = factories.DiscountFactory.create(pk=9123, ga_key='test-key')
-        tasks.update_discount_sheet(9123)
-        update_discount_sheet.assert_called_with(discount)
+        with patch.object(member_sheets, 'update_discount_sheet') as update_sheet:
+            tasks.update_discount_sheet(9123)
+        update_sheet.assert_called_with(discount, trust_cache=True)
 
     @staticmethod
     @patch('ws.utils.geardb.update_affiliation')

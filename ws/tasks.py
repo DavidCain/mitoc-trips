@@ -116,7 +116,9 @@ def update_discount_sheet_for_participant(discount_id: int, participant_id: int)
 
 
 @mutex_task('update_discount-{discount_id}')
-def update_discount_sheet(discount_id):
+def update_discount_sheet(
+    discount_id: int, *, check_all_lapsed_members: bool = False
+) -> None:
     """Overwrite the sheet to include all members desiring the discount.
 
     This is the only means of removing users if they no longer
@@ -140,7 +142,8 @@ def update_discount_sheet(discount_id):
         )
         return
 
-    member_sheets.update_discount_sheet(discount)
+    trust_cache = not check_all_lapsed_members
+    member_sheets.update_discount_sheet(discount, trust_cache=trust_cache)
 
 
 @mutex_task()

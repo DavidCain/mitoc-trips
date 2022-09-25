@@ -10,11 +10,14 @@ discount, so that they can verify membership status.
 import bisect
 import logging
 import os.path
+import random
+from datetime import timedelta
 from itertools import zip_longest
 from typing import Iterator, NamedTuple, Tuple
 
 import gspread
 import requests
+from django.utils import timezone
 from google.oauth2.service_account import Credentials
 from mitoc_const import affiliations
 
@@ -30,6 +33,14 @@ MIT_STUDENT_AFFILIATIONS = frozenset(
         affiliations.MIT_UNDERGRAD.CODE,
     ]
 )
+
+# We generally trust our own membership cache
+# But just to catch possible failures, we can ask the gear db for updates on old members
+WINDOW_FOR_RE_CHECKING_INACTIVE_MEMBERS = timedelta(days=7)
+
+
+class GearDatabaseError(Exception):
+    pass
 
 
 def connect_to_sheets() -> gspread.client.Client:
@@ -99,10 +110,11 @@ class SheetWriter:
     discount: models.Discount
     header: Tuple[str, ...]
 
-    def __init__(self, discount: models.Discount):
+    def __init__(self, discount: models.Discount, trust_cache: bool):
         """Identify the columns that will be used in the spreadsheet."""
         self.discount = discount
         self.header = self._header_for_discount(discount)
+        self.trust_cache = trust_cache
 
     def _header_for_discount(self, discount: models.Discount) -> Tuple[str, ...]:
         # These columns appear in all discount sheets
@@ -161,19 +173,47 @@ class SheetWriter:
         return 'Standard'
 
     @staticmethod
-    def membership_status(participant: models.Participant) -> str:
+    def _cache_recent_enough(membership: models.Membership) -> bool:
+        """Return if the membership cache on an inactive member is somewhat recent.
+
+        "Somewhat" recently basically means that we're pretty confident the person
+        remains a non-member.
+        """
+        # If we use a hard interval, then we'll end up re-checking all members at once.
+        # Use a jigger so we re-check a subset of members each week.
+        day_seconds = int(timedelta(days=1).total_seconds())
+        jigger = timedelta(seconds=random.randint(-2 * day_seconds, 2 * day_seconds))
+        cutoff = timezone.now() - WINDOW_FOR_RE_CHECKING_INACTIVE_MEMBERS + jigger
+
+        return membership.last_cached > cutoff
+
+    def _membership_to_report(
+        self, participant: models.Participant
+    ) -> models.Membership:
+        """Return a Membership object that is accurate enough for our purposes."""
+        membership = participant.membership
+
+        # Most participants will be active members
+        if membership and membership.membership_active:
+            return membership
+
+        if membership and self.trust_cache and self._cache_recent_enough(membership):
+            return membership
+
+        logger.info("Participant %s lacks a membership, checking again", participant)
+        try:
+            return membership_utils.get_latest_membership(participant)
+        except requests.exceptions.RequestException as e:
+            raise GearDatabaseError from e
+
+    def membership_status(self, participant: models.Participant) -> str:
         """Return membership status, irrespective of waiver status.
 
         (Companies don't care about participant waiver status, so ignore it).
         """
-        # For most participants, the cache will have an active membership!
-        if participant and participant.membership_active:
-            return 'Active'
-
-        # Status is one API query per user. Expensive! (We should refactor...)
         try:
-            membership = membership_utils.get_latest_membership(participant)
-        except requests.exceptions.RequestException:
+            membership = self._membership_to_report(participant)
+        except GearDatabaseError:
             logger.exception("Error fetching membership information!")
             # This is hopefully a temporary error...
             # Discount sheets are re-generated every day at the very least.
@@ -221,7 +261,7 @@ def update_participant(
     """
     client = connect_to_sheets()
     wks = client.open_by_key(discount.ga_key).sheet1
-    writer = SheetWriter(discount)
+    writer = SheetWriter(discount, trust_cache=False)
 
     new_row = writer.get_row(participant)
 
@@ -240,7 +280,7 @@ def update_participant(
     wks.insert_row(new_row, row_index + 1)
 
 
-def update_discount_sheet(discount: models.Discount) -> None:
+def update_discount_sheet(discount: models.Discount, trust_cache: bool) -> None:
     """Update the entire worksheet, updating all members' status.
 
     This will remove members who no longer wish to share their information,
@@ -255,7 +295,7 @@ def update_discount_sheet(discount: models.Discount) -> None:
         discount.participant_set.select_related('membership', 'user').order_by('name')
     )
 
-    writer = SheetWriter(discount)
+    writer = SheetWriter(discount, trust_cache)
 
     # Resize sheet to exact size, select all cells
     num_rows, num_cols = len(participants) + 1, len(writer.header)
