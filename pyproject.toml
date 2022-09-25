@@ -33,7 +33,6 @@ django-webpack-loader = "^1.1.0"  # Should maintain parity with frontend/package
 gspread = "*"
 markdown2 = "*"
 mitoc-const = "^1.0.0"  # (1.0.0 includes type hints)
-oauth2client = "*"
 phonenumberslite = "*"
 psycopg2 = "*"
 pwned-passwords-django = "^1.6"  # Awaiting new release to fix ValueError
@@ -105,12 +104,11 @@ module = [
     "debug_toolbar",
     "factory.*",
     "freezegun",
+    "google.oauth2.*",
     "gspread",
-    "httplib2",
     "kombu.*",
     "localflavor.*",
     "markdown2",
-    "oauth2client.*",
     "phonenumber_field.*",
     "phonenumbers",
     "pipeline.*",

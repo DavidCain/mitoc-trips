@@ -8,17 +8,15 @@ spreadsheets. Each spreadsheet will be shared with the company offering the
 discount, so that they can verify membership status.
 """
 import bisect
-import functools
 import logging
 import os.path
 from itertools import zip_longest
 from typing import Iterator, NamedTuple, Tuple
 
 import gspread
-import httplib2
 import requests
+from google.oauth2.service_account import Credentials
 from mitoc_const import affiliations
-from oauth2client.service_account import ServiceAccountCredentials
 
 from ws import enums, models, settings
 from ws.utils import membership as membership_utils
@@ -34,10 +32,8 @@ MIT_STUDENT_AFFILIATIONS = frozenset(
 )
 
 
-# Initialize just one client, which can be re-used & refreshed
-@functools.lru_cache(maxsize=None)
-def connect_to_sheets():
-    """Returns a Google Sheets client and the creds used by that client.
+def connect_to_sheets() -> gspread.client.Client:
+    """Returns a Google Sheets client
 
     If intentionally disabling Google Sheets functionality, `None` will be
     returned as both the client and client credentials. This occurs even if the
@@ -51,7 +47,7 @@ def connect_to_sheets():
     never actually update Google spreadsheets. We can go through the flow of
     modifying discounts without running a Celery job to update the spreadsheet.
     """
-    scope = ['https://spreadsheets.google.com/feeds']
+    scopes = ['https://spreadsheets.google.com/feeds']
     credfile = settings.OAUTH_JSON_CREDENTIALS
     creds_present = credfile and os.path.exists(credfile)
 
@@ -67,21 +63,8 @@ def connect_to_sheets():
             return None, None
         raise KeyError("Specify OAUTH_JSON_CREDENTIALS to update Google Sheets")
 
-    credentials = ServiceAccountCredentials.from_json_keyfile_name(credfile, scope)
-    return gspread.authorize(credentials), credentials
-
-
-def with_refreshed_token(func):
-    """By default, tokens are limited to 60 minutes. Refresh if expired."""
-
-    def func_wrapper(*args, **kwargs):
-        client, credentials = connect_to_sheets()
-        if credentials.access_token_expired:
-            credentials.refresh(httplib2.Http())  # (`client` points to this)
-            client.login()  # Log in again to refresh credentials
-        func(*args, **kwargs)
-
-    return func_wrapper
+    credentials = Credentials.from_service_account_file(credfile, scopes=scopes)
+    return gspread.authorize(credentials)
 
 
 def grouper(iterable, n, fillvalue=None):
@@ -228,7 +211,6 @@ def _assign(cells, values):
         cell.value = value
 
 
-@with_refreshed_token
 def update_participant(
     discount: models.Discount,
     participant: models.Participant,
@@ -237,7 +219,7 @@ def update_participant(
 
     Much more efficient than updating the entire sheet.
     """
-    client, _ = connect_to_sheets()
+    client = connect_to_sheets()
     wks = client.open_by_key(discount.ga_key).sheet1
     writer = SheetWriter(discount)
 
@@ -258,7 +240,6 @@ def update_participant(
     wks.insert_row(new_row, row_index + 1)
 
 
-@with_refreshed_token
 def update_discount_sheet(discount: models.Discount) -> None:
     """Update the entire worksheet, updating all members' status.
 
@@ -268,7 +249,7 @@ def update_discount_sheet(discount: models.Discount) -> None:
     For individual updates, this approach should be avoided (instead, opting to
     update individual cells in the spreadsheet).
     """
-    client, _ = connect_to_sheets()
+    client = connect_to_sheets()
     wks = client.open_by_key(discount.ga_key).sheet1
     participants = list(
         discount.participant_set.select_related('membership', 'user').order_by('name')
