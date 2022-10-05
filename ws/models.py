@@ -1007,6 +1007,10 @@ class Trip(models.Model):
             'Please use HTTPS images sparingly, and only if properly licensed.'
         )
     )
+    summary = models.TextField(
+        help_text="Brief (plaintext) summary of the trip",
+        max_length=80,
+    )
     maximum_participants = models.PositiveIntegerField(
         default=8, verbose_name="Max participants"
     )
