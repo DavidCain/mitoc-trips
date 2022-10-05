@@ -274,9 +274,13 @@ class CreateTripView(CreateView):
         return initial
 
     def form_valid(self, form):
-        """After is_valid(), assign creator from User, add empty waitlist."""
+        """After is_valid(), assign creator from User, set text description, add empty waitlist."""
         creator = self.request.participant
         trip = form.save(commit=False)
+        if not trip.summary:
+            trip.summary = trip.description_to_text(
+                maxchars=models.Trip.summary.field.max_length
+            )
         trip.creator = creator
         trip.last_updated_by = creator
         trip.activity = trip.get_legacy_activity()
@@ -401,6 +405,10 @@ class EditTripView(UpdateView, TripLeadersOnlyView):
         self._ignore_leaders_if_unchanged(form)
 
         trip = form.save(commit=False)
+        if not trip.summary:
+            trip.summary = trip.description_to_text(
+                maxchars=models.Trip.summary.field.max_length
+            )
         if self.update_rescinds_approval:
             trip.chair_approved = False
 

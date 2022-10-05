@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
             model_name='trip',
             name='summary',
             field=models.CharField(
-                help_text="Brief (plaintext) summary of the trip",
+                help_text="Brief summary of the trip, to be displayed on lists of all trips",
                 max_length=80,
                 null=True,
             ),

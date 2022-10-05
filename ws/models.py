@@ -1,8 +1,11 @@
+import re
 from datetime import date, datetime, timedelta
 from typing import Dict, Iterator, List, Optional, Tuple, Type, Union
 from urllib.parse import urlencode
 
+import markdown2
 from allauth.account.models import EmailAddress
+from bs4 import BeautifulSoup
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser, User
 from django.contrib.contenttypes.models import ContentType
@@ -1007,8 +1010,8 @@ class Trip(models.Model):
             'Please use HTTPS images sparingly, and only if properly licensed.'
         )
     )
-    summary = models.TextField(
-        help_text="Brief (plaintext) summary of the trip",
+    summary = models.CharField(
+        help_text="Brief summary of the trip, to be displayed on lists of all trips",
         max_length=80,
     )
     maximum_participants = models.PositiveIntegerField(
@@ -1074,6 +1077,15 @@ class Trip(models.Model):
 
     def __str__(self):  # pylint: disable=invalid-str-returned
         return self.name
+
+    def description_to_text(self, maxchars: Optional[int] = None) -> str:
+        html = markdown2.markdown(self.description)
+        text = BeautifulSoup(html, 'html.parser').text.strip()
+        text = re.sub(r'[\s\n\r]+', ' ', text)  # (make sure newlines are single spaces)
+        if maxchars is None or maxchars > len(text):
+            return text
+        cutoff = max(maxchars - 3, 0)
+        return text[:cutoff].strip() + '...'
 
     @property
     def program_enum(self):

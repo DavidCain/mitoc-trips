@@ -243,7 +243,8 @@ class CreateTripViewTest(TestCase, Helpers):
                 'name': 'My Great Trip',
                 'trip_type': enums.TripType.MOUNTAIN_BIKING.value,
                 'difficulty_rating': 'Intermediate',
-                'description': "Let's go hiking!",
+                'description': "Join us on Mt Tam for a grand old time",
+                "summary": "Let's go biking!",
             }
         )
         self.assertEqual(form['action'], '.')
@@ -262,6 +263,45 @@ class CreateTripViewTest(TestCase, Helpers):
         self.assertEqual(trip.last_updated_by, trip_leader)
         self.assertEqual(trip.edit_revision, 0)
         self.assertEqual(trip.name, 'My Great Trip')
+        self.assertEqual(trip.summary, "Let's go biking!")
+
+    def test_creation_without_summary(self):
+        user = factories.UserFactory.create()
+        self.client.force_login(user)
+        trip_leader = factories.ParticipantFactory.create(user=user)
+        factories.LeaderRatingFactory.create(
+            participant=trip_leader, activity=models.LeaderRating.BIKING
+        )
+        _resp, soup = self._get('/trips/create/')
+        form = soup.find('form')
+        form_data = dict(self._form_data(form))
+
+        # Fill in the form with some blank, but required values (accept the other defaults)
+        form_data.update(
+            {
+                'name': 'Biking at Mt Tam',
+                'trip_type': enums.TripType.MOUNTAIN_BIKING.value,
+                'difficulty_rating': 'Intermediate',
+                'description': "\n".join(
+                    [
+                        "## What is Mt Tam?",
+                        "Mt Tam is the *birthplace of mountain biking*, located in the San Francisco Bay.",
+                        "",
+                        "## How awesome will this be?",
+                        "**Very awesome**.",
+                    ]
+                ),
+            }
+        )
+        self.assertEqual(form['action'], '.')
+
+        self.client.post('/trips/create/', form_data)
+
+        trip = models.Trip.objects.order_by('id').last()
+        self.assertEqual(
+            trip.summary,
+            "What is Mt Tam? Mt Tam is the birthplace of mountain biking, located in the S...",
+        )
 
 
 class EditTripViewTest(TestCase, Helpers):
