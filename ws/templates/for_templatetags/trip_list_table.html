@@ -58,7 +58,7 @@
               {% endif %}
             {% endif %}
             <strong>{{ trip.difficulty_rating }}</strong>
-          {{ trip.description|truncatechars:80 }}
+          {{ trip.summary }}
         </td>
 
         {% if not approve_mode %}

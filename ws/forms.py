@@ -320,6 +320,7 @@ class TripForm(forms.ModelForm):
             'let_participants_drop',
             # About
             'description',
+            'summary',
             'prereqs',
             # Signup
             'trip_date',
@@ -436,6 +437,8 @@ class TripForm(forms.ModelForm):
         allowed_programs = kwargs.pop("allowed_programs", None)
         super().__init__(*args, **kwargs)
         trip = self.instance
+
+        self.fields['summary'].required = False
 
         if trip.pk is None:  # New trips must have *all* dates/times in the future
             now = local_now()

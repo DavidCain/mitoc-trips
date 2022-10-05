@@ -33,15 +33,13 @@ def annotated_for_trip_list(trips):
 @register.inclusion_tag('for_templatetags/simple_trip_list.html')
 def simple_trip_list(
     trip_list,
-    max_title_chars=45,
-    max_description_chars=120,
-    collapse_date=False,  # True: Instead of showing the date column, show beneath title
+    max_title_chars: int = 45,
+    collapse_date: bool = False,  # True: Instead of showing the date column, show beneath title
 ):
     return {
         'today': date_utils.local_date(),
         'trip_list': trip_list,
         'max_title_chars': max_title_chars,
-        'max_description_chars': max_description_chars,
         'collapse_date': collapse_date,
     }
 

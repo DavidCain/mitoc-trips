@@ -271,15 +271,15 @@
       <h3><i class="fas fa-suitcase"></i> Past Trips </h3>
       {% if trips.past.on_trip %}
         <h4 class="text-center">As a Participant</h4>
-        {% simple_trip_list trips.past.on_trip 90 300 %}
+        {% simple_trip_list trips.past.on_trip 90 %}
       {% endif %}
       {% if trips.past.leader %}
         <h4 class="text-center">As a Leader</h4>
-        {% simple_trip_list trips.past.leader 90 300 %}
+        {% simple_trip_list trips.past.leader 90 %}
       {% endif %}
       {% if trips.past.creator %}
         <h4 class="text-center">Created</h4>
-        {% simple_trip_list trips.past.creator 90 300 %}
+        {% simple_trip_list trips.past.creator 90 %}
       {% endif %}
     </div>
   </div>

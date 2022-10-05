@@ -57,10 +57,8 @@
   <h3><a href="{% url 'view_trip' trip.id %}">{{ trip.name }}</a></h3>
 
   <dl class="dl-horizontal">
-    <dt>Date:</dt>
-    <dd>{{ trip.trip_date|date:"l, M d" }}</dd>
-    <dt>Description:</dt>
-    <dd>{{ trip.description|truncatewords:100 }}</dd>
+    <dt>Date:</dt><dd>{{ trip.trip_date|date:"l, M d" }}</dd>
+    <dt>Summary:</dt><dd>{{ trip.summary }}</dd>
   </dl>
 
   {% trip_info trip %}
