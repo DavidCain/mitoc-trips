@@ -189,6 +189,12 @@ def _migrate_user(old_pk: int, new_pk: int) -> None:
         "delete from auth_user_groups where user_id = %(old_pk)s", {'old_pk': old_pk}
     )
     cursor.execute("delete from auth_user where id = %(old_pk)s", {'old_pk': old_pk})
+    # Simply delete any Social login accounts
+    # (For Gmail it's pretty trivial to re-authorize)
+    cursor.execute(
+        "delete from socialaccount_socialaccount where user_id = %(old_pk)s",
+        {'old_pk': old_pk},
+    )
 
 
 def _migrate_participant(old_pk, new_pk):
