@@ -1750,18 +1750,23 @@ class WinterSchoolLeaderApplication(LeaderApplication):
 
     taking_wfa = models.CharField(
         max_length=10,
-        choices=[("Yes", "Yes"), ("No", "No"), ("Maybe", "Maybe/don't know")],
+        choices=[
+            ("Yes", "Yes"),
+            ("Already", "Already hold WFA or equivalent"),
+            ("No", "No"),
+            ("Maybe", "Maybe/don't know"),
+        ],
         verbose_name="Do you plan on taking a WFA course before Winter School?",
         help_text="You can subsidize your WFA certification by $100 by leading two or more trips! "
-        "We will be holding a WFA course on MIT's campus (dates to be announced soon).",
+        "MITOC holds a WFA course every fall on MIT's campus.",
     )
     training = models.TextField(
         blank=True,
         max_length=5000,
         verbose_name="Formal training and qualifications",
-        help_text="Details of any medical, technical, or leadership training and qualifications "
-        "relevant to the winter environment. "
-        "State the approximate dates of these activities. "
+        help_text="Details of any medical, technical, or leadership training and "
+        "qualifications relevant to the winter environment, including WFA/WFR if "
+        "previously taken. State the approximate dates of these activities. "
         "Leave blank if not applicable.",
     )
     technical_skills = models.TextField(
