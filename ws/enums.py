@@ -363,6 +363,7 @@ class TripType(enum.Enum):
     # Miscellaneous
     ICE_SKATING = 'ice_skating'
     ULTIMATE = 'ultimate'
+    YOGA = 'yoga'
 
     @property
     def label(self):
@@ -387,6 +388,7 @@ class TripType(enum.Enum):
             self.TRAIL_RUNNING: 'Trail running',
             self.ULTIMATE: 'Ultimate',
             self.XC_SKIING: 'Cross-country skiing',
+            self.YOGA: 'Yoga',
         }
         return mapping[self]
 
@@ -422,6 +424,7 @@ class TripType(enum.Enum):
             'Miscellaneous': [
                 cls.ICE_SKATING,
                 cls.ULTIMATE,
+                cls.YOGA,
             ],
             'Other, N/A': [
                 cls.NONE,
