@@ -16,10 +16,10 @@ from django.db.models.fields import DateField
 from django.db.models.functions import Cast, Least
 from django.forms.models import model_to_dict
 from django.http import Http404
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
-from django.views.generic import CreateView, DetailView, ListView
+from django.views.generic import CreateView, DetailView, ListView, TemplateView
 from django.views.generic.edit import FormMixin
 
 import ws.utils.perms as perm_utils
@@ -144,9 +144,33 @@ class LeaderApplyView(LeaderApplicationMixin, CreateView):  # type: ignore[misc]
     @method_decorator(user_info_required)
     def dispatch(self, request, *args, **kwargs):
         activity = kwargs.get('activity')
-        if not models.LeaderApplication.can_apply_for_activity(activity):
-            raise Http404
+        try:
+            activity_enum = enums.Activity(activity)
+        except ValueError:  # (Not a valid activity)
+            messages.error(self.request, f"{activity} is not a known activity.")
+            return redirect(reverse('leaders_apply'))
+
+        if not models.LeaderApplication.can_apply_for_activity(activity_enum):
+            messages.error(
+                self.request,
+                f"{activity_enum.label} is not accepting leader applications",
+            )
+            return redirect(reverse('leaders_apply'))
+
         return super().dispatch(request, *args, **kwargs)
+
+
+class AnyActivityLeaderApplyView(TemplateView):
+    template_name = 'leaders/apply_any_activity.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['activities_accepting_applications'] = [
+            activity_enum
+            for activity_enum in enums.Activity
+            if models.LeaderApplication.can_apply_for_activity(activity_enum)
+        ]
+        return context
 
 
 # model is a property on LeaderApplicationMixin, but a class attribute on MultipleObjectMixin

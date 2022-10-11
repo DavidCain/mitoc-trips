@@ -1,4 +1,7 @@
+from unittest import mock
+
 from bs4 import BeautifulSoup
+from django.contrib import messages
 from django.contrib.auth.models import Group
 from django.test import Client, TestCase
 from freezegun import freeze_time
@@ -127,7 +130,63 @@ class BikingLeaderApplicationTest(TestCase):
     def test_404(self):
         self.client.force_login(factories.ParticipantFactory.create().user)
         response = self.client.get('/biking/leaders/apply/')
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, "/leaders/apply/")
+
+
+class AnyActivityLeaderApplyViewTest(TestCase):
+    def test_anonymous_user_can_see_page(self):
+        response = self.client.get('/leaders/apply/')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(
+            b"MITOC's volunteer leaders run trips for the community",
+            response.content,
+        )
+        # 3 activities (at time of writing) which accept applications
+        self.assertIn(b"Climbing", response.content)
+        self.assertIn(b"/climbing/leaders/apply/", response.content)
+        self.assertIn(b"Hiking", response.content)
+        self.assertIn(b"/hiking/leaders/apply/", response.content)
+        self.assertIn(b"Winter School", response.content)
+        self.assertIn(b"/winter_school/leaders/apply/", response.content)
+
+    def test_redirected_from_unknown_activity(self):
+        self.client.force_login(factories.ParticipantFactory.create().user)
+        with mock.patch.object(messages, 'error', wraps=messages.error) as msg_error:
+            response = self.client.get('/raccoon_wrestling/leaders/apply/')
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, "/leaders/apply/")
+        msg_error.assert_called_once_with(
+            mock.ANY, 'raccoon_wrestling is not a known activity.'
+        )
+
+    def test_redirected_from_activity_without_application(self):
+        self.client.force_login(factories.ParticipantFactory.create().user)
+        with mock.patch.object(messages, 'error', wraps=messages.error) as msg_error:
+            response = self.client.get('/cabin/leaders/apply/')
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, "/leaders/apply/")
+        msg_error.assert_called_once_with(
+            mock.ANY, 'Cabin is not accepting leader applications'
+        )
+
+    def test_no_underscores(self):
+        """Reproduces a somewhat odd case where stripping underscores led to a 500.
+
+        This was because our usual "activity is valid" checks first stripped underscores,
+        but then `winterschool` was expected to be a valid enum value & was not.
+        """
+        self.client.force_login(factories.ParticipantFactory.create().user)
+        with mock.patch.object(messages, 'error', wraps=messages.error) as msg_error:
+            response = self.client.get('/winterschool/leaders/apply/')
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, "/leaders/apply/")
+        msg_error.assert_called_once_with(
+            mock.ANY, 'winterschool is not a known activity.'
+        )
+        self.assertIn(
+            b"/winter_school/leaders/apply/", self.client.get(response.url).content
+        )
 
 
 class HikingLeaderApplicationTest(TestCase, Helpers):

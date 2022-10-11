@@ -169,8 +169,8 @@ urlpatterns = [
     path('profile/edit/', views.EditProfileView.as_view(), name='edit_profile'),
     path(
         'leaders/apply/',
-        RedirectView.as_view(url='/winter_school/leaders/apply', permanent=True),
-        name='old_become_leader',
+        views.AnyActivityLeaderApplyView.as_view(),
+        name='leaders_apply',
     ),
     path('profile/membership/', views.PayDuesView.as_view(), name='pay_dues'),
     path('profile/waiver/', views.SignWaiverView.as_view(), name='initiate_waiver'),

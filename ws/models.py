@@ -817,7 +817,7 @@ class BaseRating(models.Model):
     notes = models.TextField(max_length=500, blank=True)  # Contingencies, etc.
 
     @property
-    def activity_enum(self):
+    def activity_enum(self) -> enums.Activity:
         return enums.Activity(self.activity)
 
     def __str__(self):
@@ -1674,7 +1674,7 @@ class LeaderApplication(models.Model):
         return time_passed > timedelta(days=waiting_period_days)
 
     @property
-    def activity(self):
+    def activity(self) -> str:
         """Extract the activity name from the class name/db_name.
 
         Meant to be used by inheriting classes, for example:

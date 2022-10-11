@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load application_tags %}
+{% load crispy_forms_tags %}
+
+{% block head_title %}Apply to be a leader{% endblock head_title %}
+
+{% block content %}
+{{ block.super }}
+
+<h1>Become a MITOC leader</h1>
+
+<p class="lead">
+  MITOC's volunteer leaders run trips for the community.
+</p>
+
+<p>
+  MITOCers may apply to become a leader, at the discretion of the activity chair(s).
+</p>
+
+Activities which accept leader applications:
+<ul>
+{% for activity_enum in activities_accepting_applications %}
+  <li><a href="{% url 'become_leader' activity_enum.value %}">{{ activity_enum.label}}</a></li>
+{% endfor %}
+</ul>
+
+
+{% endblock content %}
