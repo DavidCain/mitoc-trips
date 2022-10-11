@@ -125,11 +125,11 @@ class AllLeadersViewTest(TestCase):
         self.assertEqual(
             response.context['activities'],
             [
-                (enums.Activity.BIKING.value, 'Biking'),
-                (enums.Activity.BOATING.value, 'Boating'),
-                (enums.Activity.CLIMBING.value, 'Climbing'),
-                (enums.Activity.HIKING.value, 'Hiking'),
-                (enums.Activity.WINTER_SCHOOL.value, 'Winter School'),
+                (enums.Activity.BIKING, 'Biking'),
+                (enums.Activity.BOATING, 'Boating'),
+                (enums.Activity.CLIMBING, 'Climbing'),
+                (enums.Activity.HIKING, 'Hiking'),
+                (enums.Activity.WINTER_SCHOOL, 'Winter School'),
             ],
         )
 

@@ -18,7 +18,7 @@
     <div class="col-md-2 col-xs-6">
       <a role="button" class="btn btn-default prev-next-app"
         {% if prev_app %}
-          href="{% url 'view_application' activity prev_app.pk %}"
+          href="{% url 'view_application' activity_enum.value prev_app.pk %}"
         {% else %}
           disabled
         {% endif %}
@@ -30,7 +30,7 @@
     <div class="col-md-2 col-md-push-8 col-xs-6 text-right">
       <a role="button" class="btn btn-default prev-next-app"
         {% if next_app %}
-          href="{% url 'view_application' activity next_app.pk %}"
+          href="{% url 'view_application' activity_enum.value next_app.pk %}"
         {% else %}
           disabled
         {% endif %}

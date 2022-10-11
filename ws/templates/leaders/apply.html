@@ -23,7 +23,7 @@
 {% endif %}
 
 {% if can_apply %}
-  {% application_description activity %}
+  {% application_description activity_enum %}
 
 {# We don't need to explain to somebody that applications are closed if they recently submitted one. #}
 {% elif not application and not accepting_applications %}
@@ -47,7 +47,7 @@
 
 {% endif %}
 
-{% if activity == 'climbing' %}
+{% if activity_enum.value == 'climbing' %}
   <div class="row">
     <div class="col-lg-7 col-md-8 hidden-sm" >
       <iframe src="{{ climbing_form_url }}"

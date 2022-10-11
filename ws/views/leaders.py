@@ -34,7 +34,7 @@ class AllLeadersView(ListView):
         context_data = super().get_context_data(**kwargs)
 
         context_data['activities'] = [
-            (activity_enum.value, activity_enum.label)
+            (activity_enum, activity_enum.label)
             for activity_enum in enums.Activity
             if activity_enum != enums.Activity.CABIN
         ]

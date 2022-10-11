@@ -613,12 +613,12 @@ class WinterSchoolSettingsForm(forms.ModelForm):
 # TODO: This should be a class, not a method.
 def LeaderApplicationForm(*args, **kwargs):
     """Factory form for applying to be a leader in any activity."""
-    activity = kwargs.pop('activity')
+    activity_enum: enums.Activity = kwargs.pop('activity_enum')
 
     class DynamicActivityForm(forms.ModelForm):
         class Meta:
             exclude = ['archived', 'year', 'participant', 'previous_rating']
-            model = models.LeaderApplication.model_from_activity(activity)
+            model = models.LeaderApplication.model_from_activity(activity_enum)
             widgets = {
                 field.name: forms.Textarea(attrs={'rows': 4})
                 for field in model._meta.fields  # pylint: disable=protected-access
@@ -627,7 +627,7 @@ def LeaderApplicationForm(*args, **kwargs):
 
         def clean(self):
             cleaned_data = super().clean()
-            if not models.LeaderApplication.accepting_applications(activity):
+            if not models.LeaderApplication.accepting_applications(activity_enum):
                 raise ValidationError("Not currently accepting applications!")
             return cleaned_data
 

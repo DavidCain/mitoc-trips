@@ -13,7 +13,7 @@
   <div class="col-xs-4">
     <a role="button" class="btn btn-default"
       {% if prev_trip %}
-        href="{% url 'view_trip_for_approval' activity prev_trip.pk %}"
+        href="{% url 'view_trip_for_approval' activity_enum.value prev_trip.pk %}"
       {% else %}
         disabled
       {% endif %}
@@ -38,7 +38,7 @@
   <div class="col-xs-4 text-right">
     <a role="button" class="btn btn-default"
       {% if next_trip %}
-        href="{% url 'view_trip_for_approval' activity next_trip.pk %}"
+        href="{% url 'view_trip_for_approval' activity_enum.value next_trip.pk %}"
       {% else %}
         disabled
       {% endif %}

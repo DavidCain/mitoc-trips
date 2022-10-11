@@ -6,7 +6,7 @@ from django.db.models import Case, Count, IntegerField, Sum, When
 import ws.utils.dates as date_utils
 import ws.utils.perms as perm_utils
 import ws.utils.ratings as ratings_utils
-from ws import icons, models
+from ws import enums, icons, models
 
 register = template.Library()
 
@@ -73,20 +73,18 @@ def leader_display(feedback) -> str:
 
 
 @register.filter
-def activity_rating(leader, activity):
-    return leader.activity_rating(activity) or ""
+def activity_rating(leader: models.Participant, activity_enum: enums.Activity) -> str:
+    return leader.activity_rating(activity_enum) or ""
 
 
 @register.filter
-def pending_applications_count(chair, activity_enum):
+def pending_applications_count(chair, activity_enum: enums.Activity) -> int:
     """Count applications where:
 
     - All chairs have given recs, rating is needed
     - Viewing user hasn't given a rec
     """
-    manager = ratings_utils.ApplicationManager(
-        chair=chair, activity=activity_enum.value
-    )
+    manager = ratings_utils.ApplicationManager(chair=chair, activity_enum=activity_enum)
     return len(manager.pending_applications())
 
 

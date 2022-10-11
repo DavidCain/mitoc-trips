@@ -29,7 +29,7 @@ class ApplicationManagerHelper:
             mock_chairs.return_value = [User() for _ in range(num_chairs)]
             yield
 
-        mock_app_model.assert_called_with(enums.Activity.CLIMBING.value)
+        mock_app_model.assert_called_with(enums.Activity.CLIMBING)
         mock_chairs.assert_called_with(enums.Activity.CLIMBING)
 
 
@@ -43,7 +43,7 @@ class OneChairTests(TestCase):
         app2 = factories.ClimbingLeaderApplicationFactory.create()
 
         manager = ratings.ApplicationManager(
-            chair=chair, activity=enums.Activity.CLIMBING.value
+            chair=chair, activity_enum=enums.Activity.CLIMBING
         )
         pending_apps = manager.pending_applications()
         self.assertEqual(manager.needs_rating(pending_apps), [app1, app2])
@@ -62,7 +62,7 @@ class DatabaselessOneChairTests(SimpleTestCase, ApplicationManagerHelper):
             factories.ClimbingLeaderApplicationFactory.build() for _ in range(3)
         ]
         with self._mock_for_climbing(num_chairs=1):
-            manager = ratings.ApplicationManager(activity=enums.Activity.CLIMBING.value)
+            manager = ratings.ApplicationManager(activity_enum=enums.Activity.CLIMBING)
             self.assertEqual(manager.needs_rec(pending_recs), [])
 
 
@@ -82,7 +82,7 @@ class DatabaseApplicationManagerTests(TestCase):
     @staticmethod
     def _manager_for(chair_participant):
         return ratings.ApplicationManager(
-            chair=chair_participant, activity=enums.Activity.CLIMBING.value
+            chair=chair_participant, activity_enum=enums.Activity.CLIMBING
         )
 
     def _make_recommendation(self, creator):

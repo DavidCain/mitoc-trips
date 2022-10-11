@@ -1,7 +1,7 @@
 from django import template
 from django.db.models.fields import TextField
 
-from ws import models
+from ws import enums, models
 
 register = template.Library()
 
@@ -43,9 +43,9 @@ def application_details(application):
     'for_templatetags/application_description.html',
     takes_context=True,
 )
-def application_description(context, activity):
+def application_description(context, activity_enum: enums.Activity):
     return {
-        'activity': activity,
+        'activity_enum': activity_enum,
         'climbing_application_url': models.ClimbingLeaderApplication.google_form_url(
             participant=context['viewing_participant'],
         ),

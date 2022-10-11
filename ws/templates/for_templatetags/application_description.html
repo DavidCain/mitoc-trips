@@ -1,8 +1,8 @@
-{% if activity == 'climbing' %}
+{% if activity_enum.value == 'climbing' %}
 
 <p>Please <a href="{{ climbing_application_url }}">fill out an application</a> to apply to become a climbing leader.</p>
 
-{% elif activity == 'hiking' %}
+{% elif activity_enum.value == 'hiking' %}
 
   <p class="lead">Please complete and submit the form below if you're interested in becoming a MITOC Hiking Leader.</p>
   <p>
@@ -15,7 +15,7 @@
     <li>Leader: Co-lead two official MITOC hikes (on separate weekends). On one of the hikes, handle the majority of the planning and group management, and get a recommendation from the leader.</li>
   </ul>
 
-{% elif activity == 'winter_school' %}
+{% elif activity_enum.value == 'winter_school' %}
 
   <p class="lead">
     Please complete and submit the form below if you're interested in becoming a MITOC Winter School Leader.

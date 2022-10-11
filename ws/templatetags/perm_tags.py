@@ -1,18 +1,22 @@
+from typing import Optional
+
 from django import template
+from django.contrib.auth.models import User
 
 import ws.utils.perms as perm_utils
+from ws import models
 from ws.utils.dates import local_date
 
 register = template.Library()
 
 
 @register.filter
-def chair_activities(user, allow_superusers=True):
+def chair_activities(user: User, allow_superusers: bool = True):
     return perm_utils.chair_activities(user, allow_superusers)
 
 
 @register.filter
-def is_the_wimp(user, participant):
+def is_the_wimp(user: User, participant: Optional[models.Participant]) -> bool:
     """Return True if the user has any upcoming WIMP trips."""
     if perm_utils.in_any_group(user, ['WIMP'], allow_superusers=True):
         return True

@@ -1,5 +1,5 @@
 import functools
-from typing import Iterable, Optional, Union
+from typing import Iterable, List, Optional, Union
 
 from django.contrib.auth.models import AnonymousUser, Group, User
 from django.db.models import QuerySet
@@ -37,7 +37,7 @@ def leader_on_trip(participant, trip, creator_allowed: bool = False) -> bool:
     return creator_allowed and participant == trip.creator
 
 
-def chair_group(activity_enum):
+def chair_group(activity_enum: enums.Activity) -> str:
     if activity_enum == enums.Activity.WINTER_SCHOOL:
         return 'WSC'
     return activity_enum.value + '_chair'
@@ -67,10 +67,15 @@ def in_any_group(
     return any(g in group_names for g in search_groups)
 
 
-def make_chair(user: User, activity_enum):
+def make_chair(user: User, activity_enum: enums.Activity) -> None:
     """Make the given user an activity chair!"""
-    group_name = chair_group(activity_enum)  # Raises ValueError on invalid activity
-    Group.objects.get(name=group_name).user_set.add(user)
+    group_name = chair_group(activity_enum)
+    group = Group.objects.get(name=group_name)
+    # This is a lousy hack to work around mypy.
+    # Locally, `group.user_set` raises `attr-defined`, which I ignore
+    # But then in CI, `# type: ignore[attr-defined` is flagged as unused
+    user_set = getattr(group, 'user_set')
+    user_set.add(user)
 
 
 def is_chair(
@@ -102,7 +107,10 @@ def activity_chairs(activity_enum) -> QuerySet[User]:
     return User.objects.filter(groups__name=chair_group(activity_enum))
 
 
-def chair_activities(user, allow_superusers=False):
+def chair_activities(
+    user: User,
+    allow_superusers: bool = False,
+) -> List[enums.Activity]:
     """All activities for which the user is the chair."""
     return [
         activity_enum

@@ -15,7 +15,7 @@
     <thead>
         <tr>
             <th>Name</th>
-            {% for activity, label in activities %}
+            {% for activity_enum, label in activities %}
               <th data-hide="phone">{{ label }}</th>
             {% endfor %}
             <th data-sort-ignore="true">Cell</th>
@@ -25,8 +25,8 @@
         {% for leader in leaders %}
         <tr>
             <td><a href="{% url 'view_participant' leader.id %}">{{ leader.name }}</a></td>
-            {% for activity, label in activities %}
-              <td> {{ leader|activity_rating:activity }}</td>
+            {% for activity_enum, label in activities %}
+              <td> {{ leader|activity_rating:activity_enum }}</td>
             {% endfor %}
             <td class="nowrap">{{ leader.cell_phone|format_phone_number }}</td>
         </tr>

@@ -17,31 +17,29 @@ def deactivate_ratings(participant, activity):
 
 
 class LeaderApplicationMixin:
-    """Some common tools for interacting with LeaderApplication objects.
+    """Some common tools for interacting with LeaderApplication objects."""
 
-    Requires self.activity
-    """
-
-    activity: str
+    @property
+    def activity_enum(self) -> enums.Activity:
+        raise NotImplementedError
 
     def activity_chairs(self) -> QuerySet[User]:
         """Return the chairs for this activity."""
 
         # It's important that this remain a method, not stored at init.
         # This way, views that want to get activity from self.kwargs can inherit from the mixin
-        return perm_utils.activity_chairs(enums.Activity(self.activity))
+        return perm_utils.activity_chairs(self.activity_enum)
 
     # The model is meant to be a class attribute of SingleObjectMixin
-    # By defining it as a property, we upset mypy.
     @property
     def model(self) -> Type[db.models.Model]:
         """Return the application model for this activity type.
 
         The model will be None if no application exists for the activity.
         """
-        if not hasattr(self, '_model'):
-            self._model = models.LeaderApplication.model_from_activity(self.activity)
-        return self._model
+        model = models.LeaderApplication.model_from_activity(self.activity_enum)
+        assert model is not None, "Unexpectedly got an application-less activity!"
+        return model
 
     def joined_queryset(self):
         """Return applications, joined with commonly used attributes.
@@ -66,7 +64,7 @@ class RatingsRecommendationsMixin:
         """Select applications where the chair gave a recommendation."""
         return Q(
             participant__leaderrecommendation__time_created__gte=F('time_created'),
-            participant__leaderrecommendation__activity=self.activity,
+            participant__leaderrecommendation__activity=self.activity_enum.value,
             participant__leaderrecommendation__creator=self.chair,
         )
 
@@ -77,7 +75,7 @@ class RatingsRecommendationsMixin:
             # NOTE: Rating doesn't need to be active (if the leader was
             # deactivated, we don't want their application to re-appear)
             participant__leaderrating__time_created__gte=F('time_created'),
-            participant__leaderrating__activity=self.activity,
+            participant__leaderrating__activity=self.activity_enum.value,
         )
 
     @staticmethod
@@ -94,10 +92,19 @@ class ApplicationManager(LeaderApplicationMixin, RatingsRecommendationsMixin):
         # Also, pop from kwargs so object.__init__ doesn't error out
         if 'chair' in kwargs:
             self.chair = kwargs.pop('chair')  # <Participant>
-        if 'activity' in kwargs:
-            self.activity = kwargs.pop('activity')
+        if 'activity_enum' in kwargs:
+            self.activity_enum = kwargs.pop('activity_enum')
+        assert not kwargs, "Kwargs should be pruned to use the mixin pattern"
 
         super().__init__(*args, **kwargs)
+
+    @property
+    def activity_enum(self) -> enums.Activity:
+        return self._activity_enum
+
+    @activity_enum.setter
+    def activity_enum(self, value: enums.Activity):
+        self._activity_enum = value
 
     def sorted_annotated_applications(self):
         """Sort all applications by order of attention they need."""
@@ -125,7 +132,7 @@ class ApplicationManager(LeaderApplicationMixin, RatingsRecommendationsMixin):
         """
         # Some activities don't actually have an application type defined! (e.g. 'cabin')
         # Exit early so we don't fail trying to build a database query
-        if not models.LeaderApplication.can_apply_for_activity(self.activity):
+        if not models.LeaderApplication.can_apply_for_activity(self.activity_enum):
             return []
 
         return list(
@@ -156,7 +163,7 @@ class ApplicationManager(LeaderApplicationMixin, RatingsRecommendationsMixin):
         for a chair to make recommendations when there are no co-chairs to heed
         those recommendations).
         """
-        if not models.LeaderApplication.can_apply_for_activity(self.activity):
+        if not models.LeaderApplication.can_apply_for_activity(self.activity_enum):
             return []
         if len(self.activity_chairs()) < 2:
             return []

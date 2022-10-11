@@ -15,7 +15,7 @@ from django.utils.decorators import method_decorator
 from django.views.generic import DetailView, ListView, UpdateView
 
 import ws.utils.perms as perm_utils
-from ws import forms, models, wimp
+from ws import enums, forms, models, wimp
 from ws.decorators import group_required
 from ws.mixins import TripLeadersOnlyView
 from ws.utils.dates import itinerary_available_at, local_date, local_now
@@ -137,8 +137,8 @@ class ChairTripView(DetailView):
     template_name = 'chair/trips/view.html'
 
     @property
-    def activity(self):
-        return self.kwargs['activity']
+    def activity_enum(self):
+        return enums.Activity(self.kwargs['activity'])
 
     def get_queryset(self):
         """All trips of this activity type.
@@ -151,7 +151,7 @@ class ChairTripView(DetailView):
         approved can still be viewed as it would have been for activity chairs)
         """
         # Order by the same ordering that's given on the "Trips needing approval" table
-        return models.Trip.objects.filter(activity=self.activity).order_by(
+        return models.Trip.objects.filter(activity=self.activity_enum.value).order_by(
             *models.Trip.ordering_for_approval
         )
 
@@ -180,7 +180,7 @@ class ChairTripView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['activity'] = self.activity
+        context['activity_enum'] = self.activity_enum
 
         # Provide buttons for quick navigation between upcoming trips needing approval
         context['prev_trip'], context['next_trip'] = self.get_other_trips()
@@ -194,9 +194,12 @@ class ChairTripView(DetailView):
         trip.save()
         if next_trip:
             return redirect(
-                reverse('view_trip_for_approval', args=(self.activity, next_trip.id))
+                reverse(
+                    'view_trip_for_approval',
+                    args=(self.activity_enum.value, next_trip.id),
+                )
             )
-        return redirect(reverse('manage_trips', args=(self.activity,)))
+        return redirect(reverse('manage_trips', args=(self.activity_enum.value,)))
 
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):

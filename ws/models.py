@@ -630,15 +630,17 @@ class Participant(models.Model):
 
         day_before = trip.trip_date - timedelta(days=1)
         rating = self.activity_rating(
-            required_activity.value,
+            required_activity,
             at_time=date_utils.late_at_night(day_before),
             must_be_active=False,
         )
         return f"{self.name} ({rating})" if rating else self.name
 
-    def activity_rating(self, activity, **kwargs):
+    def activity_rating(self, activity_enum: enums.Activity, **kwargs):
         """Return leader's rating for the given activity (if one exists)."""
-        ratings = [r for r in self.ratings(**kwargs) if r.activity == activity]
+        ratings = [
+            r for r in self.ratings(**kwargs) if r.activity == activity_enum.value
+        ]
         if not ratings:
             return None
         return max(ratings, key=lambda rating: rating.time_created).rating
@@ -1618,26 +1620,28 @@ class LeaderApplication(models.Model):
     def rating_given(self):
         """Return any activity rating created after this application."""
         return self.participant.activity_rating(
-            self.activity, must_be_active=True, after_time=self.time_created
+            enums.Activity(self.activity),
+            must_be_active=True,
+            after_time=self.time_created,
         )
 
     @classmethod
-    def application_year_for_activity(cls, activity: str) -> int:
-        if activity == enums.Activity.WINTER_SCHOOL.value:
+    def application_year_for_activity(cls, activity: enums.Activity) -> int:
+        if activity == enums.Activity.WINTER_SCHOOL:
             return date_utils.ws_year()
         return date_utils.local_date().year
 
     @classmethod
-    def accepting_applications(cls, activity: str) -> bool:
+    def accepting_applications(cls, activity: enums.Activity) -> bool:
         application_defined = cls.can_apply_for_activity(activity)
 
         # The climbing activity is accepting applications, but through a form.
         # We want to make sure that we still regard applications as being accepted.
         # (In the future, we might delete the `ClimbingLeaderApplication` model entirely
-        if activity == enums.Activity.CLIMBING.value:
+        if activity == enums.Activity.CLIMBING:
             return True
 
-        if activity != enums.Activity.WINTER_SCHOOL.value:
+        if activity != enums.Activity.WINTER_SCHOOL:
             # For non-WS activity types, it's sufficient to just have a form defined.
             # (These activities do not support turning on & off the ability to apply)
             return application_defined
@@ -1649,7 +1653,7 @@ class LeaderApplication(models.Model):
         return ws_settings.accept_applications
 
     @staticmethod
-    def can_apply_for_activity(activity: str) -> bool:
+    def can_apply_for_activity(activity: enums.Activity) -> bool:
         """Return if an application exists for the activity."""
         try:
             LeaderApplication.model_from_activity(activity)
@@ -1685,20 +1689,20 @@ class LeaderApplication(models.Model):
         return 'winter_school' if activity == 'winterschool' else activity
 
     @staticmethod
-    def model_from_activity(activity: str) -> Type[models.Model]:
+    def model_from_activity(activity: enums.Activity) -> Type[models.Model]:
         """Get the specific inheriting child from the activity.
 
         Inverse of activity().
         """
-        model = ''.join(activity.split('_')).lower() + 'leaderapplication'
+        model = ''.join(activity.value.split('_')).lower() + 'leaderapplication'
         try:
             content_type = ContentType.objects.get(app_label="ws", model=model)
         except ContentType.DoesNotExist as e:
-            raise NoApplicationDefined(f"No application for {activity}") from e
+            raise NoApplicationDefined(f"No application for {activity.label}") from e
 
         model_class = content_type.model_class()
         if model_class is None:
-            raise NoApplicationDefined(f"No application for {activity}")
+            raise NoApplicationDefined(f"No application for {activity.label}")
         return model_class
 
     class Meta:

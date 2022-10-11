@@ -18,13 +18,13 @@
 
 {% if not pending %}
   <h2>Leader Applications</h2>
-  {% if activity == 'climbing' %}
+  {% if activity_enum.value == 'climbing' %}
     {% if apps_by_year %}
       <p class="lead">Only archived climbing leader applications appear here.</p>
     {% endif %}
     <div class="alert alert-warning">
       New leader applications will come in via the Google Form
-      on the <a href="{% url 'become_leader' activity %}">leader application page</a>.
+      on the <a href="{% url 'become_leader' activity_enum.value %}">leader application page</a>.
     </div>
   {% else %}
 
@@ -42,7 +42,7 @@
     {% else %}
       <p>
         Once participants complete
-        a <a href="{% url 'become_leader' activity %}">leader application</a>, you
+        a <a href="{% url 'become_leader' activity_enum.value %}">leader application</a>, you
         will be able to assign them ratings based on their responses.
       </p>
   {% endif %}
@@ -55,7 +55,7 @@
       <h2>
         Needs Recommendation
         {% if needs_rec %}
-          <a role="button" href="{% url 'view_application' activity needs_rec.0.id %}" class="btn btn-primary pull-right">
+          <a role="button" href="{% url 'view_application' activity_enum.value needs_rec.0.id %}" class="btn btn-primary pull-right">
             <i class="fas fa-thumbs-up"></i>
             Start
           </a>
@@ -74,7 +74,7 @@
           <tbody>
             {% for application in needs_rec %}
             <tr>
-              <td class="nowrap"><a href="{% url 'view_application' activity application.id %}">{{ application.participant.name }}</a></td>
+              <td class="nowrap"><a href="{% url 'view_application' activity_enum.value application.id %}">{{ application.participant.name }}</a></td>
               <td>{{ application.previous_rating }}</td>
               <td>{{ application.desired_rating }}</td>
             </tr>
@@ -105,7 +105,7 @@
       <h2>
         Needs Rating
         {% if needs_rating %}
-          <a role="button" href="{% url 'view_application' activity needs_rating.0.id %}" class="btn btn-success pull-right">
+          <a role="button" href="{% url 'view_application' activity_enum.value needs_rating.0.id %}" class="btn btn-success pull-right">
             <i class="fas fa-star-half"></i>
             Start
           </a>
@@ -124,7 +124,7 @@
           <tbody>
             {% for application in needs_rating %}
             <tr>
-              <td><a href="{% url 'view_application' activity application.id %}">{{ application.participant.name }}</a></td>
+              <td><a href="{% url 'view_application' activity_enum.value application.id %}">{{ application.participant.name }}</a></td>
               <td>{{ application.previous_rating }}</td>
               <td>{{ application.desired_rating }}</td>
             </tr>
@@ -159,10 +159,10 @@
       <tbody>
         {% for application in applications %}
           <tr>
-            <td><a href="{% url 'view_application' activity application.id %}">{{ application.participant.name }}</a></td>
+            <td><a href="{% url 'view_application' activity_enum.value application.id %}">{{ application.participant.name }}</a></td>
             <td>{{ application.previous_rating }}</td>
             <td>{{ application.desired_rating }}</td>
-            <td>{{ application.participant|activity_rating:activity }}</td>
+            <td>{{ application.participant|activity_rating:activity_enum }}</td>
           </tr>
         {% endfor %}
       </tbody>

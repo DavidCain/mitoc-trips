@@ -27,15 +27,14 @@ class AcceptingApplicationsTest(TestCase):
 
     def test_no_form_not_accepting(self):
         """Activities without a defined form are not accepting applications."""
-        for activity_enum in ACTIVITIES_WITHOUT_APPLICATIONS:
-            activity = activity_enum.value
+        for activity in ACTIVITIES_WITHOUT_APPLICATIONS:
             self.assertFalse(models.LeaderApplication.can_apply_for_activity(activity))
             self.assertFalse(models.LeaderApplication.accepting_applications(activity))
 
     def test_always_accepting(self):
         """Some activities are always accepting applications."""
         self.assertTrue(
-            models.LeaderApplication.accepting_applications(enums.Activity.HIKING.value)
+            models.LeaderApplication.accepting_applications(enums.Activity.HIKING)
         )
 
     def test_ws_accepting_by_default(self):
@@ -43,7 +42,7 @@ class AcceptingApplicationsTest(TestCase):
         self.assertFalse(models.WinterSchoolSettings.objects.exists())
         self.assertTrue(
             models.LeaderApplication.accepting_applications(
-                enums.Activity.WINTER_SCHOOL.value
+                enums.Activity.WINTER_SCHOOL
             )
         )
 
