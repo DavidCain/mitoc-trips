@@ -74,6 +74,11 @@ urlpatterns = [
         name='view_application',
     ),
     re_path(
+        r'^(?P<activity>.+)/applications/(?P<pk>\d+)/archive/$',
+        views.ArchiveLeaderApplicationView.as_view(),
+        name='archive_application',
+    ),
+    re_path(
         r'^(?P<activity>.+)/trips/$',
         views.ApproveTripsView.as_view(),
         name='manage_trips',

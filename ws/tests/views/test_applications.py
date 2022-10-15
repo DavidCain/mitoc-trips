@@ -727,3 +727,89 @@ class WinterSchoolLeaderApplicationsTest(LeaderApplicationsBaseTest):
         self._expect_form_contents(
             soup, rating="coB", notes="No WFA", submit='Update recommendation'
         )
+
+
+class ArchiveLeaderApplicationViewTest(LeaderApplicationsBaseTest):
+    def setUp(self):
+        par = factories.ParticipantFactory.create()
+        perm_utils.make_chair(par.user, enums.Activity.WINTER_SCHOOL)
+        self.client.force_login(par.user)
+
+        self.application = factories.WinterSchoolLeaderApplicationFactory.create(
+            archived=False
+        )
+        self.url = f'/winter_school/applications/{self.application.pk}/archive/'
+
+    def test_archive_button_shown(self):
+        response = self.client.get(
+            f'/winter_school/applications/{self.application.pk}/'
+        )
+        self.assertIn(b'Archive an application', response.content)
+
+    def test_archive_only_application(self):
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, '/winter_school/applications/')
+
+        self.application.refresh_from_db()
+        self.assertIs(self.application.archived, True)
+
+        get_response = self.client.get(self.url, follow=True)
+        self.assertIn(b'This application was archived', get_response.content)
+        self.assertNotIn(b'Archive an application', get_response.content)
+
+    def test_archive_next_url_given(self):
+        other_application = factories.WinterSchoolLeaderApplicationFactory.create()
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response.url, f'/winter_school/applications/{other_application.pk}/'
+        )
+
+    def test_unknown_application(self):
+        response = self.client.post('/winter_school/applications/912381239/archive/')
+        self.assertEqual(response.status_code, 404)
+
+    def test_chair_required(self):
+        par = factories.ParticipantFactory.create()
+        self.client.force_login(par.user)
+        response = self.client.get(
+            f'/winter_school/applications/{self.application.pk}/archive/'
+        )
+        self.assertEqual(response.status_code, 403)
+
+    def test_get_redirect(self):
+        url = f'/winter_school/applications/{self.application.pk}/archive/'
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response.url, f'/winter_school/applications/{self.application.pk}/'
+        )
+
+    def test_rearchiving_does_nothing(self):
+        self.application.archived = True
+        self.application.save()
+
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, '/winter_school/applications/')
+
+        self.application.refresh_from_db()
+        self.assertIs(self.application.archived, True)
+
+    def test_cannot_archive_application_with_rating(self):
+        factories.LeaderRatingFactory.create(
+            activity=enums.Activity.WINTER_SCHOOL.value,
+            participant=self.application.participant,
+        )
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response.url, f'/winter_school/applications/{self.application.pk}/'
+        )
+        # Importantly, we don't render the archive button
+        get_response = self.client.get(response.url)
+        self.assertNotIn(b'Archive an application', get_response.content)
+
+        self.application.refresh_from_db()
+        self.assertIs(self.application.archived, False)

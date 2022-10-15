@@ -19,7 +19,9 @@ from django.http import Http404
 from django.shortcuts import redirect, render
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
-from django.views.generic import CreateView, DetailView, ListView, TemplateView
+from django.utils.html import format_html
+from django.views.generic import CreateView, DetailView, ListView, TemplateView, View
+from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.edit import FormMixin
 
 import ws.utils.perms as perm_utils
@@ -230,6 +232,53 @@ class AllLeaderApplicationsView(ApplicationManager, ListView):  # type: ignore[m
 
 
 # model is a property on LeaderApplicationMixin, but a class attribute on SingleObjectMixin
+class ArchiveLeaderApplicationView(ApplicationManager, SingleObjectMixin, View):  # type: ignore[misc]
+    def get(self, request, *args, **kwargs):
+        return redirect(reverse('view_application', kwargs=kwargs))
+
+    def post(self, request, *args, **kwargs):
+        application = self.get_object()
+        if application.rating_given:
+            messages.error(
+                request, "Cannot archive an application that received a rating!"
+            )
+            return redirect(reverse('view_application', kwargs=kwargs))
+
+        application.archived = True
+        application.save()
+        url = reverse(
+            'view_application',
+            kwargs={'activity': kwargs['activity'], 'pk': kwargs['pk']},
+        )
+        messages.success(
+            request,
+            format_html(
+                'Archived <a href="{}">application from {}</a>.',
+                url,
+                application.participant.name,
+            ),
+        )
+        return redirect(self.get_success_url())
+
+    def get_success_url(self) -> str:
+        next_app = next(iter(self.pending_applications()), None)
+        if next_app:
+            app_args = (self.activity_enum.value, next_app.pk)
+            return reverse('view_application', args=app_args)
+        return reverse('manage_applications', args=(self.activity_enum.value,))
+
+    @method_decorator(chairs_only())
+    def dispatch(self, request, *args, **kwargs):
+        try:
+            self.activity_enum = enums.Activity(kwargs.get('activity'))
+        except ValueError:
+            raise Http404  # pylint: disable=raise-missing-from
+        if not perm_utils.chair_or_admin(request.user, self.activity_enum):
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
+
+
+# model is a property on LeaderApplicationMixin, but a class attribute on SingleObjectMixin
 class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type: ignore[misc]
     """Handle applications by participants to become leaders."""
 
@@ -257,10 +306,7 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type:
         prev_app = None
         for app in ordered_apps:
             if app.pk == self.object.pk:
-                try:
-                    next_app = next(ordered_apps)
-                except StopIteration:
-                    next_app = None
+                next_app = next(ordered_apps, None)
                 break
             prev_app = app
         else:
