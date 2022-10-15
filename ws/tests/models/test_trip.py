@@ -224,3 +224,53 @@ class TripDatesTest(SimpleTestCase):
 
         next_month_trip = factories.TripFactory.build(trip_date=date(2020, 2, 16))
         self.assertFalse(next_month_trip.less_than_a_week_away)
+
+
+class AtlasLinkTest(TestCase):
+    maxDiff = None
+
+    def setUp(self):
+        tim = factories.ParticipantFactory(name="Tim Beaver", email="tim@mit.edu")
+        bob = factories.ParticipantFactory(name="Bob Bobberson", email="bob@mit.edu")
+        sue = factories.ParticipantFactory(name="Tzu See Queue", email="sue@mit.edu")
+
+        self.trip = factories.TripFactory.create(
+            name="Jaunt to Café",
+            trip_date=date(2020, 1, 15),
+            summary="Let's go get a cappucino",
+        )
+        self.trip.leaders.set([tim, bob, sue])
+
+    def test_trip_without_itinerary(self):
+        self.assertEqual(
+            self.trip.prefilled_atlas_form_link,
+            'https://docs.google.com/forms/d/e/1FAIpQLSeBgwQXEzbuBVdEpS6hAaII-sdlEajVnMQC84igt8plmigRdw/viewform'
+            '?usp=pp_url'
+            # Encoded!
+            '&entry.64030440=Jaunt+to+Caf%C3%A9'
+            # Names alphabetical!
+            '&entry.14051799=Bob+Bobberson%2C+Tim+Beaver%2C+Tzu+See+Queue'
+            # Emails in the same order as names
+            '&entry.1718831235=bob%40mit.edu%2C+tim%40mit.edu%2C+sue%40mit.edu'
+            f'&entry.801739390=https%3A%2F%2Fmitoc-trips.mit.edu%2Ftrips%2F{self.trip.pk}%2F'
+            '&entry.260268802=Let%27s+go+get+a+cappucino'
+            '&entry.1651767815=2020-01-15',
+        )
+
+    def test_trip_with_itinerary(self):
+        factories.TripInfoFactory(trip=self.trip, start_location='Narnia')
+        self.assertEqual(
+            self.trip.prefilled_atlas_form_link,
+            'https://docs.google.com/forms/d/e/1FAIpQLSeBgwQXEzbuBVdEpS6hAaII-sdlEajVnMQC84igt8plmigRdw/viewform'
+            '?usp=pp_url'
+            # Encoded!
+            '&entry.64030440=Jaunt+to+Caf%C3%A9'
+            # Names alphabetical!
+            '&entry.14051799=Bob+Bobberson%2C+Tim+Beaver%2C+Tzu+See+Queue'
+            # Emails in the same order as names
+            '&entry.1718831235=bob%40mit.edu%2C+tim%40mit.edu%2C+sue%40mit.edu'
+            f'&entry.801739390=https%3A%2F%2Fmitoc-trips.mit.edu%2Ftrips%2F{self.trip.pk}%2F'
+            '&entry.260268802=Let%27s+go+get+a+cappucino'
+            '&entry.1651767815=2020-01-15'
+            '&entry.1852696041=Narnia',
+        )

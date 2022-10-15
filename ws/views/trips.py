@@ -18,6 +18,7 @@ from django.http import Http404, HttpResponseBadRequest
 from django.shortcuts import redirect, render
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
+from django.utils.safestring import mark_safe
 from django.views.generic import (
     CreateView,
     DeleteView,
@@ -263,7 +264,15 @@ class CreateTripView(CreateView):
         return kwargs
 
     def get_success_url(self):
-        return reverse('view_trip', args=(self.object.pk,))
+        trip = self.object
+        if trip.requires_reimbursement:
+            messages.success(
+                self.request,
+                mark_safe(
+                    f'Remember to <a href="{trip.prefilled_atlas_form_link}">register your trip for reimbursement</a>!'
+                ),
+            )
+        return reverse('view_trip', args=(trip.pk,))
 
     def get_initial(self):
         """Default with trip creator among leaders."""

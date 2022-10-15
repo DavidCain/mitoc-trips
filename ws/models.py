@@ -1,7 +1,7 @@
 import re
 from datetime import date, datetime, timedelta
 from typing import Dict, Iterator, List, Optional, Tuple, Type, Union
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urljoin
 
 import markdown2
 from allauth.account.models import EmailAddress
@@ -15,7 +15,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.db import models
 from django.db.models import F, Q
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 from django.utils.text import format_lazy
@@ -370,12 +370,14 @@ class Participant(models.Model):
     # Any participants with single-digit affiliation codes have dated status
     # Old codes were: S (student), M (MIT affiliate), and N (non-affiliated)
     affiliation = models.CharField(max_length=2, choices=AFFILIATION_CHOICES)
-    STUDENT_AFFILIATIONS = {
-        affiliations.MIT_UNDERGRAD.CODE,
-        affiliations.NON_MIT_UNDERGRAD.CODE,
-        affiliations.MIT_GRAD_STUDENT.CODE,
-        affiliations.NON_MIT_GRAD_STUDENT.CODE,
-    }
+    STUDENT_AFFILIATIONS = frozenset(
+        {
+            affiliations.MIT_UNDERGRAD.CODE,
+            affiliations.NON_MIT_UNDERGRAD.CODE,
+            affiliations.MIT_GRAD_STUDENT.CODE,
+            affiliations.NON_MIT_GRAD_STUDENT.CODE,
+        }
+    )
 
     discounts = models.ManyToManyField(Discount, blank=True)
 
@@ -413,6 +415,13 @@ class Participant(models.Model):
     @property
     def is_student(self) -> bool:
         return self.affiliation in self.STUDENT_AFFILIATIONS
+
+    @property
+    def is_mit_student(self) -> bool:
+        return self.affiliation in {
+            affiliations.MIT_UNDERGRAD.CODE,
+            affiliations.MIT_GRAD_STUDENT.CODE,
+        }
 
     @property
     def problems_with_profile(self) -> Iterator[enums.ProfileProblem]:
@@ -999,11 +1008,6 @@ class Trip(models.Model):
         help_text="Ensures the trip returns safely. "
         "Can view trip itinerary, participant medical info.",
     )
-    allow_leader_signups = models.BooleanField(
-        default=False,
-        help_text="Leaders can add themselves directly to the list of trip leaders, even if trip is full or in lottery mode. "
-        "Recommended for Circuses!",
-    )
     name = models.CharField(max_length=127)
     description = models.TextField(
         help_text=mark_safe(
@@ -1047,18 +1051,29 @@ class Trip(models.Model):
         default=date_utils.default_signups_close_at, null=True, blank=True
     )
 
-    let_participants_drop = models.BooleanField(
+    # Boolean settings
+    # ----------------
+    membership_required = models.BooleanField(
+        default=True,
+        help_text="Require an active MITOC membership to participate (waivers are always required).",
+    )
+    allow_leader_signups = models.BooleanField(
         default=False,
-        help_text="Allow participants to remove themselves "
-        "from the trip any time before its start date.",
+        help_text="Leaders can add themselves directly to the list of trip leaders, even if trip is full or in lottery mode. "
+        "Recommended for Circuses!",
     )
     honor_participant_pairing = models.BooleanField(
         default=True,
         help_text="Try to place paired participants together on the trip (if both sign up).",
     )
-    membership_required = models.BooleanField(
-        default=True,
-        help_text="Require an active MITOC membership to participate (waivers are always required).",
+    let_participants_drop = models.BooleanField(
+        default=False,
+        help_text="Allow participants to remove themselves "
+        "from the trip any time before its start date.",
+    )
+    requires_reimbursement = models.BooleanField(
+        default=False,
+        help_text="If you have an approved budget for this trip, you must register with Atlas.",
     )
 
     info = models.OneToOneField(
@@ -1339,6 +1354,45 @@ class Trip(models.Model):
             )
             .filter(search=text, rank__gte=0.3)
             .order_by('rank')[:100]
+        )
+
+    @property
+    def prefilled_atlas_form_link(self) -> str:
+        """Pre-fill known information for submission on the Atlas form link."""
+        leaders = list(self.leaders.order_by('name'))
+        trip_link = reverse('view_trip', args=(self.pk,))
+        prefilled_values = {
+            'usp': 'pp_url',
+            'entry.64030440': self.name,
+            'entry.14051799': ', '.join(leader.name for leader in leaders),
+            'entry.1718831235': ', '.join(leader.email for leader in leaders),
+            'entry.801739390': urljoin('https://mitoc-trips.mit.edu', trip_link),
+            'entry.260268802': self.summary,
+            'entry.1651767815': self.trip_date.isoformat(),
+            # 'entry.240172613':Food
+            # 'entry.2093739261':10
+        }
+        try:
+            info: Optional[TripInfo] = self.info
+        except TripInfo.DoesNotExist:
+            info = None
+
+        if info:
+            prefilled_values.update(
+                {
+                    'entry.1852696041': info.start_location,
+                    # We record start time, but only as free text...
+                    # 'entry.845875220': '10:00',
+                    # We don't record trip end date!
+                    # 'entry.2038085654':2022-12-30
+                    # We record end time, but only as free text...
+                    # 'entry.2004693073':23:45
+                }
+            )
+
+        return (
+            'https://docs.google.com/forms/d/e/1FAIpQLSeBgwQXEzbuBVdEpS6hAaII-sdlEajVnMQC84igt8plmigRdw/viewform?'
+            + urlencode(prefilled_values)
         )
 
     class Meta:
