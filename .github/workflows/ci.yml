@@ -13,7 +13,7 @@ jobs:
           - "mypy ws"
           - "pylint --jobs=0 ws"
           - "pytest"
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     services:
       # TODO: Only the `test` step in the matrix needs this service up and running.
       # All others have no need to hit the database.
@@ -79,7 +79,7 @@ jobs:
           - "npm run lint"
           # TODO: Actually upload this to codecov
           - "npm run test:unit -- --coverage"
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: "Clone repo"
         uses: actions/checkout@v2
