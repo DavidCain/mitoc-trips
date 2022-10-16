@@ -4,7 +4,6 @@ Views relating to an individual's membership management.
 Every MITOC member is required to have a current membership and waiver. Each of
 these documents expire after 12 months.
 """
-from typing import Optional
 
 from django.contrib import messages
 from django.http import HttpResponseNotAllowed
@@ -57,8 +56,8 @@ class SignWaiverView(FormView):
 
     def send_waiver(
         self,
-        releasor: Optional[waivers.Person],
-        guardian: Optional[waivers.Person],
+        releasor: waivers.Person | None,
+        guardian: waivers.Person | None,
     ):
         email, embedded_url = waivers.initiate_waiver(
             participant=self.request.participant,  # type:ignore
@@ -84,7 +83,7 @@ class SignWaiverView(FormView):
         context['guardian_form'] = self.get_guardian_form()
         return context
 
-    def guardian_from_form(self) -> Optional[waivers.Person]:
+    def guardian_from_form(self) -> waivers.Person | None:
         """Build a Person object from the optional guardian form.
 
         Only participants who are minors need to supply their guardian.
@@ -110,7 +109,7 @@ class SignWaiverView(FormView):
 
         Authenticated users with a participant record can just use the overridden post()
         """
-        releasor: Optional[waivers.Person] = None
+        releasor: waivers.Person | None = None
 
         # When there's a participant object, we'll just use that as releasor
         # (We'll bypass form validation for participants, but handle just in case)

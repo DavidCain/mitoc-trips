@@ -6,7 +6,6 @@ user who has completed the mandatory signup information is given a Participant
 object that's linked to their user account.
 """
 import logging
-from typing import Optional
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -421,7 +420,7 @@ class ParticipantView(
         return context
 
     @property
-    def wimp(self) -> Optional[models.Participant]:
+    def wimp(self) -> models.Participant | None:
         """Return the current WIMP, if there is one & it's appropriate to display them."""
         participant = self.object
 

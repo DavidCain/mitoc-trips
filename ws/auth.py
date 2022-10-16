@@ -1,6 +1,5 @@
 import logging
 import re
-from typing import Optional
 
 from django.core.exceptions import ValidationError
 from django.utils.translation import ngettext
@@ -19,7 +18,7 @@ INT_WITH_COMMA = re.compile(
 )
 
 
-def times_seen_in_hibp(password: str) -> Optional[int]:
+def times_seen_in_hibp(password: str) -> int | None:
     """Return times password has been seen in HIBP."""
     if settings.DEBUG and password in settings.WHITELISTED_BAD_PASSWORDS:
         return 0

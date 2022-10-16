@@ -6,7 +6,7 @@ However, we provide this method for single-click unsubscribe links.
 """
 import enum
 from datetime import timedelta
-from typing import NamedTuple, Optional, TypedDict
+from typing import NamedTuple, TypedDict
 
 from django.conf import settings
 from django.core import signing
@@ -44,7 +44,7 @@ class TokenPayload(TypedDict):
     emails: list[int]
 
 
-def _get_signer(key: Optional[str] = None) -> signing.TimestampSigner:
+def _get_signer(key: str | None = None) -> signing.TimestampSigner:
     """Return an object that can be used to either sign payloads or verify & decode."""
     return signing.TimestampSigner(
         # Assuming we're using Django's cryptography APIs securely (and a secret key with high entropy),

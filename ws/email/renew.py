@@ -1,6 +1,5 @@
 import logging
 from datetime import timedelta
-from typing import Optional
 
 from django.core import mail
 from django.template.loader import get_template
@@ -20,7 +19,7 @@ def send_email_reminding_to_renew(participant):
     par = f'{participant.email} ({participant.pk})'
     today = date_utils.local_date()
 
-    membership: Optional[models.Membership] = participant.membership
+    membership: models.Membership | None = participant.membership
 
     # For (hopefully) obvious reasons, you *must* have an old membership to renew.
     # The trips database is *not* the source of truth for membership.

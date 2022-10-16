@@ -6,7 +6,7 @@ attended by any interested participants.
 """
 from collections import defaultdict
 from datetime import date, timedelta
-from typing import Optional, cast
+from typing import cast
 from urllib.parse import urlencode
 
 from django.contrib import messages
@@ -376,7 +376,7 @@ class EditTripView(UpdateView, TripLeadersOnlyView):
         if not self._leaders_changed(form):
             form.cleaned_data.pop('leaders')
 
-    def _stale_revision_message(self, form, current_trip, new_trip) -> Optional[str]:
+    def _stale_revision_message(self, form, current_trip, new_trip) -> str | None:
         """Produce a message describing a stale edit, if one exists.."""
         if current_trip.edit_revision == new_trip.edit_revision:
             return None

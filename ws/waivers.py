@@ -1,6 +1,6 @@
 import typing
 import xml.etree.ElementTree as ET
-from typing import Any, Optional, TypedDict
+from typing import Any, TypedDict
 
 import requests
 from mitoc_const import affiliations
@@ -29,7 +29,7 @@ class InitiatedWaiverResult(typing.NamedTuple):
     # If given, this URL reflects an "embedded URL"
     # That is, it's a URL which can be loaded to direct a user straight to waiver signing.
     # This can be used when a participant already has verified their email address.
-    url: Optional[str]
+    url: str | None
 
 
 def get_headers() -> dict[str, str]:
@@ -103,8 +103,8 @@ class DocusignRole(_BaseDocusignRole, total=False):
 
 def get_roles(
     releasor: Person,
-    participant: Optional[models.Participant] = None,
-    guardian: Optional[Person] = None,
+    participant: models.Participant | None = None,
+    guardian: Person | None = None,
 ) -> list[DocusignRole]:
     """Return the role definitions, with pre-filled data if available.
 
@@ -145,7 +145,7 @@ def sign_embedded(
     participant: models.Participant,
     releasor_dict: DocusignRole,
     envelope_id: str,
-    base_url: Optional[str] = None,
+    base_url: str | None = None,
 ) -> str:
     """Take a known user and go straight to the waiver flow.
 
@@ -174,9 +174,9 @@ def sign_embedded(
 
 
 def initiate_waiver(
-    participant: Optional[models.Participant],
-    releasor: Optional[Person],
-    guardian: Optional[Person],
+    participant: models.Participant | None,
+    releasor: Person | None,
+    guardian: Person | None,
 ) -> InitiatedWaiverResult:
     """Create a waiver & send it to the participant (releasor).
 
@@ -217,7 +217,7 @@ def initiate_waiver(
     )
 
     # If there's no participant, an email will be sent; no need to redirect
-    redir_url: Optional[str] = None
+    redir_url: str | None = None
 
     if participant:  # We need a participant to do embedded signing
         envelope_id = env.json()['envelopeId']

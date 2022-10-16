@@ -1,7 +1,7 @@
 import re
 from collections.abc import Iterator
 from datetime import date, datetime, timedelta
-from typing import Optional, Union
+from typing import Optional
 from urllib.parse import urlencode, urljoin
 
 import markdown2
@@ -230,9 +230,7 @@ class Membership(models.Model):
         # Participants should *always* sign if waiver will be dated by trip start.
         return trip.trip_date > self.waiver_expires
 
-    def date_when_renewal_is_recommended(
-        self, report_past_dates: bool
-    ) -> Optional[date]:
+    def date_when_renewal_is_recommended(self, report_past_dates: bool) -> date | None:
         """Return the date on which we recommend the participant renews their membership.
 
         (That date may have been in the past).
@@ -343,7 +341,7 @@ class Participant(models.Model):
         Membership, null=True, blank=True, on_delete=models.CASCADE
     )
 
-    AFFILIATION_CHOICES: list[tuple[str, Union[str, list[tuple[str, str]]]]] = [
+    AFFILIATION_CHOICES: list[tuple[str, str | list[tuple[str, str]]]] = [
         (
             'Undergraduate student',
             [
@@ -480,7 +478,7 @@ class Participant(models.Model):
     @classmethod
     def from_user(
         cls,
-        user: Union[User, AnonymousUser],
+        user: User | AnonymousUser,
         join_membership: bool = False,
     ) -> Optional['Participant']:
         if not user.is_authenticated:
@@ -590,8 +588,8 @@ class Participant(models.Model):
 
     def update_membership(
         self,
-        membership_expires: Optional[date] = None,
-        waiver_expires: Optional[date] = None,
+        membership_expires: date | None = None,
+        waiver_expires: date | None = None,
     ) -> tuple[Membership, bool]:
         """Update our own cached membership with new information."""
         acct, created = Membership.objects.get_or_create(participant=self)
@@ -1096,7 +1094,7 @@ class Trip(models.Model):
     def __str__(self):  # pylint: disable=invalid-str-returned
         return self.name
 
-    def description_to_text(self, maxchars: Optional[int] = None) -> str:
+    def description_to_text(self, maxchars: int | None = None) -> str:
         html = markdown2.markdown(self.description)
         text = BeautifulSoup(html, 'html.parser').text.strip()
         text = re.sub(r'[\s\n\r]+', ' ', text)  # (make sure newlines are single spaces)
@@ -1374,7 +1372,7 @@ class Trip(models.Model):
             # 'entry.2093739261':10
         }
         try:
-            info: Optional[TripInfo] = self.info
+            info: TripInfo | None = self.info
         except TripInfo.DoesNotExist:
             info = None
 

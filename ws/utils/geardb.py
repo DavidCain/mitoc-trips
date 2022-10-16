@@ -7,7 +7,7 @@ via machine-to-machine API endpoints.
 import logging
 from collections.abc import Iterable, Iterator
 from datetime import date, datetime, timedelta
-from typing import Any, NamedTuple, Optional
+from typing import Any, NamedTuple
 from urllib.parse import urljoin
 
 import requests
@@ -28,9 +28,9 @@ JsonDict = dict[str, Any]
 class MembershipWaiver(NamedTuple):
     """Light wrapper type around response to /api-auth/v1/membership_waiver/"""
 
-    email: Optional[str]
-    membership_expires: Optional[date]
-    waiver_expires: Optional[date]
+    email: str | None
+    membership_expires: date | None
+    waiver_expires: date | None
 
 
 class Rental(NamedTuple):
@@ -58,7 +58,7 @@ class MembershipInformation(NamedTuple):
     last_known_affiliation: str
     num_rentals: int
 
-    trips_information: Optional[TripsInformation]
+    trips_information: TripsInformation | None
 
 
 def gear_bearer_jwt(**payload) -> str:
@@ -111,7 +111,7 @@ def _verified_emails(user: models.User) -> list[str]:
     return sorted(emails.filter(verified=True).values_list('email', flat=True))
 
 
-def query_geardb_for_membership(user: models.User) -> Optional[MembershipWaiver]:
+def query_geardb_for_membership(user: models.User) -> MembershipWaiver | None:
     """Ask the gear database for the latest information, bypassing any caches."""
     assert user.is_authenticated
 
@@ -133,7 +133,7 @@ def query_geardb_for_membership(user: models.User) -> Optional[MembershipWaiver]
     assert len(results) == 1, "Unexpectedly got multiple members!"
     result = results[0]
 
-    def expiration_from_payload(json_dict: JsonDict) -> Optional[date]:
+    def expiration_from_payload(json_dict: JsonDict) -> date | None:
         if 'expires' not in json_dict:
             return None
         return date.fromisoformat(json_dict['expires'])
@@ -207,7 +207,7 @@ def user_rentals(user: models.User) -> list[Rental]:
     return list(outstanding_items(_verified_emails(user)))
 
 
-def update_affiliation(participant: models.Participant) -> Optional[requests.Response]:
+def update_affiliation(participant: models.Participant) -> requests.Response | None:
     """Update the gear db if the affiliation of a participant has changed.
 
     This is useful in three scenarios:

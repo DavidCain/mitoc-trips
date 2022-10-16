@@ -1,5 +1,3 @@
-from typing import Optional
-
 from django.db.models.expressions import RawSQL
 
 from ws import models
@@ -16,5 +14,5 @@ def active_wimps():
     )
 
 
-def current_wimp() -> Optional[models.Participant]:
+def current_wimp() -> models.Participant | None:
     return active_wimps().first()

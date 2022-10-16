@@ -1,5 +1,4 @@
 from datetime import date
-from typing import Optional
 
 from django.db.models import Q
 
@@ -253,7 +252,7 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
             signups = signups.filter(trip__in=self.paired_par.trip_set.all())
         return signups
 
-    def place_participant(self) -> Optional[dict]:
+    def place_participant(self) -> dict | None:
         """Attempt to place the participant (and their partner, if any) on the best trip.
 
         If it's not possible to place them yet, None will be returned (and they will

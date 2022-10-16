@@ -1,5 +1,3 @@
-from typing import Optional, Union
-
 from django import forms
 from django.core.exceptions import ValidationError
 from django.db.models.fields import TextField
@@ -16,9 +14,9 @@ def _bind_input(
     form: forms.Form,
     field_name: str,
     # Initial value - either from field initial, or instance value (or neither)
-    initial: Union[None, str, int, bool] = None,
+    initial: None | str | int | bool = None,
     # (Can optionally use a different model name)
-    model_name: Optional[str] = None,
+    model_name: str | None = None,
 ):
     """Bind the field value in AngularJS.
 
@@ -466,7 +464,7 @@ class TripForm(forms.ModelForm):
             program_enum and program_enum.winter_rules_apply()
         )
 
-        initial_program: Optional[enums.Program] = trip.pk and trip.program_enum
+        initial_program: enums.Program | None = trip.pk and trip.program_enum
 
         if allowed_programs is not None:
             self.fields['program'].choices = list(
@@ -663,7 +661,7 @@ def amount_choices(value_is_amount=False):
 
     def include_amount_in_label(
         affiliation_code: str, label: str
-    ) -> tuple[Union[int, str], str]:
+    ) -> tuple[int | str, str]:
         amount = models.Participant.affiliation_to_membership_price(affiliation_code)
         annotated_label = f"{label} (${amount})"
 

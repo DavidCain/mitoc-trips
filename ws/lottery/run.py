@@ -5,7 +5,6 @@ from collections.abc import Mapping
 from datetime import datetime
 from pathlib import Path
 from types import MappingProxyType
-from typing import Optional
 
 from mitoc_const import affiliations
 
@@ -59,7 +58,7 @@ class LotteryRunner:
     def mark_seen(self, participant, seen=True) -> None:
         self._participants_seen[participant.pk] = seen
 
-    def signup_to_bump(self, trip) -> Optional[models.SignUp]:
+    def signup_to_bump(self, trip) -> models.SignUp | None:
         """Which participant to bump off the trip if another needs a place.
 
         By default, just goes with the last-ordered participant.
@@ -128,7 +127,7 @@ class SingleTripLotteryRunner(LotteryRunner):
 
 
 class WinterSchoolLotteryRunner(LotteryRunner):
-    def __init__(self, execution_datetime: Optional[datetime] = None):
+    def __init__(self, execution_datetime: datetime | None = None):
         self.execution_datetime = execution_datetime or local_now()
         self.ranker = WinterSchoolParticipantRanker(self.execution_datetime)
         super().__init__()
@@ -162,7 +161,7 @@ class WinterSchoolLotteryRunner(LotteryRunner):
             trip.make_fcfs(signups_open_at=noon)
             trip.save()
 
-    def signup_to_bump(self, trip) -> Optional[models.SignUp]:
+    def signup_to_bump(self, trip) -> models.SignUp | None:
         return self.ranker.lowest_non_driver(trip)
 
     def assign_trips(self) -> None:

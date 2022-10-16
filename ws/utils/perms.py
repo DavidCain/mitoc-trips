@@ -1,6 +1,5 @@
 import functools
 from collections.abc import Iterable
-from typing import Optional, Union
 
 from django.contrib.auth.models import AnonymousUser, Group, User
 from django.db.models import QuerySet
@@ -16,7 +15,7 @@ def all_group_names():
     return set(Group.objects.values_list('name', flat=True))
 
 
-def is_leader(user: Union[AnonymousUser, User]) -> bool:
+def is_leader(user: AnonymousUser | User) -> bool:
     """Return if the user is a trip leader.
 
     Take advantage of the prefetched 'leaders' group for more efficient
@@ -45,7 +44,7 @@ def chair_group(activity_enum: enums.Activity) -> str:
 
 
 def in_any_group(
-    user: Union[AnonymousUser, User],
+    user: AnonymousUser | User,
     group_names: Iterable[str],
     allow_superusers: bool = True,
 ):
@@ -80,8 +79,8 @@ def make_chair(user: User, activity_enum: enums.Activity) -> None:
 
 
 def is_chair(
-    user: Union[AnonymousUser, User],
-    activity_enum: Optional[enums.Activity],
+    user: AnonymousUser | User,
+    activity_enum: enums.Activity | None,
     allow_superusers: bool = True,
 ) -> bool:
     """Return if the activity has chairs, and the user is one.

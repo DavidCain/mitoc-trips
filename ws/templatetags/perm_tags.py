@@ -1,5 +1,3 @@
-from typing import Optional
-
 from django import template
 from django.contrib.auth.models import User
 
@@ -16,7 +14,7 @@ def chair_activities(user: User, allow_superusers: bool = True):
 
 
 @register.filter
-def is_the_wimp(user: User, participant: Optional[models.Participant]) -> bool:
+def is_the_wimp(user: User, participant: models.Participant | None) -> bool:
     """Return True if the user has any upcoming WIMP trips."""
     if perm_utils.in_any_group(user, ['WIMP'], allow_superusers=True):
         return True

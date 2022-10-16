@@ -2,7 +2,6 @@ import json
 from collections import defaultdict
 from collections.abc import Iterator
 from datetime import date
-from typing import Union
 
 import jwt
 import jwt.exceptions
@@ -675,9 +674,9 @@ class MembershipStatusesView(View):
 
 class RawMembershipStatsView(View):
     @staticmethod
-    def _all_members_info() -> Iterator[dict[str, Union[str, int]]]:
+    def _all_members_info() -> Iterator[dict[str, str | int]]:
         for info in geardb_utils.membership_information().values():
-            flat_info: dict[str, Union[str, int]] = {
+            flat_info: dict[str, str | int] = {
                 'last_known_affiliation': info.last_known_affiliation,
                 'num_rentals': info.num_rentals,
             }

@@ -2,7 +2,7 @@ import random
 from collections.abc import Mapping
 from datetime import datetime, timedelta
 from types import MappingProxyType
-from typing import NamedTuple, Optional
+from typing import NamedTuple
 
 from django.db.models import Q, QuerySet
 from mitoc_const import affiliations
@@ -159,7 +159,7 @@ class WinterSchoolPriorityRank(NamedTuple):
 
 
 class WinterSchoolParticipantRanker(ParticipantRanker):
-    def __init__(self, execution_datetime: Optional[datetime] = None):
+    def __init__(self, execution_datetime: datetime | None = None):
         # It's important that we be able to simulate the future time with `execution_datetime`
         # If test-running the lottery in advance, we want the same ranking to be used later
         self.lottery_runtime = execution_datetime or local_now()
@@ -286,7 +286,7 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
         surplus = self.number_trips_led(participant) - total
         return max(surplus, 0)  # Don't penalize anybody for a negative balance
 
-    def lowest_non_driver(self, trip: models.Trip) -> Optional[models.SignUp]:
+    def lowest_non_driver(self, trip: models.Trip) -> models.SignUp | None:
         """Return the lowest priority non-driver on the trip."""
         no_car = Q(participant__lotteryinfo__isnull=True) | Q(
             participant__lotteryinfo__car_status='none'

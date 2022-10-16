@@ -1,5 +1,4 @@
 from functools import wraps
-from typing import Optional
 
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth.decorators import user_passes_test
@@ -32,7 +31,7 @@ def participant_required(view_func):
         if request.participant:
             return view_func(request, *args, **kwargs)
 
-        next_url: Optional[str] = None
+        next_url: str | None = None
         if request.user.is_authenticated:
             next_url = resolve_url(reverse('edit_profile'))
 
@@ -73,7 +72,7 @@ def group_required(*group_names, **kwargs):
             if allow_anonymous and not request.user.is_authenticated:
                 return view_func(request, *args, **kwargs)
             if profile_needs_update(request):
-                next_url: Optional[str] = resolve_url(reverse('edit_profile'))
+                next_url: str | None = resolve_url(reverse('edit_profile'))
             elif request.user.is_authenticated and in_groups(request.user):
                 return view_func(request, *args, **kwargs)
             else:  # Either logged in & missing groups, or not logged in

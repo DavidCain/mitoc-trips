@@ -1,6 +1,5 @@
 import logging
 from collections.abc import Iterator
-from typing import Union
 
 import requests
 from django.contrib.auth.models import AnonymousUser
@@ -27,7 +26,7 @@ def get_latest_membership(participant: models.Participant) -> models.Membership:
 
 
 def reasons_cannot_attend(
-    user: Union[models.User, AnonymousUser], trip: models.Trip
+    user: models.User | AnonymousUser, trip: models.Trip
 ) -> Iterator[enums.TripIneligibilityReason]:
     """Yield reasons why the user is not allowed to attend the trip.
 

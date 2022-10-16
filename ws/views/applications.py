@@ -7,7 +7,6 @@ and/or ratings.
 """
 from collections import defaultdict
 from collections.abc import Iterator, Mapping
-from typing import Optional, Union
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -334,10 +333,10 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type:
             activity=self.activity_enum.value,
         )
 
-    def existing_rating(self) -> Optional[models.LeaderRating]:
+    def existing_rating(self) -> models.LeaderRating | None:
         return self.par_ratings.filter(active=True).first()
 
-    def existing_rec(self) -> Optional[models.LeaderRecommendation]:
+    def existing_rec(self) -> models.LeaderRecommendation | None:
         """Load an existing recommendation for the viewing participant."""
         return models.LeaderRecommendation.objects.filter(
             creator=self.chair,
@@ -346,7 +345,7 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type:
             time_created__gte=self.object.time_created,
         ).first()
 
-    def _rating_to_prefill(self) -> Optional[str]:
+    def _rating_to_prefill(self) -> str | None:
         """Return the rating that we should prefill the form with (if applicable).
 
         Possible return values:
@@ -380,7 +379,7 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type:
             return ''  # No consensus
         return proposed_ratings.pop()
 
-    def get_initial(self) -> dict[str, Union[str, bool]]:
+    def get_initial(self) -> dict[str, str | bool]:
         """Pre-populate the rating/recommendation form.
 
         This method tries to provide convenience for common scenarios:

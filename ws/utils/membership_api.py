@@ -17,7 +17,7 @@ Basic structure of the shared response type:
     }
 """
 from datetime import date
-from typing import Any, Literal, Optional, TypedDict
+from typing import Any, Literal, TypedDict
 
 from ws import models
 from ws.utils import geardb
@@ -38,13 +38,13 @@ Status = Literal[
 
 
 class _OnlyMembershipDict(TypedDict):
-    expires: Optional[str]
+    expires: str | None
     active: bool
-    email: Optional[str]
+    email: str | None
 
 
 class _OnlyWaiverDict(TypedDict):
-    expires: Optional[str]
+    expires: str | None
     active: bool
 
 
@@ -101,9 +101,9 @@ def _represent_status(
 
 
 def _format_membership(
-    email: Optional[str],
-    membership_expires: Optional[date],
-    waiver_expires: Optional[date],
+    email: str | None,
+    membership_expires: date | None,
+    waiver_expires: date | None,
 ) -> MembershipDict:
     person = _blank_membership()
     membership, waiver = person['membership'], person['waiver']
