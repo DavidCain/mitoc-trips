@@ -1743,7 +1743,7 @@ class LeaderApplication(models.Model):
         return 'winter_school' if activity == 'winterschool' else activity
 
     @staticmethod
-    def model_from_activity(activity: enums.Activity) -> Type[models.Model]:
+    def model_from_activity(activity: enums.Activity) -> Type['LeaderApplication']:
         """Get the specific inheriting child from the activity.
 
         Inverse of activity().
@@ -1757,6 +1757,7 @@ class LeaderApplication(models.Model):
         model_class = content_type.model_class()
         if model_class is None:
             raise NoApplicationDefined(f"No application for {activity.label}")
+        assert issubclass(model_class, LeaderApplication)
         return model_class
 
     class Meta:

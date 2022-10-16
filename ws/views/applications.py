@@ -6,7 +6,7 @@ and activity chairs can respond to those applications with recommendations
 and/or ratings.
 """
 from collections import defaultdict
-from typing import Dict, Mapping, Optional, Union
+from typing import Dict, Iterator, List, Mapping, Optional, Tuple, Union
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -185,10 +185,13 @@ class AllLeaderApplicationsView(ApplicationManager, ListView):  # type: ignore[m
         return self.sorted_annotated_applications()
 
     @staticmethod
-    def _group_applications_by_year(applications):
+    def _group_applications_by_year(
+        applications: List[models.LeaderApplication],
+    ) -> Iterator[Tuple[int, List[models.LeaderApplication]]]:
         apps_by_year = defaultdict(list)
         for app in applications:
-            if app.num_ratings:
+            # num_ratings is annotated by `ApplicationManager`
+            if app.num_ratings or app.archived:  # type: ignore[attr-defined]
                 apps_by_year[app.year].append(app)
 
         for year, apps in sorted(apps_by_year.items(), reverse=True):

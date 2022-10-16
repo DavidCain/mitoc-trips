@@ -159,7 +159,12 @@
       <tbody>
         {% for application in applications %}
           <tr>
-            <td><a href="{% url 'view_application' activity_enum.value application.id %}">{{ application.participant.name }}</a></td>
+            <td>
+              {% if application.archived %}
+                <i class="fa fa-archive" title="Archived"></i>
+              {% endif %}
+              <a href="{% url 'view_application' activity_enum.value application.id %}">{{ application.participant.name }}</a>
+            </td>
             <td>{{ application.previous_rating }}</td>
             <td>{{ application.desired_rating }}</td>
             <td>{{ application.participant|activity_rating:activity_enum }}</td>

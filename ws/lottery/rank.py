@@ -229,8 +229,12 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
     @staticmethod
     def trips_flaked(participant: models.Participant) -> Set[int]:
         """Return the IDs of trips the participant has flaked on."""
+        # This is a lousy hack to work around mypy.
+        # Locally, `participant.feedback_set` raises `attr-defined`, which I ignore
+        # But then in CI, `# type: ignore[attr-defined` is flagged as unused
+        feedback: QuerySet[models.Feedback] = getattr(participant, 'feedback_set')
         return set(
-            participant.feedback_set.filter(
+            feedback.filter(
                 showed_up=False, trip__program=enums.Program.WINTER_SCHOOL.value
             )
             .values_list('trip__pk', flat=True)

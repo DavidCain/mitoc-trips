@@ -1,6 +1,5 @@
 from typing import List, Type
 
-from django import db
 from django.contrib.auth.models import User
 from django.db.models import Case, F, IntegerField, Q, QuerySet, Sum, When
 
@@ -32,7 +31,7 @@ class LeaderApplicationMixin:
 
     # The model is meant to be a class attribute of SingleObjectMixin
     @property
-    def model(self) -> Type[db.models.Model]:
+    def model(self) -> Type[models.LeaderApplication]:
         """Return the application model for this activity type.
 
         The model will be None if no application exists for the activity.

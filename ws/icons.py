@@ -2,7 +2,7 @@ from types import MappingProxyType
 from typing import Mapping
 
 from django.utils.html import escape
-from django.utils.safestring import mark_safe
+from django.utils.safestring import SafeString, mark_safe
 
 from ws import models
 from ws.enums import Program, TripType
@@ -71,11 +71,11 @@ def _describe(trip):
     return trip.get_trip_type_display()
 
 
-def for_trip(trip):
+def for_trip(trip: models.Trip) -> SafeString:
     """Return (safe) HTML with an icon that describes the trip."""
     icon = fa_icon_for_trip(trip)
     if not icon:
-        return ''
+        return mark_safe('')  # (For consistent return type)
     solid_regular = 'far' if icon == 'hand-rock' else 'fa'
     title = escape(_describe(trip))
     html = f'<i class="{solid_regular} fa-fw fa-{icon}" title="{title}"></i>'
