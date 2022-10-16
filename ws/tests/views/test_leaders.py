@@ -66,10 +66,10 @@ class DeactivateLeaderRatingsViewTest(TestCase):
         self.assertTrue(climbing.active)
 
     def test_successfully_deactivate(self):
-        remove1, remove2, keep = [
+        remove1, remove2, keep = (
             factories.LeaderRatingFactory.create(activity=enums.Activity.HIKING.value)
             for _i in range(3)
-        ]
+        )
 
         perm_utils.make_chair(self.chair.user, enums.Activity.HIKING)
 

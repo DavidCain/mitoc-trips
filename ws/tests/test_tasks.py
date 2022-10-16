@@ -107,12 +107,12 @@ class TaskTests(TestCase):
     @patch('ws.tasks.send_email_to_funds')
     def test_send_tomorrow_itineraries(send_email_to_funds):
         """Only trips taking place the next day have itineraries sent out."""
-        _yesterday, _today, tomorrow, _two_days_from_now = [
+        _yesterday, _today, tomorrow, _two_days_from_now = (
             factories.TripFactory.create(
                 trip_date=date(2019, 1, day), info=factories.TripInfoFactory.create()
             )
             for day in [24, 25, 26, 27]
-        ]
+        )
 
         tasks.send_sole_itineraries()
 

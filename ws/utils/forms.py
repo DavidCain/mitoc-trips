@@ -10,5 +10,4 @@ def all_choices(choices):
         # Right side is either:
         # - another named group (nesting up to twice)
         # - an iterable of (value, label) tuples
-        for choice in all_choices(right):
-            yield choice
+        yield from all_choices(right)

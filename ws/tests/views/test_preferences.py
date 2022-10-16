@@ -243,7 +243,7 @@ class LotteryPreferencesSignupTests(TestCase, LotteryPrefsPostHelper):
         """By default, we list ranked signups by time of creation."""
         par = factories.ParticipantFactory.create(lotteryinfo=None)
 
-        okay, fave, hate = [
+        okay, fave, hate = (
             factories.SignUpFactory.create(
                 participant=par,
                 trip__algorithm='lottery',
@@ -252,7 +252,7 @@ class LotteryPreferencesSignupTests(TestCase, LotteryPrefsPostHelper):
                 trip__name=name,
             )
             for name in ['So-so', 'Amazing', 'Blech']
-        ]
+        )
 
         # Signups for other types of trips are excluded; only upcoming WS trips
         factories.SignUpFactory.create(
@@ -289,7 +289,7 @@ class LotteryPreferencesSignupTests(TestCase, LotteryPrefsPostHelper):
         """We allow participants to remove signups."""
         par = factories.ParticipantFactory.create(lotteryinfo=None)
 
-        keep, kill = [
+        keep, kill = (
             factories.SignUpFactory.create(
                 participant=par,
                 trip__algorithm='lottery',
@@ -298,7 +298,7 @@ class LotteryPreferencesSignupTests(TestCase, LotteryPrefsPostHelper):
                 trip__name=name,
             )
             for name in ['Great trip', 'Bad trip']
-        ]
+        )
 
         self.client.force_login(par.user)
         response = self._post(
@@ -317,7 +317,7 @@ class LotteryPreferencesSignupTests(TestCase, LotteryPrefsPostHelper):
         """Participants may manually rank their signups in order of preference."""
         par = factories.ParticipantFactory.create(lotteryinfo=None)
 
-        okay, fave, hate = [
+        okay, fave, hate = (
             factories.SignUpFactory.create(
                 participant=par,
                 trip__algorithm='lottery',
@@ -326,7 +326,7 @@ class LotteryPreferencesSignupTests(TestCase, LotteryPrefsPostHelper):
                 trip__name=name,
             )
             for name in ['So-so', 'Amazing', 'Blech']
-        ]
+        )
 
         self.client.force_login(par.user)
         response = self._post(

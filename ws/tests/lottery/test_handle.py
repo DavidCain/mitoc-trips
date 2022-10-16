@@ -493,14 +493,14 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
 
     def test_bump_single_participant(self):
         """We try to place a participant on less-preferred trips if possible."""
-        (best, middle, worst) = [
+        (best, middle, worst) = (
             factories.TripFactory.create(
                 algorithm='lottery',
                 program=enums.Program.WINTER_SCHOOL.value,
                 maximum_participants=1,
             )
             for i in range(3)
-        ]
+        )
 
         par = factories.ParticipantFactory.create()
         factories.SignUpFactory.create(participant=par, trip=best, order=1)
@@ -593,7 +593,7 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
 
     def test_bumped_bypassing_full_trip(self):
         """If a participant is bumped, their other signups' trips may be full."""
-        trip1, trip2, trip3 = [
+        trip1, trip2, trip3 = (
             factories.TripFactory.create(
                 name=f"Trip {i}",
                 algorithm='lottery',
@@ -601,7 +601,7 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
                 maximum_participants=2,
             )
             for i in range(1, 4)
-        ]
+        )
 
         # These two participants will be placed, one after the other
         other_par = factories.ParticipantFactory.create(affiliation="NA")

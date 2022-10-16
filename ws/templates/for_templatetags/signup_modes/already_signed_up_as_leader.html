@@ -1,0 +1,29 @@
+{# This template has several very key assumptions: #}
+{# - The leader isn't on the trip as a normal participant #}
+{# - The leader isn't in the collect of trip leaders. #}
+{% if trip.signups_open %}
+  <div class="panel panel-primary">
+    <div class="panel-heading">
+      You signed up as a leader before, but are not currently on the trip.
+    </div>
+    <div class="panel-body">
+      <p>
+        If you can be a leader on this trip, you can add yourself back!
+      </p>
+      {% if existing_leader_signup.notes %}
+      <p>
+        Signup notes cannot be edited once written, but your original notes are:
+        <p class="text-muted">
+          {{ existing_leader_signup.notes }}
+        </p>
+      </p>
+      {% endif %}
+    </div>
+    <div class="panel-footer">
+      <form action="{% url 'view_trip' trip.pk %}" method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-success">Rejoin trip as leader</button>
+      </form>
+    </div>
+  </div>
+{% endif %}

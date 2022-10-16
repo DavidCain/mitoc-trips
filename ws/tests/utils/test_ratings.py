@@ -69,9 +69,9 @@ class DatabaselessOneChairTests(SimpleTestCase, ApplicationManagerHelper):
 class DatabaseApplicationManagerTests(TestCase):
     def setUp(self):
         self.participant = factories.ParticipantFactory.create()
-        self.alice, self.bob, self.charlie = [
+        self.alice, self.bob, self.charlie = (
             factories.ParticipantFactory.create() for _ in 'abc'
-        ]
+        )
         for chair in [self.alice, self.bob, self.charlie]:
             perm_utils.make_chair(chair.user, enums.Activity.CLIMBING)
         self.application = factories.ClimbingLeaderApplicationFactory.create(
