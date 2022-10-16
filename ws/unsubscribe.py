@@ -6,7 +6,7 @@ However, we provide this method for single-click unsubscribe links.
 """
 import enum
 from datetime import timedelta
-from typing import List, NamedTuple, Optional, Set, TypedDict
+from typing import NamedTuple, Optional, TypedDict
 
 from django.conf import settings
 from django.core import signing
@@ -29,7 +29,7 @@ class UnsubscribeTarget(NamedTuple):
     """The participant who wishes to unsubscribe, and the emails they should stop getting."""
 
     participant_pk: int
-    email_types: Set[EmailType]
+    email_types: set[EmailType]
 
 
 class TokenPayload(TypedDict):
@@ -41,7 +41,7 @@ class TokenPayload(TypedDict):
     # An unordered list of email types to unsubscribe from (duplicates will be ignored)
     # Note that these are just the primitive ints behind `EmailType`
     # TODO: how can I properly annotate "not instances of the enum, but the values?"
-    emails: List[int]
+    emails: list[int]
 
 
 def _get_signer(key: Optional[str] = None) -> signing.TimestampSigner:

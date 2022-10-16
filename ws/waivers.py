@@ -1,6 +1,6 @@
 import typing
 import xml.etree.ElementTree as ET
-from typing import Any, Dict, List, Optional, TypedDict
+from typing import Any, Optional, TypedDict
 
 import requests
 from mitoc_const import affiliations
@@ -32,7 +32,7 @@ class InitiatedWaiverResult(typing.NamedTuple):
     url: Optional[str]
 
 
-def get_headers() -> Dict[str, str]:
+def get_headers() -> dict[str, str]:
     """Get standard headers to be used with every DocuSign API request."""
     creds = ET.Element('DocuSignCredentials')
     ET.SubElement(creds, 'Username').text = settings.DOCUSIGN_USERNAME
@@ -61,7 +61,7 @@ def get_base_url() -> str:
     return resp.json()['loginAccounts'][0]['baseUrl']
 
 
-DocusignTabs = Dict[str, List[Dict[str, Any]]]
+DocusignTabs = dict[str, list[dict[str, Any]]]
 
 
 def prefilled_tabs(participant) -> DocusignTabs:
@@ -105,7 +105,7 @@ def get_roles(
     releasor: Person,
     participant: Optional[models.Participant] = None,
     guardian: Optional[Person] = None,
-) -> List[DocusignRole]:
+) -> list[DocusignRole]:
     """Return the role definitions, with pre-filled data if available.
 
     When we create the envelope, the waiver will be sent to the releasor (and a

@@ -11,9 +11,10 @@ import bisect
 import logging
 import os.path
 import random
+from collections.abc import Iterator
 from datetime import timedelta
 from itertools import zip_longest
-from typing import Iterator, NamedTuple, Tuple
+from typing import NamedTuple
 
 import gspread
 import requests
@@ -108,7 +109,7 @@ class SheetWriter:
     )
 
     discount: models.Discount
-    header: Tuple[str, ...]
+    header: tuple[str, ...]
 
     def __init__(self, discount: models.Discount, trust_cache: bool):
         """Identify the columns that will be used in the spreadsheet."""
@@ -116,7 +117,7 @@ class SheetWriter:
         self.header = self._header_for_discount(discount)
         self.trust_cache = trust_cache
 
-    def _header_for_discount(self, discount: models.Discount) -> Tuple[str, ...]:
+    def _header_for_discount(self, discount: models.Discount) -> tuple[str, ...]:
         # These columns appear in all discount sheets
         header = [self.labels.name, self.labels.email, self.labels.membership]
 
@@ -227,7 +228,7 @@ class SheetWriter:
             return f'Expired {membership.membership_expires.isoformat()}'
         return 'Missing'
 
-    def get_row(self, participant: models.Participant) -> Tuple[str, ...]:
+    def get_row(self, participant: models.Participant) -> tuple[str, ...]:
         """Get the row values that match the header for this discount sheet."""
         row_mapper = {
             self.labels.name: participant.name,

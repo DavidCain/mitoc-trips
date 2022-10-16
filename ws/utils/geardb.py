@@ -5,8 +5,9 @@ The gear database is itself a Django application, which we interface with
 via machine-to-machine API endpoints.
 """
 import logging
+from collections.abc import Iterable, Iterator
 from datetime import date, datetime, timedelta
-from typing import Any, Dict, Iterable, Iterator, List, NamedTuple, Optional, Tuple
+from typing import Any, NamedTuple, Optional
 from urllib.parse import urljoin
 
 import requests
@@ -21,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 API_BASE = 'https://mitoc-gear.mit.edu/'
 
-JsonDict = Dict[str, Any]
+JsonDict = dict[str, Any]
 
 
 class MembershipWaiver(NamedTuple):
@@ -69,7 +70,7 @@ def gear_bearer_jwt(**payload) -> str:
     return api_util.bearer_jwt(settings.GEARDB_SECRET_KEY, **payload)
 
 
-def query_api(route: str, **params: Any) -> List[JsonDict]:
+def query_api(route: str, **params: Any) -> list[JsonDict]:
     """Request results from the API on mitoc-gear.mit.edu."""
     response = requests.get(
         urljoin(API_BASE, route),
@@ -83,7 +84,7 @@ def query_api(route: str, **params: Any) -> List[JsonDict]:
     response.raise_for_status()
 
     body = response.json()
-    results: List[JsonDict] = body['results']
+    results: list[JsonDict] = body['results']
 
     if body['next']:
         logger.error(
@@ -98,7 +99,7 @@ def query_api(route: str, **params: Any) -> List[JsonDict]:
     return results
 
 
-def _verified_emails(user: models.User) -> List[str]:
+def _verified_emails(user: models.User) -> list[str]:
     """Return all email addresses that the user is verified to own.
 
     We should only ever report results for email addresses we know the user controls.
@@ -144,7 +145,7 @@ def query_geardb_for_membership(user: models.User) -> Optional[MembershipWaiver]
     )
 
 
-def outstanding_items(emails: List[str]) -> Iterator[Rental]:
+def outstanding_items(emails: list[str]) -> Iterator[Rental]:
     """Return all items that are currently checked out to one or more members.
 
     This method supports listing items for an individual participant (who may
@@ -175,7 +176,7 @@ def outstanding_items(emails: List[str]) -> Iterator[Rental]:
         person, gear = result['person'], result['gear']
 
         # Map from the person record back to the requested email address
-        all_known_emails: List[str] = [person['email'], *person['alternate_emails']]
+        all_known_emails: list[str] = [person['email'], *person['alternate_emails']]
         try:
             email = next(e for e in all_known_emails if e.lower() in to_original_case)
         except StopIteration as err:
@@ -193,7 +194,7 @@ def outstanding_items(emails: List[str]) -> Iterator[Rental]:
         )
 
 
-def user_rentals(user: models.User) -> List[Rental]:
+def user_rentals(user: models.User) -> list[Rental]:
     """Return items which the user has rented (which can be reported to that user).
 
     It's very, very important that these emails be *verified*.
@@ -256,7 +257,7 @@ def update_affiliation(participant: models.Participant) -> Optional[requests.Res
     return response
 
 
-def trips_information() -> Dict[int, TripsInformation]:
+def trips_information() -> dict[int, TripsInformation]:
     """Give important counts, indexed by user IDs.
 
     Each participant has a singular underlying user. This user has one or more
@@ -269,7 +270,7 @@ def trips_information() -> Dict[int, TripsInformation]:
         When(signup__on_trip=True, then=1), default=0, output_field=IntegerField()
     )
 
-    trips_per_participant: Dict[int, int] = dict(
+    trips_per_participant: dict[int, int] = dict(
         models.Participant.objects.all()
         .annotate(
             # NOTE: Adding other annotations results in double-counting signups
@@ -279,7 +280,7 @@ def trips_information() -> Dict[int, TripsInformation]:
         .values_list('pk', 'num_trips_attended')
     )
 
-    additional_stats: Iterable[Tuple[int, int, int, int]] = (
+    additional_stats: Iterable[tuple[int, int, int, int]] = (
         models.Participant.objects.all()
         .annotate(
             num_discounts=Count('discounts', distinct=True),
@@ -299,7 +300,7 @@ def trips_information() -> Dict[int, TripsInformation]:
 
 
 # NOTE: This method is only used for the (leaders-only, hacky, `/stats` endpoint)
-def membership_information() -> Dict[int, MembershipInformation]:
+def membership_information() -> dict[int, MembershipInformation]:
     """All current active members, annotated with additional info.
 
     For each paying member, we also mark if they:

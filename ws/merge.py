@@ -9,7 +9,6 @@ occasionally merge these accounts into one. The end result is that they get an
 account where they can log in with either email address, and get access to a
 complete history.
 """
-from typing import Dict, Tuple
 
 from django.db import connections, transaction
 
@@ -18,7 +17,7 @@ from ws import models
 # An enumeration of columns that we explicitly intend to migrate in `ws`, grouped by table
 # If any table has a column with a foreign key to ws_participant that is not in here, we will error
 # Unless explicitly handled, each will be automatically migrated
-EXPECTED_PARTICIPANT_TABLES: Dict[str, Tuple[str, ...]] = {
+EXPECTED_PARTICIPANT_TABLES: dict[str, tuple[str, ...]] = {
     'ws_trip': ('creator_id', 'wimp_id', 'last_updated_by_id'),
     'ws_leaderrating': ('participant_id', 'creator_id'),
     'ws_feedback': ('participant_id', 'leader_id'),
@@ -47,7 +46,7 @@ EXPECTED_PARTICIPANT_TABLES: Dict[str, Tuple[str, ...]] = {
 
 # An enumeration of user FK columns that we explicitly intend to migrate
 # Each one must be *manually handled!*
-EXPECTED_USER_TABLES: Dict[str, Tuple[str, ...]] = {
+EXPECTED_USER_TABLES: dict[str, tuple[str, ...]] = {
     'auth_user_groups': ('user_id',),
     'auth_user_user_permissions': ('user_id',),
     'account_emailaddress': ('user_id',),
@@ -103,7 +102,7 @@ def _fk_tables(cursor, src_table, col):
 
 
 def check_fk_tables(
-    cursor, src_table: str, column: str, expected: Dict[str, Tuple[str, ...]]
+    cursor, src_table: str, column: str, expected: dict[str, tuple[str, ...]]
 ) -> None:
     """Check that the foreign keys are what we expect them to be.
 

@@ -17,13 +17,13 @@ Basic structure of the shared response type:
     }
 """
 from datetime import date
-from typing import Any, Dict, Literal, Optional, TypedDict
+from typing import Any, Literal, Optional, TypedDict
 
 from ws import models
 from ws.utils import geardb
 from ws.utils.dates import local_date
 
-JsonDict = Dict[str, Any]
+JsonDict = dict[str, Any]
 
 
 # This is a simple string literal we show to humans to summarize membership status.

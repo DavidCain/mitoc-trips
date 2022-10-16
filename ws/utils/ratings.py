@@ -1,5 +1,3 @@
-from typing import List, Type
-
 from django.contrib.auth.models import User
 from django.db.models import Case, F, IntegerField, Q, QuerySet, Sum, When
 
@@ -31,7 +29,7 @@ class LeaderApplicationMixin:
 
     # The model is meant to be a class attribute of SingleObjectMixin
     @property
-    def model(self) -> Type[models.LeaderApplication]:
+    def model(self) -> type[models.LeaderApplication]:
         """Return the application model for this activity type.
 
         The model will be None if no application exists for the activity.
@@ -155,7 +153,7 @@ class ApplicationManager(LeaderApplicationMixin, RatingsRecommendationsMixin):
             return False
         return True
 
-    def needs_rec(self, applications) -> List[models.LeaderApplication]:
+    def needs_rec(self, applications) -> list[models.LeaderApplication]:
         """Applications which need to be given a rating by the viewing chair.
 
         If there's only one chair, then this will be a blank list (it makes no sense
@@ -179,7 +177,7 @@ class ApplicationManager(LeaderApplicationMixin, RatingsRecommendationsMixin):
             return bool(app.num_recs)
         return True
 
-    def needs_rating(self, applications) -> List[models.LeaderApplication]:
+    def needs_rating(self, applications) -> list[models.LeaderApplication]:
         """Return applications which need a rating, but not a recommendation.
 
         When there are multiple chairs, we count certain applications as

@@ -1,5 +1,5 @@
+from collections.abc import Mapping
 from types import MappingProxyType
-from typing import Mapping
 
 from django.utils.html import escape
 from django.utils.safestring import SafeString, mark_safe

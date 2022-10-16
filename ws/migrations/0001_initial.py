@@ -1,5 +1,3 @@
-from typing import List, Tuple
-
 import django.core.validators
 import django.db.models.deletion
 import django.utils.timezone
@@ -14,7 +12,7 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies: List[Tuple[str, str]] = []
+    dependencies: list[tuple[str, str]] = []
 
     operations = [
         migrations.CreateModel(

@@ -1,5 +1,5 @@
 from datetime import date
-from typing import Dict, List, Optional, Tuple
+from typing import Optional
 
 from django.db.models import Q
 
@@ -253,7 +253,7 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
             signups = signups.filter(trip__in=self.paired_par.trip_set.all())
         return signups
 
-    def place_participant(self) -> Optional[Dict]:
+    def place_participant(self) -> Optional[dict]:
         """Attempt to place the participant (and their partner, if any) on the best trip.
 
         If it's not possible to place them yet, None will be returned (and they will
@@ -355,7 +355,7 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
             return info
 
         # Try to place participants on their first choice available trip
-        skipped_to_avoid_driver_bump: List[Tuple[int, models.SignUp]] = []
+        skipped_to_avoid_driver_bump: list[tuple[int, models.SignUp]] = []
         for rank, signup in enumerate(future_signups, start=1):
             if signup not in desired_signups:
                 self.logger.debug("Ignoring undesired signup %s", signup)

@@ -2,7 +2,7 @@ import itertools
 import random
 import unittest
 from datetime import date
-from typing import ClassVar, List
+from typing import ClassVar
 from unittest.mock import patch
 
 import factory
@@ -279,9 +279,9 @@ class SingleTripParticipantRankerTests(TestCase):
 
 @freeze_time("Wed, 24 Jan 2018 09:00:00 EST")  # Scheduled after 2nd week of WS
 class FlakeFactorTests(TestCase):
-    last_season_trips: ClassVar[List[models.Trip]]
-    three_trips: ClassVar[List[models.Trip]]
-    all_trips: ClassVar[List[models.Trip]]
+    last_season_trips: ClassVar[list[models.Trip]]
+    three_trips: ClassVar[list[models.Trip]]
+    all_trips: ClassVar[list[models.Trip]]
 
     def setUp(self):
         self.participant = ParticipantFactory.create()

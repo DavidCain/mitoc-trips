@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple, Union
+from typing import Optional, Union
 
 from django import forms
 from django.core.exceptions import ValidationError
@@ -194,7 +194,7 @@ class EmergencyInfoForm(forms.ModelForm):
 class LeaderRecommendationForm(forms.ModelForm):
     class Meta:
         model = models.LeaderRecommendation
-        exclude: List[str] = []
+        exclude: list[str] = []
 
 
 class ApplicationLeaderForm(forms.ModelForm):
@@ -663,7 +663,7 @@ def amount_choices(value_is_amount=False):
 
     def include_amount_in_label(
         affiliation_code: str, label: str
-    ) -> Tuple[Union[int, str], str]:
+    ) -> tuple[Union[int, str], str]:
         amount = models.Participant.affiliation_to_membership_price(affiliation_code)
         annotated_label = f"{label} (${amount})"
 

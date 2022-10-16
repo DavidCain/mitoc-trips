@@ -6,7 +6,8 @@ and activity chairs can respond to those applications with recommendations
 and/or ratings.
 """
 from collections import defaultdict
-from typing import Dict, Iterator, List, Mapping, Optional, Tuple, Union
+from collections.abc import Iterator, Mapping
+from typing import Optional, Union
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -186,8 +187,8 @@ class AllLeaderApplicationsView(ApplicationManager, ListView):  # type: ignore[m
 
     @staticmethod
     def _group_applications_by_year(
-        applications: List[models.LeaderApplication],
-    ) -> Iterator[Tuple[int, List[models.LeaderApplication]]]:
+        applications: list[models.LeaderApplication],
+    ) -> Iterator[tuple[int, list[models.LeaderApplication]]]:
         apps_by_year = defaultdict(list)
         for app in applications:
             # num_ratings is annotated by `ApplicationManager`
@@ -379,7 +380,7 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type:
             return ''  # No consensus
         return proposed_ratings.pop()
 
-    def get_initial(self) -> Dict[str, Union[str, bool]]:
+    def get_initial(self) -> dict[str, Union[str, bool]]:
         """Pre-populate the rating/recommendation form.
 
         This method tries to provide convenience for common scenarios:

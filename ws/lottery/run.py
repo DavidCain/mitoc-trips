@@ -1,10 +1,11 @@
 import io
 import json
 import logging
+from collections.abc import Mapping
 from datetime import datetime
 from pathlib import Path
 from types import MappingProxyType
-from typing import Dict, Mapping, Optional
+from typing import Optional
 
 from mitoc_const import affiliations
 
@@ -38,8 +39,8 @@ class LotteryRunner:
         self.logger = logging.getLogger(self.logger_id)
         self.logger.setLevel(logging.DEBUG)
 
-        self._participants_seen: Dict[int, bool] = {}
-        self._participants_handled: Dict[int, bool] = {}
+        self._participants_seen: dict[int, bool] = {}
+        self._participants_handled: dict[int, bool] = {}
 
     @property
     def logger_id(self) -> str:

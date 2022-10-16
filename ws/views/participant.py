@@ -6,7 +6,7 @@ user who has completed the mandatory signup information is given a Participant
 object that's linked to their user account.
 """
 import logging
-from typing import Dict, List, Optional
+from typing import Optional
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -338,7 +338,7 @@ class ParticipantView(
         }
 
     @staticmethod
-    def get_stats(trips) -> List[str]:
+    def get_stats(trips) -> list[str]:
         if not any(trips['past'].values()):
             return []
 
@@ -358,7 +358,7 @@ class ParticipantView(
 
         return stats
 
-    def _lecture_info(self, participant, user_viewing: bool) -> Dict[str, bool]:
+    def _lecture_info(self, participant, user_viewing: bool) -> dict[str, bool]:
         """Describe the participant's lecture attendance, if applicable."""
         can_set_attendance = self.can_set_attendance(participant)
 

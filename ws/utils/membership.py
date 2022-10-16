@@ -1,5 +1,6 @@
 import logging
-from typing import Iterator, Union
+from collections.abc import Iterator
+from typing import Union
 
 import requests
 from django.contrib.auth.models import AnonymousUser

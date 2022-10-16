@@ -7,7 +7,6 @@ of the participant.
 """
 import json
 from datetime import datetime
-from typing import Dict, Set
 
 from django.contrib import messages
 from django.db.models import Q
@@ -213,7 +212,7 @@ class LotteryPreferencesView(TemplateView, LotteryPairingMixin):
         """Save the rankings given by the participant, optionally removing any signups."""
         par = self.request.participant
         posted_signups = self.post_data['signups']
-        required_fields: Set[str] = {'id', 'deleted', 'order'}
+        required_fields: set[str] = {'id', 'deleted', 'order'}
 
         for ps in posted_signups:
             for key in required_fields:
@@ -229,7 +228,7 @@ class LotteryPreferencesView(TemplateView, LotteryPairingMixin):
             self.ranked_signups.filter(pk__in=to_del_ids).delete()
 
         # Next, explicitly rank signups that the participant listed
-        order_per_signup: Dict[int, int] = {
+        order_per_signup: dict[int, int] = {
             int(p['id']): int(p['order']) for p in posted_signups if not p['deleted']
         }
         signups = models.SignUp.objects.filter(participant=par, pk__in=order_per_signup)

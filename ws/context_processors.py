@@ -14,7 +14,7 @@ def angular_templates(request):
     return {'angular_templates': for_caching}
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def cached_templates():
     """Cache templates so that we don't need to lead with each request."""
     return dict(get_all_angular_templates())

@@ -8,7 +8,6 @@ trip). When the lottery algorithm runs, the participant may be placed on the
 trip (`on_trip=True`). Depending on the particular algorithm, participants that
 were not awarded a spot on the trip may have a waitlist entry created for them.
 """
-from typing import Type
 
 from django import db
 from django import forms as django_forms
@@ -31,8 +30,8 @@ class BaseSignUpView(CreateView, LotteryPairingMixin):
     template_name = 'trips/signup.html'
 
     # Both model & form class will be overridden by children
-    model: Type[db.models.Model]
-    form_class: Type[django_forms.ModelForm]
+    model: type[db.models.Model]
+    form_class: type[django_forms.ModelForm]
 
     @property
     def participant(self):

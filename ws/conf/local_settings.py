@@ -7,7 +7,7 @@ feature testing.
   - Project root is just '/'
   - Send emails to console
 """
-from typing import Any, Dict, List
+from typing import Any
 
 DEBUG = True
 ALLOWED_HOSTS = ['*']
@@ -25,8 +25,8 @@ INTERNAL_IPS = ['127.0.0.1', '192.168.33.15']
 # Tell Celery to only attempt once, then immediately give up.
 # (by default, Celery will retry forever)
 # This makes development faster when running with no local broker
-CELERY_BROKER_TRANSPORT_OPTIONS: Dict[str, Any] = {'max_retries': 0}
+CELERY_BROKER_TRANSPORT_OPTIONS: dict[str, Any] = {'max_retries': 0}
 
 # Any participant with the password 'foobar' need not hit the HIBP API to check if pwned.
 # (we know it's pwned, and it should never be allowed in production, but it's fine locally)
-WHITELISTED_BAD_PASSWORDS: List[str] = ['foobar']
+WHITELISTED_BAD_PASSWORDS: list[str] = ['foobar']

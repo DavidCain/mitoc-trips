@@ -1,5 +1,4 @@
 import enum
-from typing import Dict
 from urllib.parse import urlencode
 
 from django.urls import reverse
@@ -132,7 +131,7 @@ class TripIneligibilityReason(enum.Enum):
         initiate_waiver = reverse('initiate_waiver')
 
         # "you must... "
-        mapping: Dict[ProfileProblem, str] = {
+        mapping: dict[ProfileProblem, str] = {
             self.NOT_LOGGED_IN: f'<a href="{account_login}">log in</a>',
             self.NO_PROFILE_INFO: f'provide <a href="{edit_profile}">personal information</a>',
             self.IS_TRIP_WIMP: 'be replaced in your role as the trip WIMP',

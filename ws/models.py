@@ -1,6 +1,7 @@
 import re
+from collections.abc import Iterator
 from datetime import date, datetime, timedelta
-from typing import Dict, Iterator, List, Optional, Tuple, Type, Union
+from typing import Optional, Union
 from urllib.parse import urlencode, urljoin
 
 import markdown2
@@ -342,7 +343,7 @@ class Participant(models.Model):
         Membership, null=True, blank=True, on_delete=models.CASCADE
     )
 
-    AFFILIATION_CHOICES: List[Tuple[str, Union[str, List[Tuple[str, str]]]]] = [
+    AFFILIATION_CHOICES: list[tuple[str, Union[str, list[tuple[str, str]]]]] = [
         (
             'Undergraduate student',
             [
@@ -591,7 +592,7 @@ class Participant(models.Model):
         self,
         membership_expires: Optional[date] = None,
         waiver_expires: Optional[date] = None,
-    ) -> Tuple[Membership, bool]:
+    ) -> tuple[Membership, bool]:
         """Update our own cached membership with new information."""
         acct, created = Membership.objects.get_or_create(participant=self)
         if membership_expires:
@@ -966,7 +967,7 @@ trips_search_vector = (
 class Trip(models.Model):
     # When ordering trips which need approval, apply consistent ordering
     # (Defined here to keep the table's default ordering in sync with prev/next buttons
-    ordering_for_approval: Tuple[str, ...] = ('trip_date', 'trip_type', 'info', 'level')
+    ordering_for_approval: tuple[str, ...] = ('trip_date', 'trip_type', 'info', 'level')
 
     last_updated_by = models.ForeignKey(
         Participant,
@@ -1173,7 +1174,7 @@ class Trip(models.Model):
             par_pks = [participant.pk for participant in for_participants]
         else:
             par_pks = [s.participant_id for s in self.on_trip_or_waitlisted]
-        trips_by_par: Dict[int, List[Trip]] = {pk: [] for pk in par_pks}
+        trips_by_par: dict[int, list[Trip]] = {pk: [] for pk in par_pks}
 
         # Start by identifying trips the participants are attending as participants
         for signup in self._other_signups(par_pks):
@@ -1743,7 +1744,7 @@ class LeaderApplication(models.Model):
         return 'winter_school' if activity == 'winterschool' else activity
 
     @staticmethod
-    def model_from_activity(activity: enums.Activity) -> Type['LeaderApplication']:
+    def model_from_activity(activity: enums.Activity) -> type['LeaderApplication']:
         """Get the specific inheriting child from the activity.
 
         Inverse of activity().
@@ -1992,7 +1993,7 @@ class ClimbingLeaderApplication(LeaderApplication):
 
         Return the URL, optionally prefilling participant information or embedding.
         """
-        kwargs: Dict[str, str] = {}
+        kwargs: dict[str, str] = {}
         if embedded:
             kwargs['embedded'] = 'true'
         if participant:

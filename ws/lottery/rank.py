@@ -1,7 +1,8 @@
 import random
+from collections.abc import Mapping
 from datetime import datetime, timedelta
 from types import MappingProxyType
-from typing import Dict, Mapping, NamedTuple, Optional, Set
+from typing import NamedTuple, Optional
 
 from django.db.models import Q, QuerySet
 from mitoc_const import affiliations
@@ -11,7 +12,7 @@ from ws.utils.dates import local_now
 
 from . import annotate_reciprocally_paired
 
-_normal_weights: Dict[str, float] = {
+_normal_weights: dict[str, float] = {
     affiliations.MIT_UNDERGRAD.CODE: 0.3,
     affiliations.MIT_GRAD_STUDENT.CODE: 0.2,
     affiliations.MIT_AFFILIATE.CODE: 0.1,
@@ -227,7 +228,7 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
         return (flaked * 5) - (2 * attended)
 
     @staticmethod
-    def trips_flaked(participant: models.Participant) -> Set[int]:
+    def trips_flaked(participant: models.Participant) -> set[int]:
         """Return the IDs of trips the participant has flaked on."""
         # This is a lousy hack to work around mypy.
         # Locally, `participant.feedback_set` raises `attr-defined`, which I ignore

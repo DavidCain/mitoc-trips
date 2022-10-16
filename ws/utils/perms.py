@@ -1,5 +1,6 @@
 import functools
-from typing import Iterable, List, Optional, Union
+from collections.abc import Iterable
+from typing import Optional, Union
 
 from django.contrib.auth.models import AnonymousUser, Group, User
 from django.db.models import QuerySet
@@ -10,7 +11,7 @@ from ws import enums
 # This is technically only accurate when starting the web server,
 # but that's okay (new groups are created extremely rarely)
 # This allows us to avoid repeatedly querying groups.
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def all_group_names():
     return set(Group.objects.values_list('name', flat=True))
 
@@ -110,7 +111,7 @@ def activity_chairs(activity_enum) -> QuerySet[User]:
 def chair_activities(
     user: User,
     allow_superusers: bool = False,
-) -> List[enums.Activity]:
+) -> list[enums.Activity]:
     """All activities for which the user is the chair."""
     return [
         activity_enum

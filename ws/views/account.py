@@ -2,7 +2,7 @@
 Views relating to account management.
 """
 import logging
-from typing import Optional, Tuple
+from typing import Optional
 from urllib.parse import urlencode
 
 from allauth.account.views import LoginView, PasswordChangeView
@@ -67,7 +67,7 @@ class CheckIfPwnedOnLoginView(LoginView):
       of breached passwords - we should check on every login.
     """
 
-    def _form_valid_perform_login(self, form) -> Tuple[Optional[int], HttpResponse]:
+    def _form_valid_perform_login(self, form) -> tuple[Optional[int], HttpResponse]:
         """Performs login with a correct username/password.
 
         Returns if this password has been seen in data breaches, plus the
