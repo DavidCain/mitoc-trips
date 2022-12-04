@@ -6,7 +6,7 @@
       <th>Name</th>  {# Link out #}
       <th data-type="numeric" class="nowrap">Date</th>
       {% if approve_mode and trip_list.0.activity == 'winter_school' %}
-        <th data-hide="phone,tablet" class="nowrap">Level</th>
+        <th data-hide="phone,tablet" class="nowrap">Terrain level</th>
       {% endif %}
       <th data-hide="phone,tablet" data-sort-ignore="true">Description</th>
       {% if not approve_mode %}
@@ -42,7 +42,7 @@
         </td>
 
         {% if approve_mode and trip.activity == 'winter_school' %}
-          <td>{{ trip.level }}</td>
+          <td>{{ trip.winter_terrain_level }}</td>
         {% endif %}
 
         <td>

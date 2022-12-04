@@ -215,7 +215,7 @@ class TripFactory(DjangoModelFactory):
     name = factory.Sequence(lambda n: f"Test Trip #{n + 1}")
     description = "An awesome trip into the Whites"
     difficulty_rating = "Intermediate"
-    level = "B"
+    winter_terrain_level = "B"
     activity = "winter_school"  # TODO: Remove!
     trip_type = enums.TripType.HIKING.value
     program = enums.Program.WINTER_SCHOOL.value

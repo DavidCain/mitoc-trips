@@ -16,8 +16,8 @@
     {% if show_trip_type %}
       <li style="list-style-position: inside; margin-left: 5px;"><strong>Type</strong>: {{ trip.get_trip_type_display }}</li>
     {% endif %}
-    {% if trip.level %}
-      <li style="list-style-position: inside; margin-left: 5px;"><strong>Level</strong>: {{ trip.level }}</li>
+    {% if trip.winter_terrain_level %}
+      <li style="list-style-position: inside; margin-left: 5px;"><strong>Terrain level</strong>: {{ trip.winter_terrain_level }}</li>
     {% endif %}
     <li style="list-style-position: inside; margin-left: 5px;"><strong>Difficulty rating:</strong> {{ trip.difficulty_rating }}</li>
     {% if trip.leaders.count %}

@@ -308,7 +308,7 @@ class TripForm(forms.ModelForm):
             'trip_type',
             'maximum_participants',
             'difficulty_rating',
-            'level',
+            'winter_terrain_level',
             'leaders',
             'wimp',
             # Settings
@@ -399,13 +399,12 @@ class TripForm(forms.ModelForm):
             self.add_error('leaders', f"{names} can't lead {program_enum.label} trips")
         return self.cleaned_data
 
-    def clean_level(self):
-        """Remove extra whitespace from the level, strip if not WS."""
+    def clean_winter_terrain_level(self) -> str | None:
+        """Strip terrain level if not WS."""
         program = self.cleaned_data.get('program')
-        program_enum = enums.Program(program) if program else None
-        if program_enum and not program_enum.winter_rules_apply():
+        if program and not enums.Program(program).winter_rules_apply():
             return None
-        return self.cleaned_data.get('level', '').strip()
+        return self.cleaned_data.get('winter_terrain_level', '')
 
     def _init_wimp(self):
         """Configure the WIMP widget, load saved participant if applicable."""
@@ -456,13 +455,18 @@ class TripForm(forms.ModelForm):
         self.fields['leaders'].queryset = models.Participant.objects.get_queryset()
         self.fields['leaders'].help_text = None  # Disable "Hold command..."
 
-        # We'll dynamically hide the level widget on GET if it's not a winter trip
-        # On POST, we only want this field required for winter trips
-        program = self.data.get('program')
-        program_enum = enums.Program(program) if program else None
-        self.fields['level'].required = (
-            program_enum and program_enum.winter_rules_apply()
-        )
+        # We'll dynamically hide the level widget on GET if it's not a winter trip.
+        # If it *is* displayed though, it should be rendered with `required`.
+        # On POST, we only want this field required for winter trips.
+        if self.data.get('program'):  # Loading trip or creating new one
+            program = self.data['program']
+            program_enum = enums.Program(program) if program else None
+            self.fields['winter_terrain_level'].required = (
+                program_enum and program_enum.winter_rules_apply()
+            )
+        else:
+            # New trip -- say that field is required.
+            self.fields['winter_terrain_level'].required = True
 
         initial_program: enums.Program | None = trip.pk and trip.program_enum
 

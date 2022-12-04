@@ -11,8 +11,8 @@ Program: {{ trip.get_program_display }}{% if trip.program_enum.is_winter_school 
 Type: {{ trip.get_trip_type_display }}
 {% endif %}
 
-{% if trip.level %}
-Level: {{ trip.level }}
+{% if trip.winter_terrain_level %}
+Terrain level: {{ trip.winter_terrain_level }}
 {% endif %}
 
 Difficulty rating: {{ trip.difficulty_rating }}

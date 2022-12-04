@@ -18,7 +18,7 @@ class EmailTagsTests(TestCase):
             name="Some Cool Upcoming Trip",
             program=enums.Program.WINTER_NON_IAP.value,
             trip_type=enums.TripType.HIKING.value,
-            level='C',
+            winter_terrain_level='C',
             trip_date=date(2025, 12, 14),
             difficulty_rating='Advanced',
             prereqs='Comfort with rough terrain',
@@ -46,7 +46,7 @@ class EmailTagsTests(TestCase):
                 'Sunday, December 14',
                 'Program: Winter (outside IAP)',
                 #'Type: None',  # Omitted because it's not terribly helpful.
-                'Level: C',
+                'Terrain level: C',
                 'Difficulty rating: Advanced',
                 'Prerequisites: Comfort with rough terrain',
                 'Spaces remaining: 8',
@@ -62,7 +62,7 @@ class EmailTagsTests(TestCase):
         trip = self._make_trip(
             program=enums.Program.NONE.value,
             trip_type=enums.TripType.OTHER.value,
-            level=None,
+            winter_terrain_level=None,
         )
         txt_template = Template(
             '{% load email_tags %}{% upcoming_trip_summary_txt trip %}'
@@ -77,7 +77,7 @@ class EmailTagsTests(TestCase):
                 'Sunday, December 14',
                 #'Program: None',  # Omitted because it's not terribly helpful.
                 'Type: Other',
-                # 'Level: ...',  # Omitted because this isn't a WS trip.
+                # 'Terrain level: ...',  # Omitted because this isn't a WS trip.
                 'Difficulty rating: Advanced',
                 'Prerequisites: Comfort with rough terrain',
                 'Spaces remaining: 8',
@@ -103,7 +103,7 @@ class EmailTagsTests(TestCase):
                 'Sunday, December 14',
                 'Program: Winter (outside IAP)',
                 'Type: Hiking',
-                'Level: C',
+                'Terrain level: C',
                 'Difficulty rating: Advanced',
                 'Prerequisites: Comfort with rough terrain',
                 'Spaces remaining: 8',
@@ -144,7 +144,7 @@ class EmailTagsTests(TestCase):
                 f'      <li style="{inline["li"]}"><strong>Program</strong>: Winter (outside IAP)',
                 f'      </li>',
                 f'      <li style="{inline["li"]}"><strong>Type</strong>: Hiking</li>',
-                f'      <li style="{inline["li"]}"><strong>Level</strong>: C</li>',
+                f'      <li style="{inline["li"]}"><strong>Terrain level</strong>: C</li>',
                 f'    <li style="{inline["li"]}"><strong>Difficulty rating:</strong> Advanced</li>',
                 f'      <li style="{inline["li"]}"><strong>Prerequisites:</strong> Comfort with rough terrain</li>',
                 f'      <li style="{inline["li"]}"><strong>Spaces remaining:</strong> 8</li>',

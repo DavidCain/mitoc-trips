@@ -965,7 +965,12 @@ trips_search_vector = (
 class Trip(models.Model):
     # When ordering trips which need approval, apply consistent ordering
     # (Defined here to keep the table's default ordering in sync with prev/next buttons
-    ordering_for_approval: tuple[str, ...] = ('trip_date', 'trip_type', 'info', 'level')
+    ordering_for_approval: tuple[str, ...] = (
+        'trip_date',
+        'trip_type',
+        'info',
+        'winter_terrain_level',
+    )
 
     last_updated_by = models.ForeignKey(
         Participant,
@@ -990,7 +995,11 @@ class Trip(models.Model):
         choices=LeaderRating.ACTIVITY_CHOICES,
         default=LeaderRating.WINTER_SCHOOL,
     )
-    trip_type = models.CharField(max_length=255, choices=enums.TripType.choices())
+    trip_type = models.CharField(
+        max_length=255,
+        verbose_name='Primary trip activity',
+        choices=enums.TripType.choices(),
+    )
     creator = models.ForeignKey(
         Participant, related_name='created_trips', on_delete=models.CASCADE
     )
@@ -1028,6 +1037,20 @@ class Trip(models.Model):
         null=True,
         blank=True,
         help_text="This trip's A, B, or C designation (plus I/S rating if applicable).",
+    )
+    winter_terrain_level = models.CharField(
+        verbose_name='Terrain level',
+        null=True,
+        blank=True,
+        max_length=1,
+        choices=[
+            ('A', 'A: <1 hour to intensive care, below treeline'),
+            ('B', 'B: >1 hour to intensive care, below treeline'),
+            ('C', 'C: above treeline'),
+        ],
+        help_text=mark_safe(
+            'Trip leaders must meet <a href="/help/participants/ws_ratings/">requirements for terrain & activity ratings</a>.',
+        ),
     )
     prereqs = models.CharField(max_length=255, blank=True, verbose_name="Prerequisites")
     chair_approved = models.BooleanField(default=False)
