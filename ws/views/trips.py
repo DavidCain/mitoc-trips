@@ -6,13 +6,13 @@ attended by any interested participants.
 """
 from collections import defaultdict
 from datetime import date, timedelta
-from typing import cast
 from urllib.parse import urlencode
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
+from django.db.models import Q, QuerySet
 from django.forms.utils import ErrorList
 from django.http import Http404, HttpResponseBadRequest
 from django.shortcuts import redirect, render
@@ -531,20 +531,53 @@ class TripSearchView(ListView, FormView):
     context_object_name = 'matching_trips'
 
     query: str = ''
+    limit: int = 100
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['query'] = self.request.GET.get('q', '')
+        context['max_results_shown'] = len(context['matching_trips']) == self.limit
         return context
 
-    def form_valid(self, form: forms.TripSearchForm):
-        query = cast(str, form.cleaned_data['query'])
-        qs = urlencode({"q": query})
-        return redirect(reverse('trips_search') + f'?{qs}')
+    def get_initial(self):
+        """Use the querystring to populate the form."""
+        return {
+            label: self.request.GET.get(label, '')
+            for label in self.form_class.declared_fields
+        }
 
-    def get_queryset(self):
+    def form_valid(self, form: forms.TripSearchForm):
+        """Populate successful form contents into the URL."""
+        params = {
+            label: form.cleaned_data[label]
+            for label in form.declared_fields
+            if form.cleaned_data[label]
+        }
+        url = reverse('trips_search')
+        if params:
+            url += f'?{urlencode(params)}'
+        else:
+            messages.error(self.request, "Specify a search query and/or some filters!")
+        return redirect(url)
+
+    def get_queryset(self) -> QuerySet[models.Trip]:
+        """Return sorted trip matches based on the query and/or filters."""
+        if not self.request.GET:
+            return models.Trip.objects.none()
+
         query = self.request.GET.get('q', '')
-        return annotated_for_trip_list(models.Trip.search_trips(query))
+        specified_filters = {
+            field: value
+            for field, value in self.request.GET.items()
+            if value and field in ('winter_terrain_level', 'trip_type', 'program')
+        }
+        return annotated_for_trip_list(
+            models.Trip.search_trips(
+                query,
+                filters=Q(**specified_filters) if specified_filters else None,
+                limit=self.limit,
+            ),
+        )
 
 
 class ApproveTripsView(ListView):

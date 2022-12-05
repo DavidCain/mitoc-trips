@@ -2,12 +2,27 @@
 {% load crispy_forms_tags %}
 {% load trip_tags %}
 
+{% block head_title %}
+Search trips
+{% endblock head_title %}
+
 {% block content %}
 {{ block.super }}
 
 <form action="" method="post">
   {% csrf_token %}
-  {{ form|crispy }}
+  {{ form.q|as_crispy_field }}
+  <div class="row">
+    <div class="col-md-4">
+      {{ form.program|as_crispy_field }}
+    </div>
+    <div class="col-md-4">
+      {{ form.winter_terrain_level|as_crispy_field }}
+    </div>
+    <div class="col-md-4">
+      {{ form.trip_type|as_crispy_field }}
+    </div>
+  </div>
   <button type="submit" class="btn btn-primary">Search</button>
 </form>
 
@@ -15,6 +30,11 @@
 
 {% if matching_trips %}
   {% trip_list_table matching_trips %}
+  {% if max_results_shown %}
+    <p>
+      <em>Results limited. Try a more specific search.</em>
+    </p>
+  {% endif %}
 {% else %}
   {% if query %}
     <div class="alert alert-warning">No matching trips!</div>

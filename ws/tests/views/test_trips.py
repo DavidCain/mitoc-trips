@@ -486,6 +486,140 @@ class EditTripViewTest(TestCase, Helpers):
         self.assertEqual(trip.edit_revision, 2)
 
 
+class SearchTripsViewTest(TestCase):
+    def setUp(self):
+        self.user = factories.UserFactory.create()
+        self.client.force_login(self.user)
+
+    def test_initial_page_load_no_trips(self):
+        factories.TripFactory.create()
+        soup = BeautifulSoup(self.client.get('/trips/search/').content, 'html.parser')
+        self.assertIsNone(soup.find('table'))
+
+    def test_empty_post_redirects(self):
+        """Posting an empty form is valid, but we warn about it."""
+        resp = self.client.post('/trips/search/', follow=True)
+        self.assertIn(b'Specify a search query and/or some filters', resp.content)
+
+    def test_search_redirects_to_get(self):
+        """To show users that search works with GET, we just redirect."""
+        resp = self.client.post(
+            '/trips/search/', {'q': 'Frankenstein', 'program': 'climbing'}
+        )
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(resp.url, '/trips/search/?q=Frankenstein&program=climbing')
+
+    def test_free_text_search(self):
+        """We support full-text search on trips."""
+        # Create three trips -- only two contain 'Frankenstein'
+        factories.TripFactory.create(name="Blue Hills", description="Let's hike!")
+        factories.TripFactory.create(name="Frankenstein Cliffs", description="Woo ice")
+        factories.TripFactory.create(
+            name="Leader social",
+            # Note that the vector can make sense of "Frankenstein's"
+            description="Eat so much ice cream your stomach will sound like Frankenstein's monster.",
+        )
+        soup = BeautifulSoup(
+            self.client.get('/trips/search/?q=Frankenstein').content,
+            'html.parser',
+        )
+        table = soup.find('table').find('tbody')
+        trips = table.find_all('tr')
+        self.assertEqual(
+            [trip.find('a').text.strip() for trip in trips],
+            # "Frankenstein" in the title weights it first
+            ['Frankenstein Cliffs', 'Leader social'],
+        )
+
+    def test_filters_only(self):
+        """We can search for trips with *only* filters, and no search query."""
+        factories.TripFactory.create(name="Franconia Ridge", winter_terrain_level='C')
+        factories.TripFactory.create(name="Mt. Washington", winter_terrain_level='C')
+        factories.TripFactory.create(
+            name="Washington ice",
+            winter_terrain_level='C',
+            trip_type=enums.TripType.ICE_CLIMBING.value,
+        )
+        factories.TripFactory.create(
+            name="Non WS trip",
+            program=enums.Program.CLIMBING.value,
+        )
+
+        soup = BeautifulSoup(
+            self.client.get(
+                '/trips/search/?winter_terrain_level=C&trip_type=climbing_ice'
+            ).content,
+            'html.parser',
+        )
+        table = soup.find('table').find('tbody')
+        trips = table.find_all('tr')
+        self.assertEqual(
+            [trip.find('a').text.strip() for trip in trips],
+            ['Washington ice'],
+        )
+
+    def test_search_and_filters_only(self):
+        """We can search using a query and some filters."""
+        # Couple B trips, couple ice trips, but only one B Ice trip
+        factories.TripFactory.create(
+            name="New Hampshire Franconia Ridge",
+            winter_terrain_level='B',
+            trip_type=enums.TripType.HIKING.value,
+        )
+        factories.TripFactory.create(
+            name="New Hampshire Frankenstein ice",
+            winter_terrain_level='B',
+            trip_type=enums.TripType.ICE_CLIMBING.value,
+        )
+        factories.TripFactory.create(
+            name="New Hampshire Mt. Washington",
+            winter_terrain_level='C',
+            trip_type=enums.TripType.HIKING.value,
+        )
+        factories.TripFactory.create(
+            name="New Hampshire Washington ice",
+            winter_terrain_level='C',
+            trip_type=enums.TripType.ICE_CLIMBING.value,
+        )
+        factories.TripFactory.create(
+            name="Non WS trip",
+            program=enums.Program.CLIMBING.value,
+        )
+
+        # First show that we match all the trips by search "Hampshire" *only*
+        rows_from_search_only = (
+            BeautifulSoup(
+                self.client.get('/trips/search/?q=Hampshire').content,
+                'html.parser',
+            )
+            .find('table')
+            .find('tbody')
+            .find_all('tr')
+        )
+        self.assertCountEqual(
+            [trip.find('a').text.strip() for trip in rows_from_search_only],
+            {
+                "New Hampshire Franconia Ridge",
+                "New Hampshire Frankenstein ice",
+                "New Hampshire Mt. Washington",
+                "New Hampshire Washington ice",
+            },
+        )
+
+        # Finally, we can filter to BI trips in New Hampshire -- we get just the one!
+        soup = BeautifulSoup(
+            self.client.get(
+                '/trips/search/?q=Hampshire&winter_terrain_level=B&trip_type=climbing_ice'
+            ).content,
+            'html.parser',
+        )
+        rows = soup.find('table').find('tbody').find_all('tr')
+        self.assertEqual(
+            [trip.find('a').text.strip() for trip in rows],
+            ['New Hampshire Frankenstein ice'],
+        )
+
+
 class ApproveTripsViewTest(TestCase):
     def setUp(self):
         self.user = factories.UserFactory.create()

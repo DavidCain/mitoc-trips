@@ -270,12 +270,35 @@ class LeaderForm(forms.ModelForm):
 
 
 class TripSearchForm(forms.Form):
-    query = forms.CharField(required=True)
+    q = forms.CharField(required=False)
+    trip_type = forms.ChoiceField(
+        required=False,
+        label=models.Trip.trip_type.field.verbose_name,  # type:ignore[attr-defined]
+        choices=[('', 'Any'), *enums.TripType.choices()],
+    )
+    program = forms.ChoiceField(
+        required=False,
+        choices=[('', 'Any'), *enums.Program.choices()],
+    )
+    winter_terrain_level = forms.ChoiceField(
+        required=False,
+        label="Terrain level",
+        choices=[
+            ('', 'Any'),
+            *[
+                (level, level)
+                for (
+                    level,
+                    _label,
+                ) in models.Trip.winter_terrain_level.field.choices  # type:ignore[attr-defined]
+            ],
+        ],
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['query'].widget.attrs['placeholder'] = 'Franconia Notch...'
-        self.fields['query'].label = False
+        self.fields['q'].widget.attrs['placeholder'] = 'Franconia Notch...'
+        self.fields['q'].label = False
 
 
 class TripInfoForm(forms.ModelForm):

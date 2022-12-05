@@ -1371,14 +1371,21 @@ class Trip(models.Model):
         return [leader.name_with_rating(self) for leader in self.leaders.all()]
 
     @classmethod
-    def search_trips(cls, text: str):
+    def search_trips(cls, text: str, filters: None | Q, limit: int = 100):
+        trips = cls.objects.filter(filters) if filters else cls.objects.all()
+        # It's valid to not provide a search term at all.
+        # In this case, there's no real meaningful way to "rank" matches; put newest first.
+        if not text:
+            return trips.order_by('-pk')[:limit]
+
         query = SearchQuery(text)
         return (
-            cls.objects.annotate(
-                search=trips_search_vector, rank=SearchRank(trips_search_vector, query)
+            trips.annotate(
+                search=trips_search_vector,
+                rank=SearchRank(trips_search_vector, query),
             )
-            .filter(search=text, rank__gte=0.3)
-            .order_by('rank')[:100]
+            .filter(search=text, rank__gte=0.2)
+            .order_by('-rank')[:limit]
         )
 
     @property
