@@ -107,7 +107,7 @@ urlpatterns = [
     path(
         'trips/search/',
         views.TripSearchView.as_view(),
-        name='trips_search',
+        name='search_trips',
     ),
     # Leader views
     path('leaders/', views.AllLeadersView.as_view(), name='leaders'),

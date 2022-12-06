@@ -556,7 +556,7 @@ class TripSearchView(ListView, FormView):
             for label in form.declared_fields
             if form.cleaned_data[label]
         }
-        url = reverse('trips_search')
+        url = reverse('search_trips')
         if params:
             url += f'?{urlencode(params)}'
         else:
