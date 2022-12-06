@@ -36,7 +36,7 @@ Search trips
     </p>
   {% endif %}
 {% else %}
-  {% if query %}
+  {% if has_valid_search %}
     <div class="alert alert-warning">No matching trips!</div>
   {% endif %}
 {% endif %}

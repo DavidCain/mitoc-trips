@@ -535,7 +535,10 @@ class TripSearchView(ListView, FormView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['query'] = self.request.GET.get('q', '')
+        context['has_valid_search'] = any(
+            self.request.GET.get(field)
+            for field in forms.TripSearchForm.declared_fields
+        )
         context['max_results_shown'] = len(context['matching_trips']) == self.limit
         return context
 

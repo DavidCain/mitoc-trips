@@ -502,6 +502,22 @@ class SearchTripsViewTest(TestCase):
         soup = BeautifulSoup(self.client.get('/trips/search/').content, 'html.parser')
         self.assertIsNone(soup.find('table'))
 
+    def test_no_results_from_text_search(self):
+        factories.TripFactory.create()
+        soup = BeautifulSoup(
+            self.client.get('/trips/search/?q=Paintball').content, 'html.parser'
+        )
+        self.assertIsNone(soup.find('table'))
+        self.assertIn('No matching trips!', soup.text)
+
+    def test_no_results_from_filters(self):
+        factories.TripFactory.create(program=enums.Program.CLIMBING.value)
+        soup = BeautifulSoup(
+            self.client.get('/trips/search/?program=hiking').content, 'html.parser'
+        )
+        self.assertIsNone(soup.find('table'))
+        self.assertIn('No matching trips!', soup.text)
+
     def test_empty_post_redirects(self):
         """Posting an empty form is valid, but we warn about it."""
         resp = self.client.post('/trips/search/', follow=True)
