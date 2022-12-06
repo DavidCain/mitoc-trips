@@ -491,6 +491,12 @@ class SearchTripsViewTest(TestCase):
         self.user = factories.UserFactory.create()
         self.client.force_login(self.user)
 
+    def test_login_required(self):
+        self.client.logout()
+        resp = self.client.get('/trips/search/')
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(resp.url, '/accounts/login/?next=/trips/search/')
+
     def test_initial_page_load_no_trips(self):
         factories.TripFactory.create()
         soup = BeautifulSoup(self.client.get('/trips/search/').content, 'html.parser')
