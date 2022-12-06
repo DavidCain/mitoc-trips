@@ -989,6 +989,7 @@ class Trip(models.Model):
         # For now, just default program to 'none' (we don't yet have form handling)
         # Later, do not define a default - we'll populate based on leader/time of year
         default=enums.Program.NONE.value,
+        db_index=True,
     )
     activity = models.CharField(
         max_length=31,
@@ -999,6 +1000,7 @@ class Trip(models.Model):
         max_length=255,
         verbose_name='Primary trip activity',
         choices=enums.TripType.choices(),
+        db_index=True,
     )
     creator = models.ForeignKey(
         Participant, related_name='created_trips', on_delete=models.CASCADE
@@ -1051,6 +1053,7 @@ class Trip(models.Model):
         help_text=mark_safe(
             'Trip leaders must meet <a href="/help/participants/ws_ratings/">requirements for terrain & activity ratings</a>.',
         ),
+        db_index=True,
     )
     prereqs = models.CharField(max_length=255, blank=True, verbose_name="Prerequisites")
     chair_approved = models.BooleanField(default=False)
@@ -1063,7 +1066,7 @@ class Trip(models.Model):
 
     time_created = models.DateTimeField(auto_now_add=True)
     last_edited = models.DateTimeField(auto_now=True)
-    trip_date = models.DateField(default=date_utils.nearest_sat)
+    trip_date = models.DateField(default=date_utils.nearest_sat, db_index=True)
     signups_open_at = models.DateTimeField(
         # Rounding to whole minutes simplifies UX on trip creation form
         # (seconds field will be hidden by most browsers, see `step` attribute too!)
