@@ -394,7 +394,7 @@ class ParticipantDetailViewTest(TestCase):
         feedback = soup.find(id='feedback').find_next('table')
         self.assertEqual(
             strip_whitespace(feedback.find_next('td').text),
-            'Flaked! oo srephh ,twihlien lnSd rmleartpagtsal choeanrudt',
+            'oo srephh ,twihlien lnSd rmleartpagtsal choeanrudt',
         )
 
         # There's a button which enables us to view this feedback, unscrambled.

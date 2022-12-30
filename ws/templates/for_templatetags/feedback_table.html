@@ -28,9 +28,9 @@
     </thead>
     <tbody>
     {% for feedback in all_feedback %}
-      <tr {% if not feedback.showed_up %}class="danger"{% endif %}>
+      <tr{% if not feedback.showed_up and not scramble_contents %} class="danger"{% endif %}>
         <td>
-          {% if not feedback.showed_up %}
+          {% if not feedback.showed_up and not scramble_contents %}
             <span class="label label-danger">Flaked!</span>
           {% endif %}
 
