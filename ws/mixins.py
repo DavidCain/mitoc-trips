@@ -52,21 +52,19 @@ class LectureAttendanceMixin:
 
     request: HttpRequest
 
-    def can_set_attendance(self, participant_to_modify) -> bool:
+    def can_set_attendance(self, participant_to_modify: models.Participant) -> bool:
         """Return if the requesting user can set the participant's WS attendance."""
-        # WS chairs can set any time for any user
-        if perm_utils.is_chair(self.request.user, enums.Activity.WINTER_SCHOOL, True):
-            return True
+        # Only the WS chairs can set attendance for others.
+        if participant_to_modify.user_id != self.request.user.id:
+            return perm_utils.is_chair(
+                self.request.user, enums.Activity.WINTER_SCHOOL, allow_superusers=True
+            )
 
-        # Non-chairs are only allowed during WS when setting enabled
-        if not is_currently_iap():
+        # Setting your own attendance is only allowed when setting is on
+        if not is_currently_iap():  # (Save a db query for the rest of the year)
             return False
         settings = models.WinterSchoolSettings.load()
-        if not settings.allow_setting_attendance:
-            return False
-
-        # Non-chairs may only set attendance for themselves
-        return participant_to_modify.user_id == self.request.user.id
+        return settings.allow_setting_attendance
 
 
 def _allowed_to_modify_trip(trip: models.Trip, request: HttpRequest) -> bool:

@@ -6,6 +6,7 @@ user who has completed the mandatory signup information is given a Participant
 object that's linked to their user account.
 """
 import logging
+from typing import Any
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -390,13 +391,15 @@ class ParticipantView(
             'attended_lectures': attended_lectures,
         }
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs) -> dict[str, Any]:
         participant = self.object = self.get_object()
         trips = self.get_trips()
 
         e_info = participant.emergency_info
         e_contact = e_info.emergency_contact
-        user_viewing = self.request.participant == participant
+        user_viewing = (
+            self.request.participant == participant  # type:ignore[attr-defined]
+        )
 
         context = {
             **super().get_context_data(**kwargs),
