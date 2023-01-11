@@ -32,6 +32,7 @@ Status = Literal[
     "Missing Waiver",
     "Waiver Expired",
     "Active",
+    "Expiring Soon",  # (optional subtype of `Active`)
     "Missing Membership",
     "Expired",
 ]

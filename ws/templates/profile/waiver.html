@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load crispy_forms_tags %}
 {% load misc_tags %}
+{% load membership_tags %}
 
 {% block head_title %}
 Sign waiver
@@ -21,12 +22,8 @@ Sign waiver
 
   <div class="row">
     <div class="col-sm-12 col-md-6 col-md-push-6">
-      {% if user.is_authenticated %}
-        <membership-status
-          user-id="{{ user.id }}"
-          v-bind:show-full-faq="true"
-          v-bind:personalized="true">
-        </membership-status>
+      {% if viewing_participant %}
+        {% membership_status viewing_participant False True True %}
       {% endif %}
     </div>
     <div class="col-md-6 col-md-pull-6">

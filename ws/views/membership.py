@@ -5,22 +5,23 @@ Every MITOC member is required to have a current membership and waiver. Each of
 these documents expire after 12 months.
 """
 
+import requests
 from django.contrib import messages
-from django.http import HttpResponseNotAllowed
 from django.shortcuts import redirect
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.generic import FormView
 
 from ws import forms, waivers
 from ws.decorators import participant_or_anon
+from ws.utils.membership import get_latest_membership
 
 
 class PayDuesView(FormView):
     """Allow members to purchase a membership for an email address.
 
-    NOTE: This view only *displays* the form. If users attempt
-    to POST directly to the route, nothing will happen.
+    NOTE: This view only *displays* the form (the action is to an external URL).
+    We re-use POST to mean "fetch membership information and redirect."
 
     Memberships are linked to email addresses. It's possible to purchase a
     membership for somebody else, or to purchase one without a trips account.
@@ -35,14 +36,18 @@ class PayDuesView(FormView):
         return kwargs
 
     def post(self, request, *args, **kwargs):
-        """Inform users that posting the form is not allowed.
-
-        Instead, form contents should be submitted to CyberSource.
-        """
-        # As for why we need this:
-        # FormView supplies both GET and POST implementations.
-        # It's not possible to use just the GET implementation without POST.
-        return HttpResponseNotAllowed(["GET"])
+        """Manually update the cache (just in case participants are distrustful)."""
+        if request.participant:
+            try:
+                get_latest_membership(request.participant)
+            except requests.exceptions.RequestException:
+                messages.failure(
+                    request,
+                    "Error hitting MITOC's membership database. Try again later.",
+                )
+            else:
+                messages.success(request, "Fetched latest membership and waiver.")
+        return redirect(reverse('pay_dues'))
 
     @method_decorator(participant_or_anon)
     def dispatch(self, request, *args, **kwargs):

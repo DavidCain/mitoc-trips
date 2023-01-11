@@ -1,0 +1,111 @@
+<div>
+  <h3>Membership <span class="label {{ label_class }}" style="display: inline-block;">{{ status }}</span></h3>
+  <div>
+    <label>Dues:</label>
+      {% if membership.membership_expires %}
+        {% if membership.membership_active %}Valid until{% else %}Expired on{% endif %} {{ membership.membership_expires }}
+      {% else %}
+        Not found!
+      {% endif %}
+
+      {% if in_early_renewal_period and link_to_pay_dues %}
+        <p>
+          <a href="{% url 'pay_dues' %}">Renew today</a>
+          to extend your membership to
+          {{ membership.expiry_if_paid_today|date:"M j, Y" }}.
+        </p>
+      {% elif link_to_pay_dues %}
+        <a href="{% url 'pay_dues' %}">Pay dues</a>
+      {% endif %}
+  </div>
+  <div>
+    <label>Waiver:</label>
+      {% if membership.waiver_expires %}
+        {% if membership.waiver_active %}Valid until{% else %}Expired on{% endif %} {{ membership.waiver_expires }}
+      {% else %}
+        Not found!
+      {% endif %}
+
+      {% if link_to_sign_waiver %}
+        <a href="{% url 'initiate_waiver' %}">Sign a new waiver</a>
+      {% endif %}
+  </div>
+
+  {% if membership %}
+    <form action="{% url 'pay_dues' %}" method="post">
+      {% csrf_token %}
+      <small><em>Last updated {{ membership.last_cached }}</em></small>
+      {% if status != 'Active' %}
+        <button type="submit" class="btn btn-default btn-xs">Check again?</button>
+      {% endif %}
+    </form>
+  {% endif %}
+
+  {% if personalize %}
+    <br>
+    <div>
+      {% if membership.waiver_active and not membership.membership_active %}
+        <p>We have a current waiver on file, but no active membership.</p>
+        <p>
+          You can still participate in mini-trips, but you'll need
+          {% if link_to_pay_dues %}
+            <a href="{% url 'pay_dues' %}">a full MITOC membership</a>
+          {% else %}
+            a full MITOC membership
+          {% endif %}
+          in order to rent gear, use cabins, or join other trips.
+        </p>
+      {% endif %}
+
+      {% if status == 'Missing' %}
+        <p>
+          We have no membership information on file for any of your
+          <a href="/accounts/email/">verified email addresses</a>.
+        </p>
+
+        <p>
+          You must
+          {% if link_to_pay_dues %}
+            <a href="{% url 'pay_dues' %}">become a member</a>
+          {% else %}
+            become a member
+          {% endif %}
+
+          and
+
+          {% if link_to_sign_waiver %}
+            <a href="{% url 'initiate_waiver' %}">sign a new waiver</a>
+          {% else %}
+            sign a new waiver
+          {% endif %}
+          in order to participate on trips, rent gear, or use cabins.
+        </p>
+      {% elif not membership.membership_active or not membership.waiver_active %}
+        <div class="well">
+          <h5>Why isn't my membership or waiver showing up?</h5>
+          <p>
+            We search MITOC memberships and waivers under any of your
+          <a href="/accounts/email/">verified email addresses</a>.
+            If we find a matching record, we tie that to your account.
+          </p>
+
+          <p>
+            If you think you're a current member, but don't see yourself as active
+            here, you've most likely paid dues or signed the waiver under another
+            email address. Make sure that you add and verify any email address
+            that you may have signed up with.
+          </p>
+        </div>
+
+        <div class="well">
+          <h5>I'm still not seeing my membership or waiver</h5>
+          <p>
+            If you've paid your membership dues, signed the waiver, and are still
+            not seeing that you're an active member, please
+            <a href="{% url 'contact' %}">contact us</a>.
+          </p>
+        </div>
+      {% endif %}
+    </div>
+  {% endif %}
+</div>

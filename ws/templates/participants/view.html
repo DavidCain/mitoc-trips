@@ -2,6 +2,7 @@
 {% load avatar_tags %}
 {% load form_tags %}
 {% load medical_tags %}
+{% load membership_tags %}
 {% load messages_tags %}
 {% load misc_tags %}
 {% load perm_tags %}
@@ -202,11 +203,15 @@
 
     <div class="row">
       <div class="col-md-12 col-sm-6">
-        <membership-status
-          user-id="{{ participant.user_id }}"
-          v-bind:personalized="{{ user_viewing|yesno:"true,false" }}"
-          v-bind:just-signed="{{ just_signed|yesno:"true,false" }}">
-        </membership-status>
+        {% if participant.membership and not just_signed %}
+          {% membership_status participant user_viewing user_viewing False %}
+        {% elif just_signed %}
+          <membership-status
+            user-id="{{ participant.user_id }}"
+            v-bind:personalized="{{ user_viewing|yesno:"true,false" }}"
+            v-bind:just-signed="true"true,false" }}">
+          </membership-status>
+        {% endif %}
       </div>
       <div class="col-md-12 col-sm-6">
         <outstanding-rentals data-user-id="{{ participant.user_id }}">

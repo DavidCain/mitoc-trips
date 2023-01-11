@@ -132,10 +132,6 @@ class PayDuesTests(TestCase):
         # If this were a normal form view, the values above would be accepted
         self.assertTrue(forms.DuesForm(valid_form_data, participant=None).is_valid())
 
-        # However, submitting directly is not allowed
-        response = self.client.post('/profile/membership/', valid_form_data)
-        self.assertEqual(response.status_code, 405)
-
         # We can't test that CyberSource accepts the payload, so stop here
 
 

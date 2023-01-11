@@ -206,6 +206,13 @@ class Membership(models.Model):
             return False
         return expires >= date_utils.local_date()
 
+    @property
+    def waiver_active(self) -> bool:
+        expires = self.waiver_expires
+        if expires is None:
+            return False
+        return expires >= date_utils.local_date()
+
     def should_sign_waiver_for(self, trip: 'Trip') -> bool:
         """Return if the waiver will be valid for the day of the trip.
 

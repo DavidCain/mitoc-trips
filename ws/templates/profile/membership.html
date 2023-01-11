@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load crispy_forms_tags %}
+{% load membership_tags %}
 
 {% block head_title %}Membership dues{% endblock head_title %}
 
@@ -33,12 +34,8 @@
   {% endif %}
   <div class="row">
     <div class="col-sm-6 col-sm-push-6">
-      {% if user.is_authenticated %}
-        <membership-status
-          user-id="{{ user.id }}"
-          v-bind:show-full-faq="true"
-          v-bind:personalized="true">
-        </membership-status>
+      {% if viewing_participant %}
+        {% membership_status viewing_participant False True True %}
       {% endif %}
     </div>
     <div class="col-sm-6 col-sm-pull-6">
