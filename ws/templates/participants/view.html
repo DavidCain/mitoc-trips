@@ -186,7 +186,7 @@
     {% if user_viewing %}
       {% if wimp %}
         <h3>This Week's <a href="{% url 'help-wimp_guide' %}">WIMP</a></h3>
-        {% show_wimp wimp %}
+        {% show_wimp wimp True %}
         <hr>
       {% endif %}
       {% if messages %}
