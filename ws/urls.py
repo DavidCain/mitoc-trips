@@ -1,6 +1,6 @@
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import include, path, re_path, reverse_lazy
+from django.urls import include, path, reverse_lazy
 from django.views.generic import RedirectView, TemplateView
 
 from ws import api_views, feeds, settings, views
@@ -375,11 +375,6 @@ urlpatterns = [
         name='help-wsc',
     ),
     # API
-    re_path(
-        r'^leaders.json/(?:(?P<activity>.+)/)?$',
-        api_views.JsonAllLeadersView.as_view(),
-        name='json-leaders',
-    ),
     path(
         'programs/<slug:program>/leaders.json',
         api_views.JsonProgramLeadersView.as_view(),

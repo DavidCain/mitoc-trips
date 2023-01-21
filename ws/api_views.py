@@ -1,5 +1,4 @@
 import json
-from collections import defaultdict
 from collections.abc import Iterator
 from datetime import date
 
@@ -24,10 +23,8 @@ import ws.utils.signups as signup_utils
 from ws import enums, models, tasks
 from ws.decorators import group_required
 from ws.mixins import JsonTripLeadersOnlyView, TripLeadersOnlyView
-from ws.templatetags.avatar_tags import avatar_url
 from ws.utils import membership_api
 from ws.utils.api import jwt_token_from_headers
-from ws.views.leaders import AllLeadersView
 
 
 class SimpleSignupsView(DetailView):
@@ -421,57 +418,6 @@ class JsonProgramLeadersView(View):
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
-
-
-# TODO: DEPRECATED, remove once trips are created with program, not activity
-class JsonAllLeadersView(AllLeadersView):
-    """Give basic information about leaders, viewable to the public."""
-
-    def get_queryset(self):
-        leaders = super().get_queryset()
-        activity = self.kwargs.get('activity')
-        if activity:
-            leaders = leaders.filter(
-                leaderrating__activity=activity, leaderrating__active=True
-            ).distinct()
-        return leaders
-
-    @staticmethod
-    def all_active_ratings():
-        """Return all active ratings per leader, indexed by pk."""
-        ratings = models.LeaderRating.objects.filter(active=True)
-        by_leader = defaultdict(list)
-        for rating in ratings.values("participant_id", "activity", "rating"):
-            by_leader[rating.pop('participant_id')].append(rating)
-        return dict(by_leader)
-
-    def describe_leaders(self, with_ratings=False):
-        if with_ratings:
-            ratings_by_leader = self.all_active_ratings()
-
-        for leader in self.get_queryset():
-            json_leader = {
-                'id': leader.pk,
-                'name': leader.name,
-                # Use 200x200 for Retina display at 100x100 on mitoc.mit.edu
-                'gravatar': avatar_url(leader, 200),
-            }
-
-            # Full roster of leaders by rating is not meant to be public
-            if with_ratings:
-                json_leader['ratings'] = ratings_by_leader[leader.pk]
-            yield json_leader
-
-    def render_to_response(self, context, **response_kwargs):
-        user_is_leader = perm_utils.is_leader(self.request.user)
-        return JsonResponse(
-            {'leaders': list(self.describe_leaders(with_ratings=user_is_leader))}
-        )
-
-    def dispatch(self, request, *args, **kwargs):
-        # Give leader names and Gravatars to the public
-        # (Gravatar URLs hash the email with MD5)
-        return View.dispatch(self, request, *args, **kwargs)
 
 
 @login_required
