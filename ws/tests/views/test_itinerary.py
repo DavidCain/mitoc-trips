@@ -326,6 +326,11 @@ class ChairTripViewTest(TestCase):
             **kwargs,
         )
 
+    def test_invalid_activity(self):
+        trip = self._make_climbing_trip()
+        response = self.client.get(f'/curling/trips/{trip.pk}/')
+        self.assertEqual(response.status_code, 404)
+
     def test_must_be_chair(self):
         trip = self._make_climbing_trip()
         response = self.client.get(f'/climbing/trips/{trip.pk}/')

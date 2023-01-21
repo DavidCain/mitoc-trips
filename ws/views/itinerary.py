@@ -9,6 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.forms.utils import ErrorList
+from django.http import Http404
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.decorators import method_decorator
@@ -137,7 +138,8 @@ class ChairTripView(DetailView):
     template_name = 'chair/trips/view.html'
 
     @property
-    def activity_enum(self):
+    def activity_enum(self) -> enums.Activity:
+        """Note that this may raise a ValueError if given an unknown activity!"""
         return enums.Activity(self.kwargs['activity'])
 
     def get_queryset(self):
@@ -203,6 +205,11 @@ class ChairTripView(DetailView):
 
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
+        try:
+            enums.Activity(self.kwargs['activity'])
+        except ValueError:
+            raise Http404  # pylint: disable=raise-missing-from
+
         trip = self.get_object()
         if not perm_utils.is_chair(request.user, trip.required_activity_enum()):
             raise PermissionDenied
