@@ -28,13 +28,13 @@ urlpatterns = [
     path('accounts/', include('allauth.urls')),
     # Administrator views
     path('admin', admin.site.urls),
-    re_path(
-        r'^participants/(?P<pk>\d+)/edit/$',
+    path(
+        'participants/<int:pk>/edit/',
         views.EditParticipantView.as_view(),
         name='edit_participant',
     ),
-    re_path(
-        r'^participants/(?P<pk>\d+)/delete/$',
+    path(
+        'participants/<int:pk>/delete/',
         views.DeleteParticipantView.as_view(),
         name='delete_participant',
     ),
@@ -43,13 +43,13 @@ urlpatterns = [
         views.PotentialDuplicatesView.as_view(),
         name='potential_duplicates',
     ),
-    re_path(
-        r'^participants/(?P<old>\d+)/merge/(?P<new>\d+)$',
+    path(
+        'participants/<int:old>/merge/<int:new>',
         views.MergeParticipantsView.as_view(),
         name='merge_participants',
     ),
-    re_path(
-        r'^participants/(?P<left>\d+)/distinct/(?P<right>\d+)$',
+    path(
+        'participants/<int:left>/distinct/<int:right>',
         views.DistinctParticipantsView.as_view(),
         name='distinct_participants',
     ),
@@ -89,12 +89,12 @@ urlpatterns = [
         name='ws_settings',
     ),
     re_path(
-        r'^(?P<activity>.+)/trips/(?P<pk>\d+)/$',
+        r'^(?P<activity>[^/]+)/trips/(?P<pk>\d+)/$',
         views.ChairTripView.as_view(),
         name='view_trip_for_approval',
     ),
-    re_path(
-        r'^trips/(?P<pk>\d+)/approve/$',
+    path(
+        'trips/<int:pk>/approve/',
         api_views.ApproveTripView.as_view(),
         name='json-approve_trip',
     ),
@@ -112,51 +112,49 @@ urlpatterns = [
     # Leader views
     path('leaders/', views.AllLeadersView.as_view(), name='leaders'),
     path('trips/create/', views.CreateTripView.as_view(), name='create_trip'),
-    re_path(
-        r'^trips/(?P<pk>\d+)/delete/$',
+    path(
+        'trips/<int:pk>/delete/',
         views.DeleteTripView.as_view(),
         name='delete_trip',
     ),
-    re_path(
-        r'^trips/(?P<pk>\d+)/edit/$', views.EditTripView.as_view(), name='edit_trip'
-    ),
-    re_path(
-        r'^trips/(?P<pk>\d+)/admin/$',
+    path('trips/<int:pk>/edit/', views.EditTripView.as_view(), name='edit_trip'),
+    path(
+        'trips/<int:pk>/admin/',
         RedirectView.as_view(pattern_name='view_trip', permanent=True),
         name='admin_trip',
     ),
-    re_path(
-        r'^trips/(?P<pk>\d+)/admin/signups/$',
+    path(
+        'trips/<int:pk>/admin/signups/',
         api_views.AdminTripSignupsView.as_view(),
         name='json-admin_trip_signups',
     ),
-    re_path(
-        r'^trips/(?P<pk>\d+)/admin/lottery/$',
+    path(
+        'trips/<int:pk>/admin/lottery/',
         views.RunTripLotteryView.as_view(),
         name='run_lottery',
     ),
-    re_path(
-        r'^trips/(?P<pk>\d+)/signup/$',
+    path(
+        'trips/<int:pk>/signup/',
         api_views.LeaderParticipantSignupView.as_view(),
         name='json-leader_participant_signup',
     ),
-    re_path(
-        r'^trips/(?P<pk>\d+)/itinerary/$',
+    path(
+        'trips/<int:pk>/itinerary/',
         views.TripItineraryView.as_view(),
         name='trip_itinerary',
     ),
-    re_path(
-        r'^trips/(?P<pk>\d+)/medical/$',
+    path(
+        'trips/<int:pk>/medical/',
         views.TripMedicalView.as_view(),
         name='trip_medical',
     ),
-    re_path(
-        r'^trips/(?P<pk>\d+)/review/$',
+    path(
+        'trips/<int:pk>/review/',
         views.ReviewTripView.as_view(),
         name='review_trip',
     ),
-    re_path(
-        r'^participants/(?P<pk>\d+)/$',
+    path(
+        'participants/<int:pk>/',
         views.ParticipantDetailView.as_view(),
         name='view_participant',
     ),
@@ -184,7 +182,7 @@ urlpatterns = [
         views.LeaderApplyView.as_view(),
         name='become_leader',
     ),
-    re_path(r'^trips/(?P<pk>\d+)/$', views.TripView.as_view(), name='view_trip'),
+    path('trips/<int:pk>/', views.TripView.as_view(), name='view_trip'),
     path('trips.rss', feeds.UpcomingTripsFeed(), name='rss-upcoming_trips'),
     # By default, `/trips/` shows only upcoming trips, and `/trips/all` shows *all* trips
     # Both views support filtering for trips after a certain date, though
@@ -217,8 +215,8 @@ urlpatterns = [
         views.LotteryPairingView.as_view(),
         name='lottery_pairing',
     ),
-    re_path(
-        r'^signups/(?P<pk>\d+)/delete/$',
+    path(
+        'signups/<int:pk>/delete/',
         views.DeleteSignupView.as_view(),
         name='delete_signup',
     ),
@@ -397,18 +395,18 @@ urlpatterns = [
         api_views.get_rating,
         name='json-ratings',
     ),
-    re_path(
-        r'^users/(?P<pk>\d+)/membership.json',
+    path(
+        'users/<int:pk>/membership.json',
         api_views.UserMembershipView.as_view(),
         name='json-membership',
     ),
-    re_path(
-        r'^users/(?P<pk>\d+)/rentals.json',
+    path(
+        'users/<int:pk>/rentals.json',
         api_views.UserRentalsView.as_view(),
         name='json-rentals',
     ),
-    re_path(
-        r'^trips/(?P<pk>\d+)/signups/$',
+    path(
+        'trips/<int:pk>/signups/',
         api_views.SimpleSignupsView.as_view(),
         name='json-signups',
     ),
