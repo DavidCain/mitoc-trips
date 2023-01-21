@@ -53,33 +53,33 @@ urlpatterns = [
         views.DistinctParticipantsView.as_view(),
         name='distinct_participants',
     ),
-    re_path(
-        r'^(?P<activity>.+)/leaders/$',
+    path(
+        '<slug:activity>/leaders/',
         views.ActivityLeadersView.as_view(),
         name='activity_leaders',
     ),
-    re_path(
-        r'^(?P<activity>.+)/leaders/deactivate/$',
+    path(
+        '<slug:activity>/leaders/deactivate/',
         views.DeactivateLeaderRatingsView.as_view(),
         name='deactivate_leaders',
     ),
-    re_path(
-        r'^(?P<activity>.+)/applications/$',
+    path(
+        '<slug:activity>/applications/',
         views.AllLeaderApplicationsView.as_view(),
         name='manage_applications',
     ),
-    re_path(
-        r'^(?P<activity>.+)/applications/(?P<pk>\d+)/$',
+    path(
+        '<slug:activity>/applications/<int:pk>/',
         views.LeaderApplicationView.as_view(),
         name='view_application',
     ),
-    re_path(
-        r'^(?P<activity>.+)/applications/(?P<pk>\d+)/archive/$',
+    path(
+        '<slug:activity>/applications/<int:pk>/archive/',
         views.ArchiveLeaderApplicationView.as_view(),
         name='archive_application',
     ),
-    re_path(
-        r'^(?P<activity>.+)/trips/$',
+    path(
+        '<slug:activity>/trips/',
         views.ApproveTripsView.as_view(),
         name='manage_trips',
     ),
@@ -88,8 +88,8 @@ urlpatterns = [
         views.WinterSchoolSettingsView.as_view(),
         name='ws_settings',
     ),
-    re_path(
-        r'^(?P<activity>[^/]+)/trips/(?P<pk>\d+)/$',
+    path(
+        '<slug:activity>/trips/<int:pk>/',
         views.ChairTripView.as_view(),
         name='view_trip_for_approval',
     ),
@@ -177,8 +177,8 @@ urlpatterns = [
     ),
     path('profile/membership/', views.PayDuesView.as_view(), name='pay_dues'),
     path('profile/waiver/', views.SignWaiverView.as_view(), name='initiate_waiver'),
-    re_path(
-        r'^(?P<activity>.+)/leaders/apply/$',
+    path(
+        '<slug:activity>/leaders/apply/',
         views.LeaderApplyView.as_view(),
         name='become_leader',
     ),
@@ -380,8 +380,8 @@ urlpatterns = [
         api_views.JsonAllLeadersView.as_view(),
         name='json-leaders',
     ),
-    re_path(
-        r'^programs/(?P<program>.+)/leaders.json$',
+    path(
+        'programs/<slug:program>/leaders.json',
         api_views.JsonProgramLeadersView.as_view(),
         name='json-program-leaders',
     ),
@@ -390,8 +390,8 @@ urlpatterns = [
         api_views.JsonParticipantsView.as_view(),
         name='json-participants',
     ),
-    re_path(
-        r'^leaders/(?P<pk>\d+)/ratings/(?P<activity>.+).json',
+    path(
+        'leaders/<int:pk>/ratings/<slug:activity>.json',
         api_views.get_rating,
         name='json-ratings',
     ),

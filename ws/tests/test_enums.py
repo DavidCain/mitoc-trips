@@ -1,5 +1,6 @@
 import unittest
 
+from django.core import validators
 from django.test import SimpleTestCase
 
 from ws import enums
@@ -102,6 +103,10 @@ class ActivityTest(unittest.TestCase):
     def test_every_activity_has_label(self):
         for activity in enums.Activity:
             self.assertTrue(activity.label)
+
+    def test_every_activity_is_a_slug(self):
+        for activity in enums.Activity:
+            validators.validate_slug(activity.value)
 
     def test_is_winter_school(self):
         self.assertFalse(enums.Activity.CLIMBING.is_winter_school())
