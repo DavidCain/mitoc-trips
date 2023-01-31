@@ -1391,7 +1391,7 @@ class Trip(models.Model):
                 search=trips_search_vector,
                 rank=SearchRank(trips_search_vector, query),
             )
-            .filter(search=text, rank__gte=0.2)
+            .filter(search=text)
             .order_by('-rank')[:limit]
         )
 
