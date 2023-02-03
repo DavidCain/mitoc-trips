@@ -280,7 +280,7 @@ class RemindAllParticipantsToRenewTest(TestCase):
 
 @freeze_time("2019-01-25 12:00:00 EST")
 class RemindIndividualParticipantsToRenewTest(TestCase):
-    def test_success(self):
+    def test_first_reminder(self):
         par = factories.ParticipantFactory.create(
             name='Tim Beaver',
             send_membership_reminder=True,
@@ -300,6 +300,31 @@ class RemindIndividualParticipantsToRenewTest(TestCase):
             reminder.reminder_sent_at, datetime(2019, 1, 25, 17, 0, tzinfo=timezone.utc)
         )
 
+    def test_second_annual_reminder(self):
+        par = factories.ParticipantFactory.create(
+            name='Tim Beaver',
+            send_membership_reminder=True,
+            membership__membership_expires=date(2019, 1, 27),
+        )
+        # Last reminder was a little less than a year ago
+        factories.MembershipReminderFactory.create(
+            participant=par,
+            reminder_sent_at=datetime(2018, 1, 28, tzinfo=timezone.utc),
+        )
+
+        with mock.patch.object(mail.EmailMultiAlternatives, 'send') as send:
+            tasks.remind_lapsed_participant_to_renew(par.pk)
+        send.assert_called_once()
+
+        self.assertEqual(
+            models.MembershipReminder.objects.filter(participant=par).count(), 2
+        )
+        last_reminder = models.MembershipReminder.objects.latest('reminder_sent_at')
+        self.assertEqual(
+            last_reminder.reminder_sent_at,
+            datetime(2019, 1, 25, 17, 0, tzinfo=timezone.utc),
+        )
+
     def test_idempotent(self):
         """If we try to notify the same participant twice, only one email sent."""
         par = factories.ParticipantFactory.create(
@@ -310,14 +335,21 @@ class RemindIndividualParticipantsToRenewTest(TestCase):
         with mock.patch.object(mail.EmailMultiAlternatives, 'send') as send:
             tasks.remind_lapsed_participant_to_renew(par.pk)
         send.assert_called_once()
+        self.assertEqual(
+            models.MembershipReminder.objects.filter(participant=par).count(),
+            1,
+        )
 
         with mock.patch.object(mail.EmailMultiAlternatives, 'send') as send2:
             with self.assertRaises(ValueError):
                 tasks.remind_lapsed_participant_to_renew(par.pk)
         send2.assert_not_called()
+        self.assertEqual(
+            models.MembershipReminder.objects.filter(participant=par).count(),
+            1,
+        )
 
-    @staticmethod
-    def test_participant_has_opted_out():
+    def test_participant_has_opted_out(self):
         """We cover the possibility of a participant opting out after a reminder was scheduled."""
         par = factories.ParticipantFactory.create(
             send_membership_reminder=False,
@@ -327,6 +359,7 @@ class RemindIndividualParticipantsToRenewTest(TestCase):
         with patch.object(renew, 'send_email_reminding_to_renew') as email:
             tasks.remind_lapsed_participant_to_renew(par.pk)
         email.assert_not_called()
+        self.assertFalse(models.MembershipReminder.objects.exists())
 
     def test_tried_to_remind_again_too_soon(self):
         par = factories.ParticipantFactory.create(
@@ -343,6 +376,11 @@ class RemindIndividualParticipantsToRenewTest(TestCase):
                 tasks.remind_lapsed_participant_to_renew(par.pk)
         self.assertIn("Mistakenly trying to notify", str(cm.exception))
         email.assert_not_called()
+        only_reminder = models.MembershipReminder.objects.get(participant=par)
+        self.assertEqual(
+            only_reminder.reminder_sent_at,
+            datetime(2018, 4, 25, tzinfo=timezone.utc),
+        )
 
     def test_errors_actually_sending_mail_caught(self):
         par = factories.ParticipantFactory.create(
@@ -356,7 +394,11 @@ class RemindIndividualParticipantsToRenewTest(TestCase):
         self.assertIn("no membership on file", str(cm.exception))
 
         # We don't record a successful reminder being sent.
-        self.assertFalse(models.MembershipReminder.objects.exists())
+        self.assertFalse(
+            models.MembershipReminder.objects.filter(
+                reminder_sent_at__isnull=False
+            ).exists()
+        )
 
 
 class RunLotteryTest(TestCase):

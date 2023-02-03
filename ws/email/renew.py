@@ -10,7 +10,9 @@ from ws.utils import dates as date_utils
 logger = logging.getLogger(__name__)
 
 
-def send_email_reminding_to_renew(participant):
+def send_email_reminding_to_renew(
+    participant: models.Participant,
+) -> mail.EmailMultiAlternatives:
     """Send a (one-time, will not be repeated) reminder when dues are nearly up.
 
     These emails are meant to be opt-in (i.e. participants must willingly *ask*
@@ -33,6 +35,7 @@ def send_email_reminding_to_renew(participant):
         raise ValueError(f"Membership has already expired for {par}")
 
     renewal_date = membership.date_when_renewal_is_recommended(report_past_dates=True)
+    assert renewal_date is not None, "Should not recommend renewal for non-member!"
 
     # We should never remind people to renew before it's actually possible.
     if today < renewal_date:

@@ -9,6 +9,7 @@ import requests
 from celery import group, shared_task
 from django.core.cache import cache
 from django.db import connections, transaction
+from django.db.utils import IntegrityError
 
 from ws import cleanup, models, settings
 from ws.email import renew
@@ -183,31 +184,48 @@ def remind_lapsed_participant_to_renew(participant_id: int):
         logger.info("Not reminding participant %s, who since opted out", participant.pk)
         return
 
+    # If there are no rows to lock, create one eagerly.
+    # (Uniqueness constraints will prevent multiple per participant!)
+    if not models.MembershipReminder.objects.filter(participant=participant).exists():
+        try:
+            models.MembershipReminder.objects.create(
+                participant=participant,
+                reminder_sent_at=None,
+            )
+        except IntegrityError:  # (Race condition -- another task did the same)
+            pass  # No problem -- we got the row we needed!
+
     now = date_utils.local_now()
     with transaction.atomic():
-        (reminder, created) = (
-            models.MembershipReminder.objects
-            # Make sure we get an exclusive lock to prevent sending a redundant email.
+        last_reminder = (
+            models.MembershipReminder.objects.filter(participant=participant)
             .select_for_update()
-            # It's possible this is the first reminder! If so, create it now.
-            # (the unique constraint on participant will ensure other queries can't insert
-            .get_or_create(
-                participant=participant,
-                defaults={'reminder_sent_at': now},
-            )
+            .order_by('reminder_sent_at')
+            .last()
         )
+        assert last_reminder is not None
 
-        if not created:
-            logger.info("Last reminded %s: %s", participant, reminder.reminder_sent_at)
+        if last_reminder.reminder_sent_at:
+            logger.info(
+                "Last reminded %s: %s", participant, last_reminder.reminder_sent_at
+            )
             # Reminders should be sent ~40 days before the participant's membership has expired.
             # We should only send one reminder every ~365 days or so.
             # Pick 300 days as a sanity check that we send one message yearly (+/- some days)
-            if reminder.reminder_sent_at > (now - timedelta(days=300)):
+            if last_reminder.reminder_sent_at > (now - timedelta(days=300)):
                 raise ValueError(f"Mistakenly trying to notify {participant} to renew")
+            pending_reminder = models.MembershipReminder(
+                participant=participant, reminder_sent_at=now
+            )
+        else:
+            pending_reminder = last_reminder
+            pending_reminder.reminder_sent_at = now
 
         # (Note that this method makes some final assertions before delivering)
         # If the email succeeds, we'll commit the reminder record (else rollback)
         renew.send_email_reminding_to_renew(participant)
+
+        pending_reminder.save()
 
 
 @shared_task  # Locking done at db level to ensure idempotency
