@@ -713,14 +713,29 @@ class MembershipReminder(models.Model):
     (to prevent accidentally reminding the same person twice).
     """
 
-    participant = models.OneToOneField(Participant, on_delete=models.CASCADE)
+    participant = models.ForeignKey(Participant, on_delete=models.CASCADE)
     reminder_sent_at = models.DateTimeField(
         verbose_name="Last time an email was sent reminding this participant to renew",
+        # We allow (temporary) null rows participant to ensure we can lock something
+        null=True,
+        blank=True,
     )
 
-    def __str__(self):  # pylint: disable=invalid-str-returned
+    def __str__(self) -> str:
+        if self.reminder_sent_at is None:
+            return f'{self.participant}, not yet reminder'
+
         timestamp = self.reminder_sent_at.isoformat(timespec="minutes")
         return f'{self.participant}, last reminded at {timestamp}'
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                name='%(app_label)s_%(class)s_par_reminder_sent_at_uniq',
+                fields=('participant',),
+                condition=Q(reminder_sent_at__isnull=True),
+            )
+        ]
 
 
 class PasswordQuality(models.Model):
