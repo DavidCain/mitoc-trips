@@ -154,7 +154,7 @@ class WinterSchoolPriorityRank(NamedTuple):
     # Active leaders get to choose their trips earlier
     leader_bump: int
 
-    # MIT affiliates get top priarity
+    # MIT affiliates get top priority
     affiliation_weight: float
 
 
