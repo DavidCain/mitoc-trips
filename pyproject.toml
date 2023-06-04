@@ -23,6 +23,7 @@ select = [
   "F",     # Pyflakes
   "FA",    # flake8-future-annotations
   "G",     # flake8-logging-format
+  "I",     # isort
   "ICN",   # flake8-import-conventions
   "INP",   # flake8-no-pep420
   "INT",   # flake8-gettext
@@ -53,7 +54,6 @@ select = [
 
   # Interesting, should perhaps turn on later:
   # "D",    # pydocstyle
-  # "I",    # isort
   # "PTH",  # flake8-use-pathlib
   # "FLY",  # flynt
 
@@ -137,9 +137,6 @@ ignore-names = [
   "_meta",
 ]
 
-[tool.isort]
-profile = "black"
-
 [tool.poetry]
 name = "ws"
 version = "0.1.0"
@@ -179,7 +176,6 @@ black = "*"
 coverage = { version = "*" }
 factory_boy = "*"
 freezegun = "*"
-isort = { version = "^5.8", extras = ["pyproject"] }  # Version 5 introduces black compatibility
 lxml = "*"
 pylint = "^2.8"
 pytest = "*"
@@ -260,9 +256,6 @@ disable = [
   # Handled by black
   "format",
 
-  # Handled by isort
-  "ungrouped-imports",
-
   "arguments-differ",
   "fixme",
   "invalid-name",
@@ -289,6 +282,9 @@ disable = [
   # We let ruff handle these instead #
   ####################################
   "protected-access",
+  "ungrouped-imports",
+  "wrong-import-position",
+
 ]
 
 [tool.pylint.REPORTS]

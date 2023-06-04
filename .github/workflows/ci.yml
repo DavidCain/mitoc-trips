@@ -8,10 +8,9 @@ jobs:
       fail-fast: false
       matrix:
         command:
-          - "black --diff --check ws"
-          - "isort --diff --check ws"
-          - "mypy ws"
           - "ruff ."
+          - "black --diff --check ws"
+          - "mypy ws"
           - "pylint --jobs=0 ws"
           - "pytest"
     runs-on: ubuntu-22.04
