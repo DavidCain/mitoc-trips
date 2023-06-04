@@ -143,11 +143,11 @@ class TaskTests(TestCase):
         )
 
     @staticmethod
-    @patch('ws.tasks.cache', wraps=cache)
     @patch('ws.utils.member_sheets.update_discount_sheet')
     @patch('ws.utils.member_sheets.update_participant')
     def test_discount_tasks_share_same_key(
-        update_participant, update_discount_sheet, mock_cache
+        _update_participant,
+        _update_discount_sheet,
     ):
         """All tasks modifying the same discount sheet must share a task ID.
 
@@ -157,11 +157,13 @@ class TaskTests(TestCase):
         participant = factories.ParticipantFactory.create()
         expected_lock_id = 'update_discount-8675'
 
-        tasks.update_discount_sheet_for_participant(discount.pk, participant.pk)
-        mock_cache.add.assert_called_with(expected_lock_id, 'true', 600)
+        with patch('ws.tasks.cache', wraps=cache) as mock_cache_one:
+            tasks.update_discount_sheet_for_participant(discount.pk, participant.pk)
+        mock_cache_one.add.assert_called_with(expected_lock_id, 'true', 600)
 
-        tasks.update_discount_sheet(discount.pk)
-        mock_cache.add.assert_called_with(expected_lock_id, 'true', 600)
+        with patch('ws.tasks.cache', wraps=cache) as mock_cache_two:
+            tasks.update_discount_sheet(discount.pk)
+        mock_cache_two.add.assert_called_with(expected_lock_id, 'true', 600)
 
 
 class DiscountsWithoutGaKeyTest(TestCase):
