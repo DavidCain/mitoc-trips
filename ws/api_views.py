@@ -165,8 +165,7 @@ class AdminTripSignupsView(SingleObjectMixin, FormatSignupMixin, TripLeadersOnly
                     "Signups were recently added or removed. "
                     "Unable to modify trip without current data."
                 )
-            else:
-                return JsonResponse({})
+            return JsonResponse({})
 
     def update(self, trip, signup_list, maximum_participants):
         """Take parsed input data and apply the changes."""

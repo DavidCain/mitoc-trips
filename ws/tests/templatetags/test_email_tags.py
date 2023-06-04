@@ -14,20 +14,20 @@ from ws.utils.dates import localize
 class EmailTagsTests(TestCase):
     @staticmethod
     def _make_trip(**overrides):
-        trip_args = dict(
-            name="Some Cool Upcoming Trip",
-            program=enums.Program.WINTER_NON_IAP.value,
-            trip_type=enums.TripType.HIKING.value,
-            winter_terrain_level='C',
-            trip_date=date(2025, 12, 14),
-            difficulty_rating='Advanced',
-            prereqs='Comfort with rough terrain',
-            signups_open_at=localize(datetime(2025, 12, 10, 12, 0)),
-            signups_close_at=localize(datetime(2025, 12, 13, 21, 30)),
-            algorithm='fcfs',
-        )
-        trip_args.update(overrides)
-        trip = factories.TripFactory.create(**trip_args)
+        trip_kwargs = {
+            'name': "Some Cool Upcoming Trip",
+            'program': enums.Program.WINTER_NON_IAP.value,
+            'trip_type': enums.TripType.HIKING.value,
+            'winter_terrain_level': 'C',
+            'trip_date': date(2025, 12, 14),
+            'difficulty_rating': 'Advanced',
+            'prereqs': 'Comfort with rough terrain',
+            'signups_open_at': localize(datetime(2025, 12, 10, 12, 0)),
+            'signups_close_at': localize(datetime(2025, 12, 13, 21, 30)),
+            'algorithm': 'fcfs',
+            **overrides,
+        }
+        trip = factories.TripFactory.create(**trip_kwargs)
         return annotated_for_trip_list(models.Trip.objects.filter(pk=trip.pk)).get()
 
     def test_text_template_no_program(self):
