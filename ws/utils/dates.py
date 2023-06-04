@@ -170,7 +170,7 @@ def ws_year() -> int:
 
 
 def jan_1() -> datetime:
-    jan_1st = timezone.datetime(local_date().year, 1, 1)
+    jan_1st = datetime(local_date().year, 1, 1)
     return localize(jan_1st)
 
 

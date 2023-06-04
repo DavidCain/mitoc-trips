@@ -1,7 +1,9 @@
 from functools import wraps
+from typing import cast
 
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth.models import AnonymousUser, User
 from django.contrib.auth.views import redirect_to_login
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import resolve_url
@@ -97,5 +99,6 @@ participant_or_anon = group_required(
 )
 
 admin_only = user_passes_test(
-    lambda u: u.is_superuser, login_url=reverse_lazy('account_login')
+    lambda u: cast(User | AnonymousUser, u).is_superuser,
+    login_url=reverse_lazy('account_login'),
 )
