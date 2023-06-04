@@ -111,7 +111,7 @@ def check_fk_tables(
     """
     non_handled = []
     for table, col, _ftable in _fk_tables(cursor, src_table, column):
-        if col not in expected.get(table, tuple()):
+        if col not in expected.get(table, ()):
             non_handled.append((table, col))
     if non_handled:
         missing = ','.join(f"{table}.{col}" for table, col in non_handled)

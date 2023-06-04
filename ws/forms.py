@@ -41,7 +41,7 @@ def _bind_input(
     if initial:
         if isinstance(initial, bool):
             js_expr = 'true' if initial else 'false'
-        elif isinstance(initial, (str, int)):
+        elif isinstance(initial, str | int):
             js_expr = f"'{initial}'"  # (integers get string values)
         else:
             raise TypeError(f'Unexpected initial value {initial}')
@@ -445,7 +445,8 @@ class TripForm(forms.ModelForm):
             allowed_program_enums = [self.instance.program_enum, *allowed_program_enums]
 
         for category, choices in enums.Program.choices():
-            assert isinstance(category, str) and isinstance(choices, list)
+            assert isinstance(category, str)
+            assert isinstance(choices, list)
             valid_choices = [
                 (value, label)
                 for (value, label) in choices

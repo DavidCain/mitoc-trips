@@ -149,7 +149,7 @@ class ReviewTripView(DetailView):
         will raise ValueError or TypeError (on either 'split' or `int`)
         """
         for key, comments in self.request.POST.items():
-            if not (key.startswith("par_") or key.startswith("flake_")):
+            if not (key.startswith(('par_', 'flake_'))):
                 continue
 
             feedback_type, par_pk = key.split('_')

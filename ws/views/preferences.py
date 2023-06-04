@@ -5,6 +5,7 @@ Users can enroll in discounts, rank their preferred trips, or elect to be
 paired with another participant. All of these options are deemed "preferences"
 of the participant.
 """
+import contextlib
 import json
 from datetime import datetime
 
@@ -40,10 +41,9 @@ class LotteryPairingView(CreateView, LotteryPairingMixin):
         """Edit existing instance, prevent user from pairing with self."""
         kwargs = super().get_form_kwargs()
         kwargs['participant'] = participant = self.request.participant
-        try:
+        with contextlib.suppress(models.LotteryInfo.DoesNotExist):
             kwargs['instance'] = participant.lotteryinfo
-        except models.LotteryInfo.DoesNotExist:
-            pass
+
         return kwargs
 
     def form_valid(self, form):

@@ -1,5 +1,5 @@
 import re
-from typing import Dict, List, NamedTuple
+from typing import NamedTuple
 
 from django.db import migrations
 
@@ -25,7 +25,7 @@ VALID_LEVELS = {
     'BIS',
     'CIS',
 }
-updates: Dict[int, TripChange] = {
+updates: dict[int, TripChange] = {
     304: TripChange('B (below treeline), overnight', 'B'),
     314: TripChange('I', 'AI'),  # Flume
     958: TripChange('I', 'AI'),  # Flume
@@ -57,7 +57,7 @@ def make_levels_consistent(apps, schema_editor):
     """Change all old WS trips with a known level to have valid levels."""
     Trip = apps.get_model("ws", "Trip")
 
-    def _trips_with_punctuation_changes() -> List[Trip]:
+    def _trips_with_punctuation_changes() -> list[Trip]:
         normal_chars = set('ABCIS')
         special_chars = re.compile(r'[+ ,/\.-]')
         expected_chars = set('ABCIS+/,-. ').union(normal_chars)
@@ -88,7 +88,7 @@ def make_levels_consistent(apps, schema_editor):
 
         return trips
 
-    trips_to_update: List[Trip] = []
+    trips_to_update: list[Trip] = []
 
     for trip in Trip.objects.filter(pk__in=updates):
         assert trip.level == updates[trip.pk].old_level, f"Unexpected {trip.level}"

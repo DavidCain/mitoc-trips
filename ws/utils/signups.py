@@ -1,3 +1,5 @@
+import contextlib
+
 from django.contrib import messages
 from django.db import transaction
 from django.db.models import Q
@@ -86,10 +88,8 @@ def trip_or_wait(
         messages.success(request, "Signed up!")
 
     # Since the participant is now on the trip, we should be sure to remove any waitlist
-    try:
+    with contextlib.suppress(models.WaitListSignup.DoesNotExist):
         signup.waitlistsignup.delete()
-    except models.WaitListSignup.DoesNotExist:
-        pass
 
     return signup
 

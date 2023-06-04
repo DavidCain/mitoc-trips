@@ -139,7 +139,7 @@ class ParticipantHandler:
         return False
 
     def place_participant(self):
-        raise NotImplementedError()
+        raise NotImplementedError
         # (Place on trip or waitlist, then):
         # self.runner.mark_handled(self.participant)
 

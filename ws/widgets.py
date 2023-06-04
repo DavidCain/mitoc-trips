@@ -62,7 +62,7 @@ class PhoneInput(dj_widgets.Input):
 
         ng_model_init = {
             'data-ng-model': ng_model,
-            'data-ng-init': f"{ng_model} = '{value or str()}'",
+            'data-ng-init': f"{ng_model} = '{value or ''}'",
             'value': str(value) if value else '',
         }
 
