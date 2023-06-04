@@ -114,7 +114,6 @@ def make_levels_consistent(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('ws', '0050_trip_reimbursement'),
     ]

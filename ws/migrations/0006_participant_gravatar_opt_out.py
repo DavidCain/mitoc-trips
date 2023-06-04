@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [('ws', '0005_trip_membership_required')]
 
     operations = [

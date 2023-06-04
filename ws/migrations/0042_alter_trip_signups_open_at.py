@@ -6,7 +6,6 @@ import ws.utils.dates
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('ws', '0041_sor_rename'),
     ]

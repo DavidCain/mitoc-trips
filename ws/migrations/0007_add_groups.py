@@ -26,7 +26,6 @@ def do_nothing(*args):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [('ws', '0006_participant_gravatar_opt_out')]
 
     operations = [

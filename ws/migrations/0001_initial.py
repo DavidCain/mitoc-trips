@@ -9,7 +9,6 @@ import ws.utils.dates
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies: list[tuple[str, str]] = []

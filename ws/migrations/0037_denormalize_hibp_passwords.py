@@ -38,7 +38,6 @@ def restore_participant_fields(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('ws', '0036_par_user_id_fk'),
     ]

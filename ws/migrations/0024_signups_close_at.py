@@ -4,7 +4,6 @@ import ws.utils.dates
 
 
 class Migration(migrations.Migration):
-
     dependencies = [('ws', '0023_remove_trip_type_default')]
 
     operations = [

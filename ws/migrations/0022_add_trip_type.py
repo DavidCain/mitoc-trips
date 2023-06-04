@@ -117,7 +117,6 @@ def clear_trip_type(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [('ws', '0021_trip_program')]
 
     operations = [

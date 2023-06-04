@@ -8,7 +8,6 @@ import ws.utils.dates
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('ws', '0052_terrain_level'),
     ]

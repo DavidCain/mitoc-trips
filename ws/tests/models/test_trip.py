@@ -204,7 +204,6 @@ class CleanTest(SimpleTestCase):
 class TripDatesTest(SimpleTestCase):
     @freeze_time("2020-01-16 18:45:22 EST")
     def test_less_than_a_week_away(self):
-
         past_trip = factories.TripFactory.build(trip_date=date(2020, 1, 15))
         self.assertFalse(past_trip.less_than_a_week_away)
 

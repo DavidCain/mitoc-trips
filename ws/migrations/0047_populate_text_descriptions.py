@@ -24,7 +24,6 @@ def save_trip_summary(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('ws', '0046_trip_summary'),
     ]

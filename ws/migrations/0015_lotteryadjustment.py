@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [('ws', '0014_trip_markdown_description')]
 
     operations = [

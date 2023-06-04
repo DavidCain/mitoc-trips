@@ -70,7 +70,6 @@ def do_nothing(*args):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [('ws', '0020_typo_corrections')]
 
     operations = [

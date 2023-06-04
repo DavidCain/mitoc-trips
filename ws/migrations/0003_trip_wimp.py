@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [('ws', '0002_participant_profile_last_updated')]
 
     operations = [

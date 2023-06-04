@@ -35,7 +35,6 @@ def do_nothing(*args):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('ws', '0033_discounts_optional_ga_key'),
     ]

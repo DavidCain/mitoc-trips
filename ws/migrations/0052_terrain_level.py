@@ -18,7 +18,6 @@ def reset_terrain_level(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('ws', '0051_consistent_levels'),
     ]
