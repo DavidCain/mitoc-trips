@@ -233,7 +233,9 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
         # This is a lousy hack to work around mypy.
         # Locally, `participant.feedback_set` raises `attr-defined`, which I ignore
         # But then in CI, `# type: ignore[attr-defined` is flagged as unused
-        feedback: QuerySet[models.Feedback] = getattr(participant, 'feedback_set')
+        feedback: QuerySet[models.Feedback] = getattr(  # noqa: B009
+            participant, 'feedback_set'
+        )
         return set(
             feedback.filter(
                 showed_up=False, trip__program=enums.Program.WINTER_SCHOOL.value

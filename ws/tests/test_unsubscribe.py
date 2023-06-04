@@ -36,20 +36,20 @@ class UnsubscribeTest(SimpleTestCase):  # no db access, but uses self.settings
 
     def test_read_old_token(self):
         """We can read tokens that are moderately old, so long as they're < 30 days."""
-        token = 'eyJwayI6MzcsImVtYWlscyI6WzBdfQ:1mmJT8:hXpCFBUrqIKOKPKEAEOrYBG4tm608r16HzFGKLJzhnA'
+        token = 'eyJwayI6MzcsImVtYWlscyI6WzBdfQ:1mmJT8:hXpCFBUrqIKOKPKEAEOrYBG4tm608r16HzFGKLJzhnA'  # noqa: S105
 
-        with self.settings(UNSUBSCRIBE_SECRET_KEY='sooper-secret'):
+        with self.settings(UNSUBSCRIBE_SECRET_KEY='sooper-secret'):  # noqa: S106
             par_pk, email_types = unsubscribe.unsign_token(token)
         self.assertEqual(par_pk, 37)
         self.assertEqual(email_types, {unsubscribe.EmailType.membership_renewal})
 
     def test_must_have_correct_secret(self):
-        token = 'eyJwayI6MzcsImVtYWlscyI6WzBdfQ:1mmJT8:hXpCFBUrqIKOKPKEAEOrYBG4tm608r16HzFGKLJzhnA'
+        token = 'eyJwayI6MzcsImVtYWlscyI6WzBdfQ:1mmJT8:hXpCFBUrqIKOKPKEAEOrYBG4tm608r16HzFGKLJzhnA'  # noqa: S105
 
-        with self.settings(UNSUBSCRIBE_SECRET_KEY='sooper-secret'):
+        with self.settings(UNSUBSCRIBE_SECRET_KEY='sooper-secret'):  # noqa: S106
             unsubscribe.unsign_token(token)
 
-        with self.settings(UNSUBSCRIBE_SECRET_KEY='changed-the-secret'):
+        with self.settings(UNSUBSCRIBE_SECRET_KEY='changed-the-secret'):  # noqa: S106
             with self.assertRaises(signing.BadSignature):
                 unsubscribe.unsign_token(token)
 
@@ -77,7 +77,7 @@ class UnsubscribeTest(SimpleTestCase):  # no db access, but uses self.settings
         par = factories.ParticipantFactory.build(pk=22)
         payload = {'pk': 22, 'emails': [0]}
 
-        with self.settings(UNSUBSCRIBE_SECRET_KEY='sooper-secret'):
+        with self.settings(UNSUBSCRIBE_SECRET_KEY='sooper-secret'):  # noqa: S106
             real_token = unsubscribe.generate_unsubscribe_token(par)
 
         # First, demonstrate that our token uses a salt
@@ -112,7 +112,7 @@ class UnsubscribeFromTokenTest(TestCase):
 
     def test_real_token_wrong_secret(self):
         par = factories.ParticipantFactory.build(pk=42)
-        with self.settings(UNSUBSCRIBE_SECRET_KEY='different-secret'):
+        with self.settings(UNSUBSCRIBE_SECRET_KEY='different-secret'):  # noqa: S106
             token = unsubscribe.generate_unsubscribe_token(par)
 
         with self.assertRaises(unsubscribe.InvalidToken) as cm:
@@ -156,7 +156,7 @@ class UnsubscribeFromTokenTest(TestCase):
         par = factories.ParticipantFactory.create(send_membership_reminder=True)
 
         # Accessing private methods to make this work, but not a big deal; it's an edge case
-        signer = unsubscribe._get_signer()  # pylint:disable=protected-access
+        signer = unsubscribe._get_signer()  # noqa: SLF001
         token = signer.sign_object({'pk': par.pk, 'emails': []})
 
         # The method succeeds! Nothing happens, of course.

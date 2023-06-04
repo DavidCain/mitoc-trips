@@ -1,5 +1,5 @@
 import typing
-import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as ET  # noqa: N817
 from typing import Any, TypedDict
 
 import requests
@@ -98,7 +98,7 @@ class DocusignRole(_BaseDocusignRole, total=False):
     """Some extra information possible on a DocuSign role!"""
 
     tabs: DocusignTabs
-    clientUserId: int
+    clientUserId: int  # noqa: N815
 
 
 def get_roles(

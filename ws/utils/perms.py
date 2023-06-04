@@ -71,10 +71,7 @@ def make_chair(user: User, activity_enum: enums.Activity) -> None:
     """Make the given user an activity chair!"""
     group_name = chair_group(activity_enum)
     group = Group.objects.get(name=group_name)
-    # This is a lousy hack to work around mypy.
-    # Locally, `group.user_set` raises `attr-defined`, which I ignore
-    # But then in CI, `# type: ignore[attr-defined` is flagged as unused
-    user_set = getattr(group, 'user_set')
+    user_set = group.user_set
     user_set.add(user)
 
 

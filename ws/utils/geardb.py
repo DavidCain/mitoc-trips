@@ -40,7 +40,7 @@ class Rental(NamedTuple):
     """
 
     email: str
-    id: str  # Example, 'BK-19-04'
+    id: str  # Example, 'BK-19-04'  # noqa: A003
     name: str
     cost: float  # How much the daily cost for the item is
     checkedout: date
@@ -244,7 +244,8 @@ def update_affiliation(participant: models.Participant) -> requests.Response | N
         'affiliation': participant.affiliation,
         'other_verified_emails': sorted(other_verified_emails),
     }
-    response = requests.put(
+    # Note that this may be a 400!
+    return requests.put(
         urljoin(API_BASE, 'api-auth/v1/affiliation/'),
         # NOTE: We sign the payload here, even though current implementations just use the body.
         # This does technically mean that anyone with a valid token can use the token to query any data.
@@ -253,8 +254,6 @@ def update_affiliation(participant: models.Participant) -> requests.Response | N
         json=payload,
         timeout=10,
     )
-    # Note that this may be a 400!
-    return response
 
 
 def trips_information() -> dict[int, TripsInformation]:
@@ -309,7 +308,9 @@ def membership_information() -> dict[int, MembershipInformation]:
     - have rented gear
     - make use MITOC discounts
     """
-    info_by_user_id = trips_information()  # pylint: disable=unused-variable
+    info_by_user_id = (  # pylint: disable=unused-variable  # noqa: F841
+        trips_information()
+    )
 
     # This method should soon be replaced by an API call to mitoc-gear
     return {}

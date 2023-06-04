@@ -42,7 +42,7 @@ MEMBERSHIP_SECRET_KEY = os.getenv(
 GEARDB_SECRET_KEY = os.getenv(
     'GEARDB_SECRET_KEY', 'secret shared with the mitoc-gear repo'
 )
-WS_LOTTERY_LOG_DIR = os.getenv('WS_LOTTERY_LOG_DIR', '/tmp/')
+WS_LOTTERY_LOG_DIR = os.getenv('WS_LOTTERY_LOG_DIR', '/tmp/')  # noqa: S108
 
 # URL to an avatar image that is self-hosted
 # (Users who opt out of Gravatar would prefer to not have requests made to
@@ -105,7 +105,7 @@ INSTALLED_APPS = [
 ]
 try:
     # The debug toolbar is always absent in prod, but optional for local development!
-    import debug_toolbar  # pylint: disable=unused-import
+    import debug_toolbar  # pylint: disable=unused-import  # noqa: F401
 except ImportError:
     pass
 else:
@@ -174,11 +174,11 @@ CRISPY_TEMPLATE_PACK = 'bootstrap3'
 WHITELISTED_BAD_PASSWORDS: list[str] = []
 
 if os.environ.get('WS_DJANGO_TEST'):
-    from .conf.test_settings import *  # pylint: disable=wildcard-import,unused-wildcard-import
+    from .conf.test_settings import *  # pylint: disable=wildcard-import,unused-wildcard-import  # noqa: F403
 elif os.environ.get('WS_DJANGO_LOCAL'):
-    from .conf.local_settings import *  # pylint: disable=wildcard-import,unused-wildcard-import
+    from .conf.local_settings import *  # pylint: disable=wildcard-import,unused-wildcard-import  # noqa: F403
 else:
-    from .conf.production_settings import *  # pylint: disable=wildcard-import,unused-wildcard-import
+    from .conf.production_settings import *  # pylint: disable=wildcard-import,unused-wildcard-import  # noqa: F403
 
 # 32 bit signed integers (default before Django 3.2) are plenty big enough for our purposes.
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
@@ -234,7 +234,7 @@ TEMPLATES = [
                 "ws.context_processors.participant_and_groups",
                 "ws.context_processors.angular_templates",
             ],
-            'debug': DEBUG,
+            'debug': DEBUG,  # noqa: F405
         },
     }
 ]
@@ -410,7 +410,7 @@ LOGGING = {
         'file': {
             'level': 'INFO',
             'class': 'logging.FileHandler',
-            'filename': os.getenv('DJANGO_LOG_FILE', '/tmp/django.log'),
+            'filename': os.getenv('DJANGO_LOG_FILE', '/tmp/django.log'),  # noqa: S108
             'formatter': 'verbose',
         }
     },
@@ -423,7 +423,7 @@ LOGGING = {
 FRONTEND_DIR = os.path.join(BASE_DIR, 'frontend')
 WEBPACK_LOADER = {
     'DEFAULT': {
-        'CACHE': DEBUG,
+        'CACHE': DEBUG,  # noqa: F405
         'BUNDLE_DIR_NAME': '/static/frontend/',
         'STATS_FILE': os.path.join(FRONTEND_DIR, 'webpack-stats.json'),
     }

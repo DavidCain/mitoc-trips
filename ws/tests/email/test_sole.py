@@ -189,7 +189,7 @@ class StudentTravelFormTest(TestCase):
         )
         self.leader.save()
         with self.assertRaises(models.LotteryInfo.DoesNotExist):
-            self.leader.lotteryinfo  # pylint: disable=pointless-statement
+            self.leader.lotteryinfo  # pylint: disable=pointless-statement  # noqa: B018
 
         self.trip.info.drivers.add(self.leader)
 

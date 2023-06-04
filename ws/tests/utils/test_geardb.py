@@ -17,7 +17,7 @@ class JwtTest(unittest.TestCase):
     def test_sign_no_data(self):
         """Without a payload, we simple sign a token with an expiration."""
         with mock.patch.object(geardb, 'settings') as settings:
-            settings.GEARDB_SECRET_KEY = 'sooper.secret'
+            settings.GEARDB_SECRET_KEY = 'sooper.secret'  # noqa: S105
             header = geardb.gear_bearer_jwt()
 
         name, content = header.split(' ')
@@ -35,7 +35,7 @@ class JwtTest(unittest.TestCase):
     def test_sign_data_with_jwt(self):
         """The `gear_bearer_jwt()` method signs data for a 15-min period."""
         with mock.patch.object(geardb, 'settings') as settings:
-            settings.GEARDB_SECRET_KEY = 'sooper.secret'
+            settings.GEARDB_SECRET_KEY = 'sooper.secret'  # noqa: S105
             header = geardb.gear_bearer_jwt(email='tim@mit.edu')
 
         name, content = header.split(' ')
@@ -64,7 +64,7 @@ class ApiTest(SimpleTestCase):
     @responses.activate
     @mock.patch.object(geardb, 'settings')
     def test_query_api(self, settings):
-        settings.GEARDB_SECRET_KEY = 'sooper.secret'
+        settings.GEARDB_SECRET_KEY = 'sooper.secret'  # noqa: S105
 
         responses.get(
             url="https://mitoc-gear.mit.edu/credentials",

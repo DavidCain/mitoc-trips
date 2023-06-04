@@ -4,6 +4,139 @@ include = '\.py$'
 # (Preserves the convention of "single quotes for data, double quotes for humans")
 skip-string-normalization = true
 
+[tool.ruff]
+select = [
+  "A",     # flake8-builtins
+  "ANN",   # flake8-annotations
+  "ARG",   # flake8-unused-arguments
+  "ASYNC", # flake8-async
+  "B",     # flake8-bugbear
+  "BLE",   # flake8-blind-except
+  "C4",    # flake8-comprehensions
+  "C90",   # mccabe
+  "COM",   # flake8-commas
+  "DJ",    # flake8-django
+  "DTZ",   # flake8-datetimez
+  "E",     # pycodestyle error
+  "TD",    # flake8-todos
+  "EXE",   # flake8-executable
+  "F",     # Pyflakes
+  "FA",    # flake8-future-annotations
+  "G",     # flake8-logging-format
+  "ICN",   # flake8-import-conventions
+  "INP",   # flake8-no-pep420
+  "INT",   # flake8-gettext
+  "ISC",   # flake8-implicit-str-concat
+  "N",     # pep8-naming
+  "PGH",   # pygrep-hooks
+  "PIE",   # flake8-pie
+  "PLC",   # pylint convention
+  "PLE",   # pylint error
+  "PLR",   # pylint refactor
+  "PLW",   # pylint warning
+  "PT",    # flake8-pytest-style
+  "PYI",   # flake8-pyi
+  "RET",   # flake8-return
+  "RSE",   # flake8-raise
+  "RUF",   # Ruff-specific rules
+  "S",     # flake8-bandit
+  "SIM",   # flake8-simplify
+  "SLF",   # flake8-self
+  "T10",   # flake8-debugger
+  "T20",   # flake8-print
+  "TCH",   # flake8-type-checking
+  "TID",   # flake8-tidy-imports
+  "TRY",   # tryceratops
+  "UP",    # pyupgrade
+  "W",     # pycodestyle warning
+  "YTT",   # flake8-2020
+
+  # Interesting, should perhaps turn on later:
+  # "D",    # pydocstyle
+  # "I",    # isort
+  # "PTH",  # flake8-use-pathlib
+  # "FLY",  # flynt
+
+  # Intentionally omitted:
+  # "Q",     # flake8-quotes        -- we let black handle quotes.
+  # "FBT",   # flake8-boolean-trap  -- I'm fine with boolean traps
+  # "ERA",   # eradicate            -- has tons of false-positives on commented "code"
+  # "EM",    # flake8-errmsg        -- I'm fine with strings directly in exceptions
+  # "PD",    # pandas-vet           -- I don't use pandas
+  # "NPY",   # NumPy-specific rules -- I don't use numpy
+]
+
+ignore = [
+  # Specific rules ignored from checkers I otherwise view as valuable:
+  "ANN001",   # Type annotations are knowingly incomplete.
+  "ANN002",   # Type annotations are knowingly incomplete.
+  "ANN003",   # Type annotations are knowingly incomplete.
+  "ANN101",   # Type annotations are knowingly incomplete.
+  "ANN102",   # Type annotations are knowingly incomplete.
+  "ANN201",   # Type annotations are knowingly incomplete.
+  "ANN202",   # Type annotations are knowingly incomplete.
+  "ANN204",   # Type annotations are knowingly incomplete.
+  "ANN205",   # Type annotations are knowingly incomplete.
+  "ANN206",   # Type annotations are knowingly incomplete.
+  "ANN401",   # Type annotations are knowingly incomplete.
+  "ARG001",   # Unused arguments are common when inheriting with `*args, **kwargs`.
+  "ARG002",   # Unused arguments are common when inheriting with `*args, **kwargs`.
+  "COM812",   # Black manages commas.
+  "D100",     # Not all public classes need docstrings.
+  "D101",     # Not all public classes need docstrings.
+  "D102",     # Not all public methods need docstrings.
+  "D107",     # Not all `__init__` methods need docstrings.
+  "E501",     # Black manages line length.
+  "N806",     # Function arguments are frequently uppercase in migrations.
+  "PT009",    # I intentionally use `unittest`-style tests.
+  "PT019",    # I don't use pytest fixtures.
+  "S101",     # Using `assert` is fine (I run with them enabled).
+  "S311",     # I use RNGs but they're not for cryptography purposes.
+  "TD002",    # This is a solo project -- I authored all the TODOs.
+  "TD003",    # This is a solo project -- I don't track issues.
+  "TRY003",   # I don't mind specifying messages in the exception raise.
+
+  # Errors which I'll plan to fix soon:
+  "B904",     # Use `raise from` to preserve context (also see TRY200)
+  "PLR0913",  # Refactor functions with too many args
+  "B905",     # Use `strict()` on `zip()`
+  "DJ001",    # Avoid nullable charfields
+  "DJ006",    # Use fields instead of exclude with `ModelForm`
+  "DJ008",    # Each model should declare `__str__`
+  "DJ012",    # Put `Meta` below other definitions
+  "DTZ001",   # Avoid naive datetimes
+  "DTZ003",   # Always use timezone-aware UTC
+  "G004",     # Logging should use lazy interpolation
+  "N818",     # Use the Error suffix on error instances
+  "PGH003",   # Avoid blanket type ignores
+  "PLR2004",  # Do not use magic values in comparisons
+  "SIM102",   # Use just one `if` statement
+  "SIM105",   # Use `contextlib.suppress`
+  "SIM117",   # Avoid repeated `with` statements
+  "T201",     # Logging should be used, not `print` statements
+  "TRY200",   # Use `raise from` to preserve context (also see B904)
+  "TRY400",   # Use logging.exception, not logging.error
+]
+
+# By default, `ruff` will respect `.gitignore`
+# However, we can/should be explicit about excluded directories for CI
+exclude = [
+  ".venv/",
+  "node_modules/",
+  "static/",
+]
+
+fixable = ["ALL"]
+unfixable = []
+
+[tool.ruff.flake8-self]
+ignore-names = [
+  "_asdict",
+  "_replace",
+  "_fields",
+  "_meta",
+]
+
 [tool.isort]
 profile = "black"
 
@@ -39,6 +172,7 @@ psycopg2 = "*"
 pwned-passwords-django = "^1.6"  # Awaiting new release to fix ValueError
 requests = "*"
 sentry-sdk = "^1.3.1"
+ruff = "^0.0.270"
 
 [tool.poetry.dev-dependencies]
 black = "*"
@@ -150,6 +284,11 @@ disable = [
   ############################
   "missing-docstring",
   "unused-argument",  # Currently quite common in method strings
+
+  ####################################
+  # We let ruff handle these instead #
+  ####################################
+  "protected-access",
 ]
 
 [tool.pylint.REPORTS]

@@ -68,7 +68,7 @@ def simple_fk_update(cursor, table, col, old_pk, new_pk):
         update {table}
            set {col} = %(new_pk)s
          where {col} = %(old_pk)s
-        """,
+        """,  # noqa: S608
         {'new_pk': new_pk, 'old_pk': old_pk},
     )
 

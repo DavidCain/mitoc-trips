@@ -18,7 +18,7 @@ def avatar(participant, size=40, img_rounded=True):
         'size': size,
         'class': 'class="img-rounded"' if img_rounded else '',
     }
-    return mark_safe(
+    return mark_safe(  # noqa: S308
         '<img {class} src="{url}" alt="User avatar"'
         ' height="{size}" width="{size}">'.format(**kwargs)
     )

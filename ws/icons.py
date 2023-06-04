@@ -75,8 +75,8 @@ def for_trip(trip: models.Trip) -> SafeString:
     """Return (safe) HTML with an icon that describes the trip."""
     icon = fa_icon_for_trip(trip)
     if not icon:
-        return mark_safe('')  # (For consistent return type)
+        return mark_safe('')  # (For consistent return type)  # noqa: S308
     solid_regular = 'far' if icon == 'hand-rock' else 'fa'
     title = escape(_describe(trip))
     html = f'<i class="{solid_regular} fa-fw fa-{icon}" title="{title}"></i>'
-    return mark_safe(html)
+    return mark_safe(html)  # noqa: S308

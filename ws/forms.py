@@ -641,7 +641,7 @@ class WinterSchoolSettingsForm(forms.ModelForm):
 
 
 # TODO: This should be a class, not a method.
-def LeaderApplicationForm(*args, **kwargs):
+def LeaderApplicationForm(*args, **kwargs):  # noqa: N802
     """Factory form for applying to be a leader in any activity."""
     activity_enum: enums.Activity = kwargs.pop('activity_enum')
 
@@ -651,7 +651,7 @@ def LeaderApplicationForm(*args, **kwargs):
             model = models.LeaderApplication.model_from_activity(activity_enum)
             widgets = {
                 field.name: forms.Textarea(attrs={'rows': 4})
-                for field in model._meta.fields  # pylint: disable=protected-access
+                for field in model._meta.fields
                 if isinstance(field, TextField)
             }
 
@@ -721,14 +721,14 @@ class DuesForm(forms.Form):
         widget=forms.HiddenInput(), initial='membership fees.'
     )
 
-    merchantDefinedData1 = forms.CharField(
+    merchantDefinedData1 = forms.CharField(  # noqa: N815
         widget=forms.HiddenInput(), initial=PAYMENT_TYPE
     )
-    merchantDefinedData2 = forms.ChoiceField(
+    merchantDefinedData2 = forms.ChoiceField(  # noqa: N815
         required=True, label='Affiliation', choices=list(amount_choices())
     )
-    merchantDefinedData3 = forms.EmailField(required=True, label='Email')
-    merchantDefinedData4 = forms.CharField(
+    merchantDefinedData3 = forms.EmailField(required=True, label='Email')  # noqa: N815
+    merchantDefinedData4 = forms.CharField(  # noqa: N815
         required=True,
         label="Member name",
         widget=forms.TextInput(

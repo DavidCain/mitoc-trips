@@ -50,13 +50,17 @@ class AuthTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.user = factories.UserFactory.create(
-            email='fake@example.com', password='password'
+            email='fake@example.com',
+            password='password',  # noqa: S106
         )
 
     def login(self):
-        return self.client.login(email=self.user.email, password='password')
+        return self.client.login(
+            email=self.user.email,
+            password='password',  # noqa: S106
+        )
 
-    def assertProfileRedirectedTo(self, response, desired_page):
+    def assertProfileRedirectedTo(self, response, desired_page):  # noqa: N802
         """Check for edit profile redirect on a given response."""
         self.assertEqual(response.status_code, 302)
 

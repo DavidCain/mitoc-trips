@@ -42,7 +42,7 @@ class LotteryPairingViewTests(TestCase):
 
         # No lottery information is saved
         with self.assertRaises(models.LotteryInfo.DoesNotExist):
-            par.lotteryinfo  # pylint: disable=pointless-statement
+            par.lotteryinfo  # pylint: disable=pointless-statement  # noqa: B018
 
     def test_can_change_pairing(self):
         """Participants can change their pairing choices."""
@@ -756,16 +756,15 @@ class EmailUnsubscribeTest(TestCase):
     def _get(self, url: str):
         response = self.client.get(url)
         assert response.status_code == 200
-        soup = BeautifulSoup(response.content, 'html.parser')
-        return soup
+        return BeautifulSoup(response.content, 'html.parser')
 
     def test_success_unauthenticated(self):
         """A user who is not logged in can use a token to unsubscribe."""
         par = factories.ParticipantFactory.create(
             pk=2348971, send_membership_reminder=True
         )
-        token = 'eyJwayI6MjM0ODk3MSwiZW1haWxzIjpbMF19:1mvjFY:KR-_sCXU64PeJjRtce4KeNr6gBACxl1QX50WzVgQQZ8'
-        with self.settings(UNSUBSCRIBE_SECRET_KEY='sooper-secret'):
+        token = 'eyJwayI6MjM0ODk3MSwiZW1haWxzIjpbMF19:1mvjFY:KR-_sCXU64PeJjRtce4KeNr6gBACxl1QX50WzVgQQZ8'  # noqa: S105
+        with self.settings(UNSUBSCRIBE_SECRET_KEY='sooper-secret'):  # noqa: S106
             with self._spy_on_add_message() as add_message:
                 soup = self._get(f'/preferences/email/unsubscribe/{token}/')
 

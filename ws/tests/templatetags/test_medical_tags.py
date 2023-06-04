@@ -80,8 +80,7 @@ class TripInfoTest(TestCase):
             '{% load medical_tags %}{% trip_info trip show_participants_if_no_itinerary %}'
         )
         html = template_to_render.render(context)
-        soup = BeautifulSoup(html, 'xml')
-        return soup
+        return BeautifulSoup(html, 'xml')
 
     def test_no_itinerary(self):
         trip = factories.TripFactory.create(info=None)

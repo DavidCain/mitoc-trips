@@ -6,7 +6,7 @@ from ws import settings
 
 def gravatar_url(email: str, size=40):
     email_bytes = email.encode('utf-8').lower()
-    email_hash = hashlib.md5(email_bytes).hexdigest()
+    email_hash = hashlib.md5(email_bytes).hexdigest()  # noqa: S324
     options = urllib.parse.urlencode({'d': 'mm', 's': size, 'r': 'pg'})
     return f"https://www.gravatar.com/avatar/{email_hash}?{options}"
 

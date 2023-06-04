@@ -67,7 +67,7 @@ class PhoneInput(dj_widgets.Input):
         }
 
         return format_html(
-            '<input type="hidden" {}/>' + '<bc-phone-number {}></bc-phone-number>',
+            '<input type="hidden" {}/><bc-phone-number {}></bc-phone-number>',
             flatatt(ng_model_init),
             flatatt(final_attrs),
         )
@@ -82,7 +82,11 @@ class DateTimeLocalInput(dj_widgets.DateTimeInput):
     This is expected to round to the minute, not the second!
     """
 
-    def __init__(self, attrs=None, format=None):  # pylint:disable=redefined-builtin
+    def __init__(
+        self,
+        attrs=None,
+        format=None,  # pylint:disable=redefined-builtin  # noqa: A002
+    ):
         attrs = attrs or {}
         super().__init__(
             attrs={

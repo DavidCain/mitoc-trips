@@ -54,7 +54,7 @@ class UserFactory(DjangoModelFactory):
     username = factory.Sequence(lambda n: f"user{n + 1}")
     email = factory.Sequence(lambda n: f"user{n + 1}@example.com")
     emailaddress = factory.RelatedFactory(EmailFactory, 'user')
-    password = 'password'  # (Will be hashed & salted by `create_user`)
+    password = 'password'  # (Will be hashed & salted by `create_user`)  # noqa: S105
 
     @classmethod
     def _create(cls, model_class, *args, **kwargs):

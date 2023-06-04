@@ -142,7 +142,7 @@ class TripIneligibilityReason(enum.Enum):
             self.WAIVER_MISSING: f'<a href="{initiate_waiver}">sign a waiver</a>',
             self.WAIVER_NEEDS_RENEWAL: f'''have a <a href="{initiate_waiver}">waiver that's valid until at least {trip_date}</a>''',
         }
-        return mark_safe(mapping[self])
+        return mark_safe(mapping[self])  # noqa: S308
 
 
 @enum.unique

@@ -11,6 +11,7 @@ jobs:
           - "black --diff --check ws"
           - "isort --diff --check ws"
           - "mypy ws"
+          - "ruff ."
           - "pylint --jobs=0 ws"
           - "pytest"
     runs-on: ubuntu-22.04

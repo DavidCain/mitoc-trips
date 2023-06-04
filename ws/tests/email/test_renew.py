@@ -70,7 +70,7 @@ class RenewTest(TestCase):
         )
 
         with mock.patch.object(mail.EmailMultiAlternatives, 'send') as send:
-            with self.settings(UNSUBSCRIBE_SECRET_KEY='sooper-secret'):
+            with self.settings(UNSUBSCRIBE_SECRET_KEY='sooper-secret'):  # noqa: S106
                 msg = renew.send_email_reminding_to_renew(par)
         send.assert_called_once()
 
@@ -117,7 +117,7 @@ class RenewTest(TestCase):
         par.discounts.add(DiscountFactory.create(name='Acme Corp'))
 
         with mock.patch.object(mail.EmailMultiAlternatives, 'send') as send:
-            with self.settings(UNSUBSCRIBE_SECRET_KEY='sooper-secret'):
+            with self.settings(UNSUBSCRIBE_SECRET_KEY='sooper-secret'):  # noqa: S106
                 msg = renew.send_email_reminding_to_renew(par)
         send.assert_called_once()
 

@@ -41,7 +41,7 @@ class LotteryMessagesTest(MessagesTestCase):
         """During WS, we warn participants who haven't set lottery preferences."""
         par = factories.ParticipantFactory.create()
         with self.assertRaises(models.LotteryInfo.DoesNotExist):
-            par.lotteryinfo  # pylint: disable=pointless-statement
+            par.lotteryinfo  # pylint: disable=pointless-statement  # noqa: B018
 
         request = self._request_with_participant(par)
         with self._mock_add_message() as add_message:

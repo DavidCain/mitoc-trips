@@ -58,10 +58,13 @@ class WarnIfPasswordInsecureTests(MessagesTestCase):
     def test_participant_with_insecure_password(self):
         """Test core behavior of the generator - a known participant with a bad password."""
         # Use the test client, since RequestFactory can't handle messages
-        user = UserFactory.create(email='fake@example.com', password='password')
+        user = UserFactory.create(
+            email='fake@example.com',
+            password='password',  # noqa: S106
+        )
         par = ParticipantFactory.create(email='fake@example.com', user=user)
         PasswordQualityFactory.create(participant=par, is_insecure=True)
-        self.client.login(email=user.email, password='password')
+        self.client.login(email=user.email, password='password')  # noqa: S106
 
         with self._mock_info() as info, self._mock_add_message(True) as add_message:
             # Loading any page will invoke the security messages

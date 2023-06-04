@@ -18,7 +18,8 @@ class LoginTests(TestCase):
         super().setUp()
         # Make a user with a terrible, very-often breached password
         self.user = factories.UserFactory.create(
-            email='hacked@example.com', password='football'
+            email='hacked@example.com',
+            password='football',  # noqa: S106
         )
         self.form_data = {'login': 'hacked@example.com', 'password': 'football'}
 
@@ -183,7 +184,7 @@ class LoginTests(TestCase):
         participant = factories.ParticipantFactory.create(user_id=self.user.pk)
 
         with mock.patch.object(auth, 'pwned_password') as pwned_password:
-            pwned_password.side_effect = lambda pw: int("1,234")
+            pwned_password.side_effect = lambda _pw: int("1,234")
             self._login()
         pwned_password.assert_called_once_with('football')
 
@@ -274,7 +275,7 @@ class PasswordChangeTests(TestCase):
         factories.PasswordQualityFactory.create(participant=par, is_insecure=False)
         # Simulate login (skip the normal login flow)
         self.client.login(email='strong@example.com', password=self.password)
-        new_insecure_password = 'letmeinplease'
+        new_insecure_password = 'letmeinplease'  # noqa: S105
 
         # The form validation will invoke pwned_password
         with mock.patch.object(api, 'pwned_password') as pwned_password:

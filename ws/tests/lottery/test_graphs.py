@@ -67,7 +67,7 @@ class CycleTests(TestCase):
         self.assertNotEqual(cycle, {bert, ernie})
 
     def test_same_length_differing_contents(self):
-        a, b, c, d = (factories.ParticipantFactory.create(name=l) for l in 'ABCD')
+        a, b, c, d = (factories.ParticipantFactory.create(name=char) for char in 'ABCD')
 
         self.assertNotEqual(graphs.Cycle([a, b]), graphs.Cycle([c, d]))
 

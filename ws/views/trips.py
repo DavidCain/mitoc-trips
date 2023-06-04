@@ -52,7 +52,7 @@ class TripView(DetailView):
     context_object_name = 'trip'
     template_name = 'trips/view.html'
 
-    object: models.Trip
+    object: models.Trip  # noqa: A003
 
     def get_queryset(self):
         trips = super().get_queryset().select_related('info')
@@ -139,7 +139,7 @@ class ReviewTripView(DetailView):
     template_name = 'trips/review.html'
     success_msg = "Thanks for your feedback!"
 
-    object: models.Trip
+    object: models.Trip  # noqa: A003
 
     @property
     def posted_feedback(self):
@@ -268,7 +268,7 @@ class CreateTripView(CreateView):
         if trip.requires_reimbursement:
             messages.success(
                 self.request,
-                mark_safe(
+                mark_safe(  # noqa: S308
                     f'Remember to <a href="{trip.prefilled_atlas_form_link}">register your trip for reimbursement</a>!'
                 ),
             )
@@ -333,7 +333,7 @@ class EditTripView(UpdateView, TripLeadersOnlyView):
     form_class = forms.TripForm
     template_name = 'trips/edit.html'
 
-    object: models.Trip
+    object: models.Trip  # noqa: A003
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()

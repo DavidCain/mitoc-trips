@@ -82,7 +82,7 @@ def purge_old_medical_data():
         # If some other query already holds a lock, just skip for now!
         # (likely means that the participant is being updated, and shouldn't be purged)
         # We can always try to purge again on the next scheduled run.
-        # TODO (Django 2), exclusive join *only* on Participant + e. info, not Membership
+        # TODO (Django 2): exclusive join *only* on Participant + e. info, not Membership
         # .select_for_update(skip_locked=True, of=('self', 'emergency_info'))
     )
 
