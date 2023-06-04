@@ -45,7 +45,11 @@ class OtherParticipantView(SingleObjectMixin):
         return self.object
 
 
-class DeleteParticipantView(OtherParticipantView, DeleteView):
+# Ignore a `mypy` issue (for now?) where `DeleteView` and `DeletionMixin`
+# do not seem compatible:
+# Definition of "object" in base class "DeletionMixin"
+# is incompatible with definition in base class "BaseDetailView"
+class DeleteParticipantView(OtherParticipantView, DeleteView):  # type: ignore[misc]
     model = models.Participant
     success_url = reverse_lazy('participant_lookup')
 

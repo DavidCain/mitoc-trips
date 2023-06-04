@@ -314,7 +314,11 @@ class CreateTripView(CreateView):
         return super().dispatch(request, *args, **kwargs)
 
 
-class DeleteTripView(DeleteView, TripLeadersOnlyView):
+# Ignore a `mypy` issue (for now?) where `DeleteView` and `DeletionMixin`
+# do not seem compatible:
+# Definition of "object" in base class "DeletionMixin"
+# is incompatible with definition in base class "BaseDetailView"
+class DeleteTripView(DeleteView, TripLeadersOnlyView):  # type: ignore[misc]
     model = models.Trip
     success_url = reverse_lazy('upcoming_trips')
 
