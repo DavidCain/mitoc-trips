@@ -43,7 +43,7 @@ ENV LC_ALL=en_US.UTF-8
 RUN pip3 install --upgrade pip==22.0.4
 
 # TODO: Check asdf's .tool-versions
-RUN pip install poetry==1.1.12
+RUN pip install poetry==1.5.1
 COPY poetry.lock .
 
 # Instruct poetry to create a venv in `.venv`, then auto-add it to path
