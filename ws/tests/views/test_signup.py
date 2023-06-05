@@ -1,6 +1,7 @@
 from contextlib import contextmanager
 from datetime import date, datetime
 from unittest import mock
+from zoneinfo import ZoneInfo
 
 import responses
 from bs4 import BeautifulSoup
@@ -28,7 +29,9 @@ class SignupsViewTest(TestCase):
         trip_kwargs = {
             'program': enums.Program.CLIMBING.value,
             'trip_date': date(2019, 1, 19),
-            'signups_open_at': date_utils.localize(datetime(2019, 1, 14, 10, 0, 0)),
+            'signups_open_at': datetime(
+                2019, 1, 14, 10, 0, 0, tzinfo=ZoneInfo("America/New_York")
+            ),
             **kwargs,
         }
         return factories.TripFactory.create(**trip_kwargs)
@@ -121,7 +124,9 @@ class SignupsViewTest(TestCase):
         """Cannot sign up for a trip that's not open!"""
         not_yet_open_trip = factories.TripFactory.create(
             program=enums.Program.CLIMBING.value,
-            signups_open_at=date_utils.localize(datetime(2019, 3, 20, 10, 0, 0)),
+            signups_open_at=datetime(
+                2019, 3, 20, 10, 0, 0, tzinfo=ZoneInfo("America/New_York")
+            ),
         )
 
         # The participant has an active membership that will last at least until the trip

@@ -1,11 +1,11 @@
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from allauth.account.models import EmailAddress
 from django.test import SimpleTestCase, TestCase
 from freezegun import freeze_time
 from mitoc_const import affiliations
 
-import ws.utils.dates as date_utils
 from ws import forms
 from ws.tests import factories
 
@@ -105,7 +105,7 @@ class TripFormTests(TestCase):
         form = forms.TripForm()
         self.assertEqual(
             form.fields['signups_close_at'].initial(),
-            date_utils.localize(datetime(2019, 10, 18, 23, 59, 59)),
+            datetime(2019, 10, 18, 23, 59, 59, tzinfo=ZoneInfo("America/New_York")),
         )
 
     @freeze_time("Mon, 14 Oct 2019 12:45:00 EST")
@@ -114,5 +114,5 @@ class TripFormTests(TestCase):
         form = forms.TripForm()
         self.assertEqual(
             form.fields['signups_close_at'].initial(),
-            date_utils.localize(datetime(2019, 10, 16, 9, 0, 0)),
+            datetime(2019, 10, 16, 9, 0, 0, tzinfo=ZoneInfo("America/New_York")),
         )

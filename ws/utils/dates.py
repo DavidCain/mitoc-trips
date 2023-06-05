@@ -51,7 +51,7 @@ def late_at_night(dt: date) -> datetime:
     # This method just means to give "shy of midnight" in Eastern time, on the date.
     # If `dt` were a datetime representing 2 am in England, what's the date?
     # Depends if you're asking from the perspective of those in England, or New England
-    return localize(datetime(dt.year, dt.month, dt.day, 23, 59, 59))
+    return localize(datetime(dt.year, dt.month, dt.day, 23, 59, 59))  # noqa: DTZ001
 
 
 def fcfs_close_time(trip_date: date) -> datetime:
@@ -170,7 +170,7 @@ def ws_year() -> int:
 
 
 def jan_1() -> datetime:
-    jan_1st = datetime(local_date().year, 1, 1)
+    jan_1st = datetime(local_date().year, 1, 1)  # noqa: DTZ001
     return localize(jan_1st)
 
 

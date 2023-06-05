@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from zoneinfo import ZoneInfo
 
 from django.template import Context, Template
 from django.test import TestCase
@@ -7,7 +8,6 @@ from freezegun import freeze_time
 from ws import enums, models
 from ws.templatetags.trip_tags import annotated_for_trip_list  # TODO: Move.
 from ws.tests import factories
-from ws.utils.dates import localize
 
 
 @freeze_time("11 Dec 2025 12:00:00 EST")
@@ -22,8 +22,12 @@ class EmailTagsTests(TestCase):
             'trip_date': date(2025, 12, 14),
             'difficulty_rating': 'Advanced',
             'prereqs': 'Comfort with rough terrain',
-            'signups_open_at': localize(datetime(2025, 12, 10, 12, 0)),
-            'signups_close_at': localize(datetime(2025, 12, 13, 21, 30)),
+            'signups_open_at': datetime(
+                2025, 12, 10, 12, 0, tzinfo=ZoneInfo('America/New_York')
+            ),
+            'signups_close_at': datetime(
+                2025, 12, 13, 21, 30, tzinfo=ZoneInfo('America/New_York')
+            ),
             'algorithm': 'fcfs',
             **overrides,
         }

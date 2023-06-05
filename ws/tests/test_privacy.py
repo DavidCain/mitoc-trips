@@ -1,13 +1,13 @@
 from collections import OrderedDict
 from datetime import date, datetime
 from unittest import mock
+from zoneinfo import ZoneInfo
 
 from django.test import TestCase
 from freezegun import freeze_time
 
 from ws.privacy import DataDump
 from ws.tests import factories
-from ws.utils.dates import localize
 
 
 class DataDumpTest(TestCase):
@@ -111,11 +111,15 @@ class DataDumpTest(TestCase):
             [
                 {
                     'year': 2017,
-                    'time_created': localize(datetime(2017, 1, 5, 18, 35, 40)),
+                    'time_created': datetime(
+                        2017, 1, 5, 18, 35, 40, tzinfo=ZoneInfo("America/New_York")
+                    ),
                 },
                 {
                     'year': 2019,
-                    'time_created': localize(datetime(2019, 1, 10, 18, 45, 20)),
+                    'time_created': datetime(
+                        2019, 1, 10, 18, 45, 20, tzinfo=ZoneInfo("America/New_York")
+                    ),
                 },
             ],
         )

@@ -88,6 +88,7 @@ ignore = [
   "D107",     # Not all `__init__` methods need docstrings.
   "E501",     # Black manages line length.
   "N806",     # Function arguments are frequently uppercase in migrations.
+  "PLR2004",  # Tests & simple logic extensively use "magic values"
   "PT009",    # I intentionally use `unittest`-style tests.
   "PT019",    # I don't use pytest fixtures.
   "S101",     # Using `assert` is fine (I run with them enabled).
@@ -104,12 +105,9 @@ ignore = [
   "DJ006",    # Use fields instead of exclude with `ModelForm`
   "DJ008",    # Each model should declare `__str__`
   "DJ012",    # Put `Meta` below other definitions
-  "DTZ001",   # Avoid naive datetimes
-  "DTZ003",   # Always use timezone-aware UTC
   "G004",     # Logging should use lazy interpolation
   "N818",     # Use the Error suffix on error instances
   "PGH003",   # Avoid blanket type ignores
-  "PLR2004",  # Do not use magic values in comparisons
   "SIM102",   # Use just one `if` statement
   "SIM105",   # Use `contextlib.suppress`
   "SIM117",   # Avoid repeated `with` statements

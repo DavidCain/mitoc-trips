@@ -3,6 +3,7 @@ from collections.abc import Iterable, Iterator
 from datetime import date, datetime, timedelta
 from typing import Optional
 from urllib.parse import urlencode, urljoin
+from zoneinfo import ZoneInfo
 
 import markdown2
 from allauth.account.models import EmailAddress
@@ -474,7 +475,7 @@ class Participant(models.Model):
         if len(self.affiliation) == 1:  # Old one-letter affiliation
             return True
 
-        force_reset = date_utils.localize(datetime(2018, 10, 27, 4, 30))
+        force_reset = datetime(2018, 10, 27, 4, 30, tzinfo=ZoneInfo('America/New_York'))
         return self.profile_last_updated < force_reset
 
     @classmethod

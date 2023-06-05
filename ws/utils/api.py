@@ -1,6 +1,7 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 import jwt
+from django.utils import timezone
 
 
 def jwt_token_from_headers(request):
@@ -20,6 +21,6 @@ def bearer_jwt(secret: str, **payload) -> str:
     given email. This repository can ask the gear database for membership
     information.
     """
-    expires = datetime.utcnow() + timedelta(minutes=15)
+    expires = timezone.now() + timedelta(minutes=15)
     token = jwt.encode({**payload, 'exp': expires}, secret, algorithm="HS256")
     return f'Bearer: {token}'

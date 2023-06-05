@@ -2,6 +2,7 @@ import datetime
 import unittest
 from datetime import date
 from unittest import mock
+from zoneinfo import ZoneInfo
 
 from django.contrib.auth.models import AnonymousUser
 from django.test import SimpleTestCase, TestCase
@@ -274,7 +275,9 @@ class ProblemsWithProfileTest(TestCase):
     def test_not_updated_since_affiliation_overhaul(self):
         """Any participant with affiliation predating our new categories should re-submit!"""
         # This is right before the time when we released new categories!
-        before_cutoff = date_utils.localize(datetime.datetime(2018, 10, 27, 3, 15))
+        before_cutoff = datetime.datetime(
+            2018, 10, 27, 3, 15, tzinfo=ZoneInfo('America/New_York')
+        )
 
         participant = factories.ParticipantFactory.create()
         # Override the default "now" timestamp, to make participant's last profile update look old

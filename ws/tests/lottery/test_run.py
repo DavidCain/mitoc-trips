@@ -1,6 +1,7 @@
 from datetime import date, datetime
 from textwrap import dedent
 from unittest.mock import patch
+from zoneinfo import ZoneInfo
 
 from django.test import TestCase
 from freezegun import freeze_time
@@ -159,7 +160,8 @@ class WinterSchoolLotteryTests(TestCase):
     def _assert_fcfs_at_noon(self, trip):
         self.assertEqual(trip.algorithm, 'fcfs')
         self.assertEqual(
-            trip.signups_open_at, date_utils.localize(datetime(2020, 1, 15, 12))
+            trip.signups_open_at,
+            datetime(2020, 1, 15, 12, tzinfo=ZoneInfo('America/New_York')),
         )
 
     def test_no_signups(self):

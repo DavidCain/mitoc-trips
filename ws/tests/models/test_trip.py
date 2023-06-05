@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from zoneinfo import ZoneInfo
 
 from django.core.exceptions import ValidationError
 from django.test import SimpleTestCase, TestCase
@@ -6,7 +7,6 @@ from freezegun import freeze_time
 
 from ws import enums
 from ws.tests import factories
-from ws.utils.dates import localize
 
 
 class LotteryRulesTest(SimpleTestCase):
@@ -171,7 +171,9 @@ class CleanTest(SimpleTestCase):
     @freeze_time("2020-01-16 18:45:22 EST")
     def test_signups_closed_already(self):
         trip = factories.TripFactory.build(
-            signups_close_at=localize(datetime(2020, 1, 15, 12, 0)),
+            signups_close_at=datetime(
+                2020, 1, 15, 12, 0, tzinfo=ZoneInfo('America/New_York')
+            ),
             trip_date=date(2020, 1, 18),
         )
         self.assertIsNone(trip.time_created)
@@ -192,8 +194,12 @@ class CleanTest(SimpleTestCase):
     @freeze_time("2020-01-14 18:45:22 EST")
     def test_opens_after_closing(self):
         trip = factories.TripFactory.build(
-            signups_open_at=localize(datetime(2020, 1, 15, 12, 0)),
-            signups_close_at=localize(datetime(2020, 1, 15, 2, 0)),
+            signups_open_at=datetime(
+                2020, 1, 15, 12, 0, tzinfo=ZoneInfo('America/New_York')
+            ),
+            signups_close_at=datetime(
+                2020, 1, 15, 2, 0, tzinfo=ZoneInfo('America/New_York')
+            ),
             trip_date=date(2020, 1, 20),
         )
         with self.assertRaises(ValidationError) as cm:

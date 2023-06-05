@@ -1,5 +1,6 @@
 from datetime import date, datetime, timedelta
 from unittest import mock
+from zoneinfo import ZoneInfo
 
 from bs4 import BeautifulSoup
 from django.template import Context, Template
@@ -20,8 +21,12 @@ class SignupForTripTests(TestCase):
             'program': enums.Program.CLIMBING.value,
             'name': "Some Cool Upcoming Trip",
             'trip_date': date(2025, 12, 14),
-            'signups_open_at': date_utils.localize(datetime(2025, 12, 10, 12, 0)),
-            'signups_close_at': date_utils.localize(datetime(2025, 12, 13, 21, 30)),
+            'signups_open_at': datetime(
+                2025, 12, 10, 12, 0, tzinfo=ZoneInfo("America/New_York")
+            ),
+            'signups_close_at': datetime(
+                2025, 12, 13, 21, 30, tzinfo=ZoneInfo("America/New_York")
+            ),
             'algorithm': 'fcfs',
             **kwargs,
         }
@@ -146,8 +151,12 @@ class SignupForTripTests(TestCase):
 
     def test_not_yet_open(self):
         trip = self._make_trip(
-            signups_open_at=date_utils.localize(datetime(2025, 12, 12, 13, 45)),
-            signups_close_at=date_utils.localize(datetime(2025, 12, 13, 23, 59)),
+            signups_open_at=datetime(
+                2025, 12, 12, 13, 45, tzinfo=ZoneInfo("America/New_York")
+            ),
+            signups_close_at=datetime(
+                2025, 12, 13, 23, 59, tzinfo=ZoneInfo("America/New_York")
+            ),
             allow_leader_signups=True,
             activity=models.LeaderRating.BIKING,
             program=enums.Program.BIKING.value,
@@ -186,7 +195,9 @@ class SignupForTripTests(TestCase):
     def test_closed_trip(self):
         """Nobody may sign up after signups close."""
         trip = self._make_trip(
-            signups_close_at=date_utils.localize(datetime(2025, 12, 11, 11, 11))
+            signups_close_at=datetime(
+                2025, 12, 11, 11, 11, tzinfo=ZoneInfo("America/New_York")
+            )
         )
         self.assertTrue(trip.signups_closed)
         soup = self._render(factories.ParticipantFactory(), trip)
