@@ -1,3 +1,5 @@
+from typing import Any
+
 from django import forms
 from django.core.exceptions import ValidationError
 from django.db.models.fields import TextField
@@ -492,8 +494,7 @@ class TripForm(forms.ModelForm):
             # New trip -- say that field is required.
             self.fields['winter_terrain_level'].required = True
 
-        initial_program: enums.Program | None = trip.pk and trip.program_enum
-
+        initial_program = trip.pk and trip.program_enum
         if allowed_programs is not None:
             self.fields['program'].choices = list(
                 self._allowed_program_choices(allowed_programs)
@@ -641,7 +642,7 @@ class WinterSchoolSettingsForm(forms.ModelForm):
 
 
 # TODO: This should be a class, not a method.
-def LeaderApplicationForm(*args, **kwargs):  # noqa: N802
+def LeaderApplicationForm(*args: Any, **kwargs: Any) -> forms.ModelForm:  # noqa: N802
     """Factory form for applying to be a leader in any activity."""
     activity_enum: enums.Activity = kwargs.pop('activity_enum')
 

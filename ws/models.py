@@ -1,5 +1,5 @@
 import re
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from datetime import date, datetime, timedelta
 from typing import Optional
 from urllib.parse import urlencode, urljoin
@@ -1204,7 +1204,10 @@ class Trip(models.Model):
             .order_by('trip__trip_date')
         )
 
-    def other_trips_by_participant(self, for_participants=None):
+    def other_trips_by_participant(
+        self,
+        for_participants: Iterable[Participant] | None = None,
+    ) -> Iterator[tuple[int, list['Trip']]]:
         """Identify which other trips this trip's participants are on.
 
         Specifically, for each participant that is signed up for this trip,

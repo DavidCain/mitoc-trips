@@ -6,6 +6,7 @@ attended by any interested participants.
 """
 from collections import defaultdict
 from datetime import date, timedelta
+from typing import Any, cast
 from urllib.parse import urlencode
 
 from django.contrib import messages
@@ -13,6 +14,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.db.models import Q, QuerySet
+from django.forms.fields import TypedChoiceField
 from django.forms.utils import ErrorList
 from django.http import Http404, HttpResponseBadRequest
 from django.shortcuts import redirect, render
@@ -295,16 +297,17 @@ class CreateTripView(CreateView):
         trip.activity = trip.get_legacy_activity()
         return super().form_valid(form)
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
         context['is_currently_iap'] = is_currently_iap()
 
         # There is separate logic for determining if we allow choosing the WS program.
         # Rather than duplicate that logic here, just see if it's a selectable choice.
         form: forms.TripForm = context['form']
+        program_field = cast(TypedChoiceField, form.fields['program'])
         context['can_select_ws_program'] = any(
             enums.Program(value) == enums.Program.WINTER_SCHOOL
-            for category, choices in form.fields['program'].choices
+            for category, choices in program_field.choices
             for value, label in choices
         )
         return context

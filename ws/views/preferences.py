@@ -8,10 +8,11 @@ of the participant.
 import contextlib
 import json
 from datetime import datetime
+from typing import Any
 
 from django.contrib import messages
 from django.db.models import Q
-from django.http import JsonResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import redirect
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
@@ -208,9 +209,9 @@ class LotteryPreferencesView(TemplateView, LotteryPairingMixin):
         self.handle_paired_signups()
         return JsonResponse({'message': self.update_msg}, status=200)
 
-    def save_signups(self):
+    def save_signups(self) -> None:
         """Save the rankings given by the participant, optionally removing any signups."""
-        par = self.request.participant
+        par: models.Participant = self.request.participant  # type: ignore[attr-defined]
         posted_signups = self.post_data['signups']
         required_fields: set[str] = {'id', 'deleted', 'order'}
 
@@ -322,14 +323,16 @@ class EmailUnsubscribeView(TemplateView):
     template_name = 'preferences/email/unsubscribe.html'
     success_url = reverse_lazy('email_preferences')
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         token: str = self.kwargs['token']
+
+        participant: models.Participant | None = request.participant  # type: ignore[attr-defined]
 
         try:
             unsubscribed_par = unsubscribe.unsubscribe_from_token(token)
         except unsubscribe.InvalidToken as e:
             messages.add_message(request, messages.ERROR, str(e))
-            if request.participant:
+            if participant:
                 # NOTE: we *could* just say "oh, hey, you're logged in - we'll just unsubscribe you."
                 # However, we can't be totally sure that the logged-in participant is the same as the token.
                 # To keep things simple, just have users handle this themselves
@@ -341,7 +344,7 @@ class EmailUnsubscribeView(TemplateView):
         else:
             messages.add_message(request, messages.SUCCESS, "Successfully unsubscribed")
             # This should hopefully be a very rare edge case.
-            if request.participant and unsubscribed_par.pk != request.participant.pk:
+            if participant and unsubscribed_par.pk != participant.pk:
                 messages.add_message(
                     request,
                     messages.WARNING,
@@ -355,7 +358,7 @@ class EmailUnsubscribeView(TemplateView):
         # - Invalid token, but since they're logged in, they can just use the form
         # - Participant in the token was deleted, but viewer is logged in, can use the form
         # - Token was valid, but for another participant than the one that's logged in!
-        if request.participant:
+        if participant:
             return redirect(reverse('email_preferences'))
 
         # The viewer is either not logged in, or just lacks a participant record.

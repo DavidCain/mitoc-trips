@@ -1,8 +1,13 @@
 import enum
+from typing import TYPE_CHECKING, cast
 from urllib.parse import urlencode
 
 from django.urls import reverse
 from django.utils.safestring import mark_safe
+
+if TYPE_CHECKING:
+    from ws.models import Trip
+
 
 # TODO: Make an abstract base enum that enforces:
 # - unique
@@ -111,7 +116,7 @@ class TripIneligibilityReason(enum.Enum):
         }
         return mapping[self]
 
-    def how_to_fix_for(self, trip):
+    def how_to_fix_for(self, trip: 'Trip') -> str:
         """Return a message directed at the user with the problem containing clues on how to fix.
 
         This includes URLs and should be marked as safe if for rendering in HTML.
@@ -131,7 +136,7 @@ class TripIneligibilityReason(enum.Enum):
         initiate_waiver = reverse('initiate_waiver')
 
         # "you must... "
-        mapping: dict[ProfileProblem, str] = {
+        mapping: dict[int, str] = {
             self.NOT_LOGGED_IN: f'<a href="{account_login}">log in</a>',
             self.NO_PROFILE_INFO: f'provide <a href="{edit_profile}">personal information</a>',
             self.IS_TRIP_WIMP: 'be replaced in your role as the trip WIMP',
@@ -142,7 +147,8 @@ class TripIneligibilityReason(enum.Enum):
             self.WAIVER_MISSING: f'<a href="{initiate_waiver}">sign a waiver</a>',
             self.WAIVER_NEEDS_RENEWAL: f'''have a <a href="{initiate_waiver}">waiver that's valid until at least {trip_date}</a>''',
         }
-        return mark_safe(mapping[self])  # noqa: S308
+        typed_mapping = cast(dict[TripIneligibilityReason, str], mapping)
+        return mark_safe(typed_mapping[self])  # noqa: S308
 
 
 @enum.unique

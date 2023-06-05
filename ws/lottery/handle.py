@@ -1,6 +1,6 @@
 from datetime import date
 
-from django.db.models import Q
+from django.db.models import Q, QuerySet
 
 from ws import enums, models
 from ws.utils.signups import add_to_waitlist
@@ -13,7 +13,7 @@ def par_is_driver(participant):
         return False
 
 
-def ranked_signups(participant, after: date):
+def ranked_signups(participant, after: date) -> QuerySet[models.SignUp]:
     """Return all future WS signups for the participant."""
     # Only consider lottery signups for future trips
     return participant.signup_set.filter(
@@ -236,7 +236,7 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
         # No slots are open - just waitlist them on their top trip!
         super().bump_participant(signup)
 
-    def _future_signups(self):
+    def _future_signups(self) -> QuerySet[models.SignUp]:
         return ranked_signups(self.participant, after=self.lottery_rundate)
 
     def _desired_signups(self, signups):
@@ -333,7 +333,11 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
             not self.runner.handled(signup.participant) for signup in driver_signups
         )
 
-    def _place_or_waitlist(self, future_signups, desired_signups):
+    def _place_or_waitlist(
+        self,
+        future_signups: QuerySet[models.SignUp],
+        desired_signups: QuerySet[models.SignUp],
+    ) -> dict[str, int | bool | str | list[int] | None]:
         # JSON-serializable object we can use to analyze outputs.
         info = {
             'participant_pk': self.participant.pk,
@@ -378,7 +382,9 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
                 return {**info, 'placed_on_choice': rank}
 
         self.logger.info(f"None of {self._par_text}'s desired trips are open.")
-        favorite_trip = desired_signups.first().trip
+        top_signup = desired_signups.first()
+        assert top_signup is not None  # (should have been checked above)
+        favorite_trip = top_signup.trip
         for participant in self.to_be_placed:
             favorite_signup = models.SignUp.objects.get(
                 participant=participant, trip=favorite_trip

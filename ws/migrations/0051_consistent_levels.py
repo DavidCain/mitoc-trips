@@ -57,7 +57,7 @@ def make_levels_consistent(apps, schema_editor):
     """Change all old WS trips with a known level to have valid levels."""
     Trip = apps.get_model("ws", "Trip")
 
-    def _trips_with_punctuation_changes() -> list[Trip]:
+    def _trips_with_punctuation_changes():
         normal_chars = set('ABCIS')
         special_chars = re.compile(r'[+ ,/\.-]')
         expected_chars = set('ABCIS+/,-. ').union(normal_chars)
@@ -88,7 +88,7 @@ def make_levels_consistent(apps, schema_editor):
 
         return trips
 
-    trips_to_update: list[Trip] = []
+    trips_to_update = []
 
     for trip in Trip.objects.filter(pk__in=updates):
         assert trip.level == updates[trip.pk].old_level, f"Unexpected {trip.level}"

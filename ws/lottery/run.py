@@ -33,7 +33,7 @@ class LotteryRunner:
     for one or more trips.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         # Get a logger instance that captures activity for _just_ this run
         self.logger = logging.getLogger(self.logger_id)
         self.logger.setLevel(logging.DEBUG)

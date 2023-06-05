@@ -5,8 +5,11 @@ Every MITOC member is required to have a current membership and waiver. Each of
 these documents expire after 12 months.
 """
 
+from typing import TYPE_CHECKING
+
 import requests
 from django.contrib import messages
+from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
@@ -15,6 +18,9 @@ from django.views.generic import FormView
 from ws import forms, waivers
 from ws.decorators import participant_or_anon
 from ws.utils.membership import get_latest_membership
+
+if TYPE_CHECKING:
+    from ws.models import Participant
 
 
 class PayDuesView(FormView):
@@ -63,7 +69,7 @@ class SignWaiverView(FormView):
         self,
         releasor: waivers.Person | None,
         guardian: waivers.Person | None,
-    ):
+    ) -> HttpResponseRedirect:
         email, embedded_url = waivers.initiate_waiver(
             participant=self.request.participant,  # type:ignore
             releasor=releasor,
@@ -109,16 +115,17 @@ class SignWaiverView(FormView):
             )
         return None
 
-    def form_valid(self, form):
+    def form_valid(self, form: forms.WaiverForm) -> HttpResponseRedirect:
         """Handle a name & email (plus perhaps guardian) submission from anonymous users.
 
         Authenticated users with a participant record can just use the overridden post()
         """
         releasor: waivers.Person | None = None
+        participant: 'Participant' | None = self.request.participant  # type: ignore[attr-defined]
 
         # When there's a participant object, we'll just use that as releasor
         # (We'll bypass form validation for participants, but handle just in case)
-        if not self.request.participant:  # pragma: no cover, type: ignore
+        if not participant:
             releasor = waivers.Person(
                 name=form.cleaned_data['name'], email=form.cleaned_data['email']
             )
