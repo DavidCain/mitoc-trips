@@ -173,7 +173,7 @@ class ParticipantEditMixin(TemplateView):
                 try:
                     tasks.update_participant_affiliation.delay(participant.pk)
                 except OperationalError:
-                    logger.error(
+                    logger.exception(
                         "Unable to update affiliation to %s for participant %s",
                         participant.pk,
                         participant.affiliation,

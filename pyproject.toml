@@ -111,7 +111,6 @@ ignore = [
   "SIM105",   # Use `contextlib.suppress`
   "SIM117",   # Avoid repeated `with` statements
   "TRY200",   # Use `raise from` to preserve context (also see B904)
-  "TRY400",   # Use logging.exception, not logging.error
 ]
 
 # By default, `ruff` will respect `.gitignore`

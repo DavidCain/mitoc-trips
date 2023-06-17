@@ -113,7 +113,7 @@ def revoke_existing_task(sender, instance, raw, using, update_fields, **kwargs):
             app.control.revoke(trip.lottery_task_id)
         except OperationalError:
             # Log the exception, but don't raise exceptions, preventing trip saving
-            logger.error("Failed to revoke lottery task for trip %s", trip.pk)
+            logger.exception("Failed to revoke lottery task for trip %s", trip.pk)
         else:
             instance.lottery_task_id = None
 
@@ -135,7 +135,7 @@ def add_lottery_task(sender, instance, created, raw, using, update_fields, **kwa
     try:
         task_id = tasks.run_lottery.apply_async((trip.pk,), eta=trip.signups_close_at)
     except OperationalError:
-        logger.error("Failed to make lottery task for trip %s", trip.pk)
+        logger.exception("Failed to make lottery task for trip %s", trip.pk)
     else:
         trip.lottery_task_id = task_id
         # Use update() to avoid repeated signal on post_save
