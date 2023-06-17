@@ -100,7 +100,6 @@ ignore = [
   # Errors which I'll plan to fix soon:
   "B904",     # Use `raise from` to preserve context (also see TRY200)
   "PLR0913",  # Refactor functions with too many args
-  "B905",     # Use `strict()` on `zip()`
   "DJ001",    # Avoid nullable charfields
   "DJ006",    # Use fields instead of exclude with `ModelForm`
   "DJ008",    # Each model should declare `__str__`

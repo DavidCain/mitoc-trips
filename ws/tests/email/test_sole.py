@@ -219,8 +219,10 @@ class StudentTravelFormTest(TestCase):
         # Make sure that both participant and leader drivers are given in the table!
         drivers_table = soup.find('h3', string='Drivers').find_next_sibling('table')
         header = [el.text for el in drivers_table.find('thead').find_all('th')]
-        rows = drivers_table.find('tbody').find_all('tr')
-        drivers = [zip(header, (td.text for td in row.find_all('td'))) for row in rows]
+        drivers = [
+            zip(header, (td.text for td in row.find_all('td')), strict=True)
+            for row in drivers_table.find('tbody').find_all('tr')
+        ]
         expected = [
             [
                 ('Driver', 'Tim Beaver'),

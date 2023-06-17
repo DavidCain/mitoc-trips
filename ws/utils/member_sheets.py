@@ -248,7 +248,7 @@ class SheetWriter:
 
 
 def _assign(cells, values):
-    for cell, value in zip(cells, values):
+    for cell, value in zip(cells, values, strict=True):
         cell.value = value
 
 
@@ -308,7 +308,7 @@ def update_discount_sheet(discount: models.Discount, trust_cache: bool) -> None:
     _assign(next(rows), writer.header)
 
     # Update each row with current membership information
-    for participant, row in zip(participants, rows):
+    for participant, row in zip(participants, rows, strict=True):
         _assign(row, writer.get_row(participant))
 
     # Batch update to minimize API calls
