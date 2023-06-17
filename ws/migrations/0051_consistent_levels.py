@@ -83,7 +83,6 @@ def make_levels_consistent(apps, schema_editor):
 
         for trip in trips:
             new_level = ''.join(sorted(re.sub(special_chars, '', trip.level)))
-            print(f"Will change trip {trip.pk}: {trip.level} -> {new_level}")
             trip.level = new_level
 
         return trips
@@ -110,7 +109,7 @@ def make_levels_consistent(apps, schema_editor):
     # Final sanity check -- our migration should have worked if we've fixed all levels
     for bad_trip in all_level_trips.exclude(level__in=VALID_LEVELS):
         if bad_trip.pk not in updates:
-            print("Found a bad trip!", bad_trip.pk, bad_trip)
+            raise ValueError(f"Found a bad trip! {bad_trip.pk} {bad_trip}")
 
 
 class Migration(migrations.Migration):

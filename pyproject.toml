@@ -110,7 +110,6 @@ ignore = [
   "SIM102",   # Use just one `if` statement
   "SIM105",   # Use `contextlib.suppress`
   "SIM117",   # Avoid repeated `with` statements
-  "T201",     # Logging should be used, not `print` statements
   "TRY200",   # Use `raise from` to preserve context (also see B904)
   "TRY400",   # Use logging.exception, not logging.error
 ]
