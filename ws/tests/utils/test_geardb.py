@@ -141,8 +141,8 @@ class UpdateAffiliationTest(TestCase):
 
         geardb.update_affiliation(participant)
 
-    @staticmethod
-    def test_reports_affiliation_with_other_emails():
+    @responses.activate
+    def test_reports_affiliation_with_other_emails(self):
         """We report all known verified emails."""
         tim = factories.ParticipantFactory.create(affiliation='NA', email='tim@mit.edu')
 
