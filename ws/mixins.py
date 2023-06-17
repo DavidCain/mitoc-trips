@@ -74,7 +74,7 @@ def _allowed_to_modify_trip(trip: models.Trip, request: HttpRequest) -> bool:
     else:  # (There is no required activity, so no chairs. Allow superusers, though)
         is_chair = request.user.is_superuser
 
-    participant: models.Participant = request.participant  # type: ignore
+    participant: models.Participant = request.participant  # type: ignore[attr-defined]
     trip_leader = perm_utils.leader_on_trip(participant, trip, True)
     return is_chair or trip_leader
 

@@ -401,7 +401,7 @@ class EditTripView(UpdateView, TripLeadersOnlyView):
         if current_trip.last_updated_by is None:
             # This shouldn't ever happen, but the data model makes it possible
             editor_name = "an unknown user"
-        elif current_trip.last_updated_by == self.request.participant:  # type: ignore
+        elif current_trip.last_updated_by == self.request.participant:  # type: ignore[attr-defined]
             editor_name = "you"
         else:
             editor_name = current_trip.last_updated_by.name

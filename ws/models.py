@@ -444,7 +444,7 @@ class Participant(models.Model):
         if ' ' not in self.name:  # pylint: disable=unsupported-membership-test
             yield enums.ProfileProblem.MISSING_FULL_NAME
 
-        emails = self.user.emailaddress_set  # type: ignore [attr-defined]
+        emails = self.user.emailaddress_set  # type: ignore[attr-defined]
 
         if not emails.filter(email=self.email, verified=True).exists():
             yield enums.ProfileProblem.PRIMARY_EMAIL_NOT_VALIDATED

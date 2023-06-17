@@ -71,7 +71,7 @@ class SignWaiverView(FormView):
         guardian: waivers.Person | None,
     ) -> HttpResponseRedirect:
         email, embedded_url = waivers.initiate_waiver(
-            participant=self.request.participant,  # type:ignore
+            participant=self.request.participant,  # type:ignore[attr-defined]
             releasor=releasor,
             guardian=guardian,
         )

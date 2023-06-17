@@ -296,7 +296,7 @@ class EmailPreferencesView(CreateView):
         if not send_membership_reminder:
             return "Will not send any emails reminding you to remind your membership."
 
-        participant = self.request.participant  # type:ignore
+        participant = self.request.participant  # type:ignore[attr-defined]
         if not participant.membership:
             return "If you sign up for a membership, we'll remind you when it's time to renew."
 

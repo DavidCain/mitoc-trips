@@ -107,7 +107,6 @@ ignore = [
   "DJ012",    # Put `Meta` below other definitions
   "G004",     # Logging should use lazy interpolation
   "N818",     # Use the Error suffix on error instances
-  "PGH003",   # Avoid blanket type ignores
   "SIM102",   # Use just one `if` statement
   "SIM105",   # Use `contextlib.suppress`
   "SIM117",   # Avoid repeated `with` statements

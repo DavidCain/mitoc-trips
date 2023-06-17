@@ -107,7 +107,7 @@ def _verified_emails(user: models.User) -> list[str]:
     if not (user and user.is_authenticated):
         return []
     # (This relation is added by django-allauth, but django-stubs/mypy can't tell)
-    emails = user.emailaddress_set  # type: ignore [attr-defined]
+    emails = user.emailaddress_set  # type: ignore[attr-defined]
     return sorted(emails.filter(verified=True).values_list('email', flat=True))
 
 
