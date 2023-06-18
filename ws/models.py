@@ -129,7 +129,7 @@ class Discount(models.Model):
     name = models.CharField(max_length=255)
     summary = models.CharField(max_length=255)
     terms = models.TextField(max_length=4095)
-    url = models.URLField(null=True, blank=True)
+    url = models.URLField(blank=True)
     ga_key = models.CharField(
         max_length=63,
         # If blank, then we don't actually report this information to a spreadsheet
