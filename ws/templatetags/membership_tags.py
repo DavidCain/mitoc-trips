@@ -22,8 +22,9 @@ STATUS_TO_BOOTSTRAP_LABEL: Mapping[membership_api.Status, str] = MappingProxyTyp
 )
 
 
-@register.inclusion_tag('for_templatetags/membership_status.html')
+@register.inclusion_tag('for_templatetags/membership_status.html', takes_context=True)
 def membership_status(
+    context,
     participant: models.Participant,
     can_link_to_pay_dues: bool,
     can_link_to_sign_waiver: bool,
@@ -56,6 +57,7 @@ def membership_status(
     # query_geardb_for_membership(user)
     return {
         'participant': participant,
+        'viewing_participant': context['viewing_participant'],
         'membership': membership,
         'status': status,
         'in_early_renewal_period': can_renew_early,

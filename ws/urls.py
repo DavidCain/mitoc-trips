@@ -159,6 +159,11 @@ urlpatterns = [
         name='view_participant',
     ),
     path(
+        'participants/<int:pk>/membership/',
+        views.RefreshMembershipView.as_view(),
+        name='refresh_participant_membership',
+    ),
+    path(
         'participants/',
         views.ParticipantLookupView.as_view(),
         name='participant_lookup',

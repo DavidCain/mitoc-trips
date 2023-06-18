@@ -1,12 +1,152 @@
-from datetime import date
+from datetime import date, datetime
 from unittest import mock
 
+import responses
 from bs4 import BeautifulSoup
 from django.test import TestCase
+from django.utils import timezone
 from freezegun import freeze_time
 
 from ws import forms, waivers
 from ws.tests import factories, strip_whitespace
+
+
+class RefreshMembershipViewTest(TestCase):
+    def setUp(self):
+        with freeze_time("2022-06-01 12:00 UTC"):
+            self.participant = factories.ParticipantFactory.create(
+                email="some-random-participant@example.com",
+            )
+        self.url = f'/participants/{self.participant.pk}/membership/'
+
+    def test_anonymous_user(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, f'/accounts/login/?next={self.url}')
+
+    @responses.activate
+    def test_geardb_down(self):
+        par = factories.ParticipantFactory.create()
+        self.client.force_login(par.user)
+
+        responses.get(
+            "https://mitoc-gear.mit.edu/api-auth/v1/membership_waiver/?email=some-random-participant@example.com",
+            status=500,
+        )
+        self.assertEqual(
+            self.participant.membership.last_cached,
+            datetime(2022, 6, 1, 12, 0, 0, tzinfo=timezone.utc),
+        )
+
+        with freeze_time("2022-06-02 13:45 UTC"):
+            response = self.client.post(self.url)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response.url,
+            f'/participants/{self.participant.pk}/',
+        )
+
+        # The cache wasn't updated
+        self.assertEqual(
+            self.participant.membership.last_cached,
+            datetime(2022, 6, 1, 12, 0, 0, tzinfo=timezone.utc),
+        )
+
+    @freeze_time("2022-06-02 13:45 UTC")
+    def test_get(self):
+        par = factories.ParticipantFactory.create()
+        self.client.force_login(par.user)
+
+        self.assertEqual(
+            self.participant.membership.last_cached,
+            datetime(2022, 6, 1, 12, 0, 0, tzinfo=timezone.utc),
+        )
+        with responses.RequestsMock() as rsps:
+            rsps.add(
+                responses.GET,
+                "https://mitoc-gear.mit.edu/api-auth/v1/membership_waiver/?email=some-random-participant@example.com",
+                json={
+                    "count": 0,
+                    "next": None,
+                    "previous": None,
+                    "results": [
+                        {
+                            "email": "some-random-participant@example.com",
+                            "alternate_emails": ["other@mit.edu"],
+                            "membership": {
+                                "membership_type": "NA",
+                                "expires": "2023-06-02",
+                            },
+                            "waiver": {"expires": "2023-05-04"},
+                        }
+                    ],
+                },
+                status=200,
+            )
+            response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response.url,
+            f'/participants/{self.participant.pk}/',
+        )
+
+        self.participant.membership.refresh_from_db()
+        self.assertEqual(
+            self.participant.membership.last_cached,
+            datetime(2022, 6, 2, 13, 45, 0, tzinfo=timezone.utc),
+        )
+        self.assertEqual(
+            self.participant.membership.membership_expires, date(2023, 6, 2)
+        )
+
+    @freeze_time("2022-06-02 13:45 UTC")
+    def test_post(self):
+        par = factories.ParticipantFactory.create()
+        self.client.force_login(par.user)
+
+        self.assertEqual(
+            self.participant.membership.last_cached,
+            datetime(2022, 6, 1, 12, 0, 0, tzinfo=timezone.utc),
+        )
+        with responses.RequestsMock() as rsps:
+            rsps.add(
+                responses.GET,
+                "https://mitoc-gear.mit.edu/api-auth/v1/membership_waiver/?email=some-random-participant@example.com",
+                json={
+                    "count": 0,
+                    "next": None,
+                    "previous": None,
+                    "results": [
+                        {
+                            "email": "some-random-participant@example.com",
+                            "alternate_emails": ["other@mit.edu"],
+                            "membership": {
+                                "membership_type": "NA",
+                                "expires": "2023-06-02",
+                            },
+                            "waiver": {"expires": "2023-05-04"},
+                        }
+                    ],
+                },
+                status=200,
+            )
+            response = self.client.post(self.url)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response.url,
+            f'/participants/{self.participant.pk}/',
+        )
+
+        self.participant.membership.refresh_from_db()
+        self.assertEqual(
+            self.participant.membership.last_cached,
+            datetime(2022, 6, 2, 13, 45, 0, tzinfo=timezone.utc),
+        )
+        self.assertEqual(
+            self.participant.membership.membership_expires, date(2023, 6, 2)
+        )
 
 
 class PayDuesTests(TestCase):

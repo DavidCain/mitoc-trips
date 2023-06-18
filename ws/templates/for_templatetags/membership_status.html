@@ -32,7 +32,13 @@
   </div>
 
   {% if membership %}
-    <form action="{% url 'pay_dues' %}" method="post">
+    <form
+        {% if viewing_participant == participant %}
+          action="{% url 'pay_dues' %}"
+        {% else %}
+          action="{% url 'refresh_participant_membership' participant.pk %}"
+        {% endif %}
+        method="post">
       {% csrf_token %}
       <small><em>Last updated {{ membership.last_cached }}</em></small>
       {% if status != 'Active' %}

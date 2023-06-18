@@ -9,18 +9,43 @@ from typing import TYPE_CHECKING
 
 import requests
 from django.contrib import messages
-from django.http import HttpResponseRedirect
+from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
-from django.views.generic import FormView
+from django.views.generic import DetailView, FormView
 
-from ws import forms, waivers
-from ws.decorators import participant_or_anon
+from ws import forms, models, waivers
+from ws.decorators import participant_or_anon, user_info_required
 from ws.utils.membership import get_latest_membership
 
 if TYPE_CHECKING:
     from ws.models import Participant
+
+
+class RefreshMembershipView(DetailView):
+    model = models.Participant
+
+    def _update_membership(self, request: HttpRequest) -> HttpResponse:
+        participant = self.get_object()
+        try:
+            get_latest_membership(participant)
+        except requests.exceptions.RequestException:
+            # Notably, we *could* add some failure message here.
+            # However, `view_participant` doesn't render messages to the end user.
+            pass
+        return redirect(reverse('view_participant', args=(participant.pk,)))
+
+    def post(self, request: HttpRequest, **kwargs) -> HttpResponse:
+        return self._update_membership(request)
+
+    def get(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        return self._update_membership(request)
+
+    # Keep it simple -- any member can refresh the cache for anybody else
+    @method_decorator(user_info_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
 
 
 class PayDuesView(FormView):
@@ -47,7 +72,7 @@ class PayDuesView(FormView):
             try:
                 get_latest_membership(request.participant)
             except requests.exceptions.RequestException:
-                messages.failure(
+                messages.error(
                     request,
                     "Error hitting MITOC's membership database. Try again later.",
                 )
