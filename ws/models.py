@@ -200,6 +200,13 @@ class Membership(models.Model):
     )
     last_cached = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return (
+            f"{self.participant.name}, "
+            f"membership: {self.membership_expires}, "
+            f"waiver: {self.waiver_expires}"
+        )
+
     @property
     def membership_active(self) -> bool:
         expires = self.membership_expires
@@ -301,13 +308,6 @@ class Membership(models.Model):
         will_be_valid_on_date = expires and expires >= trip.trip_date
         return not will_be_valid_on_date
 
-    def __str__(self):
-        return (
-            f"{self.participant.name}, "
-            f"membership: {self.membership_expires}, "
-            f"waiver: {self.waiver_expires}"
-        )
-
 
 class Participant(models.Model):
     """Anyone going on a trip needs WIMP info, and info about their car.
@@ -387,6 +387,12 @@ class Participant(models.Model):
     )
 
     discounts = models.ManyToManyField(Discount, blank=True)
+
+    class Meta:
+        ordering = ['name', 'email']
+
+    def __str__(self):  # pylint: disable=invalid-str-returned
+        return self.name
 
     @property
     def membership_active(self) -> bool:
@@ -699,12 +705,6 @@ class Participant(models.Model):
     def email_addr(self):
         return f'"{self.name}" <{self.email}>'
 
-    def __str__(self):  # pylint: disable=invalid-str-returned
-        return self.name
-
-    class Meta:
-        ordering = ['name', 'email']
-
 
 class MembershipReminder(models.Model):
     """A log of membership reminders that were sent.
@@ -722,13 +722,6 @@ class MembershipReminder(models.Model):
         blank=True,
     )
 
-    def __str__(self) -> str:
-        if self.reminder_sent_at is None:
-            return f'{self.participant}, not yet reminder'
-
-        timestamp = self.reminder_sent_at.isoformat(timespec="minutes")
-        return f'{self.participant}, last reminded at {timestamp}'
-
     class Meta:
         constraints = [
             models.UniqueConstraint(
@@ -737,6 +730,13 @@ class MembershipReminder(models.Model):
                 condition=Q(reminder_sent_at__isnull=True),
             )
         ]
+
+    def __str__(self) -> str:
+        if self.reminder_sent_at is None:
+            return f'{self.participant}, not yet reminder'
+
+        timestamp = self.reminder_sent_at.isoformat(timespec="minutes")
+        return f'{self.participant}, last reminded at {timestamp}'
 
 
 class PasswordQuality(models.Model):
@@ -847,16 +847,16 @@ class BaseRating(models.Model):
     rating = models.CharField(max_length=31)
     notes = models.TextField(max_length=500, blank=True)  # Contingencies, etc.
 
-    @property
-    def activity_enum(self) -> enums.Activity:
-        return enums.Activity(self.activity)
+    class Meta:
+        abstract = True
+        ordering = ["participant"]
 
     def __str__(self):
         return f"{self.participant.name} ({self.rating}, {self.activity})"
 
-    class Meta:
-        abstract = True
-        ordering = ["participant"]
+    @property
+    def activity_enum(self) -> enums.Activity:
+        return enums.Activity(self.activity)
 
 
 class LeaderRating(BaseRating):
@@ -1139,6 +1139,15 @@ class Trip(models.Model):
         max_length=36, unique=True, null=True, blank=True
     )
     lottery_log = models.TextField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-trip_date", "-time_created"]
+        indexes = [
+            GistIndex(
+                trips_search_vector,
+                name='search_vector_idx',
+            )
+        ]
 
     def __str__(self):  # pylint: disable=invalid-str-returned
         return self.name
@@ -1453,15 +1462,6 @@ class Trip(models.Model):
             + urlencode(prefilled_values)
         )
 
-    class Meta:
-        ordering = ["-trip_date", "-time_created"]
-        indexes = [
-            GistIndex(
-                trips_search_vector,
-                name='search_vector_idx',
-            )
-        ]
-
 
 class BygonesManager(models.Manager):
     """Automatically exclude feedback that's sufficiently far in the past."""
@@ -1484,9 +1484,6 @@ class BygonesManager(models.Manager):
 class Feedback(models.Model):
     """Feedback given for a participant on one trip."""
 
-    objects = BygonesManager()  # By default, ignore feedback older than ~13 months
-    everything = models.Manager()  # But give the option to look at older feedback
-
     participant = models.ForeignKey(Participant, on_delete=models.CASCADE)
     leader = models.ForeignKey(
         Participant, related_name="authored_feedback", on_delete=models.CASCADE
@@ -1497,11 +1494,14 @@ class Feedback(models.Model):
     trip = models.ForeignKey(Trip, null=True, blank=True, on_delete=models.CASCADE)
     time_created = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
-        return f'{self.participant}: "{self.comments}" - {self.leader}'
+    everything = models.Manager()  # Give the option to look at older feedback
+    objects = BygonesManager()  # By default, ignore feedback older than ~13 months
 
     class Meta:
         ordering = ["participant", "-time_created"]
+
+    def __str__(self):
+        return f'{self.participant}: "{self.comments}" - {self.leader}'
 
 
 class LotteryInfo(models.Model):
@@ -1532,6 +1532,9 @@ class LotteryInfo(models.Model):
         on_delete=models.CASCADE,
     )
 
+    class Meta:
+        ordering = ["car_status", "number_of_passengers"]
+
     @property
     def reciprocally_paired_with(self):
         """Return requested partner if they also requested to be paired."""
@@ -1552,9 +1555,6 @@ class LotteryInfo(models.Model):
     @property
     def is_driver(self):
         return self.car_status in ['own', 'rent']
-
-    class Meta:
-        ordering = ["car_status", "number_of_passengers"]
 
 
 class LotterySeparation(models.Model):
@@ -1639,15 +1639,15 @@ class WaitListSignup(models.Model):
     # Right now, it's descending - which is both confusing & conflicts with SignUp
     manual_order = models.IntegerField(null=True, blank=True)
 
-    def __str__(self):
-        return f"{self.signup.participant.name} waitlisted on {self.signup.trip}"
-
     class Meta:
         # TODO (Django 2): Use F-expressions. [F('manual_order').desc(nulls_last=True), ...]
         # TODO (Django 2): Also update WaitList.signups property definition
         # WARNING: Postgres will put nulls first, not last.
         ordering = ["-manual_order", "time_created", "pk"]  # NOT CORRECT!
         # WARNING: This default ordering is not fully correct. Manually call `order_by`)
+
+    def __str__(self):
+        return f"{self.signup.participant.name} waitlisted on {self.signup.trip}"
 
 
 class WaitList(models.Model):
@@ -1727,6 +1727,11 @@ class LeaderApplication(models.Model):
         default=date_utils.ws_year,
         help_text="Year this application pertains to.",
     )
+
+    class Meta:
+        # Important!!! Child classes must be named: <activity>LeaderApplication
+        abstract = True  # See model_from_activity for more
+        ordering = ["time_created"]
 
     @property
     def rating_given(self):
@@ -1817,11 +1822,6 @@ class LeaderApplication(models.Model):
             raise NoApplicationDefined(f"No application for {activity.label}")
         assert issubclass(model_class, LeaderApplication)
         return model_class
-
-    class Meta:
-        # Important!!! Child classes must be named: <activity>LeaderApplication
-        abstract = True  # See model_from_activity for more
-        ordering = ["time_created"]
 
 
 class HikingLeaderApplication(LeaderApplication):
