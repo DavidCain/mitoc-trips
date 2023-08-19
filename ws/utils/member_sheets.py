@@ -248,6 +248,7 @@ class SheetWriter:
 
 
 def _assign(cells, values):
+    """Set the values of cells, but **do not** issue an API call to update."""
     for cell, value in zip(cells, values, strict=True):
         cell.value = value
 
@@ -271,8 +272,9 @@ def update_participant(
     for cell in wks.findall(participant.email):
         if cell.col == 2:  # (Participants _could_ name themselves an email...)
             # pylint: disable=too-many-function-args
-            row_cells = wks.range(cell.row, cell.col, cell.row, last_col)
+            row_cells = wks.range(cell.row, 1, cell.row, last_col)
             _assign(row_cells, new_row)
+            wks.update_cells(row_cells)
             return
 
     # Insert a new row if no existing row found
