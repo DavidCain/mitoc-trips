@@ -78,7 +78,6 @@ class AuthTests(TestCase):
             'help-personal_info',
             'help-lottery',
             'help-signups',
-            'all_trips',
             'upcoming_trips',
             'stats',
         ]:

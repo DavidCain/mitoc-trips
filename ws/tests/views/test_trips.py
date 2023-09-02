@@ -130,40 +130,11 @@ class UpcomingTripsViewTest(TestCase, Helpers):
         self._expect_current_trips(response, [next_month.pk])
 
 
-@freeze_time("2019-02-15 12:25:00 EST")
-class AllTripsViewTest(TestCase, Helpers):
-    def test_all_trips_with_no_past(self):
-        """Even with no past trips, we still display 'All trips'"""
-        response, soup = self._get('/trips/all/')
-        self.assertFalse(response.context['past_trips'])
-        self._expect_title(soup, 'All trips')
-
-    def test_all_trips_with_past_trips(self):
-        """Test the usual case - 'all trips' segmenting past & upcoming trips."""
-        next_week = factories.TripFactory.create(trip_date='2019-02-22')
-        last_month = factories.TripFactory.create(trip_date='2019-01-15')
-        years_ago = factories.TripFactory.create(trip_date='2010-11-15')
-        response, soup = self._get('/trips/all/')
-        self._expect_title(soup, 'All trips')
-        self._expect_current_trips(response, [next_week.pk])
-        self._expect_past_trips(response, [last_month.pk, years_ago.pk])
-
-    def test_all_trips_with_filter(self):
-        """We support filtering trips even on the 'all' page.
-
-        The default interaction with filtering trips should instead just use
-        the `/trips/` URL, but this test demonstrates that filtering works on
-        the 'all' page too.
-        """
-        # Make a very old trip that will not be in our filter
-        factories.TripFactory.create(trip_date='2016-12-23')
-
-        # Make an older trip, that takes place after our query
-        expected_trip = factories.TripFactory.create(trip_date='2017-11-21')
-        response, soup = self._get('/trips/all/?after=2017-11-15')
-        self._expect_title(soup, 'Trips after 2017-11-15')
-        self._expect_past_trips(response, [expected_trip.pk])
-        self._expect_link_for_date(soup, '2016-11-15')
+class AllTripsViewTest(TestCase):
+    def test_simple_redirect(self):
+        response = self.client.get('/trips/all/')
+        self.assertEqual(response.status_code, 301)
+        self.assertEqual(response.url, '/trips/')
 
 
 class CreateTripViewTest(TestCase, Helpers):

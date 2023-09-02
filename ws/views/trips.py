@@ -448,12 +448,10 @@ class EditTripView(UpdateView, TripLeadersOnlyView):
 class TripListView(ListView):
     """Superclass for any view that displays a list of trips.
 
-    We support loading and displaying all trips (`/trips/all`). The SQL query
-    is pretty efficient, though it results in a pretty large DOM for clients
-    (since we have over 1,000 trips).
-
     To keep responses reasonably-sized, we support pagination-like behavior,
-    filtering trips down to just those since some past date.
+    filtering trips down to just those since some past date. One can, of
+    course, select a date far in the past to get a *massive* DOM, but the
+    server can easily handle reporting the 2,000+ trips.
     """
 
     ordering = ["-trip_date", "-time_created"]
@@ -522,12 +520,6 @@ class UpcomingTripsView(TripListView):
 
     # Default value, but past trips can appear by including a date filter
     include_past_trips = False
-
-
-class AllTripsView(TripListView):
-    """View all trips, past and present (optionally after a given date)."""
-
-    include_past_trips = True
 
 
 class TripSearchView(ListView, FormView):
