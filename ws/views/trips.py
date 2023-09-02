@@ -454,7 +454,7 @@ class TripListView(ListView):
     server can easily handle reporting the 2,000+ trips.
     """
 
-    ordering = ["-trip_date", "-time_created"]
+    ordering = ["trip_date", "-time_created"]
 
     model = models.Trip
     template_name = 'trips/all/view.html'
@@ -503,9 +503,14 @@ class TripListView(ListView):
 
         # By default, just show upcoming trips.
         context['current_trips'] = trips.filter(trip_date__gte=today)
-        # However, if we've explicitly opted in to showing past trips, include them
+
+        # However, if we've explicitly opted in to showing past trips, include them.
         if self.include_past_trips or on_or_after_date:
-            context['past_trips'] = trips.filter(trip_date__lt=today)
+            # Note that we need to sort past trips in descending order (most recent trips first).
+            # This is because we have a cutoff in the past, and it would display strangely to sort ascending.
+            context['past_trips'] = trips.filter(trip_date__lt=today).order_by(
+                "-trip_date", "-time_created"
+            )
             if not on_or_after_date:
                 # We're on the special 'all trips' view, so there are no add'l previous trips
                 context['one_year_prior'] = None

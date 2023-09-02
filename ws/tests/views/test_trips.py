@@ -97,13 +97,20 @@ class UpcomingTripsViewTest(TestCase, Helpers):
         # We use today's date for the 'previous trips' link
         self._expect_link_for_date(soup, '2018-02-15')
 
+    @freeze_time("2018-01-10 12:25:00 EST")
     def test_trips_with_filter(self):
         """We support filtering the responded list of trips."""
         # Make a very old trip that will not be in our filter
         factories.TripFactory.create(trip_date='2016-12-23')
 
-        # Make an older trip, that takes place after our query
-        expected_trip = factories.TripFactory.create(trip_date='2017-11-21')
+        # Make trips that are in the past, but *after* the queried date
+        one_week_ago = factories.TripFactory.create(trip_date='2018-01-03')
+        one_month_ago = factories.TripFactory.create(trip_date='2017-12-09')
+
+        # Make some upcoming trips
+        trip1 = factories.TripFactory.create(trip_date='2018-01-14')
+        trip2 = factories.TripFactory.create(trip_date='2018-04-22')
+        trip3 = factories.TripFactory.create(trip_date='2018-04-25')
 
         # Filter based on a date in the past
         response, soup = self._get('/trips/?after=2017-11-15')
@@ -112,13 +119,18 @@ class UpcomingTripsViewTest(TestCase, Helpers):
         # Observe that we have an 'Upcoming trips' section, plus a section for past trips
         self._expect_upcoming_header(soup, 'Upcoming trips')
         self._expect_title(soup, 'Trips after 2017-11-15')
-        self._expect_past_trips(response, [expected_trip.pk])
+        # Upcoming trips are sorted such that the next-occurring trips are on top
+        self._expect_current_trips(response, [trip1.pk, trip2.pk, trip3.pk])
+
+        # Old trips are displayed in the *opposite* order, most recent on top
+        self._expect_past_trips(response, [one_week_ago.pk, one_month_ago.pk])
         self._expect_link_for_date(soup, '2016-11-15')
 
     def test_upcoming_trips_can_be_filtered(self):
         """If supplying an 'after' date in the future, that still permits filtering!"""
         _next_week = factories.TripFactory.create(trip_date='2019-02-22')
         next_month = factories.TripFactory.create(trip_date='2019-03-22')
+        next_year = factories.TripFactory.create(trip_date='2020-02-05')
         response, soup = self._get('/trips/?after=2019-03-15')
         self._expect_link_for_date(soup, '2018-03-15')
 
@@ -126,8 +138,9 @@ class UpcomingTripsViewTest(TestCase, Helpers):
         header = soup.body.find('h3')
         self.assertEqual(strip_whitespace(header.text), 'Trips after Mar 15, 2019')
 
-        # The trip next month is included, but not next week (since we're filtering ahead)
-        self._expect_current_trips(response, [next_month.pk])
+        # The trip next month & year is included, but not next week.
+        # Per usual, the next-upcoming trips are shown first!
+        self._expect_current_trips(response, [next_month.pk, next_year.pk])
 
 
 class AllTripsViewTest(TestCase):
