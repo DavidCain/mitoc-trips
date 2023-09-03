@@ -10,7 +10,12 @@ import ws.utils.dates as date_utils
 from ws import enums, models
 
 
-class DiscountFactory(DjangoModelFactory):
+class BaseFactory(DjangoModelFactory):
+    class Meta:
+        skip_postgeneration_save = True
+
+
+class DiscountFactory(BaseFactory):
     class Meta:
         model = models.Discount
 
@@ -18,7 +23,7 @@ class DiscountFactory(DjangoModelFactory):
     active = True
 
 
-class EmergencyContactFactory(DjangoModelFactory):
+class EmergencyContactFactory(BaseFactory):
     class Meta:
         model = models.EmergencyContact
 
@@ -28,7 +33,7 @@ class EmergencyContactFactory(DjangoModelFactory):
     email = "mum@example.com"
 
 
-class EmergencyInfoFactory(DjangoModelFactory):
+class EmergencyInfoFactory(BaseFactory):
     class Meta:
         model = models.EmergencyInfo
 
@@ -38,7 +43,7 @@ class EmergencyInfoFactory(DjangoModelFactory):
     medical_history = "None"
 
 
-class EmailFactory(DjangoModelFactory):
+class EmailFactory(BaseFactory):
     class Meta:
         model = account_models.EmailAddress
 
@@ -47,7 +52,7 @@ class EmailFactory(DjangoModelFactory):
     primary = True
 
 
-class UserFactory(DjangoModelFactory):
+class UserFactory(BaseFactory):
     class Meta:
         model = models.User
 
@@ -67,7 +72,7 @@ class UserFactory(DjangoModelFactory):
         return manager.create_user(*args, **kwargs)
 
 
-class MembershipFactory(DjangoModelFactory):
+class MembershipFactory(BaseFactory):
     class Meta:
         model = models.Membership
 
@@ -79,7 +84,7 @@ class MembershipFactory(DjangoModelFactory):
     )
 
 
-class ParticipantFactory(DjangoModelFactory):
+class ParticipantFactory(BaseFactory):
     class Meta:
         model = models.Participant
 
@@ -131,7 +136,7 @@ class ParticipantFactory(DjangoModelFactory):
         return super()._create(model_class, *args, **kwargs)
 
 
-class MembershipReminderFactory(DjangoModelFactory):
+class MembershipReminderFactory(BaseFactory):
     class Meta:
         model = models.MembershipReminder
 
@@ -141,14 +146,14 @@ class MembershipReminderFactory(DjangoModelFactory):
     )
 
 
-class PasswordQualityFactory(DjangoModelFactory):
+class PasswordQualityFactory(BaseFactory):
     class Meta:
         model = models.PasswordQuality
 
     participant = factory.SubFactory(ParticipantFactory)
 
 
-class CarFactory(DjangoModelFactory):
+class CarFactory(BaseFactory):
     class Meta:
         model = models.Car
 
@@ -160,7 +165,7 @@ class CarFactory(DjangoModelFactory):
     color = 'Green'
 
 
-class LeaderRatingFactory(DjangoModelFactory):
+class LeaderRatingFactory(BaseFactory):
     class Meta:
         model = models.LeaderRating
 
@@ -171,7 +176,7 @@ class LeaderRatingFactory(DjangoModelFactory):
     active = True
 
 
-class LeaderRecommendationFactory(DjangoModelFactory):
+class LeaderRecommendationFactory(BaseFactory):
     class Meta:
         model = models.LeaderRecommendation
 
@@ -181,7 +186,7 @@ class LeaderRecommendationFactory(DjangoModelFactory):
     participant = factory.SubFactory(ParticipantFactory)
 
 
-class LotteryInfoFactory(DjangoModelFactory):
+class LotteryInfoFactory(BaseFactory):
     class Meta:
         model = models.LotteryInfo
 
@@ -190,7 +195,7 @@ class LotteryInfoFactory(DjangoModelFactory):
     paired_with = None
 
 
-class LotterySeparationFactory(DjangoModelFactory):
+class LotterySeparationFactory(BaseFactory):
     class Meta:
         model = models.LotterySeparation
 
@@ -199,7 +204,7 @@ class LotterySeparationFactory(DjangoModelFactory):
     recipient = factory.SubFactory(ParticipantFactory)
 
 
-class LotteryAdjustmentFactory(DjangoModelFactory):
+class LotteryAdjustmentFactory(BaseFactory):
     class Meta:
         model = models.LotteryAdjustment
 
@@ -208,7 +213,7 @@ class LotteryAdjustmentFactory(DjangoModelFactory):
     expires = factory.LazyAttribute(lambda _obj: date_utils.next_lottery())
 
 
-class TripFactory(DjangoModelFactory):
+class TripFactory(BaseFactory):
     class Meta:
         model = models.Trip
 
@@ -222,12 +227,12 @@ class TripFactory(DjangoModelFactory):
     creator = factory.SubFactory(ParticipantFactory)
 
 
-class TripInfoFactory(DjangoModelFactory):
+class TripInfoFactory(BaseFactory):
     class Meta:
         model = models.TripInfo
 
 
-class FeedbackFactory(DjangoModelFactory):
+class FeedbackFactory(BaseFactory):
     class Meta:
         model = models.Feedback
 
@@ -237,7 +242,7 @@ class FeedbackFactory(DjangoModelFactory):
     comments = "Participant did a great job."
 
 
-class SignUpFactory(DjangoModelFactory):
+class SignUpFactory(BaseFactory):
     class Meta:
         model = models.SignUp
 
@@ -249,7 +254,7 @@ class SignUpFactory(DjangoModelFactory):
     on_trip = False
 
 
-class WaitListSignupFactory(DjangoModelFactory):
+class WaitListSignupFactory(BaseFactory):
     class Meta:
         model = models.WaitListSignup
 
@@ -257,7 +262,7 @@ class WaitListSignupFactory(DjangoModelFactory):
     waitlist = factory.SelfAttribute('signup.trip.waitlist')
 
 
-class ClimbingLeaderApplicationFactory(DjangoModelFactory):
+class ClimbingLeaderApplicationFactory(BaseFactory):
     class Meta:
         model = models.ClimbingLeaderApplication
 
@@ -286,7 +291,7 @@ class ClimbingLeaderApplicationFactory(DjangoModelFactory):
     extra_info = "An extinct giant sloth is largely responsible for the existence of the avocado."
 
 
-class HikingLeaderApplicationFactory(DjangoModelFactory):
+class HikingLeaderApplicationFactory(BaseFactory):
     class Meta:
         model = models.HikingLeaderApplication
 
@@ -298,7 +303,7 @@ class HikingLeaderApplicationFactory(DjangoModelFactory):
     leadership_experience = "Leader in my college outing club"
 
 
-class WinterSchoolLeaderApplicationFactory(DjangoModelFactory):
+class WinterSchoolLeaderApplicationFactory(BaseFactory):
     class Meta:
         model = models.WinterSchoolLeaderApplication
 
@@ -313,7 +318,7 @@ class WinterSchoolLeaderApplicationFactory(DjangoModelFactory):
     other_experience = "Leader in my college outing club"
 
 
-class LectureAttendanceFactory(DjangoModelFactory):
+class LectureAttendanceFactory(BaseFactory):
     class Meta:
         model = models.LectureAttendance
 
