@@ -91,6 +91,7 @@ ignore = [
   "PLR2004",  # Tests & simple logic extensively use "magic values"
   "PT009",    # I intentionally use `unittest`-style tests.
   "PT019",    # I don't use pytest fixtures.
+  "PT027",    # I don't use pytest.raises
   "S101",     # Using `assert` is fine (I run with them enabled).
   "S311",     # I use RNGs but they're not for cryptography purposes.
   "TD002",    # This is a solo project -- I authored all the TODOs.
@@ -105,6 +106,7 @@ ignore = [
   "DJ008",    # Each model should declare `__str__`
   "G004",     # Logging should use lazy interpolation
   "N818",     # Use the Error suffix on error instances
+  "RUF012",   # I should make better use of ClassVar and Final
   "SIM102",   # Use just one `if` statement
   "SIM105",   # Use `contextlib.suppress`
   "SIM117",   # Avoid repeated `with` statements
@@ -129,6 +131,12 @@ ignore-names = [
   "_fields",
   "_meta",
 ]
+
+[project]
+# When poetry full supports PEP 621, should migrate more information here!
+# See: https://github.com/python-poetry/roadmap/issues/3
+name = "ws"
+requires-python = "~=3.10"  # Keep in sync with Poetry
 
 [tool.poetry]
 name = "ws"
@@ -174,7 +182,7 @@ pytest = "*"
 pytest-django = "*"
 pytest-socket = "*"
 responses = "*"
-ruff = "^0.0.270"
+ruff = "*"
 
 # Dependencies for static type checking
 django-stubs = { version = "*" }
@@ -271,8 +279,8 @@ disable = [
   ####################################
   "protected-access",
   "ungrouped-imports",
+  "wrong-import-order",
   "wrong-import-position",
-
 ]
 
 [tool.pylint.REPORTS]
