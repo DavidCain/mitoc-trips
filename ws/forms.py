@@ -275,13 +275,15 @@ class TripSearchForm(forms.Form):
     q = forms.CharField(required=False)
     trip_type = forms.ChoiceField(
         required=False,
-        label=models.Trip.trip_type.field.verbose_name,  # type:ignore[attr-defined]
+        label=models.Trip.trip_type.field.verbose_name,
         choices=[('', 'Any'), *enums.TripType.choices()],
     )
     program = forms.ChoiceField(
         required=False,
         choices=[('', 'Any'), *enums.Program.choices()],
     )
+
+    assert models.Trip.winter_terrain_level.field.choices is not None
     winter_terrain_level = forms.ChoiceField(
         required=False,
         label="Terrain level",
@@ -292,7 +294,7 @@ class TripSearchForm(forms.Form):
                 for (
                     level,
                     _label,
-                ) in models.Trip.winter_terrain_level.field.choices  # type:ignore[attr-defined]
+                ) in models.Trip.winter_terrain_level.field.choices
             ],
         ],
     )

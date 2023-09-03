@@ -177,7 +177,7 @@ pytest-socket = "*"
 responses = "*"
 
 # Dependencies for static type checking
-django-stubs = { version = "^1.9" }
+django-stubs = { version = "*" }
 mypy = { version = "*"}
 types-certifi = { version = "*" }
 types-cryptography = { version = "*" }
