@@ -2,7 +2,7 @@ import itertools
 import random
 import unittest
 from datetime import date
-from typing import ClassVar
+from typing import ClassVar, cast
 from unittest.mock import patch
 
 import factory
@@ -295,9 +295,12 @@ class FlakeFactorTests(TestCase):
         """
 
         def create_ws_trip(trip_date: date) -> models.Trip:
-            return TripFactory.create(
-                program=enums.Program.WINTER_SCHOOL.value,
-                trip_date=trip_date,
+            return cast(
+                models.Trip,
+                TripFactory.create(
+                    program=enums.Program.WINTER_SCHOOL.value,
+                    trip_date=trip_date,
+                ),
             )
 
         cls.last_season_trips = [

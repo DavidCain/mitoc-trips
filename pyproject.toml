@@ -215,7 +215,6 @@ disallow_subclassing_any = false
 disallow_untyped_calls = false
 disallow_untyped_decorators = false
 disallow_untyped_defs = false
-warn_return_any = false
 
 [[tool.mypy.overrides]]
 # Explicitly ignore imports that do not have type hints or library stubs

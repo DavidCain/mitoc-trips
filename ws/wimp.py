@@ -1,9 +1,10 @@
+from django.db.models import QuerySet
 from django.db.models.expressions import RawSQL
 
 from ws import models
 
 
-def active_wimps():
+def active_wimps() -> QuerySet[models.Participant]:
     """Return all Participants that are currently WIMPs.
 
     Generally speaking, we should have only one WIMP, but we should handle the

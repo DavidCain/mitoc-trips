@@ -44,7 +44,7 @@ def leader_on_trip(
 def chair_group(activity_enum: enums.Activity) -> str:
     if activity_enum == enums.Activity.WINTER_SCHOOL:
         return 'WSC'
-    return activity_enum.value + '_chair'
+    return f'{activity_enum.value}_chair'
 
 
 def in_any_group(

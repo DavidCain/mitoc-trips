@@ -66,7 +66,11 @@ lint-python: install-python-dev
 
 .PHONY: typecheck-python
 typecheck-python: install-python-dev
-	poetry run mypy --config-file pyproject.toml ws
+	@# Annoying workaround for `Cannot find component WithAnnotations`
+	if ! poetry run mypy --config-file pyproject.toml ws; then \
+		rm -r .mypy_cache;  \
+		exit 1; \
+	fi
 
 .PHONY: lint-js
 lint-js: install-js

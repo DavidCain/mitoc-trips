@@ -1,9 +1,14 @@
 from datetime import date
+from typing import TYPE_CHECKING
 
 from django.db.models import Q, QuerySet
 
 from ws import enums, models
 from ws.utils.signups import add_to_waitlist
+
+if TYPE_CHECKING:
+    from ws.lottery import AnnotatedParticipant
+    from ws.lottery.run import LotteryRunner, WinterSchoolLotteryRunner
 
 
 def par_is_driver(participant):
@@ -38,9 +43,13 @@ def place_on_trip(signup, logger):
 class ParticipantHandler:
     """Class to handle placement of a single participant or pair."""
 
-    is_driver_q = Q(participant__lotteryinfo__car_status__in=['own', 'rent'])
-
-    def __init__(self, participant, runner, min_drivers=2, allow_pairs=True):
+    def __init__(
+        self,
+        participant: 'AnnotatedParticipant',
+        runner: 'LotteryRunner',
+        min_drivers: int = 2,
+        allow_pairs: bool = True,
+    ) -> None:
         self.participant = participant
         self.runner = runner
         self.min_drivers = min_drivers
@@ -96,9 +105,13 @@ class ParticipantHandler:
             place_on_trip(par_signup, self.logger)
 
     def _count_drivers_on_trip(self, trip: models.Trip) -> int:
-        participant_drivers = trip.signup_set.filter(self.is_driver_q, on_trip=True)
+        participant_drivers = models.SignUp.objects.filter(
+            trip=trip,
+            participant__lotteryinfo__car_status__in=['own', 'rent'],
+            on_trip=True,
+        )
         lottery_leaders = trip.leaders.filter(lotteryinfo__isnull=False)
-        num_leader_drivers = sum(
+        num_leader_drivers: int = sum(
             leader.lotteryinfo.is_driver for leader in lottery_leaders
         )
         return participant_drivers.count() + num_leader_drivers
@@ -148,7 +161,12 @@ class ParticipantHandler:
 
 
 class SingleTripParticipantHandler(ParticipantHandler):
-    def __init__(self, participant, runner, trip):
+    def __init__(
+        self,
+        participant: 'AnnotatedParticipant',
+        runner: 'LotteryRunner',
+        trip: models.Trip,
+    ) -> None:
         self.trip = trip
         allow_pairs = trip.honor_participant_pairing
         # TODO: Minimum driver requirements should be supported
@@ -188,10 +206,11 @@ class SingleTripParticipantHandler(ParticipantHandler):
 
 
 class WinterSchoolParticipantHandler(ParticipantHandler):
-    def __init__(self, participant, runner):
-        """
-        :param runner: An instance of LotteryRunner
-        """
+    def __init__(
+        self,
+        participant: 'AnnotatedParticipant',
+        runner: 'WinterSchoolLotteryRunner',
+    ) -> None:
         self.lottery_rundate = runner.execution_datetime.date()
         super().__init__(participant, runner, min_drivers=2, allow_pairs=True)
 

@@ -28,6 +28,7 @@ import ws.utils.perms as perm_utils
 import ws.utils.ratings as ratings_utils
 from ws import enums, forms, models
 from ws.decorators import chairs_only, user_info_required
+from ws.middleware import RequestWithParticipant
 
 
 class LeaderApplicationMixin(ratings_utils.LeaderApplicationMixin):
@@ -57,14 +58,18 @@ class LeaderApplicationMixin(ratings_utils.LeaderApplicationMixin):
 class ApplicationManager(ratings_utils.ApplicationManager, LeaderApplicationMixin):
     """Superclass for views where chairs are viewing one or more applications."""
 
+    request: RequestWithParticipant
+
     @property
     def chair(self) -> models.Participant:
         """The viewing participant should be an activity chair."""
-        return self.request.participant  # type: ignore[attr-defined]
+        return self.request.participant
 
 
 # model is a property on LeaderApplicationMixin, but a class attribute on SingleObjectMixin
 class LeaderApplyView(LeaderApplicationMixin, CreateView):  # type: ignore[misc]
+    request: RequestWithParticipant
+
     template_name = "leaders/apply.html"
     success_url = reverse_lazy('home')
     # TODO: I'm doing some nasty with this form class.
@@ -97,7 +102,7 @@ class LeaderApplyView(LeaderApplicationMixin, CreateView):  # type: ignore[misc]
 
     @property
     def par(self) -> models.Participant:
-        return self.request.participant  # type: ignore[attr-defined]
+        return self.request.participant
 
     @property
     def application_year(self) -> int:

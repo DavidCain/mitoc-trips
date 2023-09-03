@@ -1,6 +1,5 @@
-import typing
 import xml.etree.ElementTree as ET  # noqa: N817
-from typing import Any, TypedDict
+from typing import Any, NamedTuple, TypedDict, cast
 
 import requests
 from mitoc_const import affiliations
@@ -10,7 +9,18 @@ from ws import models, settings
 AFFILIATION_MAPPING = {aff.CODE: aff.VALUE for aff in affiliations.ALL}
 
 
-class Person(typing.NamedTuple):
+class LoginAccount(TypedDict):
+    name: str
+    accountId: str
+    baseUrl: str
+    isDefault: str
+    userName: str
+    userId: str
+    email: str
+    siteDescription: str
+
+
+class Person(NamedTuple):
     """A human involved in the waiver process.
 
     Generally, this is the Releasor (primary person signing the waiver).
@@ -21,7 +31,7 @@ class Person(typing.NamedTuple):
     email: str
 
 
-class InitiatedWaiverResult(typing.NamedTuple):
+class InitiatedWaiverResult(NamedTuple):
     # The email address that will be used for signing the waiver
     # This is what links the waiver to a MITOC member
     email: str
@@ -58,7 +68,9 @@ def get_base_url() -> str:
         v2_base + 'login_information', headers=get_headers(), timeout=10
     )
 
-    return resp.json()['loginAccounts'][0]['baseUrl']
+    login_accounts = cast(list[LoginAccount], resp.json()['loginAccounts'])
+    assert login_accounts
+    return login_accounts[0]['baseUrl']
 
 
 DocusignTabs = dict[str, list[dict[str, Any]]]
@@ -141,7 +153,7 @@ def get_roles(
     return [releasor_dict, guardian_dict, desk]
 
 
-def sign_embedded(
+def _sign_embedded(
     participant: models.Participant,
     releasor_dict: DocusignRole,
     envelope_id: str,
@@ -170,7 +182,7 @@ def sign_embedded(
     redir_url = requests.post(
         recipient_url, json=user, headers=get_headers(), timeout=10
     )
-    return redir_url.json()['url']
+    return cast(str, redir_url.json()['url'])
 
 
 def initiate_waiver(
@@ -221,6 +233,6 @@ def initiate_waiver(
 
     if participant:  # We need a participant to do embedded signing
         envelope_id = env.json()['envelopeId']
-        redir_url = sign_embedded(participant, releasor_dict, envelope_id, base_url)
+        redir_url = _sign_embedded(participant, releasor_dict, envelope_id, base_url)
 
     return InitiatedWaiverResult(email=releasor_dict['email'], url=redir_url)

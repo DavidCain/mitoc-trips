@@ -1,9 +1,9 @@
 import enum
 from datetime import timedelta
-from typing import Any
+from typing import TYPE_CHECKING, Any, TypedDict
 
 from django import template
-from django.db.models import Case, Count, IntegerField, Sum, When
+from django.db.models import Case, Count, IntegerField, QuerySet, Sum, When
 
 import ws.utils.dates as date_utils
 import ws.utils.perms as perm_utils
@@ -11,6 +11,19 @@ import ws.utils.ratings as ratings_utils
 from ws import enums, icons, models
 
 register = template.Library()
+
+
+class TripListAnnotations(TypedDict):
+    num_signups: int
+    signups_on_trip: int
+
+
+if TYPE_CHECKING:
+    from django_stubs_ext import WithAnnotations
+
+    AnnotatedTrip = WithAnnotations[models.Trip, TripListAnnotations]
+else:
+    AnnotatedTrip = object
 
 
 class TripStage(enum.IntEnum):
@@ -76,7 +89,7 @@ def trip_icon(trip):
     return icons.for_trip(trip)
 
 
-def annotated_for_trip_list(trips):
+def annotated_for_trip_list(trips: QuerySet[models.Trip]) -> QuerySet[AnnotatedTrip]:
     """Modify a trips queryset to have annotated fields used in tags."""
     # Each trip will need information about its leaders, so prefetch models
     trips = trips.prefetch_related('leaders', 'leaders__leaderrating_set')
@@ -86,7 +99,8 @@ def annotated_for_trip_list(trips):
         When(signup__on_trip=True, then=1), default=0, output_field=IntegerField()
     )
     return trips.annotate(
-        num_signups=Count('signup'), signups_on_trip=Sum(signup_on_trip)
+        num_signups=Count('signup'),
+        signups_on_trip=Sum(signup_on_trip),
     )
 
 
@@ -143,7 +157,7 @@ def feedback_table(all_feedback, scramble_contents=False, display_log_notice=Fal
 
 
 @register.filter
-def name_with_rating(leader, trip):
+def name_with_rating(leader: models.Participant, trip: models.Trip) -> str:
     """Give the leader's name plus rating at the time of the trip."""
     return leader.name_with_rating(trip)
 

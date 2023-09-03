@@ -123,10 +123,8 @@ class ApplicationManager(LeaderApplicationMixin, RatingsRecommendationsMixin):
 
     def sorted_annotated_applications(self) -> QuerySet[AnnotatedApplication]:
         """Sort all applications by order of attention they need."""
-        applications = self.joined_queryset()
-
         # Identify which have ratings and/or the leader's recommendation
-        applications = applications.annotate(
+        applications: QuerySet[AnnotatedApplication] = self.joined_queryset().annotate(
             num_ratings=self.sum_annotation(self.gave_rating),
             num_recs=self.sum_annotation(self.gave_rec),
         )

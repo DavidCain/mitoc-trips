@@ -25,6 +25,7 @@ from localflavor.us.models import USStateField
 from mitoc_const import affiliations
 from mitoc_const.membership import RENEWAL_ALLOWED_WITH_DAYS_LEFT
 from phonenumber_field.modelfields import PhoneNumberField
+from typing_extensions import Self
 
 import ws.utils.dates as date_utils
 from ws import enums
@@ -51,7 +52,7 @@ class SingletonModel(models.Model):
         pass
 
     @classmethod
-    def load(cls):
+    def load(cls) -> Self:
         obj, _created = cls.objects.get_or_create(pk=1)
         return obj
 
@@ -641,7 +642,7 @@ class Participant(models.Model):
             ratings = (r for r in ratings if r.time_created > after_time)
         return ratings
 
-    def name_with_rating(self, trip):
+    def name_with_rating(self, trip: 'Trip') -> str:
         """Give the leader's name plus rating at the time of the trip.
 
         Note: Some leaders from Winter School 2014 or 2015 may not have any
@@ -1163,8 +1164,8 @@ class Trip(models.Model):
 
     def description_to_text(self, maxchars: int | None = None) -> str:
         html = markdown2.markdown(self.description)
-        text = BeautifulSoup(html, 'html.parser').text.strip()
-        text = re.sub(r'[\s\n\r]+', ' ', text)  # (make sure newlines are single spaces)
+        raw_text = BeautifulSoup(html, 'html.parser').text.strip()
+        text = re.sub(r'[\s\n\r]+', ' ', raw_text)  # convert newlines to single spaces
         if maxchars is None or maxchars > len(text):
             return text
         cutoff = max(maxchars - 3, 0)
@@ -1817,11 +1818,10 @@ class LeaderApplication(models.Model):
         If any class wants to break the naming convention, they should
         set db_name to be the activity without underscores.
         """
-        model_name = (
-            cast(ContentTypeManager, ContentType.objects).get_for_model(self).model
-        )
+        content_type = cast(ContentTypeManager, ContentType.objects).get_for_model(self)
+        model_name: str = content_type.model
         activity = model_name[: model_name.rfind('leaderapplication')]
-        return 'winter_school' if activity == 'winterschool' else activity
+        return 'winter_school' if (activity == 'winterschool') else activity
 
     @staticmethod
     def model_from_activity(activity: enums.Activity) -> type['LeaderApplication']:

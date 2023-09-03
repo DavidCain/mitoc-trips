@@ -1,7 +1,14 @@
+from collections.abc import Callable
+
 from django.contrib.auth.models import User
+from django.http import HttpRequest, HttpResponse
 
 from ws.messages import security
 from ws.models import Participant
+
+
+class RequestWithParticipant(HttpRequest):
+    participant: Participant
 
 
 class PrefetchGroupsMiddleware:
@@ -17,10 +24,10 @@ class PrefetchGroupsMiddleware:
     For now, this cuts down on query time and execution.
     """
 
-    def __init__(self, get_response):
+    def __init__(self, get_response: Callable[[HttpRequest], HttpResponse]):
         self.get_response = get_response
 
-    def __call__(self, request):
+    def __call__(self, request: HttpRequest) -> HttpResponse:
         if request.user.is_authenticated:
             filtered_user = User.objects.filter(pk=request.user.pk)
             request.user = filtered_user.prefetch_related('groups').get()
@@ -30,12 +37,14 @@ class PrefetchGroupsMiddleware:
 class ParticipantMiddleware:
     """Include the user's participant (used in most views)"""
 
-    def __init__(self, get_response):
+    def __init__(self, get_response: Callable[[HttpRequest], HttpResponse]):
         self.get_response = get_response
 
-    def __call__(self, request):
+    def __call__(self, request: HttpRequest) -> HttpResponse:
         # TODO: We check for `password_quality` on every request. We should join that.
-        request.participant = Participant.from_user(request.user)
+        request.participant = (  # type: ignore[attr-defined]
+            Participant.from_user(request.user)
+        )
         return self.get_response(request)
 
 
@@ -47,9 +56,9 @@ class CustomMessagesMiddleware:
     - MessagesMiddleware (to render messages)
     """
 
-    def __init__(self, get_response):
+    def __init__(self, get_response: Callable[[HttpRequest], HttpResponse]):
         self.get_response = get_response
 
-    def __call__(self, request):
+    def __call__(self, request: HttpRequest) -> HttpResponse:
         security.Messages(request).supply()
         return self.get_response(request)

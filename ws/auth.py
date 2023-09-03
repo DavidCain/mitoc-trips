@@ -1,4 +1,5 @@
 import logging
+from typing import cast
 
 from pwned_passwords_django import api
 from pwned_passwords_django.exceptions import PwnedPasswordsError
@@ -14,7 +15,9 @@ def times_seen_in_hibp(password: str) -> int | None:
         return 0
 
     try:
-        return api.check_password(password)
+        # Package doesn't (yet?) export types.
+        # See: https://github.com/ubernostrum/pwned-passwords-django/pull/38
+        return cast(int, api.check_password(password))
     except PwnedPasswordsError:
         # Let Sentry know we had problems, but don't break the flow.
         # Sentry should scrub `password` automatically.

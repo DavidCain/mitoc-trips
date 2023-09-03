@@ -12,8 +12,8 @@ if TYPE_CHECKING:
 # (Essentially Trip.description_to_text as it existed at the time of this migration)
 def description_to_text(trip: 'Trip') -> str:
     html = markdown2.markdown(trip.description)
-    text = BeautifulSoup(html, 'html.parser').text.strip()
-    text = re.sub(r'[\s\n\r]+', ' ', text)  # (make sure newlines are single spaces)
+    raw_text = BeautifulSoup(html, 'html.parser').text.strip()
+    text = re.sub(r'[\s\n\r]+', ' ', raw_text)  # (make sure newlines are single spaces)
     if len(text) < 80:
         return text
     return text[:77].strip() + '...'
