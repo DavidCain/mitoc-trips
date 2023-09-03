@@ -1,5 +1,6 @@
-from datetime import date
+from datetime import date, datetime
 
+import pytz
 from bs4 import BeautifulSoup
 from django.template import Context, Template
 from django.test import TestCase
@@ -147,3 +148,57 @@ class TripTagsTest(TestCase):
         template = Template('{% load trip_tags %}{{ feedback|leader_display }}')
         context = Context({'feedback': feedback})
         self.assertEqual(template.render(context), 'Janet Yellin')
+
+
+class TripStage(TestCase):
+    @staticmethod
+    def _render(trip: models.Trip, *, signups_on_trip: int) -> str:
+        template = Template('{% load trip_tags %}{% trip_stage trip signups_on_trip %}')
+        context = Context({'trip': trip, 'signups_on_trip': signups_on_trip})
+        return template.render(context).strip()
+
+    def test_fcfs_open(self):
+        trip = factories.TripFactory.create(algorithm='fcfs')
+
+        self.assertEqual(
+            self._render(trip, signups_on_trip=0),
+            '<span class="label label-success" title="Signups are accepted on a first-come, first-serve basis">Open</span>',
+        )
+
+    def test_lottery_open(self):
+        trip = factories.TripFactory.create(algorithm='lottery')
+
+        self.assertEqual(
+            self._render(trip, signups_on_trip=0),
+            '<span class="label label-primary" title="Signups are being accepted and participants will be assigned via lottery.">Lottery</span>',
+        )
+
+    @freeze_time("Jan 11 2019 20:30:00 EST")
+    def test_not_yet_open(self):
+        trip = factories.TripFactory.create(
+            signups_open_at=datetime(2019, 1, 13, tzinfo=pytz.utc)
+        )
+
+        self.assertEqual(
+            self._render(trip, signups_on_trip=0),
+            '<span class="label label-info" title="Not yet accepting signups">Open soon</span>',
+        )
+
+    def test_full(self):
+        trip = factories.TripFactory.create(algorithm="fcfs", maximum_participants=10)
+
+        self.assertEqual(
+            self._render(trip, signups_on_trip=10),
+            '<span class="label label-warning" title="Trip has no more spaces, but you can join the waitlist">Full</span>',
+        )
+
+    def test_closed(self):
+        with freeze_time("Jan 11 2019 20:30:00 EST"):
+            trip = factories.TripFactory.create()
+
+        with freeze_time("Sep 22 2023 12:30:45 EST"):
+            content = self._render(trip, signups_on_trip=10)
+        self.assertEqual(
+            content,
+            '<span class="label label-default" title="No longer accepting signups">Closed</span>',
+        )

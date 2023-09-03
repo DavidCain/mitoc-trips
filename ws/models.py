@@ -1326,20 +1326,22 @@ class Trip(models.Model):
         return self.signups_opened and not self.signups_closed
 
     @property
-    def signups_opened(self):
+    def signups_opened(self) -> bool:
         """If signups opened at some time in the past.
 
         They may have since closed!
         """
-        return timezone.now() > self.signups_open_at
+        return timezone.now() >= self.signups_open_at
 
     @property
-    def signups_closed(self):
+    def signups_closed(self) -> bool:
         """If a close time is given, return if that time is passed."""
-        return self.signups_close_at and timezone.now() > self.signups_close_at
+        if self.signups_close_at is None:
+            return False
+        return timezone.now() > self.signups_close_at
 
     @property
-    def signups_not_yet_open(self):
+    def signups_not_yet_open(self) -> bool:
         """True if signups open at some point in the future, else False."""
         return timezone.now() < self.signups_open_at
 

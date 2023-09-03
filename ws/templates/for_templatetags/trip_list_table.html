@@ -10,7 +10,9 @@
       {% endif %}
       <th data-hide="phone,tablet" data-sort-ignore="true">Description</th>
       {% if not approve_mode %}
-        <th data-type="numeric" class="nowrap" data-hide="phone">Signups</th>
+        {% if show_trip_stage %}
+          <th data-type="numeric" class="nowrap" data-hide="phone">Stage</th>
+        {% endif %}
         <th data-type="numeric" class="nowrap">Spaces</th>
       {% endif %}
       <th data-hide="phone,tablet">Leaders</th>
@@ -63,10 +65,14 @@
 
         {% if not approve_mode %}
           {% with signups_on_trip=trip.signups_on_trip %}
-            <td data-value="{{ trip.num_signups }}"> {{ trip.num_signups }} / {{ trip.maximum_participants }}</td>
-            <td> {{ trip.maximum_participants|subtract:signups_on_trip }} </td>
+            {% if show_trip_stage %}
+            <td data-value="{{ trip|numeric_trip_stage_for_sorting:signups_on_trip }}">
+              {% trip_stage trip signups_on_trip %}
+            </td>
+            {% endif %}
+            <td>{{ trip.maximum_participants|subtract:signups_on_trip }} / {{ trip.maximum_participants }}</td>
           {% endwith %}
-        {% endif  %}
+        {% endif %}
 
         <td>
           {{ trip.leaders_with_rating|slice:':5'|join:', ' }}{% if trip.leaders.count > 5 %}... ({{ trip.leaders.count }} in total){% endif %}

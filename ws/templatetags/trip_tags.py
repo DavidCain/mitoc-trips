@@ -1,4 +1,6 @@
+import enum
 from datetime import timedelta
+from typing import Any
 
 from django import template
 from django.db.models import Case, Count, IntegerField, Sum, When
@@ -9,6 +11,64 @@ import ws.utils.ratings as ratings_utils
 from ws import enums, icons, models
 
 register = template.Library()
+
+
+class TripStage(enum.IntEnum):
+    FCFS_OPEN = 1
+    LOTTERY_OPEN = 2
+    NOT_YET_OPEN = 3
+    FULL_BUT_ACCEPTING_SIGNUPS = 4
+    CLOSED = 5
+
+    def label(self) -> str:
+        return {
+            self.FCFS_OPEN: "Open",
+            self.LOTTERY_OPEN: "Lottery",
+            self.NOT_YET_OPEN: "Open soon",
+            self.FULL_BUT_ACCEPTING_SIGNUPS: "Full",
+            self.CLOSED: "Closed",
+        }[self]
+
+    def message_level(self) -> str:
+        return {
+            self.FCFS_OPEN: "success",
+            self.LOTTERY_OPEN: "primary",
+            self.NOT_YET_OPEN: "info",
+            self.FULL_BUT_ACCEPTING_SIGNUPS: "warning",
+            self.CLOSED: "default",
+        }[self]
+
+    def explanation(self) -> str:
+        return {
+            self.FCFS_OPEN: "Signups are accepted on a first-come, first-serve basis",
+            self.LOTTERY_OPEN: "Signups are being accepted and participants will be assigned via lottery.",
+            self.NOT_YET_OPEN: "Not yet accepting signups",
+            self.FULL_BUT_ACCEPTING_SIGNUPS: "Trip has no more spaces, but you can join the waitlist",
+            self.CLOSED: "No longer accepting signups",
+        }[self]
+
+    @classmethod
+    def stage_for_trip(
+        cls,
+        trip: models.Trip,
+        signups_on_trip: int,
+    ) -> 'TripStage':
+        if trip.signups_not_yet_open:
+            return cls.NOT_YET_OPEN
+        if trip.signups_closed:
+            return cls.CLOSED
+
+        # All trips should be either open, closed, or not yet open.
+        assert trip.signups_open, "Unexpected trip status!"
+
+        if trip.algorithm == 'fcfs':
+            # `trip.open_slots` works, but includes a SQL query
+            if signups_on_trip >= trip.maximum_participants:
+                return cls.FULL_BUT_ACCEPTING_SIGNUPS
+            return cls.FCFS_OPEN
+
+        assert trip.algorithm == 'lottery'
+        return cls.LOTTERY_OPEN
 
 
 @register.simple_tag
@@ -45,8 +105,32 @@ def simple_trip_list(
 
 
 @register.inclusion_tag('for_templatetags/trip_list_table.html')
-def trip_list_table(trip_list, approve_mode=False):
-    return {'trip_list': trip_list, 'approve_mode': approve_mode}
+def trip_list_table(
+    trip_list: list[models.Trip],
+    approve_mode: bool = False,
+    show_trip_stage: bool = False,
+) -> dict[str, Any]:
+    return {
+        'trip_list': trip_list,
+        'approve_mode': approve_mode,
+        'show_trip_stage': show_trip_stage,
+    }
+
+
+@register.inclusion_tag('for_templatetags/trip_stage.html')
+def trip_stage(
+    trip: models.Trip,
+    signups_on_trip: int,
+) -> dict[str, Any]:
+    return {'stage': TripStage.stage_for_trip(trip, signups_on_trip)}
+
+
+@register.filter
+def numeric_trip_stage_for_sorting(
+    trip: models.Trip,
+    signups_on_trip: int,
+) -> int:
+    return TripStage.stage_for_trip(trip, signups_on_trip).value
 
 
 @register.inclusion_tag('for_templatetags/feedback_table.html')

@@ -40,7 +40,7 @@
 </h3>
 
 {% if current_trips %}
-  {% trip_list_table current_trips %}
+  {% trip_list_table current_trips False True %}
 {% else %}
   <p> No upcoming trips!
   {% if "leaders" in groups %}
