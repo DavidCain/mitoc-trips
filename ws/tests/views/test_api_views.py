@@ -105,7 +105,7 @@ class JWTSecurityTest(TestCase):
 class OtherVerifiedEmailsTest(TestCase):
     """We report what we know about a MITOCer to authenticated APIS."""
 
-    def _query_for(self, email: str):
+    def _query_for(self, email):
         real_token = jwt.encode(
             {'exp': time.time() + 60, 'email': email},
             algorithm='HS512',

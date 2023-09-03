@@ -123,7 +123,7 @@ class SingleTripParticipantRanker(ParticipantRanker):
     def __init__(self, trip: models.Trip):
         self.trip = trip
 
-    def priority_key(self, participant) -> float:
+    def priority_key(self, participant: models.Participant) -> float:
         lottery_key = f"trip-{self.trip.pk}"
         return affiliation_weighted_rand(participant, lottery_key)
 
@@ -188,7 +188,7 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
             signup__trip__program=enums.Program.WINTER_SCHOOL.value,
         ).distinct()
 
-    def priority_key(self, participant) -> WinterSchoolPriorityRank:
+    def priority_key(self, participant: models.Participant) -> WinterSchoolPriorityRank:
         """Rank participants by:
 
         1. Manual overrides (rare, should not apply for >99% of participants)

@@ -2,14 +2,17 @@ from django import template
 from django.contrib.auth.models import User
 
 import ws.utils.perms as perm_utils
-from ws import models
+from ws import enums, models
 from ws.utils.dates import local_date
 
 register = template.Library()
 
 
 @register.filter
-def chair_activities(user: User, allow_superusers: bool = True):
+def chair_activities(
+    user: User,
+    allow_superusers: bool = True,
+) -> list[enums.Activity]:
     return perm_utils.chair_activities(user, allow_superusers)
 
 

@@ -1,7 +1,9 @@
 from collections.abc import Mapping
 from types import MappingProxyType
+from typing import Any
 
 from django import template
+from django.template.context import Context
 
 from ws import models
 from ws.utils import membership_api
@@ -24,12 +26,12 @@ STATUS_TO_BOOTSTRAP_LABEL: Mapping[membership_api.Status, str] = MappingProxyTyp
 
 @register.inclusion_tag('for_templatetags/membership_status.html', takes_context=True)
 def membership_status(
-    context,
+    context: Context,
     participant: models.Participant,
     can_link_to_pay_dues: bool,
     can_link_to_sign_waiver: bool,
     personalize: bool,
-):
+) -> dict[str, Any]:
     try:
         membership = participant.membership
     except AttributeError:

@@ -19,7 +19,7 @@ def _bind_input(
     initial: None | str | int | bool = None,
     # (Can optionally use a different model name)
     model_name: str | None = None,
-):
+) -> None:
     """Bind the field value in AngularJS.
 
     This is a janky, home-grown approximation of what Django-Angular does.

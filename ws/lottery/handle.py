@@ -13,7 +13,10 @@ def par_is_driver(participant):
         return False
 
 
-def ranked_signups(participant, after: date) -> QuerySet[models.SignUp]:
+def ranked_signups(
+    participant: models.Participant,
+    after: date,
+) -> QuerySet[models.SignUp]:
     """Return all future WS signups for the participant."""
     # Only consider lottery signups for future trips
     return participant.signup_set.filter(
@@ -92,7 +95,7 @@ class ParticipantHandler:
             )
             place_on_trip(par_signup, self.logger)
 
-    def _count_drivers_on_trip(self, trip) -> int:
+    def _count_drivers_on_trip(self, trip: models.Trip) -> int:
         participant_drivers = trip.signup_set.filter(self.is_driver_q, on_trip=True)
         lottery_leaders = trip.leaders.filter(lotteryinfo__isnull=False)
         num_leader_drivers = sum(
@@ -100,7 +103,7 @@ class ParticipantHandler:
         )
         return participant_drivers.count() + num_leader_drivers
 
-    def _num_drivers_needed(self, trip) -> int:
+    def _num_drivers_needed(self, trip: models.Trip) -> int:
         num_drivers = self._count_drivers_on_trip(trip)
         return max(self.min_drivers - num_drivers, 0)
 
@@ -286,7 +289,7 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
 
         return info
 
-    def _placement_would_jeopardize_driver_bump(self, signup) -> bool:
+    def _placement_would_jeopardize_driver_bump(self, signup: models.SignUp) -> bool:
         """Return if placing this participant (or pair) risks them later being bumped.
 
         For paired participants, this returns true if 2 slots remain & at least

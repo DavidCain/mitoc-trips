@@ -91,7 +91,10 @@ def mutex_task(task_id_template=None, **shared_task_kwargs):
 
 
 @mutex_task('update_discount-{discount_id}')
-def update_discount_sheet_for_participant(discount_id: int, participant_id: int):
+def update_discount_sheet_for_participant(
+    discount_id: int,
+    participant_id: int,
+) -> None:
     """Lock the sheet and add/update a single participant.
 
     This task should not run at the same time that we're updating the sheet for
@@ -148,7 +151,7 @@ def update_discount_sheet(
 
 
 @mutex_task()
-def update_all_discount_sheets():
+def update_all_discount_sheets() -> None:
     logger.info("Updating the member roster for all discount sheets")
     discount_pks = models.Discount.objects.exclude(ga_key='').values_list(
         'pk', flat=True
@@ -162,7 +165,7 @@ def update_all_discount_sheets():
     retry_backoff=60,
     max_retries=4,
 )
-def update_participant_affiliation(participant_id: int):
+def update_participant_affiliation(participant_id: int) -> None:
     """Use the participant's affiliation to update the gear database."""
     participant = models.Participant.objects.get(pk=participant_id)
     response = geardb.update_affiliation(participant)
@@ -171,7 +174,7 @@ def update_participant_affiliation(participant_id: int):
 
 
 @shared_task  # Locking done at db level to ensure idempotency
-def remind_lapsed_participant_to_renew(participant_id: int):
+def remind_lapsed_participant_to_renew(participant_id: int) -> None:
     """A task which should only be called by `remind_participants_to_renew'.
 
     Like its parent task, is designed to be idempotent (so we only notify
@@ -229,7 +232,7 @@ def remind_lapsed_participant_to_renew(participant_id: int):
 
 
 @shared_task  # Locking done at db level to ensure idempotency
-def remind_participants_to_renew():
+def remind_participants_to_renew() -> None:
     """Identify all participants who requested membership reminders, email them.
 
     This method is designed to be idempotent (one email per participant).
@@ -264,13 +267,13 @@ def remind_participants_to_renew():
 
 
 @mutex_task()
-def send_trip_summaries_email():
+def send_trip_summaries_email() -> None:
     """Email summary of upcoming trips to mitoc-trip-announce@mit.edu"""
     send_trips_summary()
 
 
 @mutex_task()
-def send_sole_itineraries():
+def send_sole_itineraries() -> None:
     """Email trip itineraries to Student Organizations, Leadership and Engagement.
 
     This task should be run daily, so that it will always send SOLE
@@ -289,28 +292,28 @@ def send_sole_itineraries():
 
 
 @mutex_task()
-def run_ws_lottery():
+def run_ws_lottery() -> None:
     logger.info("Commencing Winter School lottery run")
     runner = WinterSchoolLotteryRunner()
     runner()
 
 
 @mutex_task()
-def purge_non_student_discounts():
+def purge_non_student_discounts() -> None:
     """Purge non-students from student-only discounts."""
     logger.info("Purging non-students from student-only discounts")
     cleanup.purge_non_student_discounts()
 
 
 @mutex_task()
-def purge_old_medical_data():
+def purge_old_medical_data() -> None:
     """Purge old, dated medical information."""
     logger.info("Purging outdated medical information")
     cleanup.purge_old_medical_data()
 
 
 @mutex_task('single_trip_lottery-{trip_id}')
-def run_lottery(trip_id: int):
+def run_lottery(trip_id: int) -> None:
     """Run a lottery algorithm for the given trip (idempotent).
 
     If running on a trip that isn't in lottery mode, this won't make

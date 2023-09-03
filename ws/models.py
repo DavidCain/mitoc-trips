@@ -1,7 +1,7 @@
 import re
 from collections.abc import Iterable, Iterator
 from datetime import date, datetime, timedelta
-from typing import Optional, cast
+from typing import Any, Optional, cast
 from urllib.parse import urlencode, urljoin
 from zoneinfo import ZoneInfo
 
@@ -16,7 +16,7 @@ from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.db import models
-from django.db.models import F, Q
+from django.db.models import F, Q, QuerySet
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.safestring import mark_safe
@@ -282,7 +282,7 @@ class Membership(models.Model):
         assert self.membership_expires
         return self.membership_expires + timedelta(days=365)
 
-    def should_renew_for(self, trip) -> bool:
+    def should_renew_for(self, trip: 'Trip') -> bool:
         """Return if membership renewal is required to attend a future trip.
 
         If a participant's membership will expire on the given date, and it's
@@ -519,7 +519,7 @@ class Participant(models.Model):
 
         return not self.attended_lectures(year)
 
-    def missed_lectures_for(self, trip) -> bool:
+    def missed_lectures_for(self, trip: 'Trip') -> bool:
         """Should we regard the participant as having missed lectures for this trip.
 
         This only applies to WS trips - all other trips will return False.
@@ -534,7 +534,7 @@ class Participant(models.Model):
 
         return self.missed_lectures(trip.trip_date.year)
 
-    def _cannot_attend_because_missed_lectures(self, trip) -> bool:
+    def _cannot_attend_because_missed_lectures(self, trip: 'Trip') -> bool:
         """Return if the participant's lack of attendance should prevent their attendance.
 
         This method exists to allow WS leaders to attend trips as a
@@ -617,7 +617,12 @@ class Participant(models.Model):
             self.save()
         return acct, created
 
-    def ratings(self, must_be_active=True, at_time=None, after_time=None):
+    def ratings(
+        self,
+        must_be_active: bool = True,
+        at_time: datetime | None = None,
+        after_time: datetime | None = None,
+    ) -> Iterator['LeaderRating']:
         """Return all ratings matching the supplied filters.
 
         must_be_active: Only format a rating if it's still active
@@ -658,7 +663,11 @@ class Participant(models.Model):
         )
         return f"{self.name} ({rating})" if rating else self.name
 
-    def activity_rating(self, activity_enum: enums.Activity, **kwargs):
+    def activity_rating(
+        self,
+        activity_enum: enums.Activity,
+        **kwargs: Any,
+    ) -> str | None:
         """Return leader's rating for the given activity (if one exists)."""
         ratings = [
             r for r in self.ratings(**kwargs) if r.activity == activity_enum.value
@@ -1408,7 +1417,12 @@ class Trip(models.Model):
         return [leader.name_with_rating(self) for leader in self.leaders.all()]
 
     @classmethod
-    def search_trips(cls, text: str, filters: None | Q, limit: int = 100):
+    def search_trips(
+        cls,
+        text: str,
+        filters: None | Q,
+        limit: int = 100,
+    ) -> QuerySet['Trip']:
         trips = cls.objects.filter(filters) if filters else cls.objects.all()
         # It's valid to not provide a search term at all.
         # In this case, there's no real meaningful way to "rank" matches; put newest first.
@@ -2049,7 +2063,11 @@ class ClimbingLeaderApplication(LeaderApplication):
     )
 
     @classmethod
-    def google_form_url(cls, embedded=False, participant=None) -> str:
+    def google_form_url(
+        cls,
+        embedded: bool = False,
+        participant: Participant | None = None,
+    ) -> str:
         """For newer applications, they should complete a Google form.
 
         Return the URL, optionally prefilling participant information or embedding.

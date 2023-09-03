@@ -1,3 +1,5 @@
+from typing import Any
+
 from django.core import signing
 from django.core.signing import TimestampSigner
 from django.test import SimpleTestCase, TestCase
@@ -70,7 +72,11 @@ class UnsubscribeTest(SimpleTestCase):  # no db access, but uses self.settings
         reason these tokens can't be shown again and again.
         """
 
-        def _sha_256_signed(payload, salt, key='sooper-secret') -> str:
+        def _sha_256_signed(
+            payload: dict[str, Any],
+            salt: str,
+            key: str = 'sooper-secret',
+        ) -> str:
             signer = TimestampSigner(key=key, salt=salt, algorithm='sha256')
             return signer.sign_object(payload)
 

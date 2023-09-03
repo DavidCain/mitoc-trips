@@ -1,4 +1,5 @@
 from itertools import chain
+from typing import Any
 
 from django import template
 from django.db.models import Q
@@ -54,7 +55,11 @@ def leader_signup_is_allowed(trip, participant):
 
 
 @register.inclusion_tag('for_templatetags/pairing_info.html')
-def pairing_info(participant, user_viewing: bool = True, show_title: bool = False):
+def pairing_info(
+    participant: models.Participant,
+    user_viewing: bool = True,
+    show_title: bool = False,
+) -> dict[str, Any]:
     lotto = LotteryPairingMixin()
     lotto.participant = participant
 

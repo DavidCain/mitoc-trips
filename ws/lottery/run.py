@@ -46,19 +46,27 @@ class LotteryRunner:
         """Get a unique logger object per each instance."""
         return f"{__name__}.{id(self)}"
 
-    def handled(self, participant) -> bool:
+    def handled(self, participant: models.Participant) -> bool:
         return self._participants_handled.get(participant.pk, False)
 
-    def seen(self, participant) -> bool:
+    def seen(self, participant: models.Participant) -> bool:
         return self._participants_seen.get(participant.pk, False)
 
-    def mark_handled(self, participant, handled=True) -> None:
+    def mark_handled(
+        self,
+        participant: models.Participant,
+        handled: bool = True,
+    ) -> None:
         self._participants_handled[participant.pk] = handled
 
-    def mark_seen(self, participant, seen=True) -> None:
+    def mark_seen(
+        self,
+        participant: models.Participant,
+        seen: bool = True,
+    ) -> None:
         self._participants_seen[participant.pk] = seen
 
-    def signup_to_bump(self, trip) -> models.SignUp | None:
+    def signup_to_bump(self, trip: models.Trip) -> models.SignUp | None:
         """Which participant to bump off the trip if another needs a place.
 
         By default, just goes with the last-ordered participant.
@@ -161,7 +169,7 @@ class WinterSchoolLotteryRunner(LotteryRunner):
             trip.make_fcfs(signups_open_at=noon)
             trip.save()
 
-    def signup_to_bump(self, trip) -> models.SignUp | None:
+    def signup_to_bump(self, trip: models.Trip) -> models.SignUp | None:
         return self.ranker.lowest_non_driver(trip)
 
     def assign_trips(self) -> None:

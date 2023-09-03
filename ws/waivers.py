@@ -64,7 +64,7 @@ def get_base_url() -> str:
 DocusignTabs = dict[str, list[dict[str, Any]]]
 
 
-def prefilled_tabs(participant) -> DocusignTabs:
+def prefilled_tabs(participant: models.Participant) -> DocusignTabs:
     """Return tabs that are pre-filled for the Releasor role."""
     e_contact = participant.emergency_info.emergency_contact
     docusign_affiliation = AFFILIATION_MAPPING[participant.affiliation]

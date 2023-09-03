@@ -1,5 +1,8 @@
+from typing import Any
+
 from django import template
 from django.db.models.fields import TextField
+from django.template.context import Context
 
 from ws import enums, models
 
@@ -43,7 +46,10 @@ def application_details(application):
     'for_templatetags/application_description.html',
     takes_context=True,
 )
-def application_description(context, activity_enum: enums.Activity):
+def application_description(
+    context: Context,
+    activity_enum: enums.Activity,
+) -> dict[str, Any]:
     return {
         'activity_enum': activity_enum,
         'climbing_application_url': models.ClimbingLeaderApplication.google_form_url(

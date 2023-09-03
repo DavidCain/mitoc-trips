@@ -1,4 +1,5 @@
 from datetime import timedelta
+from typing import Any
 
 from django import template
 
@@ -11,7 +12,10 @@ register = template.Library()
 
 
 @register.inclusion_tag('for_templatetags/show_wimp.html')
-def show_wimp(wimp: models.Participant, show_wimp_at_mit: bool = False):
+def show_wimp(
+    wimp: models.Participant,
+    show_wimp_at_mit: bool = False,
+) -> dict[str, Any]:
     return {
         'participant': wimp,
         'show_wimp_at_mit': show_wimp_at_mit,

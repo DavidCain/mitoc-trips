@@ -5,7 +5,7 @@ Every MITOC member is required to have a current membership and waiver. Each of
 these documents expire after 12 months.
 """
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import requests
 from django.contrib import messages
@@ -36,10 +36,10 @@ class RefreshMembershipView(DetailView):
             pass
         return redirect(reverse('view_participant', args=(participant.pk,)))
 
-    def post(self, request: HttpRequest, **kwargs) -> HttpResponse:
+    def post(self, request: HttpRequest, **kwargs: Any) -> HttpResponse:
         return self._update_membership(request)
 
-    def get(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         return self._update_membership(request)
 
     # Keep it simple -- any member can refresh the cache for anybody else

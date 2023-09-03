@@ -642,7 +642,12 @@ class DiscountsTest(TestCase):
 
 
 class EmailPreferencesTest(TestCase):
-    def _expect_success(self, par: models.Participant, msg: str, send_reminder: bool):
+    def _expect_success(
+        self,
+        par: models.Participant,
+        msg: str,
+        send_reminder: bool,
+    ) -> None:
         """Whether opting in or out, success looks the same!"""
         self.client.force_login(par.user)
 
@@ -753,7 +758,7 @@ class EmailUnsubscribeTest(TestCase):
         with patched as add_message:
             yield add_message
 
-    def _get(self, url: str):
+    def _get(self, url: str) -> BeautifulSoup:
         response = self.client.get(url)
         assert response.status_code == 200
         return BeautifulSoup(response.content, 'html.parser')

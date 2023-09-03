@@ -11,6 +11,7 @@ complete history.
 """
 
 from django.db import connections, transaction
+from django.db.backends.utils import CursorWrapper
 
 from ws import models
 
@@ -102,7 +103,10 @@ def _fk_tables(cursor, src_table, col):
 
 
 def check_fk_tables(
-    cursor, src_table: str, column: str, expected: dict[str, tuple[str, ...]]
+    cursor: CursorWrapper,
+    src_table: str,
+    column: str,
+    expected: dict[str, tuple[str, ...]],
 ) -> None:
     """Check that the foreign keys are what we expect them to be.
 

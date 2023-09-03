@@ -15,7 +15,7 @@ from ws.tests import factories, strip_whitespace
 class Helpers:
     client: Client
 
-    def _get(self, url: str):
+    def _get(self, url):
         response = self.client.get(url)
         assert response.status_code == 200, str(response.status_code)
         soup = BeautifulSoup(response.content, 'html.parser')
@@ -422,7 +422,13 @@ class AllLeaderApplicationsTest(TestCase, Helpers):
 
 
 class LeaderApplicationsBaseTest(TestCase, Helpers):
-    def _expect_form_contents(self, soup, rating: str, notes: str, submit: str):
+    def _expect_form_contents(
+        self,
+        soup: BeautifulSoup,
+        rating: str,
+        notes: str,
+        submit: str,
+    ) -> None:
         form = soup.find('form')
         rating_input = form.find('input', attrs={'name': 'rating'})
         notes_textarea = form.find('textarea', attrs={'name': 'notes'})

@@ -30,7 +30,11 @@ class MembershipActiveTests(SimpleTestCase):
 
 @freeze_time("2019-10-19 12:00:00 EST")
 class ShouldRenewForTripTests(SimpleTestCase):
-    def _should_renew_for(self, trip, membership_expires) -> bool:
+    def _should_renew_for(
+        self,
+        trip: models.Trip,
+        membership_expires: date,
+    ) -> bool:
         membership = models.Membership(membership_expires=membership_expires)
         should_renew = membership.should_renew_for(trip)
 

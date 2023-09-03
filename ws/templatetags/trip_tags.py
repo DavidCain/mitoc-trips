@@ -92,10 +92,10 @@ def annotated_for_trip_list(trips):
 
 @register.inclusion_tag('for_templatetags/simple_trip_list.html')
 def simple_trip_list(
-    trip_list,
+    trip_list: list[models.Trip],
     max_title_chars: int = 45,
     collapse_date: bool = False,  # True: Instead of showing the date column, show beneath title
-):
+) -> dict[str, Any]:
     return {
         'today': date_utils.local_date(),
         'trip_list': trip_list,
@@ -149,7 +149,7 @@ def name_with_rating(leader, trip):
 
 
 @register.filter
-def leader_display(feedback) -> str:
+def leader_display(feedback: models.Feedback) -> str:
     """Give a relevant display of the leader for display alongside feedback."""
     if feedback.trip:
         return feedback.leader.name_with_rating(feedback.trip)
@@ -162,7 +162,10 @@ def activity_rating(leader: models.Participant, activity_enum: enums.Activity) -
 
 
 @register.filter
-def pending_applications_count(chair, activity_enum: enums.Activity) -> int:
+def pending_applications_count(
+    chair: models.Participant,
+    activity_enum: enums.Activity,
+) -> int:
     """Count applications where:
 
     - All chairs have given recs, rating is needed

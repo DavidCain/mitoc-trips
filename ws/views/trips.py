@@ -16,7 +16,11 @@ from django.db import transaction
 from django.db.models import Q, QuerySet
 from django.forms.fields import TypedChoiceField
 from django.forms.utils import ErrorList
-from django.http import Http404, HttpResponseBadRequest
+from django.http import (
+    Http404,
+    HttpResponseBadRequest,
+    HttpResponseRedirect,
+)
 from django.shortcuts import redirect, render
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
@@ -365,7 +369,7 @@ class EditTripView(UpdateView, TripLeadersOnlyView):
     def get_success_url(self):
         return reverse('view_trip', args=(self.object.pk,))
 
-    def _leaders_changed(self, form) -> bool:
+    def _leaders_changed(self, form: forms.TripForm) -> bool:
         old_pks = {leader.pk for leader in self.object.leaders.all()}
         new_pks = {leader.pk for leader in form.cleaned_data['leaders']}
         return bool(old_pks.symmetric_difference(new_pks))
@@ -383,7 +387,12 @@ class EditTripView(UpdateView, TripLeadersOnlyView):
         if not self._leaders_changed(form):
             form.cleaned_data.pop('leaders')
 
-    def _stale_revision_message(self, form, current_trip, new_trip) -> str | None:
+    def _stale_revision_message(
+        self,
+        form: forms.TripForm,
+        current_trip: models.Trip,
+        new_trip: models.Trip,
+    ) -> str | None:
         """Produce a message describing a stale edit, if one exists.."""
         if current_trip.edit_revision == new_trip.edit_revision:
             return None
@@ -409,11 +418,17 @@ class EditTripView(UpdateView, TripLeadersOnlyView):
         assert current_trip.edit_revision > new_trip.edit_revision
         edit_count = current_trip.edit_revision - new_trip.edit_revision
         plural = '' if edit_count == 1 else 's'
+
+        differing_fields: list[str] = [
+            # Handle the label being nullable or a `_StrPromise`
+            str(field.label or 'Unknown')
+            for field in fields_with_difference
+        ]
         return "\n".join(
             [
                 f"This trip has already been edited {edit_count} time{plural}, most recently by {editor_name}.",
                 "To make updates to the trip, please load the page again.",
-                f"Fields which differ: {', '.join(field.label for field in fields_with_difference) or '???'}",
+                f"Fields which differ: {', '.join(differing_fields) or '???'}",
             ]
         )
 
@@ -553,7 +568,7 @@ class TripSearchView(ListView, FormView):
             for label in self.form_class.declared_fields
         }
 
-    def form_valid(self, form: forms.TripSearchForm):
+    def form_valid(self, form: forms.TripSearchForm) -> HttpResponseRedirect:
         """Populate successful form contents into the URL."""
         params = {
             label: form.cleaned_data[label]

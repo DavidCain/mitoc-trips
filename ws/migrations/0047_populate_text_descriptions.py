@@ -1,12 +1,16 @@
 import re
+from typing import TYPE_CHECKING
 
 import markdown2
 from bs4 import BeautifulSoup
 from django.db import migrations, models
 
+if TYPE_CHECKING:
+    from ws.models import Trip
+
 
 # (Essentially Trip.description_to_text as it existed at the time of this migration)
-def description_to_text(trip) -> str:
+def description_to_text(trip: 'Trip') -> str:
     html = markdown2.markdown(trip.description)
     text = BeautifulSoup(html, 'html.parser').text.strip()
     text = re.sub(r'[\s\n\r]+', ' ', text)  # (make sure newlines are single spaces)

@@ -6,12 +6,12 @@ user who has completed the mandatory signup information is given a Participant
 object that's linked to their user account.
 """
 import logging
-from typing import Any
+from typing import Any, Literal, TypedDict
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, QuerySet
 from django.shortcuts import redirect, render
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
@@ -31,6 +31,20 @@ from ws.templatetags.trip_tags import annotated_for_trip_list
 from ws.utils.models import problems_with_profile
 
 logger = logging.getLogger(__name__)
+
+
+class _TripDescriptor(TypedDict):
+    on_trip: QuerySet[models.Trip]
+    creator: QuerySet[models.Trip]
+    leader: QuerySet[models.Trip]
+    wimp: QuerySet[models.Trip]
+
+    waitlisted: QuerySet[models.Trip] | None
+
+
+class GroupedTrips(TypedDict):
+    current: _TripDescriptor
+    past: _TripDescriptor
 
 
 class OtherParticipantView(SingleObjectMixin):
@@ -297,7 +311,7 @@ class ParticipantView(
             'emergency_info__emergency_contact', 'car', 'lotteryinfo'
         )
 
-    def get_trips(self):
+    def get_trips(self) -> GroupedTrips:
         participant = self.object or self.get_object()
 
         today = date_utils.local_date()
@@ -335,6 +349,7 @@ class ParticipantView(
             },
             'past': {
                 'on_trip': accepted.filter(in_past),
+                'waitlisted': None,
                 'leader': trips_led.filter(in_past),
                 'creator': created_but_not_on.filter(in_past),
                 'wimp': participant.wimp_trips.filter(in_past),
@@ -342,12 +357,16 @@ class ParticipantView(
         }
 
     @staticmethod
-    def get_stats(trips) -> list[str]:
+    def get_stats(trips: GroupedTrips) -> list[str]:
         if not any(trips['past'].values()):
             return []
 
-        def count(key) -> str:
-            num = len(trips['past'][key])
+        def count(
+            key: Literal["on_trip", "creator", "leader", "wimp", "waitlisted"]
+        ) -> str:
+            matching_trips = trips['past'][key]
+            assert matching_trips is not None  # waitlisted can be omitted
+            num = len(matching_trips)
             plural = '' if num == 1 else 's'
             return f"{num} trip{plural}"
 
@@ -362,7 +381,11 @@ class ParticipantView(
 
         return stats
 
-    def _lecture_info(self, participant, user_viewing: bool) -> dict[str, bool]:
+    def _lecture_info(
+        self,
+        participant: models.Participant,
+        user_viewing: bool,
+    ) -> dict[str, bool]:
         """Describe the participant's lecture attendance, if applicable."""
         can_set_attendance = self.can_set_attendance(participant)
 
@@ -395,7 +418,7 @@ class ParticipantView(
             'attended_lectures': attended_lectures,
         }
 
-    def get_context_data(self, **kwargs) -> dict[str, Any]:
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         participant = self.object = self.get_object()
         trips = self.get_trips()
 

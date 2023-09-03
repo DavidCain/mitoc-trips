@@ -1,8 +1,26 @@
+from collections.abc import Iterable
+from typing import TYPE_CHECKING, TypedDict
+
 from django.contrib.auth.models import User
 from django.db.models import Case, F, IntegerField, Q, QuerySet, Sum, When
 
 import ws.utils.perms as perm_utils
 from ws import enums, models
+
+
+class RatingsAndRecsCounted(TypedDict):
+    num_ratings: int
+    num_recs: int
+
+
+if TYPE_CHECKING:
+    from django_stubs_ext import WithAnnotations
+
+    from ws.models import LeaderApplication
+
+    AnnotatedApplication = WithAnnotations[LeaderApplication, RatingsAndRecsCounted]
+else:
+    AnnotatedApplication = object
 
 
 def deactivate_ratings(participant, activity):
@@ -100,10 +118,10 @@ class ApplicationManager(LeaderApplicationMixin, RatingsRecommendationsMixin):
         return self._activity_enum
 
     @activity_enum.setter
-    def activity_enum(self, value: enums.Activity):
+    def activity_enum(self, value: enums.Activity) -> None:
         self._activity_enum = value
 
-    def sorted_annotated_applications(self):
+    def sorted_annotated_applications(self) -> QuerySet[AnnotatedApplication]:
         """Sort all applications by order of attention they need."""
         applications = self.joined_queryset()
 
@@ -116,7 +134,7 @@ class ApplicationManager(LeaderApplicationMixin, RatingsRecommendationsMixin):
             '-archived', 'num_ratings', 'num_recs', 'time_created'
         )
 
-    def pending_applications(self):
+    def pending_applications(self) -> list[AnnotatedApplication]:
         """All applications which do not yet have a rating.
 
         NOTE: This immediately queries the database. If you need to deal with
@@ -139,7 +157,7 @@ class ApplicationManager(LeaderApplicationMixin, RatingsRecommendationsMixin):
         )
 
     @staticmethod
-    def _chair_should_recommend(app):
+    def _chair_should_recommend(app: AnnotatedApplication) -> bool:
         """Return if the chair should be expected to recommend this application.
 
         This determines where the application appears in the queue of pending
@@ -153,7 +171,10 @@ class ApplicationManager(LeaderApplicationMixin, RatingsRecommendationsMixin):
             return False
         return True
 
-    def needs_rec(self, applications) -> list[models.LeaderApplication]:
+    def needs_rec(
+        self,
+        applications: Iterable[AnnotatedApplication],
+    ) -> list[AnnotatedApplication]:
         """Applications which need to be given a rating by the viewing chair.
 
         If there's only one chair, then this will be a blank list (it makes no sense
@@ -167,7 +188,7 @@ class ApplicationManager(LeaderApplicationMixin, RatingsRecommendationsMixin):
 
         return [app for app in applications if self._chair_should_recommend(app)]
 
-    def _should_rate(self, app) -> bool:
+    def _should_rate(self, app: AnnotatedApplication) -> bool:
         if app.archived:  # The application is no longer pending
             return False
         if app.num_ratings:  # The application received a rating
@@ -177,7 +198,9 @@ class ApplicationManager(LeaderApplicationMixin, RatingsRecommendationsMixin):
             return bool(app.num_recs)
         return True
 
-    def needs_rating(self, applications) -> list[models.LeaderApplication]:
+    def needs_rating(
+        self, applications: Iterable[AnnotatedApplication]
+    ) -> list[AnnotatedApplication]:
         """Return applications which need a rating, but not a recommendation.
 
         When there are multiple chairs, we count certain applications as

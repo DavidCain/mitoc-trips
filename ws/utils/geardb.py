@@ -63,7 +63,7 @@ class MembershipInformation(NamedTuple):
     trips_information: TripsInformation | None
 
 
-def gear_bearer_jwt(**payload) -> str:
+def gear_bearer_jwt(**payload: Any) -> str:
     """Express a JWT for use on mitoc-gear.mit.edu as a bearer token.
 
     The API there expects a token signed with a shared key - without this token,

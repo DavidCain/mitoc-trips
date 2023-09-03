@@ -4,7 +4,7 @@ from collections.abc import Iterable
 from django.contrib.auth.models import AnonymousUser, Group, User
 from django.db.models import QuerySet
 
-from ws import enums
+from ws import enums, models
 
 
 # This is technically only accurate when starting the web server,
@@ -24,7 +24,11 @@ def is_leader(user: AnonymousUser | User) -> bool:
     return in_any_group(user, ['leaders'], allow_superusers=False)
 
 
-def leader_on_trip(participant, trip, creator_allowed: bool = False) -> bool:
+def leader_on_trip(
+    participant: models.Participant,
+    trip: models.Trip,
+    creator_allowed: bool = False,
+) -> bool:
     """Return if the participant is leading this trip.
 
     Optionally, the trip creator can be included even if they are not
@@ -47,7 +51,7 @@ def in_any_group(
     user: AnonymousUser | User,
     group_names: Iterable[str],
     allow_superusers: bool = True,
-):
+) -> bool:
     """Return if the user belongs to any of the passed groups.
 
     Group access control is used a lot in the app, so attempt to
@@ -100,7 +104,7 @@ def chair_or_admin(user, activity_enum):
     return True if user.is_superuser else is_chair(user, activity_enum, True)
 
 
-def activity_chairs(activity_enum) -> QuerySet[User]:
+def activity_chairs(activity_enum: enums.Activity) -> QuerySet[User]:
     return User.objects.filter(groups__name=chair_group(activity_enum))
 
 

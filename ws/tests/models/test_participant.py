@@ -72,7 +72,7 @@ class ReasonsCannotAttendTest(TestCase):
         participant = factories.ParticipantFactory.create()
         factories.LectureAttendanceFactory.create(participant=participant, year=2016)
 
-        def missed_lectures_for_trip_in_year(year) -> bool:
+        def missed_lectures_for_trip_in_year(year: int) -> bool:
             """Return if missing lectures for a trip in this year prohibits attendance."""
             trip = factories.TripFactory.create(
                 program=enums.Program.WINTER_SCHOOL.value, trip_date=date(year, 1, 19)

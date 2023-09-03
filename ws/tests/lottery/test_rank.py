@@ -294,9 +294,10 @@ class FlakeFactorTests(TestCase):
         (We do not start with the participant actually signed up/on the trip).
         """
 
-        def create_ws_trip(trip_date) -> models.Trip:
+        def create_ws_trip(trip_date: date) -> models.Trip:
             return TripFactory.create(
-                program=enums.Program.WINTER_SCHOOL.value, trip_date=trip_date
+                program=enums.Program.WINTER_SCHOOL.value,
+                trip_date=trip_date,
             )
 
         cls.last_season_trips = [

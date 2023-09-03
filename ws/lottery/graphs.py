@@ -4,7 +4,7 @@ from ws import models
 
 
 class Cycle:
-    def __init__(self, participants: list[models.Participant]):
+    def __init__(self, participants: list[models.Participant]) -> None:
         assert len(participants) > 1
         # Participants must be saved to the database (or they are unhashable)
         # (Also, we should never see participants blocking one another without being in the db!)
@@ -120,7 +120,7 @@ class SeparationGraph:
         # TODO: Should also allow a key with an empty set?
         return not bool(self._graph)
 
-    def isolated_cycles(self, start_par) -> list[Cycle]:
+    def isolated_cycles(self, start_par: models.Participant) -> list[Cycle]:
         r""" Return any directed cycles containing this participant (with no terminal nodes reachable)
 
         If cycles are detected, we will eventually need to place one of the participants

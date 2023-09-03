@@ -36,8 +36,8 @@ class MessageGeneratorTests(TestCase):
         request = response.wsgi_request
         generator = MessageGenerator(request)
 
-        hello_call = mock.call(request, messages.INFO, "Hello")
-        goodbye_call = mock.call(request, messages.INFO, "Goodbye")
+        hello_call = mock.call(request, messages.INFO, "Hello", extra_tags='')
+        goodbye_call = mock.call(request, messages.INFO, "Goodbye", extra_tags='')
 
         with self._spy_on_add_message() as add_message:
             # On first invocation, sends out the message

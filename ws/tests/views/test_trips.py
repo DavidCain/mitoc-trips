@@ -29,7 +29,7 @@ class Helpers:
             value = selection['value'] if selection else ''
             yield select['name'], value
 
-    def _get(self, url: str):
+    def _get(self, url):
         response = self.client.get(url)
         assert response.status_code == 200
         soup = BeautifulSoup(response.content, 'html.parser')

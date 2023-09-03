@@ -1,3 +1,4 @@
+from collections.abc import Generator
 from contextlib import contextmanager
 from unittest import mock
 
@@ -14,7 +15,7 @@ from ws.utils import ratings
 class ApplicationManagerHelper:
     @classmethod
     @contextmanager
-    def _mock_for_climbing(cls, num_chairs: int):
+    def _mock_for_climbing(cls, num_chairs: int) -> Generator:
         """Mock away the number of climbing chairs!
 
         Also mock the query from climbing activity to climbing application, so
