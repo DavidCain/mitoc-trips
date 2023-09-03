@@ -7,6 +7,7 @@ import jwt.exceptions
 from allauth.account.models import EmailAddress
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Q
@@ -449,7 +450,7 @@ class ApproveTripView(SingleObjectMixin, View):
 
 
 class UserView(DetailView):
-    model = models.User
+    model = User
 
     def get_queryset(self):
         queryset = super().get_queryset()

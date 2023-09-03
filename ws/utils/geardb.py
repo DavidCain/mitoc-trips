@@ -11,6 +11,8 @@ from typing import Any, NamedTuple
 from urllib.parse import urljoin
 
 import requests
+from allauth.account.models import EmailAddress
+from django.contrib.auth.models import User
 from django.db.models import Case, Count, IntegerField, Sum, When
 
 from ws import models, settings
@@ -99,7 +101,7 @@ def query_api(route: str, **params: Any) -> list[JsonDict]:
     return results
 
 
-def _verified_emails(user: models.User) -> list[str]:
+def _verified_emails(user: User) -> list[str]:
     """Return all email addresses that the user is verified to own.
 
     We should only ever report results for email addresses we know the user controls.
@@ -111,7 +113,7 @@ def _verified_emails(user: models.User) -> list[str]:
     return sorted(emails.filter(verified=True).values_list('email', flat=True))
 
 
-def query_geardb_for_membership(user: models.User) -> MembershipWaiver | None:
+def query_geardb_for_membership(user: User) -> MembershipWaiver | None:
     """Ask the gear database for the latest information, bypassing any caches."""
     assert user.is_authenticated
 
@@ -194,7 +196,7 @@ def outstanding_items(emails: list[str]) -> Iterator[Rental]:
         )
 
 
-def user_rentals(user: models.User) -> list[Rental]:
+def user_rentals(user: User) -> list[Rental]:
     """Return items which the user has rented (which can be reported to that user).
 
     It's very, very important that these emails be *verified*.
@@ -233,7 +235,7 @@ def update_affiliation(participant: models.Participant) -> requests.Response | N
         # Deprecated status, participant hasn't logged on in years
         return None
 
-    all_verified_emails = models.EmailAddress.objects.filter(
+    all_verified_emails = EmailAddress.objects.filter(
         verified=True, user_id=participant.user_id
     ).values_list('email', flat=True)
 

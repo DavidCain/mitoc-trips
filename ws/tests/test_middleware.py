@@ -1,17 +1,16 @@
 from typing import ClassVar
 from unittest import mock
 
-from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth.models import AnonymousUser, User
 from django.test import RequestFactory, TestCase
 
-from ws import models
 from ws.messages import security
 from ws.middleware import CustomMessagesMiddleware, ParticipantMiddleware
 from ws.tests.factories import ParticipantFactory, PasswordQualityFactory, UserFactory
 
 
 class ParticipantMiddlewareTests(TestCase):
-    user: ClassVar[models.User]
+    user: ClassVar[User]
 
     def setUp(self):
         def get_response(request):
@@ -46,7 +45,7 @@ class ParticipantMiddlewareTests(TestCase):
 
 
 class CustomMessagesMiddlewareTests(TestCase):
-    user: ClassVar[models.User]
+    user: ClassVar[User]
 
     def setUp(self):
         def get_response(request):

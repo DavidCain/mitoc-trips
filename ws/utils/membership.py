@@ -2,7 +2,7 @@ import logging
 from collections.abc import Iterator
 
 import requests
-from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth.models import AnonymousUser, User
 from sentry_sdk import capture_exception
 
 from ws import enums, models
@@ -26,7 +26,7 @@ def get_latest_membership(participant: models.Participant) -> models.Membership:
 
 
 def reasons_cannot_attend(
-    user: models.User | AnonymousUser, trip: models.Trip
+    user: User | AnonymousUser, trip: models.Trip
 ) -> Iterator[enums.TripIneligibilityReason]:
     """Yield reasons why the user is not allowed to attend the trip.
 

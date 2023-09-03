@@ -2,10 +2,10 @@ import unittest.mock
 from typing import ClassVar
 from urllib.parse import parse_qs, urlparse
 
+from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
 
-from ws import models
 from ws.tests import factories
 from ws.tests.helpers import PermHelpers
 
@@ -45,7 +45,7 @@ class AuthTests(TestCase):
          leaders group, others are activity chairs
     """
 
-    user: ClassVar[models.User]
+    user: ClassVar[User]
 
     @classmethod
     def setUpTestData(cls):

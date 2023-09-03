@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone
 import allauth.account.models as account_models
 import factory
 import factory.fuzzy
+from django.contrib.auth.models import User
 from factory.django import DjangoModelFactory
 from mitoc_const import affiliations
 
@@ -54,7 +55,7 @@ class EmailFactory(BaseFactory):
 
 class UserFactory(BaseFactory):
     class Meta:
-        model = models.User
+        model = User
 
     username = factory.Sequence(lambda n: f"user{n + 1}")
     email = factory.Sequence(lambda n: f"user{n + 1}@example.com")
@@ -100,7 +101,7 @@ class ParticipantFactory(BaseFactory):
         if 'user' in kwargs:
             return kwargs['user']
         if 'user_id' in kwargs:
-            return models.User.objects.get(pk=kwargs['user_id'])
+            return User.objects.get(pk=kwargs['user_id'])
         return None
 
     @classmethod
