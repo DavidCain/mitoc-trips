@@ -1,7 +1,7 @@
 import re
 from collections.abc import Iterable, Iterator
 from datetime import date, datetime, timedelta
-from typing import Optional
+from typing import Optional, cast
 from urllib.parse import urlencode, urljoin
 from zoneinfo import ZoneInfo
 
@@ -10,7 +10,7 @@ from allauth.account.models import EmailAddress
 from bs4 import BeautifulSoup
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser, User
-from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.models import ContentType, ContentTypeManager
 from django.contrib.postgres.indexes import GistIndex
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
 from django.core.exceptions import ValidationError
@@ -1803,7 +1803,9 @@ class LeaderApplication(models.Model):
         If any class wants to break the naming convention, they should
         set db_name to be the activity without underscores.
         """
-        model_name = ContentType.objects.get_for_model(self).model
+        model_name = (
+            cast(ContentTypeManager, ContentType.objects).get_for_model(self).model
+        )
         activity = model_name[: model_name.rfind('leaderapplication')]
         return 'winter_school' if activity == 'winterschool' else activity
 
