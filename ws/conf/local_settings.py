@@ -29,4 +29,4 @@ CELERY_BROKER_TRANSPORT_OPTIONS: dict[str, Any] = {'max_retries': 0}
 
 # Any participant with the password 'foobar' need not hit the HIBP API to check if pwned.
 # (we know it's pwned, and it should never be allowed in production, but it's fine locally)
-WHITELISTED_BAD_PASSWORDS: list[str] = ['foobar']
+ALLOWED_BAD_PASSWORDS: tuple[str, ...] = ('foobar',)

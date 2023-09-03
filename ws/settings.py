@@ -76,8 +76,7 @@ STATICFILES_FINDERS = (
 )
 
 AUTH_PASSWORD_VALIDATORS = [
-    # {'NAME': 'pwned_passwords_django.validators.PwnedPasswordsValidator'}
-    {'NAME': 'ws.auth.CommaPwnedPasswordsValidator'}
+    {'NAME': 'pwned_passwords_django.validators.PwnedPasswordsValidator'}
 ]
 
 LOGIN_REDIRECT_URL = '/'
@@ -171,7 +170,7 @@ CRISPY_TEMPLATE_PACK = 'bootstrap3'
 # A list of known "bad" passwords for which we don't want to hit the HIBP API.
 # This will *never* be honored in production -- it's just a local testing tool.
 # (Used to test with garbage passwords, avoiding the "change your password!" flow)
-WHITELISTED_BAD_PASSWORDS: list[str] = []
+ALLOWED_BAD_PASSWORDS: tuple[str, ...] = ()
 
 if os.environ.get('WS_DJANGO_TEST'):
     from .conf.test_settings import *  # pylint: disable=wildcard-import,unused-wildcard-import  # noqa: F403

@@ -5,7 +5,7 @@ from unittest import mock
 from bs4 import BeautifulSoup
 from django.test import TestCase
 from freezegun import freeze_time
-from pwned_passwords_django import api
+from pwned_passwords_django import api, exceptions
 
 from ws import auth, models
 from ws.tests import factories
@@ -36,14 +36,18 @@ class LoginTests(TestCase):
         """
         par = factories.ParticipantFactory.create(user=self.user)
         factories.PasswordQualityFactory.create(participant=par, is_insecure=True)
-        with mock.patch.object(auth, 'pwned_password') as pwned_password:
-            pwned_password.return_value = None  # (API was down)
+        with mock.patch.object(api, 'check_password') as check_password:
+            check_password.side_effect = exceptions.PwnedPasswordsError(
+                message="Pwned Passwords API replied with HTTP error status code.",
+                code=exceptions.ErrorCode.HTTP_ERROR,
+                params={"status_code": 503},
+            )
             response = self._login()
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/")
 
-        pwned_password.assert_called_once_with('football')
+        check_password.assert_called_once_with('football')
 
         quality = models.PasswordQuality.objects.get(participant=par)
         self.assertFalse(quality.is_insecure)
@@ -58,13 +62,13 @@ class LoginTests(TestCase):
 
         # We only sidestep the API if `DEBUG` is true, and our password is whitelisted!
         mocked_settings.DEBUG = True
-        mocked_settings.WHITELISTED_BAD_PASSWORDS = ['football']
+        mocked_settings.ALLOWED_BAD_PASSWORDS = ('football',)
 
-        with mock.patch.object(auth, 'pwned_password') as pwned_password:
+        with mock.patch.object(api, 'check_password') as check_password:
             response = self.client.post('/accounts/login/', self.form_data)
 
         # We don't bother hitting the API!
-        pwned_password.assert_not_called()
+        check_password.assert_not_called()
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/")
@@ -81,13 +85,13 @@ class LoginTests(TestCase):
         # Even with the whitelist, it's not honored unless DEBUG mode is on.
         self.client.logout()
         mocked_settings.DEBUG = False
-        self.assertEqual(mocked_settings.WHITELISTED_BAD_PASSWORDS, ['football'])
+        self.assertEqual(mocked_settings.ALLOWED_BAD_PASSWORDS, ('football',))
 
         # This time, we hit the API and mark the user as having an insecure password.
-        with mock.patch.object(auth, 'pwned_password') as pwned_password:
-            pwned_password.return_value = 2022
+        with mock.patch.object(api, 'check_password') as check_password:
+            check_password.return_value = 2022
             response = self.client.post('/accounts/login/', self.form_data)
-        pwned_password.assert_called_once_with('football')
+        check_password.assert_called_once_with('football')
         participant = models.Participant.from_user(self.user)
         self.assertTrue(participant.passwordquality.is_insecure)
 
@@ -97,12 +101,12 @@ class LoginTests(TestCase):
         factories.PasswordQualityFactory.create(
             participant=participant, is_insecure=True
         )
-        with mock.patch.object(auth, 'pwned_password') as pwned_password:
-            pwned_password.return_value = 15  # password found in 15 separate breaches!
+        with mock.patch.object(api, 'check_password') as check_password:
+            check_password.return_value = 15  # password found in 15 separate breaches!
             with mock.patch.object(account.logger, 'info') as logger_info:
                 response = self._login()
 
-        pwned_password.assert_called_once_with('football')
+        check_password.assert_called_once_with('football')
         logger_info.assert_called_once_with(
             "Participant %s logged in with a breached password", participant.pk
         )
@@ -123,8 +127,8 @@ class LoginTests(TestCase):
         """Users may log in without having an associated participant!"""
         self.assertIsNone(models.Participant.from_user(self.user))
 
-        with mock.patch.object(auth, 'pwned_password') as pwned_password:
-            pwned_password.return_value = 1  # password found in 1 breach!
+        with mock.patch.object(api, 'check_password') as check_password:
+            check_password.return_value = 1  # password found in 1 breach!
             with mock.patch.object(account.logger, 'info') as logger_info:
                 response = self._login()
 
@@ -135,7 +139,7 @@ class LoginTests(TestCase):
         logger_info.assert_called_once_with(
             "User %s logged in with a breached password", self.user.pk
         )
-        pwned_password.assert_called_once_with('football')
+        check_password.assert_called_once_with('football')
 
         soup = BeautifulSoup(redirected_response.content, 'html.parser')
         alert = soup.find(class_='alert-danger')
@@ -149,10 +153,10 @@ class LoginTests(TestCase):
         """If the login's password returned no breaches, then we can mark it secure."""
         factories.ParticipantFactory.create(user_id=self.user.pk)
 
-        with mock.patch.object(auth, 'pwned_password') as pwned_password:
-            pwned_password.return_value = 0  # (0 breaches total)
+        with mock.patch.object(api, 'check_password') as check_password:
+            check_password.return_value = 0  # (0 breaches total)
             response = self.client.post('/accounts/login/', self.form_data)
-        pwned_password.assert_called_once_with('football')
+        check_password.assert_called_once_with('football')
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/")
@@ -168,8 +172,8 @@ class LoginTests(TestCase):
 
     def test_redirect_should_be_preserved(self):
         """If attempting to login with a redirect, it should be preserved!."""
-        with mock.patch.object(auth, 'pwned_password') as pwned_password:
-            pwned_password.return_value = 1  # Password has been breached once!
+        with mock.patch.object(api, 'check_password') as check_password:
+            check_password.return_value = 1  # Password has been breached once!
             response = self.client.post(
                 '/accounts/login/?next=/preferences/lottery/', self.form_data
             )
@@ -178,30 +182,6 @@ class LoginTests(TestCase):
         self.assertEqual(
             response.url, "/accounts/password/change/?next=%2Fpreferences%2Flottery%2F"
         )
-
-    def test_password_over_999_times(self):
-        """Test a quick hack for often-breached passwords that include commas in the count."""
-        participant = factories.ParticipantFactory.create(user_id=self.user.pk)
-
-        with mock.patch.object(auth, 'pwned_password') as pwned_password:
-            pwned_password.side_effect = lambda _pw: int("1,234")
-            self._login()
-        pwned_password.assert_called_once_with('football')
-
-        quality = models.PasswordQuality.objects.get(participant=participant)
-        self.assertTrue(quality.is_insecure)
-
-    def test_uncaught_error_with_django_hipb(self):
-        """We don't block login if there was an unhandled error."""
-        participant = factories.ParticipantFactory.create(user_id=self.user.pk)
-
-        with mock.patch.object(auth, 'pwned_password') as pwned_password:
-            pwned_password.side_effect = RuntimeError
-            self._login()
-        pwned_password.assert_called_once_with('football')
-
-        quality = models.PasswordQuality.objects.get(participant=participant)
-        self.assertFalse(quality.is_insecure)
 
 
 @freeze_time("2019-07-15 12:45:00 EST")
@@ -222,7 +202,7 @@ class PasswordChangeTests(TestCase):
         }
         return self.client.post('/accounts/password/change/', form_data, follow=False)
 
-    def test_change_password_fram_insecure(self):
+    def test_change_password_from_insecure(self):
         """Changing an insecure password to a secure one updates the participant."""
         par = factories.ParticipantFactory.create(user=self.user)
         factories.PasswordQualityFactory.create(participant=par, is_insecure=True)
@@ -230,13 +210,13 @@ class PasswordChangeTests(TestCase):
         self.client.login(email='strong@example.com', password=self.password)
         new_password = str(uuid.uuid4())
 
-        # The form validation will invoke pwned_password
-        with mock.patch.object(api, 'pwned_password') as pwned_password:
-            pwned_password.return_value = 0  # (0 breaches total)
+        # The form validation will invoke check_password
+        with mock.patch.object(api.PwnedPasswords, 'check_password') as check_password:
+            check_password.return_value = 0  # (0 breaches total)
             response = self._change_password(new_password)
 
         self.assertEqual(response.status_code, 302)
-        pwned_password.assert_called_once_with(new_password)
+        check_password.assert_called_once_with(new_password)
 
         par.passwordquality.refresh_from_db()
         # The participant's password was found to be in zero breaches, so we update the record!
@@ -257,14 +237,14 @@ class PasswordChangeTests(TestCase):
 
         new_password = str(uuid.uuid4())
 
-        # The form validation will invoke pwned_password
-        with mock.patch.object(api, 'pwned_password') as pwned_password:
-            pwned_password.return_value = 0  # (0 breaches total)
+        # The form validation will invoke check_password
+        with mock.patch.object(api.PwnedPasswords, 'check_password') as check_password:
+            check_password.return_value = 0  # (0 breaches total)
             response = self._change_password(new_password)
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/accounts/login/")
-        pwned_password.assert_called_once_with(new_password)
+        check_password.assert_called_once_with(new_password)
 
         # There is no participant record for the user
         self.assertIsNone(models.Participant.from_user(user))
@@ -277,13 +257,13 @@ class PasswordChangeTests(TestCase):
         self.client.login(email='strong@example.com', password=self.password)
         new_insecure_password = 'letmeinplease'  # noqa: S105
 
-        # The form validation will invoke pwned_password
-        with mock.patch.object(api, 'pwned_password') as pwned_password:
-            pwned_password.return_value = 12
+        # The form validation will invoke check_password
+        with mock.patch.object(api.PwnedPasswords, 'check_password') as check_password:
+            check_password.return_value = 12
             response = self._change_password(new_insecure_password)
 
         self.assertEqual(response.status_code, 200)
-        pwned_password.assert_called_once_with('letmeinplease')
+        check_password.assert_called_once_with('letmeinplease')
 
         soup = BeautifulSoup(response.content, 'html.parser')
         form_group = soup.find(class_='has-error')
