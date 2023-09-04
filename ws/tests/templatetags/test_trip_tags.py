@@ -1,6 +1,6 @@
 from datetime import date, datetime
+from zoneinfo import ZoneInfo
 
-import pytz
 from bs4 import BeautifulSoup
 from django.template import Context, Template
 from django.test import TestCase
@@ -176,7 +176,7 @@ class TripStage(TestCase):
     @freeze_time("Jan 11 2019 20:30:00 EST")
     def test_not_yet_open(self):
         trip = factories.TripFactory.create(
-            signups_open_at=datetime(2019, 1, 13, tzinfo=pytz.utc)
+            signups_open_at=datetime(2019, 1, 13, tzinfo=ZoneInfo("UTC"))
         )
 
         self.assertEqual(

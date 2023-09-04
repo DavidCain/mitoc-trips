@@ -1,6 +1,7 @@
-from datetime import date, datetime, timezone
+from datetime import date, datetime
 from unittest import mock
 from unittest.mock import patch
+from zoneinfo import ZoneInfo
 
 from django.core import mail
 from django.core.cache import cache
@@ -176,7 +177,7 @@ class RemindAllParticipantsToRenewTest(TestCase):
         )
         factories.MembershipReminderFactory.create(
             participant=already_reminded,
-            reminder_sent_at=datetime(2020, 12, 25, tzinfo=timezone.utc),
+            reminder_sent_at=datetime(2020, 12, 25, tzinfo=ZoneInfo("UTC")),
         )
 
         with patch.object(tasks.remind_lapsed_participant_to_renew, 'delay') as email:
@@ -202,7 +203,7 @@ class RemindAllParticipantsToRenewTest(TestCase):
         # We reminded them once before, but it was for the previous year's membership
         factories.MembershipReminderFactory.create(
             participant=par,
-            reminder_sent_at=datetime(2017, 12, 25, tzinfo=timezone.utc),
+            reminder_sent_at=datetime(2017, 12, 25, tzinfo=ZoneInfo("UTC")),
         )
         with patch.object(tasks.remind_lapsed_participant_to_renew, 'delay') as email:
             tasks.remind_participants_to_renew()
@@ -228,7 +229,8 @@ class RemindIndividualParticipantsToRenewTest(TestCase):
         )
         self.assertEqual(reminder.participant, par)
         self.assertEqual(
-            reminder.reminder_sent_at, datetime(2019, 1, 25, 17, 0, tzinfo=timezone.utc)
+            reminder.reminder_sent_at,
+            datetime(2019, 1, 25, 17, 0, tzinfo=ZoneInfo("UTC")),
         )
 
     def test_second_annual_reminder(self):
@@ -240,7 +242,7 @@ class RemindIndividualParticipantsToRenewTest(TestCase):
         # Last reminder was a little less than a year ago
         factories.MembershipReminderFactory.create(
             participant=par,
-            reminder_sent_at=datetime(2018, 1, 28, tzinfo=timezone.utc),
+            reminder_sent_at=datetime(2018, 1, 28, tzinfo=ZoneInfo("UTC")),
         )
 
         with mock.patch.object(mail.EmailMultiAlternatives, 'send') as send:
@@ -253,7 +255,7 @@ class RemindIndividualParticipantsToRenewTest(TestCase):
         last_reminder = models.MembershipReminder.objects.latest('reminder_sent_at')
         self.assertEqual(
             last_reminder.reminder_sent_at,
-            datetime(2019, 1, 25, 17, 0, tzinfo=timezone.utc),
+            datetime(2019, 1, 25, 17, 0, tzinfo=ZoneInfo("UTC")),
         )
 
     def test_idempotent(self):
@@ -299,7 +301,7 @@ class RemindIndividualParticipantsToRenewTest(TestCase):
         )
         factories.MembershipReminderFactory.create(
             participant=par,
-            reminder_sent_at=datetime(2018, 4, 25, tzinfo=timezone.utc),
+            reminder_sent_at=datetime(2018, 4, 25, tzinfo=ZoneInfo("UTC")),
         )
 
         with patch.object(renew, 'send_email_reminding_to_renew') as email:
@@ -310,7 +312,7 @@ class RemindIndividualParticipantsToRenewTest(TestCase):
         only_reminder = models.MembershipReminder.objects.get(participant=par)
         self.assertEqual(
             only_reminder.reminder_sent_at,
-            datetime(2018, 4, 25, tzinfo=timezone.utc),
+            datetime(2018, 4, 25, tzinfo=ZoneInfo("UTC")),
         )
 
     def test_errors_actually_sending_mail_caught(self):

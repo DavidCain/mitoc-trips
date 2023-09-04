@@ -1,10 +1,10 @@
 from datetime import date, datetime
 from unittest import mock
+from zoneinfo import ZoneInfo
 
 import responses
 from bs4 import BeautifulSoup
 from django.test import TestCase
-from django.utils import timezone
 from freezegun import freeze_time
 
 from ws import forms, waivers
@@ -35,7 +35,7 @@ class RefreshMembershipViewTest(TestCase):
         )
         self.assertEqual(
             self.participant.membership.last_cached,
-            datetime(2022, 6, 1, 12, 0, 0, tzinfo=timezone.utc),
+            datetime(2022, 6, 1, 12, 0, 0, tzinfo=ZoneInfo("UTC")),
         )
 
         with freeze_time("2022-06-02 13:45 UTC"):
@@ -49,7 +49,7 @@ class RefreshMembershipViewTest(TestCase):
         # The cache wasn't updated
         self.assertEqual(
             self.participant.membership.last_cached,
-            datetime(2022, 6, 1, 12, 0, 0, tzinfo=timezone.utc),
+            datetime(2022, 6, 1, 12, 0, 0, tzinfo=ZoneInfo("UTC")),
         )
 
     @freeze_time("2022-06-02 13:45 UTC")
@@ -59,7 +59,7 @@ class RefreshMembershipViewTest(TestCase):
 
         self.assertEqual(
             self.participant.membership.last_cached,
-            datetime(2022, 6, 1, 12, 0, 0, tzinfo=timezone.utc),
+            datetime(2022, 6, 1, 12, 0, 0, tzinfo=ZoneInfo("UTC")),
         )
         with responses.RequestsMock() as rsps:
             rsps.add(
@@ -94,7 +94,7 @@ class RefreshMembershipViewTest(TestCase):
         self.participant.membership.refresh_from_db()
         self.assertEqual(
             self.participant.membership.last_cached,
-            datetime(2022, 6, 2, 13, 45, 0, tzinfo=timezone.utc),
+            datetime(2022, 6, 2, 13, 45, 0, tzinfo=ZoneInfo("UTC")),
         )
         self.assertEqual(
             self.participant.membership.membership_expires, date(2023, 6, 2)
@@ -107,7 +107,7 @@ class RefreshMembershipViewTest(TestCase):
 
         self.assertEqual(
             self.participant.membership.last_cached,
-            datetime(2022, 6, 1, 12, 0, 0, tzinfo=timezone.utc),
+            datetime(2022, 6, 1, 12, 0, 0, tzinfo=ZoneInfo("UTC")),
         )
         with responses.RequestsMock() as rsps:
             rsps.add(
@@ -142,7 +142,7 @@ class RefreshMembershipViewTest(TestCase):
         self.participant.membership.refresh_from_db()
         self.assertEqual(
             self.participant.membership.last_cached,
-            datetime(2022, 6, 2, 13, 45, 0, tzinfo=timezone.utc),
+            datetime(2022, 6, 2, 13, 45, 0, tzinfo=ZoneInfo("UTC")),
         )
         self.assertEqual(
             self.participant.membership.membership_expires, date(2023, 6, 2)

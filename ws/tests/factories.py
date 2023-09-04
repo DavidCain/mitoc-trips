@@ -1,4 +1,5 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 
 import allauth.account.models as account_models
 import factory
@@ -143,7 +144,7 @@ class MembershipReminderFactory(BaseFactory):
 
     participant = factory.SubFactory(ParticipantFactory)
     reminder_sent_at = factory.fuzzy.FuzzyDateTime(
-        start_dt=datetime(2021, 11, 13, tzinfo=timezone.utc)
+        start_dt=datetime(2021, 11, 13, tzinfo=ZoneInfo("UTC"))
     )
 
 

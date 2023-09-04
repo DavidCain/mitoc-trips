@@ -1,6 +1,7 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime
 from unittest import mock
+from zoneinfo import ZoneInfo
 
 from bs4 import BeautifulSoup
 from django.test import TestCase
@@ -78,7 +79,7 @@ class LoginTests(TestCase):
         self.assertFalse(quality.is_insecure)
         self.assertEqual(
             quality.last_checked,
-            datetime(2019, 8, 29, 16, 25, tzinfo=timezone.utc),
+            datetime(2019, 8, 29, 16, 25, tzinfo=ZoneInfo("UTC")),
         )
 
         # Log in again, but this time with DEBUG off (& whitelist still present)
@@ -116,7 +117,7 @@ class LoginTests(TestCase):
         self.assertTrue(quality.is_insecure)
         self.assertEqual(
             quality.last_checked,
-            datetime(2019, 8, 29, 16, 25, tzinfo=timezone.utc),
+            datetime(2019, 8, 29, 16, 25, tzinfo=ZoneInfo("UTC")),
         )
 
         # Because the user's password is insecure, they're prompted to change it
@@ -167,7 +168,7 @@ class LoginTests(TestCase):
         self.assertFalse(participant.passwordquality.is_insecure)
         self.assertEqual(
             participant.passwordquality.last_checked,
-            datetime(2019, 8, 29, 16, 25, tzinfo=timezone.utc),
+            datetime(2019, 8, 29, 16, 25, tzinfo=ZoneInfo("UTC")),
         )
 
     def test_redirect_should_be_preserved(self):
@@ -223,7 +224,7 @@ class PasswordChangeTests(TestCase):
         self.assertFalse(par.passwordquality.is_insecure)
         self.assertEqual(
             par.passwordquality.last_checked,
-            datetime(2019, 7, 15, 16, 45, tzinfo=timezone.utc),
+            datetime(2019, 7, 15, 16, 45, tzinfo=ZoneInfo("UTC")),
         )
 
     def test_user_without_participant(self):
