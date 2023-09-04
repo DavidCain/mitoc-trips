@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 from django.core import mail
 from django.core.cache import cache
-from django.test import SimpleTestCase, TestCase
+from django.test import TestCase
 from freezegun import freeze_time
 from mitoc_const import affiliations
 
@@ -12,77 +12,6 @@ from ws import models, tasks
 from ws.email import renew
 from ws.tests import factories
 from ws.utils import member_sheets
-
-
-class MutexTaskTests(SimpleTestCase):
-    def setUp(self):
-        super().setUp()
-        patched = patch('ws.tasks.cache', wraps=cache)
-        self.cache = patched.start()
-        self.addCleanup(patched.stop)
-
-    def test_lock_format_default_naming(self):
-        """By default, we just use the function name as a unique lock ID."""
-
-        @tasks.mutex_task()
-        def some_unique_task_name(positional_arg):
-            pass
-
-        some_unique_task_name('a_string_argument')
-        self.cache.add.assert_called_with('some_unique_task_name', 'true', 600)
-        self.cache.delete.assert_called_with('some_unique_task_name')
-
-    def test_lock_format_custom_naming(self):
-        """The decorator accepts a string that formats the task ID.
-
-        Specifically, this decorator can access both positional arguments
-        and optional arguments.
-        """
-
-        @tasks.mutex_task('{positional_arg}-{named_kwarg2}')
-        def dummy_task(positional_arg, named_kwarg='123', named_kwarg2=None):
-            pass
-
-        dummy_task('hello', named_kwarg2='there')
-        self.cache.add.assert_called_with('hello-there', 'true', 600)
-        self.cache.delete.assert_called_with('hello-there')
-
-    def test_lock_always_released(self):
-        """Even when raising exceptions, the lock is released."""
-
-        @tasks.mutex_task()
-        def divide(numerator, denominator):
-            return numerator / denominator
-
-        with self.assertRaises(ZeroDivisionError):
-            divide(3, 0)
-
-        self.cache.add.assert_called_with('divide', 'true', 600)
-        self.cache.delete.assert_called_with('divide')
-
-    def test_lock_already_held(self):
-        """Tasks don't execute when a lock is already held."""
-        inner_logic = mock.Mock()
-
-        @tasks.mutex_task('do_thing-{unique_id}')
-        def do_thing(unique_id):
-            inner_logic.run_after_lock_obtained()  # pragma: no cover
-
-        # Add a lock to the cache (as if another worker started work already)
-        locked = cache.add('do_thing-123', 'true', 5)
-        self.assertTrue(locked)
-
-        do_thing(123)
-
-        # We tried to add to the cache, but it fails, and no code is run
-        self.cache.add.assert_called_with('do_thing-123', 'true', 600)
-        inner_logic.run_after_lock_obtained.assert_not_called()
-
-        # We don't touch the lock, since the other task will do its own cleanup
-        self.cache.delete.assert_not_called()
-
-        # (Remove from the cache just for cleanup)
-        cache.delete('do_thing-123')
 
 
 class TaskTests(TestCase):

@@ -1,8 +1,6 @@
-import inspect
 import logging
 from contextlib import contextmanager
 from datetime import timedelta
-from functools import wraps
 from time import monotonic
 
 import requests
@@ -25,8 +23,8 @@ LOCK_EXPIRE = 10 * 60  # ten minutes
 
 
 @contextmanager
-def exclusive_lock(task_identifier):
-    """Obtain an exclusively lock, using the task_identifier as a unique ID.
+def exclusive_lock(task_identifier: str) -> bool:
+    """Obtain an exclusive lock, using the task_identifier as a unique ID.
 
     This helps prevents the case of multiple workers executing the same task at
     the same time, which can cause unexpected side effects.
@@ -52,53 +50,16 @@ def exclusive_lock(task_identifier):
             cache.delete(task_identifier)
 
 
-def mutex_task(task_id_template=None, **shared_task_kwargs):
-    """Wraps a task that must be executed only once.
-
-    This method primarily exists to cover an edge case where:
-
-    - Duplicate Celery workers are running (this can happen!)
-    - The task requires idempotency
-    - The task does not already use a preferable form of locking (e.g. db row locking)
-
-    :param task_id_template: String that makes unique task IDs from passed args
-        (If omitted, we just use the function name)
-    :param shared_task_kwargs: Passed through to `shared_task`
-    """
-
-    def decorator(func):
-        signature = inspect.signature(func)
-
-        @shared_task(**shared_task_kwargs, bind=True)
-        @wraps(func)
-        def wrapped_task(self, *task_args, **task_kwargs):
-            if task_id_template:
-                passed_args = signature.bind(*task_args, **task_kwargs)
-                passed_args.apply_defaults()
-                task_identifier = task_id_template.format_map(passed_args.arguments)
-            else:
-                task_identifier = func.__name__
-
-            with exclusive_lock(task_identifier) as has_lock:
-                if has_lock:
-                    return func(*task_args, **task_kwargs)
-                logger.debug("Other worker already processing %s", task_identifier)
-            return None
-
-        return wrapped_task
-
-    return decorator
-
-
-@mutex_task('update_discount-{discount_id}')
+@shared_task
 def update_discount_sheet_for_participant(
     discount_id: int,
     participant_id: int,
 ) -> None:
     """Lock the sheet and add/update a single participant.
 
-    This task should not run at the same time that we're updating the sheet for
-    another participant (or for all participants, as we do nightly).
+    Updating of the sheet should not be done at the same time that we're
+    updating the sheet for another participant (or for all participants, as we
+    do nightly). Simultaneous edits are prevented with a Redis lock.
     """
     discount = models.Discount.objects.get(pk=discount_id)
     if not discount.ga_key:
@@ -116,12 +77,15 @@ def update_discount_sheet_for_participant(
         )
         return
 
-    member_sheets.update_participant(discount, participant)
+    with exclusive_lock(f'update_discount-{discount_id}'):
+        member_sheets.update_participant(discount, participant)
 
 
-@mutex_task('update_discount-{discount_id}')
+@shared_task
 def update_discount_sheet(
-    discount_id: int, *, check_all_lapsed_members: bool = False
+    discount_id: int,
+    *,
+    check_all_lapsed_members: bool = False,
 ) -> None:
     """Overwrite the sheet to include all members desiring the discount.
 
@@ -147,10 +111,11 @@ def update_discount_sheet(
         return
 
     trust_cache = not check_all_lapsed_members
-    member_sheets.update_discount_sheet(discount, trust_cache=trust_cache)
+    with exclusive_lock(f'update_discount-{discount_id}'):
+        member_sheets.update_discount_sheet(discount, trust_cache=trust_cache)
 
 
-@mutex_task()
+@shared_task
 def update_all_discount_sheets() -> None:
     logger.info("Updating the member roster for all discount sheets")
     discount_pks = models.Discount.objects.exclude(ga_key='').values_list(
@@ -266,13 +231,14 @@ def remind_participants_to_renew() -> None:
         remind_lapsed_participant_to_renew.delay(pk)
 
 
-@mutex_task()
+@shared_task
 def send_trip_summaries_email() -> None:
     """Email summary of upcoming trips to mitoc-trip-announce@mit.edu"""
+    # Note there's no idempotency/locking here...
     send_trips_summary()
 
 
-@mutex_task()
+@shared_task
 def send_sole_itineraries() -> None:
     """Email trip itineraries to Student Organizations, Leadership and Engagement.
 
@@ -291,28 +257,29 @@ def send_sole_itineraries() -> None:
         send_email_to_funds(trip)
 
 
-@mutex_task()
+@shared_task
 def run_ws_lottery() -> None:
     logger.info("Commencing Winter School lottery run")
     runner = WinterSchoolLotteryRunner()
     runner()
 
 
-@mutex_task()
+@shared_task
 def purge_non_student_discounts() -> None:
     """Purge non-students from student-only discounts."""
     logger.info("Purging non-students from student-only discounts")
     cleanup.purge_non_student_discounts()
 
 
-@mutex_task()
+@shared_task
 def purge_old_medical_data() -> None:
     """Purge old, dated medical information."""
     logger.info("Purging outdated medical information")
     cleanup.purge_old_medical_data()
 
 
-@mutex_task('single_trip_lottery-{trip_id}')
+@shared_task
+@transaction.atomic
 def run_lottery(trip_id: int) -> None:
     """Run a lottery algorithm for the given trip (idempotent).
 
@@ -320,7 +287,7 @@ def run_lottery(trip_id: int) -> None:
     any changes (making this task idempotent).
     """
     try:
-        trip = models.Trip.objects.get(pk=trip_id)
+        trip = models.Trip.objects.select_for_update().get(pk=trip_id)
     except models.Trip.DoesNotExist:
         logger.info("Trip #%d does not exist (most likely has been deleted)", trip_id)
 
