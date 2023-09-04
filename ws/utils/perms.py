@@ -116,8 +116,15 @@ def chair_activities(
     allow_superusers: bool = False,
 ) -> list[enums.Activity]:
     """All activities for which the user is the chair."""
-    return [
-        activity_enum
-        for activity_enum in enums.Activity
-        if is_chair(user, activity_enum, allow_superusers)
-    ]
+    chair_group_to_activity: dict[str, enums.Activity] = {
+        chair_group(activity_enum): activity_enum for activity_enum in enums.Activity
+    }
+    groups = Group.objects if allow_superusers and user.is_superuser else user.groups
+
+    return sorted(
+        (
+            chair_group_to_activity[g.name]
+            for g in groups.filter(name__in=chair_group_to_activity).order_by('name')
+        ),
+        key=lambda activity_enum: activity_enum.value,
+    )
