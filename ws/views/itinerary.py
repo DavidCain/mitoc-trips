@@ -208,7 +208,7 @@ class ChairTripView(DetailView):
         try:
             enums.Activity(self.kwargs['activity'])
         except ValueError:
-            raise Http404  # pylint: disable=raise-missing-from
+            raise Http404  # noqa: B904
 
         trip = self.get_object()
         if not perm_utils.is_chair(request.user, trip.required_activity_enum()):

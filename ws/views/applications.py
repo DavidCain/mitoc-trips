@@ -226,7 +226,7 @@ class AllLeaderApplicationsView(ApplicationManager, ListView):  # type: ignore[m
         try:
             self._activity_enum = enums.Activity(kwargs.get('activity'))
         except ValueError:
-            raise Http404  # pylint: disable=raise-missing-from
+            raise Http404  # noqa: B904
 
         if not perm_utils.chair_or_admin(request.user, self.activity_enum):
             raise PermissionDenied
@@ -280,7 +280,7 @@ class ArchiveLeaderApplicationView(ApplicationManager, SingleObjectMixin, View):
         try:
             self._activity_enum = enums.Activity(kwargs.get('activity'))
         except ValueError:
-            raise Http404  # pylint: disable=raise-missing-from
+            raise Http404  # noqa: B904
         if not perm_utils.chair_or_admin(request.user, self.activity_enum):
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
@@ -544,7 +544,7 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type:
         try:
             self._activity_enum = enums.Activity(kwargs['activity'])
         except ValueError:
-            raise Http404  # pylint: disable=raise-missing-from
+            raise Http404  # noqa: B904
 
         if not perm_utils.chair_or_admin(request.user, self.activity_enum):
             raise PermissionDenied

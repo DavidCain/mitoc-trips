@@ -113,19 +113,17 @@ def unsubscribe_from_token(token: str) -> models.Participant:
     """
     # Any exceptions this method raises have messages meant to be consumed by humans.
     # We don't need the full traceback.
-    # pylint:disable=raise-missing-from
-
     try:
         target = unsign_token(token)
     except signing.BadSignature as e:
-        raise InvalidTokenError(
+        raise InvalidTokenError(  # noqa: B904, TRY200
             f"{_bad_token_reason(e)}, cannot unsubscribe automatically."
         )
 
     try:
         par = models.Participant.objects.get(pk=target.participant_pk)  # Might raise!
     except models.Participant.DoesNotExist:
-        raise InvalidTokenError("Participant no longer exists")
+        raise InvalidTokenError("Participant no longer exists")  # noqa: B904, TRY200
 
     if EmailType.membership_renewal in target.email_types:
         par.send_membership_reminder = False
