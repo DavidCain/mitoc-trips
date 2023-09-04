@@ -102,8 +102,6 @@ ignore = [
   "B904",     # Use `raise from` to preserve context (also see TRY200)
   "PLR0913",  # Refactor functions with too many args
   "DJ001",    # Avoid nullable charfields
-  "DJ006",    # Use fields instead of exclude with `ModelForm`
-  "DJ008",    # Each model should declare `__str__`
   "G004",     # Logging should use lazy interpolation
   "N818",     # Use the Error suffix on error instances
   "RUF012",   # I should make better use of ClassVar and Final

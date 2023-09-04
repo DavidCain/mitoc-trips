@@ -789,6 +789,9 @@ class LectureAttendance(models.Model):
     )
     time_created = models.DateTimeField(auto_now_add=True)
 
+    def __str__(self) -> str:
+        return f'{self.participant.name} attended {self.year} lectures, recorded by {self.creator}'
+
 
 class WinterSchoolSettings(SingletonModel):
     """Stores settings for the current Winter School.
@@ -940,6 +943,9 @@ class SignUp(BaseSignUp):
         ordering = ["manual_order", "last_updated"]
         unique_together = ('participant', 'trip')
 
+    def __str__(self) -> str:
+        return f"{self.participant.name}, {'' if self.on_trip else 'not currently '}on {self.trip}"
+
 
 class TripInfo(models.Model):
     last_updated = models.DateTimeField(auto_now=True)
@@ -979,6 +985,9 @@ class TripInfo(models.Model):
         "Include trails, peaks, intermediate destinations, back-up plans- "
         "anything that would help rescuers find you."
     )
+
+    def __str__(self) -> str:
+        return f"Safety itinerary for {self.trip}"
 
 
 trips_search_vector = (
@@ -1548,6 +1557,13 @@ class LotteryInfo(models.Model):
     class Meta:
         ordering = ["car_status", "number_of_passengers"]
 
+    def __str__(self) -> str:
+        return (
+            f"Lottery preferences for {self.participant} "
+            f"({'' if self.is_driver else 'non-'}driver, "
+            f"paired with {self.reciprocally_paired_with or 'nobody'})"
+        )
+
     @property
     def reciprocally_paired_with(self):
         """Return requested partner if they also requested to be paired."""
@@ -1605,6 +1621,9 @@ class LotterySeparation(models.Model):
         # TODO (Django 2.2+): Add constraint that initiator != recipient
         unique_together = ('initiator', 'recipient')
 
+    def __str__(self) -> str:
+        return f"{self.initiator} to be separated from {self.recipient}"
+
 
 class LotteryAdjustment(models.Model):
     """A manual adjustment that can be made to the lottery.
@@ -1659,7 +1678,7 @@ class WaitListSignup(models.Model):
         ordering = ["-manual_order", "time_created", "pk"]  # NOT CORRECT!
         # WARNING: This default ordering is not fully correct. Manually call `order_by`)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.signup.participant.name} waitlisted on {self.signup.trip}"
 
 
@@ -1668,6 +1687,9 @@ class WaitList(models.Model):
 
     trip = models.OneToOneField(Trip, on_delete=models.CASCADE)
     unordered_signups = models.ManyToManyField(SignUp, through=WaitListSignup)
+
+    def __str__(self) -> str:
+        return f"Waitlist for {self.trip}"
 
     @property
     def signups(self):
@@ -2087,3 +2109,6 @@ class DistinctAccounts(models.Model):
     right = models.ForeignKey(
         Participant, on_delete=models.CASCADE, related_name='distinctions_right'
     )
+
+    def __str__(self) -> str:
+        return f"{self.left} and {self.right} are different people."

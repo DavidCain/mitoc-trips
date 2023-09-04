@@ -651,7 +651,12 @@ def LeaderApplicationForm(*args: Any, **kwargs: Any) -> forms.ModelForm:  # noqa
 
     class DynamicActivityForm(forms.ModelForm):
         class Meta:
-            exclude = ['archived', 'year', 'participant', 'previous_rating']
+            exclude = (  # noqa: DJ006
+                'archived',
+                'year',
+                'participant',
+                'previous_rating',
+            )
             model = models.LeaderApplication.model_from_activity(activity_enum)
             widgets = {
                 field.name: forms.Textarea(attrs={'rows': 4})
