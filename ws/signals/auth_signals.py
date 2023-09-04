@@ -1,3 +1,6 @@
+# Signals are a terrible pattern that I aim to replace eventually.
+# Ruff will complain about the large number of arguments. We can ignore for now.
+# ruff: noqa: PLR0913
 from django.contrib.auth.models import Group
 from django.db.models.signals import post_delete, post_save, pre_delete
 from django.dispatch import receiver

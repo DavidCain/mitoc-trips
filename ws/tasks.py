@@ -1,6 +1,6 @@
+import contextlib
 import logging
 from collections.abc import Iterator
-from contextlib import contextmanager
 from datetime import timedelta
 from time import monotonic
 
@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 LOCK_EXPIRE = 10 * 60  # ten minutes
 
 
-@contextmanager
+@contextlib.contextmanager
 def exclusive_lock(task_identifier: str) -> Iterator[bool]:
     """Obtain an exclusive lock, using the task_identifier as a unique ID.
 
@@ -156,13 +156,13 @@ def remind_lapsed_participant_to_renew(participant_id: int) -> None:
     # If there are no rows to lock, create one eagerly.
     # (Uniqueness constraints will prevent multiple per participant!)
     if not models.MembershipReminder.objects.filter(participant=participant).exists():
-        try:
+        # (IntegrityError is a race condition -- another task did the same)
+        # We can just ignore it if so, we have the desired row!
+        with contextlib.suppress(IntegrityError):
             models.MembershipReminder.objects.create(
                 participant=participant,
                 reminder_sent_at=None,
             )
-        except IntegrityError:  # (Race condition -- another task did the same)
-            pass  # No problem -- we got the row we needed!
 
     now = date_utils.local_now()
     with transaction.atomic():

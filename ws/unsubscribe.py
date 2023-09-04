@@ -14,7 +14,7 @@ from django.core import signing
 from ws import models
 
 
-class InvalidToken(Exception):
+class InvalidTokenError(Exception):
     """An exception class whose message can be given directly to end users."""
 
 
@@ -109,7 +109,7 @@ def unsubscribe_from_token(token: str) -> models.Participant:
     """Attempt to unsubscribe the participant based on an (assumed valid) token.
 
     Raises:
-        InvalidToken: Expired token, invalid token, or participant gone
+        InvalidTokenError: Expired token, invalid token, or participant gone
     """
     # Any exceptions this method raises have messages meant to be consumed by humans.
     # We don't need the full traceback.
@@ -118,12 +118,14 @@ def unsubscribe_from_token(token: str) -> models.Participant:
     try:
         target = unsign_token(token)
     except signing.BadSignature as e:
-        raise InvalidToken(f"{_bad_token_reason(e)}, cannot unsubscribe automatically.")
+        raise InvalidTokenError(
+            f"{_bad_token_reason(e)}, cannot unsubscribe automatically."
+        )
 
     try:
         par = models.Participant.objects.get(pk=target.participant_pk)  # Might raise!
     except models.Participant.DoesNotExist:
-        raise InvalidToken("Participant no longer exists")
+        raise InvalidTokenError("Participant no longer exists")
 
     if EmailType.membership_renewal in target.email_types:
         par.send_membership_reminder = False

@@ -105,12 +105,12 @@ class UnsubscribeFromTokenTest(TestCase):
         par = factories.ParticipantFactory.create()
         token = unsubscribe.generate_unsubscribe_token(par)
         par.delete()
-        with self.assertRaises(unsubscribe.InvalidToken) as cm:
+        with self.assertRaises(unsubscribe.InvalidTokenError) as cm:
             unsubscribe.unsubscribe_from_token(token)
         self.assertEqual(str(cm.exception), "Participant no longer exists")
 
     def test_bad_token(self):
-        with self.assertRaises(unsubscribe.InvalidToken) as cm:
+        with self.assertRaises(unsubscribe.InvalidTokenError) as cm:
             unsubscribe.unsubscribe_from_token('this-is-not-a-token')
         self.assertEqual(
             str(cm.exception), "Invalid token, cannot unsubscribe automatically."
@@ -121,7 +121,7 @@ class UnsubscribeFromTokenTest(TestCase):
         with self.settings(UNSUBSCRIBE_SECRET_KEY='different-secret'):  # noqa: S106
             token = unsubscribe.generate_unsubscribe_token(par)
 
-        with self.assertRaises(unsubscribe.InvalidToken) as cm:
+        with self.assertRaises(unsubscribe.InvalidTokenError) as cm:
             unsubscribe.unsubscribe_from_token(token)
         self.assertEqual(
             str(cm.exception), "Invalid token, cannot unsubscribe automatically."
@@ -133,7 +133,7 @@ class UnsubscribeFromTokenTest(TestCase):
             token = unsubscribe.generate_unsubscribe_token(par)
 
         with freeze_time("2021-10-03 12:00:00 EST"):
-            with self.assertRaises(unsubscribe.InvalidToken) as cm:
+            with self.assertRaises(unsubscribe.InvalidTokenError) as cm:
                 unsubscribe.unsubscribe_from_token(token)
         self.assertEqual(
             str(cm.exception), "Token expired, cannot unsubscribe automatically."

@@ -5,6 +5,7 @@ Every MITOC member is required to have a current membership and waiver. Each of
 these documents expire after 12 months.
 """
 
+import contextlib
 from typing import TYPE_CHECKING, Any
 
 import requests
@@ -28,12 +29,10 @@ class RefreshMembershipView(DetailView):
 
     def _update_membership(self, request: HttpRequest) -> HttpResponse:
         participant = self.get_object()
-        try:
+        # Notably, we *could* add some failure message if the request fails.
+        # However, `view_participant` doesn't render messages to the end user.
+        with contextlib.suppress(requests.exceptions.RequestException):
             get_latest_membership(participant)
-        except requests.exceptions.RequestException:
-            # Notably, we *could* add some failure message here.
-            # However, `view_participant` doesn't render messages to the end user.
-            pass
         return redirect(reverse('view_participant', args=(participant.pk,)))
 
     def post(self, request: HttpRequest, **kwargs: Any) -> HttpResponse:

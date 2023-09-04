@@ -1,7 +1,10 @@
 """
 Handle aspects of trip creation/modification when receiving signup changes.
 """
-
+# Signals are a terrible pattern that I aim to replace eventually.
+# Ruff will complain about the large number of arguments. We can ignore for now.
+# ruff: noqa: PLR0913
+import contextlib
 import logging
 
 from django.db.models.signals import (
@@ -41,10 +44,8 @@ def empty_waitlist(sender, instance, using, **kwargs):
     present, members of the waitlist will be emailed saying they made it on the
     trip (only to see the trip removed).
     """
-    try:
+    with contextlib.suppress(WaitList.DoesNotExist):
         instance.waitlist.signups.delete()
-    except WaitList.DoesNotExist:  # Not all trips will have waitlists
-        pass
 
 
 @receiver(post_delete, sender=SignUp)

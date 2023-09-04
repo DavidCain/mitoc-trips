@@ -330,7 +330,7 @@ class EmailUnsubscribeView(TemplateView):
 
         try:
             unsubscribed_par = unsubscribe.unsubscribe_from_token(token)
-        except unsubscribe.InvalidToken as e:
+        except unsubscribe.InvalidTokenError as e:
             messages.add_message(request, messages.ERROR, str(e))
             if participant:
                 # NOTE: we *could* just say "oh, hey, you're logged in - we'll just unsubscribe you."

@@ -1,3 +1,6 @@
+# We make use of f-strings for advanced formatting.
+# Ignore rules that recommend lazy interpolation
+# ruff: noqa: G004
 import logging
 from datetime import date
 from typing import TYPE_CHECKING
@@ -135,7 +138,7 @@ class ParticipantHandler:
         if trip.open_slots >= self.slots_needed:
             self.place_all_on_trip(signup)
             return True
-        if self.is_driver and not trip.open_slots and not self.paired:
+        if self.is_driver and not trip.open_slots and not self.paired:  # noqa: SIM102
             # A driver may displace somebody else.
             # At present, we don't allow pairs of drivers to displace 2.
             # TODO: Support the above scenario!

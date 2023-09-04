@@ -118,7 +118,7 @@ class FormatSignupMixin:
         }
 
 
-class SignupsChanged(Exception):
+class SignupsChangedError(Exception):
     """An exception to be raised when a trip's signups have changed.
 
     If a particular signup wasn't known to be on the trip when loading trip
@@ -161,7 +161,7 @@ class AdminTripSignupsView(SingleObjectMixin, FormatSignupMixin, TripLeadersOnly
                 self.update(trip, signup_list, maximum_participants)
             except ValidationError:
                 return error(f"Couldn't change trip size to {maximum_participants}")
-            except SignupsChanged:
+            except SignupsChangedError:
                 return error(
                     "Signups were recently added or removed. "
                     "Unable to modify trip without current data."
@@ -188,7 +188,7 @@ class AdminTripSignupsView(SingleObjectMixin, FormatSignupMixin, TripLeadersOnly
         """
         # Handle weird edge cases: new signup was created
         if trip.on_trip_or_waitlisted.count() != len(signup_list):
-            raise SignupsChanged("There are signups not included in the request")
+            raise SignupsChangedError("There are signups not included in the request")
 
         deletions = [s['id'] for s in signup_list if s.get('deleted')]
         normal_signups = [s['id'] for s in signup_list if not s.get('deleted')]

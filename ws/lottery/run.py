@@ -124,8 +124,9 @@ class SingleTripLotteryRunner(LotteryRunner):
         max_len = max(len(par.name) for par, _ in ranked_participants)
         for i, (par, key) in enumerate(ranked_participants, start=1):
             affiliation = par.get_affiliation_display()
-            # pylint: disable=logging-format-interpolation,logging-fstring-interpolation
-            self.logger.info(f"{i:3}. {par.name:{max_len + 3}} ({affiliation}, {key})")
+            self.logger.info(
+                f"{i:3}. {par.name:{max_len + 3}} ({affiliation}, {key})"  # noqa: G004
+            )
 
         self.logger.info(50 * '-')
         for participant, _ in ranked_participants:

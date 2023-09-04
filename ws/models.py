@@ -36,7 +36,7 @@ alphanum = RegexValidator(
 )
 
 
-class NoApplicationDefined(Exception):
+class NoApplicationDefinedError(Exception):
     pass
 
 
@@ -1809,7 +1809,7 @@ class LeaderApplication(models.Model):
         """Return if an application exists for the activity."""
         try:
             LeaderApplication.model_from_activity(activity)
-        except NoApplicationDefined:
+        except NoApplicationDefinedError:
             return False
         return True
 
@@ -1851,11 +1851,13 @@ class LeaderApplication(models.Model):
         try:
             content_type = ContentType.objects.get(app_label="ws", model=model)
         except ContentType.DoesNotExist as e:
-            raise NoApplicationDefined(f"No application for {activity.label}") from e
+            raise NoApplicationDefinedError(
+                f"No application for {activity.label}"
+            ) from e
 
         model_class = content_type.model_class()
         if model_class is None:
-            raise NoApplicationDefined(f"No application for {activity.label}")
+            raise NoApplicationDefinedError(f"No application for {activity.label}")
         assert issubclass(model_class, LeaderApplication)
         return model_class
 

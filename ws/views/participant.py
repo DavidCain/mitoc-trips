@@ -109,7 +109,9 @@ class ParticipantEditMixin(TemplateView):
         }
         if not participant:
             par_kwargs["initial"] = {'email': self.user.email}
-        elif participant.affiliation_dated or not participant.info_current:
+        elif (  # noqa: SIM102
+            participant.affiliation_dated or not participant.info_current
+        ):
             # Nulling this out forces the user to consciously choose an accurate value
             # (Only null out the field if it's the user editing their own profile, though)
             if self.request.participant == participant:

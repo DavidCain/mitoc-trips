@@ -94,20 +94,15 @@ ignore = [
   "PT027",    # I don't use pytest.raises
   "S101",     # Using `assert` is fine (I run with them enabled).
   "S311",     # I use RNGs but they're not for cryptography purposes.
+  "SIM117",   # Multiple `with` statements can aid readability
   "TD002",    # This is a solo project -- I authored all the TODOs.
   "TD003",    # This is a solo project -- I don't track issues.
   "TRY003",   # I don't mind specifying messages in the exception raise.
 
   # Errors which I'll plan to fix soon:
   "B904",     # Use `raise from` to preserve context (also see TRY200)
-  "PLR0913",  # Refactor functions with too many args
   "DJ001",    # Avoid nullable charfields
-  "G004",     # Logging should use lazy interpolation
-  "N818",     # Use the Error suffix on error instances
   "RUF012",   # I should make better use of ClassVar and Final
-  "SIM102",   # Use just one `if` statement
-  "SIM105",   # Use `contextlib.suppress`
-  "SIM117",   # Avoid repeated `with` statements
   "TRY200",   # Use `raise from` to preserve context (also see B904)
 ]
 
@@ -273,6 +268,7 @@ disable = [
   ####################################
   # We let ruff handle these instead #
   ####################################
+  "logging-fstring-interpolation",
   "protected-access",
   "ungrouped-imports",
   "wrong-import-order",
