@@ -41,7 +41,7 @@ class SimpleSignupsView(DetailView):
             'onTrip': on_trip.values('name', 'email'),
             'waitlist': [
                 {'name': s.participant.name, 'email': s.participant.email}
-                for s in trip.waitlist.signups
+                for s in trip.waitlist.signups.select_related('participant')
             ],
         }
         participant_signups = {}
