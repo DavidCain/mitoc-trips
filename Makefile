@@ -17,7 +17,7 @@ build: install-python-prod build-frontend
 install-python-dev: $(poetry_dev_bootstrap_file)
 $(poetry_dev_bootstrap_file): poetry.lock
 	touch $(poetry_dev_bootstrap_file).notyet
-	poetry install --no-root
+	poetry install --no-root --with=test,lint,mypy
 	mv $(poetry_dev_bootstrap_file).notyet $(poetry_dev_bootstrap_file)
 	@# Remove the prod bootstrap file, since we now have dev deps present.
 	rm -f $(poetry_prod_bootstrap_file)
@@ -27,7 +27,7 @@ $(poetry_dev_bootstrap_file): poetry.lock
 install-python-prod: $(poetry_prod_bootstrap_file)
 $(poetry_prod_bootstrap_file): poetry.lock
 	touch $(poetry_prod_bootstrap_file).notyet
-	poetry install --no-root --no-dev
+	poetry install --no-root --sync --only=prod
 	mv $(poetry_prod_bootstrap_file).notyet $(poetry_prod_bootstrap_file)
 	@# Remove the dev bootstrap file, since the `--no-dev` removed any present dev deps
 	rm -f $(poetry_dev_bootstrap_file)

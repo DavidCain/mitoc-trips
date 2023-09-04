@@ -43,7 +43,7 @@ ENV LC_ALL=en_US.UTF-8
 RUN pip3 install --upgrade pip==22.0.4
 
 # TODO: Check asdf's .tool-versions
-RUN pip install poetry==1.5.1
+RUN pip install poetry==1.6.1
 COPY poetry.lock .
 
 # Instruct poetry to create a venv in `.venv`, then auto-add it to path
@@ -51,7 +51,7 @@ RUN poetry config virtualenvs.in-project true
 ENV PATH="/app/.venv/bin:$PATH"
 
 COPY pyproject.toml .
-RUN poetry install --no-root
+RUN poetry install --no-root --with=test,lint,mypy
 
 # Install legacy frontend
 COPY package.json package-lock.json ./
@@ -75,7 +75,7 @@ RUN WS_DJANGO_TEST=1 ./manage.py collectstatic
 FROM build as installer
 
 # Remove dev dependencies (smaller venv, no dev deps in prod)
-RUN poetry install --no-root --no-dev
+RUN poetry install --no-root --sync --only=prod
 
 FROM ubuntu:22.04
 
