@@ -160,7 +160,7 @@ def update_all_discount_sheets() -> None:
 
 
 @shared_task(
-    auto_retry_for=(requests.exceptions.RequestException,),
+    autoretry_for=(requests.exceptions.RequestException,),
     # Account for brief outages by retrying after 1 minute, then 2, then 4, then 8
     retry_backoff=60,
     max_retries=4,
