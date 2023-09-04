@@ -398,6 +398,8 @@ class TripForm(forms.ModelForm):
     def clean_maximum_participants(self):
         trip = self.instance
         new_max = self.cleaned_data['maximum_participants']
+        if trip.pk is None:  # Trip not yet created, any max participants value is fine.
+            return new_max
         accepted_signups = trip.signup_set.filter(on_trip=True).count()
         if self.instance and accepted_signups > new_max:
             raise ValidationError(
