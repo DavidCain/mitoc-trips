@@ -3,6 +3,7 @@ import contextlib
 from django.contrib import messages
 from django.db import transaction
 from django.db.models import Q
+from django.http import HttpRequest
 
 from ws import models
 
@@ -37,7 +38,12 @@ def next_in_order(signup, manual_order=None):
 
 
 @transaction.atomic
-def add_to_waitlist(signup, request=None, prioritize=False, top_spot=False):
+def add_to_waitlist(
+    signup: models.SignUp,
+    request: HttpRequest | None = None,
+    prioritize: bool = False,
+    top_spot: bool = False,
+) -> models.WaitListSignup:
     """Add the given signup to the waitlist, optionally prioritizing it."""
     signup.on_trip = False
     signup.save()
@@ -127,7 +133,10 @@ def non_trip_participants(trip):
     return all_participants.exclude(par_on_trip)
 
 
-def _prioritize_wl_signup(waitlist_signup, top_spot=False):
+def _prioritize_wl_signup(
+    waitlist_signup: models.WaitListSignup,
+    top_spot: bool = False,
+) -> None:
     """Add the signup towards the top of the list.
 
     If top_spot=True, place above all waitlist spots. Otherwise,

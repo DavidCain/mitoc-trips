@@ -88,7 +88,7 @@ class AllTripsMedicalView(ListView):
         context_data['wimps'] = wimp.active_wimps()
         return context_data
 
-    @method_decorator(group_required('WSC', 'WIMP'))
+    @method_decorator(group_required({'WSC', 'WIMP'}))
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 

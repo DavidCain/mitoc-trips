@@ -1,3 +1,4 @@
+import logging
 from datetime import date
 from typing import TYPE_CHECKING
 
@@ -11,11 +12,12 @@ if TYPE_CHECKING:
     from ws.lottery.run import LotteryRunner, WinterSchoolLotteryRunner
 
 
-def par_is_driver(participant):
+def par_is_driver(participant: models.Participant) -> bool:
     try:
-        return participant.lotteryinfo.is_driver
+        info = participant.lotteryinfo
     except models.LotteryInfo.DoesNotExist:
         return False
+    return info.is_driver
 
 
 def ranked_signups(
@@ -32,7 +34,7 @@ def ranked_signups(
     ).order_by('order', 'time_created', 'pk')
 
 
-def place_on_trip(signup, logger):
+def place_on_trip(signup: models.SignUp, logger: logging.Logger) -> None:
     trip = signup.trip
     slots = 'slot' if trip.open_slots == 1 else 'slots'
     logger.info(f"{trip} has {trip.open_slots} {slots}, adding {signup.participant}")
@@ -87,7 +89,7 @@ class ParticipantHandler:
             return None
 
     @property
-    def to_be_placed(self):
+    def to_be_placed(self) -> tuple[models.Participant, ...]:
         if self.allow_pairs and self.paired:
             return (self.participant, self.paired_par)
         return (self.participant,)
@@ -96,7 +98,7 @@ class ParticipantHandler:
     def _par_text(self) -> str:
         return " + ".join(map(str, self.to_be_placed))
 
-    def place_all_on_trip(self, signup):
+    def place_all_on_trip(self, signup: models.SignUp) -> None:
         place_on_trip(signup, self.logger)
         if self.paired:
             par_signup = models.SignUp.objects.get(
@@ -120,7 +122,7 @@ class ParticipantHandler:
         num_drivers = self._count_drivers_on_trip(trip)
         return max(self.min_drivers - num_drivers, 0)
 
-    def bump_participant(self, signup):
+    def bump_participant(self, signup: models.SignUp) -> None:
         add_to_waitlist(signup, prioritize=True)
         self.logger.info("Moved %s to the top of the waitlist", signup)
 
@@ -181,7 +183,7 @@ class SingleTripParticipantHandler(ParticipantHandler):
         partner_signed_up = Q(trip=self.trip, participant=self.paired_par)
         return models.SignUp.objects.filter(partner_signed_up).exists()
 
-    def place_participant(self):
+    def place_participant(self) -> None:
         # Indicate that this participant's number has come up!
         # (The issue of ranking is external to this module)
         self.runner.mark_seen(self.participant)
@@ -261,7 +263,10 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
     def _future_signups(self) -> QuerySet[models.SignUp]:
         return ranked_signups(self.participant, after=self.lottery_rundate)
 
-    def _desired_signups(self, signups):
+    def _desired_signups(
+        self,
+        signups: QuerySet[models.SignUp],
+    ) -> QuerySet[models.SignUp]:
         """Of a collection of signups, filter down to just those desired.
 
         In the normal case, *all* signups in a WS week indicate trips that the

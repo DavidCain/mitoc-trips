@@ -1,9 +1,9 @@
-from django.db.models import Q
+from django.db.models import Q, QuerySet
 
 from ws import models
 
 
-def get_cars(trip):
+def get_cars(trip: models.Trip) -> QuerySet[models.Car]:
     """Return cars of specified drivers, otherwise all drivers' cars.
 
     If a trip leader says who's driving in the trip itinerary, then

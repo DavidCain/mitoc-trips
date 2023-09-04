@@ -64,7 +64,7 @@ def fa_icon_for_trip(trip: models.Trip) -> str:
     return ICON_BY_PROGRAM[trip.program_enum]
 
 
-def _describe(trip):
+def _describe(trip: models.Trip) -> str:
     """Return a simple string describing the trip."""
     if trip.trip_type_enum in {TripType.NONE, TripType.OTHER}:
         return trip.get_program_display()

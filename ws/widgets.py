@@ -11,8 +11,8 @@ class MarkdownTextarea(dj_widgets.Textarea):
     The box will be at least as large as is necessary to display the Markdown.
     """
 
-    def __init__(self, example_text=None):
-        attrs = {'rows': 4}
+    def __init__(self, example_text: str | None = None) -> None:
+        attrs: dict[str, str | int] = {'rows': 4}
         if example_text:
             attrs.update(
                 {

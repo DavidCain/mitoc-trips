@@ -1,3 +1,4 @@
+from collections.abc import Iterator
 from typing import Any
 
 from django import forms
@@ -13,7 +14,7 @@ from ws.utils.signups import non_trip_participants
 
 
 def _bind_input(
-    form: forms.Form,
+    form: forms.ModelForm | forms.Form,
     field_name: str,
     # Initial value - either from field initial, or instance value (or neither)
     initial: None | str | int | bool = None,
@@ -100,7 +101,7 @@ class ParticipantForm(forms.ModelForm):
             'cell_phone': widgets.PhoneInput,
         }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         user = kwargs.pop('user')
 
         # Mark any old affiliations as equivalent to blank
@@ -664,7 +665,7 @@ def LeaderApplicationForm(*args: Any, **kwargs: Any) -> forms.ModelForm:  # noqa
                 raise ValidationError("Not currently accepting applications!")
             return cleaned_data
 
-        def __init__(self, *args, **kwargs):
+        def __init__(self, *args: Any, **kwargs: Any) -> None:
             # TODO: Errors on args, where args is a single tuple of the view
             # super().__init__(*args, **kwargs)
             super().__init__(**kwargs)
@@ -683,7 +684,15 @@ def LeaderApplicationForm(*args: Any, **kwargs: Any) -> forms.ModelForm:  # noqa
     return DynamicActivityForm(*args, **kwargs)
 
 
-def amount_choices(value_is_amount=False):
+AffiliationChoice = tuple[str | int, str]
+
+
+def amount_choices(
+    value_is_amount: bool = False,
+) -> Iterator[
+    tuple[str, list[AffiliationChoice]]  # Grouped list of affiliations
+    | AffiliationChoice  # Single choice
+]:
     """Yield all affiliation choices with the price in the label.
 
     If `value_is_amount` is True, we'll replace the two-letter affiliation

@@ -82,9 +82,9 @@ class TaskTests(TestCase):
 
         This prevents multiple tasks modifying the Google Sheet at the same time.
         """
-        discount = factories.DiscountFactory.create(pk=8675)
+        discount = factories.DiscountFactory.create(ga_key='some-key')
         participant = factories.ParticipantFactory.create()
-        expected_lock_id = 'update_discount-8675'
+        expected_lock_id = f'update_discount-{discount.pk}'
 
         with patch('ws.tasks.cache', wraps=cache) as mock_cache_one:
             tasks.update_discount_sheet_for_participant(discount.pk, participant.pk)

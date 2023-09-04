@@ -331,49 +331,49 @@ urlpatterns = [
     # Trip Logistics (for leaders)
     path(
         'help/leaders/trip_admin/',
-        group_required('leaders', 'WSC')(
+        group_required({'leaders', 'WSC'})(
             TemplateView.as_view(template_name='help/leaders/trip_admin.html')
         ),
         name='help-trip_admin',
     ),
     path(
         'help/leaders/checklist/',
-        group_required('leaders', 'WSC')(
+        group_required({'leaders', 'WSC'})(
             TemplateView.as_view(template_name='help/leaders/checklist.html')
         ),
         name='help-checklist',
     ),
     path(
         'help/leaders/example_emails/',
-        group_required('leaders', 'WSC')(
+        group_required({'leaders', 'WSC'})(
             TemplateView.as_view(template_name='help/leaders/example_emails.html')
         ),
         name='help-example_emails',
     ),
     path(
         'help/leaders/rideshare/',
-        group_required('leaders', 'WSC')(
+        group_required({'leaders', 'WSC'})(
             TemplateView.as_view(template_name='help/leaders/rideshare.html')
         ),
         name='help-rideshare',
     ),
     path(
         'help/leaders/itinerary/',
-        group_required('leaders', 'WSC')(
+        group_required({'leaders', 'WSC'})(
             TemplateView.as_view(template_name='help/leaders/itinerary.html')
         ),
         name='help-itinerary',
     ),
     path(
         'help/leaders/ws_gear/',
-        group_required('leaders', 'WSC')(
+        group_required({'leaders', 'WSC'})(
             TemplateView.as_view(template_name='help/leaders/ws_gear.html')
         ),
         name='help-ws_gear',
     ),
     path(
         'help/leaders/feedback/',
-        group_required('leaders', 'WSC')(
+        group_required({'leaders', 'WSC'})(
             TemplateView.as_view(template_name='help/leaders/feedback.html')
         ),
         name='help-feedback',

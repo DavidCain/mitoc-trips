@@ -81,7 +81,7 @@ class LotteryRunner:
 class SingleTripLotteryRunner(LotteryRunner):
     """Place participants vying for spots on a single trip."""
 
-    def __init__(self, trip):
+    def __init__(self, trip: models.Trip) -> None:
         self.trip = trip
         super().__init__()
         self.configure_logger()
@@ -135,7 +135,7 @@ class SingleTripLotteryRunner(LotteryRunner):
 
 
 class WinterSchoolLotteryRunner(LotteryRunner):
-    def __init__(self, execution_datetime: datetime | None = None):
+    def __init__(self, execution_datetime: datetime | None = None) -> None:
         self.execution_datetime = execution_datetime or local_now()
         self.ranker = WinterSchoolParticipantRanker(self.execution_datetime)
         super().__init__()

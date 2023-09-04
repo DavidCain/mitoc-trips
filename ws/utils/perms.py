@@ -1,5 +1,5 @@
 import functools
-from collections.abc import Iterable
+from collections.abc import Collection
 
 from django.contrib.auth.models import AnonymousUser, Group, User
 from django.db.models import QuerySet
@@ -49,7 +49,7 @@ def chair_group(activity_enum: enums.Activity) -> str:
 
 def in_any_group(
     user: AnonymousUser | User,
-    group_names: Iterable[str],
+    group_names: Collection[str],
     allow_superusers: bool = True,
 ) -> bool:
     """Return if the user belongs to any of the passed groups.
@@ -94,14 +94,17 @@ def is_chair(
     return in_any_group(user, [chair_group(activity_enum)], allow_superusers)
 
 
-def chair_or_admin(user, activity_enum):
+def chair_or_admin(
+    user: AnonymousUser | User,
+    activity_enum: enums.Activity,
+) -> bool:
     """Return if the user is the chair of the activity, or if they're an admin.
 
     This is needed because some activity types (open activities) don't have
     any chairs by definition, but we still want to grant admins access as if
     they were activity chairs.
     """
-    return True if user.is_superuser else is_chair(user, activity_enum, True)
+    return user.is_superuser or is_chair(user, activity_enum, True)
 
 
 def activity_chairs(activity_enum: enums.Activity) -> QuerySet[User]:

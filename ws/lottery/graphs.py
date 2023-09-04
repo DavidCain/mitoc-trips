@@ -1,4 +1,5 @@
 from collections import defaultdict
+from collections.abc import Iterator
 
 from ws import models
 
@@ -185,7 +186,7 @@ class SeparationGraph:
         seen = {start_par}
         path = []
 
-        def dfs(par):
+        def dfs(par: models.Participant) -> Iterator[Cycle]:
             """Depth-first search, starting with the participant
 
             Yield any found cycles, note if a terminal node is found.

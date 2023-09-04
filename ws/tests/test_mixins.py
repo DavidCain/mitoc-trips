@@ -1,3 +1,4 @@
+from django.http import HttpRequest
 from django.test import RequestFactory, TestCase
 from freezegun import freeze_time
 
@@ -9,7 +10,7 @@ from ws.tests import factories
 class MixedIn(mixins.LectureAttendanceMixin):
     """Dummy class that has a request!"""
 
-    def __init__(self, request):
+    def __init__(self, request: HttpRequest) -> None:
         self.request = request
 
 

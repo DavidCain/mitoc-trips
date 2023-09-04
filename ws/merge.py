@@ -9,6 +9,8 @@ occasionally merge these accounts into one. The end result is that they get an
 account where they can log in with either email address, and get access to a
 complete history.
 """
+from collections.abc import Iterable
+from typing import cast
 
 from django.db import connections, transaction
 from django.db.backends.utils import CursorWrapper
@@ -57,7 +59,13 @@ EXPECTED_USER_TABLES: dict[str, tuple[str, ...]] = {
 }
 
 
-def simple_fk_update(cursor, table, col, old_pk, new_pk):
+def simple_fk_update(
+    cursor: CursorWrapper,
+    table: str,
+    col: str,
+    old_pk: int,
+    new_pk: int,
+) -> None:
     """For tables that don't have unique constraints, copy over FKs.
 
     Note that this naive approach doesn't handle the case where you might
@@ -74,7 +82,9 @@ def simple_fk_update(cursor, table, col, old_pk, new_pk):
     )
 
 
-def _fk_tables(cursor, src_table, col):
+def _fk_tables(
+    cursor: CursorWrapper, src_table: str, col: str
+) -> Iterable[tuple[str, str, str]]:
     """Identify all other tables that point to the source table's column.
 
     This is useful for ensuring that we migrate over all FKs.
@@ -99,7 +109,7 @@ def _fk_tables(cursor, src_table, col):
     """,
         (src_table, col),
     )
-    return cursor.fetchall()
+    return cast(Iterable[tuple[str, str, str]], cursor.fetchall())
 
 
 def check_fk_tables(

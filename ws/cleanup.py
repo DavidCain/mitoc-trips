@@ -2,7 +2,7 @@ import logging
 from datetime import timedelta
 
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, QuerySet
 
 import ws.utils.dates as date_utils
 from ws import models, settings
@@ -10,7 +10,7 @@ from ws import models, settings
 logger = logging.getLogger(__name__)
 
 
-def lapsed_participants():
+def lapsed_participants() -> QuerySet[models.Participant]:
     """Return all participants who've not used the system in a long time.
 
     We exclude anybody who's signed a waiver, paid dues, been on trips, or
@@ -45,7 +45,7 @@ def lapsed_participants():
     return models.Participant.objects.filter(lapsed_update).exclude(active_members)
 
 
-def purge_non_student_discounts():
+def purge_non_student_discounts() -> None:
     """Purge non-students from student-only discounts.
 
     Student eligibility is enforced at the API and form level. If somebody was
@@ -62,7 +62,7 @@ def purge_non_student_discounts():
 
 
 @transaction.atomic
-def purge_old_medical_data():
+def purge_old_medical_data() -> None:
     """For privacy reasons, purge old medical information.
 
     We have a lot of people's medical information in our system.

@@ -104,7 +104,7 @@ class SignWaiverView(FormView):
             messages.success(self.request, f"Waiver sent to {email}")
         return redirect(embedded_url or self.get_success_url())
 
-    def get_guardian_form(self):
+    def get_guardian_form(self) -> forms.GuardianForm:
         post = self.request.POST if self.request.method == "POST" else None
         return forms.GuardianForm(post, prefix="guardian")
 

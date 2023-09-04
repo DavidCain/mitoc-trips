@@ -6,7 +6,7 @@ user who has completed the mandatory signup information is given a Participant
 object that's linked to their user account.
 """
 import logging
-from typing import Any, Literal, TypedDict
+from typing import Any, Literal, TypedDict, cast
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -26,6 +26,7 @@ import ws.utils.dates as date_utils
 import ws.utils.perms as perm_utils
 from ws import enums, forms, models, tasks, wimp
 from ws.decorators import admin_only, group_required, user_info_required
+from ws.middleware import RequestWithParticipant
 from ws.mixins import LectureAttendanceMixin
 from ws.templatetags.trip_tags import annotated_for_trip_list
 from ws.utils.models import problems_with_profile
@@ -47,29 +48,14 @@ class GroupedTrips(TypedDict):
     past: _TripDescriptor
 
 
-class OtherParticipantView(SingleObjectMixin):
-    @property
-    def user(self):
-        return self.participant.user
-
-    @property
-    def participant(self):
-        if not hasattr(self, 'object'):
-            self.object = self.get_object()
-        return self.object
-
-
-# Ignore a `mypy` issue (for now?) where `DeleteView` and `DeletionMixin`
-# do not seem compatible:
-# Definition of "object" in base class "DeletionMixin"
-# is incompatible with definition in base class "BaseDetailView"
-class DeleteParticipantView(OtherParticipantView, DeleteView):  # type: ignore[misc]
+class DeleteParticipantView(DeleteView):
     model = models.Participant
     success_url = reverse_lazy('participant_lookup')
 
     def delete(self, request, *args, **kwargs):
         redir = super().delete(request, *args, **kwargs)
-        self.user.delete()
+        participant = self.object
+        participant.user.delete()
         return redir
 
     @method_decorator(admin_only)
@@ -80,6 +66,8 @@ class DeleteParticipantView(OtherParticipantView, DeleteView):  # type: ignore[m
 class ParticipantEditMixin(TemplateView):
     """Updates a participant. Requires self.participant and self.user."""
 
+    request: RequestWithParticipant
+
     template_name = 'profile/edit.html'
     update_msg = 'Personal information updated successfully'
 
@@ -88,10 +76,14 @@ class ParticipantEditMixin(TemplateView):
         raise NotImplementedError
 
     @property
-    def has_car(self):
+    def participant(self) -> models.Participant:
+        raise NotImplementedError
+
+    @property
+    def has_car(self) -> bool:
         return 'has_car' in self.request.POST
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         """Return a dictionary primarily of forms to for template rendering.
         Also includes a value for the "I have a car" checkbox.
 
@@ -247,12 +239,18 @@ class ParticipantEditMixin(TemplateView):
         return redirect(self.request.GET.get('next', 'home'))
 
 
-class EditParticipantView(ParticipantEditMixin, OtherParticipantView):
+class EditParticipantView(ParticipantEditMixin, SingleObjectMixin):
     model = models.Participant
 
     @property
     def user(self):
         return self.participant.user
+
+    @property
+    def participant(self) -> models.Participant:
+        if not hasattr(self, 'object'):
+            self.object = self.get_object()
+        return cast(models.Participant, self.object)
 
     def success_redirect(self):
         return redirect(reverse('view_participant', args=(self.participant.id,)))
@@ -281,7 +279,7 @@ class ParticipantLookupView(TemplateView, FormView):
     template_name = 'participants/view.html'
     form_class = forms.ParticipantLookupForm
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data()
         context['user_viewing'] = False
         context['lookup_form'] = self.get_form(self.form_class)
@@ -485,7 +483,9 @@ class ParticipantView(
 
 
 class ParticipantDetailView(ParticipantView, FormView, DetailView):
-    def get_context_data(self, **kwargs):
+    request: RequestWithParticipant
+
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
         args = self.request.GET
         show_feedback = args.get('show_feedback', '0') not in {'0', ''}

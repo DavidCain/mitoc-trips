@@ -1,12 +1,13 @@
 from django.core.mail import EmailMultiAlternatives
+from django.db.models import QuerySet
 from django.template.loader import get_template
 
 import ws.utils.dates as date_utils
 from ws import models
-from ws.templatetags.trip_tags import annotated_for_trip_list
+from ws.templatetags.trip_tags import AnnotatedTrip, annotated_for_trip_list
 
 
-def _eligible_trips():
+def _eligible_trips() -> QuerySet[AnnotatedTrip]:
     """Identify all trips that are open for signups, or will be."""
     now = date_utils.local_now()
 
@@ -19,15 +20,15 @@ def _eligible_trips():
     return annotated_for_trip_list(upcoming_trips)
 
 
-def _trips_to_summarize():
+def _trips_to_summarize() -> tuple[list[models.Trip], list[models.Trip]]:
     """Return trips which should be summarized in the email message.
 
     Returns trips broken up into two different classifications:
     - Trips that are currently open for signup
     - Trips that are not yet open for signup, but will be soon
     """
-    open_for_signup = []
-    not_yet_open = []
+    open_for_signup: list[models.Trip] = []
+    not_yet_open: list[models.Trip] = []
     for trip in _eligible_trips():
         if trip.signups_open:
             open_for_signup.append(trip)
@@ -37,7 +38,7 @@ def _trips_to_summarize():
     return (open_for_signup, not_yet_open)
 
 
-def send_trips_summary(recipient='mitoc-trip-announce@mit.edu'):
+def send_trips_summary(recipient: str = 'mitoc-trip-announce@mit.edu') -> None:
     """Send a weekly blast of upcoming trips!"""
     open_for_signup, not_yet_open = _trips_to_summarize()
     if not (open_for_signup or not_yet_open):

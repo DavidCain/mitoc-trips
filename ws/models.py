@@ -1,5 +1,5 @@
 import re
-from collections.abc import Iterable, Iterator
+from collections.abc import Collection, Iterable, Iterator
 from datetime import date, datetime, timedelta
 from typing import Any, Optional, cast
 from urllib.parse import urlencode, urljoin
@@ -562,7 +562,9 @@ class Participant(models.Model):
         years_since_last_lecture = date_utils.ws_year() - last_attendance.year
         return years_since_last_lecture > 4
 
-    def reasons_cannot_attend(self, trip):
+    def reasons_cannot_attend(
+        self, trip: 'Trip'
+    ) -> Iterator[enums.TripIneligibilityReason]:
         """Can this participant attend the trip? (based off cached membership)
 
         - If there are zero reasons, then the participant may attend the trip.
@@ -695,16 +697,20 @@ class Participant(models.Model):
             if req_activity is None or req_activity.value in rated_activities:
                 yield program_enum
 
-    def can_lead(self, program_enum):
+    def can_lead(self, program_enum: enums.Program) -> bool:
         """Can participant lead trips of the given activity type."""
         if program_enum.is_open():
             return self.is_leader
 
-        activity = program_enum.required_activity().value
-        return self.leaderrating_set.filter(activity=activity, active=True).exists()
+        activity = program_enum.required_activity()
+        assert activity is not None, "No required activity rating?"
+
+        return self.leaderrating_set.filter(
+            activity=activity.value, active=True
+        ).exists()
 
     @property
-    def is_leader(self):
+    def is_leader(self) -> bool:
         """Query ratings to determine if this participant is a leader.
 
         When dealing with Users, it's faster to use utils.perms.is_leader
@@ -925,18 +931,6 @@ class SignUp(BaseSignUp):
     manual_order = models.IntegerField(null=True, blank=True)  # Order on trip
 
     on_trip = models.BooleanField(default=False)
-
-    # pylint: disable=arguments-differ
-    def save(self, **kwargs):
-        """Assert that the Participant is not signing up twice.
-
-        The AssertionError here should never be thrown - it's a last defense
-        against a less-than-obvious implementation of adding Participant
-        records after getting a bound form.
-        """
-        if not kwargs.pop('commit', True):
-            assert self.trip not in self.participant.trip_set.all()
-        super().save(**kwargs)
 
     class Meta:
         # When ordering for an individual, should order by priority (i.e. 'order')
@@ -1172,33 +1166,35 @@ class Trip(models.Model):
         return text[:cutoff].strip() + '...'
 
     @property
-    def program_enum(self):
+    def program_enum(self) -> enums.Program:
         """Convert the string constant value to an instance of the enum."""
         return enums.Program(self.program)
 
-    def winter_rules_apply(self):
+    def winter_rules_apply(self) -> bool:
         return self.program_enum.winter_rules_apply()
 
     # TODO: activity is deprecated. Remove this once `trip.activity` purged.
-    def get_legacy_activity(self):
+    def get_legacy_activity(self) -> str:
         """Return an 'activity' from the given program."""
         activity_enum = self.program_enum.required_activity()
-        return activity_enum.value if activity_enum else 'official_event'
+        if activity_enum is None:
+            return 'official_event'
+        return cast(str, activity_enum.value)
 
-    def required_activity_enum(self):
+    def required_activity_enum(self) -> enums.Activity | None:
         return self.program_enum.required_activity()
 
     @property
-    def trip_type_enum(self):
+    def trip_type_enum(self) -> enums.TripType:
         """Convert the string constant value to an instance of the enum."""
         return enums.TripType(self.trip_type)
 
     @property
-    def feedback_window_passed(self):
+    def feedback_window_passed(self) -> bool:
         return self.trip_date < (date_utils.local_date() - timedelta(30))
 
     @property
-    def on_trip_or_waitlisted(self):
+    def on_trip_or_waitlisted(self) -> QuerySet[SignUp]:
         """All signups for participants either on the trip or waitlisted."""
         on_trip_or_waitlisted = Q(on_trip=True) | Q(waitlistsignup__isnull=False)
         return self.signup_set.filter(on_trip_or_waitlisted)
@@ -1208,7 +1204,7 @@ class Trip(models.Model):
         """Return a date range for use with Django's `range` function."""
         return (self.trip_date - timedelta(days=3), self.trip_date + timedelta(days=3))
 
-    def _other_signups(self, par_pks):
+    def _other_signups(self, par_pks: Collection[int]) -> QuerySet[SignUp]:
         """Return participant signups for trips happening around this time.
 
         Specifically, for each given participant, find all other trips that
@@ -1380,7 +1376,7 @@ class Trip(models.Model):
         # Otherwise, info (including itinerary) should be editable after the cutoff has passed
         return now > date_utils.itinerary_available_at(self.trip_date)
 
-    def make_fcfs(self, signups_open_at=None):
+    def make_fcfs(self, signups_open_at: datetime | None = None) -> None:
         """Set the algorithm to FCFS, adjust signup times appropriately."""
         self.algorithm = 'fcfs'
         now = date_utils.local_now()
@@ -1570,7 +1566,7 @@ class LotteryInfo(models.Model):
         return self.paired_with if reciprocal else None
 
     @property
-    def is_driver(self):
+    def is_driver(self) -> bool:
         return self.car_status in ['own', 'rent']
 
 

@@ -1,4 +1,5 @@
 import logging
+from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import timedelta
 from time import monotonic
@@ -23,7 +24,7 @@ LOCK_EXPIRE = 10 * 60  # ten minutes
 
 
 @contextmanager
-def exclusive_lock(task_identifier: str) -> bool:
+def exclusive_lock(task_identifier: str) -> Iterator[bool]:
     """Obtain an exclusive lock, using the task_identifier as a unique ID.
 
     This helps prevents the case of multiple workers executing the same task at

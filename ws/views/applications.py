@@ -224,7 +224,7 @@ class AllLeaderApplicationsView(ApplicationManager, ListView):  # type: ignore[m
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         try:
-            self.activity_enum = enums.Activity(kwargs.get('activity'))
+            self._activity_enum = enums.Activity(kwargs.get('activity'))
         except ValueError:
             raise Http404  # pylint: disable=raise-missing-from
 
@@ -278,7 +278,7 @@ class ArchiveLeaderApplicationView(ApplicationManager, SingleObjectMixin, View):
     @method_decorator(chairs_only())
     def dispatch(self, request, *args, **kwargs):
         try:
-            self.activity_enum = enums.Activity(kwargs.get('activity'))
+            self._activity_enum = enums.Activity(kwargs.get('activity'))
         except ValueError:
             raise Http404  # pylint: disable=raise-missing-from
         if not perm_utils.chair_or_admin(request.user, self.activity_enum):
@@ -542,7 +542,7 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type:
     def dispatch(self, request, *args, **kwargs):
         """Redirect if anonymous, but deny permission if not a chair."""
         try:
-            self.activity_enum = enums.Activity(kwargs['activity'])
+            self._activity_enum = enums.Activity(kwargs['activity'])
         except ValueError:
             raise Http404  # pylint: disable=raise-missing-from
 

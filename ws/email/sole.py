@@ -1,4 +1,5 @@
 import logging
+from typing import TYPE_CHECKING
 
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import get_template
@@ -6,10 +7,13 @@ from django.template.loader import get_template
 from ws.settings import BURSAR_NAME
 from ws.utils import itinerary
 
+if TYPE_CHECKING:
+    from ws import models
+
 logger = logging.getLogger(__name__)
 
 
-def send_email_to_funds(trip):
+def send_email_to_funds(trip: 'models.Trip') -> None:
     """Register the trip with SOLE for insurance & liability reasons.
 
     This automated email is taking the place of SOLE's Student Travel Form.

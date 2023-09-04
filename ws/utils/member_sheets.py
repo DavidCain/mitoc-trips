@@ -11,10 +11,10 @@ import bisect
 import logging
 import os.path
 import random
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from datetime import timedelta
 from itertools import zip_longest
-from typing import NamedTuple
+from typing import Any, NamedTuple
 
 import gspread
 import requests
@@ -77,11 +77,6 @@ def connect_to_sheets() -> gspread.client.Client:
 
     credentials = Credentials.from_service_account_file(credfile, scopes=scopes)
     return gspread.authorize(credentials)
-
-
-def grouper(iterable, n, fillvalue=None):
-    args = [iter(iterable)] * n
-    return zip_longest(*args, fillvalue=fillvalue)
 
 
 class SpreadsheetLabels(NamedTuple):
@@ -247,7 +242,7 @@ class SheetWriter:
         return tuple(row_mapper[label] for label in self.header)
 
 
-def _assign(cells, values):
+def _assign(cells: Iterable[gspread.cell.Cell], values: Iterable[Any]) -> None:
     """Set the values of cells, but **do not** issue an API call to update."""
     for cell, value in zip(cells, values, strict=True):
         cell.value = value
@@ -261,7 +256,7 @@ def update_participant(
 
     Much more efficient than updating the entire sheet.
     """
-    client = connect_to_sheets()
+    client: gspread.spreadsheet.Spreadsheet = connect_to_sheets()
     wks = client.open_by_key(discount.ga_key).sheet1
     writer = SheetWriter(discount, trust_cache=False)
 
@@ -293,7 +288,7 @@ def update_discount_sheet(discount: models.Discount, trust_cache: bool) -> None:
     update individual cells in the spreadsheet).
     """
     client = connect_to_sheets()
-    wks = client.open_by_key(discount.ga_key).sheet1
+    wks: gspread.worksheet.Worksheet = client.open_by_key(discount.ga_key).sheet1
     participants = list(
         discount.participant_set.select_related('membership', 'user').order_by('name')
     )
@@ -305,7 +300,8 @@ def update_discount_sheet(discount: models.Discount, trust_cache: bool) -> None:
     wks.resize(num_rows, num_cols)
     # pylint: disable=too-many-function-args
     all_cells = wks.range(1, 1, num_rows, num_cols)
-    rows = grouper(all_cells, len(writer.header))
+
+    rows = zip_longest(*([iter(all_cells)] * len(writer.header)))
 
     _assign(next(rows), writer.header)
 

@@ -1,4 +1,5 @@
 import logging
+from typing import TYPE_CHECKING
 
 from django.contrib import messages
 from django.urls import reverse
@@ -7,11 +8,17 @@ from ws import models
 
 from . import MessageGenerator
 
+if TYPE_CHECKING:
+    from ws.middleware import RequestWithParticipant
+
+
 logger = logging.getLogger(__name__)
 
 
 class Messages(MessageGenerator):
-    def supply(self):
+    request: 'RequestWithParticipant'
+
+    def supply(self) -> None:
         """Warn if the participant's password is insecure.
 
         When a participant logs in with a known insecure password, they are

@@ -1,5 +1,5 @@
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, TypedDict
+from typing import TYPE_CHECKING, Any, TypedDict
 
 from django.contrib.auth.models import User
 from django.db.models import Case, F, IntegerField, Q, QuerySet, Sum, When
@@ -56,7 +56,7 @@ class LeaderApplicationMixin:
         assert model is not None, "Unexpectedly got an application-less activity!"
         return model
 
-    def joined_queryset(self):
+    def joined_queryset(self) -> QuerySet[models.LeaderApplication]:
         """Return applications, joined with commonly used attributes.
 
         Warning: Will raise an AttributeError if self.model failed to find
@@ -75,7 +75,15 @@ class RatingsRecommendationsMixin:
     """
 
     @property
-    def gave_rec(self):
+    def activity_enum(self) -> enums.Activity:
+        raise NotImplementedError
+
+    @property
+    def chair(self) -> models.Participant:
+        raise NotImplementedError
+
+    @property
+    def gave_rec(self) -> Q:
         """Select applications where the chair gave a recommendation."""
         return Q(
             participant__leaderrecommendation__time_created__gte=F('time_created'),
@@ -94,7 +102,7 @@ class RatingsRecommendationsMixin:
         )
 
     @staticmethod
-    def sum_annotation(selector):
+    def sum_annotation(selector: Q) -> Sum:
         # Django 2.0: Use conditional aggregation instead
         return Sum(Case(When(selector, then=1), default=0, output_field=IntegerField()))
 
@@ -102,24 +110,27 @@ class RatingsRecommendationsMixin:
 class ApplicationManager(LeaderApplicationMixin, RatingsRecommendationsMixin):
     """Leader applications for an activity, to be displayed to the chair."""
 
-    def __init__(self, *args, **kwargs):
+    _chair: models.Participant
+    _activity_enum: enums.Activity
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         # Set only if defined (so subclasses can instead define with @property)
         # Also, pop from kwargs so object.__init__ doesn't error out
         if 'chair' in kwargs:
-            self.chair = kwargs.pop('chair')  # <Participant>
+            self._chair = kwargs.pop('chair')  # <Participant>
         if 'activity_enum' in kwargs:
-            self.activity_enum = kwargs.pop('activity_enum')
+            self._activity_enum = kwargs.pop('activity_enum')
         assert not kwargs, "Kwargs should be pruned to use the mixin pattern"
 
         super().__init__(*args, **kwargs)
 
     @property
+    def chair(self) -> models.Participant:
+        return self._chair
+
+    @property
     def activity_enum(self) -> enums.Activity:
         return self._activity_enum
-
-    @activity_enum.setter
-    def activity_enum(self, value: enums.Activity) -> None:
-        self._activity_enum = value
 
     def sorted_annotated_applications(self) -> QuerySet[AnnotatedApplication]:
         """Sort all applications by order of attention they need."""

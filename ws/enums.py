@@ -1,4 +1,6 @@
 import enum
+from collections.abc import Mapping
+from types import MappingProxyType
 from typing import TYPE_CHECKING, cast
 from urllib.parse import urlencode
 
@@ -181,8 +183,8 @@ class Activity(enum.Enum):
         }
         return mapping[self]
 
-    def is_winter_school(self):
-        return self == self.WINTER_SCHOOL
+    def is_winter_school(self) -> bool:
+        return self == Activity(self.WINTER_SCHOOL)
 
 
 @enum.unique
@@ -262,7 +264,12 @@ class Program(enum.Enum):
         return mapping[self]
 
     @classmethod
-    def choices(cls):
+    def choices(
+        cls,
+    ) -> tuple[
+        tuple[str, list[tuple[str, str]]],  # Specific rating
+        tuple[str, list[tuple[str, str]]],  # Any rating allowed
+    ]:
         """Group each value into named groups (for use in forms & models)."""
         ordered_choices = [
             cls.BIKING,
@@ -286,46 +293,50 @@ class Program(enum.Enum):
             else:
                 closed_choices.append((program_enum.value, program_enum.label))
 
-        return [
+        return (
             ('Specific rating required', closed_choices),
             ('Any leader rating allowed', open_choices),
-        ]
+        )
 
-    def is_open(self):
+    def is_open(self) -> bool:
         """Return if this program allows any leader to create trips."""
         return self._is_open(self.value)
 
     @classmethod
-    def _is_open(cls, value):
+    def _is_open(cls, value: str) -> bool:
         """Return True if any leader can lead."""
         return cls(value) in (cls.CIRCUS, cls.SERVICE, cls.NONE)
 
-    def is_winter_school(self):
-        return self == self.WINTER_SCHOOL
+    def is_winter_school(self) -> bool:
+        return self == Program(self.WINTER_SCHOOL)
 
-    def winter_rules_apply(self):
-        return self in (self.WINTER_SCHOOL, self.WINTER_NON_IAP)
+    def winter_rules_apply(self) -> bool:
+        return self in (Program(self.WINTER_SCHOOL), Program(self.WINTER_NON_IAP))
 
-    def required_activity(self):
+    def required_activity(self) -> Activity | None:
         """For the program, return a required leader rating to make trips.
 
         Returns None otherwise.
         """
-        mapping = {
-            self.BIKING: Activity.BIKING,
-            self.BOATING: Activity.BOATING,
-            self.CABIN: Activity.CABIN,  # TODO: Remove 'cabin' as a rating
-            self.CLIMBING: Activity.CLIMBING,
-            self.HIKING: Activity.HIKING,
-            self.SCHOOL_OF_ROCK: Activity.CLIMBING,
-            self.WINTER_SCHOOL: Activity.WINTER_SCHOOL,
-            self.WINTER_NON_IAP: Activity.WINTER_SCHOOL,
-            # No specific rating required, just _any_ rating
-            self.CIRCUS: None,
-            self.SERVICE: None,
-            self.NONE: None,
-        }
-        return mapping[self]
+        return REQUIRED_ACTIVITY_BY_PROGRAM[self]
+
+
+REQUIRED_ACTIVITY_BY_PROGRAM: Mapping[Program, Activity | None] = MappingProxyType(
+    {
+        Program.BIKING: Activity.BIKING,
+        Program.BOATING: Activity.BOATING,
+        Program.CABIN: Activity.CABIN,  # TODO: Remove 'cabin' as a rating
+        Program.CLIMBING: Activity.CLIMBING,
+        Program.HIKING: Activity.HIKING,
+        Program.SCHOOL_OF_ROCK: Activity.CLIMBING,
+        Program.WINTER_SCHOOL: Activity.WINTER_SCHOOL,
+        Program.WINTER_NON_IAP: Activity.WINTER_SCHOOL,
+        # No specific rating required, just _any_ rating
+        Program.CIRCUS: None,
+        Program.SERVICE: None,
+        Program.NONE: None,
+    }
+)
 
 
 @enum.unique
@@ -398,7 +409,7 @@ class TripType(enum.Enum):
         return mapping[self]
 
     @classmethod
-    def _categorized(cls):
+    def _categorized(cls) -> dict[str, list['TripType']]:
         return {
             'Biking': [
                 cls.ROAD_BIKING,
@@ -438,7 +449,7 @@ class TripType(enum.Enum):
         }
 
     @classmethod
-    def choices(cls):
+    def choices(cls) -> list[tuple[str, list[tuple[str, str]]]]:
         """Group into logical blocks for easy identification.
 
         In the future, we may tightly activity ratings with the options you can select below.
