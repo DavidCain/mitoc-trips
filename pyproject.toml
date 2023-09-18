@@ -77,7 +77,6 @@ ignore = [
   "ANN202",   # Type annotations are knowingly incomplete.
   "ANN204",   # Type annotations are knowingly incomplete.
   "ANN205",   # Type annotations are knowingly incomplete.
-  "ANN206",   # Type annotations are knowingly incomplete.
   "ANN401",   # Type annotations are knowingly incomplete.
   "ARG001",   # Unused arguments are common when inheriting with `*args, **kwargs`.
   "ARG002",   # Unused arguments are common when inheriting with `*args, **kwargs`.

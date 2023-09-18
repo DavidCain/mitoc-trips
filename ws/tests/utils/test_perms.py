@@ -74,7 +74,7 @@ class SuperUserTestCase(TestCase):
     admin: ClassVar[User]
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls) -> None:
         cls.admin = factories.UserFactory.create(is_superuser=True)
         super().setUpClass()
 

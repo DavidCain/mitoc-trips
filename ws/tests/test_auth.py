@@ -48,7 +48,7 @@ class AuthTests(TestCase):
     user: ClassVar[User]
 
     @classmethod
-    def setUpTestData(cls):
+    def setUpTestData(cls) -> None:
         cls.user = factories.UserFactory.create(
             email='fake@example.com',
             password='password',  # noqa: S106

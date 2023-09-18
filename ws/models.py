@@ -486,7 +486,11 @@ class Participant(models.Model):
         return self.profile_last_updated < force_reset
 
     @classmethod
-    def from_email(cls, email, join_membership=False):
+    def from_email(
+        cls,
+        email: str,
+        join_membership: bool = False,
+    ) -> Optional['Participant']:
         addr = EmailAddress.objects.filter(email__iexact=email, verified=True).first()
         return cls.from_user(addr.user, join_membership) if addr else None
 
@@ -1814,7 +1818,7 @@ class LeaderApplication(models.Model):
         return True
 
     @classmethod
-    def can_reapply(cls, latest_application):
+    def can_reapply(cls, latest_application: 'LeaderApplication') -> bool:
         """Return if a participant can re-apply to the activity, given their latest application.
 
         This implements the default behavior for most activities.
@@ -1989,7 +1993,7 @@ class WinterSchoolLeaderApplication(LeaderApplication):
     )
 
     @classmethod
-    def can_reapply(cls, latest_application):
+    def can_reapply(cls, latest_application: LeaderApplication) -> bool:
         """Participants may only apply once per year to be a WS leader!"""
         return latest_application.year < date_utils.ws_year()
 

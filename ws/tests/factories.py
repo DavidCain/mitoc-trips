@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from typing import Any, cast
 from zoneinfo import ZoneInfo
 
 import allauth.account.models as account_models
@@ -64,7 +65,7 @@ class UserFactory(BaseFactory):
     password = 'password'  # (Will be hashed & salted by `create_user`)  # noqa: S105
 
     @classmethod
-    def _create(cls, model_class, *args, **kwargs):
+    def _create(cls, model_class: type[User], *args: Any, **kwargs: Any) -> Any:
         """Behave like `create_user` -- coerce password to a hashed/salted equivalent.
 
         We pretty much have no reason to initialize a user with a hashed/salted password,
@@ -98,15 +99,15 @@ class ParticipantFactory(BaseFactory):
     emergency_info = factory.SubFactory(EmergencyInfoFactory)
 
     @staticmethod
-    def _given_user(kwargs):
+    def _given_user(kwargs: dict[str, Any]) -> User | None:
         if 'user' in kwargs:
-            return kwargs['user']
+            return cast(User, kwargs['user'])
         if 'user_id' in kwargs:
             return User.objects.get(pk=kwargs['user_id'])
         return None
 
     @classmethod
-    def create(cls, **kwargs):
+    def create(cls, **kwargs: Any) -> Any:  # Participant, but factory-boy declares Any
         """If a user is specified, sync these two objects.
 
         (User records live in a different database, so we must do this fetch
@@ -124,7 +125,7 @@ class ParticipantFactory(BaseFactory):
         return super().create(**kwargs)
 
     @classmethod
-    def _create(cls, model_class, *args, **kwargs):
+    def _create(cls, model_class: type[User], *args: Any, **kwargs: Any) -> Any:
         """Create a corresponding user whenever we make a Participant.
 
         Each Participant stores the ID of its user, but it's not truly a

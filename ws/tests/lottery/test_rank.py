@@ -288,7 +288,7 @@ class FlakeFactorTests(TestCase):
         self.ranker = rank.WinterSchoolParticipantRanker()
 
     @classmethod
-    def setUpTestData(cls):
+    def setUpTestData(cls) -> None:
         """Create some trips to relate to the participant test object.
 
         (We do not start with the participant actually signed up/on the trip).

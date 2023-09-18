@@ -20,7 +20,7 @@ class ParticipantMiddlewareTests(TestCase):
         self.request = RequestFactory().get('/')
 
     @classmethod
-    def setUpTestData(cls):
+    def setUpTestData(cls) -> None:
         cls.user = UserFactory.create()
 
     def test_anonymous_user(self):
@@ -55,7 +55,7 @@ class CustomMessagesMiddlewareTests(TestCase):
         self.request = RequestFactory().get('/')
 
     @classmethod
-    def setUpTestData(cls):
+    def setUpTestData(cls) -> None:
         cls.user = UserFactory.create()
 
     def test_anonymous_user(self):
