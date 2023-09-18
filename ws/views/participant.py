@@ -345,14 +345,14 @@ class ParticipantView(
 
         upcoming_first = ("trip_date", "-time_created")
         recent_first = ("-trip_date", "-time_created")
-        upcoming_trips = {
+        upcoming_trips: _TripDescriptor = {
             'on_trip': accepted.filter(in_future).order_by(*upcoming_first),
             'waitlisted': waitlisted.filter(in_future).order_by(*upcoming_first),
             'leader': trips_led.filter(in_future).order_by(*upcoming_first),
             'creator': created_but_not_on.filter(in_future).order_by(*upcoming_first),
             'wimp': participant.wimp_trips.filter(in_future).order_by(*upcoming_first),
         }
-        past_trips = {
+        past_trips: _TripDescriptor = {
             'on_trip': accepted.filter(in_past).order_by(*recent_first),
             'waitlisted': None,
             'leader': trips_led.filter(in_past).order_by(*recent_first),
