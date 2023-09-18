@@ -60,7 +60,7 @@ NODE_MODULES = os.path.join(BASE_DIR, 'node_modules')
 STATIC_URL = '/static/'
 STATIC_ROOT = os.getenv('STATIC_ROOT', os.path.join(BASE_DIR, 'static'))
 
-STORAGE = {'default': {'BACKEND': 'ws.storage.ManifestStorage'}}
+STATICFILES_STORAGE = 'ws.storage.ManifestStorage'
 
 STATICFILES_DIRS = [
     # For the legacy frontend, just put all the files directly in static root
@@ -166,8 +166,6 @@ CELERY_BEAT_SCHEDULE = {
 CELERY_TIMEZONE = 'UTC'
 
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
-
-FORM_RENDERER = "django.forms.renderers.DjangoDivFormRenderer"
 
 # A list of known "bad" passwords for which we don't want to hit the HIBP API.
 # This will *never* be honored in production -- it's just a local testing tool.
@@ -312,6 +310,7 @@ DISABLE_GSHEETS = bool(os.getenv('DISABLE_GSHEETS'))
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'America/New_York'
 USE_I18N = True
+USE_L10N = True
 USE_TZ = True
 
 # Participants must update their profile information every ~6 months

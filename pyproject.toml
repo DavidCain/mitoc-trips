@@ -143,7 +143,7 @@ authors = ["David Cain <davidjosephcain@gmail.com>"]
 python = "^3.10.0"
 
 [tool.poetry.group.prod.dependencies]
-Django = "^4.2"
+Django = "^3.2"
 PyJWT = ">= 2.0.0"  # 2.0.0 changed the return type of `jwt.encode()`
 beautifulsoup4 = "*"
 celery = "^5.1"
