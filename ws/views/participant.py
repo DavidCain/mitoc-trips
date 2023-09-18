@@ -301,14 +301,17 @@ class ParticipantView(
     SingleObjectMixin,
     LectureAttendanceMixin,
 ):
+    request: RequestWithParticipant
     model = models.Participant
     context_object_name = 'participant'
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet[models.Participant]:
         """Select related fields that will be displayed on the page."""
         par = super().get_queryset()
         return par.select_related(
-            'emergency_info__emergency_contact', 'car', 'lotteryinfo'
+            'emergency_info__emergency_contact',
+            'car',
+            'lotteryinfo',
         )
 
     def get_trips(self) -> GroupedTrips:
@@ -339,22 +342,23 @@ class ParticipantView(
         # Avoid doubly-listing trips where they participated or led the trip
         created_but_not_on = trips_created.exclude(leading_trip | par_on_trip)
 
-        return {
-            'current': {
-                'on_trip': accepted.filter(in_future),
-                'waitlisted': waitlisted.filter(in_future),
-                'leader': trips_led.filter(in_future),
-                'creator': created_but_not_on.filter(in_future),
-                'wimp': participant.wimp_trips.filter(in_future),
-            },
-            'past': {
-                'on_trip': accepted.filter(in_past),
-                'waitlisted': None,
-                'leader': trips_led.filter(in_past),
-                'creator': created_but_not_on.filter(in_past),
-                'wimp': participant.wimp_trips.filter(in_past),
-            },
+        upcoming_first = ("trip_date", "-time_created")
+        recent_first = ("-trip_date", "-time_created")
+        upcoming_trips = {
+            'on_trip': accepted.filter(in_future).order_by(*upcoming_first),
+            'waitlisted': waitlisted.filter(in_future).order_by(*upcoming_first),
+            'leader': trips_led.filter(in_future).order_by(*upcoming_first),
+            'creator': created_but_not_on.filter(in_future).order_by(*upcoming_first),
+            'wimp': participant.wimp_trips.filter(in_future).order_by(*upcoming_first),
         }
+        past_trips = {
+            'on_trip': accepted.filter(in_past).order_by(*recent_first),
+            'waitlisted': None,
+            'leader': trips_led.filter(in_past).order_by(*recent_first),
+            'creator': created_but_not_on.filter(in_past).order_by(*recent_first),
+            'wimp': participant.wimp_trips.filter(in_past).order_by(*recent_first),
+        }
+        return {'current': upcoming_trips, 'past': past_trips}
 
     @staticmethod
     def get_stats(trips: GroupedTrips) -> list[str]:
@@ -424,9 +428,7 @@ class ParticipantView(
 
         e_info = participant.emergency_info
         e_contact = e_info.emergency_contact
-        user_viewing = (
-            self.request.participant == participant  # type:ignore[attr-defined]
-        )
+        user_viewing = self.request.participant == participant
 
         context = {
             **super().get_context_data(**kwargs),
