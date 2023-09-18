@@ -17,9 +17,9 @@ from ws.views.participant import logger
 class LandingPageTests(TestCase):
     @freeze_time("2020-01-12 09:00:00 EST")
     def test_unauthenticated_rendering_enough_upcoming_trips(self):
-        # Ten upcoming trips, with the most recent ones first
+        # Ten upcoming trips, with the next-upcoming trips first
         ten_upcoming_trips = [
-            factories.TripFactory.create(trip_date=date(2020, 1, 30 - i))
+            factories.TripFactory.create(trip_date=date(2020, 2, 1 + i))
             for i in range(10)
         ]
 
@@ -31,7 +31,7 @@ class LandingPageTests(TestCase):
             'Come hiking, climbing, skiing, paddling, biking, and surfing with the MIT Outing Club!',
         )
 
-        # All trips are listed in reverse chronological order
+        # All trips are listed in chronological order
         self.assertEqual(list(response.context['current_trips']), ten_upcoming_trips)
         # No recent trips are needed, since we have more than eight
         self.assertNotIn('recent_trips', response.context)
@@ -49,9 +49,9 @@ class LandingPageTests(TestCase):
 
         response = self.client.get('/')
 
-        # Upcoming trips are listed in reverse chronological order
+        # Upcoming trips are listed in chronological order
         self.assertEqual(
-            list(response.context['current_trips']), [upcoming_trip2, upcoming_trip1]
+            list(response.context['current_trips']), [upcoming_trip1, upcoming_trip2]
         )
         # Recent trips are shown until we have 8 total
         self.assertEqual(list(response.context['recent_trips']), ten_past_trips[:6])

@@ -12,6 +12,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import Q, QuerySet
+from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
@@ -521,19 +522,26 @@ class ProfileView(ParticipantView):
         return context
 
     @staticmethod
-    def render_landing_page(request):
+    def render_landing_page(request: HttpRequest) -> HttpResponse:
         today = date_utils.local_date()
-        ordered_trips = models.Trip.objects.order_by('-trip_date', '-time_created')
-        current_trips = ordered_trips.filter(trip_date__gte=today)
-        context = {'current_trips': annotated_for_trip_list(current_trips)}
+        context = {
+            'current_trips': annotated_for_trip_list(
+                models.Trip.objects.filter(trip_date__gte=today).order_by(
+                    'trip_date', '-time_created'
+                )
+            )
+        }
 
         num_trips = len(context['current_trips'])  # Use len to avoid extra query
 
         # If we don't have many upcoming trips, show some recent ones
         if num_trips < 8:
             extra_trips = max(2, 8 - num_trips)
-            recent_trips = ordered_trips.filter(trip_date__lt=today)[:extra_trips]
-            context['recent_trips'] = annotated_for_trip_list(recent_trips)
+            context['recent_trips'] = annotated_for_trip_list(
+                models.Trip.objects.filter(trip_date__lt=today).order_by(
+                    '-trip_date', '-time_created'
+                )[:extra_trips]
+            )
 
         return render(request, 'home.html', context)
 
