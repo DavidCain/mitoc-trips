@@ -9,7 +9,6 @@ discount, so that they can verify membership status.
 """
 import bisect
 import logging
-import os.path
 import random
 from collections.abc import Iterable, Iterator
 from datetime import timedelta
@@ -19,7 +18,6 @@ from typing import Any, NamedTuple
 import gspread
 import requests
 from django.utils import timezone
-from google.oauth2.service_account import Credentials
 from mitoc_const import affiliations
 
 from ws import enums, models, settings
@@ -42,41 +40,6 @@ WINDOW_FOR_RE_CHECKING_INACTIVE_MEMBERS = timedelta(days=7)
 
 class GearDatabaseError(Exception):
     pass
-
-
-def connect_to_sheets() -> gspread.client.Client:
-    """Returns a Google Sheets client
-
-    If intentionally disabling Google Sheets functionality, `None` will be
-    returned as both the client and client credentials. This occurs even if the
-    proper credential file is present.
-
-    If missing credentials while in DEBUG mode, a "soft failure" will occur:
-    the logger will note the missing credentials file and will return `None`
-    for both client and credentials.
-
-    This allows us to run a webserver in a development environment that will
-    never actually update Google spreadsheets. We can go through the flow of
-    modifying discounts without running a Celery job to update the spreadsheet.
-    """
-    scopes = ['https://spreadsheets.google.com/feeds']
-    credfile = settings.OAUTH_JSON_CREDENTIALS
-    creds_present = credfile and os.path.exists(credfile)
-
-    # Avoid unnecessary handshake with a service we'll never use
-    if settings.DISABLE_GSHEETS:
-        return None, None
-
-    if not creds_present:
-        if settings.DEBUG:
-            logger.error(
-                "OAUTH_JSON_CREDENTIALS is missing! Unable to update Google Sheets."
-            )
-            return None, None
-        raise KeyError("Specify OAUTH_JSON_CREDENTIALS to update Google Sheets")
-
-    credentials = Credentials.from_service_account_file(credfile, scopes=scopes)
-    return gspread.authorize(credentials)
 
 
 class SpreadsheetLabels(NamedTuple):
@@ -256,7 +219,7 @@ def update_participant(
 
     Much more efficient than updating the entire sheet.
     """
-    client: gspread.spreadsheet.Spreadsheet = connect_to_sheets()
+    client = gspread.service_account(settings.OAUTH_JSON_CREDENTIALS)
     wks = client.open_by_key(discount.ga_key).sheet1
     writer = SheetWriter(discount, trust_cache=False)
 
@@ -287,7 +250,7 @@ def update_discount_sheet(discount: models.Discount, trust_cache: bool) -> None:
     For individual updates, this approach should be avoided (instead, opting to
     update individual cells in the spreadsheet).
     """
-    client = connect_to_sheets()
+    client = gspread.service_account(settings.OAUTH_JSON_CREDENTIALS)
     wks: gspread.worksheet.Worksheet = client.open_by_key(discount.ga_key).sheet1
     participants = list(
         discount.participant_set.select_related('membership', 'user').order_by('name')

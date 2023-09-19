@@ -227,7 +227,6 @@ module = [
     "debug_toolbar",
     "factory.*",
     "freezegun",
-    "google.oauth2.*",
     "gspread",
     "kombu.*",
     "localflavor.*",
