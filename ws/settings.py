@@ -90,7 +90,6 @@ INSTALLED_APPS = [
     'django.contrib.postgres',
     'django.contrib.staticfiles',
     'django.contrib.sites',
-    'localflavor',
     'phonenumber_field',
     'allauth',
     'allauth.account',

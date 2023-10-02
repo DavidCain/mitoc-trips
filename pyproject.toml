@@ -149,7 +149,6 @@ celery = "^5.1"
 django-allauth = ">= 0.41.0"  # See CVE-2019-19844
 django-cors-headers = "*"
 django-crispy-forms = "^1.12.0"
-django-localflavor = "*"
 django-phonenumber-field = { version = ">= 2.0", extras = ["phonenumberslite"] }
 django-pipeline = "*"  # TODO: To eventually be replaced by webpack-loader
 django-smtp-ssl = "*"

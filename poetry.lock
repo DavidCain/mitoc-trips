@@ -735,21 +735,6 @@ django = ">=3.2.4"
 sqlparse = ">=0.2"
 
 [[package]]
-name = "django-localflavor"
-version = "4.0"
-description = "Country-specific Django helpers"
-optional = false
-python-versions = "*"
-files = [
-    {file = "django-localflavor-4.0.tar.gz", hash = "sha256:11859e522dba74aa6dde5a659242b1fbc5efb4dea08e9b77315402bdeca5194e"},
-    {file = "django_localflavor-4.0-py3-none-any.whl", hash = "sha256:7a5b1df03ca8e10df9d1b3c2e4314e43383067868183cdf41ab4e7a973694a8b"},
-]
-
-[package.dependencies]
-django = ">=3.2"
-python-stdnum = ">=1.6"
-
-[[package]]
 name = "django-phonenumber-field"
 version = "7.1.0"
 description = "An international phone number field for django models."
@@ -1795,22 +1780,6 @@ files = [
 six = ">=1.5"
 
 [[package]]
-name = "python-stdnum"
-version = "1.19"
-description = "Python module to handle standardized numbers and codes"
-optional = false
-python-versions = "*"
-files = [
-    {file = "python-stdnum-1.19.tar.gz", hash = "sha256:133ec82f56390ea74c190569e98f2fb14b869808b1d54785708f22d0fead8b3f"},
-    {file = "python_stdnum-1.19-py2.py3-none-any.whl", hash = "sha256:1b5b401ad3f45b798b0317313b781a433f5d7a5ff2c9feb8054664f76f78644e"},
-]
-
-[package.extras]
-soap = ["zeep"]
-soap-alt = ["suds"]
-soap-fallback = ["PySimpleSOAP"]
-
-[[package]]
 name = "python3-openid"
 version = "3.2.0"
 description = "OpenID support for modern servers and consumers."
@@ -2361,4 +2330,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10.0"
-content-hash = "5761b0334eea04b2c60bdb0659b33db70adbecf9e1ff2c5447d13f5655f4af9c"
+content-hash = "5a28ffa36105c0dece05773972d5911ef87c35a69891996ccbe6c2211467e3b6"
