@@ -21,7 +21,6 @@ from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 from django.utils.text import format_lazy
-from localflavor.us.models import USStateField
 from mitoc_const import affiliations
 from mitoc_const.membership import RENEWAL_ALLOWED_WITH_DAYS_LEFT
 from phonenumber_field.modelfields import PhoneNumberField
@@ -29,6 +28,7 @@ from typing_extensions import Self
 
 import ws.utils.dates as date_utils
 from ws import enums
+from ws.car_states import CAR_STATE_CHOICES
 from ws.utils.avatar import avatar_url
 
 alphanum = RegexValidator(
@@ -63,7 +63,7 @@ class Car(models.Model):
     year_min, year_max = 1903, date_utils.local_now().year + 2
     # Loosely validate - may wish to use international plates in the future
     license_plate = models.CharField(max_length=31, validators=[alphanum])
-    state = USStateField()
+    state = models.CharField(max_length=2, choices=CAR_STATE_CHOICES)
     make = models.CharField(max_length=63)
     model = models.CharField(max_length=63)
     year = models.PositiveIntegerField(

@@ -4,7 +4,6 @@ from typing import Any
 from django import forms
 from django.core.exceptions import ValidationError
 from django.db.models.fields import TextField
-from localflavor.us.us_states import US_STATES
 from mitoc_const import affiliations
 
 from ws import enums, models, widgets
@@ -165,7 +164,6 @@ class CarForm(forms.ModelForm):
         model = models.Car
         fields = ['license_plate', 'state', 'make', 'model', 'year', 'color']
         widgets = {
-            'state': forms.Select(choices=US_STATES),
             'year': forms.NumberInput(
                 attrs={'min': model.year_min, 'max': model.year_max}
             ),
