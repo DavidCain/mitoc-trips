@@ -185,6 +185,12 @@ else:
 # 32 bit signed integers (default before Django 3.2) are plenty big enough for our purposes.
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
+# If working locally, quick start commands:
+# CREATE USER ws WITH PASSWORD 'password';
+# CREATE DATABASE ws;
+# GRANT ALL PRIVILEGES ON DATABASE ws TO ws;
+# ALTER USER ws CREATEDB;
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
