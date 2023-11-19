@@ -171,6 +171,10 @@ CRISPY_TEMPLATE_PACK = "bootstrap3"
 # (Used to test with garbage passwords, avoiding the "change your password!" flow)
 ALLOWED_BAD_PASSWORDS: tuple[str, ...] = ()
 
+# It's expected that the settings module define this directly.
+# Still, to minimize reliance on wildcard imports, default to off.
+DEBUG = False
+
 if os.environ.get("WS_DJANGO_TEST"):
     from .conf.test_settings import *  # pylint: disable=wildcard-import,unused-wildcard-import  # noqa: F403
 elif os.environ.get("WS_DJANGO_LOCAL"):
@@ -232,7 +236,7 @@ TEMPLATES = [
                 "ws.context_processors.participant_and_groups",
                 "ws.context_processors.angular_templates",
             ],
-            "debug": DEBUG,  # noqa: F405
+            "debug": DEBUG,
         },
     }
 ]
@@ -421,7 +425,7 @@ LOGGING = {
 FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
 WEBPACK_LOADER = {
     "DEFAULT": {
-        "CACHE": DEBUG,  # noqa: F405
+        "CACHE": DEBUG,
         "BUNDLE_DIR_NAME": "/static/frontend/",
         "STATS_FILE": os.path.join(FRONTEND_DIR, "webpack-stats.json"),
     }

@@ -172,7 +172,7 @@ responses = "*"
 [tool.poetry.group.lint]
 optional = true
 [tool.poetry.group.lint.dependencies]
-pylint = "^2.17"
+pylint = "^3.0"
 ruff = "*"
 
 [tool.poetry.group.mypy]
