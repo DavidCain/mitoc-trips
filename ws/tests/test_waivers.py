@@ -18,9 +18,7 @@ class HeaderBaseTest(unittest.TestCase):
         self.mocked_settings = patched.start()
 
         self.mocked_settings.DOCUSIGN_USERNAME = "djcain@mit.edu"
-        self.mocked_settings.DOCUSIGN_PASSWORD = (
-            "sooper-secure-hexish-token"  # noqa: S105
-        )
+        self.mocked_settings.DOCUSIGN_PASSWORD = "sooper-secure-hexish-token"  # noqa: S105
         self.mocked_settings.DOCUSIGN_INTEGRATOR_KEY = "some-integrator-key"
         self.mocked_settings.DOCUSIGN_WAIVER_TEMPLATE_ID = str(uuid.uuid4())
         self.mocked_settings.DOCUSIGN_EVENT_NOTIFICATION = orig_event_notif

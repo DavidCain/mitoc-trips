@@ -1,6 +1,3 @@
-[tool.black]
-include = '\.py$'
-
 [tool.ruff]
 select = [
   "A",     # flake8-builtins
@@ -55,7 +52,7 @@ select = [
   # "FLY",  # flynt
 
   # Intentionally omitted:
-  # "Q",     # flake8-quotes        -- we let black handle quotes.
+  # "Q",     # flake8-quotes        -- we let the formatter handle quotes.
   # "FBT",   # flake8-boolean-trap  -- I'm fine with boolean traps
   # "ERA",   # eradicate            -- has tons of false-positives on commented "code"
   # "EM",    # flake8-errmsg        -- I'm fine with strings directly in exceptions
@@ -77,12 +74,10 @@ ignore = [
   "ANN401",   # Type annotations are knowingly incomplete.
   "ARG001",   # Unused arguments are common when inheriting with `*args, **kwargs`.
   "ARG002",   # Unused arguments are common when inheriting with `*args, **kwargs`.
-  "COM812",   # Black manages commas.
   "D100",     # Not all public classes need docstrings.
   "D101",     # Not all public classes need docstrings.
   "D102",     # Not all public methods need docstrings.
   "D107",     # Not all `__init__` methods need docstrings.
-  "E501",     # Black manages line length.
   "N806",     # Function arguments are frequently uppercase in migrations.
   "PLR2004",  # Tests & simple logic extensively use "magic values"
   "PT009",    # I intentionally use `unittest`-style tests.
@@ -98,6 +93,11 @@ ignore = [
   # Errors which I'll plan to fix soon:
   "DJ001",    # Avoid nullable charfields
   "RUF012",   # I should make better use of ClassVar and Final
+
+  # Errors that conflict with `ruff format`
+  "ISC001",
+  "COM812",   # Formatter manages commas.
+  "E501",     # Formatter manages line length.
 ]
 
 # By default, `ruff` will respect `.gitignore`
@@ -172,7 +172,6 @@ responses = "*"
 [tool.poetry.group.lint]
 optional = true
 [tool.poetry.group.lint.dependencies]
-black = "*"
 pylint = "^2.17"
 ruff = "*"
 
@@ -241,8 +240,7 @@ django_settings_module = "ws.settings"
 
 [tool.pylint.'MESSAGES CONTROL']
 disable = [
-  # Handled by black
-  "format",
+  "format",  # We use the ruff autoformatter
 
   "arguments-differ",
   "fixme",

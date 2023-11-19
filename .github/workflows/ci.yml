@@ -9,7 +9,7 @@ jobs:
       matrix:
         command:
           - "ruff ."
-          - "black --diff --check ws"
+          - "ruff format --check ws"
           - "mypy ws"
           - "pylint --jobs=0 ws"
           - "pytest"

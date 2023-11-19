@@ -35,7 +35,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y nodejs
 RUN locale-gen en_US.UTF-8
 RUN update-locale en_US.UTF-8
 
-# `click` (used by `black`) will error out without locales explicitly set
+# `click` will error out without locales explicitly set
 ENV LANGUAGE=en_US.UTF-8
 ENV LANG=en_US.UTF-8
 ENV LC_ALL=en_US.UTF-8

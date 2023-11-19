@@ -78,7 +78,8 @@ def purge_old_medical_data() -> None:
     needs_scrub = (
         lapsed_participants()
         # We only update participants that have emergency info & have not yet been scrubbed
-        .exclude(emergency_info__allergies="").exclude(emergency_info=None)
+        .exclude(emergency_info__allergies="")
+        .exclude(emergency_info=None)
         # If some other query already holds a lock, just skip for now!
         # (likely means that the participant is being updated, and shouldn't be purged)
         # We can always try to purge again on the next scheduled run.
@@ -90,9 +91,8 @@ def purge_old_medical_data() -> None:
     # NOTE: This technically means that participants could have changed in this window.
     # TODO (Django 2): Remove this hack, use above `of=` solution
     needs_scrub = (
-        models.Participant.objects.filter(pk__in=needs_scrub).select_related(
-            "emergency_info"
-        )
+        models.Participant.objects.filter(pk__in=needs_scrub)
+        .select_related("emergency_info")
         # If some other query already holds a lock, just skip for now!
         # (likely means that the participant is being updated, and shouldn't be purged)
         # We can always try to purge again on the next scheduled run.

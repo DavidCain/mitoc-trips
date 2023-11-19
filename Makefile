@@ -52,7 +52,7 @@ check: lint test
 # (might fix a broken `make check`)
 .PHONY: fix
 fix: install-python-dev
-	poetry run black ws
+	poetry run ruff format .
 	poetry run ruff --fix .
 
 .PHONY: lint
@@ -60,7 +60,7 @@ lint: lint-python typecheck-python lint-js
 
 .PHONY: lint-python
 lint-python: install-python-dev
-	poetry run black --fast --check ws
+	poetry run ruff format --check .
 	poetry run ruff .
 	poetry run pylint --jobs 0 ws  # '0' tells pylint to auto-detect available processors
 

@@ -391,7 +391,8 @@ class JsonProgramLeadersView(View):
             leaders.select_related("participant")
             # (If there are duplicates activity ratings for an activity, just take most recent)
             # (If we have an open program, the leader may have multiple ratings -- just pick one)
-            .order_by("participant__id", "-time_created").distinct("participant_id")
+            .order_by("participant__id", "-time_created")
+            .distinct("participant_id")
         )
 
         for rating in ratings:
