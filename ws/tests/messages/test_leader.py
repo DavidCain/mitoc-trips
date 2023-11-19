@@ -15,7 +15,7 @@ class NotALeaderMessagesTest(MessagesTestCase):
     """For users that are not leaders, we never emit any messages."""
 
     def test_anonymous_user(self):
-        request = self.factory.get('/')
+        request = self.factory.get("/")
 
         # Simulate the effects of the ParticipantMiddleware for an anonymous user
         request.user = AnonymousUser()
@@ -27,7 +27,7 @@ class NotALeaderMessagesTest(MessagesTestCase):
         add_message.assert_not_called()
 
     def test_user_but_no_participant_on_request(self):
-        request = self.factory.get('/')
+        request = self.factory.get("/")
 
         # Simulate the effects of the ParticipantMiddleware for a known user
         request.user = factories.UserFactory.create()
@@ -39,7 +39,7 @@ class NotALeaderMessagesTest(MessagesTestCase):
         add_message.assert_not_called()
 
     def test_participant_not_a_leader(self):
-        request = self.factory.get('/')
+        request = self.factory.get("/")
 
         # Simulate the effects of the ParticipantMiddleware for a known participant
         participant = factories.ParticipantFactory.create()
@@ -97,7 +97,7 @@ class LeaderMessagesTest(MessagesTestCase):
                 leader=trip_leader, trip=has_feedback, participant=signup.participant
             )
 
-        request = self.factory.get('/')
+        request = self.factory.get("/")
         request.participant = trip_leader
         request.user = trip_leader.user
 
@@ -107,7 +107,7 @@ class LeaderMessagesTest(MessagesTestCase):
         # We only warn about the recent trip lacking feedback!
         msg = 'Please supply feedback for <a href="/trips/2239/review/">Radness</a>'
         add_message.assert_called_once_with(
-            request, messages.WARNING, msg, extra_tags='safe'
+            request, messages.WARNING, msg, extra_tags="safe"
         )
 
     @freeze_time("2020-01-17 14:56:00 EST")
@@ -133,7 +133,7 @@ class LeaderMessagesTest(MessagesTestCase):
         )
         with_info.leaders.add(trip_leader)
 
-        request = self.factory.get('/')
+        request = self.factory.get("/")
         request.participant = trip_leader
         request.user = trip_leader.user
 
@@ -148,13 +148,13 @@ class LeaderMessagesTest(MessagesTestCase):
                     request,
                     messages.WARNING,
                     'Please <a href="/trips/9213/itinerary/">submit an itinerary for Today</a> before departing!',
-                    extra_tags='safe',
+                    extra_tags="safe",
                 ),
                 mock.call(
                     request,
                     messages.WARNING,
                     'Please <a href="/trips/9214/itinerary/">submit an itinerary for Tomorrow</a> before departing!',
-                    extra_tags='safe',
+                    extra_tags="safe",
                 ),
             ]
         )

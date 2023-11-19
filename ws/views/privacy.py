@@ -15,13 +15,13 @@ class NeedsParticipant:
 
 
 class PrivacySettingsView(NeedsParticipant, FormView):
-    template_name = 'privacy/settings.html'
-    success_url = reverse_lazy('privacy_settings')
+    template_name = "privacy/settings.html"
+    success_url = reverse_lazy("privacy_settings")
     form_class = forms.PrivacySettingsForm
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['instance'] = self.request.participant
+        kwargs["instance"] = self.request.participant
         return kwargs
 
     def form_valid(self, form):
@@ -30,16 +30,16 @@ class PrivacySettingsView(NeedsParticipant, FormView):
 
 
 class PrivacyView(TemplateView):
-    template_name = 'privacy/home.html'
+    template_name = "privacy/home.html"
 
 
 class PrivacyDownloadView(TemplateView):
-    template_name = 'privacy/download.html'
+    template_name = "privacy/download.html"
 
 
 class JsonDataDumpView(NeedsParticipant, TemplateView):
     def get(self, request, *args, **kwargs):
         data = DataDump(self.request.participant.pk)  # Re-fetch to optimize
-        response = JsonResponse(data.all_data, json_dumps_params={'indent': 2})
-        response['Content-Disposition'] = 'attachment; filename=data_export.json'
+        response = JsonResponse(data.all_data, json_dumps_params={"indent": 2})
+        response["Content-Disposition"] = "attachment; filename=data_export.json"
         return response

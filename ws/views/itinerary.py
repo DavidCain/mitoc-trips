@@ -26,29 +26,29 @@ class TripItineraryView(UpdateView, TripLeadersOnlyView):
     """A hybrid view for creating/editing trip info for a given trip."""
 
     model = models.Trip
-    context_object_name = 'trip'
-    template_name = 'trips/itinerary.html'
+    context_object_name = "trip"
+    template_name = "trips/itinerary.html"
     form_class = forms.TripInfoForm
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        trip = context['trip']
-        context['itinerary_available_at'] = itinerary_available_at(trip.trip_date)
-        context['info_form_editable'] = trip.info_editable
-        if local_now() < context['itinerary_available_at']:
-            context['waiting_to_open'] = True
-            context['form'].fields.pop('accurate')
-            for field in context['form'].fields.values():
+        trip = context["trip"]
+        context["itinerary_available_at"] = itinerary_available_at(trip.trip_date)
+        context["info_form_editable"] = trip.info_editable
+        if local_now() < context["itinerary_available_at"]:
+            context["waiting_to_open"] = True
+            context["form"].fields.pop("accurate")
+            for field in context["form"].fields.values():
                 field.disabled = True
         return context
 
     def get_initial(self):
         self.trip = self.object  # Form instance will become object
-        return {'trip': self.trip}
+        return {"trip": self.trip}
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['instance'] = self.trip.info
+        kwargs["instance"] = self.trip.info
         return kwargs
 
     def get_form(self, form_class=None):
@@ -57,51 +57,51 @@ class TripItineraryView(UpdateView, TripLeadersOnlyView):
         on_trip = Q(pk__in=self.trip.leaders.all()) | Q(signup__in=signups)
         participants = models.Participant.objects.filter(on_trip).distinct()
         has_car_info = participants.filter(car__isnull=False)
-        form.fields['drivers'].queryset = has_car_info
+        form.fields["drivers"].queryset = has_car_info
         return form
 
     def form_valid(self, form):
         if not self.trip.info_editable:
             verb = "modified" if self.trip.info else "created"
-            form.errors['__all__'] = ErrorList([f"Itinerary cannot be {verb}"])
+            form.errors["__all__"] = ErrorList([f"Itinerary cannot be {verb}"])
             return self.form_invalid(form)
         self.trip.info = form.save()
         self.trip.save()
         return super().form_valid(form)
 
     def get_success_url(self):
-        return reverse('view_trip', args=(self.trip.pk,))
+        return reverse("view_trip", args=(self.trip.pk,))
 
 
 class AllTripsMedicalView(ListView):
     model = models.Trip
-    template_name = 'trips/all/medical.html'
-    context_object_name = 'trips'
+    template_name = "trips/all/medical.html"
+    context_object_name = "trips"
 
     def get_queryset(self):
-        trips = super().get_queryset().order_by('trip_date')
+        trips = super().get_queryset().order_by("trip_date")
         today = local_date()
         return trips.filter(trip_date__gte=today)
 
     def get_context_data(self, **kwargs):
         context_data = super().get_context_data(**kwargs)
-        context_data['wimps'] = wimp.active_wimps()
+        context_data["wimps"] = wimp.active_wimps()
         return context_data
 
-    @method_decorator(group_required({'WSC', 'WIMP'}))
+    @method_decorator(group_required({"WSC", "WIMP"}))
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
 
 class TripMedicalView(DetailView):
     model = models.Trip
-    template_name = 'trips/medical.html'
+    template_name = "trips/medical.html"
 
     @staticmethod
     def _can_view(trip, request):
         """Leaders, chairs, and a trip WIMP can view this page."""
         return (
-            perm_utils.in_any_group(request.user, ['WIMP'])
+            perm_utils.in_any_group(request.user, ["WIMP"])
             or (trip.wimp and request.participant == trip.wimp)
             or perm_utils.leader_on_trip(request.participant, trip, True)
             or perm_utils.chair_or_admin(request.user, trip.required_activity_enum())
@@ -115,7 +115,7 @@ class TripMedicalView(DetailView):
 
         trip = self.object
         if not self._can_view(trip, request):
-            return render(request, 'not_your_trip.html', {'trip': trip})
+            return render(request, "not_your_trip.html", {"trip": trip})
         return normal_response
 
     def get_context_data(self, **kwargs):
@@ -123,7 +123,7 @@ class TripMedicalView(DetailView):
         context_data = super().get_context_data(**kwargs)
         trip = self.object
         participant = self.request.participant
-        context_data['is_trip_leader'] = perm_utils.leader_on_trip(participant, trip)
+        context_data["is_trip_leader"] = perm_utils.leader_on_trip(participant, trip)
 
         return context_data
 
@@ -135,12 +135,12 @@ class ChairTripView(DetailView):
     """
 
     model = models.Trip
-    template_name = 'chair/trips/view.html'
+    template_name = "chair/trips/view.html"
 
     @property
     def activity_enum(self) -> enums.Activity:
         """Note that this may raise a ValueError if given an unknown activity!"""
-        return enums.Activity(self.kwargs['activity'])
+        return enums.Activity(self.kwargs["activity"])
 
     def get_queryset(self):
         """All trips of this activity type.
@@ -182,10 +182,10 @@ class ChairTripView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['activity_enum'] = self.activity_enum
+        context["activity_enum"] = self.activity_enum
 
         # Provide buttons for quick navigation between upcoming trips needing approval
-        context['prev_trip'], context['next_trip'] = self.get_other_trips()
+        context["prev_trip"], context["next_trip"] = self.get_other_trips()
         return context
 
     def post(self, request, *args, **kwargs):
@@ -197,16 +197,16 @@ class ChairTripView(DetailView):
         if next_trip:
             return redirect(
                 reverse(
-                    'view_trip_for_approval',
+                    "view_trip_for_approval",
                     args=(self.activity_enum.value, next_trip.id),
                 )
             )
-        return redirect(reverse('manage_trips', args=(self.activity_enum.value,)))
+        return redirect(reverse("manage_trips", args=(self.activity_enum.value,)))
 
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         try:
-            enums.Activity(self.kwargs['activity'])
+            enums.Activity(self.kwargs["activity"])
         except ValueError:
             raise Http404  # noqa: B904
 

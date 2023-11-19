@@ -51,7 +51,7 @@ class GroupedTrips(TypedDict):
 
 class DeleteParticipantView(DeleteView):
     model = models.Participant
-    success_url = reverse_lazy('participant_lookup')
+    success_url = reverse_lazy("participant_lookup")
 
     def delete(self, request, *args, **kwargs):
         redir = super().delete(request, *args, **kwargs)
@@ -69,8 +69,8 @@ class ParticipantEditMixin(TemplateView):
 
     request: RequestWithParticipant
 
-    template_name = 'profile/edit.html'
-    update_msg = 'Personal information updated successfully'
+    template_name = "profile/edit.html"
+    update_msg = "Personal information updated successfully"
 
     @property
     def user(self):
@@ -82,7 +82,7 @@ class ParticipantEditMixin(TemplateView):
 
     @property
     def has_car(self) -> bool:
-        return 'has_car' in self.request.POST
+        return "has_car" in self.request.POST
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         """Return a dictionary primarily of forms to for template rendering.
@@ -104,50 +104,50 @@ class ParticipantEditMixin(TemplateView):
         e_contact = e_info and e_info.emergency_contact
 
         par_kwargs = {
-            'prefix': 'participant',
-            'instance': participant,
-            'user': self.user,
+            "prefix": "participant",
+            "instance": participant,
+            "user": self.user,
         }
         if not participant:
-            par_kwargs["initial"] = {'email': self.user.email}
+            par_kwargs["initial"] = {"email": self.user.email}
         elif (  # noqa: SIM102
             participant.affiliation_dated or not participant.info_current
         ):
             # Nulling this out forces the user to consciously choose an accurate value
             # (Only null out the field if it's the user editing their own profile, though)
             if self.request.participant == participant:
-                par_kwargs["initial"] = {'affiliation': None}
+                par_kwargs["initial"] = {"affiliation": None}
 
         verified_mit_emails = self.user.emailaddress_set.filter(
-            verified=True, email__iendswith='mit.edu'
+            verified=True, email__iendswith="mit.edu"
         )
 
         context = {
             # For everybody but an admin, `participant` is just `viewing_participant`
-            'participant': participant,
-            'medical_info_scrubbed': bool(
+            "participant": participant,
+            "medical_info_scrubbed": bool(
                 participant and e_info and not e_info.allergies
             ),
-            'has_mit_email': verified_mit_emails.exists(),
-            'currently_has_car': bool(car),
-            'participant_form': forms.ParticipantForm(post, **par_kwargs),
-            'car_form': forms.CarForm(post, instance=car, prefix='car'),
-            'emergency_info_form': forms.EmergencyInfoForm(
-                post, instance=e_info, prefix='einfo'
+            "has_mit_email": verified_mit_emails.exists(),
+            "currently_has_car": bool(car),
+            "participant_form": forms.ParticipantForm(post, **par_kwargs),
+            "car_form": forms.CarForm(post, instance=car, prefix="car"),
+            "emergency_info_form": forms.EmergencyInfoForm(
+                post, instance=e_info, prefix="einfo"
             ),
-            'emergency_contact_form': forms.EmergencyContactForm(
-                post, instance=e_contact, prefix='econtact'
+            "emergency_contact_form": forms.EmergencyContactForm(
+                post, instance=e_contact, prefix="econtact"
             ),
         }
 
         # Boolean: Already responded to question.
         # None: has not responded yet
         if post:
-            context['has_car_checked'] = self.has_car
+            context["has_car_checked"] = self.has_car
         elif participant:
-            context['has_car_checked'] = bool(participant.car)
+            context["has_car_checked"] = bool(participant.car)
         else:
-            context['has_car_checked'] = None
+            context["has_car_checked"] = None
 
         return context
 
@@ -158,15 +158,15 @@ class ParticipantEditMixin(TemplateView):
         """
         context = self.get_context_data()
         required_dict = {
-            'participant_form': context['participant_form'],
-            'car_form': context['car_form'],
-            'emergency_info_form': context['emergency_info_form'],
-            'emergency_contact_form': context['emergency_contact_form'],
+            "participant_form": context["participant_form"],
+            "car_form": context["car_form"],
+            "emergency_info_form": context["emergency_info_form"],
+            "emergency_contact_form": context["emergency_contact_form"],
         }
 
         if not self.has_car:
-            required_dict.pop('car_form')
-            context['car_form'] = forms.CarForm()  # Avoid validation errors
+            required_dict.pop("car_form")
+            context["car_form"] = forms.CarForm()  # Avoid validation errors
 
         if all(form.is_valid() for form in required_dict.values()):
             orig_affiliation = self.participant and self.participant.affiliation
@@ -202,22 +202,22 @@ class ParticipantEditMixin(TemplateView):
 
         :param post_forms: Dictionary of <template_name>: <form>
         """
-        participant = post_forms['participant_form'].save(commit=False)
+        participant = post_forms["participant_form"].save(commit=False)
         if participant.pk:  # Existing participant! Lock for UPDATE now.
             # (we don't also lock other objects via JOIN since those can be NULL)
             models.Participant.objects.filter(pk=participant.pk).select_for_update()
 
-        e_contact = post_forms['emergency_contact_form'].save()
-        e_info = post_forms['emergency_info_form'].save(commit=False)
+        e_contact = post_forms["emergency_contact_form"].save()
+        e_info = post_forms["emergency_info_form"].save(commit=False)
         e_info.emergency_contact = e_contact
-        e_info = post_forms['emergency_info_form'].save()
+        e_info = post_forms["emergency_info_form"].save()
 
         participant.user_id = user.id
         participant.emergency_info = e_info
 
         del_car = False
         try:
-            car = post_forms['car_form'].save()
+            car = post_forms["car_form"].save()
         except KeyError:  # No CarForm posted
             # If Participant existed and has a stored Car, mark it for deletion
             if participant.car:
@@ -239,7 +239,7 @@ class ParticipantEditMixin(TemplateView):
         return super().dispatch(request, *args, **kwargs)
 
     def success_redirect(self):
-        return redirect(self.request.GET.get('next', 'home'))
+        return redirect(self.request.GET.get("next", "home"))
 
 
 class EditParticipantView(ParticipantEditMixin, SingleObjectMixin):
@@ -251,12 +251,12 @@ class EditParticipantView(ParticipantEditMixin, SingleObjectMixin):
 
     @property
     def participant(self) -> models.Participant:
-        if not hasattr(self, 'object'):
+        if not hasattr(self, "object"):
             self.object = self.get_object()
         return cast(models.Participant, self.object)
 
     def success_redirect(self):
-        return redirect(reverse('view_participant', args=(self.participant.id,)))
+        return redirect(reverse("view_participant", args=(self.participant.id,)))
 
     @method_decorator(admin_only)
     def dispatch(self, request, *args, **kwargs):
@@ -274,25 +274,25 @@ class EditProfileView(ParticipantEditMixin):
 
     def get(self, request, *args, **kwargs):
         for problem in problems_with_profile(request.participant):
-            messages.info(request, problem.how_to_fix, extra_tags='safe')
+            messages.info(request, problem.how_to_fix, extra_tags="safe")
         return super().get(request, *args, **kwargs)
 
 
 class ParticipantLookupView(TemplateView, FormView):
-    template_name = 'participants/view.html'
+    template_name = "participants/view.html"
     form_class = forms.ParticipantLookupForm
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data()
-        context['user_viewing'] = False
-        context['lookup_form'] = self.get_form(self.form_class)
+        context["user_viewing"] = False
+        context["lookup_form"] = self.get_form(self.form_class)
         return context
 
     def form_valid(self, form):
-        participant = form.cleaned_data['participant']
-        return redirect(reverse('view_participant', args=(participant.id,)))
+        participant = form.cleaned_data["participant"]
+        return redirect(reverse("view_participant", args=(participant.id,)))
 
-    @method_decorator(group_required('leaders'))
+    @method_decorator(group_required("leaders"))
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
@@ -304,15 +304,15 @@ class ParticipantView(
 ):
     request: RequestWithParticipant
     model = models.Participant
-    context_object_name = 'participant'
+    context_object_name = "participant"
 
     def get_queryset(self) -> QuerySet[models.Participant]:
         """Select related fields that will be displayed on the page."""
         par = super().get_queryset()
         return par.select_related(
-            'emergency_info__emergency_contact',
-            'car',
-            'lotteryinfo',
+            "emergency_info__emergency_contact",
+            "car",
+            "lotteryinfo",
         )
 
     def get_trips(self) -> GroupedTrips:
@@ -328,7 +328,7 @@ class ParticipantView(
         in_past = Q(trip_date__lt=today)
 
         # Prefetch data to avoid n+1 queries enumerating trips
-        prefetches = ['leaders__leaderrating_set']
+        prefetches = ["leaders__leaderrating_set"]
 
         # Trips where the user was participating
         trips = models.Trip.objects.filter(is_par).prefetch_related(*prefetches)
@@ -346,42 +346,42 @@ class ParticipantView(
         upcoming_first = ("trip_date", "-time_created")
         recent_first = ("-trip_date", "-time_created")
         upcoming_trips: _TripDescriptor = {
-            'on_trip': accepted.filter(in_future).order_by(*upcoming_first),
-            'waitlisted': waitlisted.filter(in_future).order_by(*upcoming_first),
-            'leader': trips_led.filter(in_future).order_by(*upcoming_first),
-            'creator': created_but_not_on.filter(in_future).order_by(*upcoming_first),
-            'wimp': participant.wimp_trips.filter(in_future).order_by(*upcoming_first),
+            "on_trip": accepted.filter(in_future).order_by(*upcoming_first),
+            "waitlisted": waitlisted.filter(in_future).order_by(*upcoming_first),
+            "leader": trips_led.filter(in_future).order_by(*upcoming_first),
+            "creator": created_but_not_on.filter(in_future).order_by(*upcoming_first),
+            "wimp": participant.wimp_trips.filter(in_future).order_by(*upcoming_first),
         }
         past_trips: _TripDescriptor = {
-            'on_trip': accepted.filter(in_past).order_by(*recent_first),
-            'waitlisted': None,
-            'leader': trips_led.filter(in_past).order_by(*recent_first),
-            'creator': created_but_not_on.filter(in_past).order_by(*recent_first),
-            'wimp': participant.wimp_trips.filter(in_past).order_by(*recent_first),
+            "on_trip": accepted.filter(in_past).order_by(*recent_first),
+            "waitlisted": None,
+            "leader": trips_led.filter(in_past).order_by(*recent_first),
+            "creator": created_but_not_on.filter(in_past).order_by(*recent_first),
+            "wimp": participant.wimp_trips.filter(in_past).order_by(*recent_first),
         }
-        return {'current': upcoming_trips, 'past': past_trips}
+        return {"current": upcoming_trips, "past": past_trips}
 
     @staticmethod
     def get_stats(trips: GroupedTrips) -> list[str]:
-        if not any(trips['past'].values()):
+        if not any(trips["past"].values()):
             return []
 
         def count(
             key: Literal["on_trip", "creator", "leader", "wimp", "waitlisted"]
         ) -> str:
-            matching_trips = trips['past'][key]
+            matching_trips = trips["past"][key]
             assert matching_trips is not None  # waitlisted can be omitted
             num = len(matching_trips)
-            plural = '' if num == 1 else 's'
+            plural = "" if num == 1 else "s"
             return f"{num} trip{plural}"
 
         # Stats that are always reported for leaders
         stats = [f"Attended {count('on_trip')}", f"Led {count('leader')}"]
 
         # Optional stats
-        if trips['past']['wimp']:
+        if trips["past"]["wimp"]:
             stats.append(f"WIMPed {count('wimp')}")
-        if trips['past']['creator']:
+        if trips["past"]["creator"]:
             stats.append(f"Created (but wasn't on) {count('creator')}")
 
         return stats
@@ -418,9 +418,9 @@ class ParticipantView(
             attended_lectures = False  # Maybe they actually did, but we're not showing.
 
         return {
-            'can_set_attendance': can_set_attendance,
-            'show_attendance': show_attendance,
-            'attended_lectures': attended_lectures,
+            "can_set_attendance": can_set_attendance,
+            "show_attendance": show_attendance,
+            "attended_lectures": attended_lectures,
         }
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
@@ -434,21 +434,21 @@ class ParticipantView(
         context = {
             **super().get_context_data(**kwargs),
             **self._lecture_info(participant, user_viewing),
-            'car_form': participant.car and forms.CarForm(instance=participant.car),
-            'emergency_contact_form': forms.EmergencyContactForm(instance=e_contact),
-            'emergency_info_form': forms.EmergencyInfoForm(instance=e_info),
-            'participant': participant,
-            'ratings': participant.ratings(must_be_active=True),
-            'stats': self.get_stats(trips),
-            'trips': trips,
-            'user_viewing': user_viewing,
-            'wimp': self.wimp,
+            "car_form": participant.car and forms.CarForm(instance=participant.car),
+            "emergency_contact_form": forms.EmergencyContactForm(instance=e_contact),
+            "emergency_info_form": forms.EmergencyInfoForm(instance=e_info),
+            "participant": participant,
+            "ratings": participant.ratings(must_be_active=True),
+            "stats": self.get_stats(trips),
+            "trips": trips,
+            "user_viewing": user_viewing,
+            "wimp": self.wimp,
         }
 
         if not user_viewing:
-            context['all_feedback'] = participant.feedback_set.select_related(
-                'trip', 'leader'
-            ).prefetch_related('leader__leaderrating_set')
+            context["all_feedback"] = participant.feedback_set.select_related(
+                "trip", "leader"
+            ).prefetch_related("leader__leaderrating_set")
 
         return context
 
@@ -493,7 +493,7 @@ class ParticipantDetailView(ParticipantView, FormView, DetailView):
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
         args = self.request.GET
-        show_feedback = args.get('show_feedback', '0') not in {'0', ''}
+        show_feedback = args.get("show_feedback", "0") not in {"0", ""}
         if show_feedback:
             participant = self.object
 
@@ -504,13 +504,13 @@ class ParticipantDetailView(ParticipantView, FormView, DetailView):
                 participant,
                 participant.pk,
             )
-        context['hide_comments'] = not show_feedback
-        context['display_log_notice'] = show_feedback
+        context["hide_comments"] = not show_feedback
+        context["display_log_notice"] = show_feedback
         return context
 
     def dispatch(self, request, *args, **kwargs):
         if request.participant == self.get_object():
-            return redirect(reverse('home'))
+            return redirect(reverse("home"))
         return super().dispatch(request, *args, **kwargs)
 
 
@@ -518,43 +518,43 @@ class ProfileView(ParticipantView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         args = self.request.GET
-        context['just_signed'] = args.get('event') == 'signing_complete'
+        context["just_signed"] = args.get("event") == "signing_complete"
         return context
 
     @staticmethod
     def render_landing_page(request: HttpRequest) -> HttpResponse:
         today = date_utils.local_date()
         context = {
-            'current_trips': annotated_for_trip_list(
+            "current_trips": annotated_for_trip_list(
                 models.Trip.objects.filter(trip_date__gte=today).order_by(
-                    'trip_date', '-time_created'
+                    "trip_date", "-time_created"
                 )
             )
         }
 
-        num_trips = len(context['current_trips'])  # Use len to avoid extra query
+        num_trips = len(context["current_trips"])  # Use len to avoid extra query
 
         # If we don't have many upcoming trips, show some recent ones
         if num_trips < 8:
             extra_trips = max(2, 8 - num_trips)
-            context['recent_trips'] = annotated_for_trip_list(
+            context["recent_trips"] = annotated_for_trip_list(
                 models.Trip.objects.filter(trip_date__lt=today).order_by(
-                    '-trip_date', '-time_created'
+                    "-trip_date", "-time_created"
                 )[:extra_trips]
             )
 
-        return render(request, 'home.html', context)
+        return render(request, "home.html", context)
 
     def get(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
             return self.render_landing_page(request)
         if not request.participant:
-            return redirect(reverse('edit_profile'))
+            return redirect(reverse("edit_profile"))
 
         # We _really_ want accurate information on affiliation.
         # Immediately redirect people so we can get updated affiliation
         if request.participant.affiliation_dated:
-            return redirect(reverse('edit_profile'))
+            return redirect(reverse("edit_profile"))
 
         ws.messages.leader.Messages(request).supply()
         ws.messages.participant.Messages(request).supply()
@@ -563,7 +563,7 @@ class ProfileView(ParticipantView):
         return super().get(request, *args, **kwargs)
 
     def get_object(self, queryset=None):
-        self.kwargs['pk'] = self.request.participant.id
+        self.kwargs["pk"] = self.request.participant.id
         return super().get_object(queryset)
 
     # Login is not required - we'll handle that in `get()`

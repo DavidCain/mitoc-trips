@@ -31,7 +31,7 @@ def new_fcfs_signup(sender, instance, created, raw, using, update_fields, **kwar
 
     When a participant tries to sign up, put them on the trip, or its waiting list.
     """
-    if created and not getattr(instance, 'skip_signals', False):
+    if created and not getattr(instance, "skip_signals", False):
         trip_or_wait(instance)
 
 
@@ -51,7 +51,7 @@ def empty_waitlist(sender, instance, using, **kwargs):
 @receiver(post_delete, sender=SignUp)
 def free_spot_on_trip(sender, instance, using, **kwargs):
     """When a participant deletes a signup, update queues if applicable."""
-    if not getattr(instance, 'skip_signals', False):
+    if not getattr(instance, "skip_signals", False):
         update_queues_if_trip_open(instance.trip)
 
 
@@ -86,7 +86,7 @@ def delete_leader_signups(
     The issue was solved in Django 1.9, so this is a hack until we upgrade.
     """
     # Signal order: pre_clear, post_clear, pre_add, post_add, [completed]
-    if action == 'post_add':
+    if action == "post_add":
         leaders = instance.leaders.all()
         instance.leadersignup_set.exclude(participant__in=leaders).delete()
 
@@ -108,7 +108,7 @@ def revoke_existing_task(sender, instance, raw, using, update_fields, **kwargs):
 
     # TODO: There's a race condition here; we should lock `trip` exclusively
     new_close_time = instance.signups_close_at != trip.signups_close_at
-    needs_revoke = new_close_time or trip.algorithm != 'lottery'
+    needs_revoke = new_close_time or trip.algorithm != "lottery"
     if trip.lottery_task_id and needs_revoke:
         try:
             app.control.revoke(trip.lottery_task_id)
@@ -130,7 +130,7 @@ def add_lottery_task(sender, instance, created, raw, using, update_fields, **kwa
 
     if trip.program_enum == enums.Program.WINTER_SCHOOL:
         return  # Winter School lotteries are handled separately
-    if trip.lottery_task_id or trip.algorithm != 'lottery':
+    if trip.lottery_task_id or trip.algorithm != "lottery":
         return  # Only new lottery trips get a new task
 
     try:

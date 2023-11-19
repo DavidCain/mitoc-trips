@@ -18,16 +18,16 @@ class SignupForTripTests(TestCase):
     def _make_trip(**kwargs):
         """Create an upcoming FCFS trip."""
         trip_kwargs = {
-            'program': enums.Program.CLIMBING.value,
-            'name': "Some Cool Upcoming Trip",
-            'trip_date': date(2025, 12, 14),
-            'signups_open_at': datetime(
+            "program": enums.Program.CLIMBING.value,
+            "name": "Some Cool Upcoming Trip",
+            "trip_date": date(2025, 12, 14),
+            "signups_open_at": datetime(
                 2025, 12, 10, 12, 0, tzinfo=ZoneInfo("America/New_York")
             ),
-            'signups_close_at': datetime(
+            "signups_close_at": datetime(
                 2025, 12, 13, 21, 30, tzinfo=ZoneInfo("America/New_York")
             ),
-            'algorithm': 'fcfs',
+            "algorithm": "fcfs",
             **kwargs,
         }
         return factories.TripFactory.create(**trip_kwargs)
@@ -47,21 +47,21 @@ class SignupForTripTests(TestCase):
         existing_signup = trip.signup_set.filter(participant=participant).first()
         context = Context(
             {
-                'trip': trip,
-                'participant': participant,
-                'user': participant.user,
-                'existing_signup': existing_signup,
+                "trip": trip,
+                "participant": participant,
+                "user": participant.user,
+                "existing_signup": existing_signup,
             }
         )
         html_template = Template(
-            '{% load signup_tags %}{% signup_for_trip trip participant existing_signup %}'
+            "{% load signup_tags %}{% signup_for_trip trip participant existing_signup %}"
         )
         raw_html = html_template.render(context)
-        return BeautifulSoup(raw_html, 'html.parser')
+        return BeautifulSoup(raw_html, "html.parser")
 
     def test_participant_with_problems_must_correct_them_first(self):
         # Make a Participant without a full name (we require one)
-        participant = factories.ParticipantFactory.create(name='Houdini')
+        participant = factories.ParticipantFactory.create(name="Houdini")
         trip = self._make_trip()
 
         self.assertIn(
@@ -74,8 +74,8 @@ class SignupForTripTests(TestCase):
 
         soup = self._render(participant, trip)
 
-        text = soup.find(class_='alert-danger').get_text(' ', strip=True)
-        self.assertIn('update your personal information', text)
+        text = soup.find(class_="alert-danger").get_text(" ", strip=True)
+        self.assertIn("update your personal information", text)
 
     def test_wimp_cannot_sign_up_for_trip(self):
         """ " You can't be the emergency contact while attending a trip."""
@@ -88,14 +88,14 @@ class SignupForTripTests(TestCase):
 
         soup = self._render(wimp_participant, trip)
 
-        info = soup.find(class_='alert-info').get_text(' ', strip=True)
-        self.assertEqual(info, 'Signups are open!')
+        info = soup.find(class_="alert-info").get_text(" ", strip=True)
+        self.assertEqual(info, "Signups are open!")
 
         self.assertEqual(
-            strip_whitespace(soup.find(class_='alert-danger').text),
+            strip_whitespace(soup.find(class_="alert-danger").text),
             "In order to participate on this trip, you must be replaced in your role as the trip WIMP.",
         )
-        self.assertIsNone(soup.find('form'))
+        self.assertIsNone(soup.find("form"))
 
     def test_leader_signup_allowed_for_open_activities(self):
         """Any leader can sign up as a leader for open program trips."""
@@ -112,9 +112,9 @@ class SignupForTripTests(TestCase):
 
         soup = self._render(leader, circus_trip)
         self.assertTrue(
-            soup.find('button', type='submit', string='Sign up as participant')
+            soup.find("button", type="submit", string="Sign up as participant")
         )
-        self.assertTrue(soup.find('button', type='submit', string='Sign up as leader'))
+        self.assertTrue(soup.find("button", type="submit", string="Sign up as leader"))
 
     def test_leaders_with_rating_can_sign_up(self):
         """Leaders with an active rating in the activity can sign up as leaders."""
@@ -126,28 +126,28 @@ class SignupForTripTests(TestCase):
         climbing_leader = self._leader(models.LeaderRating.CLIMBING)
 
         climbing_soup = self._render(climbing_leader, climbing_trip)
-        climbing_form = climbing_soup.find('form', attrs={'action': '/trips/signup/'})
+        climbing_form = climbing_soup.find("form", attrs={"action": "/trips/signup/"})
         self.assertTrue(
             climbing_form.find(
-                'button',
-                type='submit',
-                string='Sign up as participant',
-                attrs={'formaction': None},  # Uses default form `action`
+                "button",
+                type="submit",
+                string="Sign up as participant",
+                attrs={"formaction": None},  # Uses default form `action`
             )
         )
         self.assertTrue(
             climbing_form.find(
-                'button',
-                type='submit',
-                string='Sign up as leader',
-                attrs={'formaction': '/trips/signup/leader/'},
+                "button",
+                type="submit",
+                string="Sign up as leader",
+                attrs={"formaction": "/trips/signup/leader/"},
             )
         )
 
         hiking_leader = self._leader(models.LeaderRating.HIKING)
         soup = self._render(hiking_leader, climbing_trip)
-        self.assertTrue(soup.find('button', type='submit', string='Sign up'))
-        self.assertFalse(soup.find('button', type='submit', string='Sign up as leader'))
+        self.assertTrue(soup.find("button", type="submit", string="Sign up"))
+        self.assertFalse(soup.find("button", type="submit", string="Sign up as leader"))
 
     def test_not_yet_open(self):
         trip = self._make_trip(
@@ -168,10 +168,10 @@ class SignupForTripTests(TestCase):
         self.assertFalse(any(participant.reasons_cannot_attend(trip)))
         soup = self._render(participant, trip)
         self.assertEqual(
-            soup.find(class_='alert-info').get_text(' ', strip=True),
-            'Signups for this trip are not yet open.',
+            soup.find(class_="alert-info").get_text(" ", strip=True),
+            "Signups for this trip are not yet open.",
         )
-        self.assertIsNone(soup.find('form'))
+        self.assertIsNone(soup.find("form"))
 
         # Make that same participant into a leader!
         rating = factories.LeaderRatingFactory.create(
@@ -180,17 +180,17 @@ class SignupForTripTests(TestCase):
         participant.leaderrating_set.add(rating)
         leader_soup = self._render(participant, trip)
         self.assertEqual(
-            leader_soup.find(class_='alert-info').get_text(' ', strip=True),
-            'Signups for this trip are not yet open.',
+            leader_soup.find(class_="alert-info").get_text(" ", strip=True),
+            "Signups for this trip are not yet open.",
         )
         self.assertTrue(participant.is_leader)
 
         # The trip is upcoming, allows leader signups, and the participant can lead biking trips!
         self.assertEqual(
-            leader_soup.find(class_='alert-success').get_text(' ', strip=True),
-            'However, you can sign up early as a leader!',
+            leader_soup.find(class_="alert-success").get_text(" ", strip=True),
+            "However, you can sign up early as a leader!",
         )
-        self.assertTrue(leader_soup.find('form'))
+        self.assertTrue(leader_soup.find("form"))
 
     def test_closed_trip(self):
         """Nobody may sign up after signups close."""
@@ -202,10 +202,10 @@ class SignupForTripTests(TestCase):
         self.assertTrue(trip.signups_closed)
         soup = self._render(factories.ParticipantFactory(), trip)
         self.assertEqual(
-            soup.find(class_='alert-info').get_text(' ', strip=True),
-            'Signups for this trip are closed.',
+            soup.find(class_="alert-info").get_text(" ", strip=True),
+            "Signups for this trip are closed.",
         )
-        self.assertIsNone(soup.find('form'))
+        self.assertIsNone(soup.find("form"))
 
     def test_already_signed_up(self):
         """We prohibit people from signing up twice."""
@@ -214,40 +214,40 @@ class SignupForTripTests(TestCase):
         self.assertTrue(trip.upcoming)
 
         soup = self._render(signup.participant, trip)
-        self.assertIsNone(soup.find('form'))
+        self.assertIsNone(soup.find("form"))
         self.assertEqual(
-            soup.find(class_='alert-success').get_text(' ', strip=True),
-            'You are signed up for this trip.',
+            soup.find(class_="alert-success").get_text(" ", strip=True),
+            "You are signed up for this trip.",
         )
         self.assertTrue(
             soup.find(
-                'p',
-                string='If you can no longer attend this trip, let your leaders know.',
+                "p",
+                string="If you can no longer attend this trip, let your leaders know.",
             )
         )
 
     def test_signed_up_for_lottery_trip_but_may_drop(self):
         """Participants can always drop off of lottery trips."""
-        trip = self._make_trip(algorithm='lottery', let_participants_drop=False)
+        trip = self._make_trip(algorithm="lottery", let_participants_drop=False)
         signup = factories.SignUpFactory.create(trip=trip, on_trip=False)
 
         soup = self._render(signup.participant, trip)
 
-        msg = soup.find(class_='alert-success').get_text(' ', strip=True)
+        msg = soup.find(class_="alert-success").get_text(" ", strip=True)
         self.assertIn("You're signed up for this trip's lottery.", msg)
         self.assertIn("You'll find out if you have a spot after the lottery runs.", msg)
 
-        self.assertIsNone(soup.find('form'))
-        self.assertTrue(soup.find('delete', attrs={'data-label': 'Drop off trip'}))
+        self.assertIsNone(soup.find("form"))
+        self.assertTrue(soup.find("delete", attrs={"data-label": "Drop off trip"}))
 
     def test_signed_up_for_fcfs_trip_but_may_drop(self):
         """FCFS trips can optionally support dropping off."""
-        trip = self._make_trip(algorithm='fcfs', let_participants_drop=True)
+        trip = self._make_trip(algorithm="fcfs", let_participants_drop=True)
         signup = factories.SignUpFactory.create(trip=trip, on_trip=True)
 
         soup = self._render(signup.participant, trip)
-        self.assertIsNone(soup.find('form'))
-        self.assertTrue(soup.find('delete', attrs={'data-label': 'Drop off trip'}))
+        self.assertIsNone(soup.find("form"))
+        self.assertTrue(soup.find("delete", attrs={"data-label": "Drop off trip"}))
 
     def test_signed_up_for_another_trip_that_day(self):
         trip = self._make_trip(name="Some Trip That Same Day")
@@ -259,13 +259,13 @@ class SignupForTripTests(TestCase):
 
         # The participant is warned if trying to sign up that they have a trip that day!
         soup = self._render(signup.participant, same_day_trip)
-        danger = soup.find(class_='alert alert-danger')
+        danger = soup.find(class_="alert alert-danger")
         self.assertEqual(
             strip_whitespace(danger.text),
             "Are you sure you can attend? You're also attending Some Trip That Same Day.",
         )
         # They can still sign up, though!
-        self.assertTrue(soup.find('form'))
+        self.assertTrue(soup.find("form"))
 
     def test_leading_another_trip_that_day(self):
         trip = self._make_trip(name="Some Trip That Same Day")
@@ -277,16 +277,16 @@ class SignupForTripTests(TestCase):
 
         # The leader is warned that they have a trip that day!
         soup = self._render(leader, same_day_trip)
-        danger = soup.find(class_='alert alert-danger')
+        danger = soup.find(class_="alert alert-danger")
         self.assertEqual(
             strip_whitespace(danger.text),
             "Are you sure you can attend? You're also attending Some Trip That Same Day.",
         )
         # They can still sign up, though!
-        self.assertTrue(soup.find('form'))
+        self.assertTrue(soup.find("form"))
 
     def test_same_day_but_no_warning(self):
-        trip = self._make_trip(name='foo')
+        trip = self._make_trip(name="foo")
 
         # We only look at signups where you're *on* the trip
         signup = factories.SignUpFactory.create(trip=trip, on_trip=False)
@@ -310,23 +310,23 @@ class SignupForTripTests(TestCase):
         self.assertEqual(same_day_trip.trip_date, trip.trip_date)
         for par in [off_trip, leader, yesterday_par]:
             soup = self._render(par, same_day_trip)
-            self.assertFalse(soup.find(class_='alert alert-danger'))
-            self.assertTrue(soup.find('form'))
+            self.assertFalse(soup.find(class_="alert alert-danger"))
+            self.assertTrue(soup.find("form"))
 
 
 class MembershipActiveTests(TestCase):
     @staticmethod
     def _render(participant):
-        context = Context({'participant': participant})
+        context = Context({"participant": participant})
         html_template = Template(
-            '{% load signup_tags %}{% if participant|membership_active %}Active!{% endif %}'
+            "{% load signup_tags %}{% if participant|membership_active %}Active!{% endif %}"
         )
         return html_template.render(context).strip()
 
     def test_no_cached_membership(self):
         """The filter just naively treats a lacking cached membership as not active."""
         raw_html = self._render(factories.ParticipantFactory.create(membership=None))
-        self.assertEqual(raw_html, '')
+        self.assertEqual(raw_html, "")
 
     def test_active_membership(self):
         """Active memberships return True."""
@@ -335,7 +335,7 @@ class MembershipActiveTests(TestCase):
         par = factories.ParticipantFactory.create(membership=active_membership)
         self.assertTrue(par.membership_active)
 
-        self.assertEqual(self._render(par), 'Active!')
+        self.assertEqual(self._render(par), "Active!")
 
     @freeze_time("11 Dec 2025 12:00:00 EST")
     def test_inactive_membership(self):
@@ -347,27 +347,27 @@ class MembershipActiveTests(TestCase):
         par = factories.ParticipantFactory.create(membership=inactive_membership)
         self.assertFalse(par.membership_active)
 
-        self.assertEqual(self._render(par), '')
+        self.assertEqual(self._render(par), "")
 
 
 class MissedLecturesForTest(TestCase):
     @staticmethod
     def _render(participant, trip):
-        context = Context({'participant': participant, 'trip': trip})
+        context = Context({"participant": participant, "trip": trip})
         html_template = Template(
-            '{% load signup_tags %}{% if participant|missed_lectures_for:trip %}Missed!{% endif %}'
+            "{% load signup_tags %}{% if participant|missed_lectures_for:trip %}Missed!{% endif %}"
         )
         return html_template.render(context).strip()
 
     def test_no_participant(self):
         raw_html = self._render(participant=None, trip=factories.TripFactory.create())
-        self.assertEqual(raw_html, '')
+        self.assertEqual(raw_html, "")
 
     def test_not_a_ws_trip(self):
         """WS trips don't regard participants as having 'missed'"""
         trip = factories.TripFactory.create(program=enums.Program.BIKING.value)
         par = factories.ParticipantFactory.create()
-        self.assertEqual(self._render(par, trip), '')
+        self.assertEqual(self._render(par, trip), "")
 
     @freeze_time("Thu Jan 18 2018 12:00:00 EST")
     def test_missed(self):
@@ -376,20 +376,20 @@ class MissedLecturesForTest(TestCase):
         trip = factories.TripFactory.create(
             program=enums.Program.WINTER_SCHOOL.value, trip_date=date(2018, 1, 20)
         )
-        with mock.patch.object(date_utils, 'ws_lectures_complete') as lectures_complete:
+        with mock.patch.object(date_utils, "ws_lectures_complete") as lectures_complete:
             lectures_complete.return_value = True
-            self.assertEqual(self._render(par, trip), 'Missed!')
+            self.assertEqual(self._render(par, trip), "Missed!")
 
 
 class PairingInfoTest(TestCase):
     @staticmethod
     def _render(participant, user_viewing):
-        context = Context({'participant': participant, 'user_viewing': user_viewing})
+        context = Context({"participant": participant, "user_viewing": user_viewing})
         html_template = Template(
-            '{% load signup_tags %}{% pairing_info participant user_viewing %}'
+            "{% load signup_tags %}{% pairing_info participant user_viewing %}"
         )
         raw_html = html_template.render(context).strip()
-        return BeautifulSoup(raw_html, 'html.parser')
+        return BeautifulSoup(raw_html, "html.parser")
 
     def test_nothing_to_report(self):
         par = factories.ParticipantFactory.create()
@@ -399,83 +399,83 @@ class PairingInfoTest(TestCase):
     def test_unrequited_requests(self):
         """We tell participants if others have requested to be paired with them."""
         par = factories.ParticipantFactory.create()
-        factories.LotteryInfoFactory.create(paired_with=par, participant__name='Bob Li')
+        factories.LotteryInfoFactory.create(paired_with=par, participant__name="Bob Li")
         soup = self._render(par, user_viewing=True)
         self.assertEqual(
             strip_whitespace(soup.text),
-            'Bob Li has requested to be paired with you. Change your pairing preferences',
+            "Bob Li has requested to be paired with you. Change your pairing preferences",
         )
 
         # Add one more request, note that they're alphabetized
-        factories.LotteryInfoFactory.create(paired_with=par, participant__name='Ana Ng')
+        factories.LotteryInfoFactory.create(paired_with=par, participant__name="Ana Ng")
         soup = self._render(par, user_viewing=True)
         self.assertEqual(
-            [strip_whitespace(tag.text) for tag in soup.find_all('li')],
+            [strip_whitespace(tag.text) for tag in soup.find_all("li")],
             [
-                'Ana Ng has requested to be paired with you.',
-                'Bob Li has requested to be paired with you.',
+                "Ana Ng has requested to be paired with you.",
+                "Bob Li has requested to be paired with you.",
             ],
         )
         # We don't link to any participant, since normal users cannot see that
-        self.assertEqual(soup.find('a').text, 'Change your pairing preferences')
+        self.assertEqual(soup.find("a").text, "Change your pairing preferences")
 
     def test_made_unrequited_requests(self):
         """We warn users if they requested to be paired with somebody else."""
         par = factories.ParticipantFactory.create()
-        ringo = factories.ParticipantFactory.create(name='Ringo Starr')
+        ringo = factories.ParticipantFactory.create(name="Ringo Starr")
         factories.LotteryInfoFactory.create(participant=par, paired_with=ringo)
         soup = self._render(par, user_viewing=True)
         self.assertEqual(
             strip_whitespace(soup.text),
-            'Requested to be paired with Ringo Starr. '
-            'Until Ringo Starr does the same, no effort will be made to place you both on the same trip. '
-            'Change your pairing preferences',
+            "Requested to be paired with Ringo Starr. "
+            "Until Ringo Starr does the same, no effort will be made to place you both on the same trip. "
+            "Change your pairing preferences",
         )
 
         self.assertEqual(
             strip_whitespace(self._render(par, user_viewing=False).text),
-            'Requested to be paired with Ringo Starr.',
+            "Requested to be paired with Ringo Starr.",
         )
 
     def test_user_is_not_viewing(self):
         """We render links to other participants (for leaders and admins)."""
-        arthur = factories.ParticipantFactory.create(name='King Arthur')
+        arthur = factories.ParticipantFactory.create(name="King Arthur")
 
         # Bob (and bob's pairing request) come first, but we'll sort for consistency
-        bob = factories.ParticipantFactory.create(name='Bob Li')
-        ana = factories.ParticipantFactory.create(name='Ana Ng')
+        bob = factories.ParticipantFactory.create(name="Bob Li")
+        ana = factories.ParticipantFactory.create(name="Ana Ng")
         factories.LotteryInfoFactory.create(paired_with=arthur, participant=ana)
         factories.LotteryInfoFactory.create(paired_with=arthur, participant=bob)
 
         soup = self._render(arthur, user_viewing=False)
         self.assertEqual(
-            [strip_whitespace(tag.text) for tag in soup.find_all('li')],
+            [strip_whitespace(tag.text) for tag in soup.find_all("li")],
             [
-                'Ana Ng has requested to be paired with King Arthur.',
-                'Bob Li has requested to be paired with King Arthur.',
+                "Ana Ng has requested to be paired with King Arthur.",
+                "Bob Li has requested to be paired with King Arthur.",
             ],
         )
 
         # We just link to the requesting users, no "change your preferences"
         self.assertEqual(
-            [tag['href'] for tag in soup.find_all('a')],
-            [f'/participants/{ana.pk}/', f'/participants/{bob.pk}/'],
+            [tag["href"] for tag in soup.find_all("a")],
+            [f"/participants/{ana.pk}/", f"/participants/{bob.pk}/"],
         )
 
     def test_reciprocally_paired(self):
         """A successful pairing just warns users about what to expect."""
-        bert = factories.ParticipantFactory.create(name='Bert B')
-        ernie = factories.ParticipantFactory.create(name='Ernie E')
+        bert = factories.ParticipantFactory.create(name="Bert B")
+        ernie = factories.ParticipantFactory.create(name="Ernie E")
 
         factories.LotteryInfoFactory.create(paired_with=bert, participant=ernie)
         factories.LotteryInfoFactory.create(paired_with=ernie, participant=bert)
 
         soup = self._render(bert, user_viewing=True)
         self.assertEqual(
-            [strip_whitespace(tag.text) for tag in soup.find_all('p')],
+            [strip_whitespace(tag.text) for tag in soup.find_all("p")],
             [
-                'Paired with Ernie E',
-                'When lotteries run, either both of you will be placed on a trip or neither will.',
-                'Change your pairing preferences',
+                "Paired with Ernie E",
+                "When lotteries run, either both of you will be placed on a trip or neither will.",
+                "Change your pairing preferences",
             ],
         )

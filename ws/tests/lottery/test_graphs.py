@@ -32,7 +32,7 @@ class CycleTests(TestCase):
         self.assertEqual(len(cycle), 2)
         self.assertEqual(
             str(cycle),
-            f'Bert (#{bert.pk}) --> Ernie (#{ernie.pk}) --> Bert (#{bert.pk})...',
+            f"Bert (#{bert.pk}) --> Ernie (#{ernie.pk}) --> Bert (#{bert.pk})...",
         )
         self.assertEqual(list(cycle), [bert, ernie])
         self.assertEqual(cycle, graphs.Cycle([ernie, bert]))
@@ -67,7 +67,7 @@ class CycleTests(TestCase):
         self.assertNotEqual(cycle, {bert, ernie})
 
     def test_same_length_differing_contents(self):
-        a, b, c, d = (factories.ParticipantFactory.create(name=char) for char in 'ABCD')
+        a, b, c, d = (factories.ParticipantFactory.create(name=char) for char in "ABCD")
 
         self.assertNotEqual(graphs.Cycle([a, b]), graphs.Cycle([c, d]))
 

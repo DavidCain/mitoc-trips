@@ -3,7 +3,7 @@ from django import template
 register = template.Library()
 
 
-@register.inclusion_tag('for_templatetags/trip_rental_table.html')
+@register.inclusion_tag("for_templatetags/trip_rental_table.html")
 def trip_rental_table(trip, leader_on_trip, items_by_par, show_serial=False):
     """Display a table of all items rented by participants."""
 
@@ -15,8 +15,8 @@ def trip_rental_table(trip, leader_on_trip, items_by_par, show_serial=False):
     ]
 
     return {
-        'trip': trip,
-        'leader_on_trip': leader_on_trip,
-        'items_by_par': items_by_par,  # List of tuples: (Participant, items)
-        'show_serial': show_serial,
+        "trip": trip,
+        "leader_on_trip": leader_on_trip,
+        "items_by_par": items_by_par,  # List of tuples: (Participant, items)
+        "show_serial": show_serial,
     }

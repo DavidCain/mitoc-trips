@@ -22,7 +22,7 @@ from ws.utils.dates import local_date
 logger = logging.getLogger(__name__)
 
 
-API_BASE = 'https://mitoc-gear.mit.edu/'
+API_BASE = "https://mitoc-gear.mit.edu/"
 
 JsonDict = dict[str, Any]
 
@@ -80,22 +80,22 @@ def query_api(route: str, **params: Any) -> list[JsonDict]:
         # NOTE: We sign the payload here, even though current implementations only use query params.
         # This does technically mean that anyone with a valid token can use the token to query any data.
         # However, tokens aren't given to end users, only used on the systems which already have the secret.
-        headers={'Authorization': gear_bearer_jwt(**params)},
+        headers={"Authorization": gear_bearer_jwt(**params)},
         params=params,
     )
     response.raise_for_status()
 
     body = response.json()
-    results: list[JsonDict] = body['results']
+    results: list[JsonDict] = body["results"]
 
-    if body['next']:
+    if body["next"]:
         logger.error(
             "Results are paginated; this is not expected or handled. "
             "(%s / %s results), URL: %s, Next: %s",
             len(results),
-            body['count'],
+            body["count"],
             response.url,
-            body['next'],
+            body["next"],
         )
 
     return results
@@ -110,7 +110,7 @@ def _verified_emails(user: User) -> list[str]:
         return []
     # (This relation is added by django-allauth, but django-stubs/mypy can't tell)
     emails = user.emailaddress_set  # type: ignore[attr-defined]
-    return sorted(emails.filter(verified=True).values_list('email', flat=True))
+    return sorted(emails.filter(verified=True).values_list("email", flat=True))
 
 
 def query_geardb_for_membership(user: User) -> MembershipWaiver | None:
@@ -122,7 +122,7 @@ def query_geardb_for_membership(user: User) -> MembershipWaiver | None:
         logger.error("Cannot query for user without verified emails")
         return None
 
-    results = query_api('/api-auth/v1/membership_waiver/', email=emails)
+    results = query_api("/api-auth/v1/membership_waiver/", email=emails)
     if not results:
         # This is substantively different from a null result.
         # Rather, it's a *successful* query -- no member found.
@@ -136,14 +136,14 @@ def query_geardb_for_membership(user: User) -> MembershipWaiver | None:
     result = results[0]
 
     def expiration_from_payload(json_dict: JsonDict) -> date | None:
-        if 'expires' not in json_dict:
+        if "expires" not in json_dict:
             return None
-        return date.fromisoformat(json_dict['expires'])
+        return date.fromisoformat(json_dict["expires"])
 
     return MembershipWaiver(
-        result.get('email') or None,  # (Blank emails can be returned)
-        expiration_from_payload(result['membership']),
-        expiration_from_payload(result['waiver']),
+        result.get("email") or None,  # (Blank emails can be returned)
+        expiration_from_payload(result["membership"]),
+        expiration_from_payload(result["waiver"]),
     )
 
 
@@ -174,23 +174,23 @@ def outstanding_items(emails: list[str]) -> Iterator[Rental]:
 
     today = local_date()
 
-    for result in query_api('api-auth/v1/rentals/', email=emails):  # One row per item
-        person, gear = result['person'], result['gear']
+    for result in query_api("api-auth/v1/rentals/", email=emails):  # One row per item
+        person, gear = result["person"], result["gear"]
 
         # Map from the person record back to the requested email address
-        all_known_emails: list[str] = [person['email'], *person['alternate_emails']]
+        all_known_emails: list[str] = [person["email"], *person["alternate_emails"]]
         try:
             email = next(e for e in all_known_emails if e.lower() in to_original_case)
         except StopIteration as err:
             # We should never get a result for a user whose email was not queried
             raise ValueError("Expected at least one email to match!") from err
 
-        checkout_date = datetime.fromisoformat(result['checkedout']).date()
+        checkout_date = datetime.fromisoformat(result["checkedout"]).date()
         yield Rental(
             email=to_original_case[email.lower()],
-            id=gear['id'],
-            name=gear['type']['type_name'],
-            cost=float(gear['type']['rental_amount']),
+            id=gear["id"],
+            name=gear["type"]["type_name"],
+            cost=float(gear["type"]["rental_amount"]),
             checkedout=checkout_date,
             overdue=(today - checkout_date > timedelta(weeks=10)),
         )
@@ -231,28 +231,28 @@ def update_affiliation(participant: models.Participant) -> requests.Response | N
     the same level of granularity as the trips database. This method can sync
     affiliation data to the gear database that it previously lacked.
     """
-    if participant.affiliation == 'S':
+    if participant.affiliation == "S":
         # Deprecated status, participant hasn't logged on in years
         return None
 
     all_verified_emails = EmailAddress.objects.filter(
         verified=True, user_id=participant.user_id
-    ).values_list('email', flat=True)
+    ).values_list("email", flat=True)
 
     other_verified_emails = set(all_verified_emails) - {participant.email}
 
     payload = {
-        'email': participant.email,
-        'affiliation': participant.affiliation,
-        'other_verified_emails': sorted(other_verified_emails),
+        "email": participant.email,
+        "affiliation": participant.affiliation,
+        "other_verified_emails": sorted(other_verified_emails),
     }
     # Note that this may be a 400!
     return requests.put(
-        urljoin(API_BASE, 'api-auth/v1/affiliation/'),
+        urljoin(API_BASE, "api-auth/v1/affiliation/"),
         # NOTE: We sign the payload here, even though current implementations just use the body.
         # This does technically mean that anyone with a valid token can use the token to query any data.
         # However, tokens aren't given to end users, only used on the systems which already have the secret.
-        headers={'Authorization': gear_bearer_jwt(**payload)},
+        headers={"Authorization": gear_bearer_jwt(**payload)},
         json=payload,
         timeout=10,
     )
@@ -278,16 +278,16 @@ def trips_information() -> dict[int, TripsInformation]:
             # (We do multiple JOINs, and can't easily pass a DISTINCT to the Sum)
             num_trips_attended=Sum(signup_on_trip)
         )
-        .values_list('pk', 'num_trips_attended')
+        .values_list("pk", "num_trips_attended")
     )
 
     additional_stats: Iterable[tuple[int, int, int, int]] = (
         models.Participant.objects.all()
         .annotate(
-            num_discounts=Count('discounts', distinct=True),
-            num_trips_led=Count('trips_led', distinct=True),
+            num_discounts=Count("discounts", distinct=True),
+            num_trips_led=Count("trips_led", distinct=True),
         )
-        .values_list('pk', 'user_id', 'num_discounts', 'num_trips_led')
+        .values_list("pk", "user_id", "num_discounts", "num_trips_led")
     )
 
     return {

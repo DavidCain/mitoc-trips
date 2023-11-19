@@ -41,7 +41,7 @@ class TrustGoogleEmailOwnershipAdapter(DefaultSocialAccountAdapter):
 
         # I don't think there's an easy way to identify the provider in use...
         # `request.path` should be at least be '/accounts/google/login/callback/'
-        assert set(settings.SOCIALACCOUNT_PROVIDERS) == {'google'}
+        assert set(settings.SOCIALACCOUNT_PROVIDERS) == {"google"}
 
         email: str = user_email(sociallogin.user)
 

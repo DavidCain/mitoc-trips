@@ -44,13 +44,13 @@ class InitiatedWaiverResult(NamedTuple):
 
 def get_headers() -> dict[str, str]:
     """Get standard headers to be used with every DocuSign API request."""
-    creds = ET.Element('DocuSignCredentials')
-    ET.SubElement(creds, 'Username').text = settings.DOCUSIGN_USERNAME
-    ET.SubElement(creds, 'Password').text = settings.DOCUSIGN_PASSWORD
-    ET.SubElement(creds, 'IntegratorKey').text = settings.DOCUSIGN_INTEGRATOR_KEY
+    creds = ET.Element("DocuSignCredentials")
+    ET.SubElement(creds, "Username").text = settings.DOCUSIGN_USERNAME
+    ET.SubElement(creds, "Password").text = settings.DOCUSIGN_PASSWORD
+    ET.SubElement(creds, "IntegratorKey").text = settings.DOCUSIGN_INTEGRATOR_KEY
     return {
-        'X-DocuSign-Authentication': ET.tostring(creds).decode('utf-8'),
-        'Accept': 'application/json',
+        "X-DocuSign-Authentication": ET.tostring(creds).decode("utf-8"),
+        "Accept": "application/json",
     }
 
 
@@ -65,12 +65,12 @@ def get_base_url() -> str:
     """
     v2_base = settings.DOCUSIGN_API_BASE  # (Demo or production)
     resp = requests.get(
-        v2_base + 'login_information', headers=get_headers(), timeout=10
+        v2_base + "login_information", headers=get_headers(), timeout=10
     )
 
-    login_accounts = cast(list[LoginAccount], resp.json()['loginAccounts'])
+    login_accounts = cast(list[LoginAccount], resp.json()["loginAccounts"])
     assert login_accounts
-    return login_accounts[0]['baseUrl']
+    return login_accounts[0]["baseUrl"]
 
 
 DocusignTabs = dict[str, list[dict[str, Any]]]
@@ -81,20 +81,20 @@ def prefilled_tabs(participant: models.Participant) -> DocusignTabs:
     e_contact = participant.emergency_info.emergency_contact
     docusign_affiliation = AFFILIATION_MAPPING[participant.affiliation]
     return {
-        'textTabs': [
-            {'tabLabel': 'Phone number', 'value': str(participant.cell_phone)},
-            {'tabLabel': "Emergency Contact", 'value': e_contact.name},
-            {'tabLabel': "Emergency Contact Relation", 'value': e_contact.relationship},
+        "textTabs": [
+            {"tabLabel": "Phone number", "value": str(participant.cell_phone)},
+            {"tabLabel": "Emergency Contact", "value": e_contact.name},
+            {"tabLabel": "Emergency Contact Relation", "value": e_contact.relationship},
             {
-                'tabLabel': "Emergency Contact's Phone",
-                'value': str(e_contact.cell_phone),
+                "tabLabel": "Emergency Contact's Phone",
+                "value": str(e_contact.cell_phone),
             },
         ],
         # Map affiliation to a selectable value in the DocuSign template
-        'radioGroupTabs': [
+        "radioGroupTabs": [
             {
-                'groupName': 'Affiliation',
-                'radios': [{'value': docusign_affiliation, 'selected': True}],
+                "groupName": "Affiliation",
+                "radios": [{"value": docusign_affiliation, "selected": True}],
             }
         ],
     }
@@ -128,27 +128,27 @@ def get_roles(
         assert releasor.email == participant.email
 
     releasor_dict: DocusignRole = {
-        'roleName': 'Releasor',
-        'name': releasor.name,
-        'email': releasor.email,
+        "roleName": "Releasor",
+        "name": releasor.name,
+        "email": releasor.email,
     }
     desk: DocusignRole = {
-        'roleName': 'MITOC Desk',
-        'name': 'MITOC Desk',
-        'email': 'mitocdesk@gmail.com',
+        "roleName": "MITOC Desk",
+        "name": "MITOC Desk",
+        "email": "mitocdesk@gmail.com",
     }
 
     # If there's a participant, copy over medical info & such to prefill form
     if participant:
-        releasor_dict['tabs'] = prefilled_tabs(participant)
+        releasor_dict["tabs"] = prefilled_tabs(participant)
 
     if not guardian:
         return [releasor_dict, desk]
 
     guardian_dict: DocusignRole = {
-        'roleName': 'Parent or Guardian',
-        'name': guardian.name,
-        'email': guardian.email,
+        "roleName": "Parent or Guardian",
+        "name": guardian.name,
+        "email": guardian.email,
     }
     return [releasor_dict, guardian_dict, desk]
 
@@ -170,19 +170,19 @@ def _sign_embedded(
     configured for use with a template, and has a 'clientUserId' assigned.
     """
     base_url = base_url or get_base_url()
-    recipient_url = f'{base_url}/envelopes/{envelope_id}/views/recipient'
+    recipient_url = f"{base_url}/envelopes/{envelope_id}/views/recipient"
     user = {
-        'userName': releasor_dict['name'],
-        'email': releasor_dict['email'],
-        'clientUserId': releasor_dict['clientUserId'],
-        'authenticationMethod': 'email',
-        'returnUrl': 'https://mitoc-trips.mit.edu',
+        "userName": releasor_dict["name"],
+        "email": releasor_dict["email"],
+        "clientUserId": releasor_dict["clientUserId"],
+        "authenticationMethod": "email",
+        "returnUrl": "https://mitoc-trips.mit.edu",
     }
     # Fetch a URL that can be used to sign the waiver (expires in 5 minutes)
     redir_url = requests.post(
         recipient_url, json=user, headers=get_headers(), timeout=10
     )
-    return cast(str, redir_url.json()['url'])
+    return cast(str, redir_url.json()["url"])
 
 
 def initiate_waiver(
@@ -212,27 +212,27 @@ def initiate_waiver(
 
     # Create a new envelope. By default, this results in an email to each role
     new_env = {
-        'status': 'sent',
-        'templateId': settings.DOCUSIGN_WAIVER_TEMPLATE_ID,
-        'templateRoles': roles,
-        'eventNotification': settings.DOCUSIGN_EVENT_NOTIFICATION,
+        "status": "sent",
+        "templateId": settings.DOCUSIGN_WAIVER_TEMPLATE_ID,
+        "templateRoles": roles,
+        "eventNotification": settings.DOCUSIGN_EVENT_NOTIFICATION,
     }
 
     # If their email is already known to us & authenticated, sign right away
     # (to do embedded signing, we must define user ID at envelope creation)
     if participant:
-        releasor_dict['clientUserId'] = participant.pk
+        releasor_dict["clientUserId"] = participant.pk
 
     base_url = get_base_url()
     env = requests.post(
-        f'{base_url}/envelopes', json=new_env, headers=get_headers(), timeout=10
+        f"{base_url}/envelopes", json=new_env, headers=get_headers(), timeout=10
     )
 
     # If there's no participant, an email will be sent; no need to redirect
     redir_url: str | None = None
 
     if participant:  # We need a participant to do embedded signing
-        envelope_id = env.json()['envelopeId']
+        envelope_id = env.json()["envelopeId"]
         redir_url = _sign_embedded(participant, releasor_dict, envelope_id, base_url)
 
-    return InitiatedWaiverResult(email=releasor_dict['email'], url=redir_url)
+    return InitiatedWaiverResult(email=releasor_dict["email"], url=redir_url)

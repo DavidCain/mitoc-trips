@@ -54,7 +54,7 @@ def leader_signup_is_allowed(trip, participant):
     )
 
 
-@register.inclusion_tag('for_templatetags/pairing_info.html')
+@register.inclusion_tag("for_templatetags/pairing_info.html")
 def pairing_info(
     participant: models.Participant,
     user_viewing: bool = True,
@@ -64,23 +64,23 @@ def pairing_info(
     lotto.participant = participant
 
     paired_par = lotto.paired_par
-    pair_requests = lotto.pair_requests.order_by('name')
+    pair_requests = lotto.pair_requests.order_by("name")
 
     # If paired with X, we don't want to say "X requested to be paired with you"
     if paired_par:
         pair_requests = pair_requests.exclude(pk=paired_par.pk)
 
     return {
-        'participant': participant,
-        'show_title': show_title,
-        'user_viewing': user_viewing,
-        'reciprocally_paired': lotto.reciprocally_paired,
-        'paired_par': paired_par,
-        'pair_requests': pair_requests,
+        "participant": participant,
+        "show_title": show_title,
+        "user_viewing": user_viewing,
+        "reciprocally_paired": lotto.reciprocally_paired,
+        "paired_par": paired_par,
+        "pair_requests": pair_requests,
     }
 
 
-@register.inclusion_tag('for_templatetags/signup_for_trip.html', takes_context=True)
+@register.inclusion_tag("for_templatetags/signup_for_trip.html", takes_context=True)
 def signup_for_trip(context, trip, participant, existing_signup):
     """Display the appropriate signup controls for a given trip.
 
@@ -91,30 +91,30 @@ def signup_for_trip(context, trip, participant, existing_signup):
     This tag displays the appropriate controls to the viewing participant.
     """
     context = {
-        'user': context['user'],
-        'trip': trip,
-        'participant': participant,
-        'existing_signup': existing_signup,
-        'leader_signup_allowed': leader_signup_is_allowed(trip, participant),
+        "user": context["user"],
+        "trip": trip,
+        "participant": participant,
+        "existing_signup": existing_signup,
+        "leader_signup_allowed": leader_signup_is_allowed(trip, participant),
     }
 
-    if trip.signups_open or context['leader_signup_allowed']:
-        context['signup_form'] = SignUpForm(initial={'trip': trip})
-        context['signup_form'].fields['trip'].widget = HiddenInput()
+    if trip.signups_open or context["leader_signup_allowed"]:
+        context["signup_form"] = SignUpForm(initial={"trip": trip})
+        context["signup_form"].fields["trip"].widget = HiddenInput()
 
     return context
 
 
-@register.inclusion_tag('for_templatetags/signup_modes/anonymous_signup.html')
+@register.inclusion_tag("for_templatetags/signup_modes/anonymous_signup.html")
 def anonymous_signup(trip):
     """What to display in the signup section for anonymous users."""
-    return {'trip': trip}
+    return {"trip": trip}
 
 
-@register.inclusion_tag('for_templatetags/signup_modes/already_signed_up.html')
+@register.inclusion_tag("for_templatetags/signup_modes/already_signed_up.html")
 def already_signed_up(trip, signup):
     """What to display in the signup section when a SignUp object exists."""
-    return {'trip': trip, 'existing_signup': signup}
+    return {"trip": trip, "existing_signup": signup}
 
 
 def _same_day_trips(participant, trip):
@@ -135,50 +135,50 @@ def _same_day_trips(participant, trip):
     )
 
 
-@register.inclusion_tag('for_templatetags/signup_modes/signups_open.html')
+@register.inclusion_tag("for_templatetags/signup_modes/signups_open.html")
 def signups_open(user, participant, trip, signup_form, leader_signup_allowed):
     """What to display when signups are open for a trip."""
     return {
-        'user': user,
-        'trip': trip,
-        'same_day_trips': _same_day_trips(participant, trip),
-        'reasons_cannot_attend': list(reasons_cannot_attend(user, trip)),
-        'signup_form': signup_form,
-        'leader_signup_allowed': leader_signup_allowed,
+        "user": user,
+        "trip": trip,
+        "same_day_trips": _same_day_trips(participant, trip),
+        "reasons_cannot_attend": list(reasons_cannot_attend(user, trip)),
+        "signup_form": signup_form,
+        "leader_signup_allowed": leader_signup_allowed,
     }
 
 
-@register.inclusion_tag('for_templatetags/how_to_attend_trip.html')
+@register.inclusion_tag("for_templatetags/how_to_attend_trip.html")
 def how_to_attend(trip, trip_inelegibility_reasons, user):
     """Display messages instructing the user how they can attend this trip."""
     return {
-        'user': user,
-        'show_membership_status': any(
+        "user": user,
+        "show_membership_status": any(
             reason.related_to_membership for reason in trip_inelegibility_reasons
         ),
-        'how_to_fix_messages': [
+        "how_to_fix_messages": [
             reason.how_to_fix_for(trip) for reason in trip_inelegibility_reasons
         ],
     }
 
 
-@register.inclusion_tag('for_templatetags/signup_modes/not_yet_open.html')
+@register.inclusion_tag("for_templatetags/signup_modes/not_yet_open.html")
 def not_yet_open(user, trip, signup_form, leader_signup_allowed):
     """What to display in the signup section when trip signups aren't open (yet)."""
     return {
-        'trip': trip,
-        'reasons_cannot_attend': list(reasons_cannot_attend(user, trip)),
-        'signup_form': signup_form,
-        'leader_signup_allowed': leader_signup_allowed,
+        "trip": trip,
+        "reasons_cannot_attend": list(reasons_cannot_attend(user, trip)),
+        "signup_form": signup_form,
+        "leader_signup_allowed": leader_signup_allowed,
     }
 
 
-@register.inclusion_tag('for_templatetags/drop_off_trip.html')
+@register.inclusion_tag("for_templatetags/drop_off_trip.html")
 def drop_off_trip(trip, existing_signup):
-    return {'trip': trip, 'existing_signup': existing_signup}
+    return {"trip": trip, "existing_signup": existing_signup}
 
 
-@register.inclusion_tag('for_templatetags/signup_table.html')
+@register.inclusion_tag("for_templatetags/signup_table.html")
 def signup_table(signups, has_notes=False, show_drivers=False, all_participants=None):
     """Display a table of signups (either leaders or participants).
 
@@ -191,37 +191,37 @@ def signup_table(signups, has_notes=False, show_drivers=False, all_participants=
     if all_participants:
         signed_up = {signup.participant.id for signup in signups}
         no_signup = all_participants.exclude(id__in=signed_up)
-        fake_signups = [{'participant': leader} for leader in no_signup]
+        fake_signups = [{"participant": leader} for leader in no_signup]
         signups = chain(fake_signups, signups)
-    return {'signups': signups, 'has_notes': has_notes, 'show_drivers': show_drivers}
+    return {"signups": signups, "has_notes": has_notes, "show_drivers": show_drivers}
 
 
-@register.inclusion_tag('for_templatetags/trip_summary.html', takes_context=True)
+@register.inclusion_tag("for_templatetags/trip_summary.html", takes_context=True)
 def trip_summary(context, trip):
     return {
-        'show_contacts': context['user'].is_authenticated,
-        'show_email_box': perm_utils.is_chair(
-            context['user'],
+        "show_contacts": context["user"].is_authenticated,
+        "show_email_box": perm_utils.is_chair(
+            context["user"],
             trip.required_activity_enum(),
             allow_superusers=False,
         ),
-        'show_program': trip.program_enum != Program.NONE,
-        'show_trip_type': trip.trip_type_enum != TripType.NONE,
-        'trip': trip,
+        "show_program": trip.program_enum != Program.NONE,
+        "show_trip_type": trip.trip_type_enum != TripType.NONE,
+        "trip": trip,
     }
 
 
-@register.inclusion_tag('for_templatetags/medical_table.html')
+@register.inclusion_tag("for_templatetags/medical_table.html")
 def medical_table(participants, hide_sensitive_info=False):
-    return {'participants': participants, 'hide_sensitive_info': hide_sensitive_info}
+    return {"participants": participants, "hide_sensitive_info": hide_sensitive_info}
 
 
-@register.inclusion_tag('for_templatetags/driver_table.html')
+@register.inclusion_tag("for_templatetags/driver_table.html")
 def driver_table(cars):
-    return {'cars': cars}
+    return {"cars": cars}
 
 
-@register.inclusion_tag('for_templatetags/not_on_trip.html')
+@register.inclusion_tag("for_templatetags/not_on_trip.html")
 def not_on_trip(trip, signups_on_trip, signups_off_trip, display_notes):
     """Display a table of participants who're not on the given trip.
 
@@ -232,13 +232,13 @@ def not_on_trip(trip, signups_on_trip, signups_off_trip, display_notes):
     display_table = signups_on_trip or signups_off_trip
 
     # If all signups were placed on the trip, no sense displaying this table
-    if trip.algorithm == 'fcfs' and not signups_off_trip:
+    if trip.algorithm == "fcfs" and not signups_off_trip:
         display_table = False
 
     return {
-        'trip': trip,
-        'signups_on_trip': signups_on_trip,
-        'signups_off_trip': signups_off_trip,
-        'display_table': display_table,
-        'display_notes': display_notes,
+        "trip": trip,
+        "signups_on_trip": signups_on_trip,
+        "signups_off_trip": signups_off_trip,
+        "display_table": display_table,
+        "display_notes": display_notes,
     }

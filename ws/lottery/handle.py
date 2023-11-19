@@ -31,15 +31,15 @@ def ranked_signups(
     # Only consider lottery signups for future trips
     return participant.signup_set.filter(
         on_trip=False,
-        trip__algorithm='lottery',
+        trip__algorithm="lottery",
         trip__trip_date__gt=after,
         trip__program=enums.Program.WINTER_SCHOOL.value,
-    ).order_by('order', 'time_created', 'pk')
+    ).order_by("order", "time_created", "pk")
 
 
 def place_on_trip(signup: models.SignUp, logger: logging.Logger) -> None:
     trip = signup.trip
-    slots = 'slot' if trip.open_slots == 1 else 'slots'
+    slots = "slot" if trip.open_slots == 1 else "slots"
     logger.info(f"{trip} has {trip.open_slots} {slots}, adding {signup.participant}")
     signup.on_trip = True
     signup.save()
@@ -50,8 +50,8 @@ class ParticipantHandler:
 
     def __init__(
         self,
-        participant: 'AnnotatedParticipant',
-        runner: 'LotteryRunner',
+        participant: "AnnotatedParticipant",
+        runner: "LotteryRunner",
         min_drivers: int = 2,
         allow_pairs: bool = True,
     ) -> None:
@@ -112,7 +112,7 @@ class ParticipantHandler:
     def _count_drivers_on_trip(self, trip: models.Trip) -> int:
         participant_drivers = models.SignUp.objects.filter(
             trip=trip,
-            participant__lotteryinfo__car_status__in=['own', 'rent'],
+            participant__lotteryinfo__car_status__in=["own", "rent"],
             on_trip=True,
         )
         lottery_leaders = trip.leaders.filter(lotteryinfo__isnull=False)
@@ -168,8 +168,8 @@ class ParticipantHandler:
 class SingleTripParticipantHandler(ParticipantHandler):
     def __init__(
         self,
-        participant: 'AnnotatedParticipant',
-        runner: 'LotteryRunner',
+        participant: "AnnotatedParticipant",
+        runner: "LotteryRunner",
         trip: models.Trip,
     ) -> None:
         self.trip = trip
@@ -213,8 +213,8 @@ class SingleTripParticipantHandler(ParticipantHandler):
 class WinterSchoolParticipantHandler(ParticipantHandler):
     def __init__(
         self,
-        participant: 'AnnotatedParticipant',
-        runner: 'WinterSchoolLotteryRunner',
+        participant: "AnnotatedParticipant",
+        runner: "WinterSchoolLotteryRunner",
     ) -> None:
         self.lottery_rundate = runner.execution_datetime.date()
         super().__init__(participant, runner, min_drivers=2, allow_pairs=True)
@@ -353,7 +353,7 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
         driver_signups = models.SignUp.objects.filter(
             trip=signup.trip,
             on_trip=False,  # If on the trip, we know they're handled.
-            participant__lotteryinfo__car_status__in=['own', 'rent'],
+            participant__lotteryinfo__car_status__in=["own", "rent"],
             # TODO (Django 2): Exclude reciprocally-paired participants where both are signed up.
             # These participants cannot bump.
             # This is simpler in Django 2 (see `annotate_reciprocally_paired()`)
@@ -370,13 +370,13 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
     ) -> dict[str, int | bool | str | list[int] | None]:
         # JSON-serializable object we can use to analyze outputs.
         info = {
-            'participant_pk': self.participant.pk,
-            'paired_with_pk': self.paired_par and self.paired_par.pk,
-            'is_paired': bool(self.paired),
-            'affiliation': self.participant.affiliation,
-            'ranked_trips': [signup.trip_id for signup in future_signups],
-            'placed_on_choice': None,  # One-indexed rank
-            'waitlisted': False,
+            "participant_pk": self.participant.pk,
+            "paired_with_pk": self.paired_par and self.paired_par.pk,
+            "is_paired": bool(self.paired),
+            "affiliation": self.participant.affiliation,
+            "ranked_trips": [signup.trip_id for signup in future_signups],
+            "placed_on_choice": None,  # One-indexed rank
+            "waitlisted": False,
         }
 
         if not future_signups:
@@ -400,7 +400,7 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
                 continue
             if self._try_to_place(signup):
                 self.logger.debug(f"Placed on trip #{rank} of {len(future_signups)}")
-                return {**info, 'placed_on_choice': rank}
+                return {**info, "placed_on_choice": rank}
             self.logger.info("Can't place %s on %r", self._par_text, trip_name)
 
         # At this point, there were no trips that could take the participant or pair
@@ -409,7 +409,7 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
         for rank, signup in skipped_to_avoid_driver_bump:
             if self._try_to_place(signup):
                 self.logger.debug(f"Placed on trip #{rank} of {len(future_signups)}")
-                return {**info, 'placed_on_choice': rank}
+                return {**info, "placed_on_choice": rank}
 
         self.logger.info(f"None of {self._par_text}'s desired trips are open.")
         top_signup = desired_signups.first()
@@ -423,4 +423,4 @@ class WinterSchoolParticipantHandler(ParticipantHandler):
             with_email = f"{self._par_text} ({participant.email})"
             self.logger.info(f"Waitlisted {with_email} on {favorite_trip.name}")
 
-        return {**info, 'waitlisted': True}
+        return {**info, "waitlisted": True}

@@ -18,7 +18,7 @@ def send_email_reminding_to_renew(
     These emails are meant to be opt-in (i.e. participants must willingly *ask*
     to get reminders when it's time to renew).
     """
-    par = f'{participant.email} ({participant.pk})'
+    par = f"{participant.email} ({participant.pk})"
     today = date_utils.local_date()
 
     membership: models.Membership | None = participant.membership
@@ -43,19 +43,19 @@ def send_email_reminding_to_renew(
         raise ValueError(f"We don't yet recommend renewal for {par}")
 
     context = {
-        'participant': participant,
-        'discounts': participant.discounts.all().order_by('name'),
-        'expiry_if_renewing': membership.membership_expires + timedelta(days=365),
-        'unsubscribe_token': unsubscribe.generate_unsubscribe_token(participant),
+        "participant": participant,
+        "discounts": participant.discounts.all().order_by("name"),
+        "expiry_if_renewing": membership.membership_expires + timedelta(days=365),
+        "unsubscribe_token": unsubscribe.generate_unsubscribe_token(participant),
     }
-    text_content = get_template('email/membership/renew.txt').render(context)
-    html_content = get_template('email/membership/renew.html').render(context)
+    text_content = get_template("email/membership/renew.txt").render(context)
+    html_content = get_template("email/membership/renew.html").render(context)
 
     msg = mail.EmailMultiAlternatives(
         subject="[Action required] Renew your MITOC membership",
         body=text_content,
         to=[participant.email],
-        reply_to=['mitoc-desk@mit.edu'],
+        reply_to=["mitoc-desk@mit.edu"],
     )
     msg.attach_alternative(html_content, "text/html")
     msg.send()

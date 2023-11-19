@@ -10,7 +10,7 @@ from ws.utils.dates import ws_year
 register = template.Library()
 
 
-@register.inclusion_tag('for_templatetags/lecture_attendance.html')
+@register.inclusion_tag("for_templatetags/lecture_attendance.html")
 def lecture_attendance(
     participant: models.Participant,
     user_viewing: bool,
@@ -25,13 +25,13 @@ def lecture_attendance(
     """
     attendance = participant.lectureattendance_set
     this_year = ws_year()
-    form = AttendedLecturesForm(initial={'participant': participant})
-    form.fields['participant'].widget = HiddenInput()  # Will be checked by view
+    form = AttendedLecturesForm(initial={"participant": participant})
+    form.fields["participant"].widget = HiddenInput()  # Will be checked by view
     return {
-        'form': form,
-        'participant': participant,
-        'user_viewing': user_viewing,
-        'attended_lectures': attendance.filter(year=this_year).exists(),
-        'past_attendance': attendance.exclude(year=this_year),
-        'can_set_attendance': can_set_attendance,
+        "form": form,
+        "participant": participant,
+        "user_viewing": user_viewing,
+        "attended_lectures": attendance.filter(year=this_year).exists(),
+        "past_attendance": attendance.exclude(year=this_year),
+        "can_set_attendance": can_set_attendance,
     }

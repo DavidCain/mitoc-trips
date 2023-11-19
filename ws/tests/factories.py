@@ -61,8 +61,8 @@ class UserFactory(BaseFactory):
 
     username = factory.Sequence(lambda n: f"user{n + 1}")
     email = factory.Sequence(lambda n: f"user{n + 1}@example.com")
-    emailaddress = factory.RelatedFactory(EmailFactory, 'user')
-    password = 'password'  # (Will be hashed & salted by `create_user`)  # noqa: S105
+    emailaddress = factory.RelatedFactory(EmailFactory, "user")
+    password = "password"  # (Will be hashed & salted by `create_user`)  # noqa: S105
 
     @classmethod
     def _create(cls, model_class: type[User], *args: Any, **kwargs: Any) -> Any:
@@ -100,10 +100,10 @@ class ParticipantFactory(BaseFactory):
 
     @staticmethod
     def _given_user(kwargs: dict[str, Any]) -> User | None:
-        if 'user' in kwargs:
-            return cast(User, kwargs['user'])
-        if 'user_id' in kwargs:
-            return User.objects.get(pk=kwargs['user_id'])
+        if "user" in kwargs:
+            return cast(User, kwargs["user"])
+        if "user_id" in kwargs:
+            return User.objects.get(pk=kwargs["user_id"])
         return None
 
     @classmethod
@@ -115,13 +115,13 @@ class ParticipantFactory(BaseFactory):
         """
         user = cls._given_user(kwargs)
         if user:
-            kwargs.pop('user', None)  # (If given, not meaningful)
-            kwargs['user_id'] = user.pk
-            kwargs['_disable_auto_user_creation'] = True
+            kwargs.pop("user", None)  # (If given, not meaningful)
+            kwargs["user_id"] = user.pk
+            kwargs["_disable_auto_user_creation"] = True
 
             # By default, use the user's email address
-            if 'email' not in kwargs:
-                kwargs['email'] = user.email
+            if "email" not in kwargs:
+                kwargs["email"] = user.email
         return super().create(**kwargs)
 
     @classmethod
@@ -132,9 +132,9 @@ class ParticipantFactory(BaseFactory):
         foreign key, since the row resides in another database. Accordingly,
         we cannot use a SubFactory for the User object.
         """
-        if not kwargs.pop('_disable_auto_user_creation', False):
-            user = UserFactory.create(email=kwargs['email'])
-            kwargs['user_id'] = user.pk
+        if not kwargs.pop("_disable_auto_user_creation", False):
+            user = UserFactory.create(email=kwargs["email"])
+            kwargs["user_id"] = user.pk
 
         return super()._create(model_class, *args, **kwargs)
 
@@ -161,11 +161,11 @@ class CarFactory(BaseFactory):
         model = models.Car
 
     license_plate = "ABC 123"
-    state = 'MA'
-    make = 'Powell Motors'
-    model = 'Homer'
+    state = "MA"
+    make = "Powell Motors"
+    model = "Homer"
     year = 2019
-    color = 'Green'
+    color = "Green"
 
 
 class LeaderRatingFactory(BaseFactory):
@@ -173,7 +173,7 @@ class LeaderRatingFactory(BaseFactory):
         model = models.LeaderRating
 
     activity = models.LeaderRating.HIKING
-    rating = 'Full leader'
+    rating = "Full leader"
     creator = factory.SubFactory(ParticipantFactory)
     participant = factory.SubFactory(ParticipantFactory)
     active = True
@@ -184,7 +184,7 @@ class LeaderRecommendationFactory(BaseFactory):
         model = models.LeaderRecommendation
 
     activity = models.LeaderRating.HIKING
-    rating = 'Should co-lead two trips'
+    rating = "Should co-lead two trips"
     creator = factory.SubFactory(ParticipantFactory)
     participant = factory.SubFactory(ParticipantFactory)
 
@@ -262,7 +262,7 @@ class WaitListSignupFactory(BaseFactory):
         model = models.WaitListSignup
 
     signup = factory.SubFactory(SignUpFactory)
-    waitlist = factory.SelfAttribute('signup.trip.waitlist')
+    waitlist = factory.SelfAttribute("signup.trip.waitlist")
 
 
 class ClimbingLeaderApplicationFactory(BaseFactory):

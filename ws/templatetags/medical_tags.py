@@ -11,18 +11,18 @@ from ws.utils.itinerary import get_cars
 register = template.Library()
 
 
-@register.inclusion_tag('for_templatetags/show_wimp.html')
+@register.inclusion_tag("for_templatetags/show_wimp.html")
 def show_wimp(
     wimp: models.Participant,
     show_wimp_at_mit: bool = False,
 ) -> dict[str, Any]:
     return {
-        'participant': wimp,
-        'show_wimp_at_mit': show_wimp_at_mit,
+        "participant": wimp,
+        "show_wimp_at_mit": show_wimp_at_mit,
     }
 
 
-@register.inclusion_tag('for_templatetags/trip_itinerary.html')
+@register.inclusion_tag("for_templatetags/trip_itinerary.html")
 def trip_itinerary(trip):
     """Return a stripped form for read-only display.
 
@@ -30,16 +30,16 @@ def trip_itinerary(trip):
     isn't needed for display.
     """
     if not trip.info:
-        return {'info_form': None}
+        return {"info_form": None}
     info_form = forms.TripInfoForm(instance=trip.info)
-    info_form.fields.pop('drivers')
-    info_form.fields.pop('accurate')
-    return {'info_form': info_form}
+    info_form.fields.pop("drivers")
+    info_form.fields.pop("accurate")
+    return {"info_form": info_form}
 
 
-@register.inclusion_tag('for_templatetags/trip_info.html', takes_context=True)
+@register.inclusion_tag("for_templatetags/trip_info.html", takes_context=True)
 def trip_info(context, trip, show_participants_if_no_itinerary=False):
-    participant = context['viewing_participant']
+    participant = context["viewing_participant"]
 
     # After a sufficiently long waiting period, hide medical information
     # (We could need medical info a day or two after a trip was due back)
@@ -48,17 +48,17 @@ def trip_info(context, trip, show_participants_if_no_itinerary=False):
     is_old_trip = date_utils.local_date() > (trip.trip_date + timedelta(days=5))
 
     return {
-        'trip': trip,
-        'participants': (
+        "trip": trip,
+        "participants": (
             trip.signed_up_participants.filter(signup__on_trip=True).select_related(
-                'emergency_info__emergency_contact'
+                "emergency_info__emergency_contact"
             )
         ),
-        'trip_leaders': (
-            trip.leaders.select_related('emergency_info__emergency_contact')
+        "trip_leaders": (
+            trip.leaders.select_related("emergency_info__emergency_contact")
         ),
-        'cars': get_cars(trip),
-        'show_participants_if_no_itinerary': show_participants_if_no_itinerary,
-        'hide_sensitive_info': is_old_trip,
-        'is_trip_leader': perm_utils.leader_on_trip(participant, trip),
+        "cars": get_cars(trip),
+        "show_participants_if_no_itinerary": show_participants_if_no_itinerary,
+        "hide_sensitive_info": is_old_trip,
+        "is_trip_leader": perm_utils.leader_on_trip(participant, trip),
     }

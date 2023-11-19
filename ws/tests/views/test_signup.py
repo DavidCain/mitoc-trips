@@ -17,7 +17,7 @@ from ws.tests import factories, strip_whitespace
 @freeze_time("2019-01-15 12:25:00 EST")
 class SignupsViewTest(TestCase):
     def _signup(self, trip):
-        return self.client.post('/trips/signup/', {'trip': trip.pk}, follow=False)
+        return self.client.post("/trips/signup/", {"trip": trip.pk}, follow=False)
 
     def _active_member(self):
         par = factories.ParticipantFactory.create()
@@ -27,9 +27,9 @@ class SignupsViewTest(TestCase):
     @staticmethod
     def _upcoming_trip(**kwargs):
         trip_kwargs = {
-            'program': enums.Program.CLIMBING.value,
-            'trip_date': date(2019, 1, 19),
-            'signups_open_at': datetime(
+            "program": enums.Program.CLIMBING.value,
+            "trip_date": date(2019, 1, 19),
+            "signups_open_at": datetime(
                 2019, 1, 14, 10, 0, 0, tzinfo=ZoneInfo("America/New_York")
             ),
             **kwargs,
@@ -43,7 +43,7 @@ class SignupsViewTest(TestCase):
         - signups are currently open
         - the participant is an active member
         """
-        trip = self._upcoming_trip(algorithm='lottery')
+        trip = self._upcoming_trip(algorithm="lottery")
 
         # The participant has an active membership that will last at least until the trip
         par = self._active_member()
@@ -56,7 +56,7 @@ class SignupsViewTest(TestCase):
 
         # Sign up was successful, and we're redirected to the trip page!
         self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.url, f'/trips/{trip.pk}/')
+        self.assertEqual(resp.url, f"/trips/{trip.pk}/")
 
         # Participant was not placed on the trip, since it's a lottery!
         signup = trip.signup_set.get(participant=par)
@@ -64,16 +64,16 @@ class SignupsViewTest(TestCase):
 
     def test_no_such_trip(self):
         self.client.force_login(self._active_member().user)
-        resp = self.client.post('/trips/signup/', {'trip': -10}, follow=False)
-        self.assertIn('trip', resp.context['form'].errors)
+        resp = self.client.post("/trips/signup/", {"trip": -10}, follow=False)
+        self.assertIn("trip", resp.context["form"].errors)
 
     def test_notes_required_if_on_trip(self):
-        trip = self._upcoming_trip(notes='Can you drive?')
+        trip = self._upcoming_trip(notes="Can you drive?")
         self.client.force_login(self._active_member().user)
         resp = self._signup(trip)
         self.assertEqual(
-            resp.context['form'].errors,
-            {'notes': ['Please complete notes to sign up!']},
+            resp.context["form"].errors,
+            {"notes": ["Please complete notes to sign up!"]},
         )
 
     def test_wimp_cannot_attend(self):
@@ -85,8 +85,8 @@ class SignupsViewTest(TestCase):
         resp = self._signup(trip)
 
         self.assertEqual(
-            resp.context['form'].errors,
-            {'__all__': ["Cannot attend a trip as its WIMP"]},
+            resp.context["form"].errors,
+            {"__all__": ["Cannot attend a trip as its WIMP"]},
         )
 
     def test_leader_cannot_signup(self):
@@ -99,7 +99,7 @@ class SignupsViewTest(TestCase):
         resp = self._signup(trip)
 
         self.assertEqual(
-            resp.context['form'].errors, {'__all__': ["Already a leader on this trip!"]}
+            resp.context["form"].errors, {"__all__": ["Already a leader on this trip!"]}
         )
 
     def test_already_on_trip(self):
@@ -112,8 +112,8 @@ class SignupsViewTest(TestCase):
         resp = self._signup(trip)
 
         self.assertEqual(
-            resp.context['form'].errors,
-            {'__all__': ["Already signed up for this trip!"]},
+            resp.context["form"].errors,
+            {"__all__": ["Already signed up for this trip!"]},
         )
 
         # The original signup remains in place, unchanged and not duplicated.
@@ -136,8 +136,8 @@ class SignupsViewTest(TestCase):
         # However, because the trip is in the future, they cannot sign up!
         self.client.force_login(par.user)
         resp = self._signup(not_yet_open_trip)
-        form = resp.context['form']
-        self.assertEqual(form.errors, {'__all__': ["Signups aren't open!"]})
+        form = resp.context["form"]
+        self.assertEqual(form.errors, {"__all__": ["Signups aren't open!"]})
 
         # Participant was not placed on the trip.
         self.assertFalse(not_yet_open_trip.signup_set.filter(participant=par).exists())
@@ -146,13 +146,13 @@ class SignupsViewTest(TestCase):
     def test_membership_required(self):
         """Only active members are allowed on the trip."""
         par = factories.ParticipantFactory.create(
-            membership=None, email='par@example.com'
+            membership=None, email="par@example.com"
         )
         trip = self._upcoming_trip(membership_required=True)
         self.assertTrue(par.should_renew_for(trip))
 
         check_membership = responses.get(
-            url='https://mitoc-gear.mit.edu/api-auth/v1/membership_waiver/?email=par@example.com',
+            url="https://mitoc-gear.mit.edu/api-auth/v1/membership_waiver/?email=par@example.com",
             json={
                 "count": 0,
                 "next": None,
@@ -174,11 +174,11 @@ class SignupsViewTest(TestCase):
         # Because the user had an out-of-date membership, we checked for the latest
         self.assertEqual(check_membership.call_count, 1)
 
-        form = resp.context['form']
+        form = resp.context["form"]
         self.assertEqual(
             form.errors,
             {
-                '__all__': [
+                "__all__": [
                     "An active membership is required",
                     "A current waiver is required",
                 ]
@@ -202,7 +202,7 @@ class SignupsViewTest(TestCase):
         self.assertFalse(par.should_renew_for(mini_trip))
 
         check_waiver = responses.get(
-            url=f'https://mitoc-gear.mit.edu/api-auth/v1/membership_waiver/?email={par.email}',
+            url=f"https://mitoc-gear.mit.edu/api-auth/v1/membership_waiver/?email={par.email}",
             json={
                 "count": 0,
                 "next": None,
@@ -229,8 +229,8 @@ class SignupsViewTest(TestCase):
         # Because the user had an out-of-date waiver, we checked for the latest
         self.assertEqual(check_waiver.call_count, 1)
 
-        form = resp.context['form']
-        self.assertEqual(form.errors, {'__all__': ["A current waiver is required"]})
+        form = resp.context["form"]
+        self.assertEqual(form.errors, {"__all__": ["A current waiver is required"]})
 
         # Participant was not placed on the trip.
         self.assertFalse(mini_trip.signup_set.filter(participant=par).exists())
@@ -252,12 +252,12 @@ class SignupsViewTest(TestCase):
 
         self.client.force_login(par.user)
         resp = self._signup(ws_trip)
-        form = resp.context['form']
+        form = resp.context["form"]
 
         # Normally, we would prompt the participant to pay dues & sign a waiver.
         # However, since they might pay dues, then be frustrated that they cannot attend, we don't.
         self.assertEqual(
-            form.errors, {'__all__': ["Must have attended mandatory safety lectures"]}
+            form.errors, {"__all__": ["Must have attended mandatory safety lectures"]}
         )
 
 
@@ -278,33 +278,33 @@ class PairedParticipantSignupTest(TestCase):
     @staticmethod
     @contextmanager
     def _spy_on_message_success():
-        patched = mock.patch.object(messages, 'success', wraps=messages.success)
+        patched = mock.patch.object(messages, "success", wraps=messages.success)
         with patched as success:
             yield success
 
     def test_pairing_ignored_if_trip_ignores_it(self):
         trip = factories.TripFactory.create(
             program=enums.Program.CLIMBING.value,
-            algorithm='lottery',
+            algorithm="lottery",
             honor_participant_pairing=False,
         )
         self.client.force_login(self.bert.user)
         with self._spy_on_message_success() as bert_success:
-            self.client.post('/trips/signup/', {'trip': trip.pk})
+            self.client.post("/trips/signup/", {"trip": trip.pk})
         models.SignUp.objects.get(participant=self.bert, trip=trip, on_trip=False)
         bert_success.assert_called_once_with(mock.ANY, "Signed up!")
 
     def test_single_trip_reciprocal_pairing(self):
         trip = factories.TripFactory.create(
             program=enums.Program.CLIMBING.value,
-            algorithm='lottery',
+            algorithm="lottery",
             honor_participant_pairing=True,
         )
 
         # Bert signs up first, is told that Ernie has not.
         self.client.force_login(self.bert.user)
         with self._spy_on_message_success() as bert_success:
-            self.client.post('/trips/signup/', {'trip': trip.pk})
+            self.client.post("/trips/signup/", {"trip": trip.pk})
         models.SignUp.objects.get(participant=self.bert, trip=trip, on_trip=False)
         bert_success.assert_called_once_with(
             mock.ANY,  # (The request object)
@@ -315,7 +315,7 @@ class PairedParticipantSignupTest(TestCase):
         # Ernie signs up next; they'll be paired together
         self.client.force_login(self.ernie.user)
         with self._spy_on_message_success() as ernie_success:
-            self.client.post('/trips/signup/', {'trip': trip.pk})
+            self.client.post("/trips/signup/", {"trip": trip.pk})
         models.SignUp.objects.get(participant=self.ernie, trip=trip, on_trip=False)
         ernie_success.assert_called_once_with(
             mock.ANY,  # (The request object)
@@ -342,16 +342,16 @@ class LeaderSignupViewTest(TestCase):
             activity=enums.Activity.CLIMBING.value,
         )
 
-        resp = self.client.post('/trips/signup/leader/', {})
+        resp = self.client.post("/trips/signup/leader/", {})
         self.assertEqual(
-            resp.context['form'].errors, {'trip': ['This field is required.']}
+            resp.context["form"].errors, {"trip": ["This field is required."]}
         )
 
     def test_leader_with_rating_can_sign_up(self):
         trip = factories.TripFactory.create(
             allow_leader_signups=True,
             program=enums.Program.CLIMBING.value,
-            notes='Favorite passive protection?',
+            notes="Favorite passive protection?",
         )
         self.participant.leaderrating_set.add(
             factories.LeaderRatingFactory.create(
@@ -362,14 +362,14 @@ class LeaderSignupViewTest(TestCase):
 
         # After successful signup, participant is routed back to the trip
         resp = self.client.post(
-            '/trips/signup/leader/', {'trip': trip.pk, 'notes': 'Tricams'}
+            "/trips/signup/leader/", {"trip": trip.pk, "notes": "Tricams"}
         )
         self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.url, f'/trips/{trip.pk}/')
+        self.assertEqual(resp.url, f"/trips/{trip.pk}/")
 
         # Signup object is written & leader is also added to the trip
         models.LeaderSignUp.objects.get(
-            trip=trip, participant=self.participant, notes='Tricams'
+            trip=trip, participant=self.participant, notes="Tricams"
         )
         self.assertIn(self.participant, trip.leaders.all())
 
@@ -380,14 +380,14 @@ class LeaderSignupViewTest(TestCase):
         )
         self.assertFalse(set(self.participant.reasons_cannot_attend(trip)))
 
-        resp = self.client.post('/trips/signup/leader/', {'trip': trip.pk})
+        resp = self.client.post("/trips/signup/leader/", {"trip": trip.pk})
         self.assertEqual(resp.status_code, 403)
         self.assertFalse(models.LeaderSignUp.objects.filter(trip=trip).exists())
 
     def test_must_be_able_to_lead_for_trip_program(self):
         """It's not sufficient to just be a leader, you must be rated accordingly."""
         trip = factories.TripFactory.create(
-            allow_leader_signups=True, program=enums.Program.CLIMBING.value, notes=''
+            allow_leader_signups=True, program=enums.Program.CLIMBING.value, notes=""
         )
         self.participant.leaderrating_set.add(
             factories.LeaderRatingFactory.create(
@@ -396,9 +396,9 @@ class LeaderSignupViewTest(TestCase):
             )
         )
 
-        resp = self.client.post('/trips/signup/leader/', {'trip': trip.pk})
+        resp = self.client.post("/trips/signup/leader/", {"trip": trip.pk})
         self.assertEqual(
-            resp.context['form'].errors, {'__all__': ["Can't lead Climbing trips!"]}
+            resp.context["form"].errors, {"__all__": ["Can't lead Climbing trips!"]}
         )
         self.assertFalse(models.LeaderSignUp.objects.filter(trip=trip).exists())
 
@@ -409,7 +409,7 @@ class LeaderSignupViewTest(TestCase):
             # Leaders of *any* type can attend
             program=enums.Program.NONE.value,
             # No notes required
-            notes='',
+            notes="",
         )
         self.participant.leaderrating_set.add(
             factories.LeaderRatingFactory.create(
@@ -419,17 +419,17 @@ class LeaderSignupViewTest(TestCase):
         )
         self.assertTrue(self.participant.can_lead(trip.program_enum))
 
-        resp = self.client.post('/trips/signup/leader/', {'trip': trip.pk})
+        resp = self.client.post("/trips/signup/leader/", {"trip": trip.pk})
         self.assertEqual(
-            resp.context['form'].errors,
-            {'__all__': ['Trip is not currently accepting leader signups.']},
+            resp.context["form"].errors,
+            {"__all__": ["Trip is not currently accepting leader signups."]},
         )
         self.assertFalse(models.LeaderSignUp.objects.filter(trip=trip).exists())
 
         # However, if we enable the setting, the participant can indeed sign up
         trip.allow_leader_signups = True
         trip.save()
-        self.client.post('/trips/signup/leader/', {'trip': trip.pk})
+        self.client.post("/trips/signup/leader/", {"trip": trip.pk})
         models.LeaderSignUp.objects.get(trip=trip, participant=self.participant)
         self.assertIn(self.participant, trip.leaders.all())
 
@@ -438,7 +438,7 @@ class LeaderSignupViewTest(TestCase):
         trip = factories.TripFactory.create(
             allow_leader_signups=True,
             program=enums.Program.NONE.value,
-            notes='',
+            notes="",
         )
         self.participant.leaderrating_set.add(
             factories.LeaderRatingFactory.create(
@@ -447,18 +447,18 @@ class LeaderSignupViewTest(TestCase):
             )
         )
 
-        self.client.post('/trips/signup/leader/', {'trip': trip.pk})
+        self.client.post("/trips/signup/leader/", {"trip": trip.pk})
         self.assertTrue(models.LeaderSignUp.objects.filter(trip=trip).exists())
 
         trip.leaders.clear()
-        resp = self.client.post('/trips/signup/leader/', {'trip': trip.pk})
-        soup = BeautifulSoup(resp.content, 'html.parser')
-        warning = soup.find(class_='alert-danger')
+        resp = self.client.post("/trips/signup/leader/", {"trip": trip.pk})
+        soup = BeautifulSoup(resp.content, "html.parser")
+        warning = soup.find(class_="alert-danger")
         # Note: This is a temporary solution.
         # In the future, leaders should be able to self-add themselves back.
         self.assertEqual(
             strip_whitespace(warning.text),
-            'Already signed up as a leader on this trip! Contact the trip organizer to be re-added.',
+            "Already signed up as a leader on this trip! Contact the trip organizer to be re-added.",
         )
 
 
@@ -471,52 +471,52 @@ class DeleteSignupViewTest(TestCase):
     def test_get(self):
         """You cannot delete via a GET (could be exploited by malicious users)."""
         signup = factories.SignUpFactory.create(participant=self.participant)
-        resp = self.client.get(f'/signups/{signup.pk}/delete/')
+        resp = self.client.get(f"/signups/{signup.pk}/delete/")
         self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.url, f'/trips/{signup.trip.pk}/')
+        self.assertEqual(resp.url, f"/trips/{signup.trip.pk}/")
         self.assertTrue(models.SignUp.objects.filter(pk=signup.pk).exists())
 
     def test_must_be_logged_in(self):
         signup = factories.SignUpFactory.create()
         self.client.logout()
-        resp = self.client.post(f'/signups/{signup.pk}/delete/')
+        resp = self.client.post(f"/signups/{signup.pk}/delete/")
         self.assertEqual(resp.status_code, 302)
         self.assertEqual(
-            resp.url, f'/accounts/login/?next=/signups/{signup.pk}/delete/'
+            resp.url, f"/accounts/login/?next=/signups/{signup.pk}/delete/"
         )
         self.assertTrue(models.SignUp.objects.filter(pk=signup.pk).exists())
 
     def test_cannot_delete_somebody_elses(self):
         other_signup = factories.SignUpFactory.create()
-        resp = self.client.post(f'/signups/{other_signup.pk}/delete/')
+        resp = self.client.post(f"/signups/{other_signup.pk}/delete/")
         self.assertEqual(resp.status_code, 403)
         self.assertTrue(models.SignUp.objects.filter(pk=other_signup.pk).exists())
 
     def test_cannot_drop_if_trip_forbids_it(self):
         trip = factories.TripFactory.create(
-            let_participants_drop=False, algorithm='fcfs'
+            let_participants_drop=False, algorithm="fcfs"
         )
         signup = factories.SignUpFactory.create(participant=self.participant, trip=trip)
-        resp = self.client.post(f'/signups/{signup.pk}/delete/')
+        resp = self.client.post(f"/signups/{signup.pk}/delete/")
         self.assertEqual(resp.status_code, 403)
         self.assertTrue(models.SignUp.objects.filter(pk=signup.pk).exists())
 
     def test_can_always_drop_off_during_lottery(self):
         trip = factories.TripFactory.create(
-            let_participants_drop=False, algorithm='lottery'
+            let_participants_drop=False, algorithm="lottery"
         )
         signup = factories.SignUpFactory.create(participant=self.participant, trip=trip)
-        resp = self.client.post(f'/signups/{signup.pk}/delete/')
+        resp = self.client.post(f"/signups/{signup.pk}/delete/")
         self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.url, '/trips/')
+        self.assertEqual(resp.url, "/trips/")
         self.assertFalse(models.SignUp.objects.filter(pk=signup.pk).exists())
 
     def test_can_drop_off_if_trip_allows_it(self):
         trip = factories.TripFactory.create(
-            let_participants_drop=True, algorithm='fcfs'
+            let_participants_drop=True, algorithm="fcfs"
         )
         signup = factories.SignUpFactory.create(participant=self.participant, trip=trip)
-        resp = self.client.post(f'/signups/{signup.pk}/delete/')
+        resp = self.client.post(f"/signups/{signup.pk}/delete/")
         self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.url, '/trips/')
+        self.assertEqual(resp.url, "/trips/")
         self.assertFalse(models.SignUp.objects.filter(pk=signup.pk).exists())

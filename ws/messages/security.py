@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 class Messages(MessageGenerator):
-    request: 'RequestWithParticipant'
+    request: "RequestWithParticipant"
 
     def supply(self) -> None:
         """Warn if the participant's password is insecure.
@@ -34,7 +34,7 @@ class Messages(MessageGenerator):
         This serves to warn people who ignore the message (and log that they ignored it,
         so we might use that data to inform a better password policy).
         """
-        change_password_url = reverse('account_change_password')
+        change_password_url = reverse("account_change_password")
         if self.request.path == change_password_url:
             # Already on the 'change password' URL, no need to warn again
             return
@@ -49,10 +49,10 @@ class Messages(MessageGenerator):
             return
 
         msg = (
-            'Your password is insecure! '
+            "Your password is insecure! "
             f'Please <a href="{change_password_url}">change your password.</a>'
         )
-        warned = self.add_unique_message(messages.ERROR, msg, extra_tags='safe')
+        warned = self.add_unique_message(messages.ERROR, msg, extra_tags="safe")
 
         if warned:
             logger.info(

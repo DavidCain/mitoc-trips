@@ -18,13 +18,13 @@ from ws.utils import member_sheets
 class TaskTests(TestCase):
     @staticmethod
     def test_update_discount_sheet():
-        discount = factories.DiscountFactory.create(pk=9123, ga_key='test-key')
-        with patch.object(member_sheets, 'update_discount_sheet') as update_sheet:
+        discount = factories.DiscountFactory.create(pk=9123, ga_key="test-key")
+        with patch.object(member_sheets, "update_discount_sheet") as update_sheet:
             tasks.update_discount_sheet(9123)
         update_sheet.assert_called_with(discount, trust_cache=True)
 
     @staticmethod
-    @patch('ws.utils.geardb.update_affiliation')
+    @patch("ws.utils.geardb.update_affiliation")
     def test_update_participant_affiliation(update_affiliation):
         participant = factories.ParticipantFactory.create(
             affiliation=affiliations.NON_AFFILIATE.CODE
@@ -34,7 +34,7 @@ class TaskTests(TestCase):
 
     @staticmethod
     @freeze_time("Fri, 25 Jan 2019 03:00:00 EST")
-    @patch('ws.tasks.send_email_to_funds')
+    @patch("ws.tasks.send_email_to_funds")
     def test_send_tomorrow_itineraries(send_email_to_funds):
         """Only trips taking place the next day have itineraries sent out."""
         _yesterday, _today, tomorrow, _two_days_from_now = (
@@ -63,7 +63,7 @@ class TaskTests(TestCase):
             trip_date=date(2019, 1, 26), info=None
         )
 
-        with patch('ws.tasks.send_email_to_funds') as send_email_to_funds:
+        with patch("ws.tasks.send_email_to_funds") as send_email_to_funds:
             tasks.send_sole_itineraries()
 
         # Emails were sent for *both* trips
@@ -73,8 +73,8 @@ class TaskTests(TestCase):
         )
 
     @staticmethod
-    @patch('ws.utils.member_sheets.update_discount_sheet')
-    @patch('ws.utils.member_sheets.update_participant')
+    @patch("ws.utils.member_sheets.update_discount_sheet")
+    @patch("ws.utils.member_sheets.update_participant")
     def test_discount_tasks_share_same_key(
         _update_participant,
         _update_discount_sheet,
@@ -83,17 +83,17 @@ class TaskTests(TestCase):
 
         This prevents multiple tasks modifying the Google Sheet at the same time.
         """
-        discount = factories.DiscountFactory.create(ga_key='some-key')
+        discount = factories.DiscountFactory.create(ga_key="some-key")
         participant = factories.ParticipantFactory.create()
-        expected_lock_id = f'update_discount-{discount.pk}'
+        expected_lock_id = f"update_discount-{discount.pk}"
 
-        with patch('ws.tasks.cache', wraps=cache) as mock_cache_one:
+        with patch("ws.tasks.cache", wraps=cache) as mock_cache_one:
             tasks.update_discount_sheet_for_participant(discount.pk, participant.pk)
-        mock_cache_one.add.assert_called_with(expected_lock_id, 'true', 600)
+        mock_cache_one.add.assert_called_with(expected_lock_id, "true", 600)
 
-        with patch('ws.tasks.cache', wraps=cache) as mock_cache_two:
+        with patch("ws.tasks.cache", wraps=cache) as mock_cache_two:
             tasks.update_discount_sheet(discount.pk)
-        mock_cache_two.add.assert_called_with(expected_lock_id, 'true', 600)
+        mock_cache_two.add.assert_called_with(expected_lock_id, "true", 600)
 
 
 class DiscountsWithoutGaKeyTest(TestCase):
@@ -102,7 +102,7 @@ class DiscountsWithoutGaKeyTest(TestCase):
     def setUp(self):
         self.par = factories.ParticipantFactory.create()
         # Some discounts opt out of the Google Sheets flow
-        self.discount = factories.DiscountFactory.create(ga_key='')
+        self.discount = factories.DiscountFactory.create(ga_key="")
 
     def test_update_sheet_for_participant(self):
         """If we mistakenly wrote a discount without a Google Sheets key, Celery handles it."""
@@ -110,8 +110,8 @@ class DiscountsWithoutGaKeyTest(TestCase):
         # but make sure Celery doesn't choke if they do.
         self.par.discounts.add(self.discount)
 
-        with patch.object(member_sheets, 'update_participant') as update_par:
-            with patch.object(tasks.logger, 'error') as log_error:
+        with patch.object(member_sheets, "update_participant") as update_par:
+            with patch.object(tasks.logger, "error") as log_error:
                 tasks.update_discount_sheet_for_participant(
                     self.discount.pk, self.par.pk
                 )
@@ -121,8 +121,8 @@ class DiscountsWithoutGaKeyTest(TestCase):
 
     def test_update_sheet(self):
         """Updating just a single sheet is handled if that sheet has no Google Sheets key."""
-        with patch.object(member_sheets, 'update_participant') as update_par:
-            with patch.object(tasks.logger, 'error') as log_error:
+        with patch.object(member_sheets, "update_participant") as update_par:
+            with patch.object(tasks.logger, "error") as log_error:
                 tasks.update_discount_sheet(self.discount.pk)
 
         log_error.assert_called()
@@ -132,15 +132,15 @@ class DiscountsWithoutGaKeyTest(TestCase):
     def test_update_all():
         """When updating the sheets for all discounts, we exclude ones without a sheet."""
         # Because this discount has no Google Sheets key, we don't do anything
-        with patch.object(tasks.update_discount_sheet, 's') as update_sheet:
+        with patch.object(tasks.update_discount_sheet, "s") as update_sheet:
             tasks.update_all_discount_sheets()
         update_sheet.assert_not_called()
 
         # If we add another discount, we can bulk update but will exclude the current one
-        other_discount = factories.DiscountFactory.create(ga_key='some-koy')
+        other_discount = factories.DiscountFactory.create(ga_key="some-koy")
 
-        with patch.object(tasks.update_discount_sheet, 's') as update_sheet:
-            with patch.object(tasks, 'group'):
+        with patch.object(tasks.update_discount_sheet, "s") as update_sheet:
+            with patch.object(tasks, "group"):
                 tasks.update_all_discount_sheets()
         update_sheet.assert_called_once_with(other_discount.pk)
 
@@ -180,7 +180,7 @@ class RemindAllParticipantsToRenewTest(TestCase):
             reminder_sent_at=datetime(2020, 12, 25, tzinfo=ZoneInfo("UTC")),
         )
 
-        with patch.object(tasks.remind_lapsed_participant_to_renew, 'delay') as email:
+        with patch.object(tasks.remind_lapsed_participant_to_renew, "delay") as email:
             tasks.remind_participants_to_renew()
         email.assert_not_called()
 
@@ -190,7 +190,7 @@ class RemindAllParticipantsToRenewTest(TestCase):
             send_membership_reminder=True,
             membership__membership_expires=date(2019, 2, 2),
         )
-        with patch.object(tasks.remind_lapsed_participant_to_renew, 'delay') as email:
+        with patch.object(tasks.remind_lapsed_participant_to_renew, "delay") as email:
             tasks.remind_participants_to_renew()
         email.assert_called_once_with(par.pk)
 
@@ -205,7 +205,7 @@ class RemindAllParticipantsToRenewTest(TestCase):
             participant=par,
             reminder_sent_at=datetime(2017, 12, 25, tzinfo=ZoneInfo("UTC")),
         )
-        with patch.object(tasks.remind_lapsed_participant_to_renew, 'delay') as email:
+        with patch.object(tasks.remind_lapsed_participant_to_renew, "delay") as email:
             tasks.remind_participants_to_renew()
         email.assert_called_once_with(par.pk)
 
@@ -214,18 +214,18 @@ class RemindAllParticipantsToRenewTest(TestCase):
 class RemindIndividualParticipantsToRenewTest(TestCase):
     def test_first_reminder(self):
         par = factories.ParticipantFactory.create(
-            name='Tim Beaver',
+            name="Tim Beaver",
             send_membership_reminder=True,
             membership__membership_expires=date(2019, 1, 27),
         )
 
-        with mock.patch.object(mail.EmailMultiAlternatives, 'send') as send:
+        with mock.patch.object(mail.EmailMultiAlternatives, "send") as send:
             tasks.remind_lapsed_participant_to_renew(par.pk)
         send.assert_called_once()
 
         reminder = models.MembershipReminder.objects.get()
         self.assertEqual(
-            str(reminder), 'Tim Beaver, last reminded at 2019-01-25T17:00+00:00'
+            str(reminder), "Tim Beaver, last reminded at 2019-01-25T17:00+00:00"
         )
         self.assertEqual(reminder.participant, par)
         self.assertEqual(
@@ -235,7 +235,7 @@ class RemindIndividualParticipantsToRenewTest(TestCase):
 
     def test_second_annual_reminder(self):
         par = factories.ParticipantFactory.create(
-            name='Tim Beaver',
+            name="Tim Beaver",
             send_membership_reminder=True,
             membership__membership_expires=date(2019, 1, 27),
         )
@@ -245,14 +245,14 @@ class RemindIndividualParticipantsToRenewTest(TestCase):
             reminder_sent_at=datetime(2018, 1, 28, tzinfo=ZoneInfo("UTC")),
         )
 
-        with mock.patch.object(mail.EmailMultiAlternatives, 'send') as send:
+        with mock.patch.object(mail.EmailMultiAlternatives, "send") as send:
             tasks.remind_lapsed_participant_to_renew(par.pk)
         send.assert_called_once()
 
         self.assertEqual(
             models.MembershipReminder.objects.filter(participant=par).count(), 2
         )
-        last_reminder = models.MembershipReminder.objects.latest('reminder_sent_at')
+        last_reminder = models.MembershipReminder.objects.latest("reminder_sent_at")
         self.assertEqual(
             last_reminder.reminder_sent_at,
             datetime(2019, 1, 25, 17, 0, tzinfo=ZoneInfo("UTC")),
@@ -265,7 +265,7 @@ class RemindIndividualParticipantsToRenewTest(TestCase):
             membership__membership_expires=date(2019, 1, 27),
         )
 
-        with mock.patch.object(mail.EmailMultiAlternatives, 'send') as send:
+        with mock.patch.object(mail.EmailMultiAlternatives, "send") as send:
             tasks.remind_lapsed_participant_to_renew(par.pk)
         send.assert_called_once()
         self.assertEqual(
@@ -273,7 +273,7 @@ class RemindIndividualParticipantsToRenewTest(TestCase):
             1,
         )
 
-        with mock.patch.object(mail.EmailMultiAlternatives, 'send') as send2:
+        with mock.patch.object(mail.EmailMultiAlternatives, "send") as send2:
             with self.assertRaises(ValueError):
                 tasks.remind_lapsed_participant_to_renew(par.pk)
         send2.assert_not_called()
@@ -289,7 +289,7 @@ class RemindIndividualParticipantsToRenewTest(TestCase):
             membership__membership_expires=date(2019, 1, 27),
         )
 
-        with patch.object(renew, 'send_email_reminding_to_renew') as email:
+        with patch.object(renew, "send_email_reminding_to_renew") as email:
             tasks.remind_lapsed_participant_to_renew(par.pk)
         email.assert_not_called()
         self.assertFalse(models.MembershipReminder.objects.exists())
@@ -304,7 +304,7 @@ class RemindIndividualParticipantsToRenewTest(TestCase):
             reminder_sent_at=datetime(2018, 4, 25, tzinfo=ZoneInfo("UTC")),
         )
 
-        with patch.object(renew, 'send_email_reminding_to_renew') as email:
+        with patch.object(renew, "send_email_reminding_to_renew") as email:
             with self.assertRaises(ValueError) as cm:
                 tasks.remind_lapsed_participant_to_renew(par.pk)
         self.assertIn("Mistakenly trying to notify", str(cm.exception))
@@ -366,7 +366,7 @@ class RunLotteryTest(TestCase):
         be bypassed at runtime.
         """
         with self.assertRaises(ValueError):
-            tasks.run_lottery('not-an-id')
+            tasks.run_lottery("not-an-id")
 
     def test_trip_deleted(self):
         """We silently complete the task if the trip was deleted."""
@@ -386,7 +386,7 @@ class RunLotteryTest(TestCase):
 
     def test_success(self):
         """Test the usual case: a real trip exists, needs a lottery run."""
-        trip = factories.TripFactory.create(algorithm='lottery')
+        trip = factories.TripFactory.create(algorithm="lottery")
         tasks.run_lottery(trip.pk)
         trip.refresh_from_db()
-        self.assertEqual(trip.algorithm, 'fcfs')
+        self.assertEqual(trip.algorithm, "fcfs")

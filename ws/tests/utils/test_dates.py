@@ -25,7 +25,7 @@ class ItineraryAvailableAtTest(TestCase):
             trip_date = date(2022, 1, day_of_month)
             opens_at = date_utils.itinerary_available_at(trip_date)
 
-            self.assertEqual(opens_at.time().isoformat(), '18:00:00')
+            self.assertEqual(opens_at.time().isoformat(), "18:00:00")
 
             self.assertLess(opens_at.date(), trip_date)
 
@@ -94,7 +94,7 @@ class DateUtilTests(TestCase):
         self.y2k = datetime(2000, 1, 1, 12, 0, 0, tzinfo=ZoneInfo("America/New_York"))
         self.test_datetimes = [self.y2k + timedelta(days=i) for i in range(15)]
 
-    @mock.patch('ws.utils.dates.local_now')
+    @mock.patch("ws.utils.dates.local_now")
     def test_nearest_sat(self, local_now):
         for test_dt in self.test_datetimes:
             local_now.return_value = test_dt
@@ -107,7 +107,7 @@ class DateUtilTests(TestCase):
             else:
                 self.assertGreater(nearest_sat, test_date)
 
-    @mock.patch('ws.utils.dates.local_now')
+    @mock.patch("ws.utils.dates.local_now")
     def test_closest_wednesday(self, local_now):
         for test_dt in self.test_datetimes:
             local_now.return_value = test_dt
@@ -123,7 +123,7 @@ class DateUtilTests(TestCase):
                 self.assertLess(test_date, closest_wed)
 
     def test_closest_wed_at_noon(self):
-        eastern = ZoneInfo('America/New_York')
+        eastern = ZoneInfo("America/New_York")
 
         # On Wednesday, we return the same day
         with freeze_time("2016-12-28 23:22 EST"):
@@ -244,13 +244,13 @@ class LecturesCompleteTests(TestCase):
         expectations = {
             # There are future trips, but it's not yet Thursday night
             # (Explanation: Some leaders got ansty and created trips early)
-            'Wed 2018-01-03 12:00 EST': False,
+            "Wed 2018-01-03 12:00 EST": False,
             # It's evening, but lectures have just started
-            'Thu 2018-01-04 19:00 EST': False,
+            "Thu 2018-01-04 19:00 EST": False,
             # Leaders created trips, and it's after 9 pm, so we infer lectures are over
-            'Thu 2018-01-04 21:15 EST': True,
+            "Thu 2018-01-04 21:15 EST": True,
             # It's Friday, with upcoming trips. Lectures are definitely over.
-            'Fri 2018-01-05 10:23 EST': True,
+            "Fri 2018-01-05 10:23 EST": True,
         }
 
         for time_string, lectures_over in expectations.items():

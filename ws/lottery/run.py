@@ -101,13 +101,13 @@ class SingleTripLotteryRunner(LotteryRunner):
 
     def _make_fcfs(self) -> None:
         """After lottery execution, mark the trip FCFS & write out the log."""
-        self.trip.algorithm = 'fcfs'
+        self.trip.algorithm = "fcfs"
         self.trip.lottery_log = self.log_stream.getvalue()
         self.log_stream.close()
         self.trip.save()
 
     def __call__(self) -> None:
-        if self.trip.algorithm != 'lottery':
+        if self.trip.algorithm != "lottery":
             self.log_stream.close()
             return
 
@@ -128,7 +128,7 @@ class SingleTripLotteryRunner(LotteryRunner):
                 f"{i:3}. {par.name:{max_len + 3}} ({affiliation}, {key})"  # noqa: G004
             )
 
-        self.logger.info(50 * '-')
+        self.logger.info(50 * "-")
         for participant, _ in ranked_participants:
             par_handler = SingleTripParticipantHandler(participant, self, self.trip)
             par_handler.place_participant()
@@ -166,7 +166,7 @@ class WinterSchoolLotteryRunner(LotteryRunner):
         self.logger.info("Making all lottery trips first-come, first-serve")
         ws_trips = models.Trip.objects.filter(program=enums.Program.WINTER_SCHOOL.value)
         noon = closest_wed_at_noon()
-        for trip in ws_trips.filter(algorithm='lottery'):
+        for trip in ws_trips.filter(algorithm="lottery"):
             trip.make_fcfs(signups_open_at=noon)
             trip.save()
 
@@ -182,13 +182,13 @@ class WinterSchoolLotteryRunner(LotteryRunner):
             # get_affiliation_display() includes extra explanatory text we don't need
             affiliation = AFFILIATION_MAPPING[participant.affiliation]
             handling_header = [f"\nHandling {participant}", f"({affiliation}, {key})"]
-            self.logger.debug('\n'.join(handling_header))
-            self.logger.debug('-' * max(len(line) for line in handling_header))
+            self.logger.debug("\n".join(handling_header))
+            self.logger.debug("-" * max(len(line) for line in handling_header))
             par_handler = WinterSchoolParticipantHandler(participant, self)
 
             json_result = par_handler.place_participant()
             if json_result is not None:
                 json_result.update(
-                    {'global_rank': global_rank, 'has_flaked': key.flake_factor > 0}
+                    {"global_rank": global_rank, "has_flaked": key.flake_factor > 0}
                 )
                 self.logger.debug("RESULT: %s", json.dumps(json_result))

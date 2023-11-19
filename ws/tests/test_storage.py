@@ -11,8 +11,8 @@ class ManifestStorageTestCase(TestCase):
 
         # Use two (real) paths - we'll mock one to throw an error is usually does.
         # The other path will be mocked to just gzip & fingerprint properly
-        bootstrap = 'footable/demos/css/bootstrap.css'
-        flag = 'bc-css-flags/lib/region-flags/svg/HN.svg'
+        bootstrap = "footable/demos/css/bootstrap.css"
+        flag = "bc-css-flags/lib/region-flags/svg/HN.svg"
 
         paths = {
             bootstrap: (custom_storage, bootstrap),
@@ -28,19 +28,19 @@ class ManifestStorageTestCase(TestCase):
                     )
                     yield (path, None, processed_error)
                 else:
-                    assert path == 'bc-css-flags/lib/region-flags/svg/HN.svg'
-                    hashed = 'bc-css-flags/lib/region-flags/svg/HN.35c4ba4b1c78.svg'
+                    assert path == "bc-css-flags/lib/region-flags/svg/HN.svg"
+                    hashed = "bc-css-flags/lib/region-flags/svg/HN.35c4ba4b1c78.svg"
                     yield (path, hashed, True)
 
         # This mock is not necessary if running the test after `collectstatic`
         # (since we can actually run the real pipeline Gzipper)
-        with mock.patch.object(PipelineMixin, 'post_process') as post_process:
+        with mock.patch.object(PipelineMixin, "post_process") as post_process:
             post_process.side_effect = error_processing_bootstrap_path
             results = list(custom_storage.post_process(paths, dry_run=False))
 
         expected_output = (
-            'bc-css-flags/lib/region-flags/svg/HN.svg',
-            'bc-css-flags/lib/region-flags/svg/HN.35c4ba4b1c78.svg',
+            "bc-css-flags/lib/region-flags/svg/HN.svg",
+            "bc-css-flags/lib/region-flags/svg/HN.35c4ba4b1c78.svg",
             True,
         )
 

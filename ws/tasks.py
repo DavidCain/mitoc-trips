@@ -39,7 +39,7 @@ def exclusive_lock(task_identifier: str) -> Iterator[bool]:
     # Try to add the value to the cache.
     # Returns False if already cached (another worker added it already)
     # Returns True otherwise (this worker is the first to add the key)
-    got_lock = cache.add(task_identifier, 'true', LOCK_EXPIRE)
+    got_lock = cache.add(task_identifier, "true", LOCK_EXPIRE)
 
     # Yield our ability to obtain a lock, but always cleanup
     try:
@@ -78,7 +78,7 @@ def update_discount_sheet_for_participant(
         )
         return
 
-    with exclusive_lock(f'update_discount-{discount_id}'):
+    with exclusive_lock(f"update_discount-{discount_id}"):
         member_sheets.update_participant(discount, participant)
 
 
@@ -112,15 +112,15 @@ def update_discount_sheet(
         return
 
     trust_cache = not check_all_lapsed_members
-    with exclusive_lock(f'update_discount-{discount_id}'):
+    with exclusive_lock(f"update_discount-{discount_id}"):
         member_sheets.update_discount_sheet(discount, trust_cache=trust_cache)
 
 
 @shared_task
 def update_all_discount_sheets() -> None:
     logger.info("Updating the member roster for all discount sheets")
-    discount_pks = models.Discount.objects.exclude(ga_key='').values_list(
-        'pk', flat=True
+    discount_pks = models.Discount.objects.exclude(ga_key="").values_list(
+        "pk", flat=True
     )
     group([update_discount_sheet.s(pk) for pk in discount_pks])()
 
@@ -169,7 +169,7 @@ def remind_lapsed_participant_to_renew(participant_id: int) -> None:
         last_reminder = (
             models.MembershipReminder.objects.filter(participant=participant)
             .select_for_update()
-            .order_by('reminder_sent_at')
+            .order_by("reminder_sent_at")
             .last()
         )
         assert last_reminder is not None
@@ -227,7 +227,7 @@ def remind_participants_to_renew() -> None:
     )
 
     # Farm out the delivery of individual emails to separate workers.
-    for pk in participants_needing_reminder.values_list('pk', flat=True):
+    for pk in participants_needing_reminder.values_list("pk", flat=True):
         logger.info("Identified participant %d as needing renewal reminder", pk)
         remind_lapsed_participant_to_renew.delay(pk)
 
@@ -254,7 +254,7 @@ def send_sole_itineraries() -> None:
         trips.count(),
         tomorrow,
     )
-    for trip in trips.select_related('info').prefetch_related('leaders'):
+    for trip in trips.select_related("info").prefetch_related("leaders"):
         send_email_to_funds(trip)
 
 
@@ -294,7 +294,7 @@ def run_lottery(trip_id: int) -> None:
 
         # Make sure that we don't just silently ignore bogus trip IDs.
         # That is, the ID sequence should give some clues that this once was a valid trip.
-        cursor = connections['default'].cursor()
+        cursor = connections["default"].cursor()
         cursor.execute("select currval('ws_trip_id_seq'::regclass)")
         max_known_trip_pk = cursor.fetchone()[0]
 

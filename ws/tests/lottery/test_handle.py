@@ -19,9 +19,9 @@ class DriverTests(SimpleTestCase):
         par.lotteryinfo = models.LotteryInfo(car_status="none")
         self.assertFalse(handle.par_is_driver(par))
 
-        par.lotteryinfo = models.LotteryInfo(car_status='own')
+        par.lotteryinfo = models.LotteryInfo(car_status="own")
         self.assertTrue(handle.par_is_driver(par))
-        par.lotteryinfo = models.LotteryInfo(car_status='rent')
+        par.lotteryinfo = models.LotteryInfo(car_status="rent")
         self.assertTrue(handle.par_is_driver(par))
 
 
@@ -29,7 +29,7 @@ class Helpers:
     @staticmethod
     def _ws_trip(**kwargs):
         return factories.TripFactory.create(
-            algorithm='lottery', program=enums.Program.WINTER_SCHOOL.value, **kwargs
+            algorithm="lottery", program=enums.Program.WINTER_SCHOOL.value, **kwargs
         )
 
     @staticmethod
@@ -52,7 +52,7 @@ class SingleTripPlacementTests(TestCase, Helpers):
     def test_reciprocally_paired(self):
         """Handling a pair is only done once both have been seen."""
         trip = factories.TripFactory.create(
-            algorithm='lottery', program=enums.Program.CLIMBING.value
+            algorithm="lottery", program=enums.Program.CLIMBING.value
         )
         # Two participants, paired with each other!
         john = factories.ParticipantFactory.create()
@@ -87,7 +87,7 @@ class SingleTripPlacementTests(TestCase, Helpers):
 class WinterSchoolPlacementTests(TestCase, Helpers):
     def setUp(self):
         self.trip = factories.TripFactory.create(
-            algorithm='lottery', program=enums.Program.WINTER_SCHOOL.value
+            algorithm="lottery", program=enums.Program.WINTER_SCHOOL.value
         )
         self.runner = run.WinterSchoolLotteryRunner()
 
@@ -124,13 +124,13 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
         self.assertEqual(
             self._place_participant(par),
             {
-                'participant_pk': par.pk,
-                'paired_with_pk': None,
-                'is_paired': False,
-                'affiliation': 'NA',
-                'ranked_trips': [],
-                'placed_on_choice': None,
-                'waitlisted': False,
+                "participant_pk": par.pk,
+                "paired_with_pk": None,
+                "is_paired": False,
+                "affiliation": "NA",
+                "ranked_trips": [],
+                "placed_on_choice": None,
+                "waitlisted": False,
             },
         )
         self.assertTrue(self.runner.handled(par))
@@ -162,13 +162,13 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
         self.assertEqual(
             self._place_participant(alex),
             {
-                'participant_pk': alex.pk,
-                'paired_with_pk': john.pk,
-                'affiliation': "NA",
-                'is_paired': True,
-                'ranked_trips': [self.trip.pk],
-                'placed_on_choice': 1,
-                'waitlisted': False,
+                "participant_pk": alex.pk,
+                "paired_with_pk": john.pk,
+                "affiliation": "NA",
+                "is_paired": True,
+                "ranked_trips": [self.trip.pk],
+                "placed_on_choice": 1,
+                "waitlisted": False,
             },
         )
         self.assertTrue(self.runner.seen(alex))
@@ -202,14 +202,14 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
         self.assertEqual(
             alex_summary,
             {
-                'participant_pk': alex.pk,
-                'paired_with_pk': john.pk,
-                'is_paired': True,
-                'affiliation': 'NA',
+                "participant_pk": alex.pk,
+                "paired_with_pk": john.pk,
+                "is_paired": True,
+                "affiliation": "NA",
                 # Alex wasn't placed on any trip, or even waitlisted! (Neither was John)
-                'ranked_trips': [self.trip.pk],
-                'placed_on_choice': None,
-                'waitlisted': False,
+                "ranked_trips": [self.trip.pk],
+                "placed_on_choice": None,
+                "waitlisted": False,
             },
         )
 
@@ -237,14 +237,14 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
         self.assertEqual(
             john_summary,
             {
-                'participant_pk': john.pk,
-                'paired_with_pk': alex.pk,
-                'is_paired': True,
-                'affiliation': mock.ANY,
+                "participant_pk": john.pk,
+                "paired_with_pk": alex.pk,
+                "is_paired": True,
+                "affiliation": mock.ANY,
                 # John ranked two trips! From his perspective, he had his second choice.
-                'ranked_trips': [other_trip.pk, self.trip.pk],
-                'placed_on_choice': 2,
-                'waitlisted': False,
+                "ranked_trips": [other_trip.pk, self.trip.pk],
+                "placed_on_choice": 2,
+                "waitlisted": False,
             },
         )
 
@@ -275,27 +275,27 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
         self.assertEqual(
             cher_summary,
             {
-                'participant_pk': cher.pk,
+                "participant_pk": cher.pk,
                 # Sonny requested to be paired with Cher, but Cher didn't reciprocate
-                'paired_with_pk': None,
-                'is_paired': False,
-                'affiliation': mock.ANY,
+                "paired_with_pk": None,
+                "is_paired": False,
+                "affiliation": mock.ANY,
                 # Cher ranked two trips, got her first choice
-                'ranked_trips': [other_trip.pk, self.trip.pk],
-                'placed_on_choice': 1,
-                'waitlisted': False,
+                "ranked_trips": [other_trip.pk, self.trip.pk],
+                "placed_on_choice": 1,
+                "waitlisted": False,
             },
         )
 
     def test_waitlisted(self):
         """If your preferred trips are all full, you'll be waitlisted."""
         preferred_trip = factories.TripFactory.create(
-            algorithm='lottery',
+            algorithm="lottery",
             program=enums.Program.WINTER_SCHOOL.value,
             maximum_participants=1,
         )
         second_trip = factories.TripFactory.create(
-            algorithm='lottery',
+            algorithm="lottery",
             program=enums.Program.WINTER_SCHOOL.value,
             maximum_participants=1,
         )
@@ -312,7 +312,7 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
 
         # Now, try to place the participant, even though both trips are full!
         info = self._place_participant(par)
-        self.assertTrue(info['waitlisted'])
+        self.assertTrue(info["waitlisted"])
         signup = models.SignUp.objects.get(participant=par, trip=preferred_trip)
         self.assertFalse(signup.on_trip)
         self.assertTrue(signup.waitlistsignup)
@@ -320,13 +320,13 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
     def test_driver_bump(self):
         """Drivers can bump non-drivers off if it makes the trip possible."""
         trip = factories.TripFactory.create(
-            algorithm='lottery',
+            algorithm="lottery",
             program=enums.Program.WINTER_SCHOOL.value,
             maximum_participants=2,
         )
 
         driver = factories.ParticipantFactory.create()
-        factories.LotteryInfoFactory.create(participant=driver, car_status='own')
+        factories.LotteryInfoFactory.create(participant=driver, car_status="own")
         factories.SignUpFactory.create(participant=driver, trip=trip)
 
         # Place two other people on the trip first!
@@ -352,7 +352,7 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
     def test_bump_but_only_one_driver(self):
         # Create a trip with room for only one participant
         trip = factories.TripFactory.create(
-            algorithm='lottery',
+            algorithm="lottery",
             program=enums.Program.WINTER_SCHOOL.value,
             maximum_participants=1,
         )
@@ -360,8 +360,8 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
         # Two participants, both drivers
         dee = factories.ParticipantFactory.create()
         dum = factories.ParticipantFactory.create()
-        factories.LotteryInfoFactory.create(participant=dee, car_status='own')
-        factories.LotteryInfoFactory.create(participant=dum, car_status='rent')
+        factories.LotteryInfoFactory.create(participant=dee, car_status="own")
+        factories.LotteryInfoFactory.create(participant=dum, car_status="rent")
         factories.SignUpFactory.create(participant=dee, trip=trip)
         factories.SignUpFactory.create(participant=dum, trip=trip)
 
@@ -377,12 +377,12 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
         """We avoid placing participants on a top choice trip if they may be bumped!"""
         # Trip has 3 slots, needs 2 drivers
         preferred_trip = factories.TripFactory.create(
-            algorithm='lottery',
+            algorithm="lottery",
             program=enums.Program.WINTER_SCHOOL.value,
             maximum_participants=3,
         )
         second_trip = factories.TripFactory.create(
-            algorithm='lottery',
+            algorithm="lottery",
             program=enums.Program.WINTER_SCHOOL.value,
             maximum_participants=1,
         )
@@ -403,7 +403,7 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
 
         # When placing our participant, we opt for trip two - a driver wants the last spot
         driver = factories.ParticipantFactory.create()
-        factories.LotteryInfoFactory.create(participant=driver, car_status='own')
+        factories.LotteryInfoFactory.create(participant=driver, car_status="own")
         factories.SignUpFactory.create(participant=driver, trip=preferred_trip)
 
         self._place_participant(par)
@@ -416,18 +416,18 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
         """
         # Trip has 3 slots, needs 2 drivers
         preferred_trip = factories.TripFactory.create(
-            algorithm='lottery',
+            algorithm="lottery",
             program=enums.Program.WINTER_SCHOOL.value,
             maximum_participants=3,
         )
         second_trip = factories.TripFactory.create(
-            algorithm='lottery',
+            algorithm="lottery",
             program=enums.Program.WINTER_SCHOOL.value,
             maximum_participants=10,
         )
 
         # Paired participants, neither are drivers.
-        one, two = self._pair_signed_up_for(preferred_trip, car_status='none', order=1)
+        one, two = self._pair_signed_up_for(preferred_trip, car_status="none", order=1)
         factories.SignUpFactory.create(participant=one, trip=second_trip, order=2)
         factories.SignUpFactory.create(participant=two, trip=second_trip, order=2)
 
@@ -439,7 +439,7 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
 
         # When placing our pair, we opt for trip two! A driver would displace one of them.
         driver = factories.ParticipantFactory.create(name="Car Owner")
-        factories.LotteryInfoFactory.create(participant=driver, car_status='own')
+        factories.LotteryInfoFactory.create(participant=driver, car_status="own")
         factories.SignUpFactory.create(participant=driver, trip=preferred_trip)
 
         self.assertIsNone(self._place_participant(one))
@@ -452,19 +452,19 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
         """If a participant pair is bumped, we keep them on the same trip."""
         # Two paired participants rank two trips.
         preferred_trip = factories.TripFactory.create(
-            algorithm='lottery',
+            algorithm="lottery",
             program=enums.Program.WINTER_SCHOOL.value,
             maximum_participants=2,
         )
         second_trip = factories.TripFactory.create(
-            algorithm='lottery',
+            algorithm="lottery",
             program=enums.Program.WINTER_SCHOOL.value,
             # Not enough room for both participants!
             # This is avoids possibly triggering the driver avoidance rule
             # (but has room for one of the bumped participants)
             maximum_participants=1,
         )
-        one, two = self._pair_signed_up_for(preferred_trip, car_status='none', order=1)
+        one, two = self._pair_signed_up_for(preferred_trip, car_status="none", order=1)
         factories.SignUpFactory.create(participant=one, trip=second_trip, order=2)
         factories.SignUpFactory.create(participant=two, trip=second_trip, order=2)
 
@@ -476,7 +476,7 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
 
         # Driver comes along and bumps one of the pair.
         driver = factories.ParticipantFactory.create(name="Car Owner")
-        factories.LotteryInfoFactory.create(participant=driver, car_status='own')
+        factories.LotteryInfoFactory.create(participant=driver, car_status="own")
         factories.SignUpFactory.create(participant=driver, trip=preferred_trip)
 
         # Driver gets the trip, bumps one of the two.
@@ -495,7 +495,7 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
         """We try to place a participant on less-preferred trips if possible."""
         (best, middle, worst) = (
             factories.TripFactory.create(
-                algorithm='lottery',
+                algorithm="lottery",
                 program=enums.Program.WINTER_SCHOOL.value,
                 maximum_participants=1,
             )
@@ -509,7 +509,7 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
 
         # Driver also wants to be on those three trips, in the same order
         driver = factories.ParticipantFactory.create(name="Car Renter")
-        factories.LotteryInfoFactory.create(participant=driver, car_status='rent')
+        factories.LotteryInfoFactory.create(participant=driver, car_status="rent")
         factories.SignUpFactory.create(participant=driver, trip=best, order=1)
         factories.SignUpFactory.create(participant=driver, trip=middle, order=2)
         factories.SignUpFactory.create(participant=driver, trip=worst, order=3)
@@ -531,7 +531,7 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
     def test_enough_drivers_already_no_bump(self):
         """Participants can safely be placed on the last spot of a trip with enough drivers."""
         trip = factories.TripFactory.create(
-            algorithm='lottery',
+            algorithm="lottery",
             program=enums.Program.WINTER_SCHOOL.value,
             maximum_participants=2,
         )
@@ -539,8 +539,8 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
         # Two participants, both drivers (one leads, one attends)
         leader_driver = factories.ParticipantFactory.create()
         par_driver = factories.ParticipantFactory.create()
-        factories.LotteryInfoFactory.create(participant=leader_driver, car_status='own')
-        factories.LotteryInfoFactory.create(participant=par_driver, car_status='rent')
+        factories.LotteryInfoFactory.create(participant=leader_driver, car_status="own")
+        factories.LotteryInfoFactory.create(participant=par_driver, car_status="rent")
         trip.leaders.add(leader_driver)
 
         # Place the driver first. We now have two drivers!
@@ -555,7 +555,7 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
 
         # Another driver has expressed interest in the trip. They could bump!
         other_driver = factories.ParticipantFactory.create()
-        factories.LotteryInfoFactory.create(participant=other_driver, car_status='own')
+        factories.LotteryInfoFactory.create(participant=other_driver, car_status="own")
         factories.SignUpFactory.create(participant=other_driver, trip=trip)
 
         # The non-driver is the last spot! They *might* risk a bump from `other_driver`
@@ -566,14 +566,14 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
     def test_second_to_last_spot_no_bump(self):
         """Participants can be placed on the second-to-last spot without risking bump."""
         trip = factories.TripFactory.create(
-            algorithm='lottery',
+            algorithm="lottery",
             program=enums.Program.WINTER_SCHOOL.value,
             maximum_participants=2,
         )
 
         # Leader is a driver.
         leader_driver = factories.ParticipantFactory.create()
-        factories.LotteryInfoFactory.create(participant=leader_driver, car_status='own')
+        factories.LotteryInfoFactory.create(participant=leader_driver, car_status="own")
         trip.leaders.add(leader_driver)
 
         # Non-driver wants to join the trip.
@@ -583,7 +583,7 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
 
         # Another driver has expressed interest in the trip. They won't bump.
         other_driver = factories.ParticipantFactory.create()
-        factories.LotteryInfoFactory.create(participant=other_driver, car_status='own')
+        factories.LotteryInfoFactory.create(participant=other_driver, car_status="own")
         factories.SignUpFactory.create(participant=other_driver, trip=trip)
 
         # The non-driver is the second-to-last spot! They *might* risk a bump from `other_driver`
@@ -596,7 +596,7 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
         trip1, trip2, trip3 = (
             factories.TripFactory.create(
                 name=f"Trip {i}",
-                algorithm='lottery',
+                algorithm="lottery",
                 program=enums.Program.WINTER_SCHOOL.value,
                 maximum_participants=2,
             )
@@ -607,7 +607,7 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
         other_par = factories.ParticipantFactory.create(affiliation="NA")
         par = factories.ParticipantFactory.create(affiliation="MU")
         # (submit lottery prefs, to cover all branches in `bump_participant()`)
-        factories.LotteryInfoFactory.create(participant=par, car_status='none')
+        factories.LotteryInfoFactory.create(participant=par, car_status="none")
 
         # Assert that the priority keys match the order in which we'll assign these two.
         # (when identifying the lowest non-driver, we look to priority keys)
@@ -621,7 +621,7 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
 
         # A driver expressed interest in each trip (making each trip potentially "bumpable")
         driver = factories.ParticipantFactory.create()
-        factories.LotteryInfoFactory.create(participant=driver, car_status='own')
+        factories.LotteryInfoFactory.create(participant=driver, car_status="own")
         for trip in [trip1, trip2, trip3]:
             factories.SignUpFactory.create(participant=driver, trip=trip)
 
@@ -658,7 +658,7 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
     def test_driver_cannot_bump_full_trip_with_enough_drivers(self):
         """Drivers may not bump a trip with enough drivers on it."""
         trip = factories.TripFactory.create(
-            algorithm='lottery',
+            algorithm="lottery",
             program=enums.Program.WINTER_SCHOOL.value,
             maximum_participants=3,
         )
@@ -666,7 +666,7 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
         # Two drivers take the first two spots
         for _i in range(2):
             driver = factories.ParticipantFactory.create()
-            factories.LotteryInfoFactory.create(participant=driver, car_status='own')
+            factories.LotteryInfoFactory.create(participant=driver, car_status="own")
             factories.SignUpFactory.create(participant=driver, trip=trip)
             self._place_participant(driver)
 

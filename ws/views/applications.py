@@ -44,14 +44,14 @@ class LeaderApplicationMixin(ratings_utils.LeaderApplicationMixin):
     @property
     def activity_enum(self) -> enums.Activity:
         """The activity, should be verified by the dispatch method."""
-        return enums.Activity(self.kwargs['activity'])
+        return enums.Activity(self.kwargs["activity"])
 
     def get_queryset(self):
         return self.joined_queryset()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['activity_enum'] = self.activity_enum
+        context["activity_enum"] = self.activity_enum
         return context
 
 
@@ -71,17 +71,17 @@ class LeaderApplyView(LeaderApplicationMixin, CreateView):  # type: ignore[misc]
     request: RequestWithParticipant
 
     template_name = "leaders/apply.html"
-    success_url = reverse_lazy('home')
+    success_url = reverse_lazy("home")
     # TODO: I'm doing some nasty with this form class.
     form_class = forms.LeaderApplicationForm  # type: ignore[assignment]
 
     def get_success_url(self) -> str:
-        return reverse('become_leader', kwargs={'activity': self.activity_enum.value})
+        return reverse("become_leader", kwargs={"activity": self.activity_enum.value})
 
     def get_form_kwargs(self):
         """Pass the needed "activity" parameter for dynamic form construction."""
         kwargs = super().get_form_kwargs()
-        kwargs['activity_enum'] = self.activity_enum
+        kwargs["activity_enum"] = self.activity_enum
 
         # Pre-fill the most-recently held rating, if not currently active
         # (Most commonly, this occurs with the annual renewal for WS leaders)
@@ -90,7 +90,7 @@ class LeaderApplyView(LeaderApplicationMixin, CreateView):  # type: ignore[misc]
             prev_rating = self.par.activity_rating(
                 self.activity_enum, must_be_active=False
             )
-            kwargs['initial'] = {'desired_rating': prev_rating}
+            kwargs["initial"] = {"desired_rating": prev_rating}
         return kwargs
 
     def get_queryset(self):
@@ -116,32 +116,32 @@ class LeaderApplyView(LeaderApplicationMixin, CreateView):  # type: ignore[misc]
         application.year = self.application_year
         application.participant = self.par
         rating = self.par.activity_rating(self.activity_enum, must_be_active=False)
-        application.previous_rating = rating or ''
+        application.previous_rating = rating or ""
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
         """Get any existing application and rating."""
         context = super().get_context_data(**kwargs)
 
-        context['activity_enum'] = self.activity_enum
-        context['year'] = self.application_year
+        context["activity_enum"] = self.activity_enum
+        context["year"] = self.application_year
         existing = self.get_queryset().filter(participant=self.par)
 
         accepting_apps = models.LeaderApplication.accepting_applications(
             self.activity_enum
         )
-        context['accepting_applications'] = accepting_apps
+        context["accepting_applications"] = accepting_apps
 
         if existing:
-            app = existing.order_by('-time_created').first()
-            context['application'] = app
+            app = existing.order_by("-time_created").first()
+            context["application"] = app
             # TODO: Move this validation into the form/route too.
             can_apply = accepting_apps and models.LeaderApplication.can_reapply(app)
-            context['can_apply'] = can_apply
+            context["can_apply"] = can_apply
         else:
-            context['can_apply'] = accepting_apps
+            context["can_apply"] = accepting_apps
 
-        context['climbing_form_url'] = models.ClimbingLeaderApplication.google_form_url(
+        context["climbing_form_url"] = models.ClimbingLeaderApplication.google_form_url(
             participant=self.request.participant,
             embedded=True,
         )
@@ -150,29 +150,29 @@ class LeaderApplyView(LeaderApplicationMixin, CreateView):  # type: ignore[misc]
 
     @method_decorator(user_info_required)
     def dispatch(self, request, *args, **kwargs):
-        activity = kwargs.get('activity')
+        activity = kwargs.get("activity")
         try:
             activity_enum = enums.Activity(activity)
         except ValueError:  # (Not a valid activity)
             messages.error(self.request, f"{activity} is not a known activity.")
-            return redirect(reverse('leaders_apply'))
+            return redirect(reverse("leaders_apply"))
 
         if not models.LeaderApplication.can_apply_for_activity(activity_enum):
             messages.error(
                 self.request,
                 f"{activity_enum.label} is not accepting leader applications",
             )
-            return redirect(reverse('leaders_apply'))
+            return redirect(reverse("leaders_apply"))
 
         return super().dispatch(request, *args, **kwargs)
 
 
 class AnyActivityLeaderApplyView(TemplateView):
-    template_name = 'leaders/apply_any_activity.html'
+    template_name = "leaders/apply_any_activity.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['activities_accepting_applications'] = [
+        context["activities_accepting_applications"] = [
             activity_enum
             for activity_enum in enums.Activity
             if models.LeaderApplication.can_apply_for_activity(activity_enum)
@@ -182,8 +182,8 @@ class AnyActivityLeaderApplyView(TemplateView):
 
 # model is a property on LeaderApplicationMixin, but a class attribute on MultipleObjectMixin
 class AllLeaderApplicationsView(ApplicationManager, ListView):  # type: ignore[misc]
-    context_object_name = 'leader_applications'
-    template_name = 'chair/applications/all.html'
+    context_object_name = "leader_applications"
+    template_name = "chair/applications/all.html"
 
     def get_queryset(self):
         """Annotate each application with its number of recs & ratings."""
@@ -207,24 +207,24 @@ class AllLeaderApplicationsView(ApplicationManager, ListView):  # type: ignore[m
         # Super calls DetailView's `get_context_data` so we'll manually add form
         context = super().get_context_data(**kwargs)
 
-        apps = context['leader_applications']
-        context['num_chairs'] = len(self.activity_chairs())
-        context['needs_rec'] = self.needs_rec(apps)
-        context['needs_rating'] = self.needs_rating(apps)
-        context['pending'] = context['needs_rating'] or context['needs_rec']
-        context['activity_enum'] = self.activity_enum
+        apps = context["leader_applications"]
+        context["num_chairs"] = len(self.activity_chairs())
+        context["needs_rec"] = self.needs_rec(apps)
+        context["needs_rating"] = self.needs_rating(apps)
+        context["pending"] = context["needs_rating"] or context["needs_rec"]
+        context["activity_enum"] = self.activity_enum
         accepting_apps = models.LeaderApplication.accepting_applications(
             self.activity_enum
         )
-        context['new_applications_disabled'] = not accepting_apps
+        context["new_applications_disabled"] = not accepting_apps
 
-        context['apps_by_year'] = self._group_applications_by_year(apps)
+        context["apps_by_year"] = self._group_applications_by_year(apps)
         return context
 
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         try:
-            self._activity_enum = enums.Activity(kwargs.get('activity'))
+            self._activity_enum = enums.Activity(kwargs.get("activity"))
         except ValueError:
             raise Http404  # noqa: B904
 
@@ -232,8 +232,8 @@ class AllLeaderApplicationsView(ApplicationManager, ListView):  # type: ignore[m
             raise PermissionDenied
         if not models.LeaderApplication.can_apply_for_activity(self.activity_enum):
             context = {
-                'missing_form': True,
-                'activity_enum': self.activity_enum,
+                "missing_form": True,
+                "activity_enum": self.activity_enum,
             }
             return render(request, self.template_name, context)
         return super().dispatch(request, *args, **kwargs)
@@ -242,7 +242,7 @@ class AllLeaderApplicationsView(ApplicationManager, ListView):  # type: ignore[m
 # model is a property on LeaderApplicationMixin, but a class attribute on SingleObjectMixin
 class ArchiveLeaderApplicationView(ApplicationManager, SingleObjectMixin, View):  # type: ignore[misc]
     def get(self, request, *args, **kwargs):
-        return redirect(reverse('view_application', kwargs=kwargs))
+        return redirect(reverse("view_application", kwargs=kwargs))
 
     def post(self, request, *args, **kwargs):
         application = self.get_object()
@@ -250,13 +250,13 @@ class ArchiveLeaderApplicationView(ApplicationManager, SingleObjectMixin, View):
             messages.error(
                 request, "Cannot archive an application that received a rating!"
             )
-            return redirect(reverse('view_application', kwargs=kwargs))
+            return redirect(reverse("view_application", kwargs=kwargs))
 
         application.archived = True
         application.save()
         url = reverse(
-            'view_application',
-            kwargs={'activity': kwargs['activity'], 'pk': kwargs['pk']},
+            "view_application",
+            kwargs={"activity": kwargs["activity"], "pk": kwargs["pk"]},
         )
         messages.success(
             request,
@@ -272,13 +272,13 @@ class ArchiveLeaderApplicationView(ApplicationManager, SingleObjectMixin, View):
         next_app = next(iter(self.pending_applications()), None)
         if next_app:
             app_args = (self.activity_enum.value, next_app.pk)
-            return reverse('view_application', args=app_args)
-        return reverse('manage_applications', args=(self.activity_enum.value,))
+            return reverse("view_application", args=app_args)
+        return reverse("manage_applications", args=(self.activity_enum.value,))
 
     @method_decorator(chairs_only())
     def dispatch(self, request, *args, **kwargs):
         try:
-            self._activity_enum = enums.Activity(kwargs.get('activity'))
+            self._activity_enum = enums.Activity(kwargs.get("activity"))
         except ValueError:
             raise Http404  # noqa: B904
         if not perm_utils.chair_or_admin(request.user, self.activity_enum):
@@ -291,8 +291,8 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type:
     """Handle applications by participants to become leaders."""
 
     form_class = forms.ApplicationLeaderForm
-    context_object_name = 'application'
-    template_name = 'chair/applications/view.html'
+    context_object_name = "application"
+    template_name = "chair/applications/view.html"
 
     def get_success_url(self) -> str:
         """Get the next application in this queue.
@@ -302,8 +302,8 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type:
         """
         if self.next_app:  # Set before we saved this object
             app_args = (self.activity_enum.value, self.next_app.pk)
-            return reverse('view_application', args=app_args)
-        return reverse('manage_applications', args=(self.activity_enum.value,))
+            return reverse("view_application", args=app_args)
+        return reverse("manage_applications", args=(self.activity_enum.value,))
 
     def get_other_apps(self):
         """Get the applications that come before and after this in the queue.
@@ -381,7 +381,7 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type:
                 return None
 
         if len(proposed_ratings) != 1:
-            return ''  # No consensus
+            return ""  # No consensus
         return proposed_ratings.pop()
 
     def get_initial(self) -> dict[str, str | bool]:
@@ -400,9 +400,9 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type:
         rating = self.existing_rating()
         if rating:
             return {
-                'rating': rating.rating,
-                'notes': rating.notes,
-                'is_recommendation': False,
+                "rating": rating.rating,
+                "notes": rating.notes,
+                "is_recommendation": False,
             }
 
         rec = self.existing_rec()
@@ -410,16 +410,16 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type:
         # No recommendation or rating from the viewer? Blank form.
         if not rec:
             # Recommendations only make sense with multiple chairs.
-            return {'is_recommendation': len(self.activity_chairs()) > 1}
+            return {"is_recommendation": len(self.activity_chairs()) > 1}
 
         # We may be ready to assign a rating (and we may even have a pre-fillable one)
         prefill_rating = self._rating_to_prefill()
         if prefill_rating is not None:
-            return {'is_recommendation': False, 'rating': prefill_rating, 'notes': ''}
+            return {"is_recommendation": False, "rating": prefill_rating, "notes": ""}
 
         # Viewer has given a recommendation, but we're still waiting on others.
         # Prefill their present recommendation, in case they want to edit it.
-        return {'is_recommendation': True, 'rating': rec.rating, 'notes': rec.notes}
+        return {"is_recommendation": True, "rating": rec.rating, "notes": rec.notes}
 
     @property
     def assigned_rating(self):
@@ -429,9 +429,9 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type:
             activity=self.activity_enum.value,
             time_created__gte=self.object.time_created,
         )
-        if not hasattr(self, '_assigned_rating'):
+        if not hasattr(self, "_assigned_rating"):
             ratings = models.LeaderRating.objects.filter(in_future)
-            self._assigned_rating = ratings.order_by('time_created').first()
+            self._assigned_rating = ratings.order_by("time_created").first()
         return self._assigned_rating
 
     @property
@@ -454,7 +454,7 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type:
         rec_after_creation = Q(time_created__gte=self.object.time_created)
         find_recs = match & self.before_rating & rec_after_creation
         recs = models.LeaderRecommendation.objects.filter(find_recs)
-        return recs.select_related('creator__user')  # (User used for WSC)
+        return recs.select_related("creator__user")  # (User used for WSC)
 
     def get_feedback(self):
         """Return all feedback for the participant.
@@ -466,39 +466,39 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type:
         return (
             models.Feedback.everything.filter(participant=self.object.participant)
             .exclude(participant=self.chair)
-            .select_related('leader', 'trip')
-            .prefetch_related('leader__leaderrating_set')
+            .select_related("leader", "trip")
+            .prefetch_related("leader__leaderrating_set")
             .annotate(
-                display_date=Least('trip__trip_date', Cast('time_created', DateField()))
+                display_date=Least("trip__trip_date", Cast("time_created", DateField()))
             )
-            .order_by('-display_date')
+            .order_by("-display_date")
         )
 
     def get_context_data(self, **kwargs):
         # Super calls DetailView's `get_context_data` so we'll manually add form
         context = super().get_context_data(**kwargs)
         assigned_rating = self.assigned_rating
-        context['assigned_rating'] = assigned_rating
-        context['recommendations'] = self.get_recommendations()
-        context['leader_form'] = self.get_form()
-        context['all_feedback'] = self.get_feedback()
-        context['prev_app'], context['next_app'] = self.get_other_apps()
+        context["assigned_rating"] = assigned_rating
+        context["recommendations"] = self.get_recommendations()
+        context["leader_form"] = self.get_form()
+        context["all_feedback"] = self.get_feedback()
+        context["prev_app"], context["next_app"] = self.get_other_apps()
 
         participant = self.object.participant
-        context['active_ratings'] = list(participant.ratings(must_be_active=True))
-        context['chair_activities'] = [
+        context["active_ratings"] = list(participant.ratings(must_be_active=True))
+        context["chair_activities"] = [
             activity_enum.label
             for activity_enum in enums.Activity
             if activity_enum in perm_utils.chair_activities(participant.user)
         ]
-        context['existing_rating'] = self.existing_rating()
-        context['existing_rec'] = self.existing_rec()
-        context['hide_recs'] = not (assigned_rating or context['existing_rec'])
+        context["existing_rating"] = self.existing_rating()
+        context["existing_rec"] = self.existing_rec()
+        context["hide_recs"] = not (assigned_rating or context["existing_rec"])
 
         all_trips_led = self.object.participant.trips_led
-        context['trips_led'] = all_trips_led.filter(
+        context["trips_led"] = all_trips_led.filter(
             self.before_rating, activity=self.activity_enum.value
-        ).prefetch_related('leaders__leaderrating_set')
+        ).prefetch_related("leaders__leaderrating_set")
         return context
 
     def form_valid(self, form):
@@ -511,7 +511,7 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type:
         rating.participant = self.object.participant
         rating.activity = self.object.activity
 
-        is_rec = form.cleaned_data['is_recommendation']
+        is_rec = form.cleaned_data["is_recommendation"]
         if is_rec:
             # Hack to convert the (unsaved) rating to a recommendation
             # (Both models have the exact same fields)
@@ -542,7 +542,7 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type:
     def dispatch(self, request, *args, **kwargs):
         """Redirect if anonymous, but deny permission if not a chair."""
         try:
-            self._activity_enum = enums.Activity(kwargs['activity'])
+            self._activity_enum = enums.Activity(kwargs["activity"])
         except ValueError:
             raise Http404  # noqa: B904
 

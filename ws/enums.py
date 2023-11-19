@@ -33,16 +33,16 @@ class ProfileProblem(enum.Enum):
 
         This includes URLs and should be marked as safe if for rendering in HTML.
         """
-        manage_emails = reverse('account_email')
+        manage_emails = reverse("account_email")
         mapping = {
-            self.NO_INFO: 'Please complete this important safety information to finish the signup process.',
+            self.NO_INFO: "Please complete this important safety information to finish the signup process.",
             self.STALE_INFO: (
                 "You haven't updated your personal information in a while. "
                 "Please ensure that the below information is correct and click 'Submit' to update!"
             ),
-            self.LEGACY_AFFILIATION: 'Please update your MIT affiliation.',
-            self.INVALID_EMERGENCY_CONTACT_PHONE: 'Please supply a valid number for your emergency contact.',
-            self.MISSING_FULL_NAME: 'Please supply your full legal name.',
+            self.LEGACY_AFFILIATION: "Please update your MIT affiliation.",
+            self.INVALID_EMERGENCY_CONTACT_PHONE: "Please supply a valid number for your emergency contact.",
+            self.MISSING_FULL_NAME: "Please supply your full legal name.",
             self.PRIMARY_EMAIL_NOT_VALIDATED: f'Please <a href="{manage_emails}">verify your email address</a>',
         }
         return mapping[self]
@@ -106,48 +106,48 @@ class TripIneligibilityReason(enum.Enum):
     def label(self):
         """A generic label to be read by any consumer (i.e. the user, or another leader)."""
         mapping = {
-            self.NOT_LOGGED_IN: 'Not logged in!',
-            self.NO_PROFILE_INFO: 'No profile found!',
-            self.IS_TRIP_WIMP: 'Cannot attend a trip as its WIMP',
-            self.MISSED_WS_LECTURES: 'Must have attended mandatory safety lectures',
-            self.PROFILE_PROBLEM: 'Profile requires modification',
-            self.MEMBERSHIP_MISSING: 'An active membership is required',
-            self.MEMBERSHIP_NEEDS_RENEWAL: 'Membership must be renewed',
-            self.WAIVER_MISSING: 'A current waiver is required',
-            self.WAIVER_NEEDS_RENEWAL: 'Waiver must be renewed',
+            self.NOT_LOGGED_IN: "Not logged in!",
+            self.NO_PROFILE_INFO: "No profile found!",
+            self.IS_TRIP_WIMP: "Cannot attend a trip as its WIMP",
+            self.MISSED_WS_LECTURES: "Must have attended mandatory safety lectures",
+            self.PROFILE_PROBLEM: "Profile requires modification",
+            self.MEMBERSHIP_MISSING: "An active membership is required",
+            self.MEMBERSHIP_NEEDS_RENEWAL: "Membership must be renewed",
+            self.WAIVER_MISSING: "A current waiver is required",
+            self.WAIVER_NEEDS_RENEWAL: "Waiver must be renewed",
         }
         return mapping[self]
 
-    def how_to_fix_for(self, trip: 'Trip') -> str:
+    def how_to_fix_for(self, trip: "Trip") -> str:
         """Return a message directed at the user with the problem containing clues on how to fix.
 
         This includes URLs and should be marked as safe if for rendering in HTML.
         """
         dt = trip.trip_date
-        trip_date = f'{dt:%B} {dt.day}, {dt.year}'
+        trip_date = f"{dt:%B} {dt.day}, {dt.year}"
 
-        edit_profile = reverse('edit_profile')
+        edit_profile = reverse("edit_profile")
         account_login = (
-            reverse('account_login')
-            + '?'
+            reverse("account_login")
+            + "?"
             # Probably overkill... f'?next=/trips/{trip.pk}' is plenty, but this is a better pattern
             # (We'll be marking this string as safe, so the URL *must* be escaped to avoid injection)
-            + urlencode({'next': reverse('view_trip', args=(trip.pk,))})
+            + urlencode({"next": reverse("view_trip", args=(trip.pk,))})
         )
-        pay_dues = reverse('pay_dues')
-        initiate_waiver = reverse('initiate_waiver')
+        pay_dues = reverse("pay_dues")
+        initiate_waiver = reverse("initiate_waiver")
 
         # "you must... "
         mapping: dict[int, str] = {
             self.NOT_LOGGED_IN: f'<a href="{account_login}">log in</a>',
             self.NO_PROFILE_INFO: f'provide <a href="{edit_profile}">personal information</a>',
-            self.IS_TRIP_WIMP: 'be replaced in your role as the trip WIMP',
+            self.IS_TRIP_WIMP: "be replaced in your role as the trip WIMP",
             self.PROFILE_PROBLEM: f'update your <a href="{edit_profile}">personal information</a>',
-            self.MISSED_WS_LECTURES: '''have attended this year's lectures. Questions? Contact the <a href="mailto:ws-chair@mit.edu">Winter School Chair</a>.''',
+            self.MISSED_WS_LECTURES: """have attended this year's lectures. Questions? Contact the <a href="mailto:ws-chair@mit.edu">Winter School Chair</a>.""",
             self.MEMBERSHIP_MISSING: f'have an <a href="{pay_dues}">active membership</a>',
-            self.MEMBERSHIP_NEEDS_RENEWAL: f'''have a <a href="{pay_dues}">membership that's valid until at least {trip_date}</a>''',
+            self.MEMBERSHIP_NEEDS_RENEWAL: f"""have a <a href="{pay_dues}">membership that's valid until at least {trip_date}</a>""",
             self.WAIVER_MISSING: f'<a href="{initiate_waiver}">sign a waiver</a>',
-            self.WAIVER_NEEDS_RENEWAL: f'''have a <a href="{initiate_waiver}">waiver that's valid until at least {trip_date}</a>''',
+            self.WAIVER_NEEDS_RENEWAL: f"""have a <a href="{initiate_waiver}">waiver that's valid until at least {trip_date}</a>""",
         }
         typed_mapping = cast(dict[TripIneligibilityReason, str], mapping)
         return mark_safe(typed_mapping[self])  # noqa: S308
@@ -164,22 +164,22 @@ class Activity(enum.Enum):
           allowing them to safely bring participants along on this type of trip.
     """
 
-    BIKING = 'biking'
-    BOATING = 'boating'
-    CABIN = 'cabin'  # TODO: somewhat of an exception to the above criteria
-    CLIMBING = 'climbing'
-    HIKING = 'hiking'
-    WINTER_SCHOOL = 'winter_school'
+    BIKING = "biking"
+    BOATING = "boating"
+    CABIN = "cabin"  # TODO: somewhat of an exception to the above criteria
+    CLIMBING = "climbing"
+    HIKING = "hiking"
+    WINTER_SCHOOL = "winter_school"
 
     @property
     def label(self):
         mapping = {
-            self.BIKING: 'Biking',
-            self.BOATING: 'Boating',
-            self.CABIN: 'Cabin',
-            self.CLIMBING: 'Climbing',
-            self.HIKING: 'Hiking',
-            self.WINTER_SCHOOL: 'Winter School',
+            self.BIKING: "Biking",
+            self.BOATING: "Boating",
+            self.CABIN: "Cabin",
+            self.CLIMBING: "Climbing",
+            self.HIKING: "Hiking",
+            self.WINTER_SCHOOL: "Winter School",
         }
         return mapping[self]
 
@@ -211,55 +211,55 @@ class Program(enum.Enum):
     """
 
     # Mountain & road biking, taking place *outside* of winter conditions
-    BIKING = 'biking'
+    BIKING = "biking"
 
     # MITOC's boating program: includes kayaking, canoeing, surfing, and more
     # (we could potentially have sub-programs or sub activities, but all ratings are just for boating)
-    BOATING = 'boating'
+    BOATING = "boating"
 
     # Cabin work days (only managers can create for this program)
-    CABIN = 'cabin'
+    CABIN = "cabin"
 
     # Climbing trips (taking place *outside* of School of Rock)
-    CLIMBING = 'climbing'
+    CLIMBING = "climbing"
 
     # 3-season hiking (that is, hiking when the WSC has decided winter rules do *not* apply)
-    HIKING = 'hiking'
+    HIKING = "hiking"
 
     # School of Rock - a special program that admits participants & conducts exclusive trips
-    SCHOOL_OF_ROCK = 'mitoc_rock_program'  # (formerly known as the MRP)
+    SCHOOL_OF_ROCK = "mitoc_rock_program"  # (formerly known as the MRP)
 
     # Winter School *during* IAP (weekend trip part of the normal lottery)
-    WINTER_SCHOOL = 'winter_school'
+    WINTER_SCHOOL = "winter_school"
     # Winter School *outside* of IAP (a standalone trip where winter rules apply)
-    WINTER_NON_IAP = 'winter_non_iap'
+    WINTER_NON_IAP = "winter_non_iap"
 
     # Circus events (whole weekend in a cabin with differing types of leaders)
     # NOTE: If this is a Winter Circus, there's ambiguity about the right kind of program
     # future TODO: We should probably allow mixing programs to apply all their rules.
-    CIRCUS = 'circus'
+    CIRCUS = "circus"
 
     # Service (trail cleanup, watershed cleanup, volunteering, etc.)
-    SERVICE = 'service'
+    SERVICE = "service"
 
     # General (official events, courses, TRS, etc.)
-    NONE = 'none'
+    NONE = "none"
 
     @property
     def label(self):
         mapping = {
-            self.BIKING: 'Biking',
-            self.BOATING: 'Boating',
-            self.CABIN: 'Cabin',
-            self.CLIMBING: 'Climbing',
-            self.HIKING: '3-season hiking',
-            self.SCHOOL_OF_ROCK: 'School of Rock',
-            self.WINTER_SCHOOL: 'Winter School',
-            self.WINTER_NON_IAP: 'Winter (outside IAP)',
+            self.BIKING: "Biking",
+            self.BOATING: "Boating",
+            self.CABIN: "Cabin",
+            self.CLIMBING: "Climbing",
+            self.HIKING: "3-season hiking",
+            self.SCHOOL_OF_ROCK: "School of Rock",
+            self.WINTER_SCHOOL: "Winter School",
+            self.WINTER_NON_IAP: "Winter (outside IAP)",
             # Open options!
-            self.CIRCUS: 'Circus',
-            self.SERVICE: 'Service',
-            self.NONE: 'None',
+            self.CIRCUS: "Circus",
+            self.SERVICE: "Service",
+            self.NONE: "None",
         }
         return mapping[self]
 
@@ -294,8 +294,8 @@ class Program(enum.Enum):
                 closed_choices.append((program_enum.value, program_enum.label))
 
         return (
-            ('Specific rating required', closed_choices),
-            ('Any leader rating allowed', open_choices),
+            ("Specific rating required", closed_choices),
+            ("Any leader rating allowed", open_choices),
         )
 
     def is_open(self) -> bool:
@@ -347,102 +347,102 @@ class TripType(enum.Enum):
     """
 
     # Catchall for when the activity isn't described, or none make sense
-    NONE = 'none'
-    OTHER = 'other'
+    NONE = "none"
+    OTHER = "other"
 
     # Biking
-    ROAD_BIKING = 'biking_road'
-    MOUNTAIN_BIKING = 'biking_mountain'
+    ROAD_BIKING = "biking_road"
+    MOUNTAIN_BIKING = "biking_mountain"
 
     # Boating
-    KAYAKING = 'boating_kayaking'
-    SEA_KAYAKING = 'boating_kayaking_sea'
-    CANOEING = 'boating_canoeing'
-    SURFING = 'boating_surfing'
+    KAYAKING = "boating_kayaking"
+    SEA_KAYAKING = "boating_kayaking_sea"
+    CANOEING = "boating_canoeing"
+    SURFING = "boating_surfing"
 
     # Climbing
-    BOULDERING = 'climbing_bouldering'
-    ICE_CLIMBING = 'climbing_ice'
-    SPORT_CLIMBING = 'climbing_sport'
-    TRAD_CLIMBING = 'climbing_trad'
-    GYM_CLIMBING = 'climbing_gym'
+    BOULDERING = "climbing_bouldering"
+    ICE_CLIMBING = "climbing_ice"
+    SPORT_CLIMBING = "climbing_sport"
+    TRAD_CLIMBING = "climbing_trad"
+    GYM_CLIMBING = "climbing_gym"
 
     # Hiking
-    HIKING = 'hiking_hiking'
-    TRAIL_RUNNING = 'hiking_trail_running'
+    HIKING = "hiking_hiking"
+    TRAIL_RUNNING = "hiking_trail_running"
 
     # Skiing!
-    RESORT_SKIING = 'skiing_resort'
-    BC_SKIING = 'skiing_bc'
-    XC_SKIING = 'skiing_xc'
+    RESORT_SKIING = "skiing_resort"
+    BC_SKIING = "skiing_bc"
+    XC_SKIING = "skiing_xc"
 
     # Miscellaneous
-    ICE_SKATING = 'ice_skating'
-    ULTIMATE = 'ultimate'
-    YOGA = 'yoga'
+    ICE_SKATING = "ice_skating"
+    ULTIMATE = "ultimate"
+    YOGA = "yoga"
 
     @property
     def label(self):
         mapping = {
-            self.BC_SKIING: 'Backcountry skiing',
-            self.BOULDERING: 'Bouldering',
-            self.CANOEING: 'Canoeing',
-            self.GYM_CLIMBING: 'Gym climbing',
-            self.HIKING: 'Hiking',
-            self.ICE_CLIMBING: 'Ice climbing',
-            self.ICE_SKATING: 'Ice skating',
-            self.KAYAKING: 'Kayaking',
-            self.MOUNTAIN_BIKING: 'Mountain biking',
-            self.NONE: 'None, or not applicable',
-            self.OTHER: 'Other',
-            self.RESORT_SKIING: 'Resort skiing',
-            self.ROAD_BIKING: 'Road biking',
-            self.SEA_KAYAKING: 'Sea kayaking',
-            self.SPORT_CLIMBING: 'Sport climbing, top rope',
-            self.SURFING: 'Surfing',
-            self.TRAD_CLIMBING: 'Trad climbing',
-            self.TRAIL_RUNNING: 'Trail running',
-            self.ULTIMATE: 'Ultimate',
-            self.XC_SKIING: 'Cross-country skiing',
-            self.YOGA: 'Yoga',
+            self.BC_SKIING: "Backcountry skiing",
+            self.BOULDERING: "Bouldering",
+            self.CANOEING: "Canoeing",
+            self.GYM_CLIMBING: "Gym climbing",
+            self.HIKING: "Hiking",
+            self.ICE_CLIMBING: "Ice climbing",
+            self.ICE_SKATING: "Ice skating",
+            self.KAYAKING: "Kayaking",
+            self.MOUNTAIN_BIKING: "Mountain biking",
+            self.NONE: "None, or not applicable",
+            self.OTHER: "Other",
+            self.RESORT_SKIING: "Resort skiing",
+            self.ROAD_BIKING: "Road biking",
+            self.SEA_KAYAKING: "Sea kayaking",
+            self.SPORT_CLIMBING: "Sport climbing, top rope",
+            self.SURFING: "Surfing",
+            self.TRAD_CLIMBING: "Trad climbing",
+            self.TRAIL_RUNNING: "Trail running",
+            self.ULTIMATE: "Ultimate",
+            self.XC_SKIING: "Cross-country skiing",
+            self.YOGA: "Yoga",
         }
         return mapping[self]
 
     @classmethod
-    def _categorized(cls) -> dict[str, list['TripType']]:
+    def _categorized(cls) -> dict[str, list["TripType"]]:
         return {
-            'Biking': [
+            "Biking": [
                 cls.ROAD_BIKING,
                 cls.MOUNTAIN_BIKING,
             ],
-            'Boating': [
+            "Boating": [
                 cls.CANOEING,
                 cls.KAYAKING,
                 cls.SEA_KAYAKING,
                 cls.SURFING,
             ],
-            'Climbing': [
+            "Climbing": [
                 cls.BOULDERING,
                 cls.GYM_CLIMBING,
                 cls.ICE_CLIMBING,
                 cls.SPORT_CLIMBING,
                 cls.TRAD_CLIMBING,
             ],
-            'Hiking': [
+            "Hiking": [
                 cls.HIKING,
                 cls.TRAIL_RUNNING,
             ],
-            'Skiing': [
+            "Skiing": [
                 cls.BC_SKIING,
                 cls.XC_SKIING,
                 cls.RESORT_SKIING,
             ],
-            'Miscellaneous': [
+            "Miscellaneous": [
                 cls.ICE_SKATING,
                 cls.ULTIMATE,
                 cls.YOGA,
             ],
-            'Other, N/A': [
+            "Other, N/A": [
                 cls.NONE,
                 cls.OTHER,
             ],

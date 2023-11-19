@@ -78,7 +78,7 @@ def trip_or_wait(
     if signup.on_trip:
         return signup
 
-    eligible = trip.algorithm == 'fcfs' and (trip.signups_open or not trip_must_be_open)
+    eligible = trip.algorithm == "fcfs" and (trip.signups_open or not trip_must_be_open)
     if not eligible:
         if request:
             messages.error(request, "Trip is not an open first-come, first-serve trip")
@@ -106,7 +106,7 @@ def update_queues_if_trip_open(trip):
     This is intended to be used when the trip size changes (either from changing
     the maximum participants, or from somebody else dropping off).
     """
-    if not (trip.signups_open and trip.algorithm == 'fcfs'):
+    if not (trip.signups_open and trip.algorithm == "fcfs"):
         return
 
     on_trip = trip.signup_set.filter(on_trip=True)

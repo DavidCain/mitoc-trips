@@ -8,436 +8,436 @@ from ws.decorators import group_required
 
 # Access is controlled in views, but URLs are roughly grouped by access
 urlpatterns = [
-    path('', views.ProfileView.as_view(), name='home'),
+    path("", views.ProfileView.as_view(), name="home"),
     path(
-        'profile/',
-        RedirectView.as_view(url=reverse_lazy('home'), permanent=True),
-        name='profile',
+        "profile/",
+        RedirectView.as_view(url=reverse_lazy("home"), permanent=True),
+        name="profile",
     ),
     # Redirect to home page after changing password (default is annoying loop)
     path(
-        'accounts/password/change/',
+        "accounts/password/change/",
         views.CustomPasswordChangeView.as_view(),
-        name='account_change_password',
+        name="account_change_password",
     ),
     path(
-        'accounts/login/',
+        "accounts/login/",
         views.CheckIfPwnedOnLoginView.as_view(),
-        name='account_login',
+        name="account_login",
     ),
-    path('accounts/', include('allauth.urls')),
+    path("accounts/", include("allauth.urls")),
     # Administrator views
-    path('admin', admin.site.urls),
+    path("admin", admin.site.urls),
     path(
-        'participants/<int:pk>/edit/',
+        "participants/<int:pk>/edit/",
         views.EditParticipantView.as_view(),
-        name='edit_participant',
+        name="edit_participant",
     ),
     path(
-        'participants/<int:pk>/delete/',
+        "participants/<int:pk>/delete/",
         views.DeleteParticipantView.as_view(),
-        name='delete_participant',
+        name="delete_participant",
     ),
     path(
-        'participants/potential_duplicates/',
+        "participants/potential_duplicates/",
         views.PotentialDuplicatesView.as_view(),
-        name='potential_duplicates',
+        name="potential_duplicates",
     ),
     path(
-        'participants/<int:old>/merge/<int:new>',
+        "participants/<int:old>/merge/<int:new>",
         views.MergeParticipantsView.as_view(),
-        name='merge_participants',
+        name="merge_participants",
     ),
     path(
-        'participants/<int:left>/distinct/<int:right>',
+        "participants/<int:left>/distinct/<int:right>",
         views.DistinctParticipantsView.as_view(),
-        name='distinct_participants',
+        name="distinct_participants",
     ),
     path(
-        '<slug:activity>/leaders/',
+        "<slug:activity>/leaders/",
         views.ActivityLeadersView.as_view(),
-        name='activity_leaders',
+        name="activity_leaders",
     ),
     path(
-        '<slug:activity>/leaders/deactivate/',
+        "<slug:activity>/leaders/deactivate/",
         views.DeactivateLeaderRatingsView.as_view(),
-        name='deactivate_leaders',
+        name="deactivate_leaders",
     ),
     path(
-        '<slug:activity>/applications/',
+        "<slug:activity>/applications/",
         views.AllLeaderApplicationsView.as_view(),
-        name='manage_applications',
+        name="manage_applications",
     ),
     path(
-        '<slug:activity>/applications/<int:pk>/',
+        "<slug:activity>/applications/<int:pk>/",
         views.LeaderApplicationView.as_view(),
-        name='view_application',
+        name="view_application",
     ),
     path(
-        '<slug:activity>/applications/<int:pk>/archive/',
+        "<slug:activity>/applications/<int:pk>/archive/",
         views.ArchiveLeaderApplicationView.as_view(),
-        name='archive_application',
+        name="archive_application",
     ),
     path(
-        '<slug:activity>/trips/',
+        "<slug:activity>/trips/",
         views.ApproveTripsView.as_view(),
-        name='manage_trips',
+        name="manage_trips",
     ),
     path(
-        'winter_school/settings/',
+        "winter_school/settings/",
         views.WinterSchoolSettingsView.as_view(),
-        name='ws_settings',
+        name="ws_settings",
     ),
     path(
-        '<slug:activity>/trips/<int:pk>/',
+        "<slug:activity>/trips/<int:pk>/",
         views.ChairTripView.as_view(),
-        name='view_trip_for_approval',
+        name="view_trip_for_approval",
     ),
     path(
-        'trips/<int:pk>/approve/',
+        "trips/<int:pk>/approve/",
         api_views.ApproveTripView.as_view(),
-        name='json-approve_trip',
+        name="json-approve_trip",
     ),
     # Activity Chairs or WIMP views
     path(
-        'trips/medical/',
+        "trips/medical/",
         views.AllTripsMedicalView.as_view(),
-        name='all_trips_medical',
+        name="all_trips_medical",
     ),
     path(
-        'trips/search/',
+        "trips/search/",
         views.TripSearchView.as_view(),
-        name='search_trips',
+        name="search_trips",
     ),
     # Leader views
-    path('leaders/', views.AllLeadersView.as_view(), name='leaders'),
-    path('trips/create/', views.CreateTripView.as_view(), name='create_trip'),
+    path("leaders/", views.AllLeadersView.as_view(), name="leaders"),
+    path("trips/create/", views.CreateTripView.as_view(), name="create_trip"),
     path(
-        'trips/<int:pk>/delete/',
+        "trips/<int:pk>/delete/",
         views.DeleteTripView.as_view(),
-        name='delete_trip',
+        name="delete_trip",
     ),
-    path('trips/<int:pk>/edit/', views.EditTripView.as_view(), name='edit_trip'),
+    path("trips/<int:pk>/edit/", views.EditTripView.as_view(), name="edit_trip"),
     path(
-        'trips/<int:pk>/admin/',
-        RedirectView.as_view(pattern_name='view_trip', permanent=True),
-        name='admin_trip',
+        "trips/<int:pk>/admin/",
+        RedirectView.as_view(pattern_name="view_trip", permanent=True),
+        name="admin_trip",
     ),
     path(
-        'trips/<int:pk>/admin/signups/',
+        "trips/<int:pk>/admin/signups/",
         api_views.AdminTripSignupsView.as_view(),
-        name='json-admin_trip_signups',
+        name="json-admin_trip_signups",
     ),
     path(
-        'trips/<int:pk>/admin/lottery/',
+        "trips/<int:pk>/admin/lottery/",
         views.RunTripLotteryView.as_view(),
-        name='run_lottery',
+        name="run_lottery",
     ),
     path(
-        'trips/<int:pk>/signup/',
+        "trips/<int:pk>/signup/",
         api_views.LeaderParticipantSignupView.as_view(),
-        name='json-leader_participant_signup',
+        name="json-leader_participant_signup",
     ),
     path(
-        'trips/<int:pk>/itinerary/',
+        "trips/<int:pk>/itinerary/",
         views.TripItineraryView.as_view(),
-        name='trip_itinerary',
+        name="trip_itinerary",
     ),
     path(
-        'trips/<int:pk>/medical/',
+        "trips/<int:pk>/medical/",
         views.TripMedicalView.as_view(),
-        name='trip_medical',
+        name="trip_medical",
     ),
     path(
-        'trips/<int:pk>/review/',
+        "trips/<int:pk>/review/",
         views.ReviewTripView.as_view(),
-        name='review_trip',
+        name="review_trip",
     ),
     path(
-        'participants/<int:pk>/',
+        "participants/<int:pk>/",
         views.ParticipantDetailView.as_view(),
-        name='view_participant',
+        name="view_participant",
     ),
     path(
-        'participants/<int:pk>/membership/',
+        "participants/<int:pk>/membership/",
         views.RefreshMembershipView.as_view(),
-        name='refresh_participant_membership',
+        name="refresh_participant_membership",
     ),
     path(
-        'participants/',
+        "participants/",
         views.ParticipantLookupView.as_view(),
-        name='participant_lookup',
+        name="participant_lookup",
     ),
     path(
-        'participants/membership_statuses/',
+        "participants/membership_statuses/",
         api_views.MembershipStatusesView.as_view(),
-        name='json-membership_statuses',
+        name="json-membership_statuses",
     ),
     # General views (anyone can view or only participants with info)
-    path('profile/edit/', views.EditProfileView.as_view(), name='edit_profile'),
+    path("profile/edit/", views.EditProfileView.as_view(), name="edit_profile"),
     path(
-        'leaders/apply/',
+        "leaders/apply/",
         views.AnyActivityLeaderApplyView.as_view(),
-        name='leaders_apply',
+        name="leaders_apply",
     ),
-    path('profile/membership/', views.PayDuesView.as_view(), name='pay_dues'),
-    path('profile/waiver/', views.SignWaiverView.as_view(), name='initiate_waiver'),
+    path("profile/membership/", views.PayDuesView.as_view(), name="pay_dues"),
+    path("profile/waiver/", views.SignWaiverView.as_view(), name="initiate_waiver"),
     path(
-        '<slug:activity>/leaders/apply/',
+        "<slug:activity>/leaders/apply/",
         views.LeaderApplyView.as_view(),
-        name='become_leader',
+        name="become_leader",
     ),
-    path('trips/<int:pk>/', views.TripView.as_view(), name='view_trip'),
-    path('trips.rss', feeds.UpcomingTripsFeed(), name='rss-upcoming_trips'),
+    path("trips/<int:pk>/", views.TripView.as_view(), name="view_trip"),
+    path("trips.rss", feeds.UpcomingTripsFeed(), name="rss-upcoming_trips"),
     # By default, `/trips/` shows only upcoming trips
     # Both views support filtering for trips after a certain date, though
-    path('trips/', views.UpcomingTripsView.as_view(), name='upcoming_trips'),
+    path("trips/", views.UpcomingTripsView.as_view(), name="upcoming_trips"),
     # With thousands of trips, we can no longer render them all on one page.
     path(
-        'trips/all/',
-        RedirectView.as_view(url=reverse_lazy('upcoming_trips'), permanent=True),
-        name='all_trips',
+        "trips/all/",
+        RedirectView.as_view(url=reverse_lazy("upcoming_trips"), permanent=True),
+        name="all_trips",
     ),
-    path('trips/signup/', views.SignUpView.as_view(), name='trip_signup'),
+    path("trips/signup/", views.SignUpView.as_view(), name="trip_signup"),
     path(
-        'trips/signup/leader/',
+        "trips/signup/leader/",
         views.LeaderSignUpView.as_view(),
-        name='leader_trip_signup',
+        name="leader_trip_signup",
     ),
-    path('preferences/discounts/', views.DiscountsView.as_view(), name='discounts'),
+    path("preferences/discounts/", views.DiscountsView.as_view(), name="discounts"),
     path(
-        'preferences/email/',
+        "preferences/email/",
         views.EmailPreferencesView.as_view(),
-        name='email_preferences',
+        name="email_preferences",
     ),
     path(
-        'preferences/email/unsubscribe/<str:token>/',
+        "preferences/email/unsubscribe/<str:token>/",
         views.EmailUnsubscribeView.as_view(),
-        name='email_unsubscribe',
+        name="email_unsubscribe",
     ),
     path(
-        'preferences/lottery/',
+        "preferences/lottery/",
         views.LotteryPreferencesView.as_view(),
-        name='lottery_preferences',
+        name="lottery_preferences",
     ),
     path(
-        'preferences/lottery/pairing/',
+        "preferences/lottery/pairing/",
         views.LotteryPairingView.as_view(),
-        name='lottery_pairing',
+        name="lottery_pairing",
     ),
     path(
-        'signups/<int:pk>/delete/',
+        "signups/<int:pk>/delete/",
         views.DeleteSignupView.as_view(),
-        name='delete_signup',
+        name="delete_signup",
     ),
     path(
-        'winter_school/participants/lecture_attendance/',
+        "winter_school/participants/lecture_attendance/",
         views.LectureAttendanceView.as_view(),
-        name='lecture_attendance',
+        name="lecture_attendance",
     ),
     # Help views (most pages available to anyone, some require groups)
     path(
-        'contact/',
-        TemplateView.as_view(template_name='contact.html'),
-        name='contact',
+        "contact/",
+        TemplateView.as_view(template_name="contact.html"),
+        name="contact",
     ),
     path(
-        'help/',
-        TemplateView.as_view(template_name='help/home.html'),
-        name='help-home',
+        "help/",
+        TemplateView.as_view(template_name="help/home.html"),
+        name="help-home",
     ),
     path(
-        'help/about/',
-        TemplateView.as_view(template_name='help/about.html'),
-        name='help-about',
+        "help/about/",
+        TemplateView.as_view(template_name="help/about.html"),
+        name="help-about",
     ),
     # Privacy views
-    path('privacy/', views.PrivacyView.as_view(), name='privacy'),
+    path("privacy/", views.PrivacyView.as_view(), name="privacy"),
     path(
-        'privacy/download/',
+        "privacy/download/",
         views.PrivacyDownloadView.as_view(),
-        name='privacy_download',
+        name="privacy_download",
     ),
     path(
-        'privacy/download.json',
+        "privacy/download.json",
         views.JsonDataDumpView.as_view(),
-        name='json-data_dump',
+        name="json-data_dump",
     ),
     path(
-        'privacy/settings/',
+        "privacy/settings/",
         views.PrivacySettingsView.as_view(),
-        name='privacy_settings',
+        name="privacy_settings",
     ),
     path(
-        'help/participants/wimp/',
-        TemplateView.as_view(template_name='help/participants/wimp_guide.html'),
-        name='help-wimp_guide',
+        "help/participants/wimp/",
+        TemplateView.as_view(template_name="help/participants/wimp_guide.html"),
+        name="help-wimp_guide",
     ),
     # Participating on Trips
     path(
-        'help/participants/personal_info/',
-        TemplateView.as_view(template_name='help/participants/personal_info.html'),
-        name='help-personal_info',
+        "help/participants/personal_info/",
+        TemplateView.as_view(template_name="help/participants/personal_info.html"),
+        name="help-personal_info",
     ),
     path(
-        'help/participants/lottery/',
-        TemplateView.as_view(template_name='help/participants/lottery.html'),
-        name='help-lottery',
+        "help/participants/lottery/",
+        TemplateView.as_view(template_name="help/participants/lottery.html"),
+        name="help-lottery",
     ),
     path(
-        'help/participants/signups/',
-        TemplateView.as_view(template_name='help/participants/signups.html'),
-        name='help-signups',
+        "help/participants/signups/",
+        TemplateView.as_view(template_name="help/participants/signups.html"),
+        name="help-signups",
     ),
     # Leading Trips
     path(
-        'help/participants/become_ws_leader/',
-        TemplateView.as_view(template_name='help/participants/become_ws_leader.html'),
-        name='help-become_ws_leader',
+        "help/participants/become_ws_leader/",
+        TemplateView.as_view(template_name="help/participants/become_ws_leader.html"),
+        name="help-become_ws_leader",
     ),
     path(
-        'help/participants/trip_difficulty/',
-        TemplateView.as_view(template_name='help/participants/trip_difficulty.html'),
-        name='help-trip_difficulty',
+        "help/participants/trip_difficulty/",
+        TemplateView.as_view(template_name="help/participants/trip_difficulty.html"),
+        name="help-trip_difficulty",
     ),
     path(
-        'help/participants/ws_ratings/',
-        TemplateView.as_view(template_name='help/participants/ws_ratings.html'),
-        name='help-ws_ratings',
+        "help/participants/ws_ratings/",
+        TemplateView.as_view(template_name="help/participants/ws_ratings.html"),
+        name="help-ws_ratings",
     ),
     path(
-        'help/participants/ws_rating_assignment/',
+        "help/participants/ws_rating_assignment/",
         TemplateView.as_view(
-            template_name='help/participants/ws_rating_assignment.html'
+            template_name="help/participants/ws_rating_assignment.html"
         ),
-        name='help-ws_rating_assignment',
+        name="help-ws_rating_assignment",
     ),
     # Planning Trips
     path(
-        'help/participants/rentals/',
-        TemplateView.as_view(template_name='help/leaders/rentals.html'),
-        name='help-rentals',
+        "help/participants/rentals/",
+        TemplateView.as_view(template_name="help/leaders/rentals.html"),
+        name="help-rentals",
     ),
     path(
-        'help/participants/weather/',
-        TemplateView.as_view(template_name='help/participants/weather.html'),
-        name='help-weather',
+        "help/participants/weather/",
+        TemplateView.as_view(template_name="help/participants/weather.html"),
+        name="help-weather",
     ),
     path(
-        'help/participants/maps/',
-        TemplateView.as_view(template_name='help/participants/maps.html'),
-        name='help-maps',
+        "help/participants/maps/",
+        TemplateView.as_view(template_name="help/participants/maps.html"),
+        name="help-maps",
     ),
     # Trip Logistics (for leaders)
     path(
-        'help/leaders/trip_admin/',
-        group_required({'leaders', 'WSC'})(
-            TemplateView.as_view(template_name='help/leaders/trip_admin.html')
+        "help/leaders/trip_admin/",
+        group_required({"leaders", "WSC"})(
+            TemplateView.as_view(template_name="help/leaders/trip_admin.html")
         ),
-        name='help-trip_admin',
+        name="help-trip_admin",
     ),
     path(
-        'help/leaders/checklist/',
-        group_required({'leaders', 'WSC'})(
-            TemplateView.as_view(template_name='help/leaders/checklist.html')
+        "help/leaders/checklist/",
+        group_required({"leaders", "WSC"})(
+            TemplateView.as_view(template_name="help/leaders/checklist.html")
         ),
-        name='help-checklist',
+        name="help-checklist",
     ),
     path(
-        'help/leaders/example_emails/',
-        group_required({'leaders', 'WSC'})(
-            TemplateView.as_view(template_name='help/leaders/example_emails.html')
+        "help/leaders/example_emails/",
+        group_required({"leaders", "WSC"})(
+            TemplateView.as_view(template_name="help/leaders/example_emails.html")
         ),
-        name='help-example_emails',
+        name="help-example_emails",
     ),
     path(
-        'help/leaders/rideshare/',
-        group_required({'leaders', 'WSC'})(
-            TemplateView.as_view(template_name='help/leaders/rideshare.html')
+        "help/leaders/rideshare/",
+        group_required({"leaders", "WSC"})(
+            TemplateView.as_view(template_name="help/leaders/rideshare.html")
         ),
-        name='help-rideshare',
+        name="help-rideshare",
     ),
     path(
-        'help/leaders/itinerary/',
-        group_required({'leaders', 'WSC'})(
-            TemplateView.as_view(template_name='help/leaders/itinerary.html')
+        "help/leaders/itinerary/",
+        group_required({"leaders", "WSC"})(
+            TemplateView.as_view(template_name="help/leaders/itinerary.html")
         ),
-        name='help-itinerary',
+        name="help-itinerary",
     ),
     path(
-        'help/leaders/ws_gear/',
-        group_required({'leaders', 'WSC'})(
-            TemplateView.as_view(template_name='help/leaders/ws_gear.html')
+        "help/leaders/ws_gear/",
+        group_required({"leaders", "WSC"})(
+            TemplateView.as_view(template_name="help/leaders/ws_gear.html")
         ),
-        name='help-ws_gear',
+        name="help-ws_gear",
     ),
     path(
-        'help/leaders/feedback/',
-        group_required({'leaders', 'WSC'})(
-            TemplateView.as_view(template_name='help/leaders/feedback.html')
+        "help/leaders/feedback/",
+        group_required({"leaders", "WSC"})(
+            TemplateView.as_view(template_name="help/leaders/feedback.html")
         ),
-        name='help-feedback',
+        name="help-feedback",
     ),
     # WSC Administration (for the Winter Safety Committee)
     path(
-        'help/wsc/wsc/',
-        group_required('WSC')(TemplateView.as_view(template_name='help/wsc/wsc.html')),
-        name='help-wsc',
+        "help/wsc/wsc/",
+        group_required("WSC")(TemplateView.as_view(template_name="help/wsc/wsc.html")),
+        name="help-wsc",
     ),
     # API
     path(
-        'programs/<slug:program>/leaders.json',
+        "programs/<slug:program>/leaders.json",
         api_views.JsonProgramLeadersView.as_view(),
-        name='json-program-leaders',
+        name="json-program-leaders",
     ),
     path(
-        'participants.json',
+        "participants.json",
         api_views.JsonParticipantsView.as_view(),
-        name='json-participants',
+        name="json-participants",
     ),
     path(
-        'leaders/<int:pk>/ratings/<slug:activity>.json',
+        "leaders/<int:pk>/ratings/<slug:activity>.json",
         api_views.get_rating,
-        name='json-ratings',
+        name="json-ratings",
     ),
     path(
-        'users/<int:pk>/membership.json',
+        "users/<int:pk>/membership.json",
         api_views.UserMembershipView.as_view(),
-        name='json-membership',
+        name="json-membership",
     ),
     path(
-        'users/<int:pk>/rentals.json',
+        "users/<int:pk>/rentals.json",
         api_views.UserRentalsView.as_view(),
-        name='json-rentals',
+        name="json-rentals",
     ),
     path(
-        'trips/<int:pk>/signups/',
+        "trips/<int:pk>/signups/",
         api_views.SimpleSignupsView.as_view(),
-        name='json-signups',
+        name="json-signups",
     ),
-    path('stats/', views.StatsView.as_view(), name='stats'),
-    path('stats/leaderboard/', views.LeaderboardView.as_view(), name='leaderboard'),
+    path("stats/", views.StatsView.as_view(), name="stats"),
+    path("stats/leaderboard/", views.LeaderboardView.as_view(), name="leaderboard"),
     path(
-        'stats/membership/',
+        "stats/membership/",
         views.MembershipStatsView.as_view(),
-        name='membership_stats',
+        name="membership_stats",
     ),
     path(
-        'stats/membership.json',
+        "stats/membership.json",
         api_views.RawMembershipStatsView.as_view(),
-        name='json-membership_stats',
+        name="json-membership_stats",
     ),
     # JSON-returning routes that depend on HTTP authorization
     # Tokens accepted via Authorization header (standard 'Bearer' format)
     path(
-        'data/verified_emails/',
+        "data/verified_emails/",
         api_views.OtherVerifiedEmailsView.as_view(),
-        name='other_verified_emails',
+        name="other_verified_emails",
     ),
     path(
-        'data/membership/',
+        "data/membership/",
         api_views.UpdateMembershipView.as_view(),
-        name='update_membership',
+        name="update_membership",
     ),
 ]
 
@@ -448,4 +448,4 @@ try:
 except ImportError:
     pass
 else:
-    urlpatterns = [path('__debug__/', include(debug_toolbar.urls)), *urlpatterns]
+    urlpatterns = [path("__debug__/", include(debug_toolbar.urls)), *urlpatterns]

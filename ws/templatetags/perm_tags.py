@@ -19,7 +19,7 @@ def chair_activities(
 @register.filter
 def is_the_wimp(user: User, participant: models.Participant | None) -> bool:
     """Return True if the user has any upcoming WIMP trips."""
-    if perm_utils.in_any_group(user, ['WIMP'], allow_superusers=True):
+    if perm_utils.in_any_group(user, ["WIMP"], allow_superusers=True):
         return True
     if not participant:
         return False

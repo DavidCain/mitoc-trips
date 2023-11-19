@@ -27,9 +27,9 @@ WEIGHTS: Mapping[str, float] = MappingProxyType(
     {
         **_normal_weights,
         # Old, deprecated status codes
-        'M': _normal_weights[affiliations.MIT_AFFILIATE.CODE],
-        'N': _normal_weights[affiliations.NON_AFFILIATE.CODE],
-        'S': 0.0,
+        "M": _normal_weights[affiliations.MIT_AFFILIATE.CODE],
+        "N": _normal_weights[affiliations.NON_AFFILIATE.CODE],
+        "S": 0.0,
     }
 )
 
@@ -171,12 +171,12 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
     def get_rank_override(self, participant: models.Participant) -> int:
         """Return any present rank overrides. For 99% of people, returns 0."""
         # TODO: Use a cleaner memoization pattern, lru_cache maybe.
-        if not hasattr(self, 'adjustments_by_participant'):
+        if not hasattr(self, "adjustments_by_participant"):
             adjustments = models.LotteryAdjustment.objects.filter(
                 expires__gt=self.lottery_runtime
             )
             self.adjustments_by_participant = dict(
-                adjustments.values_list('participant_id', 'adjustment')
+                adjustments.values_list("participant_id", "adjustment")
             )
         return self.adjustments_by_participant.get(participant.pk, 0)
 
@@ -184,7 +184,7 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
         # For simplicity, only look at participants who actually have signups
         return models.Participant.objects.filter(
             signup__trip__trip_date__gt=self.today,
-            signup__trip__algorithm='lottery',
+            signup__trip__algorithm="lottery",
             signup__trip__program=enums.Program.WINTER_SCHOOL.value,
         ).distinct()
 
@@ -234,13 +234,13 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
         # Locally, `participant.feedback_set` raises `attr-defined`, which I ignore
         # But then in CI, `# type: ignore[attr-defined` is flagged as unused
         feedback: QuerySet[models.Feedback] = getattr(  # noqa: B009
-            participant, 'feedback_set'
+            participant, "feedback_set"
         )
         return set(
             feedback.filter(
                 showed_up=False, trip__program=enums.Program.WINTER_SCHOOL.value
             )
-            .values_list('trip__pk', flat=True)
+            .values_list("trip__pk", flat=True)
             .distinct()
         )
 
@@ -271,7 +271,7 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
                 program=enums.Program.WINTER_SCHOOL.value, signup__on_trip=True
             )
             .filter(trip_date__gt=self.jan_1st, trip_date__lt=self.today)
-            .values_list('pk', flat=True)
+            .values_list("pk", flat=True)
         )
         flaked = self.trips_flaked(participant)
 
@@ -291,7 +291,7 @@ class WinterSchoolParticipantRanker(ParticipantRanker):
     def lowest_non_driver(self, trip: models.Trip) -> models.SignUp | None:
         """Return the lowest priority non-driver on the trip."""
         no_car = Q(participant__lotteryinfo__isnull=True) | Q(
-            participant__lotteryinfo__car_status='none'
+            participant__lotteryinfo__car_status="none"
         )
         non_drivers = trip.signup_set.filter(no_car, on_trip=True)
 

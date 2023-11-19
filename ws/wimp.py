@@ -10,8 +10,8 @@ def active_wimps() -> QuerySet[models.Participant]:
     Generally speaking, we should have only one WIMP, but we should handle the
     case of there being more than one, since the data model supports that.
     """
-    return models.Participant.objects.filter(user__groups__name='WIMP').order_by(
-        RawSQL('auth_user_groups.id', ()).desc()
+    return models.Participant.objects.filter(user__groups__name="WIMP").order_by(
+        RawSQL("auth_user_groups.id", ()).desc()
     )
 
 

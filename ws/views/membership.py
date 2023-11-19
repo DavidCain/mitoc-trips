@@ -33,7 +33,7 @@ class RefreshMembershipView(DetailView):
         # However, `view_participant` doesn't render messages to the end user.
         with contextlib.suppress(requests.exceptions.RequestException):
             get_latest_membership(participant)
-        return redirect(reverse('view_participant', args=(participant.pk,)))
+        return redirect(reverse("view_participant", args=(participant.pk,)))
 
     def post(self, request: HttpRequest, **kwargs: Any) -> HttpResponse:
         return self._update_membership(request)
@@ -57,12 +57,12 @@ class PayDuesView(FormView):
     membership for somebody else, or to purchase one without a trips account.
     """
 
-    template_name = 'profile/membership.html'
+    template_name = "profile/membership.html"
     form_class = forms.DuesForm
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['participant'] = self.request.participant
+        kwargs["participant"] = self.request.participant
         return kwargs
 
     def post(self, request, *args, **kwargs):
@@ -77,7 +77,7 @@ class PayDuesView(FormView):
                 )
             else:
                 messages.success(request, "Fetched latest membership and waiver.")
-        return redirect(reverse('pay_dues'))
+        return redirect(reverse("pay_dues"))
 
     @method_decorator(participant_or_anon)
     def dispatch(self, request, *args, **kwargs):
@@ -85,9 +85,9 @@ class PayDuesView(FormView):
 
 
 class SignWaiverView(FormView):
-    template_name = 'profile/waiver.html'
+    template_name = "profile/waiver.html"
     form_class = forms.WaiverForm
-    success_url = reverse_lazy('home')
+    success_url = reverse_lazy("home")
 
     def send_waiver(
         self,
@@ -109,13 +109,13 @@ class SignWaiverView(FormView):
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['prefix'] = 'releasor'
+        kwargs["prefix"] = "releasor"
         return kwargs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data()
-        context['waiver_form'] = self.get_form(self.form_class)
-        context['guardian_form'] = self.get_guardian_form()
+        context["waiver_form"] = self.get_form(self.form_class)
+        context["guardian_form"] = self.get_guardian_form()
         return context
 
     def guardian_from_form(self) -> waivers.Person | None:
@@ -134,8 +134,8 @@ class SignWaiverView(FormView):
         guardian_form = self.get_guardian_form()
         if guardian_form.is_valid():
             return waivers.Person(
-                name=guardian_form.cleaned_data['name'],
-                email=guardian_form.cleaned_data['email'],
+                name=guardian_form.cleaned_data["name"],
+                email=guardian_form.cleaned_data["email"],
             )
         return None
 
@@ -145,13 +145,13 @@ class SignWaiverView(FormView):
         Authenticated users with a participant record can just use the overridden post()
         """
         releasor: waivers.Person | None = None
-        participant: 'Participant' | None = self.request.participant  # type: ignore[attr-defined]
+        participant: "Participant" | None = self.request.participant  # type: ignore[attr-defined]
 
         # When there's a participant object, we'll just use that as releasor
         # (We'll bypass form validation for participants, but handle just in case)
         if not participant:
             releasor = waivers.Person(
-                name=form.cleaned_data['name'], email=form.cleaned_data['email']
+                name=form.cleaned_data["name"], email=form.cleaned_data["email"]
             )
 
         return self.send_waiver(releasor=releasor, guardian=self.guardian_from_form())

@@ -12,15 +12,15 @@ from ws.tests import factories, strip_whitespace
 
 class TripItineraryViewTest(TestCase):
     VALID_FORM_BODY = {
-        'drivers': [],
-        'start_location': 'At the trailhead.',
-        'start_time': '9 am',
-        'turnaround_time': 'noon',
-        'return_time': '3 pm',
-        'worry_time': '5 pm',
-        'itinerary': 'Go up a mountain, then come back',
+        "drivers": [],
+        "start_location": "At the trailhead.",
+        "start_time": "9 am",
+        "turnaround_time": "noon",
+        "return_time": "3 pm",
+        "worry_time": "5 pm",
+        "itinerary": "Go up a mountain, then come back",
         # This special extra field is a required affirmation
-        'accurate': True,
+        "accurate": True,
     }
 
     def setUp(self):
@@ -31,8 +31,8 @@ class TripItineraryViewTest(TestCase):
         )
 
     def _render(self):
-        response = self.client.get(f'/trips/{self.trip.pk}/itinerary/')
-        soup = BeautifulSoup(response.content, 'html.parser')
+        response = self.client.get(f"/trips/{self.trip.pk}/itinerary/")
+        soup = BeautifulSoup(response.content, "html.parser")
         return response, soup
 
     def test_unauthenticated(self):
@@ -40,22 +40,22 @@ class TripItineraryViewTest(TestCase):
         response, _ = self._render()
         self.assertEqual(response.status_code, 302)
         self.assertEqual(
-            response.url, f'/accounts/login/?next=/trips/{self.trip.pk}/itinerary/'
+            response.url, f"/accounts/login/?next=/trips/{self.trip.pk}/itinerary/"
         )
 
     def test_not_leader(self):
         # Normal participants cannot view, but they get a 200 explaining why
         _, soup = self._render()
-        self.assertTrue(soup.find('h2', string='Must be a leader to administrate trip'))
-        self.assertFalse(soup.find('form'))
+        self.assertTrue(soup.find("h2", string="Must be a leader to administrate trip"))
+        self.assertFalse(soup.find("form"))
 
     def test_not_leader_on_trip(self):
         _, soup = self._render()
         factories.LeaderRatingFactory.create(
             participant=self.participant, activity=enums.Activity.CLIMBING.value
         )
-        self.assertTrue(soup.find('h2', string='Must be a leader to administrate trip'))
-        self.assertFalse(soup.find('form'))
+        self.assertTrue(soup.find("h2", string="Must be a leader to administrate trip"))
+        self.assertFalse(soup.find("form"))
 
     @freeze_time("2018-02-14 12:25:00 EST")
     def test_not_yet_editable(self):
@@ -63,20 +63,20 @@ class TripItineraryViewTest(TestCase):
 
         # Trip is Sunday. On Wednesday, we can't yet edit!
         _, soup = self._render()
-        heading = soup.find('h2', string='WIMP information submission')
-        par = heading.find_next('p')
+        heading = soup.find("h2", string="WIMP information submission")
+        par = heading.find_next("p")
         self.assertEqual(
             strip_whitespace(par.text),
-            'This form will become available at 6 p.m. on Thursday, Feb 15th.',
+            "This form will become available at 6 p.m. on Thursday, Feb 15th.",
         )
-        self.assertFalse(soup.find('form'))
+        self.assertFalse(soup.find("form"))
 
         # Submitting does not work!
         resp = self.client.post(
-            f'/trips/{self.trip.pk}/itinerary/', self.VALID_FORM_BODY
+            f"/trips/{self.trip.pk}/itinerary/", self.VALID_FORM_BODY
         )
         self.assertEqual(
-            resp.context['form'].errors, {'__all__': ['Itinerary cannot be created']}
+            resp.context["form"].errors, {"__all__": ["Itinerary cannot be created"]}
         )
         self.trip.refresh_from_db()
         self.assertIsNone(self.trip.info)
@@ -85,21 +85,21 @@ class TripItineraryViewTest(TestCase):
     def test_currently_editable(self):
         self.trip.leaders.add(self.participant)
         _, soup = self._render()
-        par = soup.find('p')
+        par = soup.find("p")
         self.assertEqual(
             strip_whitespace(par.text),
-            'This form became available at 6 p.m. on Feb 15, 2018 '
-            'and may be edited through the day of the trip (Sunday, Feb 18th).',
+            "This form became available at 6 p.m. on Feb 15, 2018 "
+            "and may be edited through the day of the trip (Sunday, Feb 18th).",
         )
-        self.assertTrue(soup.find('form'))
+        self.assertTrue(soup.find("form"))
 
         # Posting at this URL creates an itinerary!
         self.assertIsNone(self.trip.info)
         creation_resp = self.client.post(
-            f'/trips/{self.trip.pk}/itinerary/', self.VALID_FORM_BODY
+            f"/trips/{self.trip.pk}/itinerary/", self.VALID_FORM_BODY
         )
         self.assertEqual(creation_resp.status_code, 302)
-        self.assertEqual(creation_resp.url, f'/trips/{self.trip.pk}/')
+        self.assertEqual(creation_resp.url, f"/trips/{self.trip.pk}/")
 
         self.trip.refresh_from_db()
         self.assertIsNotNone(self.trip.info)
@@ -109,22 +109,22 @@ class TripItineraryViewTest(TestCase):
         self.trip.leaders.add(self.participant)
 
         _, soup = self._render()
-        par = soup.find('p')
+        par = soup.find("p")
         self.assertEqual(
             strip_whitespace(par.text),
-            'This form will become available at 6 p.m. on Thursday, Feb 15th '
-            'and may be edited through the day of the trip (Sunday, Feb 18th).',
+            "This form will become available at 6 p.m. on Thursday, Feb 15th "
+            "and may be edited through the day of the trip (Sunday, Feb 18th).",
         )
 
         # No longer editable!
-        self.assertFalse(soup.find('form'))
+        self.assertFalse(soup.find("form"))
 
         # Submitting does not work!
         resp = self.client.post(
-            f'/trips/{self.trip.pk}/itinerary/', self.VALID_FORM_BODY
+            f"/trips/{self.trip.pk}/itinerary/", self.VALID_FORM_BODY
         )
         self.assertEqual(
-            resp.context['form'].errors, {'__all__': ['Itinerary cannot be created']}
+            resp.context["form"].errors, {"__all__": ["Itinerary cannot be created"]}
         )
         self.trip.refresh_from_db()
         self.assertIsNone(self.trip.info)
@@ -138,27 +138,27 @@ class AllTripsMedicalViewTest(TestCase):
         self.client.force_login(self.user)
 
     def test_not_the_wimp(self):
-        self.assertFalse(perm_utils.in_any_group(self.user, ['WSC', 'WIMP']))
-        response = self.client.get('/trips/medical/')
+        self.assertFalse(perm_utils.in_any_group(self.user, ["WSC", "WIMP"]))
+        response = self.client.get("/trips/medical/")
         self.assertEqual(response.status_code, 403)
 
     def test_no_upcoming_trips(self):
         perm_utils.make_chair(self.user, enums.Activity.WINTER_SCHOOL)
-        response = self.client.get('/trips/medical/')
-        self.assertFalse(response.context['trips'].exists())
+        response = self.client.get("/trips/medical/")
+        self.assertFalse(response.context["trips"].exists())
 
-        soup = BeautifulSoup(response.content, 'html.parser')
+        soup = BeautifulSoup(response.content, "html.parser")
 
-        header = soup.find('h1', string="WIMP Information Sheet")
+        header = soup.find("h1", string="WIMP Information Sheet")
         self.assertTrue(header)
         self.assertEqual(
-            strip_whitespace(header.find_next('p').text),
+            strip_whitespace(header.find_next("p").text),
             "This page contains all known medical information for trips taking place on or after Jan. 1, 2020.",
         )
-        self.assertTrue(soup.find('p', string="No upcoming trips."))
+        self.assertTrue(soup.find("p", string="No upcoming trips."))
 
     def test_wimp(self):
-        Group.objects.get(name='WIMP').user_set.add(self.user)
+        Group.objects.get(name="WIMP").user_set.add(self.user)
 
         # This trip won't be included
         factories.TripFactory.create(name="Old trip", trip_date=date(2019, 12, 25))
@@ -166,17 +166,17 @@ class AllTripsMedicalViewTest(TestCase):
         jan3 = factories.TripFactory.create(name="3rd Trip", trip_date=date(2020, 1, 3))
         jan2 = factories.TripFactory.create(name="2nd Trip", trip_date=date(2020, 1, 2))
 
-        response = self.client.get('/trips/medical/')
-        self.assertEqual(list(response.context['trips']), [jan2, jan3])
+        response = self.client.get("/trips/medical/")
+        self.assertEqual(list(response.context["trips"]), [jan2, jan3])
 
-        soup = BeautifulSoup(response.content, 'html.parser')
+        soup = BeautifulSoup(response.content, "html.parser")
 
         # Both trips are described
-        self.assertTrue(soup.find('h3', string="2nd Trip"))
-        self.assertTrue(soup.find('h3', string="3rd Trip"))
+        self.assertTrue(soup.find("h3", string="2nd Trip"))
+        self.assertTrue(soup.find("h3", string="3rd Trip"))
 
     def test_key_data_present(self):
-        Group.objects.get(name='WIMP').user_set.add(self.user)
+        Group.objects.get(name="WIMP").user_set.add(self.user)
 
         leader = factories.ParticipantFactory.create(
             name="Tim Beaver", emergency_info__allergies="Pollen"
@@ -195,8 +195,8 @@ class AllTripsMedicalViewTest(TestCase):
             name="Trip Driver",
             car=factories.CarFactory.create(
                 license_plate="559 DKP",
-                make='Powell Motors',
-                model='Homer',
+                make="Powell Motors",
+                model="Homer",
             ),
         )
         itinerary.drivers.add(driver)
@@ -210,29 +210,29 @@ class AllTripsMedicalViewTest(TestCase):
             participant__name="NOT ON TRIP", trip=trip, on_trip=False
         )
 
-        response = self.client.get('/trips/medical/')
-        soup = BeautifulSoup(response.content, 'html.parser')
+        response = self.client.get("/trips/medical/")
+        soup = BeautifulSoup(response.content, "html.parser")
 
         # Both trip participants + the leader are given in the summary
         self.assertTrue(
-            soup.find('a', href=f'/participants/{non_driver.pk}/', string="Non Driver")
+            soup.find("a", href=f"/participants/{non_driver.pk}/", string="Non Driver")
         )
         self.assertTrue(
-            soup.find('a', href=f'/participants/{driver.pk}/', string="Trip Driver")
+            soup.find("a", href=f"/participants/{driver.pk}/", string="Trip Driver")
         )
         self.assertTrue(
-            soup.find('a', href=f'/participants/{leader.pk}/', string="Tim Beaver")
+            soup.find("a", href=f"/participants/{leader.pk}/", string="Tim Beaver")
         )
 
         # Signup not on the trip is omitted.
-        self.assertFalse(soup.find('a', string="NOT ON TRIP"))
+        self.assertFalse(soup.find("a", string="NOT ON TRIP"))
 
         # Key medical information is given
-        self.assertTrue(soup.find('td', string="Pollen"))
+        self.assertTrue(soup.find("td", string="Pollen"))
 
         # The driver's car info is given in a table.
-        self.assertTrue(soup.find('td', string="559 DKP"))
-        self.assertTrue(soup.find('td', string="Powell Motors Homer"))
+        self.assertTrue(soup.find("td", string="559 DKP"))
+        self.assertTrue(soup.find("td", string="Powell Motors Homer"))
 
         # The itinerary of the trip is also given
         self.assertIn(plan, soup.text)
@@ -244,9 +244,9 @@ class TripMedicalViewTest(TestCase):
         self.client.force_login(self.user)
 
     def _assert_cannot_view(self, trip):
-        response = self.client.get(f'/trips/{trip.pk}/medical/')
-        soup = BeautifulSoup(response.content, 'html.parser')
-        self.assertTrue(soup.find('h2', string="Must be a leader to administrate trip"))
+        response = self.client.get(f"/trips/{trip.pk}/medical/")
+        soup = BeautifulSoup(response.content, "html.parser")
+        self.assertTrue(soup.find("h2", string="Must be a leader to administrate trip"))
 
     def test_must_have_participant(self):
         self._assert_cannot_view(factories.TripFactory.create())
@@ -278,17 +278,17 @@ class TripMedicalViewTest(TestCase):
             participant=leader, activity=models.LeaderRating.HIKING
         )
         trip.leaders.add(leader)
-        response = self.client.get(f'/trips/{trip.pk}/medical/')
-        soup = BeautifulSoup(response.content, 'html.parser')
+        response = self.client.get(f"/trips/{trip.pk}/medical/")
+        soup = BeautifulSoup(response.content, "html.parser")
 
         # Participant medical info is given
-        self.assertTrue(soup.find('td', string="Bee stings"))
+        self.assertTrue(soup.find("td", string="Bee stings"))
 
         # A link for leaders to supply an itinerary is also given
         self.assertTrue(
             soup.find(
-                'a',
-                href=f'/trips/{trip.pk}/itinerary/',
+                "a",
+                href=f"/trips/{trip.pk}/itinerary/",
                 string="detailed trip itinerary",
             )
         )
@@ -301,14 +301,14 @@ class TripMedicalViewTest(TestCase):
             participant__emergency_info__allergies="Bee stings", trip=trip, on_trip=True
         )
 
-        response = self.client.get(f'/trips/{trip.pk}/medical/')
-        soup = BeautifulSoup(response.content, 'html.parser')
+        response = self.client.get(f"/trips/{trip.pk}/medical/")
+        soup = BeautifulSoup(response.content, "html.parser")
 
         # Participant medical info is given
-        self.assertTrue(soup.find('td', string="Bee stings"))
+        self.assertTrue(soup.find("td", string="Bee stings"))
 
         # The WIMP cannot provide an itinerary, they're not a leader
-        self.assertFalse(soup.find('a', href=f'/trips/{trip.pk}/itinerary/'))
+        self.assertFalse(soup.find("a", href=f"/trips/{trip.pk}/itinerary/"))
 
 
 @freeze_time("2019-02-15 12:25:00 EST")
@@ -328,12 +328,12 @@ class ChairTripViewTest(TestCase):
 
     def test_invalid_activity(self):
         trip = self._make_climbing_trip()
-        response = self.client.get(f'/curling/trips/{trip.pk}/')
+        response = self.client.get(f"/curling/trips/{trip.pk}/")
         self.assertEqual(response.status_code, 404)
 
     def test_must_be_chair(self):
         trip = self._make_climbing_trip()
-        response = self.client.get(f'/climbing/trips/{trip.pk}/')
+        response = self.client.get(f"/climbing/trips/{trip.pk}/")
         self.assertEqual(response.status_code, 403)
 
     def test_view_old_unapproved_trip(self):
@@ -343,37 +343,37 @@ class ChairTripViewTest(TestCase):
 
         perm_utils.make_chair(self.user, enums.Activity.CLIMBING)
 
-        response = self.client.get(f'/climbing/trips/{trip.pk}/')
+        response = self.client.get(f"/climbing/trips/{trip.pk}/")
         self.assertEqual(response.status_code, 200)
 
-        soup = BeautifulSoup(response.content, 'html.parser')
+        soup = BeautifulSoup(response.content, "html.parser")
 
         # Even though the trip is old, we can still approve it.
-        form = soup.find('form', action='.')
-        self.assertTrue(form.find('button', string='Approve'))
+        form = soup.find("form", action=".")
+        self.assertTrue(form.find("button", string="Approve"))
 
         # There are no other unapproved trips to navigate between.
-        self.assertIsNone(response.context['prev_trip'])
-        self.assertIsNone(response.context['next_trip'])
+        self.assertIsNone(response.context["prev_trip"])
+        self.assertIsNone(response.context["next_trip"])
 
         # Submitting the form approves the trip!
         # Because it's the last one, it goes back to the main listing.
-        approve_resp = self.client.post(f'/climbing/trips/{trip.pk}/')
+        approve_resp = self.client.post(f"/climbing/trips/{trip.pk}/")
         self.assertEqual(approve_resp.status_code, 302)
-        self.assertEqual(approve_resp.url, '/climbing/trips/')
+        self.assertEqual(approve_resp.url, "/climbing/trips/")
 
     def test_view_old_approved_trip(self):
         trip = self._make_climbing_trip(chair_approved=True, trip_date=date(2018, 3, 4))
         perm_utils.make_chair(self.user, enums.Activity.CLIMBING)
 
-        response = self.client.get(f'/climbing/trips/{trip.pk}/')
+        response = self.client.get(f"/climbing/trips/{trip.pk}/")
         self.assertEqual(response.status_code, 200)
 
-        soup = BeautifulSoup(response.content, 'html.parser')
+        soup = BeautifulSoup(response.content, "html.parser")
 
         # There's no approval form, just an indicator that it's approved
-        self.assertFalse(soup.find('form', action='.'))
-        self.assertTrue(soup.find('button', string='Approved!'))
+        self.assertFalse(soup.find("form", action="."))
+        self.assertTrue(soup.find("button", string="Approved!"))
 
     def test_upcoming_trips(self):
         # Make each of these the same trip type, so we sort just by date
@@ -397,31 +397,31 @@ class ChairTripViewTest(TestCase):
         perm_utils.make_chair(self.user, enums.Activity.CLIMBING)
 
         # "Next" and "previous" are in chronological order!
-        response = self.client.get(f'/climbing/trips/{two.pk}/')
-        self.assertEqual(response.context['prev_trip'], one)
-        self.assertEqual(response.context['next_trip'], three)
+        response = self.client.get(f"/climbing/trips/{two.pk}/")
+        self.assertEqual(response.context["prev_trip"], one)
+        self.assertEqual(response.context["next_trip"], three)
 
         # Because we have a next trip, the button to approve it links to "& next"
-        soup = BeautifulSoup(response.content, 'html.parser')
-        form = soup.find('form', action='.')
-        self.assertTrue(form.find('button', string='Approve & Next'))
+        soup = BeautifulSoup(response.content, "html.parser")
+        form = soup.find("form", action=".")
+        self.assertTrue(form.find("button", string="Approve & Next"))
 
         # Also, next and previous only navigate between unapproved trips
         three.chair_approved = True
         three.save()
-        response = self.client.get(f'/climbing/trips/{two.pk}/')
-        self.assertEqual(response.context['prev_trip'], one)
-        self.assertEqual(response.context['next_trip'], four)
+        response = self.client.get(f"/climbing/trips/{two.pk}/")
+        self.assertEqual(response.context["prev_trip"], one)
+        self.assertEqual(response.context["next_trip"], four)
 
         # Finally, approving a trip brings us straight to the page for the next.
-        approve_resp = self.client.post(f'/climbing/trips/{two.pk}/')
+        approve_resp = self.client.post(f"/climbing/trips/{two.pk}/")
         self.assertEqual(approve_resp.status_code, 302)
-        self.assertEqual(approve_resp.url, f'/climbing/trips/{four.pk}/')
+        self.assertEqual(approve_resp.url, f"/climbing/trips/{four.pk}/")
 
         # The last trip in the series has no "next" button
         resp = self.client.get(approve_resp.url)
-        self.assertEqual(resp.context['prev_trip'], one)
-        self.assertIsNone(resp.context['next_trip'])
+        self.assertEqual(resp.context["prev_trip"], one)
+        self.assertIsNone(resp.context["next_trip"])
 
     def test_no_navigation_between_old_trips(self):
         trip = self._make_climbing_trip(
@@ -432,8 +432,8 @@ class ChairTripViewTest(TestCase):
 
         perm_utils.make_chair(self.user, enums.Activity.CLIMBING)
 
-        response = self.client.get(f'/climbing/trips/{trip.pk}/')
+        response = self.client.get(f"/climbing/trips/{trip.pk}/")
 
         # We don't prompt the chair to approve other old trips.
-        self.assertIsNone(response.context['prev_trip'])
-        self.assertIsNone(response.context['next_trip'])
+        self.assertIsNone(response.context["prev_trip"])
+        self.assertIsNone(response.context["next_trip"])

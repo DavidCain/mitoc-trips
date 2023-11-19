@@ -26,24 +26,24 @@ from ws.utils.dates import is_currently_iap, local_date
 
 class LotteryPairingView(CreateView, LotteryPairingMixin):
     model = models.LotteryInfo
-    template_name = 'preferences/lottery/pairing.html'
+    template_name = "preferences/lottery/pairing.html"
     form_class = forms.LotteryPairForm
-    success_url = reverse_lazy('lottery_preferences')
+    success_url = reverse_lazy("lottery_preferences")
 
     def get_context_data(self, **kwargs):
         """Get a list of all other participants who've requested pairing."""
         context = super().get_context_data(**kwargs)
         self.participant = self.request.participant
-        context['pair_requests'] = self.pair_requests
-        context['currently_winter_school'] = is_currently_iap()
+        context["pair_requests"] = self.pair_requests
+        context["currently_winter_school"] = is_currently_iap()
         return context
 
     def get_form_kwargs(self):
         """Edit existing instance, prevent user from pairing with self."""
         kwargs = super().get_form_kwargs()
-        kwargs['participant'] = participant = self.request.participant
+        kwargs["participant"] = participant = self.request.participant
         with contextlib.suppress(models.LotteryInfo.DoesNotExist):
-            kwargs['instance'] = participant.lotteryinfo
+            kwargs["instance"] = participant.lotteryinfo
 
         return kwargs
 
@@ -87,8 +87,8 @@ class LotteryPairingView(CreateView, LotteryPairingMixin):
 
 class DiscountsView(FormView):
     form_class = forms.DiscountForm
-    template_name = 'preferences/discounts.html'
-    success_url = reverse_lazy('discounts')
+    template_name = "preferences/discounts.html"
+    success_url = reverse_lazy("discounts")
 
     def get_queryset(self):
         available = Q(active=True)
@@ -99,12 +99,12 @@ class DiscountsView(FormView):
 
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
-        form.fields['discounts'].queryset = self.get_queryset().order_by('name')
+        form.fields["discounts"].queryset = self.get_queryset().order_by("name")
         return form
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['instance'] = self.request.participant
+        kwargs["instance"] = self.request.participant
         return kwargs
 
     def form_valid(self, form):
@@ -122,7 +122,7 @@ class DiscountsView(FormView):
                 "You must be a current MITOC member to receive discounts. "
                 "We recorded your discount choices, but please pay dues to be eligible",
             )
-            return redirect(reverse('pay_dues'))
+            return redirect(reverse("pay_dues"))
 
         return super().form_valid(form)
 
@@ -132,9 +132,9 @@ class DiscountsView(FormView):
 
 
 class LotteryPreferencesView(TemplateView, LotteryPairingMixin):
-    template_name = 'preferences/lottery/edit.html'
-    update_msg = 'Lottery preferences updated'
-    car_prefix = 'car'
+    template_name = "preferences/lottery/edit.html"
+    update_msg = "Lottery preferences updated"
+    car_prefix = "car"
 
     @property
     def post_data(self):
@@ -148,19 +148,19 @@ class LotteryPreferencesView(TemplateView, LotteryPairingMixin):
             models.SignUp.objects.filter(
                 participant=self.request.participant,
                 on_trip=False,
-                trip__algorithm='lottery',
+                trip__algorithm="lottery",
                 trip__program=enums.Program.WINTER_SCHOOL.value,
                 trip__trip_date__gt=local_date(),
             )
-            .order_by('order', 'time_created', 'pk')
-            .select_related('trip')
+            .order_by("order", "time_created", "pk")
+            .select_related("trip")
         )
 
     @property
     def ranked_signups_dict(self):
         """Used by the Angular trip-ranking widget."""
         return [
-            {'id': s.pk, 'trip': {'id': s.trip.pk, 'name': s.trip.name}}
+            {"id": s.pk, "trip": {"id": s.trip.pk, "name": s.trip.name}}
             for s in self.ranked_signups
         ]
 
@@ -177,43 +177,43 @@ class LotteryPreferencesView(TemplateView, LotteryPairingMixin):
         lottery_form = self.get_lottery_form()
 
         return {
-            'currently_winter_school': is_currently_iap(),
-            'ranked_signups': list(
-                self.ranked_signups.values('id', 'trip__id', 'trip__name')
+            "currently_winter_school": is_currently_iap(),
+            "ranked_signups": list(
+                self.ranked_signups.values("id", "trip__id", "trip__name")
             ),
-            'lottery_form': lottery_form,
+            "lottery_form": lottery_form,
             # Avoid a redundant query! (We'll show full pairing info separately)
-            'has_paired_par': bool(
+            "has_paired_par": bool(
                 lottery_form.instance and lottery_form.instance.paired_with_id
             ),
         }
 
     def post(self, request, *args, **kwargs):
         context = self.get_context_data()
-        lottery_form = context['lottery_form']
+        lottery_form = context["lottery_form"]
         if not lottery_form.is_valid():
             # Could use lottery_form.errors to give a better message...
-            return JsonResponse({'message': 'Lottery form invalid'}, status=400)
+            return JsonResponse({"message": "Lottery form invalid"}, status=400)
 
         lottery_info = lottery_form.save(commit=False)
         lottery_info.participant = self.request.participant
-        if lottery_info.car_status == 'none':
+        if lottery_info.car_status == "none":
             lottery_info.number_of_passengers = None
         lottery_info.save()
 
         try:
             self.save_signups()
         except (ValueError, TypeError):
-            return JsonResponse({'message': 'Unable to save signups'}, status=400)
+            return JsonResponse({"message": "Unable to save signups"}, status=400)
 
         self.handle_paired_signups()
-        return JsonResponse({'message': self.update_msg}, status=200)
+        return JsonResponse({"message": self.update_msg}, status=200)
 
     def save_signups(self) -> None:
         """Save the rankings given by the participant, optionally removing any signups."""
         par: models.Participant = self.request.participant  # type: ignore[attr-defined]
-        posted_signups = self.post_data['signups']
-        required_fields: set[str] = {'id', 'deleted', 'order'}
+        posted_signups = self.post_data["signups"]
+        required_fields: set[str] = {"id", "deleted", "order"}
 
         for ps in posted_signups:
             for key in required_fields:
@@ -224,18 +224,18 @@ class LotteryPreferencesView(TemplateView, LotteryPairingMixin):
         # It's important that we prevent participants from deleting *other* signups with this route:
         # 1. Not all trips allow participants to drop off
         # 2. Signals aren't triggered from this `delete()`, which means FCFS logic isn't triggered
-        to_del_ids = [p['id'] for p in posted_signups if p['deleted']]
+        to_del_ids = [p["id"] for p in posted_signups if p["deleted"]]
         if to_del_ids:
             self.ranked_signups.filter(pk__in=to_del_ids).delete()
 
         # Next, explicitly rank signups that the participant listed
         order_per_signup: dict[int, int] = {
-            int(p['id']): int(p['order']) for p in posted_signups if not p['deleted']
+            int(p["id"]): int(p["order"]) for p in posted_signups if not p["deleted"]
         }
         signups = models.SignUp.objects.filter(participant=par, pk__in=order_per_signup)
         for signup in signups:
             signup.order = order_per_signup[signup.pk]
-        models.SignUp.objects.bulk_update(signups, ['order'])
+        models.SignUp.objects.bulk_update(signups, ["order"])
 
     def handle_paired_signups(self):
         """For participants who might be paired, warn if other participant hasn't signed up.
@@ -276,13 +276,13 @@ class EmailPreferencesView(CreateView):
     """
 
     form_class = forms.EmailPreferencesForm
-    template_name = 'preferences/email/edit.html'
-    success_url = reverse_lazy('home')
+    template_name = "preferences/email/edit.html"
+    success_url = reverse_lazy("home")
 
     def get_form_kwargs(self):
         return {
             **super().get_form_kwargs(),
-            'instance': self.request.participant,
+            "instance": self.request.participant,
         }
 
     # Most views require up-to-date participant information.
@@ -304,14 +304,14 @@ class EmailPreferencesView(CreateView):
             report_past_dates=False
         )
         if date_to_remind:
-            renewal = datetime.strftime(date_to_remind, '%b %-d, %Y')
+            renewal = datetime.strftime(date_to_remind, "%b %-d, %Y")
             return f"We'll send you an email on {renewal} reminding you to renew."
 
         return "If you have an active membership, we'll remind you when it's time to renew."
 
     def form_valid(self, form):
         messages.success(
-            self.request, self._message(form.cleaned_data['send_membership_reminder'])
+            self.request, self._message(form.cleaned_data["send_membership_reminder"])
         )
 
         return super().form_valid(form)
@@ -320,11 +320,11 @@ class EmailPreferencesView(CreateView):
 class EmailUnsubscribeView(TemplateView):
     """Allow unsubscribing whether or not the user is logged in!"""
 
-    template_name = 'preferences/email/unsubscribe.html'
-    success_url = reverse_lazy('email_preferences')
+    template_name = "preferences/email/unsubscribe.html"
+    success_url = reverse_lazy("email_preferences")
 
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
-        token: str = self.kwargs['token']
+        token: str = self.kwargs["token"]
 
         participant: models.Participant | None = request.participant  # type: ignore[attr-defined]
 
@@ -359,7 +359,7 @@ class EmailUnsubscribeView(TemplateView):
         # - Participant in the token was deleted, but viewer is logged in, can use the form
         # - Token was valid, but for another participant than the one that's logged in!
         if participant:
-            return redirect(reverse('email_preferences'))
+            return redirect(reverse("email_preferences"))
 
         # The viewer is either not logged in, or just lacks a participant record.
         # Just render a plain page with the message and a link to edit email preferences.

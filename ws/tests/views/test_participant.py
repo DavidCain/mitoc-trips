@@ -23,18 +23,18 @@ class LandingPageTests(TestCase):
             for i in range(10)
         ]
 
-        response = self.client.get('/')
-        soup = BeautifulSoup(response.content, 'html.parser')
-        lead_paragraph = soup.find('p', class_='lead')
+        response = self.client.get("/")
+        soup = BeautifulSoup(response.content, "html.parser")
+        lead_paragraph = soup.find("p", class_="lead")
         self.assertEqual(
             lead_paragraph.text,
-            'Come hiking, climbing, skiing, paddling, biking, and surfing with the MIT Outing Club!',
+            "Come hiking, climbing, skiing, paddling, biking, and surfing with the MIT Outing Club!",
         )
 
         # All trips are listed in chronological order
-        self.assertEqual(list(response.context['current_trips']), ten_upcoming_trips)
+        self.assertEqual(list(response.context["current_trips"]), ten_upcoming_trips)
         # No recent trips are needed, since we have more than eight
-        self.assertNotIn('recent_trips', response.context)
+        self.assertNotIn("recent_trips", response.context)
 
     @freeze_time("2020-01-12 09:00:00 EST")
     def test_unauthenticated_rendering_few_upcoming_trips(self):
@@ -47,14 +47,14 @@ class LandingPageTests(TestCase):
         upcoming_trip1 = factories.TripFactory.create(trip_date=date(2020, 1, 15))
         upcoming_trip2 = factories.TripFactory.create(trip_date=date(2020, 1, 20))
 
-        response = self.client.get('/')
+        response = self.client.get("/")
 
         # Upcoming trips are listed in chronological order
         self.assertEqual(
-            list(response.context['current_trips']), [upcoming_trip1, upcoming_trip2]
+            list(response.context["current_trips"]), [upcoming_trip1, upcoming_trip2]
         )
         # Recent trips are shown until we have 8 total
-        self.assertEqual(list(response.context['recent_trips']), ten_past_trips[:6])
+        self.assertEqual(list(response.context["recent_trips"]), ten_past_trips[:6])
 
 
 # NOTE: See test_ws_tags.py for direct testing of the templatetag too
@@ -82,11 +82,11 @@ class LectureAttendanceTests(TestCase):
         )
 
         with freeze_time("Jan 6 2022 20:00:00 EST"):
-            resp = self.client.get('/')
-        soup = BeautifulSoup(resp.content, 'html.parser')
-        attendance = soup.find('h3', string='Lecture Attendance')
+            resp = self.client.get("/")
+        soup = BeautifulSoup(resp.content, "html.parser")
+        attendance = soup.find("h3", string="Lecture Attendance")
         self.assertEqual(
-            strip_whitespace(attendance.find_next('p').text),
+            strip_whitespace(attendance.find_next("p").text),
             "Attended You have attended this year's lectures!",
         )
 
@@ -107,13 +107,13 @@ class LectureAttendanceTests(TestCase):
 
         # It's after 9 pm on Thursday (with future WS trips). Must be lecture day.
         with freeze_time("2022-01-06 22:00:00 EST"):
-            resp = self.client.get('/')
+            resp = self.client.get("/")
 
         # This participant did not record their attendance!
-        soup = BeautifulSoup(resp.content, 'html.parser')
-        attendance = soup.find('h3', string='Lecture Attendance')
+        soup = BeautifulSoup(resp.content, "html.parser")
+        attendance = soup.find("h3", string="Lecture Attendance")
         self.assertEqual(
-            strip_whitespace(attendance.find_next('p').text),
+            strip_whitespace(attendance.find_next("p").text),
             "Attended You have attended this year's lectures!",
         )
 
@@ -133,11 +133,11 @@ class LectureAttendanceTests(TestCase):
         # It's Monday *after* the first week's trips.
         # It's possible that no new future trips exist.
         with freeze_time("2022-01-10 22:00:00 EST"):
-            resp = self.client.get('/')
+            resp = self.client.get("/")
 
         # Because the participant *did* attend lectures, we don't take up space telling them that
-        soup = BeautifulSoup(resp.content, 'html.parser')
-        self.assertFalse(soup.find('h3', string='Lecture Attendance'))
+        soup = BeautifulSoup(resp.content, "html.parser")
+        self.assertFalse(soup.find("h3", string="Lecture Attendance"))
 
     def test_attendance_not_shown_outside_winter_school(self):
         """We don't tell participants that they attended lectures, outside WS at least."""
@@ -148,19 +148,19 @@ class LectureAttendanceTests(TestCase):
         self._allow_setting_attendance()
 
         with freeze_time("Feb 15 2022 12:00:00 EST"):
-            resp = self.client.get('/')
-        soup = BeautifulSoup(resp.content, 'html.parser')
-        self.assertFalse(soup.find('h3', string='Lecture Attendance'))
+            resp = self.client.get("/")
+        soup = BeautifulSoup(resp.content, "html.parser")
+        self.assertFalse(soup.find("h3", string="Lecture Attendance"))
 
 
 class ProfileViewTests(TestCase):
     def test_dated_affiliation_redirect(self):
         # Make a participant with a legacy affiliation
-        participant = factories.ParticipantFactory.create(affiliation='S')
+        participant = factories.ParticipantFactory.create(affiliation="S")
         self.client.force_login(participant.user)
-        resp = self.client.get('/')
+        resp = self.client.get("/")
         self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.url, '/profile/edit/')
+        self.assertEqual(resp.url, "/profile/edit/")
 
 
 @freeze_time("2020-01-12 09:00:00 EST")
@@ -174,7 +174,7 @@ class WimpDisplayInProfileViewTests(TestCase):
     @staticmethod
     def _create_wimp():
         wimp_par = factories.ParticipantFactory.create()
-        Group.objects.get(name='WIMP').user_set.add(wimp_par.user_id)
+        Group.objects.get(name="WIMP").user_set.add(wimp_par.user_id)
         return wimp_par
 
     def test_admins_always_see_wimp(self):
@@ -183,8 +183,8 @@ class WimpDisplayInProfileViewTests(TestCase):
         self.client.force_login(admin)
         wimp_par = self._create_wimp()
 
-        resp = self.client.get('/')
-        self.assertEqual(resp.context['wimp'], wimp_par)
+        resp = self.client.get("/")
+        self.assertEqual(resp.context["wimp"], wimp_par)
 
     def test_participants_not_shown_wimp(self):
         # Upcoming WS trip exists
@@ -194,8 +194,8 @@ class WimpDisplayInProfileViewTests(TestCase):
         self._create_wimp()
 
         # Normal participants don't see the WIMP
-        resp = self.client.get('/')
-        self.assertIsNone(resp.context['wimp'])
+        resp = self.client.get("/")
+        self.assertIsNone(resp.context["wimp"])
 
     def test_no_wimp_shown_until_upcoming_ws_trips(self):
         # Trip exists from yesterday (it's currently during IAP too)
@@ -213,8 +213,8 @@ class WimpDisplayInProfileViewTests(TestCase):
         wimp_par = self._create_wimp()
 
         # Because there are no upcoming WS trips, though - no WIMP is shown
-        resp = self.client.get('/')
-        self.assertIsNone(resp.context['wimp'])
+        resp = self.client.get("/")
+        self.assertIsNone(resp.context["wimp"])
 
         # If a trip is created today, we will then show the WIMP!
         factories.TripFactory.create(
@@ -222,8 +222,8 @@ class WimpDisplayInProfileViewTests(TestCase):
         )
 
         # Now, we show the WIMP because there are upcoming WS trips
-        resp = self.client.get('/')
-        self.assertEqual(resp.context['wimp'], wimp_par)
+        resp = self.client.get("/")
+        self.assertEqual(resp.context["wimp"], wimp_par)
 
     def test_chairs_see_wimp_even_if_not_leaders(self):
         # WS trip exists today!
@@ -234,8 +234,8 @@ class WimpDisplayInProfileViewTests(TestCase):
         wimp_par = self._create_wimp()
 
         # There are upcoming WS trips, so the WS chairs should see the WIMP
-        resp = self.client.get('/')
-        self.assertEqual(resp.context['wimp'], wimp_par)
+        resp = self.client.get("/")
+        self.assertEqual(resp.context["wimp"], wimp_par)
 
 
 @freeze_time("2019-02-15 12:25:00 EST")
@@ -243,19 +243,19 @@ class EditProfileViewTests(TestCase):
     # 3 separate forms (does not include a car!)
     form_data = {
         # Participant
-        'participant-name': 'New Participant',
-        'participant-email': 'new.participant@example.com',
-        'participant-cell_phone': '+1 800-555-0000',
-        'participant-affiliation': 'NA',
+        "participant-name": "New Participant",
+        "participant-email": "new.participant@example.com",
+        "participant-cell_phone": "+1 800-555-0000",
+        "participant-affiliation": "NA",
         # Emergency information
-        'einfo-allergies': 'N/A',
-        'einfo-medications': 'N/A',
-        'einfo-medical_history': 'Nothing relevant',
+        "einfo-allergies": "N/A",
+        "einfo-medications": "N/A",
+        "einfo-medical_history": "Nothing relevant",
         # Emergency contact
-        'econtact-name': 'Participant Sister',
-        'econtact-email': 'sister@example.com',
-        'econtact-cell_phone': '+1 800-555-1234',
-        'econtact-relationship': 'Sister',
+        "econtact-name": "Participant Sister",
+        "econtact-email": "sister@example.com",
+        "econtact-cell_phone": "+1 800-555-1234",
+        "econtact-relationship": "Sister",
     }
 
     def setUp(self):
@@ -265,51 +265,51 @@ class EditProfileViewTests(TestCase):
 
     def _assert_form_data_saved(self, participant):
         """Assert that the given participant has data from `form_data`."""
-        self.assertEqual(participant.name, 'New Participant')
-        self.assertEqual(participant.email, 'new.participant@example.com')
-        self.assertEqual(participant.affiliation, 'NA')
-        self.assertEqual(participant.cell_phone.as_e164, '+18005550000')
+        self.assertEqual(participant.name, "New Participant")
+        self.assertEqual(participant.email, "new.participant@example.com")
+        self.assertEqual(participant.affiliation, "NA")
+        self.assertEqual(participant.cell_phone.as_e164, "+18005550000")
 
         self.assertIsNone(participant.car)
 
         e_contact = participant.emergency_info.emergency_contact
         expected_contact = models.EmergencyContact(
             pk=e_contact.pk,
-            name='Participant Sister',
-            email='sister@example.com',
+            name="Participant Sister",
+            email="sister@example.com",
             cell_phone=mock.ANY,  # Tested below
-            relationship='Sister',
+            relationship="Sister",
         )
 
         self.assertEqual(
             participant.emergency_info,
             models.EmergencyInfo(
                 pk=participant.emergency_info.pk,
-                allergies='N/A',
-                medications='N/A',
-                medical_history='N/A',
+                allergies="N/A",
+                medications="N/A",
+                medical_history="N/A",
                 emergency_contact=expected_contact,
             ),
         )
-        self.assertEqual(e_contact.cell_phone.as_e164, '+18005551234')
+        self.assertEqual(e_contact.cell_phone.as_e164, "+18005551234")
 
     def test_new_participant(self):
-        response = self.client.get('/profile/edit/')
-        soup = BeautifulSoup(response.content, 'html.parser')
+        response = self.client.get("/profile/edit/")
+        soup = BeautifulSoup(response.content, "html.parser")
 
         self.assertEqual(
-            soup.find(class_='alert').get_text(strip=True),
-            'Please complete this important safety information to finish the signup process.',
+            soup.find(class_="alert").get_text(strip=True),
+            "Please complete this important safety information to finish the signup process.",
         )
-        with mock.patch.object(tasks, 'update_participant_affiliation') as task_update:
-            response = self.client.post('/profile/edit/', self.form_data, follow=False)
+        with mock.patch.object(tasks, "update_participant_affiliation") as task_update:
+            response = self.client.post("/profile/edit/", self.form_data, follow=False)
 
         # The save was successful, redirects home
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, '/')
+        self.assertEqual(response.url, "/")
 
         participant = models.Participant.objects.get(
-            email='new.participant@example.com'
+            email="new.participant@example.com"
         )
 
         self._assert_form_data_saved(participant)
@@ -324,13 +324,13 @@ class EditProfileViewTests(TestCase):
         self.assertEqual(participant.profile_last_updated, now)
 
     def test_existing_participant_with_problems(self):
-        factories.ParticipantFactory.create(name='Cher', user_id=self.user.pk)
+        factories.ParticipantFactory.create(name="Cher", user_id=self.user.pk)
 
-        response = self.client.get('/profile/edit/')
-        soup = BeautifulSoup(response.content, 'html.parser')
+        response = self.client.get("/profile/edit/")
+        soup = BeautifulSoup(response.content, "html.parser")
 
         self.assertEqual(
-            soup.find(class_='alert').get_text(strip=True),
+            soup.find(class_="alert").get_text(strip=True),
             "Please supply your full legal name.",
         )
 
@@ -345,33 +345,33 @@ class ParticipantDetailViewTest(TestCase):
 
     def test_non_authenticated_redirected(self):
         self.client.logout()
-        response = self.client.get(f'/participants/{self.participant.pk}/')
+        response = self.client.get(f"/participants/{self.participant.pk}/")
         self.assertEqual(response.status_code, 302)
         self.assertEqual(
-            response.url, f'/accounts/login/?next=/participants/{self.participant.pk}/'
+            response.url, f"/accounts/login/?next=/participants/{self.participant.pk}/"
         )
 
     def test_non_participants_redirected(self):
         user = factories.UserFactory.create()
         self.client.force_login(user)
-        response = self.client.get(f'/participants/{self.participant.pk}/')
+        response = self.client.get(f"/participants/{self.participant.pk}/")
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(
-            response.url, f'/profile/edit/?next=/participants/{self.participant.pk}/'
+            response.url, f"/profile/edit/?next=/participants/{self.participant.pk}/"
         )
 
     def test_non_leaders_blocked(self):
         factories.ParticipantFactory.create(user_id=self.user.pk)
-        response = self.client.get(f'/participants/{self.participant.pk}/')
+        response = self.client.get(f"/participants/{self.participant.pk}/")
 
         self.assertEqual(response.status_code, 403)
 
     def test_redirect_to_own_home(self):
         par = factories.ParticipantFactory.create(user_id=self.user.pk)
-        response = self.client.get(f'/participants/{par.pk}/')
+        response = self.client.get(f"/participants/{par.pk}/")
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, '/')
+        self.assertEqual(response.url, "/")
 
     def test_leaders_can_view_others(self):
         par = factories.ParticipantFactory.create(user_id=self.user.pk)
@@ -380,31 +380,31 @@ class ParticipantDetailViewTest(TestCase):
         factories.FeedbackFactory.create(
             participant=self.participant,
             showed_up=False,
-            comments='Slept through their alarm, did not answer phone calls',
+            comments="Slept through their alarm, did not answer phone calls",
         )
 
         # Any leader may view - it doesn't matter which activity!
         factories.LeaderRatingFactory.create(participant=par)
         self.assertTrue(perm_utils.is_leader(self.user))
         random.seed("Set seed, for predictable 'scrambling'")
-        response = self.client.get(f'/participants/{self.participant.pk}/')
+        response = self.client.get(f"/participants/{self.participant.pk}/")
         self.assertEqual(response.status_code, 200)
 
         # When viewing, comments are initially scrambled
-        soup = BeautifulSoup(response.content, 'html.parser')
-        feedback = soup.find(id='feedback').find_next('table')
+        soup = BeautifulSoup(response.content, "html.parser")
+        feedback = soup.find(id="feedback").find_next("table")
         self.assertEqual(
-            strip_whitespace(feedback.find_next('td').text),
-            'oo srephh ,twihlien lnSd rmleartpagtsal choeanrudt',
+            strip_whitespace(feedback.find_next("td").text),
+            "oo srephh ,twihlien lnSd rmleartpagtsal choeanrudt",
         )
 
         # There's a button which enables us to view this feedback, unscrambled.
         reveal = soup.find(
-            'a', href=f'/participants/{self.participant.pk}/?show_feedback=1'
+            "a", href=f"/participants/{self.participant.pk}/?show_feedback=1"
         )
         self.assertTrue(reveal)
-        with mock.patch.object(logger, 'info') as log_info:
-            response = self.client.get(reveal.attrs['href'])
+        with mock.patch.object(logger, "info") as log_info:
+            response = self.client.get(reveal.attrs["href"])
         log_info.assert_called_once_with(
             "%s (#%d) viewed feedback for %s (#%d)",
             par,
@@ -412,9 +412,9 @@ class ParticipantDetailViewTest(TestCase):
             self.participant,
             self.participant.pk,
         )
-        soup = BeautifulSoup(response.content, 'html.parser')
-        feedback = soup.find(id='feedback').find_next('table')
+        soup = BeautifulSoup(response.content, "html.parser")
+        feedback = soup.find(id="feedback").find_next("table")
         self.assertEqual(
-            strip_whitespace(feedback.find_next('td').text),
-            'Flaked! Slept through their alarm, did not answer phone calls',
+            strip_whitespace(feedback.find_next("td").text),
+            "Flaked! Slept through their alarm, did not answer phone calls",
         )

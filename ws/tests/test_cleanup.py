@@ -109,14 +109,14 @@ class PurgeNonStudentDiscountsTests(TestCase):
     def test_purged(self):
         # Create a collection of participants with every student affiliation
         current_students = [
-            factories.ParticipantFactory.create(affiliation='MU'),
-            factories.ParticipantFactory.create(affiliation='MG'),
-            factories.ParticipantFactory.create(affiliation='NU'),
-            factories.ParticipantFactory.create(affiliation='NG'),
+            factories.ParticipantFactory.create(affiliation="MU"),
+            factories.ParticipantFactory.create(affiliation="MG"),
+            factories.ParticipantFactory.create(affiliation="NU"),
+            factories.ParticipantFactory.create(affiliation="NG"),
         ]
-        alum = factories.ParticipantFactory.create(affiliation='MU')
-        former_undergrad = factories.ParticipantFactory.create(affiliation='MU')
-        former_grad_student = factories.ParticipantFactory.create(affiliation='NG')
+        alum = factories.ParticipantFactory.create(affiliation="MU")
+        former_undergrad = factories.ParticipantFactory.create(affiliation="MU")
+        former_grad_student = factories.ParticipantFactory.create(affiliation="NG")
 
         # Assign both discounts to everybody, since they're all currently students
         everybody = [former_undergrad, former_grad_student, alum, *current_students]
@@ -126,11 +126,11 @@ class PurgeNonStudentDiscountsTests(TestCase):
             )
 
         # The former students move into non-student statuses
-        alum.affiliation = 'ML'
+        alum.affiliation = "ML"
         alum.save()
-        former_undergrad.affiliation = 'MA'
+        former_undergrad.affiliation = "MA"
         former_undergrad.save()
-        former_grad_student.affiliation = 'NA'
+        former_grad_student.affiliation = "NA"
         former_grad_student.save()
 
         cleanup.purge_non_student_discounts()
@@ -151,7 +151,7 @@ class PurgeMedicalInfoTests(TestCase):
         # Will automatically get a profile_last_updated value
         participant = factories.ParticipantFactory.create()
         original = participant.emergency_info
-        with mock.patch.object(cleanup.logger, 'info') as log_info:
+        with mock.patch.object(cleanup.logger, "info") as log_info:
             cleanup.purge_old_medical_data()
         log_info.assert_not_called()  # Nothing to log, no changes made
         participant.emergency_info.refresh_from_db()
@@ -160,7 +160,7 @@ class PurgeMedicalInfoTests(TestCase):
     def test_purge_medical_data(self):
         # (Will have medical information created)
         participant = factories.ParticipantFactory.create(
-            membership=None, name='Old Member', email='old@example.com', pk=823
+            membership=None, name="Old Member", email="old@example.com", pk=823
         )
         # Hasn't updated in at least 13 months
         make_last_updated_on(participant, date(2012, 12, 1))
@@ -172,25 +172,25 @@ class PurgeMedicalInfoTests(TestCase):
         self.assertTrue(e_info.medications)
         self.assertTrue(e_info.medical_history)
 
-        with mock.patch.object(cleanup.logger, 'info') as log_info:
+        with mock.patch.object(cleanup.logger, "info") as log_info:
             cleanup.purge_old_medical_data()
         log_info.assert_called_once_with(
-            'Purging medical data for %s (%s - %s, last updated %s)',
-            'Old Member',
+            "Purging medical data for %s (%s - %s, last updated %s)",
+            "Old Member",
             823,
-            'old@example.com',
+            "old@example.com",
             date(2012, 12, 1),
         )
 
         # Re-query so that we get all fresh data (refresh_from_db only does one model)
         participant = models.Participant.objects.select_related(
-            'emergency_info__emergency_contact'
+            "emergency_info__emergency_contact"
         ).get(pk=participant.pk)
 
         # Now, note that sensitive fields have been cleaned out
-        self.assertEqual(participant.emergency_info.allergies, '')
-        self.assertEqual(participant.emergency_info.medications, '')
-        self.assertEqual(participant.emergency_info.medical_history, '')
+        self.assertEqual(participant.emergency_info.allergies, "")
+        self.assertEqual(participant.emergency_info.medications, "")
+        self.assertEqual(participant.emergency_info.medical_history, "")
 
         # The emergency contact remains, though.
         self.assertEqual(participant.emergency_info.emergency_contact, e_contact)

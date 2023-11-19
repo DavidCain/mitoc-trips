@@ -17,7 +17,7 @@ class ParticipantMiddlewareTests(TestCase):
             return None
 
         self.pm = ParticipantMiddleware(get_response)
-        self.request = RequestFactory().get('/')
+        self.request = RequestFactory().get("/")
 
     @classmethod
     def setUpTestData(cls) -> None:
@@ -52,7 +52,7 @@ class CustomMessagesMiddlewareTests(TestCase):
             return None
 
         self.cm = CustomMessagesMiddleware(get_response)
-        self.request = RequestFactory().get('/')
+        self.request = RequestFactory().get("/")
 
     @classmethod
     def setUpTestData(cls) -> None:
@@ -62,7 +62,7 @@ class CustomMessagesMiddlewareTests(TestCase):
         """No messages are generated on anonymous users."""
         self.request.user = AnonymousUser()
         self.request.participant = None
-        with mock.patch.object(security.messages, 'add_message') as add_message:
+        with mock.patch.object(security.messages, "add_message") as add_message:
             self.cm(self.request)
         add_message.assert_not_called()
 
@@ -70,7 +70,7 @@ class CustomMessagesMiddlewareTests(TestCase):
         """No messages are generated on users without a participant."""
         self.request.user = self.user
         self.request.participant = None
-        with mock.patch.object(security.messages, 'add_message') as add_message:
+        with mock.patch.object(security.messages, "add_message") as add_message:
             self.cm(self.request)
         add_message.assert_not_called()
 
@@ -82,7 +82,7 @@ class CustomMessagesMiddlewareTests(TestCase):
             passwordquality=PasswordQualityFactory(is_insecure=True),
         )
 
-        with mock.patch.object(security.messages, 'add_message') as add_message:
+        with mock.patch.object(security.messages, "add_message") as add_message:
             self.cm(self.request)
         add_message.assert_called_once()
 
@@ -94,6 +94,6 @@ class CustomMessagesMiddlewareTests(TestCase):
             passwordquality=PasswordQualityFactory(is_insecure=False),
         )
 
-        with mock.patch.object(security.messages, 'add_message') as add_message:
+        with mock.patch.object(security.messages, "add_message") as add_message:
             self.cm(self.request)
         add_message.assert_not_called()

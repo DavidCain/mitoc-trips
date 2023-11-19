@@ -15,20 +15,20 @@ from ws.tests import factories, strip_whitespace
 class LotteryPairingViewTests(TestCase):
     def test_authenticated_users_only(self):
         """Users must be signed in to set lottery pairing."""
-        response = self.client.get('/preferences/lottery/pairing/')
+        response = self.client.get("/preferences/lottery/pairing/")
         self.assertEqual(response.status_code, 302)
         self.assertEqual(
-            response.url, '/accounts/login/?next=/preferences/lottery/pairing/'
+            response.url, "/accounts/login/?next=/preferences/lottery/pairing/"
         )
 
     def test_users_with_info_only(self):
         """Participant records are required."""
         user = factories.UserFactory.create()
         self.client.force_login(user)
-        response = self.client.get('/preferences/lottery/pairing/')
+        response = self.client.get("/preferences/lottery/pairing/")
         self.assertEqual(response.status_code, 302)
         self.assertEqual(
-            response.url, '/profile/edit/?next=/preferences/lottery/pairing/'
+            response.url, "/profile/edit/?next=/preferences/lottery/pairing/"
         )
 
     def test_cannot_pair_with_self(self):
@@ -36,9 +36,9 @@ class LotteryPairingViewTests(TestCase):
         par = factories.ParticipantFactory.create()
         self.client.force_login(par.user)
         response = self.client.post(
-            '/preferences/lottery/pairing/', {'paired_with': par.pk}
+            "/preferences/lottery/pairing/", {"paired_with": par.pk}
         )
-        self.assertTrue(response.context['form'].errors['paired_with'])
+        self.assertTrue(response.context["form"].errors["paired_with"])
 
         # No lottery information is saved
         with self.assertRaises(models.LotteryInfo.DoesNotExist):
@@ -50,7 +50,7 @@ class LotteryPairingViewTests(TestCase):
         par = factories.ParticipantFactory.create()
         factories.LotteryInfoFactory.create(participant=par, paired_with=other_par)
         self.client.force_login(par.user)
-        self.client.post('/preferences/lottery/pairing/', {'paired_with': ''})
+        self.client.post("/preferences/lottery/pairing/", {"paired_with": ""})
 
         # The participant is now no longer paired
         par.lotteryinfo.refresh_from_db()
@@ -61,9 +61,9 @@ class LotteryPairingViewTests(TestCase):
         par = factories.ParticipantFactory.create()
         other_par = factories.ParticipantFactory.create(name="Freddie Mercury")
         self.client.force_login(par.user)
-        with mock.patch.object(messages, 'info') as info:
+        with mock.patch.object(messages, "info") as info:
             self.client.post(
-                '/preferences/lottery/pairing/', {'paired_with': other_par.pk}
+                "/preferences/lottery/pairing/", {"paired_with": other_par.pk}
             )
 
         info.assert_called_once_with(
@@ -81,9 +81,9 @@ class LotteryPairingViewTests(TestCase):
         factories.LotteryInfoFactory.create(participant=other_par, paired_with=par)
 
         self.client.force_login(par.user)
-        with mock.patch.object(messages, 'info') as info:
+        with mock.patch.object(messages, "info") as info:
             self.client.post(
-                '/preferences/lottery/pairing/', {'paired_with': other_par.pk}
+                "/preferences/lottery/pairing/", {"paired_with": other_par.pk}
             )
 
         info.assert_called_once()
@@ -99,9 +99,9 @@ class LotteryPairingViewTests(TestCase):
 class LotteryPrefsPostHelper:
     def _post(self, json_data):
         return self.client.post(
-            '/preferences/lottery/',
+            "/preferences/lottery/",
             json_data,
-            content_type='application/json',
+            content_type="application/json",
         )
 
 
@@ -111,7 +111,7 @@ class LotteryPreferencesDriverStatusTests(TestCase, LotteryPrefsPostHelper):
         par = factories.ParticipantFactory.create(lotteryinfo=None)
         self.client.force_login(par.user)
         self.assertEqual(self._post({}).status_code, 400)
-        self.assertEqual(self._post({'signups': []}).status_code, 400)
+        self.assertEqual(self._post({"signups": []}).status_code, 400)
 
     def test_no_car_no_trips_no_pairing(self):
         """Test the simplest submission of a user with no real preferences to express."""
@@ -119,12 +119,12 @@ class LotteryPreferencesDriverStatusTests(TestCase, LotteryPrefsPostHelper):
             par = factories.ParticipantFactory.create(lotteryinfo=None)
 
             self.client.force_login(par.user)
-            response = self._post({'signups': [], 'car_status': 'none'})
+            response = self._post({"signups": [], "car_status": "none"})
 
         self.assertEqual(response.status_code, 200)
 
         par.refresh_from_db()
-        self.assertEqual(par.lotteryinfo.car_status, 'none')
+        self.assertEqual(par.lotteryinfo.car_status, "none")
         self.assertIsNone(par.lotteryinfo.number_of_passengers)
         self.assertIsNone(par.lotteryinfo.paired_with)
         self.assertEqual(
@@ -140,16 +140,16 @@ class LotteryPreferencesDriverStatusTests(TestCase, LotteryPrefsPostHelper):
             self.client.force_login(par.user)
             response = self._post(
                 {
-                    'signups': [],
-                    'car_status': 'own',
-                    'number_of_passengers': 4,
+                    "signups": [],
+                    "car_status": "own",
+                    "number_of_passengers": 4,
                 },
             )
 
         self.assertEqual(response.status_code, 200)
 
         par.refresh_from_db()
-        self.assertEqual(par.lotteryinfo.car_status, 'own')
+        self.assertEqual(par.lotteryinfo.car_status, "own")
         self.assertEqual(par.lotteryinfo.number_of_passengers, 4)
 
         # Participant still isn't paired with anybody
@@ -161,13 +161,13 @@ class LotteryPreferencesDriverStatusTests(TestCase, LotteryPrefsPostHelper):
 
         self.client.force_login(par.user)
         response = self._post(
-            {'signups': [], 'car_status': 'rent', 'number_of_passengers': 3},
+            {"signups": [], "car_status": "rent", "number_of_passengers": 3},
         )
 
         self.assertEqual(response.status_code, 200)
 
         par.refresh_from_db()
-        self.assertEqual(par.lotteryinfo.car_status, 'rent')
+        self.assertEqual(par.lotteryinfo.car_status, "rent")
         self.assertEqual(par.lotteryinfo.number_of_passengers, 3)
         self.assertIsNone(par.car)
 
@@ -181,13 +181,13 @@ class LotteryPreferencesDriverStatusTests(TestCase, LotteryPrefsPostHelper):
 
         self.client.force_login(par.user)
         response = self._post(
-            {'signups': [], 'car_status': 'rent', 'number_of_passengers': None},
+            {"signups": [], "car_status": "rent", "number_of_passengers": None},
         )
 
         self.assertEqual(response.status_code, 200)
 
         par.refresh_from_db()
-        self.assertEqual(par.lotteryinfo.car_status, 'rent')
+        self.assertEqual(par.lotteryinfo.car_status, "rent")
         self.assertIsNone(par.lotteryinfo.number_of_passengers)
         self.assertIsNone(par.car)
 
@@ -201,22 +201,22 @@ class LotteryPreferencesSignupTests(TestCase, LotteryPrefsPostHelper):
 
         signup = factories.SignUpFactory.create(
             participant=par,
-            trip__algorithm='lottery',
+            trip__algorithm="lottery",
             trip__program=enums.Program.WINTER_SCHOOL.value,
             trip__trip_date=date(2019, 1, 12),
         )
 
         response = self._post(
             {
-                'signups': [
+                "signups": [
                     # No ordering given
-                    {'id': signup.pk, 'deleted': False},
+                    {"id": signup.pk, "deleted": False},
                 ],
-                'car_status': 'none',
+                "car_status": "none",
             }
         )
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.json(), {'message': 'Unable to save signups'})
+        self.assertEqual(response.json(), {"message": "Unable to save signups"})
 
     def test_invalid_ordering(self):
         """Ordering must be null or numeric."""
@@ -225,19 +225,19 @@ class LotteryPreferencesSignupTests(TestCase, LotteryPrefsPostHelper):
 
         signup = factories.SignUpFactory.create(
             participant=par,
-            trip__algorithm='lottery',
+            trip__algorithm="lottery",
             trip__program=enums.Program.WINTER_SCHOOL.value,
             trip__trip_date=date(2019, 1, 12),
         )
 
         response = self._post(
             {
-                'signups': [{'id': signup.pk, 'deleted': False, 'order': 'threeve'}],
-                'car_status': 'none',
+                "signups": [{"id": signup.pk, "deleted": False, "order": "threeve"}],
+                "car_status": "none",
             }
         )
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.json(), {'message': 'Unable to save signups'})
+        self.assertEqual(response.json(), {"message": "Unable to save signups"})
 
     def test_default_ranking(self):
         """By default, we list ranked signups by time of creation."""
@@ -246,44 +246,44 @@ class LotteryPreferencesSignupTests(TestCase, LotteryPrefsPostHelper):
         okay, fave, hate = (
             factories.SignUpFactory.create(
                 participant=par,
-                trip__algorithm='lottery',
+                trip__algorithm="lottery",
                 trip__program=enums.Program.WINTER_SCHOOL.value,
                 trip__trip_date=date(2019, 1, 12),
                 trip__name=name,
             )
-            for name in ['So-so', 'Amazing', 'Blech']
+            for name in ["So-so", "Amazing", "Blech"]
         )
 
         # Signups for other types of trips are excluded; only upcoming WS trips
         factories.SignUpFactory.create(
             participant=par,
-            trip__algorithm='lottery',
+            trip__algorithm="lottery",
             trip__program=enums.Program.HIKING.value,
             trip__trip_date=date(2019, 3, 12),
         )
         factories.SignUpFactory.create(
             participant=par,
-            trip__algorithm='lottery',
+            trip__algorithm="lottery",
             trip__program=enums.Program.WINTER_SCHOOL.value,
             trip__trip_date=date(2019, 1, 7),
         )
         # Of course, another participant's signups aren't counted
         factories.SignUpFactory.create(
-            trip__algorithm='lottery',
+            trip__algorithm="lottery",
             trip__program=enums.Program.WINTER_SCHOOL.value,
             trip__trip_date=date(2019, 1, 12),
         )
 
         self.client.force_login(par.user)
         # We initially order signups by time of creation
-        response = self.client.get('/preferences/lottery/')
+        response = self.client.get("/preferences/lottery/")
         self.assertEqual(response.status_code, 200)
         expected = [
-            {'id': okay.pk, 'trip__id': okay.trip.pk, 'trip__name': 'So-so'},
-            {'id': fave.pk, 'trip__id': fave.trip.pk, 'trip__name': 'Amazing'},
-            {'id': hate.pk, 'trip__id': hate.trip.pk, 'trip__name': 'Blech'},
+            {"id": okay.pk, "trip__id": okay.trip.pk, "trip__name": "So-so"},
+            {"id": fave.pk, "trip__id": fave.trip.pk, "trip__name": "Amazing"},
+            {"id": hate.pk, "trip__id": hate.trip.pk, "trip__name": "Blech"},
         ]
-        self.assertEqual(response.context['ranked_signups'], expected)
+        self.assertEqual(response.context["ranked_signups"], expected)
 
     def test_delete_signups(self):
         """We allow participants to remove signups."""
@@ -292,22 +292,22 @@ class LotteryPreferencesSignupTests(TestCase, LotteryPrefsPostHelper):
         keep, kill = (
             factories.SignUpFactory.create(
                 participant=par,
-                trip__algorithm='lottery',
+                trip__algorithm="lottery",
                 trip__program=enums.Program.WINTER_SCHOOL.value,
                 trip__trip_date=date(2019, 1, 12),
                 trip__name=name,
             )
-            for name in ['Great trip', 'Bad trip']
+            for name in ["Great trip", "Bad trip"]
         )
 
         self.client.force_login(par.user)
         response = self._post(
             {
-                'signups': [
-                    {'id': keep.pk, 'deleted': False, 'order': 1},
-                    {'id': kill.pk, 'deleted': True, 'order': None},
+                "signups": [
+                    {"id": keep.pk, "deleted": False, "order": 1},
+                    {"id": kill.pk, "deleted": True, "order": None},
                 ],
-                'car_status': 'none',
+                "car_status": "none",
             }
         )
         self.assertEqual(response.status_code, 200)
@@ -320,28 +320,28 @@ class LotteryPreferencesSignupTests(TestCase, LotteryPrefsPostHelper):
         okay, fave, hate = (
             factories.SignUpFactory.create(
                 participant=par,
-                trip__algorithm='lottery',
+                trip__algorithm="lottery",
                 trip__program=enums.Program.WINTER_SCHOOL.value,
                 trip__trip_date=date(2019, 1, 12),
                 trip__name=name,
             )
-            for name in ['So-so', 'Amazing', 'Blech']
+            for name in ["So-so", "Amazing", "Blech"]
         )
 
         self.client.force_login(par.user)
         response = self._post(
             {
-                'signups': [
-                    {'id': hate.pk, 'deleted': False, 'order': 3},
-                    {'id': fave.pk, 'deleted': False, 'order': 1},
-                    {'id': okay.pk, 'deleted': False, 'order': 2},
+                "signups": [
+                    {"id": hate.pk, "deleted": False, "order": 3},
+                    {"id": fave.pk, "deleted": False, "order": 1},
+                    {"id": okay.pk, "deleted": False, "order": 2},
                 ],
-                'car_status': 'none',
+                "car_status": "none",
             }
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
-            [s.pk for s in par.signup_set.order_by('order')],
+            [s.pk for s in par.signup_set.order_by("order")],
             [fave.pk, okay.pk, hate.pk],
         )
 
@@ -352,7 +352,7 @@ class LotteryPreferencesSignupTests(TestCase, LotteryPrefsPostHelper):
 
         other_signup = factories.SignUpFactory.create(
             participant=victim,
-            trip__algorithm='lottery',
+            trip__algorithm="lottery",
             trip__program=enums.Program.WINTER_SCHOOL.value,
             trip__trip_date=date(2019, 1, 12),
         )
@@ -360,8 +360,8 @@ class LotteryPreferencesSignupTests(TestCase, LotteryPrefsPostHelper):
         self.client.force_login(attacker.user)
         response = self._post(
             {
-                'signups': [{'id': other_signup.pk, 'deleted': True, 'order': 1}],
-                'car_status': 'none',
+                "signups": [{"id": other_signup.pk, "deleted": True, "order": 1}],
+                "car_status": "none",
             }
         )
         # We give a 200, even though we could possibly return a 403
@@ -378,7 +378,7 @@ class LotteryPreferencesSignupTests(TestCase, LotteryPrefsPostHelper):
         not_deletable = [
             factories.SignUpFactory.create(
                 participant=par,
-                trip__algorithm='fcfs',
+                trip__algorithm="fcfs",
                 trip__program=enums.Program.WINTER_SCHOOL.value,
                 trip__trip_date=date(2019, 1, 12),
             ),
@@ -386,7 +386,7 @@ class LotteryPreferencesSignupTests(TestCase, LotteryPrefsPostHelper):
             factories.SignUpFactory.create(
                 on_trip=True,
                 participant=par,
-                trip__algorithm='lottery',
+                trip__algorithm="lottery",
                 trip__program=enums.Program.WINTER_SCHOOL.value,
                 trip__trip_date=date(2019, 1, 12),
             ),
@@ -394,11 +394,11 @@ class LotteryPreferencesSignupTests(TestCase, LotteryPrefsPostHelper):
         self.client.force_login(par.user)
         response = self._post(
             {
-                'signups': [
-                    {'id': signup.pk, 'deleted': True, 'order': None}
+                "signups": [
+                    {"id": signup.pk, "deleted": True, "order": None}
                     for signup in not_deletable
                 ],
-                'car_status': 'none',
+                "car_status": "none",
             }
         )
         # None of the specified signups were actually deleted
@@ -433,14 +433,14 @@ class LotteryPreferencesSignupTests(TestCase, LotteryPrefsPostHelper):
         lone = factories.SignUpFactory.create(participant=par, trip=only_one_trip)
 
         self.client.force_login(par.user)
-        with mock.patch.object(messages, 'warning') as log_warning:
+        with mock.patch.object(messages, "warning") as log_warning:
             self._post(
                 {
-                    'signups': [
-                        {'id': mutual.pk, 'deleted': False, 'order': 2},
-                        {'id': lone.pk, 'deleted': False, 'order': 1},
+                    "signups": [
+                        {"id": mutual.pk, "deleted": False, "order": 2},
+                        {"id": lone.pk, "deleted": False, "order": 1},
                     ],
-                    'car_status': 'none',
+                    "car_status": "none",
                 }
             )
 
@@ -450,12 +450,12 @@ class LotteryPreferencesSignupTests(TestCase, LotteryPrefsPostHelper):
 
         # We accept the rankings for the participant's two signups
         self.assertEqual(
-            [(s.pk, s.order) for s in par.signup_set.order_by('order')],
+            [(s.pk, s.order) for s in par.signup_set.order_by("order")],
             [(lone.pk, 1), (mutual.pk, 2)],
         )
         # We save the ranking numbers on the other participant's signups too
         self.assertEqual(
-            [(s.pk, s.order) for s in other_par.signup_set.order_by('order')],
+            [(s.pk, s.order) for s in other_par.signup_set.order_by("order")],
             [(mutual_other.pk, 2)],
         )
 
@@ -463,34 +463,34 @@ class LotteryPreferencesSignupTests(TestCase, LotteryPrefsPostHelper):
 class DiscountsTest(TestCase):
     def test_authenticated_users_only(self):
         """Users must be signed in to enroll in discounts."""
-        response = self.client.get('/preferences/discounts/')
+        response = self.client.get("/preferences/discounts/")
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, '/accounts/login/?next=/preferences/discounts/')
+        self.assertEqual(response.url, "/accounts/login/?next=/preferences/discounts/")
 
     def test_users_with_info_only(self):
         """Participant records are required."""
         user = factories.UserFactory.create()
         self.client.force_login(user)
-        response = self.client.get('/preferences/discounts/')
+        response = self.client.get("/preferences/discounts/")
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, '/profile/edit/?next=/preferences/discounts/')
+        self.assertEqual(response.url, "/profile/edit/?next=/preferences/discounts/")
 
     def test_enrollment_without_a_membership(self):
         """We allow (yet heavily warn against) users who lack a membership."""
         par = factories.ParticipantFactory.create(membership=None)
-        gym = factories.DiscountFactory.create(ga_key='test-key-to-update-sheet')
+        gym = factories.DiscountFactory.create(ga_key="test-key-to-update-sheet")
 
         self.client.force_login(par.user)
-        get_response = self.client.get('/preferences/discounts/')
-        soup = BeautifulSoup(get_response.content, 'html.parser')
+        get_response = self.client.get("/preferences/discounts/")
+        soup = BeautifulSoup(get_response.content, "html.parser")
         self.assertEqual(
-            soup.find('strong').text, 'An active membership is required for discounts.'
+            soup.find("strong").text, "An active membership is required for discounts."
         )
 
-        with mock.patch.object(tasks, 'update_discount_sheet_for_participant') as task:
-            with mock.patch.object(messages, 'error') as error:
+        with mock.patch.object(tasks, "update_discount_sheet_for_participant") as task:
+            with mock.patch.object(messages, "error") as error:
                 response = self.client.post(
-                    '/preferences/discounts/', {'discounts': str(gym.pk)}
+                    "/preferences/discounts/", {"discounts": str(gym.pk)}
                 )
         # Immediately after signup, we sync this user to the sheet
         task.delay.assert_called_once_with(gym.pk, par.pk)
@@ -502,7 +502,7 @@ class DiscountsTest(TestCase):
             "We recorded your discount choices, but please pay dues to be eligible",
         )
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, '/profile/membership/')
+        self.assertEqual(response.url, "/profile/membership/")
 
         # We did at least accept their choices, though.
         self.assertEqual([d.pk for d in par.discounts.all()], [gym.pk])
@@ -510,17 +510,17 @@ class DiscountsTest(TestCase):
     def test_successful_enrollment(self):
         """Participants can enroll in a selection of discounts."""
         par = factories.ParticipantFactory.create()
-        gym = factories.DiscountFactory.create(ga_key='test-key-to-update-sheet')
+        gym = factories.DiscountFactory.create(ga_key="test-key-to-update-sheet")
         # Another discount exists, but they don't enroll in it
         factories.DiscountFactory.create()
 
         # When showing the page, we exclude the students-only discount
         # If the user tries to bypass the students-only rule, they still cannot enroll
         self.client.force_login(par.user)
-        with mock.patch.object(tasks, 'update_discount_sheet_for_participant') as task:
+        with mock.patch.object(tasks, "update_discount_sheet_for_participant") as task:
             self.client.post(
-                '/preferences/discounts/',
-                {'discounts': str(gym.pk), 'send_membership_reminder': True},
+                "/preferences/discounts/",
+                {"discounts": str(gym.pk), "send_membership_reminder": True},
             )
 
         # Immediately after signup, we sync this user to the sheet
@@ -535,16 +535,16 @@ class DiscountsTest(TestCase):
     def test_inactive_discounts_excluded(self):
         """We don't show inactive discounts to participants."""
         par = factories.ParticipantFactory.create()
-        active = factories.DiscountFactory.create(active=True, name='Active Discount')
-        factories.DiscountFactory.create(active=False, name='Inactive Discount')
+        active = factories.DiscountFactory.create(active=True, name="Active Discount")
+        factories.DiscountFactory.create(active=False, name="Inactive Discount")
 
         self.client.force_login(par.user)
 
-        response = self.client.get('/preferences/discounts/')
+        response = self.client.get("/preferences/discounts/")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
-            list(response.context['form'].fields['discounts'].choices),
-            [(active.pk, 'Active Discount')],
+            list(response.context["form"].fields["discounts"].choices),
+            [(active.pk, "Active Discount")],
         )
 
     def test_student_only_discounts_excluded(self):
@@ -553,33 +553,33 @@ class DiscountsTest(TestCase):
             affiliation=affiliations.NON_AFFILIATE.CODE
         )
         student_only = factories.DiscountFactory.create(
-            student_required=True, name='Students Only'
+            student_required=True, name="Students Only"
         )
         open_discount = factories.DiscountFactory.create(
-            student_required=False, name='All members allowed'
+            student_required=False, name="All members allowed"
         )
         self.client.force_login(par.user)
 
         # When showing the page, we exclude the students-only discount
-        response = self.client.get('/preferences/discounts/')
+        response = self.client.get("/preferences/discounts/")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
-            list(response.context['form'].fields['discounts'].choices),
-            [(open_discount.pk, 'All members allowed')],
+            list(response.context["form"].fields["discounts"].choices),
+            [(open_discount.pk, "All members allowed")],
         )
 
         # If the user tries to bypass the students-only rule, they still cannot enroll
         response = self.client.post(
-            '/preferences/discounts/',
-            {'discounts': [student_only.pk, open_discount.pk]},
+            "/preferences/discounts/",
+            {"discounts": [student_only.pk, open_discount.pk]},
         )
-        self.assertIn('discounts', response.context['form'].errors)
+        self.assertIn("discounts", response.context["form"].errors)
         self.assertFalse(par.discounts.exists())
 
         response = self.client.post(
-            '/preferences/discounts/', {'discounts': [student_only.pk]}
+            "/preferences/discounts/", {"discounts": [student_only.pk]}
         )
-        self.assertIn('discounts', response.context['form'].errors)
+        self.assertIn("discounts", response.context["form"].errors)
         self.assertFalse(par.discounts.exists())
 
     def test_students_can_use_student_only_discounts(self):
@@ -588,29 +588,29 @@ class DiscountsTest(TestCase):
             affiliation=affiliations.MIT_UNDERGRAD.CODE
         )
         student_only = factories.DiscountFactory.create(
-            student_required=True, name='Students Only'
+            student_required=True, name="Students Only"
         )
         open_discount = factories.DiscountFactory.create(
-            student_required=False, name='All members allowed'
+            student_required=False, name="All members allowed"
         )
         self.client.force_login(par.user)
 
         # When showing the page, we show them both discounts, alphabetically
-        response = self.client.get('/preferences/discounts/')
+        response = self.client.get("/preferences/discounts/")
         self.assertEqual(response.status_code, 200)
         self.assertCountEqual(
-            list(response.context['form'].fields['discounts'].choices),
+            list(response.context["form"].fields["discounts"].choices),
             [
-                (open_discount.pk, 'All members allowed'),
-                (student_only.pk, 'Students Only'),
+                (open_discount.pk, "All members allowed"),
+                (student_only.pk, "Students Only"),
             ],
         )
 
         # They can enroll in both
-        with mock.patch.object(tasks, 'update_discount_sheet_for_participant') as task:
+        with mock.patch.object(tasks, "update_discount_sheet_for_participant") as task:
             response = self.client.post(
-                '/preferences/discounts/',
-                {'discounts': [student_only.pk, open_discount.pk]},
+                "/preferences/discounts/",
+                {"discounts": [student_only.pk, open_discount.pk]},
             )
         task.delay.assert_has_calls(
             [mock.call(student_only.pk, par.pk), mock.call(open_discount.pk, par.pk)]
@@ -626,10 +626,10 @@ class DiscountsTest(TestCase):
         par.discounts.add(discount)
 
         self.client.force_login(par.user)
-        with mock.patch.object(tasks, 'update_discount_sheet_for_participant') as task:
+        with mock.patch.object(tasks, "update_discount_sheet_for_participant") as task:
             self.client.post(
-                '/preferences/discounts/',
-                {'discounts': [], 'send_membership_reminder': False},
+                "/preferences/discounts/",
+                {"discounts": [], "send_membership_reminder": False},
             )
         # We don't bother updating the sheet, instead relying on the daily removal script
         task.delay.assert_not_called()
@@ -651,10 +651,10 @@ class EmailPreferencesTest(TestCase):
         """Whether opting in or out, success looks the same!"""
         self.client.force_login(par.user)
 
-        with mock.patch.object(messages, 'success') as success:
+        with mock.patch.object(messages, "success") as success:
             response = self.client.post(
-                '/preferences/email/',
-                {'send_membership_reminder': send_reminder},
+                "/preferences/email/",
+                {"send_membership_reminder": send_reminder},
             )
 
         # Obviously, we updated the participant's preferences
@@ -669,21 +669,21 @@ class EmailPreferencesTest(TestCase):
 
         # Finally, we redirect home
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, '/')  # type: ignore[attr-defined]
+        self.assertEqual(response.url, "/")  # type: ignore[attr-defined]
 
     def test_authenticated_users_only(self):
         """Users must be signed in to set their email preferences."""
-        response = self.client.get('/preferences/email/')
+        response = self.client.get("/preferences/email/")
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, '/accounts/login/?next=/preferences/email/')
+        self.assertEqual(response.url, "/accounts/login/?next=/preferences/email/")
 
     def test_users_with_participants_only(self):
         """Participant records are required (we need them to save a preference)."""
         user = factories.UserFactory.create()
         self.client.force_login(user)
-        response = self.client.get('/preferences/email/')
+        response = self.client.get("/preferences/email/")
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, '/profile/edit/?next=/preferences/email/')
+        self.assertEqual(response.url, "/profile/edit/?next=/preferences/email/")
 
     def test_opt_out(self):
         par = factories.ParticipantFactory.create(send_membership_reminder=True)
@@ -739,13 +739,13 @@ class EmailPreferencesTest(TestCase):
             self.assertIn(enums.ProfileProblem.STALE_INFO, par.problems_with_profile)
 
             # To demonstrate, we redirect on *other* views:
-            demo = self.client.get('/preferences/lottery/')
+            demo = self.client.get("/preferences/lottery/")
             self.assertEqual(demo.status_code, 302)
-            self.assertEqual(demo.url, '/profile/edit/?next=/preferences/lottery/')
+            self.assertEqual(demo.url, "/profile/edit/?next=/preferences/lottery/")
 
             # But we won't redirect for updating email preferences.
             # Even though their information is stale, we won't redirect them to update.
-            response = self.client.get('/preferences/email/')
+            response = self.client.get("/preferences/email/")
             self.assertEqual(response.status_code, 200)
 
 
@@ -754,24 +754,24 @@ class EmailUnsubscribeTest(TestCase):
     @staticmethod
     @contextlib.contextmanager
     def _spy_on_add_message():
-        patched = mock.patch.object(messages, 'add_message', wraps=messages.add_message)
+        patched = mock.patch.object(messages, "add_message", wraps=messages.add_message)
         with patched as add_message:
             yield add_message
 
     def _get(self, url: str) -> BeautifulSoup:
         response = self.client.get(url)
         assert response.status_code == 200
-        return BeautifulSoup(response.content, 'html.parser')
+        return BeautifulSoup(response.content, "html.parser")
 
     def test_success_unauthenticated(self):
         """A user who is not logged in can use a token to unsubscribe."""
         par = factories.ParticipantFactory.create(
             pk=2348971, send_membership_reminder=True
         )
-        token = 'eyJwayI6MjM0ODk3MSwiZW1haWxzIjpbMF19:1mvjFY:KR-_sCXU64PeJjRtce4KeNr6gBACxl1QX50WzVgQQZ8'  # noqa: S105
-        with self.settings(UNSUBSCRIBE_SECRET_KEY='sooper-secret'):  # noqa: S106
+        token = "eyJwayI6MjM0ODk3MSwiZW1haWxzIjpbMF19:1mvjFY:KR-_sCXU64PeJjRtce4KeNr6gBACxl1QX50WzVgQQZ8"  # noqa: S105
+        with self.settings(UNSUBSCRIBE_SECRET_KEY="sooper-secret"):  # noqa: S106
             with self._spy_on_add_message() as add_message:
-                soup = self._get(f'/preferences/email/unsubscribe/{token}/')
+                soup = self._get(f"/preferences/email/unsubscribe/{token}/")
 
         add_message.assert_called_once_with(
             mock.ANY, messages.SUCCESS, "Successfully unsubscribed"
@@ -779,12 +779,12 @@ class EmailUnsubscribeTest(TestCase):
         par.refresh_from_db()
         self.assertFalse(par.send_membership_reminder)
         self.assertEqual(
-            ['Successfully unsubscribed'],
-            [alert.text.strip() for alert in soup.find_all(class_='alert')],
+            ["Successfully unsubscribed"],
+            [alert.text.strip() for alert in soup.find_all(class_="alert")],
         )
-        edit_link = soup.find('a', string='Edit your email preferences')
+        edit_link = soup.find("a", string="Edit your email preferences")
         self.assertTrue(edit_link)
-        self.assertEqual(edit_link.attrs['href'], '/preferences/email/')
+        self.assertEqual(edit_link.attrs["href"], "/preferences/email/")
 
     def test_success_logged_in(self):
         """The token still works when logged in!."""
@@ -792,10 +792,10 @@ class EmailUnsubscribeTest(TestCase):
         self.client.force_login(par.user)
         token = unsubscribe.generate_unsubscribe_token(par)
         with self._spy_on_add_message() as add_message:
-            response = self.client.get(f'/preferences/email/unsubscribe/{token}/')
+            response = self.client.get(f"/preferences/email/unsubscribe/{token}/")
 
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, '/preferences/email/')
+        self.assertEqual(response.url, "/preferences/email/")
 
         add_message.assert_called_once_with(
             mock.ANY, messages.SUCCESS, "Successfully unsubscribed"
@@ -808,26 +808,26 @@ class EmailUnsubscribeTest(TestCase):
         par = factories.ParticipantFactory.create()
         token = unsubscribe.generate_unsubscribe_token(par)
         par.delete()
-        soup = self._get(f'/preferences/email/unsubscribe/{token}/')
+        soup = self._get(f"/preferences/email/unsubscribe/{token}/")
         self.assertEqual(
-            ['Participant no longer exists'],
-            [alert.text.strip() for alert in soup.find_all(class_='alert')],
+            ["Participant no longer exists"],
+            [alert.text.strip() for alert in soup.find_all(class_="alert")],
         )
-        self.assertTrue(soup.find('a', href='/preferences/email/'))
+        self.assertTrue(soup.find("a", href="/preferences/email/"))
         self.assertEqual(
-            strip_whitespace(soup.find('p', class_="lead").text),
+            strip_whitespace(soup.find("p", class_="lead").text),
             "Edit your email preferences (login required)",
         )
 
     def test_bad_token_not_logged_in(self):
-        soup = self._get('/preferences/email/unsubscribe/bad_token/')
+        soup = self._get("/preferences/email/unsubscribe/bad_token/")
         self.assertEqual(
-            ['Invalid token, cannot unsubscribe automatically.'],
-            [alert.text.strip() for alert in soup.find_all(class_='alert')],
+            ["Invalid token, cannot unsubscribe automatically."],
+            [alert.text.strip() for alert in soup.find_all(class_="alert")],
         )
-        self.assertTrue(soup.find('a', href='/preferences/email/'))
+        self.assertTrue(soup.find("a", href="/preferences/email/"))
         self.assertEqual(
-            strip_whitespace(soup.find('p', class_="lead").text),
+            strip_whitespace(soup.find("p", class_="lead").text),
             "Edit your email preferences (login required)",
         )
 
@@ -837,21 +837,21 @@ class EmailUnsubscribeTest(TestCase):
         self.client.force_login(participant.user)
 
         with self._spy_on_add_message() as add_message:
-            response = self.client.get('/preferences/email/unsubscribe/bad_token/')
+            response = self.client.get("/preferences/email/unsubscribe/bad_token/")
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, '/preferences/email/')
+        self.assertEqual(response.url, "/preferences/email/")
 
         add_message.assert_has_calls(
             [
                 mock.call(
                     mock.ANY,
                     messages.ERROR,
-                    'Invalid token, cannot unsubscribe automatically.',
+                    "Invalid token, cannot unsubscribe automatically.",
                 ),
                 mock.call(
                     mock.ANY,
                     messages.INFO,
-                    'However, you are logged in and can directly edit your mail preferences.',
+                    "However, you are logged in and can directly edit your mail preferences.",
                 ),
             ],
             any_order=False,
@@ -865,22 +865,22 @@ class EmailUnsubscribeTest(TestCase):
         self.client.force_login(factories.ParticipantFactory().user)
 
         with self._spy_on_add_message() as add_message:
-            response = self.client.get(f'/preferences/email/unsubscribe/{token}/')
+            response = self.client.get(f"/preferences/email/unsubscribe/{token}/")
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, '/preferences/email/')
+        self.assertEqual(response.url, "/preferences/email/")
 
         add_message.assert_has_calls(
             [
                 mock.call(
                     mock.ANY,
                     messages.SUCCESS,
-                    'Successfully unsubscribed',
+                    "Successfully unsubscribed",
                 ),
                 mock.call(
                     mock.ANY,
                     messages.WARNING,
-                    'Note that the unsubscribe token was for a different participant! '
-                    'You may edit your own mail preferences below.',
+                    "Note that the unsubscribe token was for a different participant! "
+                    "You may edit your own mail preferences below.",
                 ),
             ],
             any_order=False,

@@ -12,7 +12,7 @@ from ws import enums, models
 # This allows us to avoid repeatedly querying groups.
 @functools.cache
 def all_group_names():
-    return set(Group.objects.values_list('name', flat=True))
+    return set(Group.objects.values_list("name", flat=True))
 
 
 def is_leader(user: AnonymousUser | User) -> bool:
@@ -21,7 +21,7 @@ def is_leader(user: AnonymousUser | User) -> bool:
     Take advantage of the prefetched 'leaders' group for more efficient
     querying of a user's leader status.
     """
-    return in_any_group(user, ['leaders'], allow_superusers=False)
+    return in_any_group(user, ["leaders"], allow_superusers=False)
 
 
 def leader_on_trip(
@@ -43,8 +43,8 @@ def leader_on_trip(
 
 def chair_group(activity_enum: enums.Activity) -> str:
     if activity_enum == enums.Activity.WINTER_SCHOOL:
-        return 'WSC'
-    return f'{activity_enum.value}_chair'
+        return "WSC"
+    return f"{activity_enum.value}_chair"
 
 
 def in_any_group(
@@ -124,7 +124,7 @@ def chair_activities(
     return sorted(
         (
             chair_group_to_activity[g.name]
-            for g in groups.filter(name__in=chair_group_to_activity).order_by('name')
+            for g in groups.filter(name__in=chair_group_to_activity).order_by("name")
         ),
         key=lambda activity_enum: activity_enum.value,
     )

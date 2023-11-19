@@ -56,7 +56,7 @@ class ReasonsCannotAttendTest(TestCase):
         trip = factories.TripFactory.create(
             program=enums.Program.WINTER_SCHOOL.value, trip_date=date(2020, 1, 19)
         )
-        with mock.patch.object(date_utils, 'ws_lectures_complete') as lectures_over:
+        with mock.patch.object(date_utils, "ws_lectures_complete") as lectures_over:
             lectures_over.return_value = True  # (Otherwise, won't be "missed")
             self.assertTrue(participant.missed_lectures_for(trip))
             all_reasons = participant.reasons_cannot_attend(trip)
@@ -77,7 +77,7 @@ class ReasonsCannotAttendTest(TestCase):
             trip = factories.TripFactory.create(
                 program=enums.Program.WINTER_SCHOOL.value, trip_date=date(year, 1, 19)
             )
-            with mock.patch.object(date_utils, 'ws_lectures_complete') as lectures_over:
+            with mock.patch.object(date_utils, "ws_lectures_complete") as lectures_over:
                 lectures_over.return_value = True  # (Otherwise, won't be "missed")
                 with freeze_time(f"12 Jan {year} 12:00:00 EST"):
                     # (exhaust the generator while time is mocked)
@@ -119,7 +119,7 @@ class ReasonsCannotAttendTest(TestCase):
             participant=participant,
             activity=models.BaseRating.WINTER_SCHOOL,
         )
-        with mock.patch.object(date_utils, 'ws_lectures_complete') as lectures_over:
+        with mock.patch.object(date_utils, "ws_lectures_complete") as lectures_over:
             lectures_over.return_value = True  # (Otherwise, won't be "missed")
             reasons = participant.reasons_cannot_attend(trip)
 
@@ -149,7 +149,7 @@ class ReasonsCannotAttendTest(TestCase):
         participant = factories.ParticipantFactory.create(
             name="Cher",
             affiliation="S",
-            emergency_info__emergency_contact__cell_phone='',
+            emergency_info__emergency_contact__cell_phone="",
         )
         self.assertCountEqual(
             participant.problems_with_profile,
@@ -235,7 +235,7 @@ class ProblemsWithProfileTest(TestCase):
 
     def test_no_cell_phone_on_emergency_contact(self):
         participant = factories.ParticipantFactory.create()
-        e_contact = factories.EmergencyContactFactory.create(cell_phone='')
+        e_contact = factories.EmergencyContactFactory.create(cell_phone="")
         participant.emergency_info.emergency_contact = e_contact
         participant.save()
 
@@ -245,7 +245,7 @@ class ProblemsWithProfileTest(TestCase):
         )
 
     def test_full_name_required(self):
-        participant = factories.ParticipantFactory.create(name='Cher')
+        participant = factories.ParticipantFactory.create(name="Cher")
         self.assertCountEqual(
             participant.problems_with_profile, [enums.ProfileProblem.MISSING_FULL_NAME]
         )
@@ -255,7 +255,7 @@ class ProblemsWithProfileTest(TestCase):
 
         # Directly assign the participant an invalid email
         # (this should never happen, since we enforce that addresses come from user.emailaddress_set)
-        participant.email = 'not-verified@example.com'
+        participant.email = "not-verified@example.com"
 
         self.assertCountEqual(
             participant.problems_with_profile,
@@ -264,7 +264,7 @@ class ProblemsWithProfileTest(TestCase):
 
     def test_old_student_affiliation_dated(self):
         student = factories.ParticipantFactory.create(
-            affiliation='S',  # Ambiguous! Is it an MIT student? non-MIT? Undergrad/grad?
+            affiliation="S",  # Ambiguous! Is it an MIT student? non-MIT? Undergrad/grad?
             last_updated=date_utils.local_now(),
         )
 
@@ -276,7 +276,7 @@ class ProblemsWithProfileTest(TestCase):
         """Any participant with affiliation predating our new categories should re-submit!"""
         # This is right before the time when we released new categories!
         before_cutoff = datetime.datetime(
-            2018, 10, 27, 3, 15, tzinfo=ZoneInfo('America/New_York')
+            2018, 10, 27, 3, 15, tzinfo=ZoneInfo("America/New_York")
         )
 
         participant = factories.ParticipantFactory.create()
@@ -294,33 +294,33 @@ class LeaderTest(TestCase):
     def test_name_with_rating_no_rating(self):
         """Participants who aren't actively leaders just return their name."""
         trip = factories.TripFactory.create()
-        participant = factories.ParticipantFactory.create(name='Tommy Caldwell')
-        self.assertEqual('Tommy Caldwell', participant.name_with_rating(trip))
+        participant = factories.ParticipantFactory.create(name="Tommy Caldwell")
+        self.assertEqual("Tommy Caldwell", participant.name_with_rating(trip))
 
     def test_open_trip(self):
         """When ratings aren't required, only the name is returned."""
         trip = factories.TripFactory.create(program=enums.Program.CIRCUS.value)
-        participant = factories.ParticipantFactory.create(name='Tommy Caldwell')
+        participant = factories.ParticipantFactory.create(name="Tommy Caldwell")
 
         participant.leaderrating_set.add(
             factories.LeaderRatingFactory.create(
                 participant=participant,
                 activity=models.BaseRating.WINTER_SCHOOL,
-                rating='Full leader',
+                rating="Full leader",
             )
         )
-        self.assertEqual('Tommy Caldwell', participant.name_with_rating(trip))
+        self.assertEqual("Tommy Caldwell", participant.name_with_rating(trip))
 
     def test_past_rating(self):
         """We will display a past rating that was applicable at the time!"""
-        alex = factories.ParticipantFactory.create(name='Alex Honnold')
+        alex = factories.ParticipantFactory.create(name="Alex Honnold")
 
         # Make an older rating to show this isn't used
         with freeze_time("2018-11-10 12:25:00 EST"):
             rating = factories.LeaderRatingFactory.create(
                 participant=alex,
                 activity=models.BaseRating.WINTER_SCHOOL,
-                rating='co-leader',
+                rating="co-leader",
                 active=False,  # (presume was active at the time)
             )
             alex.leaderrating_set.add(rating)
@@ -328,7 +328,7 @@ class LeaderTest(TestCase):
             rating = factories.LeaderRatingFactory.create(
                 participant=alex,
                 activity=models.BaseRating.WINTER_SCHOOL,
-                rating='Full leader',
+                rating="Full leader",
                 active=False,  # (presume was active at the time)
             )
             alex.leaderrating_set.add(rating)
@@ -339,23 +339,23 @@ class LeaderTest(TestCase):
         # At present, Alex is not even a leader
         self.assertFalse(alex.is_leader)
         # However, when that past trip happened, he was a leader.
-        self.assertEqual('Alex Honnold (Full leader)', alex.name_with_rating(trip))
+        self.assertEqual("Alex Honnold (Full leader)", alex.name_with_rating(trip))
 
     @freeze_time("2018-11-10 12:25:00 EST")
     def test_future_trip(self):
-        john = factories.ParticipantFactory.create(name='John Long')
+        john = factories.ParticipantFactory.create(name="John Long")
 
         john.leaderrating_set.add(
             factories.LeaderRatingFactory.create(
                 participant=john,
                 activity=models.BaseRating.WINTER_SCHOOL,
-                rating='Full leader',
+                rating="Full leader",
             )
         )
         trip = factories.TripFactory.create(
             trip_date=date(2019, 10, 23), activity=models.BaseRating.WINTER_SCHOOL
         )
-        self.assertEqual('John Long (Full leader)', john.name_with_rating(trip))
+        self.assertEqual("John Long (Full leader)", john.name_with_rating(trip))
 
     def test_participants_cannot_lead(self):
         participant = factories.ParticipantFactory()
@@ -482,7 +482,7 @@ class MembershipActiveTest(unittest.TestCase):
         )
         self.assertEqual(
             str(par.membership),
-            'Frida Kahlo, membership: 2026-11-10, waiver: 2026-12-12',
+            "Frida Kahlo, membership: 2026-11-10, waiver: 2026-12-12",
         )
 
 
@@ -537,7 +537,7 @@ class MissedLectureTests(TestCase):
         self.assertFalse(participant.attended_lectures(2018))
 
         # But, since lectures aren't complete, they didn't miss.
-        with mock.patch.object(date_utils, 'ws_lectures_complete') as lectures_complete:
+        with mock.patch.object(date_utils, "ws_lectures_complete") as lectures_complete:
             lectures_complete.return_value = False
             self.assertFalse(participant.missed_lectures(2018))
 
@@ -561,7 +561,7 @@ class MissedLectureTests(TestCase):
         self.assertTrue(par.attended_lectures(2017))
 
         self.assertFalse(par.attended_lectures(2018))
-        with mock.patch.object(date_utils, 'ws_lectures_complete') as lectures_complete:
+        with mock.patch.object(date_utils, "ws_lectures_complete") as lectures_complete:
             # If lectures are not yet complete, we don't regard them as missing
             lectures_complete.return_value = False
             self.assertFalse(par.missed_lectures(2018))
@@ -574,6 +574,6 @@ class MissedLectureTests(TestCase):
         factories.LectureAttendanceFactory.create(
             year=2018, participant=par, creator=par
         )
-        with mock.patch.object(date_utils, 'ws_lectures_complete') as lectures_complete:
+        with mock.patch.object(date_utils, "ws_lectures_complete") as lectures_complete:
             lectures_complete.return_value = True
             self.assertFalse(par.missed_lectures(2018))

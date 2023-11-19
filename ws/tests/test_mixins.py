@@ -20,7 +20,7 @@ class LectureAttendanceMixinTest(TestCase):
         request_par: models.Participant, target_participant: models.Participant
     ) -> bool:
         # Build a request that has a user & participant directly attached.
-        request = RequestFactory().get('/')
+        request = RequestFactory().get("/")
         request.participant = request_par  # type: ignore[attr-defined]
         request.user = request_par.user
 

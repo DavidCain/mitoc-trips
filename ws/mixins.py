@@ -86,7 +86,7 @@ class TripLeadersOnlyView(View):
 
         trip = self.get_object()
         if not _allowed_to_modify_trip(trip, request):
-            return render(request, 'not_your_trip.html', {'trip': trip})
+            return render(request, "not_your_trip.html", {"trip": trip})
         return super().dispatch(request, *args, **kwargs)
 
 

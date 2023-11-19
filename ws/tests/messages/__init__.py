@@ -11,7 +11,7 @@ class MessagesTestCase(TestCase):
 
     def _request_with_participant(self, participant):
         """Return a real request option that behaves like participant middleware."""
-        request = self.factory.get('/')
+        request = self.factory.get("/")
         request.user = participant.user
         request.participant = participant
         return request
@@ -26,5 +26,5 @@ class MessagesTestCase(TestCase):
         must be present for `add_message` to work!)
         """
         wraps = messages.add_message if wrap else None
-        with mock.patch.object(messages, 'add_message', wraps=wraps) as add_message:
+        with mock.patch.object(messages, "add_message", wraps=wraps) as add_message:
             yield add_message

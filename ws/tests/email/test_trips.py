@@ -23,7 +23,7 @@ class TripsBlastTest(TestCase):
             difficulty_rating="Very hard",
             prereqs="High level of fitness",
             maximum_participants=4,
-            algorithm='fcfs',
+            algorithm="fcfs",
         )
         self.presi.leaders.add(factories.ParticipantFactory.create(name="Tim Beaver"))
         self.presi.leaders.add(factories.ParticipantFactory.create(name="Jane Example"))
@@ -40,7 +40,7 @@ class TripsBlastTest(TestCase):
     @staticmethod
     def _create_trip(**kwargs):
         """Create a trip with signups opening one week before, closing night before."""
-        trip_date = kwargs.pop('trip_date')
+        trip_date = kwargs.pop("trip_date")
         open_date = trip_date - timedelta(days=7)
         day_before = trip_date - timedelta(days=1)
 
@@ -65,41 +65,41 @@ class TripsBlastTest(TestCase):
         self.assertFalse(other_msgs)
 
         # No future trips yet!
-        expected_content = '\n'.join(
+        expected_content = "\n".join(
             [
-                'This is a weekly digest of upcoming trips hosted by the MIT Outing Club.',
-                'To unsubscribe, visit http://mailman.mit.edu/mailman/listinfo/mitoc-trip-announce',
-                '---------------------------------------------------------------------------------',
-                '',
-                'Presi Traverse',
-                '==============',
-                f'<https://mitoc-trips.mit.edu/trips/{self.presi.pk}/>',
-                'Thursday, January 2',
-                'Program: Winter School -- Attendance at mandatory safety lectures is required: <https://mitoc.mit.edu/events/winter-school>',
-                'Type: Hiking',
-                'Terrain level: C',
-                'Difficulty rating: Very hard',
-                'Leaders: Jane Example, Tim Beaver',
-                'Prerequisites: High level of fitness',
-                'Spaces remaining: 4',
-                'Signups close at: Jan. 1, 2020, 9:30 p.m.',
-                'Algorithm: first-come, first-serve',
-                '',
-                'Frankenstein Ice Climbing',
-                '=========================',
-                f'<https://mitoc-trips.mit.edu/trips/{self.frankie.pk}/>',
-                'Wednesday, January 8',
-                'Program: Winter School -- Attendance at mandatory safety lectures is required: <https://mitoc.mit.edu/events/winter-school>',
-                'Type: Ice climbing',
-                'Terrain level: A',
-                'Difficulty rating: cold',
-                'Spaces remaining: 8',
-                'Signups close at: Jan. 7, 2020, 9:30 p.m.',
-                'Algorithm: lottery',
-                '',
-                '',
-                '',
-                'Unsubscribe: http://mailman.mit.edu/mailman/listinfo/mitoc-trip-announce',
+                "This is a weekly digest of upcoming trips hosted by the MIT Outing Club.",
+                "To unsubscribe, visit http://mailman.mit.edu/mailman/listinfo/mitoc-trip-announce",
+                "---------------------------------------------------------------------------------",
+                "",
+                "Presi Traverse",
+                "==============",
+                f"<https://mitoc-trips.mit.edu/trips/{self.presi.pk}/>",
+                "Thursday, January 2",
+                "Program: Winter School -- Attendance at mandatory safety lectures is required: <https://mitoc.mit.edu/events/winter-school>",
+                "Type: Hiking",
+                "Terrain level: C",
+                "Difficulty rating: Very hard",
+                "Leaders: Jane Example, Tim Beaver",
+                "Prerequisites: High level of fitness",
+                "Spaces remaining: 4",
+                "Signups close at: Jan. 1, 2020, 9:30 p.m.",
+                "Algorithm: first-come, first-serve",
+                "",
+                "Frankenstein Ice Climbing",
+                "=========================",
+                f"<https://mitoc-trips.mit.edu/trips/{self.frankie.pk}/>",
+                "Wednesday, January 8",
+                "Program: Winter School -- Attendance at mandatory safety lectures is required: <https://mitoc.mit.edu/events/winter-school>",
+                "Type: Ice climbing",
+                "Terrain level: A",
+                "Difficulty rating: cold",
+                "Spaces remaining: 8",
+                "Signups close at: Jan. 7, 2020, 9:30 p.m.",
+                "Algorithm: lottery",
+                "",
+                "",
+                "",
+                "Unsubscribe: http://mailman.mit.edu/mailman/listinfo/mitoc-trip-announce",
             ]
         )
         self.assertEqual(msg.body, expected_content)
@@ -115,7 +115,7 @@ class TripsBlastTest(TestCase):
             winter_terrain_level=None,
             difficulty_rating="N/A",
             maximum_participants=20,
-            algorithm='lottery',
+            algorithm="lottery",
         )
 
         send_trips_summary()
@@ -124,99 +124,99 @@ class TripsBlastTest(TestCase):
 
         # The trip next week is open for signup
         # The future trips are not yet open for signup
-        expected_content = '\n'.join(
+        expected_content = "\n".join(
             [
-                'This is a weekly digest of upcoming trips hosted by the MIT Outing Club.',
-                'To unsubscribe, visit http://mailman.mit.edu/mailman/listinfo/mitoc-trip-announce',
-                '---------------------------------------------------------------------------------',
-                '',
-                'Presi Traverse',
-                '==============',
-                f'<https://mitoc-trips.mit.edu/trips/{self.presi.pk}/>',
-                'Thursday, January 2',
-                'Program: Winter School -- Attendance at mandatory safety lectures is required: <https://mitoc.mit.edu/events/winter-school>',
-                'Type: Hiking',
-                'Terrain level: C',
-                'Difficulty rating: Very hard',
-                'Leaders: Jane Example, Tim Beaver',
-                'Prerequisites: High level of fitness',
-                'Spaces remaining: 4',
-                'Signups close at: Jan. 1, 2020, 9:30 p.m.',
-                'Algorithm: first-come, first-serve',
-                '',
-                'Frankenstein Ice Climbing',
-                '=========================',
-                f'<https://mitoc-trips.mit.edu/trips/{self.frankie.pk}/>',
-                'Wednesday, January 8',
-                'Program: Winter School -- Attendance at mandatory safety lectures is required: <https://mitoc.mit.edu/events/winter-school>',
-                'Type: Ice climbing',
-                'Terrain level: A',
-                'Difficulty rating: cold',
-                'Spaces remaining: 8',
-                'Signups close at: Jan. 7, 2020, 9:30 p.m.',
-                'Algorithm: lottery',
-                '',
-                '',
-                '',
-                'Upcoming trips (not yet open)',
-                '-----------------------------',
-                '',
-                'Future trip',
-                '===========',
-                f'<https://mitoc-trips.mit.edu/trips/{future.pk}/>',
-                'Sunday, November 21',
-                'Program: Service',
-                'Type: Sport climbing, top rope',
-                'Difficulty rating: N/A',
-                'Signups open at: Nov. 14, 2021, noon',
-                'Algorithm: lottery',
-                '',
-                '',
-                'Unsubscribe: http://mailman.mit.edu/mailman/listinfo/mitoc-trip-announce',
+                "This is a weekly digest of upcoming trips hosted by the MIT Outing Club.",
+                "To unsubscribe, visit http://mailman.mit.edu/mailman/listinfo/mitoc-trip-announce",
+                "---------------------------------------------------------------------------------",
+                "",
+                "Presi Traverse",
+                "==============",
+                f"<https://mitoc-trips.mit.edu/trips/{self.presi.pk}/>",
+                "Thursday, January 2",
+                "Program: Winter School -- Attendance at mandatory safety lectures is required: <https://mitoc.mit.edu/events/winter-school>",
+                "Type: Hiking",
+                "Terrain level: C",
+                "Difficulty rating: Very hard",
+                "Leaders: Jane Example, Tim Beaver",
+                "Prerequisites: High level of fitness",
+                "Spaces remaining: 4",
+                "Signups close at: Jan. 1, 2020, 9:30 p.m.",
+                "Algorithm: first-come, first-serve",
+                "",
+                "Frankenstein Ice Climbing",
+                "=========================",
+                f"<https://mitoc-trips.mit.edu/trips/{self.frankie.pk}/>",
+                "Wednesday, January 8",
+                "Program: Winter School -- Attendance at mandatory safety lectures is required: <https://mitoc.mit.edu/events/winter-school>",
+                "Type: Ice climbing",
+                "Terrain level: A",
+                "Difficulty rating: cold",
+                "Spaces remaining: 8",
+                "Signups close at: Jan. 7, 2020, 9:30 p.m.",
+                "Algorithm: lottery",
+                "",
+                "",
+                "",
+                "Upcoming trips (not yet open)",
+                "-----------------------------",
+                "",
+                "Future trip",
+                "===========",
+                f"<https://mitoc-trips.mit.edu/trips/{future.pk}/>",
+                "Sunday, November 21",
+                "Program: Service",
+                "Type: Sport climbing, top rope",
+                "Difficulty rating: N/A",
+                "Signups open at: Nov. 14, 2021, noon",
+                "Algorithm: lottery",
+                "",
+                "",
+                "Unsubscribe: http://mailman.mit.edu/mailman/listinfo/mitoc-trip-announce",
             ]
         )
         self.assertEqual(msg.body, expected_content)
 
         # Check the HTML (which is chock full of email-specific CSS & structure)
         content = msg.alternatives[0][0]
-        soup = BeautifulSoup(content, 'html.parser')
-        self.assertEqual(soup.title.text, 'Upcoming MITOC trips | Wednesday, January 1')
+        soup = BeautifulSoup(content, "html.parser")
+        self.assertEqual(soup.title.text, "Upcoming MITOC trips | Wednesday, January 1")
         self.assertIn(
-            'http://mailman.mit.edu/mailman/listinfo/mitoc-trip-announce', soup.text
+            "http://mailman.mit.edu/mailman/listinfo/mitoc-trip-announce", soup.text
         )
 
-        upcoming_trips = soup.find('h1', string='Trips currently open for signup')
+        upcoming_trips = soup.find("h1", string="Trips currently open for signup")
         self.assertEqual(
             [
-                heading.get_text(' ', strip=True)
-                for heading in upcoming_trips.find_next_siblings('h2')
+                heading.get_text(" ", strip=True)
+                for heading in upcoming_trips.find_next_siblings("h2")
             ],
             # Note: `Future trip` will appear *after* the next h1
-            ['Presi Traverse', 'Frankenstein Ice Climbing', 'Future trip'],
+            ["Presi Traverse", "Frankenstein Ice Climbing", "Future trip"],
         )
 
         # Check formatting of one trip (others will be largely the same)
-        presi = soup.find('h2').find_next_sibling('p')
+        presi = soup.find("h2").find_next_sibling("p")
         self.assertEqual(
-            [strip_whitespace(li.text) for li in presi.find('ul').find_all('li')],
+            [strip_whitespace(li.text) for li in presi.find("ul").find_all("li")],
             [
-                'Program: Winter School Attendance at mandatory safety lectures is required.',
-                'Type: Hiking',
-                'Terrain level: C',
-                'Difficulty rating: Very hard',
-                'Leaders: Jane Example, Tim Beaver',
-                'Prerequisites: High level of fitness',
-                'Spaces remaining: 4',
-                'Signups close at: Jan. 1, 2020, 9:30 p.m.',
-                'Algorithm: first-come, first-serve',
+                "Program: Winter School Attendance at mandatory safety lectures is required.",
+                "Type: Hiking",
+                "Terrain level: C",
+                "Difficulty rating: Very hard",
+                "Leaders: Jane Example, Tim Beaver",
+                "Prerequisites: High level of fitness",
+                "Spaces remaining: 4",
+                "Signups close at: Jan. 1, 2020, 9:30 p.m.",
+                "Algorithm: first-come, first-serve",
             ],
         )
 
-        future_trips = soup.find('h1', string='Upcoming trips (not yet open)')
+        future_trips = soup.find("h1", string="Upcoming trips (not yet open)")
         self.assertEqual(
             [
-                heading.get_text(' ', strip=True)
-                for heading in future_trips.find_next_siblings('h2')
+                heading.get_text(" ", strip=True)
+                for heading in future_trips.find_next_siblings("h2")
             ],
-            ['Future trip'],
+            ["Future trip"],
         )

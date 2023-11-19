@@ -55,14 +55,14 @@ class TripView(DetailView):
     """
 
     model = models.Trip
-    context_object_name = 'trip'
-    template_name = 'trips/view.html'
+    context_object_name = "trip"
+    template_name = "trips/view.html"
 
     object: models.Trip  # noqa: A003
 
     def get_queryset(self):
-        trips = super().get_queryset().select_related('info')
-        return trips.prefetch_related('leaders', 'leaders__leaderrating_set')
+        trips = super().get_queryset().select_related("info")
+        return trips.prefetch_related("leaders", "leaders__leaderrating_set")
 
     def get_participant_signup(self, trip=None):
         """Return viewer's signup for this trip (if one exists, else None)"""
@@ -82,7 +82,7 @@ class TripView(DetailView):
         Alternately, we could introduce a caching layer to make this viable hitting
         the database directly (like we do with the Membership model).
         """
-        on_trip = trip.signup_set.filter(on_trip=True).select_related('participant')
+        on_trip = trip.signup_set.filter(on_trip=True).select_related("participant")
         trip_participants = [s.participant for s in on_trip]
         leaders = list(trip.leaders.all())
 
@@ -112,21 +112,21 @@ class TripView(DetailView):
         context = super().get_context_data()
         trip = self.object
 
-        context['leader_on_trip'] = perm_utils.leader_on_trip(
+        context["leader_on_trip"] = perm_utils.leader_on_trip(
             self.request.participant, trip, True
         )
-        context['can_admin'] = context['leader_on_trip'] or perm_utils.chair_or_admin(
+        context["can_admin"] = context["leader_on_trip"] or perm_utils.chair_or_admin(
             self.request.user, trip.required_activity_enum()
         )
 
-        context['can_see_rentals'] = context['can_admin'] or perm_utils.is_leader(
+        context["can_see_rentals"] = context["can_admin"] or perm_utils.is_leader(
             self.request.user
         )
 
-        if context['can_admin'] or perm_utils.is_leader(self.request.user):
-            context['show_rentals_inline'] = 'show_rentals_inline' in self.request.GET
-            if context['show_rentals_inline']:
-                context['rentals_by_par'] = list(self.rentals_by_participant(trip))
+        if context["can_admin"] or perm_utils.is_leader(self.request.user):
+            context["show_rentals_inline"] = "show_rentals_inline" in self.request.GET
+            if context["show_rentals_inline"]:
+                context["rentals_by_par"] = list(self.rentals_by_participant(trip))
 
         return context
 
@@ -142,7 +142,7 @@ class TripView(DetailView):
 
 class ReviewTripView(DetailView):
     model = models.Trip
-    template_name = 'trips/review.html'
+    template_name = "trips/review.html"
     success_msg = "Thanks for your feedback!"
 
     object: models.Trip  # noqa: A003
@@ -155,11 +155,11 @@ class ReviewTripView(DetailView):
         will raise ValueError or TypeError (on either 'split' or `int`)
         """
         for key, comments in self.request.POST.items():
-            if not (key.startswith(('par_', 'flake_'))):
+            if not (key.startswith(("par_", "flake_"))):
                 continue
 
-            feedback_type, par_pk = key.split('_')
-            showed_up = feedback_type == 'par'
+            feedback_type, par_pk = key.split("_")
+            showed_up = feedback_type == "par"
 
             yield int(par_pk), comments.strip(), showed_up
 
@@ -171,7 +171,7 @@ class ReviewTripView(DetailView):
                 self.request,
                 "Trip feedback window has passed. Feedback may not be updated.",
             )
-            return redirect(reverse('review_trip', args=(trip.pk,)))
+            return redirect(reverse("review_trip", args=(trip.pk,)))
 
         leader = self.request.participant
 
@@ -200,9 +200,9 @@ class ReviewTripView(DetailView):
                 continue  # Don't create new feedback saying nothing useful
             else:
                 kwargs = {
-                    'leader': leader,
-                    'trip': trip,
-                    'participant': models.Participant.objects.get(pk=pk),
+                    "leader": leader,
+                    "trip": trip,
+                    "participant": models.Participant.objects.get(pk=pk),
                 }
                 feedback = models.Feedback.objects.create(**kwargs)
 
@@ -211,12 +211,12 @@ class ReviewTripView(DetailView):
             feedback.save()
 
         messages.success(self.request, self.success_msg)
-        return redirect(reverse('home'))
+        return redirect(reverse("home"))
 
     @property
     def trip_participants(self):
         accepted_signups = self.object.signup_set.filter(on_trip=True)
-        accepted_signups = accepted_signups.select_related('participant')
+        accepted_signups = accepted_signups.select_related("participant")
         return [signup.participant for signup in accepted_signups]
 
     def get_existing_feedback(self):
@@ -226,8 +226,8 @@ class ReviewTripView(DetailView):
     @property
     def feedback_list(self):
         feedback = self.get_existing_feedback()
-        par_comments = dict(feedback.values_list('participant__pk', 'comments'))
-        return [(par, par_comments.get(par.pk, '')) for par in self.trip_participants]
+        par_comments = dict(feedback.values_list("participant__pk", "comments"))
+        return [(par, par_comments.get(par.pk, "")) for par in self.trip_participants]
 
     def get_context_data(self, **kwargs):
         today = local_date()
@@ -240,33 +240,33 @@ class ReviewTripView(DetailView):
             "feedback_list": self.feedback_list,
         }
 
-    @method_decorator(group_required('leaders'))
+    @method_decorator(group_required("leaders"))
     def dispatch(self, request, *args, **kwargs):
         trip = self.get_object()
         if not perm_utils.leader_on_trip(request.participant, trip, False):
-            return render(request, 'not_your_trip.html', {'trip': trip})
+            return render(request, "not_your_trip.html", {"trip": trip})
         return super().dispatch(request, *args, **kwargs)
 
 
 class CreateTripView(CreateView):
     model = models.Trip
     form_class = forms.TripForm
-    template_name = 'trips/create.html'
+    template_name = "trips/create.html"
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['initial'] = kwargs.get('initial', {})
+        kwargs["initial"] = kwargs.get("initial", {})
         if not self.request.user.is_superuser:
             allowed_programs = list(self.request.participant.allowed_programs)
-            kwargs['allowed_programs'] = allowed_programs
+            kwargs["allowed_programs"] = allowed_programs
 
             if is_currently_iap() and enums.Program.WINTER_SCHOOL in allowed_programs:
-                kwargs['initial']['program'] = enums.Program.WINTER_SCHOOL.value
+                kwargs["initial"]["program"] = enums.Program.WINTER_SCHOOL.value
             else:
                 # The first program may not be open to the leader.
                 # We restrict choices, so ensure leader can lead this program.
                 allowed_program = next(iter(allowed_programs))
-                kwargs['initial']['program'] = allowed_program.value
+                kwargs["initial"]["program"] = allowed_program.value
         return kwargs
 
     def get_success_url(self):
@@ -278,14 +278,14 @@ class CreateTripView(CreateView):
                     f'Remember to <a href="{trip.prefilled_atlas_form_link}">register your trip for reimbursement</a>!'
                 ),
             )
-        return reverse('view_trip', args=(trip.pk,))
+        return reverse("view_trip", args=(trip.pk,))
 
     def get_initial(self):
         """Default with trip creator among leaders."""
         initial = super().get_initial().copy()
         # It's possible for WSC to create trips while not being a leader
         if perm_utils.is_leader(self.request.user):
-            initial['leaders'] = [self.request.participant]
+            initial["leaders"] = [self.request.participant]
         return initial
 
     def form_valid(self, form):
@@ -303,20 +303,20 @@ class CreateTripView(CreateView):
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        context['is_currently_iap'] = is_currently_iap()
+        context["is_currently_iap"] = is_currently_iap()
 
         # There is separate logic for determining if we allow choosing the WS program.
         # Rather than duplicate that logic here, just see if it's a selectable choice.
-        form: forms.TripForm = context['form']
-        program_field = cast(TypedChoiceField, form.fields['program'])
-        context['can_select_ws_program'] = any(
+        form: forms.TripForm = context["form"]
+        program_field = cast(TypedChoiceField, form.fields["program"])
+        context["can_select_ws_program"] = any(
             enums.Program(value) == enums.Program.WINTER_SCHOOL
             for category, choices in program_field.choices
             for value, label in choices
         )
         return context
 
-    @method_decorator(group_required('leaders'))
+    @method_decorator(group_required("leaders"))
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
@@ -327,25 +327,25 @@ class CreateTripView(CreateView):
 # is incompatible with definition in base class "BaseDetailView"
 class DeleteTripView(DeleteView, TripLeadersOnlyView):  # type: ignore[misc]
     model = models.Trip
-    success_url = reverse_lazy('upcoming_trips')
+    success_url = reverse_lazy("upcoming_trips")
 
     def get(self, request, *args, **kwargs):
         """Request is valid, but method is not (use POST)."""
         messages.warning(self.request, "Use delete button to remove trips.")
-        return redirect(reverse('view_trip', kwargs=self.kwargs))
+        return redirect(reverse("view_trip", kwargs=self.kwargs))
 
 
 class EditTripView(UpdateView, TripLeadersOnlyView):
     model = models.Trip
     form_class = forms.TripForm
-    template_name = 'trips/edit.html'
+    template_name = "trips/edit.html"
 
     object: models.Trip  # noqa: A003
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         if not self.request.user.is_superuser:
-            kwargs['allowed_programs'] = list(self.request.participant.allowed_programs)
+            kwargs["allowed_programs"] = list(self.request.participant.allowed_programs)
         return kwargs
 
     @property
@@ -363,15 +363,15 @@ class EditTripView(UpdateView, TripLeadersOnlyView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['update_rescinds_approval'] = self.update_rescinds_approval
+        context["update_rescinds_approval"] = self.update_rescinds_approval
         return context
 
     def get_success_url(self):
-        return reverse('view_trip', args=(self.object.pk,))
+        return reverse("view_trip", args=(self.object.pk,))
 
     def _leaders_changed(self, form: forms.TripForm) -> bool:
         old_pks = {leader.pk for leader in self.object.leaders.all()}
-        new_pks = {leader.pk for leader in form.cleaned_data['leaders']}
+        new_pks = {leader.pk for leader in form.cleaned_data["leaders"]}
         return bool(old_pks.symmetric_difference(new_pks))
 
     def _ignore_leaders_if_unchanged(self, form):
@@ -385,7 +385,7 @@ class EditTripView(UpdateView, TripLeadersOnlyView):
         See ticket 6707 for an eventual fix to this behavior
         """
         if not self._leaders_changed(form):
-            form.cleaned_data.pop('leaders')
+            form.cleaned_data.pop("leaders")
 
     def _stale_revision_message(
         self,
@@ -400,12 +400,12 @@ class EditTripView(UpdateView, TripLeadersOnlyView):
         fields_with_difference = [
             field
             for name, field in form.fields.items()
-            if name != 'edit_revision'
+            if name != "edit_revision"
             and getattr(current_trip, name) != getattr(new_trip, name)
         ]
         # (Account for the fact that we might have stripped `leaders`)
-        if 'leaders' in form.cleaned_data and self._leaders_changed(form):
-            fields_with_difference.insert(0, form.fields['leaders'])
+        if "leaders" in form.cleaned_data and self._leaders_changed(form):
+            fields_with_difference.insert(0, form.fields["leaders"])
 
         if current_trip.last_updated_by is None:
             # This shouldn't ever happen, but the data model makes it possible
@@ -417,11 +417,11 @@ class EditTripView(UpdateView, TripLeadersOnlyView):
 
         assert current_trip.edit_revision > new_trip.edit_revision
         edit_count = current_trip.edit_revision - new_trip.edit_revision
-        plural = '' if edit_count == 1 else 's'
+        plural = "" if edit_count == 1 else "s"
 
         differing_fields: list[str] = [
             # Handle the label being nullable or a `_StrPromise`
-            str(field.label or 'Unknown')
+            str(field.label or "Unknown")
             for field in fields_with_difference
         ]
         return "\n".join(
@@ -452,7 +452,7 @@ class EditTripView(UpdateView, TripLeadersOnlyView):
 
             stale_msg = self._stale_revision_message(form, current_trip, trip)
             if stale_msg:
-                form.errors['__all__'] = ErrorList([stale_msg])
+                form.errors["__all__"] = ErrorList([stale_msg])
                 return self.form_invalid(form)
 
             trip.last_updated_by = self.request.participant
@@ -472,8 +472,8 @@ class TripListView(ListView):
     ordering = ["trip_date", "-time_created"]
 
     model = models.Trip
-    template_name = 'trips/all/view.html'
-    context_object_name = 'trip_queryset'
+    template_name = "trips/all/view.html"
+    context_object_name = "trip_queryset"
     include_past_trips = True
 
     def get_queryset(self):
@@ -489,8 +489,8 @@ class TripListView(ListView):
         """
         start_date = None
         start_date_invalid = False
-        if 'after' in self.request.GET:
-            after = self.request.GET['after']
+        if "after" in self.request.GET:
+            after = self.request.GET["after"]
             try:
                 start_date = date.fromisoformat(after)
             except (TypeError, ValueError):
@@ -505,30 +505,30 @@ class TripListView(ListView):
         context = super().get_context_data(**kwargs)
         trips = context[self.context_object_name]
         today = local_date()
-        context['today'] = today
+        context["today"] = today
 
-        on_or_after_date, context['date_invalid'] = self._optionally_filter_from_args()
+        on_or_after_date, context["date_invalid"] = self._optionally_filter_from_args()
         if on_or_after_date:
-            context['on_or_after_date'] = on_or_after_date
+            context["on_or_after_date"] = on_or_after_date
             trips = trips.filter(trip_date__gte=on_or_after_date)
 
         # Get approximately one year prior for use in paginating back in time.
         # (need not be exact/handle leap years)
-        context['one_year_prior'] = (on_or_after_date or today) - timedelta(days=365)
+        context["one_year_prior"] = (on_or_after_date or today) - timedelta(days=365)
 
         # By default, just show upcoming trips.
-        context['current_trips'] = trips.filter(trip_date__gte=today)
+        context["current_trips"] = trips.filter(trip_date__gte=today)
 
         # However, if we've explicitly opted in to showing past trips, include them.
         if self.include_past_trips or on_or_after_date:
             # Note that we need to sort past trips in descending order (most recent trips first).
             # This is because we have a cutoff in the past, and it would display strangely to sort ascending.
-            context['past_trips'] = trips.filter(trip_date__lt=today).order_by(
+            context["past_trips"] = trips.filter(trip_date__lt=today).order_by(
                 "-trip_date", "-time_created"
             )
             if not on_or_after_date:
                 # We're on the special 'all trips' view, so there are no add'l previous trips
-                context['one_year_prior'] = None
+                context["one_year_prior"] = None
         return context
 
 
@@ -546,25 +546,25 @@ class TripSearchView(ListView, FormView):
     form_class = forms.TripSearchForm
 
     model = models.Trip
-    template_name = 'trips/search.html'
-    context_object_name = 'matching_trips'
+    template_name = "trips/search.html"
+    context_object_name = "matching_trips"
 
-    query: str = ''
+    query: str = ""
     limit: int = 100
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['has_valid_search'] = any(
+        context["has_valid_search"] = any(
             self.request.GET.get(field)
             for field in forms.TripSearchForm.declared_fields
         )
-        context['max_results_shown'] = len(context['matching_trips']) == self.limit
+        context["max_results_shown"] = len(context["matching_trips"]) == self.limit
         return context
 
     def get_initial(self):
         """Use the querystring to populate the form."""
         return {
-            label: self.request.GET.get(label, '')
+            label: self.request.GET.get(label, "")
             for label in self.form_class.declared_fields
         }
 
@@ -575,9 +575,9 @@ class TripSearchView(ListView, FormView):
             for label in form.declared_fields
             if form.cleaned_data[label]
         }
-        url = reverse('search_trips')
+        url = reverse("search_trips")
         if params:
-            url += f'?{urlencode(params)}'
+            url += f"?{urlencode(params)}"
         else:
             messages.error(self.request, "Specify a search query and/or some filters!")
         return redirect(url)
@@ -587,11 +587,11 @@ class TripSearchView(ListView, FormView):
         if not self.request.GET:
             return models.Trip.objects.none()
 
-        query = self.request.GET.get('q', '')
+        query = self.request.GET.get("q", "")
         specified_filters = {
             field: value
             for field, value in self.request.GET.items()
-            if value and field in ('winter_terrain_level', 'trip_type', 'program')
+            if value and field in ("winter_terrain_level", "trip_type", "program")
         }
         return annotated_for_trip_list(
             models.Trip.search_trips(
@@ -608,26 +608,26 @@ class TripSearchView(ListView, FormView):
 
 class ApproveTripsView(ListView):
     model = models.Trip
-    template_name = 'trips/all/manage.html'
+    template_name = "trips/all/manage.html"
 
     def get_queryset(self):
         """Filter to only *upcoming* trips needing approval, sort by those with itinerary!."""
         all_trips = super().get_queryset()
         return (
             all_trips.filter(
-                activity=self.kwargs['activity'],
+                activity=self.kwargs["activity"],
                 trip_date__gte=local_date(),
                 chair_approved=False,
             )
-            .select_related('info')
-            .prefetch_related('leaders', 'leaders__leaderrating_set')
+            .select_related("info")
+            .prefetch_related("leaders", "leaders__leaderrating_set")
             .order_by(*models.Trip.ordering_for_approval)
         )
 
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         try:
-            activity_enum = enums.Activity(kwargs.get('activity'))
+            activity_enum = enums.Activity(kwargs.get("activity"))
         except ValueError:
             raise Http404  # noqa: B904
 
@@ -648,12 +648,12 @@ class ApproveTripsView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        trips = list(context['object_list'])
-        context['trips_needing_approval'] = trips
-        context['leader_emails_missing_itinerary'] = ', '.join(
+        trips = list(context["object_list"])
+        context["trips_needing_approval"] = trips
+        context["leader_emails_missing_itinerary"] = ", ".join(
             sorted(set(self._leader_emails_missing_itinerary(trips)))
         )
-        context['first_unapproved_trip'] = trips[0] if trips else None
+        context["first_unapproved_trip"] = trips[0] if trips else None
         return context
 
 
@@ -661,10 +661,10 @@ class RunTripLotteryView(DetailView, TripLeadersOnlyView):
     model = models.Trip
 
     def get(self, request, *args, **kwargs):
-        return redirect(reverse('view_trip', kwargs=self.kwargs))
+        return redirect(reverse("view_trip", kwargs=self.kwargs))
 
     def post(self, request, *args, **kwargs):
         trip = self.get_object()
         runner = SingleTripLotteryRunner(trip)
         runner()
-        return redirect(reverse('view_trip', args=(trip.pk,)))
+        return redirect(reverse("view_trip", args=(trip.pk,)))

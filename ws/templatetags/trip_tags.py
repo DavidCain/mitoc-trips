@@ -65,7 +65,7 @@ class TripStage(enum.IntEnum):
         cls,
         trip: models.Trip,
         signups_on_trip: int,
-    ) -> 'TripStage':
+    ) -> "TripStage":
         if trip.signups_not_yet_open:
             return cls.NOT_YET_OPEN
         if trip.signups_closed:
@@ -74,13 +74,13 @@ class TripStage(enum.IntEnum):
         # All trips should be either open, closed, or not yet open.
         assert trip.signups_open, "Unexpected trip status!"
 
-        if trip.algorithm == 'fcfs':
+        if trip.algorithm == "fcfs":
             # `trip.open_slots` works, but includes a SQL query
             if signups_on_trip >= trip.maximum_participants:
                 return cls.FULL_BUT_ACCEPTING_SIGNUPS
             return cls.FCFS_OPEN
 
-        assert trip.algorithm == 'lottery'
+        assert trip.algorithm == "lottery"
         return cls.LOTTERY_OPEN
 
 
@@ -92,51 +92,51 @@ def trip_icon(trip):
 def annotated_for_trip_list(trips: QuerySet[models.Trip]) -> QuerySet[AnnotatedTrip]:
     """Modify a trips queryset to have annotated fields used in tags."""
     # Each trip will need information about its leaders, so prefetch models
-    trips = trips.prefetch_related('leaders', 'leaders__leaderrating_set')
+    trips = trips.prefetch_related("leaders", "leaders__leaderrating_set")
 
     # Django 2.0: Use conditional aggregation instead!
     signup_on_trip = Case(
         When(signup__on_trip=True, then=1), default=0, output_field=IntegerField()
     )
     return trips.annotate(
-        num_signups=Count('signup'),
+        num_signups=Count("signup"),
         signups_on_trip=Sum(signup_on_trip),
     )
 
 
-@register.inclusion_tag('for_templatetags/simple_trip_list.html')
+@register.inclusion_tag("for_templatetags/simple_trip_list.html")
 def simple_trip_list(
     trip_list: list[models.Trip],
     max_title_chars: int = 45,
     collapse_date: bool = False,  # True: Instead of showing the date column, show beneath title
 ) -> dict[str, Any]:
     return {
-        'today': date_utils.local_date(),
-        'trip_list': trip_list,
-        'max_title_chars': max_title_chars,
-        'collapse_date': collapse_date,
+        "today": date_utils.local_date(),
+        "trip_list": trip_list,
+        "max_title_chars": max_title_chars,
+        "collapse_date": collapse_date,
     }
 
 
-@register.inclusion_tag('for_templatetags/trip_list_table.html')
+@register.inclusion_tag("for_templatetags/trip_list_table.html")
 def trip_list_table(
     trip_list: list[models.Trip],
     approve_mode: bool = False,
     show_trip_stage: bool = False,
 ) -> dict[str, Any]:
     return {
-        'trip_list': trip_list,
-        'approve_mode': approve_mode,
-        'show_trip_stage': show_trip_stage,
+        "trip_list": trip_list,
+        "approve_mode": approve_mode,
+        "show_trip_stage": show_trip_stage,
     }
 
 
-@register.inclusion_tag('for_templatetags/trip_stage.html')
+@register.inclusion_tag("for_templatetags/trip_stage.html")
 def trip_stage(
     trip: models.Trip,
     signups_on_trip: int,
 ) -> dict[str, Any]:
-    return {'stage': TripStage.stage_for_trip(trip, signups_on_trip)}
+    return {"stage": TripStage.stage_for_trip(trip, signups_on_trip)}
 
 
 @register.filter
@@ -147,12 +147,12 @@ def numeric_trip_stage_for_sorting(
     return TripStage.stage_for_trip(trip, signups_on_trip).value
 
 
-@register.inclusion_tag('for_templatetags/feedback_table.html')
+@register.inclusion_tag("for_templatetags/feedback_table.html")
 def feedback_table(all_feedback, scramble_contents=False, display_log_notice=False):
     return {
-        'all_feedback': all_feedback,
-        'scramble_contents': scramble_contents,
-        'display_log_notice': display_log_notice,
+        "all_feedback": all_feedback,
+        "scramble_contents": scramble_contents,
+        "display_log_notice": display_log_notice,
     }
 
 
@@ -198,27 +198,27 @@ def unapproved_trip_count(activity_enum):
     ).count()
 
 
-@register.inclusion_tag('for_templatetags/wimp_toolbar.html')
+@register.inclusion_tag("for_templatetags/wimp_toolbar.html")
 def wimp_toolbar(trip):
-    return {'trip': trip}
+    return {"trip": trip}
 
 
-@register.inclusion_tag('for_templatetags/trip_edit_buttons.html')
+@register.inclusion_tag("for_templatetags/trip_edit_buttons.html")
 def trip_edit_buttons(trip, participant, user, hide_approve=False):
     available_at = date_utils.itinerary_available_at(trip.trip_date)
     return {
-        'trip': trip,
-        'is_chair': perm_utils.chair_or_admin(user, trip.required_activity_enum()),
-        'is_creator': trip.creator == participant,
-        'is_trip_leader': perm_utils.leader_on_trip(participant, trip, False),
-        'hide_approve': hide_approve,  # Hide approval even if user is a chair
-        'itinerary_available_at': available_at,
-        'available_today': available_at.date() == date_utils.local_date(),
-        'info_form_available': date_utils.local_now() >= available_at,
+        "trip": trip,
+        "is_chair": perm_utils.chair_or_admin(user, trip.required_activity_enum()),
+        "is_creator": trip.creator == participant,
+        "is_trip_leader": perm_utils.leader_on_trip(participant, trip, False),
+        "hide_approve": hide_approve,  # Hide approval even if user is a chair
+        "itinerary_available_at": available_at,
+        "available_today": available_at.date() == date_utils.local_date(),
+        "info_form_available": date_utils.local_now() >= available_at,
     }
 
 
-@register.inclusion_tag('for_templatetags/view_trip.html')
+@register.inclusion_tag("for_templatetags/view_trip.html")
 def view_trip(trip, participant, user):
     # For efficiency, the trip should be called with:
     #      select_related('info')
@@ -227,33 +227,33 @@ def view_trip(trip, participant, user):
     def get_signups(model=models.SignUp):
         """Signups, with related fields used in template preselected."""
         signups = model.objects.filter(trip=trip)
-        signups = signups.select_related('participant', 'trip')
-        return signups.select_related('participant__lotteryinfo')
+        signups = signups.select_related("participant", "trip")
+        return signups.select_related("participant__lotteryinfo")
 
     trip_leaders = trip.leaders.all()
     leader_signups = get_signups(models.LeaderSignUp)
     context = {
-        'trip': trip,
-        'is_trip_leader': perm_utils.leader_on_trip(participant, trip),
-        'viewing_participant': participant,
-        'user': user,
+        "trip": trip,
+        "is_trip_leader": perm_utils.leader_on_trip(participant, trip),
+        "viewing_participant": participant,
+        "user": user,
     }
 
     signups = get_signups(models.SignUp)
-    context['par_signup'] = signups.filter(participant=participant).first()
+    context["par_signup"] = signups.filter(participant=participant).first()
     wl_signups = trip.waitlist.signups.select_related(
-        'participant', 'participant__lotteryinfo'
+        "participant", "participant__lotteryinfo"
     )
-    context['signups'] = {
-        'waitlist': wl_signups,
-        'off_trip': signups.filter(on_trip=False).exclude(pk__in=wl_signups),
-        'on_trip': signups.filter(on_trip=True),
-        'leaders_on_trip': [s for s in leader_signups if s.participant in trip_leaders],
-        'leaders_off_trip': [
+    context["signups"] = {
+        "waitlist": wl_signups,
+        "off_trip": signups.filter(on_trip=False).exclude(pk__in=wl_signups),
+        "on_trip": signups.filter(on_trip=True),
+        "leaders_on_trip": [s for s in leader_signups if s.participant in trip_leaders],
+        "leaders_off_trip": [
             s for s in leader_signups if s.participant not in trip_leaders
         ],
     }
-    context['has_notes'] = (
+    context["has_notes"] = (
         bool(trip.notes)
         or any(s.notes for s in signups)
         or any(s.notes for s in leader_signups)
@@ -261,21 +261,21 @@ def view_trip(trip, participant, user):
     return context
 
 
-@register.inclusion_tag('for_templatetags/wimp_trips.html')
+@register.inclusion_tag("for_templatetags/wimp_trips.html")
 def wimp_trips(participant, user):
     """Give a quick list of the trips that the participant is a WIMP for."""
     today = date_utils.local_date()
     next_week = today + timedelta(days=7)
     # Use Python to avoid an extra query into groups
-    wimp_all = any(g.name == 'WIMP' for g in user.groups.all())
+    wimp_all = any(g.name == "WIMP" for g in user.groups.all())
 
     all_wimp_trips = models.Trip.objects if wimp_all else participant.wimp_trips
     upcoming_trips = all_wimp_trips.filter(
         trip_date__gte=today, trip_date__lte=next_week
     )
-    upcoming_trips = upcoming_trips.select_related('info')
+    upcoming_trips = upcoming_trips.select_related("info")
 
     return {
-        'can_wimp_all_trips': wimp_all,
-        'upcoming_trips': upcoming_trips.order_by('trip_date', 'name'),
+        "can_wimp_all_trips": wimp_all,
+        "upcoming_trips": upcoming_trips.order_by("trip_date", "name"),
     }

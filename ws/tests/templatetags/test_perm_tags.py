@@ -14,14 +14,14 @@ class IsTheWimpTest(TestCase):
     @staticmethod
     def _is_wimp(user, participant):
         html_template = Template(
-            '{% load perm_tags %}{% if user|is_the_wimp:par %}WIMP!{% endif %}'
+            "{% load perm_tags %}{% if user|is_the_wimp:par %}WIMP!{% endif %}"
         )
-        context = Context({'user': user, 'par': participant})
-        return html_template.render(context) == 'WIMP!'
+        context = Context({"user": user, "par": participant})
+        return html_template.render(context) == "WIMP!"
 
     def test_winter_school_wimp(self):
         user = factories.UserFactory.create()
-        wimp_group, _created = Group.objects.get_or_create(name='WIMP')
+        wimp_group, _created = Group.objects.get_or_create(name="WIMP")
         wimp_group.user_set.add(user)
         self.assertTrue(self._is_wimp(user, None))
 
@@ -61,19 +61,19 @@ class IsTheWimpTest(TestCase):
 class ChairActivitiesTest(TestCase):
     @staticmethod
     def _chair_activities(user, allow_superusers=None):
-        body = 'user|chair_activities'
+        body = "user|chair_activities"
         if allow_superusers is not None:
-            body = f'{body}:{bool(allow_superusers)}'
+            body = f"{body}:{bool(allow_superusers)}"
 
         html_template = Template(
-            '{% load perm_tags %}'
-            '{% for activity_enum in ' + body + ' %}'
-            '{{ activity_enum.label }}{% if not forloop.last %}\n{% endif %}'
-            '{% endfor %}'
+            "{% load perm_tags %}"
+            "{% for activity_enum in " + body + " %}"
+            "{{ activity_enum.label }}{% if not forloop.last %}\n{% endif %}"
+            "{% endfor %}"
         )
-        context = Context({'user': user})
+        context = Context({"user": user})
         lines = html_template.render(context)
-        return lines.split('\n') if lines else []
+        return lines.split("\n") if lines else []
 
     def test_not_chair(self):
         normal_user = factories.UserFactory.create()
@@ -82,7 +82,7 @@ class ChairActivitiesTest(TestCase):
     def test_activity_chair(self):
         user = factories.UserFactory.create()
         perm_utils.make_chair(user, enums.Activity.CLIMBING)
-        self.assertEqual(self._chair_activities(user), ['Climbing'])
+        self.assertEqual(self._chair_activities(user), ["Climbing"])
 
     def test_superuser(self):
         """An optional flag indicates if superusers should be considered chairs."""
@@ -91,7 +91,7 @@ class ChairActivitiesTest(TestCase):
         # True is useful for granting admins access to activity functions
         self.assertEqual(
             self._chair_activities(admin, allow_superusers=True),
-            ['Biking', 'Boating', 'Cabin', 'Climbing', 'Hiking', 'Winter School'],
+            ["Biking", "Boating", "Cabin", "Climbing", "Hiking", "Winter School"],
         )
         # False is useful for rendering actual chairships held
         self.assertEqual(self._chair_activities(admin, allow_superusers=False), [])
@@ -99,5 +99,5 @@ class ChairActivitiesTest(TestCase):
         # We can still report chairships held
         perm_utils.make_chair(admin, enums.Activity.WINTER_SCHOOL)
         self.assertEqual(
-            self._chair_activities(admin, allow_superusers=False), ['Winter School']
+            self._chair_activities(admin, allow_superusers=False), ["Winter School"]
         )

@@ -37,7 +37,7 @@ def participant_required(view_func: Callable) -> Callable:
 
         next_url = None
         if request.user.is_authenticated:
-            next_url = resolve_url(reverse('edit_profile'))
+            next_url = resolve_url(reverse("edit_profile"))
 
         path = request.get_full_path()  # All requests share scheme & netloc
         return redirect_to_login(path, next_url, REDIRECT_FIELD_NAME)
@@ -79,7 +79,7 @@ def group_required(
             if allow_anonymous and not request.user.is_authenticated:
                 return view_func(request, *args, **kwargs)
             if profile_needs_update(request):
-                next_url = resolve_url(reverse('edit_profile'))
+                next_url = resolve_url(reverse("edit_profile"))
             elif request.user.is_authenticated and in_groups(request.user):
                 return view_func(request, *args, **kwargs)
             else:  # Either logged in & missing groups, or not logged in
@@ -94,18 +94,18 @@ def group_required(
 
 
 user_info_required = group_required(
-    'users_with_info',
+    "users_with_info",
     allow_superusers=False,
-    redir_url=reverse_lazy('edit_profile'),
+    redir_url=reverse_lazy("edit_profile"),
 )
 participant_or_anon = group_required(
-    'users_with_info',
+    "users_with_info",
     allow_superusers=False,
     allow_anonymous=True,
-    redir_url=reverse_lazy('edit_profile'),
+    redir_url=reverse_lazy("edit_profile"),
 )
 
 admin_only = user_passes_test(
     lambda u: cast(User | AnonymousUser, u).is_superuser,
-    login_url=reverse_lazy('account_login'),
+    login_url=reverse_lazy("account_login"),
 )

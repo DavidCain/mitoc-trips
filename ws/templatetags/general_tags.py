@@ -11,13 +11,13 @@ register = template.Library()
 @keep_lazy(str)
 def strip_empty_lines(value):
     """Return the given HTML with empty and all-whitespace lines removed."""
-    return re.sub(r'\n[ \t]*(?=\n)', '', value)
+    return re.sub(r"\n[ \t]*(?=\n)", "", value)
 
 
 @register.tag
 def gapless(parser, token):
     """Remove blank lines between `{% gapless %}` and `{% endgapless %}`"""
-    nodelist = parser.parse(('endgapless',))
+    nodelist = parser.parse(("endgapless",))
     parser.delete_first_token()
     return GaplessNode(nodelist)
 
@@ -33,7 +33,7 @@ class GaplessNode(Node):
         stripped = strip_empty_lines(self.nodelist.render(context))
         # Strip the excess newlines from the `gapless' and `endgapless` tags being on newlines
         # (but do not strip leading space on actual lines)
-        return stripped.strip('\n')
+        return stripped.strip("\n")
 
 
 @register.filter
@@ -43,4 +43,4 @@ def subtract(value, arg):
 
 @register.filter
 def scramble(text):
-    return ''.join(random.sample(text, len(text)))
+    return "".join(random.sample(text, len(text)))

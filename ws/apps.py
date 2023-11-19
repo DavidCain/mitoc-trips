@@ -2,7 +2,7 @@ from django.apps import AppConfig
 
 
 class TripsConfig(AppConfig):
-    name = 'ws'
+    name = "ws"
     verbose_name = "MITOC Trips"
 
     @staticmethod

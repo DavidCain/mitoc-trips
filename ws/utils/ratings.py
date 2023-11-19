@@ -62,9 +62,9 @@ class LeaderApplicationMixin:
         Warning: Will raise an AttributeError if self.model failed to find
         an application type.
         """
-        applications = self.model.objects.select_related('participant')
+        applications = self.model.objects.select_related("participant")
         return applications.prefetch_related(
-            'participant__leaderrecommendation_set', 'participant__leaderrating_set'
+            "participant__leaderrecommendation_set", "participant__leaderrating_set"
         )
 
 
@@ -86,7 +86,7 @@ class RatingsRecommendationsMixin:
     def gave_rec(self) -> Q:
         """Select applications where the chair gave a recommendation."""
         return Q(
-            participant__leaderrecommendation__time_created__gte=F('time_created'),
+            participant__leaderrecommendation__time_created__gte=F("time_created"),
             participant__leaderrecommendation__activity=self.activity_enum.value,
             participant__leaderrecommendation__creator=self.chair,
         )
@@ -97,7 +97,7 @@ class RatingsRecommendationsMixin:
         return Q(
             # NOTE: Rating doesn't need to be active (if the leader was
             # deactivated, we don't want their application to re-appear)
-            participant__leaderrating__time_created__gte=F('time_created'),
+            participant__leaderrating__time_created__gte=F("time_created"),
             participant__leaderrating__activity=self.activity_enum.value,
         )
 
@@ -116,10 +116,10 @@ class ApplicationManager(LeaderApplicationMixin, RatingsRecommendationsMixin):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         # Set only if defined (so subclasses can instead define with @property)
         # Also, pop from kwargs so object.__init__ doesn't error out
-        if 'chair' in kwargs:
-            self._chair = kwargs.pop('chair')  # <Participant>
-        if 'activity_enum' in kwargs:
-            self._activity_enum = kwargs.pop('activity_enum')
+        if "chair" in kwargs:
+            self._chair = kwargs.pop("chair")  # <Participant>
+        if "activity_enum" in kwargs:
+            self._activity_enum = kwargs.pop("activity_enum")
         assert not kwargs, "Kwargs should be pruned to use the mixin pattern"
 
         super().__init__(*args, **kwargs)
@@ -140,7 +140,7 @@ class ApplicationManager(LeaderApplicationMixin, RatingsRecommendationsMixin):
             num_recs=self.sum_annotation(self.gave_rec),
         )
         return applications.distinct().order_by(
-            '-archived', 'num_ratings', 'num_recs', 'time_created'
+            "-archived", "num_ratings", "num_recs", "time_created"
         )
 
     def pending_applications(self) -> list[AnnotatedApplication]:

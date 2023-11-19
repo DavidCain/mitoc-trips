@@ -20,7 +20,7 @@ class MessageGenerator:
         self,
         level: int,
         message: str,
-        extra_tags: str = '',
+        extra_tags: str = "",
     ) -> bool:
         """Add a message, but only after first making sure it's not already been emitted.
 

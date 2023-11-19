@@ -18,11 +18,11 @@ else:
 
 
 def annotate_reciprocally_paired(
-    participants: QuerySet['Participant'],
+    participants: QuerySet["Participant"],
 ) -> QuerySet[AnnotatedParticipant]:
     """Annotate a QuerySet of participants to indicate if bidirectionally paired."""
     is_reciprocally_paired = Q(
-        pk=F('lotteryinfo__paired_with__lotteryinfo__paired_with__pk')
+        pk=F("lotteryinfo__paired_with__lotteryinfo__paired_with__pk")
     )
 
     return participants.annotate(

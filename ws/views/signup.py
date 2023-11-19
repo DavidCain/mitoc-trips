@@ -27,7 +27,7 @@ from ws.utils.membership import reasons_cannot_attend
 
 
 class BaseSignUpView(CreateView, LotteryPairingMixin):
-    template_name = 'trips/signup.html'
+    template_name = "trips/signup.html"
 
     # Both model & form class will be overridden by children
     model: type[db.models.Model]
@@ -39,7 +39,7 @@ class BaseSignUpView(CreateView, LotteryPairingMixin):
 
     def get_form(self, form_class=None):
         signup_form = super().get_form(form_class)
-        signup_form.fields['trip'].widget = HiddenInput()
+        signup_form.fields["trip"].widget = HiddenInput()
         return signup_form
 
     def form_valid(self, form):
@@ -48,7 +48,7 @@ class BaseSignUpView(CreateView, LotteryPairingMixin):
 
         errors = self.get_errors(signup)
         if errors:
-            form.errors['__all__'] = ErrorList(errors)
+            form.errors["__all__"] = ErrorList(errors)
             return self.form_invalid(form)
         return super().form_valid(form)
 
@@ -84,7 +84,7 @@ class BaseSignUpView(CreateView, LotteryPairingMixin):
 
         messages.success(self.request, msg)
 
-        return reverse('view_trip', args=(trip.pk,))
+        return reverse("view_trip", args=(trip.pk,))
 
 
 class LeaderSignUpView(BaseSignUpView):
@@ -107,7 +107,7 @@ class LeaderSignUpView(BaseSignUpView):
             )
         return errors
 
-    @method_decorator(group_required('leaders'))
+    @method_decorator(group_required("leaders"))
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
@@ -140,13 +140,13 @@ class SignUpView(BaseSignUpView):
 
 class DeleteSignupView(DeleteView):
     model = models.SignUp
-    success_url = reverse_lazy('upcoming_trips')
+    success_url = reverse_lazy("upcoming_trips")
 
     def get(self, request, *args, **kwargs):
         """Request is valid, but method is not (use POST)."""
         messages.warning(self.request, "Use delete button to remove signups.")
         trip = self.get_object().trip
-        return redirect(reverse('view_trip', args=(trip.pk,)))
+        return redirect(reverse("view_trip", args=(trip.pk,)))
 
     @method_decorator(user_info_required)
     def dispatch(self, request, *args, **kwargs):
@@ -155,7 +155,7 @@ class DeleteSignupView(DeleteView):
             raise PermissionDenied
         trip = signup.trip
         drops_allowed = trip.let_participants_drop or (
-            trip.upcoming and trip.algorithm == 'lottery'
+            trip.upcoming and trip.algorithm == "lottery"
         )
         if not drops_allowed:
             raise PermissionDenied

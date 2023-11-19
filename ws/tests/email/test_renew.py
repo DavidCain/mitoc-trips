@@ -16,24 +16,24 @@ class RenewTest(TestCase):
     def test_will_not_email_without_membership(self):
         par = ParticipantFactory.create(membership=None)
 
-        with mock.patch.object(mail.EmailMultiAlternatives, 'send') as send:
+        with mock.patch.object(mail.EmailMultiAlternatives, "send") as send:
             with self.assertRaises(ValueError) as cm:
                 renew.send_email_reminding_to_renew(par)
         send.assert_not_called()
 
-        self.assertIn('no membership on file', str(cm.exception))
+        self.assertIn("no membership on file", str(cm.exception))
 
     def test_will_not_email_if_already_expired(self):
         par = ParticipantFactory.create(
             membership__membership_expires=date(2020, 1, 10)
         )
 
-        with mock.patch.object(mail.EmailMultiAlternatives, 'send') as send:
+        with mock.patch.object(mail.EmailMultiAlternatives, "send") as send:
             with self.assertRaises(ValueError) as cm:
                 renew.send_email_reminding_to_renew(par)
         send.assert_not_called()
 
-        self.assertIn('Membership has already expired', str(cm.exception))
+        self.assertIn("Membership has already expired", str(cm.exception))
 
     def test_will_not_email_if_only_signed_waiver(self):
         par = ParticipantFactory.create(
@@ -41,12 +41,12 @@ class RenewTest(TestCase):
             membership__waiver_expires=date(2018, 1, 1),
         )
 
-        with mock.patch.object(mail.EmailMultiAlternatives, 'send') as send:
+        with mock.patch.object(mail.EmailMultiAlternatives, "send") as send:
             with self.assertRaises(ValueError) as cm:
                 renew.send_email_reminding_to_renew(par)
         send.assert_not_called()
 
-        self.assertIn('no membership on file', str(cm.exception))
+        self.assertIn("no membership on file", str(cm.exception))
 
     def test_will_not_email_before_renewal_date(self):
         par = ParticipantFactory.create(
@@ -54,7 +54,7 @@ class RenewTest(TestCase):
             membership__membership_expires=date(2020, 3, 13),
         )
 
-        with mock.patch.object(mail.EmailMultiAlternatives, 'send') as send:
+        with mock.patch.object(mail.EmailMultiAlternatives, "send") as send:
             with self.assertRaises(ValueError) as cm:
                 renew.send_email_reminding_to_renew(par)
         send.assert_not_called()
@@ -69,8 +69,8 @@ class RenewTest(TestCase):
             membership__membership_expires=date(2020, 2, 5),
         )
 
-        with mock.patch.object(mail.EmailMultiAlternatives, 'send') as send:
-            with self.settings(UNSUBSCRIBE_SECRET_KEY='sooper-secret'):  # noqa: S106
+        with mock.patch.object(mail.EmailMultiAlternatives, "send") as send:
+            with self.settings(UNSUBSCRIBE_SECRET_KEY="sooper-secret"):  # noqa: S106
                 msg = renew.send_email_reminding_to_renew(par)
         send.assert_called_once()
 
@@ -114,10 +114,10 @@ class RenewTest(TestCase):
             membership__membership_expires=date(2020, 2, 5),
         )
         par.discounts.add(DiscountFactory.create(name="Zazu's Advisory Services"))
-        par.discounts.add(DiscountFactory.create(name='Acme Corp'))
+        par.discounts.add(DiscountFactory.create(name="Acme Corp"))
 
-        with mock.patch.object(mail.EmailMultiAlternatives, 'send') as send:
-            with self.settings(UNSUBSCRIBE_SECRET_KEY='sooper-secret'):  # noqa: S106
+        with mock.patch.object(mail.EmailMultiAlternatives, "send") as send:
+            with self.settings(UNSUBSCRIBE_SECRET_KEY="sooper-secret"):  # noqa: S106
                 msg = renew.send_email_reminding_to_renew(par)
         send.assert_called_once()
 
@@ -158,21 +158,21 @@ class RenewTest(TestCase):
         self.assertEqual(msg.body, expected_text)
 
         html, mime_type = msg.alternatives[0]
-        self.assertEqual(mime_type, 'text/html')
-        soup = BeautifulSoup(html, 'html.parser')
+        self.assertEqual(mime_type, "text/html")
+        soup = BeautifulSoup(html, "html.parser")
         self.assertEqual(
-            [tag.attrs['href'] for tag in soup.find_all('a')],
+            [tag.attrs["href"] for tag in soup.find_all("a")],
             [
                 # We link to the discounts immediately, since that's mentioned up-front
-                'https://mitoc.mit.edu/preferences/discounts/',
-                'https://mitoc-trips.mit.edu/profile/membership/',
-                'https://mitoc.mit.edu/rentals',
+                "https://mitoc.mit.edu/preferences/discounts/",
+                "https://mitoc-trips.mit.edu/profile/membership/",
+                "https://mitoc.mit.edu/rentals",
                 # All MITOCers are told about discounts in their renewal email
-                'https://mitoc.mit.edu/preferences/discounts/',
-                'https://mitoc-trips.mit.edu/trips/',
-                'https://mitoc.mit.edu/rentals/cabins',
-                'https://mitoc-trips.mit.edu/preferences/email/eyJwayI6OTkxODM4LCJlbWFpbHMiOlswXX0:1iqdma:toxfJebkHgNNKTDNf42EiXTHT32ifB8EsqflXOED7R8/',
-                'https://mitoc-trips.mit.edu/preferences/email/',
-                'https://mitoc-trips.mit.edu/contact/',
+                "https://mitoc.mit.edu/preferences/discounts/",
+                "https://mitoc-trips.mit.edu/trips/",
+                "https://mitoc.mit.edu/rentals/cabins",
+                "https://mitoc-trips.mit.edu/preferences/email/eyJwayI6OTkxODM4LCJlbWFpbHMiOlswXX0:1iqdma:toxfJebkHgNNKTDNf42EiXTHT32ifB8EsqflXOED7R8/",
+                "https://mitoc-trips.mit.edu/preferences/email/",
+                "https://mitoc-trips.mit.edu/contact/",
             ],
         )

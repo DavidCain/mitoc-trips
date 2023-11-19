@@ -15,7 +15,7 @@ class LotteryMessagesTest(MessagesTestCase):
     @freeze_time("2017-01-17 12:00:00 EST")
     def test_anonymous_user_during_ws(self):
         """Anonymous users shouldn't receive lottery warnings."""
-        request = self.factory.get('/')
+        request = self.factory.get("/")
 
         # Simulate the effects of the ParticipantMiddleware for an anonymous user
         request.user = AnonymousUser()
@@ -51,7 +51,7 @@ class LotteryMessagesTest(MessagesTestCase):
             request,
             messages.WARNING,
             """You haven't set your <a href="/preferences/lottery/">lottery preferences</a>.""",
-            extra_tags='safe',
+            extra_tags="safe",
         )
 
     @freeze_time("2017-01-17 12:00:00 EST")
@@ -59,7 +59,7 @@ class LotteryMessagesTest(MessagesTestCase):
         """We ask participants who said they could drive to supply info."""
 
         par = factories.ParticipantFactory.create()
-        factories.LotteryInfoFactory.create(participant=par, car_status='own')
+        factories.LotteryInfoFactory.create(participant=par, car_status="own")
         self.assertIsNone(par.car)
 
         request = self._request_with_participant(par)
@@ -72,14 +72,14 @@ class LotteryMessagesTest(MessagesTestCase):
             messages.WARNING,
             """You're a driver in the lottery, but haven't <a href="/profile/edit/">submitted car information</a>. """
             """If you can no longer drive, please update your <a href="/preferences/lottery/">lottery preferences</a>.""",
-            extra_tags='safe',
+            extra_tags="safe",
         )
 
     def test_dated_info_last_marked_a_driver(self):
         """We remind participants if their lottery information is dated."""
         par = factories.ParticipantFactory.create()
         with freeze_time("2017-01-07 12:00:00 EST"):
-            factories.LotteryInfoFactory.create(participant=par, car_status='rent')
+            factories.LotteryInfoFactory.create(participant=par, car_status="rent")
 
         with freeze_time("2017-01-17 14:25:00 EST"):
             request = self._request_with_participant(par)
@@ -91,14 +91,14 @@ class LotteryMessagesTest(MessagesTestCase):
             messages.INFO,
             """You haven't updated your <a href="/preferences/lottery/">lottery preferences</a> in 10 days. """
             "You will be counted as a driver in the next lottery.",
-            extra_tags='safe',
+            extra_tags="safe",
         )
 
     def test_dated_info_last_marked_non_driver(self):
         """We remind participants if their lottery information is dated."""
         par = factories.ParticipantFactory.create()
         with freeze_time("2017-01-12 11:40:00 EST"):
-            factories.LotteryInfoFactory.create(participant=par, car_status='none')
+            factories.LotteryInfoFactory.create(participant=par, car_status="none")
 
         with freeze_time("2017-01-17 13:25:00 EST"):
             request = self._request_with_participant(par)
@@ -110,7 +110,7 @@ class LotteryMessagesTest(MessagesTestCase):
             messages.INFO,
             """You haven't updated your <a href="/preferences/lottery/">lottery preferences</a> in 5 days. """
             "You will be counted as a non-driver in the next lottery.",
-            extra_tags='safe',
+            extra_tags="safe",
         )
 
     @staticmethod
@@ -124,7 +124,7 @@ class LotteryMessagesTest(MessagesTestCase):
             # (Only upcoming WS lottery trips are considered)
             trip=factories.TripFactory.create(
                 activity=models.BaseRating.WINTER_SCHOOL,
-                algorithm='lottery',
+                algorithm="lottery",
                 trip_date=next_week,
             ),
         )
@@ -133,7 +133,7 @@ class LotteryMessagesTest(MessagesTestCase):
     def test_has_not_ranked(self):
         """If participants don't rank their signups, we warn them to do so."""
         par = factories.ParticipantFactory.create()
-        factories.LotteryInfoFactory.create(participant=par, car_status='none')
+        factories.LotteryInfoFactory.create(participant=par, car_status="none")
         request = self._request_with_participant(par)
 
         # We don't warn about ranking one trip
@@ -151,7 +151,7 @@ class LotteryMessagesTest(MessagesTestCase):
             request,
             messages.WARNING,
             """You haven't <a href="/preferences/lottery/">ranked upcoming trips.</a>""",
-            extra_tags='safe',
+            extra_tags="safe",
         )
 
         # If placed on this trip, the participant goes back to having just one un-ranked.
@@ -168,7 +168,7 @@ class LotteryMessagesTest(MessagesTestCase):
         """Show that a WS participant with everything set up receives no warning."""
         with freeze_time("2017-01-15 13:25:00 EST"):
             par = factories.ParticipantFactory.create()
-            factories.LotteryInfoFactory.create(participant=par, car_status='own')
+            factories.LotteryInfoFactory.create(participant=par, car_status="own")
             factories.CarFactory.create(participant=par)
 
             # Create (and rank) upcoming trips

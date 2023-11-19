@@ -65,9 +65,9 @@ def jsonify_membership_waiver(mem: geardb.MembershipWaiver) -> MembershipDict:
 
 def _blank_membership() -> MembershipDict:
     return {
-        'membership': {'expires': None, 'active': False, 'email': None},
-        'waiver': {'expires': None, 'active': False},
-        'status': 'Missing',
+        "membership": {"expires": None, "active": False, "email": None},
+        "waiver": {"expires": None, "active": False},
+        "status": "Missing",
     }
 
 
@@ -88,15 +88,15 @@ def _represent_status(
     waiver: _OnlyWaiverDict,
 ) -> Status:
     """Generate a human-readable status (for use in the UI)."""
-    if membership['expires'] is None and waiver['expires'] is None:
-        return 'Missing'
+    if membership["expires"] is None and waiver["expires"] is None:
+        return "Missing"
 
-    if not membership['active']:
-        return "Missing Membership" if waiver['active'] else "Expired"
+    if not membership["active"]:
+        return "Missing Membership" if waiver["active"] else "Expired"
 
-    if not waiver['expires']:
+    if not waiver["expires"]:
         return "Missing Waiver"
-    if not waiver['active']:
+    if not waiver["active"]:
         return "Waiver Expired"
     return "Active"
 
@@ -107,16 +107,16 @@ def _format_membership(
     waiver_expires: date | None,
 ) -> MembershipDict:
     person = _blank_membership()
-    membership, waiver = person['membership'], person['waiver']
-    membership['email'] = email
+    membership, waiver = person["membership"], person["waiver"]
+    membership["email"] = email
 
     for component, expires in [
         (membership, membership_expires),
         (waiver, waiver_expires),
     ]:
-        component['expires'] = expires.isoformat() if expires else None
-        component['active'] = bool(expires and expires >= local_date())
+        component["expires"] = expires.isoformat() if expires else None
+        component["active"] = bool(expires and expires >= local_date())
 
-    person['status'] = _represent_status(membership, waiver)
+    person["status"] = _represent_status(membership, waiver)
 
     return person

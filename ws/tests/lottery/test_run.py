@@ -17,33 +17,33 @@ class SingleTripLotteryTests(TestCase):
     def test_fcfs_not_run(self):
         """If a trip's algorithm is not 'lottery', nothing happens."""
         trip = factories.TripFactory.create(
-            algorithm='fcfs', program=enums.Program.HIKING.value
+            algorithm="fcfs", program=enums.Program.HIKING.value
         )
         runner = run.SingleTripLotteryRunner(trip)
 
-        with patch.object(models.Trip, 'save', wraps=models.Trip.save) as save_trip:
+        with patch.object(models.Trip, "save", wraps=models.Trip.save) as save_trip:
             runner()  # Early exits because it's not a lottery trip
         save_trip.assert_not_called()  # Trip was not modified
 
         trip.refresh_from_db()
         self.assertIsNone(trip.lottery_log)  # No lottery was run!
-        self.assertEqual(trip.algorithm, 'fcfs')
+        self.assertEqual(trip.algorithm, "fcfs")
 
     def test_run_with_no_signups(self):
         """We still run the lottery when nobody signed up."""
-        trip = factories.TripFactory.create(algorithm='lottery')
+        trip = factories.TripFactory.create(algorithm="lottery")
         runner = run.SingleTripLotteryRunner(trip)
         runner()
         trip.refresh_from_db()
-        expected = '\n'.join(
+        expected = "\n".join(
             [
-                'Randomly ordering (preference to MIT affiliates)...',
-                'No participants signed up.',
-                'Converting trip to first-come, first-serve.',
-                '',
+                "Randomly ordering (preference to MIT affiliates)...",
+                "No participants signed up.",
+                "Converting trip to first-come, first-serve.",
+                "",
             ]
         )
-        self.assertEqual(trip.algorithm, 'fcfs')
+        self.assertEqual(trip.algorithm, "fcfs")
         self.assertEqual(trip.lottery_log, expected)
 
     # The wall time when invoking the lottery determines the random seed
@@ -57,7 +57,7 @@ class SingleTripLotteryTests(TestCase):
         trip = factories.TripFactory.create(
             pk=838249,  # Will factor into seed + ordering
             name="Single Trip Example",
-            algorithm='lottery',
+            algorithm="lottery",
             maximum_participants=2,
             program=enums.Program.CLIMBING.value,
         )
@@ -91,7 +91,7 @@ class SingleTripLotteryTests(TestCase):
         # - we mock wall time to be consistent with every test run
         # - we know participant PKs and the trip PK.
         # - we know the test environment's PRNG_SEED_SECRET
-        self.assertEqual(settings.PRNG_SEED_SECRET, 'some-key-unknown-to-participants')
+        self.assertEqual(settings.PRNG_SEED_SECRET, "some-key-unknown-to-participants")
         expected = dedent(
             """\
             Randomly ordering (preference to MIT affiliates)...
@@ -108,7 +108,7 @@ class SingleTripLotteryTests(TestCase):
 
         # The lottery log explains what happened & is written directly to the trip.
         trip.refresh_from_db()
-        self.assertEqual(trip.algorithm, 'fcfs')
+        self.assertEqual(trip.algorithm, "fcfs")
         self.assertEqual(trip.lottery_log, expected)
 
         # Alice & Charles were placed on the trip.
@@ -158,10 +158,10 @@ class WinterSchoolLotteryTests(TestCase):
         )
 
     def _assert_fcfs_at_noon(self, trip):
-        self.assertEqual(trip.algorithm, 'fcfs')
+        self.assertEqual(trip.algorithm, "fcfs")
         self.assertEqual(
             trip.signups_open_at,
-            datetime(2020, 1, 15, 12, tzinfo=ZoneInfo('America/New_York')),
+            datetime(2020, 1, 15, 12, tzinfo=ZoneInfo("America/New_York")),
         )
 
     def test_no_signups(self):
@@ -181,14 +181,14 @@ class WinterSchoolLotteryTests(TestCase):
         - The cleanup phase of the lottery does not modify any non-WS trips
         """
         outside_iap_trip = factories.TripFactory.create(
-            name='non-WS trip',
-            algorithm='lottery',
+            name="non-WS trip",
+            algorithm="lottery",
             program=enums.Program.WINTER_NON_IAP.value,
             trip_date=date(2020, 1, 18),
         )
         office_day = factories.TripFactory.create(
-            name='Office Day',
-            algorithm='fcfs',
+            name="Office Day",
+            algorithm="fcfs",
             program=enums.Program.NONE.value,
             trip_date=date(2020, 1, 19),
         )
@@ -206,6 +206,6 @@ class WinterSchoolLotteryTests(TestCase):
 
         # Neither of the other two trips had their algorithm or start time adjusted
         outside_iap_trip.refresh_from_db()
-        self.assertEqual(outside_iap_trip.algorithm, 'lottery')
+        self.assertEqual(outside_iap_trip.algorithm, "lottery")
         office_day.refresh_from_db()
         self.assertEqual(office_day.signups_open_at, date_utils.local_now())

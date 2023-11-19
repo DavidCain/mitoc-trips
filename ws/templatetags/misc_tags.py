@@ -9,7 +9,7 @@ register = template.Library()
 def format_phone_number(number):
     """Format phone numbers with spacing & area code."""
     if not number:
-        return ''
+        return ""
 
     # Only include country code if outside the US
     if number.country_code == 1:

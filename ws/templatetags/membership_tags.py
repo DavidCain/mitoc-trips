@@ -24,7 +24,7 @@ STATUS_TO_BOOTSTRAP_LABEL: Mapping[membership_api.Status, str] = MappingProxyTyp
 )
 
 
-@register.inclusion_tag('for_templatetags/membership_status.html', takes_context=True)
+@register.inclusion_tag("for_templatetags/membership_status.html", takes_context=True)
 def membership_status(
     context: Context,
     participant: models.Participant,
@@ -40,7 +40,7 @@ def membership_status(
     can_renew_early = bool(membership and membership.in_early_renewal_period)
 
     membership_info = membership_api.format_cached_membership(participant)
-    status = "Expiring Soon" if can_renew_early else membership_info['status']
+    status = "Expiring Soon" if can_renew_early else membership_info["status"]
 
     link_to_pay_dues = can_link_to_pay_dues and (
         can_renew_early or not (membership and membership.membership_active)
@@ -58,13 +58,13 @@ def membership_status(
 
     # query_geardb_for_membership(user)
     return {
-        'participant': participant,
-        'viewing_participant': context['viewing_participant'],
-        'membership': membership,
-        'status': status,
-        'in_early_renewal_period': can_renew_early,
-        'label_class': STATUS_TO_BOOTSTRAP_LABEL[status],
-        'link_to_pay_dues': link_to_pay_dues,
-        'link_to_sign_waiver': link_to_sign_waiver,
-        'personalize': personalize,
+        "participant": participant,
+        "viewing_participant": context["viewing_participant"],
+        "membership": membership,
+        "status": status,
+        "in_early_renewal_period": can_renew_early,
+        "label_class": STATUS_TO_BOOTSTRAP_LABEL[status],
+        "link_to_pay_dues": link_to_pay_dues,
+        "link_to_sign_waiver": link_to_sign_waiver,
+        "personalize": personalize,
     }

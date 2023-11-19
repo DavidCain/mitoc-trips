@@ -33,18 +33,18 @@ class Messages(MessageGenerator):
                 info__isnull=True,
                 program=enums.Program.WINTER_SCHOOL.value,
             )
-            .order_by('trip_date')  # Warn about closest trips first!
-            .values_list('pk', 'trip_date', 'name')
+            .order_by("trip_date")  # Warn about closest trips first!
+            .values_list("pk", "trip_date", "name")
         )
 
         for trip_pk, trip_date, name in future_trips_without_info:
             if now > date_utils.itinerary_available_at(trip_date):
-                trip_url = reverse('trip_itinerary', args=(trip_pk,))
+                trip_url = reverse("trip_itinerary", args=(trip_pk,))
                 msg = (
                     f'Please <a href="{trip_url}">submit an itinerary for '
-                    f'{escape(name)}</a> before departing!'
+                    f"{escape(name)}</a> before departing!"
                 )
-                self.add_unique_message(messages.WARNING, msg, extra_tags='safe')
+                self.add_unique_message(messages.WARNING, msg, extra_tags="safe")
 
     def _complain_if_missing_feedback(self):
         """Create messages if the leader should supply feedback.
@@ -62,10 +62,10 @@ class Messages(MessageGenerator):
             )
             .exclude(feedback__leader=participant)
             .exclude(signup__isnull=True)  # Don't bother with empty trips
-            .values_list('pk', 'name')
+            .values_list("pk", "name")
         )
 
         for trip_pk, name in recent_trips_without_feedback:
-            trip_url = reverse('review_trip', args=(trip_pk,))
+            trip_url = reverse("review_trip", args=(trip_pk,))
             msg = f'Please supply feedback for <a href="{trip_url}">{escape(name)}</a>'
-            self.add_unique_message(messages.WARNING, msg, extra_tags='safe')
+            self.add_unique_message(messages.WARNING, msg, extra_tags="safe")

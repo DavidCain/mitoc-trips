@@ -13,9 +13,9 @@ class Messages(MessageGenerator):
             return
 
         if any(problems_with_profile(self.request.participant)):
-            edit_url = reverse('edit_profile')
+            edit_url = reverse("edit_profile")
             self.add_unique_message(
                 messages.WARNING,
                 f'<a href="{edit_url}">Update your profile</a> to sign up for trips.',
-                extra_tags='safe',
+                extra_tags="safe",
             )

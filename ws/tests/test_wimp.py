@@ -7,13 +7,13 @@ from ws.tests import factories
 
 class WimpTests(TestCase):
     def test_no_active_wimps(self):
-        self.assertFalse(Group.objects.get(name='WIMP').user_set.exists())
+        self.assertFalse(Group.objects.get(name="WIMP").user_set.exists())
         self.assertCountEqual(wimp.active_wimps(), [])
         self.assertIsNone(wimp.current_wimp())
 
     def test_single_wimp(self):
         wimp_par = factories.ParticipantFactory.create()
-        wimp_group = Group.objects.get(name='WIMP')
+        wimp_group = Group.objects.get(name="WIMP")
         self.assertFalse(wimp_group.user_set.exists())
 
         wimp_group.user_set.add(wimp_par.user)
@@ -28,14 +28,14 @@ class WimpTests(TestCase):
 
         wimp_par = factories.ParticipantFactory.create()
 
-        wimp_group = Group.objects.get(name='WIMP')
+        wimp_group = Group.objects.get(name="WIMP")
         wimp_group.user_set.add(no_par_user)
         wimp_group.user_set.add(wimp_par.user)
         self.assertCountEqual(wimp.active_wimps(), [wimp_par])
         self.assertEqual(wimp_par, wimp.current_wimp())
 
     def test_wimps_sorted_by_time_made_wimp(self):
-        wimp_group = Group.objects.get(name='WIMP')
+        wimp_group = Group.objects.get(name="WIMP")
 
         # Participants are created in different orders
         second_wimp = factories.ParticipantFactory.create()

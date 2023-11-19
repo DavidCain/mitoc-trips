@@ -60,8 +60,8 @@ def _get_signer(key: str | None = None) -> signing.TimestampSigner:
         # > value) cannot be used to validate the same plaintext string in a different
         # > namespace that is using a different salt setting.
         # https://docs.djangoproject.com/en/3.2/topics/signing/
-        salt='ws.email.unsubscribe',
-        algorithm='sha256',
+        salt="ws.email.unsubscribe",
+        algorithm="sha256",
     )
 
 
@@ -72,8 +72,8 @@ def generate_unsubscribe_token(participant: models.Participant) -> str:
     be accessed even if the participant isn't logged in.
     """
     payload: TokenPayload = {
-        'pk': participant.pk,
-        'emails': [EmailType.membership_renewal.value],
+        "pk": participant.pk,
+        "emails": [EmailType.membership_renewal.value],
     }
     return _get_signer().sign_object(payload)
 
@@ -93,16 +93,16 @@ def unsign_token(token: str) -> UnsubscribeTarget:
     )
 
     return UnsubscribeTarget(
-        participant_pk=payload['pk'],
-        email_types={EmailType(email_id) for email_id in payload['emails']},
+        participant_pk=payload["pk"],
+        email_types={EmailType(email_id) for email_id in payload["emails"]},
     )
 
 
 def _bad_token_reason(exception: signing.BadSignature) -> str:
     """Give a human-readable explanation for what's wrong with the token."""
     if isinstance(exception, signing.SignatureExpired):
-        return 'Token expired'
-    return 'Invalid token'
+        return "Token expired"
+    return "Invalid token"
 
 
 def unsubscribe_from_token(token: str) -> models.Participant:

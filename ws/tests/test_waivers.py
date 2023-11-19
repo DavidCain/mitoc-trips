@@ -13,43 +13,43 @@ from ws.tests import factories
 
 class HeaderBaseTest(unittest.TestCase):
     def setUp(self):
-        patched = mock.patch.object(waivers, 'settings')
+        patched = mock.patch.object(waivers, "settings")
         orig_event_notif = settings.DOCUSIGN_EVENT_NOTIFICATION
         self.mocked_settings = patched.start()
 
-        self.mocked_settings.DOCUSIGN_USERNAME = 'djcain@mit.edu'
+        self.mocked_settings.DOCUSIGN_USERNAME = "djcain@mit.edu"
         self.mocked_settings.DOCUSIGN_PASSWORD = (
-            'sooper-secure-hexish-token'  # noqa: S105
+            "sooper-secure-hexish-token"  # noqa: S105
         )
-        self.mocked_settings.DOCUSIGN_INTEGRATOR_KEY = 'some-integrator-key'
+        self.mocked_settings.DOCUSIGN_INTEGRATOR_KEY = "some-integrator-key"
         self.mocked_settings.DOCUSIGN_WAIVER_TEMPLATE_ID = str(uuid.uuid4())
         self.mocked_settings.DOCUSIGN_EVENT_NOTIFICATION = orig_event_notif
 
         self.addCleanup(patched.stop)
 
         self.expected_creds = (
-            '<DocuSignCredentials>'
-            '<Username>djcain@mit.edu</Username>'
-            '<Password>sooper-secure-hexish-token</Password>'
-            '<IntegratorKey>some-integrator-key</IntegratorKey>'
-            '</DocuSignCredentials>'
+            "<DocuSignCredentials>"
+            "<Username>djcain@mit.edu</Username>"
+            "<Password>sooper-secure-hexish-token</Password>"
+            "<IntegratorKey>some-integrator-key</IntegratorKey>"
+            "</DocuSignCredentials>"
         )
 
     EXPECTED_EVENT_NOTIFICATION = {
-        'url': 'https://docusign.mitoc.org/members/waiver',
-        'loggingEnabled': 'true',
-        'requireAcknowledgment': 'true',
-        'useSoapInterface': 'false',
-        'includeCertificateWithSoap': 'false',
-        'signMessageWithX509Cert': 'true',
-        'includeDocuments': 'false',
-        'includeCertificateOfCompletion': 'false',
-        'includeEnvelopeVoidReason': 'true',
-        'includeTimeZone': 'true',
-        'includeSenderAccountAsCustomField': 'true',
-        'includeDocumentFields': 'true',
-        'envelopeEvents': [{'envelopeEventStatusCode': 'completed'}],
-        'recipientEvents': [{'recipientEventStatusCode': 'Completed'}],
+        "url": "https://docusign.mitoc.org/members/waiver",
+        "loggingEnabled": "true",
+        "requireAcknowledgment": "true",
+        "useSoapInterface": "false",
+        "includeCertificateWithSoap": "false",
+        "signMessageWithX509Cert": "true",
+        "includeDocuments": "false",
+        "includeCertificateOfCompletion": "false",
+        "includeEnvelopeVoidReason": "true",
+        "includeTimeZone": "true",
+        "includeSenderAccountAsCustomField": "true",
+        "includeDocumentFields": "true",
+        "envelopeEvents": [{"envelopeEventStatusCode": "completed"}],
+        "recipientEvents": [{"recipientEventStatusCode": "Completed"}],
     }
 
 
@@ -59,41 +59,41 @@ class DocusignHeadersTests(HeaderBaseTest):
         self.assertEqual(
             waivers.get_headers(),
             {
-                'Accept': 'application/json',
-                'X-DocuSign-Authentication': self.expected_creds,
+                "Accept": "application/json",
+                "X-DocuSign-Authentication": self.expected_creds,
             },
         )
 
     def test_headers_used_fetching_base_url(self):
         """Authentication is provided as an XML object in HTTP headers."""
-        self.mocked_settings.DOCUSIGN_BASE = 'https://demo.docusign.net/restapi/v2/'
+        self.mocked_settings.DOCUSIGN_BASE = "https://demo.docusign.net/restapi/v2/"
         login_info = mock.Mock(spec=requests.Response)
         login_info.json.return_value = {
-            'loginAccounts': [
+            "loginAccounts": [
                 {
-                    'name': 'Massachusetts Institute of Technology',
-                    'accountId': '123456',
-                    'baseUrl': 'https://demo.docusign.net/restapi/v2/accounts/123456',
-                    'isDefault': 'true',
-                    'userName': 'MITOC',
-                    'userId': '123abcd0-1234-1234-1234-01234567890a',
-                    'email': 'djcain@mit.edu',
-                    'siteDescription': '',
+                    "name": "Massachusetts Institute of Technology",
+                    "accountId": "123456",
+                    "baseUrl": "https://demo.docusign.net/restapi/v2/accounts/123456",
+                    "isDefault": "true",
+                    "userName": "MITOC",
+                    "userId": "123abcd0-1234-1234-1234-01234567890a",
+                    "email": "djcain@mit.edu",
+                    "siteDescription": "",
                 }
             ]
         }
-        with mock.patch.object(requests, 'get') as requests_get:
+        with mock.patch.object(requests, "get") as requests_get:
             requests_get.return_value = login_info
             base_url = waivers.get_base_url()
 
         self.assertEqual(
-            base_url, 'https://demo.docusign.net/restapi/v2/accounts/123456'
+            base_url, "https://demo.docusign.net/restapi/v2/accounts/123456"
         )
 
 
 @contextlib.contextmanager
-def mock_base_url(url='https://demo.docusign.net/restapi/v2/accounts/123456'):
-    with mock.patch.object(waivers, 'get_base_url') as get_base_url:
+def mock_base_url(url="https://demo.docusign.net/restapi/v2/accounts/123456"):
+    with mock.patch.object(waivers, "get_base_url") as get_base_url:
         get_base_url.return_value = url
         yield
 
@@ -122,16 +122,16 @@ class BasicWaiverTests(HeaderBaseTest):
             ),
         )
         expected = {
-            'textTabs': [
-                {'tabLabel': 'Phone number', 'value': '+17815551234'},
-                {'tabLabel': 'Emergency Contact', 'value': 'Beatrice Beaver'},
-                {'tabLabel': 'Emergency Contact Relation', 'value': 'Mother'},
-                {'tabLabel': "Emergency Contact's Phone", 'value': '+17815550342'},
+            "textTabs": [
+                {"tabLabel": "Phone number", "value": "+17815551234"},
+                {"tabLabel": "Emergency Contact", "value": "Beatrice Beaver"},
+                {"tabLabel": "Emergency Contact Relation", "value": "Mother"},
+                {"tabLabel": "Emergency Contact's Phone", "value": "+17815550342"},
             ],
-            'radioGroupTabs': [
+            "radioGroupTabs": [
                 {
-                    'groupName': 'Affiliation',
-                    'radios': [{'value': 'Non-affiliate', 'selected': True}],
+                    "groupName": "Affiliation",
+                    "radios": [{"value": "Non-affiliate", "selected": True}],
                 }
             ],
         }
@@ -140,37 +140,37 @@ class BasicWaiverTests(HeaderBaseTest):
 
     @mock_base_url()
     def test_initiate_waiver_from_name_email(self):
-        with mock.patch.object(requests, 'post') as requests_post:
+        with mock.patch.object(requests, "post") as requests_post:
             result = waivers.initiate_waiver(
                 participant=None,
-                releasor=waivers.Person(name='Tim Beaver', email='tim@mit.edu'),
+                releasor=waivers.Person(name="Tim Beaver", email="tim@mit.edu"),
                 guardian=None,
             )
         requests_post.assert_called_once()
         kwargs = requests_post.call_args[1]
         self.assertEqual(
-            kwargs['json'],
+            kwargs["json"],
             {
-                'status': 'sent',
-                'templateId': self.mocked_settings.DOCUSIGN_WAIVER_TEMPLATE_ID,
-                'templateRoles': [
+                "status": "sent",
+                "templateId": self.mocked_settings.DOCUSIGN_WAIVER_TEMPLATE_ID,
+                "templateRoles": [
                     {
-                        'roleName': 'Releasor',
-                        'name': 'Tim Beaver',
-                        'email': 'tim@mit.edu',
+                        "roleName": "Releasor",
+                        "name": "Tim Beaver",
+                        "email": "tim@mit.edu",
                     },
                     {
-                        'roleName': 'MITOC Desk',
-                        'name': 'MITOC Desk',
-                        'email': 'mitocdesk@gmail.com',
+                        "roleName": "MITOC Desk",
+                        "name": "MITOC Desk",
+                        "email": "mitocdesk@gmail.com",
                     },
                 ],
-                'eventNotification': self.EXPECTED_EVENT_NOTIFICATION,
+                "eventNotification": self.EXPECTED_EVENT_NOTIFICATION,
             },
         )
 
         self.assertEqual(
-            result, waivers.InitiatedWaiverResult(email='tim@mit.edu', url=None)
+            result, waivers.InitiatedWaiverResult(email="tim@mit.edu", url=None)
         )
 
 
@@ -180,19 +180,19 @@ class ParticipantWaiverTests(HeaderBaseTest, TestCase):
     def _mock_posts():
         def fake_post(url, **kwargs):
             resp = mock.Mock(spec=requests.Response)
-            if url.endswith('envelopes'):
-                resp.json.return_value = {'envelopeId': 'some-envelope-id'}
+            if url.endswith("envelopes"):
+                resp.json.return_value = {"envelopeId": "some-envelope-id"}
                 return resp
 
-            if url.endswith('views/recipient'):
+            if url.endswith("views/recipient"):
                 resp.json.return_value = {
-                    'url': 'https://na2.docusign.net/Signing/StartInSession.aspx?code=long-code-with-encoded-data&persistent_auth_token=no_client_token'
+                    "url": "https://na2.docusign.net/Signing/StartInSession.aspx?code=long-code-with-encoded-data&persistent_auth_token=no_client_token"
                 }
                 return resp
 
             raise ValueError(f"unexpected url {url}")  # pragma: no cover
 
-        with mock.patch.object(requests, 'post') as requests_post:
+        with mock.patch.object(requests, "post") as requests_post:
             requests_post.side_effect = fake_post
             yield requests_post
 
@@ -200,7 +200,7 @@ class ParticipantWaiverTests(HeaderBaseTest, TestCase):
     def test_no_guardian(self):
         """When a participant submits the form, we start an embedded flow for them."""
         participant = factories.ParticipantFactory.create(
-            name='Tim Beaver', email='tim@mit.edu'
+            name="Tim Beaver", email="tim@mit.edu"
         )
 
         with self._mock_posts() as requests_post:
@@ -212,36 +212,36 @@ class ParticipantWaiverTests(HeaderBaseTest, TestCase):
         env_args, env_kwargs = requests_post.call_args_list[0]
         self.assertEqual(
             env_args,
-            ('https://demo.docusign.net/restapi/v2/accounts/123456/envelopes',),
+            ("https://demo.docusign.net/restapi/v2/accounts/123456/envelopes",),
         )
         self.assertEqual(
-            env_kwargs['headers'],
+            env_kwargs["headers"],
             {
-                'Accept': 'application/json',
-                'X-DocuSign-Authentication': self.expected_creds,
+                "Accept": "application/json",
+                "X-DocuSign-Authentication": self.expected_creds,
             },
         )
 
         self.assertEqual(
-            env_kwargs['json'],
+            env_kwargs["json"],
             {
-                'status': 'sent',
-                'templateId': self.mocked_settings.DOCUSIGN_WAIVER_TEMPLATE_ID,
-                'templateRoles': [
+                "status": "sent",
+                "templateId": self.mocked_settings.DOCUSIGN_WAIVER_TEMPLATE_ID,
+                "templateRoles": [
                     {
-                        'roleName': 'Releasor',
-                        'name': 'Tim Beaver',
-                        'email': 'tim@mit.edu',
-                        'clientUserId': participant.pk,
-                        'tabs': waivers.prefilled_tabs(participant),  # Tested earlier
+                        "roleName": "Releasor",
+                        "name": "Tim Beaver",
+                        "email": "tim@mit.edu",
+                        "clientUserId": participant.pk,
+                        "tabs": waivers.prefilled_tabs(participant),  # Tested earlier
                     },
                     {
-                        'roleName': 'MITOC Desk',
-                        'name': 'MITOC Desk',
-                        'email': 'mitocdesk@gmail.com',
+                        "roleName": "MITOC Desk",
+                        "name": "MITOC Desk",
+                        "email": "mitocdesk@gmail.com",
                     },
                 ],
-                'eventNotification': self.EXPECTED_EVENT_NOTIFICATION,
+                "eventNotification": self.EXPECTED_EVENT_NOTIFICATION,
             },
         )
 
@@ -250,41 +250,41 @@ class ParticipantWaiverTests(HeaderBaseTest, TestCase):
         self.assertEqual(
             embedded_args,
             (
-                'https://demo.docusign.net/restapi/v2/accounts/123456/envelopes/some-envelope-id/views/recipient',
+                "https://demo.docusign.net/restapi/v2/accounts/123456/envelopes/some-envelope-id/views/recipient",
             ),
         )
 
         self.assertEqual(
-            embedded_kwargs['headers'],
+            embedded_kwargs["headers"],
             {
-                'Accept': 'application/json',
-                'X-DocuSign-Authentication': self.expected_creds,
+                "Accept": "application/json",
+                "X-DocuSign-Authentication": self.expected_creds,
             },
         )
         self.assertEqual(
-            embedded_kwargs['json'],
+            embedded_kwargs["json"],
             {
-                'userName': 'Tim Beaver',
-                'email': 'tim@mit.edu',
-                'clientUserId': participant.pk,
-                'authenticationMethod': 'email',
-                'returnUrl': 'https://mitoc-trips.mit.edu',
+                "userName": "Tim Beaver",
+                "email": "tim@mit.edu",
+                "clientUserId": participant.pk,
+                "authenticationMethod": "email",
+                "returnUrl": "https://mitoc-trips.mit.edu",
             },
         )
 
     @mock_base_url()
     def test_guardian(self):
         participant = factories.ParticipantFactory.create(
-            name='Tim Beaver', email='tim@mit.edu'
+            name="Tim Beaver", email="tim@mit.edu"
         )
 
         with self._mock_posts() as requests_post:
             waivers.initiate_waiver(
                 participant,
                 # Specifying releasor is redundant, but allowed
-                releasor=waivers.Person(name='Tim Beaver', email='tim@mit.edu'),
+                releasor=waivers.Person(name="Tim Beaver", email="tim@mit.edu"),
                 guardian=waivers.Person(
-                    name='Timothy Beaver, Sr', email='tim@alum.mit.edu'
+                    name="Timothy Beaver, Sr", email="tim@alum.mit.edu"
                 ),
             )
 
@@ -294,34 +294,34 @@ class ParticipantWaiverTests(HeaderBaseTest, TestCase):
         env_args, env_kwargs = requests_post.call_args_list[0]
         self.assertEqual(
             env_args,
-            ('https://demo.docusign.net/restapi/v2/accounts/123456/envelopes',),
+            ("https://demo.docusign.net/restapi/v2/accounts/123456/envelopes",),
         )
 
         self.assertEqual(
-            env_kwargs['json'],
+            env_kwargs["json"],
             {
-                'status': 'sent',
-                'templateId': self.mocked_settings.DOCUSIGN_WAIVER_TEMPLATE_ID,
-                'templateRoles': [
+                "status": "sent",
+                "templateId": self.mocked_settings.DOCUSIGN_WAIVER_TEMPLATE_ID,
+                "templateRoles": [
                     {
-                        'roleName': 'Releasor',
-                        'name': 'Tim Beaver',
-                        'email': 'tim@mit.edu',
-                        'clientUserId': participant.pk,
-                        'tabs': waivers.prefilled_tabs(participant),  # Tested earlier
+                        "roleName": "Releasor",
+                        "name": "Tim Beaver",
+                        "email": "tim@mit.edu",
+                        "clientUserId": participant.pk,
+                        "tabs": waivers.prefilled_tabs(participant),  # Tested earlier
                     },
                     {
-                        'roleName': 'Parent or Guardian',
-                        'name': 'Timothy Beaver, Sr',
-                        'email': 'tim@alum.mit.edu',
+                        "roleName": "Parent or Guardian",
+                        "name": "Timothy Beaver, Sr",
+                        "email": "tim@alum.mit.edu",
                     },
                     {
-                        'roleName': 'MITOC Desk',
-                        'name': 'MITOC Desk',
-                        'email': 'mitocdesk@gmail.com',
+                        "roleName": "MITOC Desk",
+                        "name": "MITOC Desk",
+                        "email": "mitocdesk@gmail.com",
                     },
                 ],
-                'eventNotification': self.EXPECTED_EVENT_NOTIFICATION,
+                "eventNotification": self.EXPECTED_EVENT_NOTIFICATION,
             },
         )
 
@@ -330,18 +330,18 @@ class ParticipantWaiverTests(HeaderBaseTest, TestCase):
         self.assertEqual(
             embedded_args,
             (
-                'https://demo.docusign.net/restapi/v2/accounts/123456/envelopes/some-envelope-id/views/recipient',
+                "https://demo.docusign.net/restapi/v2/accounts/123456/envelopes/some-envelope-id/views/recipient",
             ),
         )
 
         # The participant must sign first, then the guardian can
         self.assertEqual(
-            embedded_kwargs['json'],
+            embedded_kwargs["json"],
             {
-                'userName': 'Tim Beaver',
-                'email': 'tim@mit.edu',
-                'clientUserId': participant.pk,
-                'authenticationMethod': 'email',
-                'returnUrl': 'https://mitoc-trips.mit.edu',
+                "userName": "Tim Beaver",
+                "email": "tim@mit.edu",
+                "clientUserId": participant.pk,
+                "authenticationMethod": "email",
+                "returnUrl": "https://mitoc-trips.mit.edu",
             },
         )

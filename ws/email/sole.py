@@ -13,29 +13,29 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-def send_email_to_funds(trip: 'models.Trip') -> None:
+def send_email_to_funds(trip: "models.Trip") -> None:
     """Register the trip with SOLE for insurance & liability reasons.
 
     This automated email is taking the place of SOLE's Student Travel Form.
 
     For optimum efficiency, the `trip` should prefetch 'leaders' and select 'info'.
     """
-    on_trip = trip.signup_set.filter(on_trip=True).select_related('participant')
+    on_trip = trip.signup_set.filter(on_trip=True).select_related("participant")
     context = {
-        'trip': trip,
-        'signups_on_trip': on_trip,
-        'cars': itinerary.get_cars(trip),
-        'bursar_name': BURSAR_NAME,
+        "trip": trip,
+        "signups_on_trip": on_trip,
+        "cars": itinerary.get_cars(trip),
+        "bursar_name": BURSAR_NAME,
     }
 
-    text_content = get_template('email/sole/funds_email.txt').render(context)
-    html_content = get_template('email/sole/funds_email.html').render(context)
+    text_content = get_template("email/sole/funds_email.txt").render(context)
+    html_content = get_template("email/sole/funds_email.html").render(context)
 
     subject = f"MITOC-Trips registration: {trip.name}"
-    bursar = 'mitoc-bursar@mit.edu'
+    bursar = "mitoc-bursar@mit.edu"
     recipients = [
-        'sole-desk@mit.edu',
-        'paulmurp@mit.edu',  # Associate Dean of SOLE, https://studentlife.mit.edu/sole/meet-staff
+        "sole-desk@mit.edu",
+        "paulmurp@mit.edu",  # Associate Dean of SOLE, https://studentlife.mit.edu/sole/meet-staff
     ]
     msg = EmailMultiAlternatives(
         subject,

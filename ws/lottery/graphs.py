@@ -49,9 +49,9 @@ class Cycle:
         return ordered_pks == tuple(par.pk for par in self)
 
     def __str__(self):
-        pars = [f'{par.name} (#{par.pk})' for par in self._cycle]
+        pars = [f"{par.name} (#{par.pk})" for par in self._cycle]
         pars.append(pars[0])  # (complete the cycle)
-        return ' --> '.join(pars) + '...'
+        return " --> ".join(pars) + "..."
 
 
 class SeparationGraph:

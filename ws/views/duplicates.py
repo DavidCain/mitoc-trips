@@ -17,13 +17,13 @@ class AdminOnlyView(View):
 
     @property
     def dupes_redirect(self):
-        return redirect(reverse('potential_duplicates'))
+        return redirect(reverse("potential_duplicates"))
 
 
 class PotentialDuplicatesView(AdminOnlyView, TemplateView):
     """Show pairs of participants where the accounts may be duplicates."""
 
-    template_name = 'duplicates/index.html'
+    template_name = "duplicates/index.html"
 
     @property
     def potential_duplicates(self):
@@ -32,10 +32,10 @@ class PotentialDuplicatesView(AdminOnlyView, TemplateView):
         Each pair of potential duplicates has the most recently active person
         listed last. It's suggested that the merge is done into that account.
         """
-        cursor = connections['default'].cursor()
+        cursor = connections["default"].cursor()
         # TODO: Move this out of the view into its own module, with direct testing
         cursor.execute(
-            '''
+            """
             with dupe_groups as (
               select array_agg(id order by profile_last_updated desc, id desc) as dupes
                 from ws_participant
@@ -60,14 +60,14 @@ class PotentialDuplicatesView(AdminOnlyView, TemplateView):
                       (da.left_id = pp.old_participant and da.right_id = pp.new_participant)
                    or (da.left_id = pp.new_participant and da.right_id = pp.old_participant)
              where da.id is null
-            '''
+            """
         )
         pairs = [(row[0], row[1]) for row in cursor.fetchall()]
 
         # Map PKs back to objects that can be used easily in templates
         participants = models.Participant.objects.filter(
             pk__in=[pk for pair in pairs for pk in pair]
-        ).select_related('emergency_info__emergency_contact', 'car')
+        ).select_related("emergency_info__emergency_contact", "car")
         par_by_pk = {par.pk: par for par in participants}
 
         for old, new in pairs:
@@ -75,7 +75,7 @@ class PotentialDuplicatesView(AdminOnlyView, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['potential_duplicates'] = list(self.potential_duplicates)
+        context["potential_duplicates"] = list(self.potential_duplicates)
         return context
 
 
@@ -93,7 +93,7 @@ class MergeParticipantsView(AdminOnlyView):
 
     def post(self, request, **kwargs):
         try:
-            old_par, new_par = _participants(self.kwargs['old'], self.kwargs['new'])
+            old_par, new_par = _participants(self.kwargs["old"], self.kwargs["new"])
         except models.Participant.DoesNotExist:
             messages.error(
                 request,
@@ -128,7 +128,7 @@ class DistinctParticipantsView(AdminOnlyView):
 
     def post(self, request, **kwargs):
         try:
-            left, right = _participants(self.kwargs['left'], self.kwargs['right'])
+            left, right = _participants(self.kwargs["left"], self.kwargs["right"])
         except models.Participant.DoesNotExist:
             messages.error(
                 request,
@@ -142,7 +142,7 @@ class DistinctParticipantsView(AdminOnlyView):
             f"Marked {left.name} (#{left.pk}) as distinct"
             f" from {right.name} (#{right.pk})",
         )
-        return redirect(reverse('potential_duplicates'))
+        return redirect(reverse("potential_duplicates"))
 
     def get(self, request, **kwargs):
         return self.dupes_redirect

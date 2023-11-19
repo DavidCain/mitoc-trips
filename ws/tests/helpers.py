@@ -9,7 +9,7 @@ class PermHelpers:
         Note that some views may expect a LeaderRating to be present for the
         user's Participant object. This is sufficient to pass access control, though.
         """
-        leaders = Group.objects.get(name='leaders')
+        leaders = Group.objects.get(name="leaders")
         leaders.user_set.add(user)
 
     @staticmethod
@@ -23,5 +23,5 @@ class PermHelpers:
 
         To disable this redirect, mock `ws.decorators.profile_needs_update`
         """
-        users_with_info = Group.objects.get(name='users_with_info')
+        users_with_info = Group.objects.get(name="users_with_info")
         users_with_info.user_set.add(user)

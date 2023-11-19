@@ -21,9 +21,9 @@ class ApplicationManagerHelper:
         Also mock the query from climbing activity to climbing application, so
         that we need not hit the database.
         """
-        activity_chairs = mock.patch.object(perm_utils, 'activity_chairs')
+        activity_chairs = mock.patch.object(perm_utils, "activity_chairs")
         model_from_activity = mock.patch.object(
-            models.LeaderApplication, 'model_from_activity'
+            models.LeaderApplication, "model_from_activity"
         )
         with activity_chairs as mock_chairs, model_from_activity as mock_app_model:
             mock_app_model.return_value = models.ClimbingLeaderApplication
@@ -71,7 +71,7 @@ class DatabaseApplicationManagerTests(TestCase):
     def setUp(self):
         self.participant = factories.ParticipantFactory.create()
         self.alice, self.bob, self.charlie = (
-            factories.ParticipantFactory.create() for _ in 'abc'
+            factories.ParticipantFactory.create() for _ in "abc"
         )
         for chair in [self.alice, self.bob, self.charlie]:
             perm_utils.make_chair(chair.user, enums.Activity.CLIMBING)
@@ -91,7 +91,7 @@ class DatabaseApplicationManagerTests(TestCase):
             creator=creator,
             participant=self.participant,
             activity=enums.Activity.CLIMBING.value,
-            rating='Single pitch, maybe?',  # Comments don't really matter
+            rating="Single pitch, maybe?",  # Comments don't really matter
         )
 
     def _make_rating(self, creator):
@@ -99,7 +99,7 @@ class DatabaseApplicationManagerTests(TestCase):
             creator=creator,
             participant=self.participant,
             activity=enums.Activity.CLIMBING.value,
-            rating='Multipitch',
+            rating="Multipitch",
         )
         rating.save()
         return rating
@@ -185,14 +185,14 @@ class DeactivateRatingsTest(TestCase):
             deactivated_activity = factories.LeaderRatingFactory.create(
                 activity=enums.Activity.CLIMBING.value,
                 participant=par,
-                rating='Co-leader',
+                rating="Co-leader",
                 active=False,
             )
         with freeze_time("2019-03-30 13:33:33 EST"):
             target_rating = factories.LeaderRatingFactory.create(
                 activity=enums.Activity.CLIMBING.value,
                 participant=par,
-                rating='Full leader',
+                rating="Full leader",
                 active=True,
             )
 

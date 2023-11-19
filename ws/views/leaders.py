@@ -23,8 +23,8 @@ from ws.decorators import chairs_only, group_required
 
 class AllLeadersView(ListView):
     model = models.Participant
-    context_object_name = 'leaders'
-    template_name = 'leaders/all.html'
+    context_object_name = "leaders"
+    template_name = "leaders/all.html"
 
     def get_queryset(self):
         """Returns all leaders with active ratings."""
@@ -33,14 +33,14 @@ class AllLeadersView(ListView):
     def get_context_data(self, **kwargs):
         context_data = super().get_context_data(**kwargs)
 
-        context_data['activities'] = [
+        context_data["activities"] = [
             (activity_enum, activity_enum.label)
             for activity_enum in enums.Activity
             if activity_enum != enums.Activity.CABIN
         ]
         return context_data
 
-    @method_decorator(group_required('leaders'))
+    @method_decorator(group_required("leaders"))
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
@@ -49,16 +49,16 @@ class OnlyForActivityChair(View):
     @property
     def activity(self):
         """The activity, should be verified by the dispatch method."""
-        return self.kwargs['activity']
+        return self.kwargs["activity"]
 
     @property
     def activity_enum(self):
-        return enums.Activity(self.kwargs['activity'])
+        return enums.Activity(self.kwargs["activity"])
 
     @method_decorator(chairs_only())
     def dispatch(self, request, *args, **kwargs):
         try:
-            activity_enum = enums.Activity(kwargs.get('activity'))
+            activity_enum = enums.Activity(kwargs.get("activity"))
         except ValueError:
             raise Http404  # noqa: B904
 
@@ -67,7 +67,7 @@ class OnlyForActivityChair(View):
         return super().dispatch(request, *args, **kwargs)
 
     def get_success_url(self):
-        return reverse('activity_leaders', args=(self.activity,))
+        return reverse("activity_leaders", args=(self.activity,))
 
 
 class DeactivateLeaderRatingsView(OnlyForActivityChair):
@@ -78,11 +78,11 @@ class DeactivateLeaderRatingsView(OnlyForActivityChair):
         return self._success()
 
     def post(self, request, *args, **kwargs):
-        rating_pks = request.POST.getlist('deactivate', [])
+        rating_pks = request.POST.getlist("deactivate", [])
         if not rating_pks:
             return self._success()
         ratings = models.LeaderRating.objects.filter(pk__in=rating_pks)
-        ratings = ratings.select_related('participant')
+        ratings = ratings.select_related("participant")
         if any(r.activity != self.activity for r in ratings):
             # The route is only for deactivating ratings for one activity
             # (an activity for which the requester is a chair)
@@ -93,7 +93,7 @@ class DeactivateLeaderRatingsView(OnlyForActivityChair):
         for rating in ratings:
             rating.active = False
             rating.save()  # Do a single update (not bulk) to trigger signals
-        removed_names = ', '.join(rating.participant.name for rating in ratings)
+        removed_names = ", ".join(rating.participant.name for rating in ratings)
         msg = f"Removed {self.activity_enum.label} rating for {removed_names}"
         messages.success(request, msg)
         return self._success()
@@ -103,13 +103,13 @@ class ActivityLeadersView(OnlyForActivityChair, CreateView):
     """Manage the leaders of a single activity."""
 
     form_class = forms.LeaderForm
-    template_name = 'leaders/by_activity.html'
+    template_name = "leaders/by_activity.html"
 
     def get_form_kwargs(self):
         return {
             **super().get_form_kwargs(),
-            'allowed_activities': perm_utils.chair_activities(self.request.user, True),
-            'hide_activity': True,
+            "allowed_activities": perm_utils.chair_activities(self.request.user, True),
+            "hide_activity": True,
         }
 
     def form_valid(self, form):
@@ -118,8 +118,8 @@ class ActivityLeadersView(OnlyForActivityChair, CreateView):
         Any existing ratings for this activity will be marked as inactive.
         """
         # TODO: Consider removing `activity` from the form and just using URL?
-        activity_enum = enums.Activity(form.cleaned_data['activity'])
-        participant = form.cleaned_data['participant']
+        activity_enum = enums.Activity(form.cleaned_data["activity"])
+        participant = form.cleaned_data["participant"]
 
         ratings_utils.deactivate_ratings(participant, activity_enum.value)
 
@@ -141,20 +141,20 @@ class ActivityLeadersView(OnlyForActivityChair, CreateView):
         In the future, we might just use the URL to fill the form.
         """
         initial = super().get_initial().copy()
-        initial['activity'] = self.activity
+        initial["activity"] = self.activity
         return initial
 
     def get_ratings(self):
         """Returns all leaders with active ratings."""
         return (
             models.LeaderRating.objects.filter(activity=self.activity, active=True)
-            .prefetch_related('participant__trips_led')
-            .annotate(last_trip_date=Max('participant__trips_led__trip_date'))
-            .order_by('participant')
+            .prefetch_related("participant__trips_led")
+            .annotate(last_trip_date=Max("participant__trips_led__trip_date"))
+            .order_by("participant")
         )
 
     def get_context_data(self, **kwargs):
         context_data = super().get_context_data(**kwargs)
-        context_data['activity_enum'] = self.activity_enum
-        context_data['ratings'] = self.get_ratings()
+        context_data["activity_enum"] = self.activity_enum
+        context_data["ratings"] = self.get_ratings()
         return context_data

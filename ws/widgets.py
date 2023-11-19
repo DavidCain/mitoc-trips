@@ -12,12 +12,12 @@ class MarkdownTextarea(dj_widgets.Textarea):
     """
 
     def __init__(self, example_text: str | None = None) -> None:
-        attrs: dict[str, str | int] = {'rows': 4}
+        attrs: dict[str, str | int] = {"rows": 4}
         if example_text:
             attrs.update(
                 {
-                    'rows': max(4, example_text.count('\n') + 1),
-                    'placeholder': example_text,
+                    "rows": max(4, example_text.count("\n") + 1),
+                    "placeholder": example_text,
                 }
             )
 
@@ -26,11 +26,11 @@ class MarkdownTextarea(dj_widgets.Textarea):
 
 class LeaderSelect(dj_widgets.SelectMultiple):
     def render(self, name, value, attrs=None, renderer=None):
-        attrs.update(program='program', name=name)
+        attrs.update(program="program", name=name)
         if value:
-            attrs['leader-ids'] = json.dumps(value)
+            attrs["leader-ids"] = json.dumps(value)
         final_attrs = flatatt(self.build_attrs(self.attrs, attrs))
-        return format_html('<leader-select {}></leader-select>', final_attrs)
+        return format_html("<leader-select {}></leader-select>", final_attrs)
 
 
 class ParticipantSelect(dj_widgets.Select):
@@ -38,7 +38,7 @@ class ParticipantSelect(dj_widgets.Select):
         attrs.update(name=name)
         final_attrs = self.build_attrs(self.attrs, attrs)
         return format_html(
-            '<participant-select {}></participant-select>', flatatt(final_attrs)
+            "<participant-select {}></participant-select>", flatatt(final_attrs)
         )
 
 
@@ -47,9 +47,9 @@ class PhoneInput(dj_widgets.Input):
         attrs = attrs or {}
         attrs.update(
             {
-                'default-country': 'us',
-                'preferred-countries': 'us ca',
-                'name': name,
+                "default-country": "us",
+                "preferred-countries": "us ca",
+                "name": name,
             }
         )
         final_attrs = self.build_attrs(self.attrs, attrs)
@@ -57,13 +57,13 @@ class PhoneInput(dj_widgets.Input):
         # Use a hack to init ng-model. We take the provided value & populate a hidden input.
         # When the `bc-phone-number` input updates, we update the hidden input's value.
         # TODO: We should provide a plain E.164 <input type="tel"/> for `<noscript/>`
-        ng_model = name.replace('-', '_')
-        final_attrs['ng-model'] = ng_model
+        ng_model = name.replace("-", "_")
+        final_attrs["ng-model"] = ng_model
 
         ng_model_init = {
-            'data-ng-model': ng_model,
-            'data-ng-init': f"{ng_model} = '{value or ''}'",
-            'value': str(value) if value else '',
+            "data-ng-model": ng_model,
+            "data-ng-init": f"{ng_model} = '{value or ''}'",
+            "value": str(value) if value else "",
         }
 
         return format_html(
@@ -90,17 +90,17 @@ class DateTimeLocalInput(dj_widgets.DateTimeInput):
         attrs = attrs or {}
         super().__init__(
             attrs={
-                'type': 'datetime-local',
+                "type": "datetime-local",
                 # It's important to specify step size
                 # Without this, we can only change the time in increments of whole minutes.
                 # (In other words, a trip created to open at 09:05:55, couldn't change to 09:06:00)
                 # We generally round to the whole minute *anyway*, but this is doubly important if:
                 # - the value being edited was rounded to the second
                 # - we only display to the minute
-                'step': 'any',
+                "step": "any",
                 **attrs,
             },
             # Important: Firefox will work with `format=None`, where time is 'YYYY-MM-DD HH:MM'
             # *However* Chrome requires the ISO-8601 spec and fails without the crucial `T` separator
-            format=format or '%Y-%m-%dT%H:%M',
+            format=format or "%Y-%m-%dT%H:%M",
         )

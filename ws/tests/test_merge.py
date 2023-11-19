@@ -26,41 +26,41 @@ class ExpectationsTypeTest(unittest.TestCase):
 
 class MergeUtilTest(TestCase):
     def test_check_fk_tables_missing_fk(self):
-        cursor = connections['default'].cursor()
+        cursor = connections["default"].cursor()
         expected = {
-            'auth_user_user_permissions': 'user_id',
-            'auth_user_groups': 'user_id',
-            'account_emailaddress': 'user_id',
+            "auth_user_user_permissions": "user_id",
+            "auth_user_groups": "user_id",
+            "account_emailaddress": "user_id",
             # 'django_admin_log': 'user_id',
-            'socialaccount_socialaccount': ('user_id',),
-            'ws_participant': 'user_id',
+            "socialaccount_socialaccount": ("user_id",),
+            "ws_participant": "user_id",
         }
         with self.assertRaises(ValueError) as err:
             merge.check_fk_tables(
-                cursor, src_table='auth_user', column='id', expected=expected
+                cursor, src_table="auth_user", column="id", expected=expected
             )
 
         self.assertEqual(
             str(err.exception),
-            'Database has more FKs. Not handled: django_admin_log.user_id',
+            "Database has more FKs. Not handled: django_admin_log.user_id",
         )
 
     def test_simple_fk_update(self):
         """We can directly modify any rows that have FK constraints (without unique constraints)"""
-        cursor = connections['default'].cursor()
+        cursor = connections["default"].cursor()
 
         # Make Two users - we'll transfer the email address from one to the other
-        user = factories.UserFactory.create(email='primary@example.com')
-        other = factories.UserFactory.create(email='other@example.com')
+        user = factories.UserFactory.create(email="primary@example.com")
+        other = factories.UserFactory.create(email="other@example.com")
         other.emailaddress_set.update(primary=False)  # (allows the move)
 
         # Move the secondary email address for the other user to our user
         merge.simple_fk_update(
-            cursor, 'account_emailaddress', 'user_id', other.pk, user.pk
+            cursor, "account_emailaddress", "user_id", other.pk, user.pk
         )
         self.assertCountEqual(
             [email_addr.email for email_addr in user.emailaddress_set.all()],
-            ['primary@example.com', 'other@example.com'],
+            ["primary@example.com", "other@example.com"],
         )
 
 
@@ -68,10 +68,10 @@ class MergeTest(TestCase):
     def setUp(self):
         super().setUp()
         self.old = factories.ParticipantFactory.create(
-            email='tim@mit.edu', affiliation=affiliations.MIT_UNDERGRAD.CODE
+            email="tim@mit.edu", affiliation=affiliations.MIT_UNDERGRAD.CODE
         )
         self.tim = factories.ParticipantFactory.create(
-            email='tim@alum.mit.edu', affiliation=affiliations.MIT_ALUM.CODE
+            email="tim@alum.mit.edu", affiliation=affiliations.MIT_ALUM.CODE
         )
 
     def _migrate(self):
@@ -80,13 +80,13 @@ class MergeTest(TestCase):
 
     def _assert_email_handling(self):
         """Tim retains his primary email address, but also gains his old MIT address!"""
-        self.assertEqual(self.tim.email, 'tim@alum.mit.edu')
+        self.assertEqual(self.tim.email, "tim@alum.mit.edu")
         emails = {addr.email: addr for addr in self.tim.user.emailaddress_set.all()}
-        self.assertCountEqual(emails, {'tim@mit.edu', 'tim@alum.mit.edu'})
-        self.assertFalse(emails['tim@mit.edu'].primary)
-        self.assertTrue(emails['tim@alum.mit.edu'].primary)
-        self.assertEqual(emails['tim@mit.edu'].user_id, self.tim.user_id)
-        self.assertEqual(emails['tim@alum.mit.edu'].user_id, self.tim.user_id)
+        self.assertCountEqual(emails, {"tim@mit.edu", "tim@alum.mit.edu"})
+        self.assertFalse(emails["tim@mit.edu"].primary)
+        self.assertTrue(emails["tim@alum.mit.edu"].primary)
+        self.assertEqual(emails["tim@mit.edu"].user_id, self.tim.user_id)
+        self.assertEqual(emails["tim@alum.mit.edu"].user_id, self.tim.user_id)
 
     def _assert_user_handling(self):
         """Tim's old user is removed, but his groups & emails are preserved."""

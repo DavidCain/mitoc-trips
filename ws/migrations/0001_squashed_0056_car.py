@@ -15,20 +15,20 @@ import ws.utils.dates
 
 def make_groups(apps, schema_editor):
     """Create groups that are expected by the software."""
-    Group = apps.get_model('auth', 'Group')
+    Group = apps.get_model("auth", "Group")
 
-    Group.objects.get_or_create(name='leaders')
-    Group.objects.get_or_create(name='users_with_info')
-    Group.objects.get_or_create(name='WSC')
-    Group.objects.get_or_create(name='WIMP')
+    Group.objects.get_or_create(name="leaders")
+    Group.objects.get_or_create(name="users_with_info")
+    Group.objects.get_or_create(name="WSC")
+    Group.objects.get_or_create(name="WIMP")
 
     # Created based off all activities in LeaderRating.CLOSED_ACTIVITES
     # (with "WSC" being a special case for the time being)
-    Group.objects.get_or_create(name='biking_chair')
-    Group.objects.get_or_create(name='boating_chair')
-    Group.objects.get_or_create(name='cabin_chair')
-    Group.objects.get_or_create(name='climbing_chair')
-    Group.objects.get_or_create(name='hiking_chair')
+    Group.objects.get_or_create(name="biking_chair")
+    Group.objects.get_or_create(name="boating_chair")
+    Group.objects.get_or_create(name="cabin_chair")
+    Group.objects.get_or_create(name="climbing_chair")
+    Group.objects.get_or_create(name="hiking_chair")
 
 
 def drop_perms(apps, schema_editor):
@@ -47,7 +47,7 @@ def drop_perms(apps, schema_editor):
     (In other words... CRUD)
     """
     # select count(*) from auth_user_user_permissions;  -- None in use!
-    Permission = apps.get_model('auth', 'Permission')
+    Permission = apps.get_model("auth", "Permission")
     Permission.objects.all().delete()
 
 
@@ -57,62 +57,62 @@ def do_nothing(*args):
 
 class Migration(migrations.Migration):
     replaces = [
-        ('ws', '0001_initial'),
-        ('ws', '0002_participant_profile_last_updated'),
-        ('ws', '0003_trip_wimp'),
-        ('ws', '0004_cached_membership'),
-        ('ws', '0005_trip_membership_required'),
-        ('ws', '0006_participant_gravatar_opt_out'),
-        ('ws', '0007_add_groups'),
-        ('ws', '0008_distinctaccounts'),
-        ('ws', '0009_unique_signups'),
-        ('ws', '0010_alumni_affiliation'),
-        ('ws', '0011_simplify_affiliate_label'),
-        ('ws', '0012_new_prices'),
-        ('ws', '0013_car_year_update'),
-        ('ws', '0014_trip_markdown_description'),
-        ('ws', '0015_lotteryadjustment'),
-        ('ws', '0016_archive_applications'),
-        ('ws', '0017_participant_insecure_password'),
-        ('ws', '0018_participant_password_last_checked'),
-        ('ws', '0019_2020_ws_application'),
-        ('ws', '0020_typo_corrections'),
-        ('ws', '0021_trip_program'),
-        ('ws', '0022_add_trip_type'),
-        ('ws', '0023_remove_trip_type_default'),
-        ('ws', '0024_signups_close_at'),
-        ('ws', '0025_winterschoolsettings_accept_applications'),
-        ('ws', '0026_require_program_trip_type'),
-        ('ws', '0027_update_trip_programs'),
-        ('ws', '0028_vehicle_year_number'),
-        ('ws', '0029_tripinfo_last_updated'),
-        ('ws', '0030_worry_time'),
-        ('ws', '0031_format_lazy_help'),
-        ('ws', '0032_lotteryseparation'),
-        ('ws', '0033_discounts_optional_ga_key'),
-        ('ws', '0034_drop_permissions'),
-        ('ws', '0035_bump_car_year_validator'),
-        ('ws', '0036_par_user_id_fk'),
-        ('ws', '0037_denormalize_hibp_passwords'),
-        ('ws', '0038_rephrase_trip_options'),
-        ('ws', '0039_send_reminder_email'),
-        ('ws', '0040_car_year_and_driving_self'),
-        ('ws', '0041_sor_rename'),
-        ('ws', '0042_alter_trip_signups_open_at'),
-        ('ws', '0043_trip_edit_revision'),
-        ('ws', '0044_trip_last_updated_by'),
-        ('ws', '0045_trip_search_vector_idx'),
-        ('ws', '0046_trip_summary'),
-        ('ws', '0047_populate_text_descriptions'),
-        ('ws', '0048_ws_application_questions'),
-        ('ws', '0049_yoga'),
-        ('ws', '0050_trip_reimbursement'),
-        ('ws', '0051_consistent_levels'),
-        ('ws', '0052_terrain_level'),
-        ('ws', '0053_index_key_trip_fields'),
-        ('ws', '0054_allow_null_reminder_sent_at'),
-        ('ws', '0055_discount_url_non_null'),
-        ('ws', '0056_car'),
+        ("ws", "0001_initial"),
+        ("ws", "0002_participant_profile_last_updated"),
+        ("ws", "0003_trip_wimp"),
+        ("ws", "0004_cached_membership"),
+        ("ws", "0005_trip_membership_required"),
+        ("ws", "0006_participant_gravatar_opt_out"),
+        ("ws", "0007_add_groups"),
+        ("ws", "0008_distinctaccounts"),
+        ("ws", "0009_unique_signups"),
+        ("ws", "0010_alumni_affiliation"),
+        ("ws", "0011_simplify_affiliate_label"),
+        ("ws", "0012_new_prices"),
+        ("ws", "0013_car_year_update"),
+        ("ws", "0014_trip_markdown_description"),
+        ("ws", "0015_lotteryadjustment"),
+        ("ws", "0016_archive_applications"),
+        ("ws", "0017_participant_insecure_password"),
+        ("ws", "0018_participant_password_last_checked"),
+        ("ws", "0019_2020_ws_application"),
+        ("ws", "0020_typo_corrections"),
+        ("ws", "0021_trip_program"),
+        ("ws", "0022_add_trip_type"),
+        ("ws", "0023_remove_trip_type_default"),
+        ("ws", "0024_signups_close_at"),
+        ("ws", "0025_winterschoolsettings_accept_applications"),
+        ("ws", "0026_require_program_trip_type"),
+        ("ws", "0027_update_trip_programs"),
+        ("ws", "0028_vehicle_year_number"),
+        ("ws", "0029_tripinfo_last_updated"),
+        ("ws", "0030_worry_time"),
+        ("ws", "0031_format_lazy_help"),
+        ("ws", "0032_lotteryseparation"),
+        ("ws", "0033_discounts_optional_ga_key"),
+        ("ws", "0034_drop_permissions"),
+        ("ws", "0035_bump_car_year_validator"),
+        ("ws", "0036_par_user_id_fk"),
+        ("ws", "0037_denormalize_hibp_passwords"),
+        ("ws", "0038_rephrase_trip_options"),
+        ("ws", "0039_send_reminder_email"),
+        ("ws", "0040_car_year_and_driving_self"),
+        ("ws", "0041_sor_rename"),
+        ("ws", "0042_alter_trip_signups_open_at"),
+        ("ws", "0043_trip_edit_revision"),
+        ("ws", "0044_trip_last_updated_by"),
+        ("ws", "0045_trip_search_vector_idx"),
+        ("ws", "0046_trip_summary"),
+        ("ws", "0047_populate_text_descriptions"),
+        ("ws", "0048_ws_application_questions"),
+        ("ws", "0049_yoga"),
+        ("ws", "0050_trip_reimbursement"),
+        ("ws", "0051_consistent_levels"),
+        ("ws", "0052_terrain_level"),
+        ("ws", "0053_index_key_trip_fields"),
+        ("ws", "0054_allow_null_reminder_sent_at"),
+        ("ws", "0055_discount_url_non_null"),
+        ("ws", "0056_car"),
     ]
 
     initial = True
@@ -123,93 +123,93 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Car',
+            name="Car",
             fields=[
                 (
-                    'id',
+                    "id",
                     models.AutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name='ID',
+                        verbose_name="ID",
                     ),
                 ),
                 (
-                    'license_plate',
+                    "license_plate",
                     models.CharField(
                         max_length=31,
                         validators=[
                             django.core.validators.RegexValidator(
-                                '^[a-zA-Z0-9 ]*$',
-                                'Only alphanumeric characters and spaces allowed',
+                                "^[a-zA-Z0-9 ]*$",
+                                "Only alphanumeric characters and spaces allowed",
                             )
                         ],
                     ),
                 ),
                 (
-                    'state',
+                    "state",
                     models.CharField(
                         choices=[
-                            ('AL', 'Alabama'),
-                            ('AK', 'Alaska'),
-                            ('AZ', 'Arizona'),
-                            ('AR', 'Arkansas'),
-                            ('CA', 'California'),
-                            ('CO', 'Colorado'),
-                            ('CT', 'Connecticut'),
-                            ('DE', 'Delaware'),
-                            ('DC', 'District of Columbia'),
-                            ('FL', 'Florida'),
-                            ('GA', 'Georgia'),
-                            ('HI', 'Hawaii'),
-                            ('ID', 'Idaho'),
-                            ('IL', 'Illinois'),
-                            ('IN', 'Indiana'),
-                            ('IA', 'Iowa'),
-                            ('KS', 'Kansas'),
-                            ('KY', 'Kentucky'),
-                            ('LA', 'Louisiana'),
-                            ('ME', 'Maine'),
-                            ('MD', 'Maryland'),
-                            ('MA', 'Massachusetts'),
-                            ('MI', 'Michigan'),
-                            ('MN', 'Minnesota'),
-                            ('MS', 'Mississippi'),
-                            ('MO', 'Missouri'),
-                            ('MT', 'Montana'),
-                            ('NE', 'Nebraska'),
-                            ('NV', 'Nevada'),
-                            ('NH', 'New Hampshire'),
-                            ('NJ', 'New Jersey'),
-                            ('NM', 'New Mexico'),
-                            ('NY', 'New York'),
-                            ('NC', 'North Carolina'),
-                            ('ND', 'North Dakota'),
-                            ('OH', 'Ohio'),
-                            ('OK', 'Oklahoma'),
-                            ('OR', 'Oregon'),
-                            ('PA', 'Pennsylvania'),
-                            ('RI', 'Rhode Island'),
-                            ('SC', 'South Carolina'),
-                            ('SD', 'South Dakota'),
-                            ('TN', 'Tennessee'),
-                            ('TX', 'Texas'),
-                            ('UT', 'Utah'),
-                            ('VT', 'Vermont'),
-                            ('VA', 'Virginia'),
-                            ('WA', 'Washington'),
-                            ('WV', 'West Virginia'),
-                            ('WI', 'Wisconsin'),
-                            ('WY', 'Wyoming'),
-                            ('XX', 'Other (Canada, Mexico, etc.)'),
+                            ("AL", "Alabama"),
+                            ("AK", "Alaska"),
+                            ("AZ", "Arizona"),
+                            ("AR", "Arkansas"),
+                            ("CA", "California"),
+                            ("CO", "Colorado"),
+                            ("CT", "Connecticut"),
+                            ("DE", "Delaware"),
+                            ("DC", "District of Columbia"),
+                            ("FL", "Florida"),
+                            ("GA", "Georgia"),
+                            ("HI", "Hawaii"),
+                            ("ID", "Idaho"),
+                            ("IL", "Illinois"),
+                            ("IN", "Indiana"),
+                            ("IA", "Iowa"),
+                            ("KS", "Kansas"),
+                            ("KY", "Kentucky"),
+                            ("LA", "Louisiana"),
+                            ("ME", "Maine"),
+                            ("MD", "Maryland"),
+                            ("MA", "Massachusetts"),
+                            ("MI", "Michigan"),
+                            ("MN", "Minnesota"),
+                            ("MS", "Mississippi"),
+                            ("MO", "Missouri"),
+                            ("MT", "Montana"),
+                            ("NE", "Nebraska"),
+                            ("NV", "Nevada"),
+                            ("NH", "New Hampshire"),
+                            ("NJ", "New Jersey"),
+                            ("NM", "New Mexico"),
+                            ("NY", "New York"),
+                            ("NC", "North Carolina"),
+                            ("ND", "North Dakota"),
+                            ("OH", "Ohio"),
+                            ("OK", "Oklahoma"),
+                            ("OR", "Oregon"),
+                            ("PA", "Pennsylvania"),
+                            ("RI", "Rhode Island"),
+                            ("SC", "South Carolina"),
+                            ("SD", "South Dakota"),
+                            ("TN", "Tennessee"),
+                            ("TX", "Texas"),
+                            ("UT", "Utah"),
+                            ("VT", "Vermont"),
+                            ("VA", "Virginia"),
+                            ("WA", "Washington"),
+                            ("WV", "West Virginia"),
+                            ("WI", "Wisconsin"),
+                            ("WY", "Wyoming"),
+                            ("XX", "Other (Canada, Mexico, etc.)"),
                         ],
                         max_length=2,
                     ),
                 ),
-                ('make', models.CharField(max_length=63)),
-                ('model', models.CharField(max_length=63)),
+                ("make", models.CharField(max_length=63)),
+                ("model", models.CharField(max_length=63)),
                 (
-                    'year',
+                    "year",
                     models.PositiveIntegerField(
                         validators=[
                             django.core.validators.MaxValueValidator(2025),
@@ -217,168 +217,168 @@ class Migration(migrations.Migration):
                         ]
                     ),
                 ),
-                ('color', models.CharField(max_length=63)),
+                ("color", models.CharField(max_length=63)),
             ],
         ),
         migrations.CreateModel(
-            name='Discount',
+            name="Discount",
             fields=[
                 (
-                    'id',
+                    "id",
                     models.AutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name='ID',
+                        verbose_name="ID",
                     ),
                 ),
                 (
-                    'active',
+                    "active",
                     models.BooleanField(
-                        default=True, help_text='Discount is currently open & active'
+                        default=True, help_text="Discount is currently open & active"
                     ),
                 ),
-                ('name', models.CharField(max_length=255)),
-                ('summary', models.CharField(max_length=255)),
-                ('terms', models.TextField(max_length=4095)),
-                ('url', models.URLField(blank=True, null=True)),
+                ("name", models.CharField(max_length=255)),
+                ("summary", models.CharField(max_length=255)),
+                ("terms", models.TextField(max_length=4095)),
+                ("url", models.URLField(blank=True, null=True)),
                 (
-                    'ga_key',
+                    "ga_key",
                     models.CharField(
-                        help_text='key for Google spreadsheet with membership information (shared as read-only with the company)',
+                        help_text="key for Google spreadsheet with membership information (shared as read-only with the company)",
                         max_length=63,
                     ),
                 ),
-                ('time_created', models.DateTimeField(auto_now_add=True)),
-                ('last_updated', models.DateTimeField(auto_now=True)),
+                ("time_created", models.DateTimeField(auto_now_add=True)),
+                ("last_updated", models.DateTimeField(auto_now=True)),
                 (
-                    'student_required',
+                    "student_required",
                     models.BooleanField(
                         default=False,
-                        help_text='Discount provider requires recipients to be students',
+                        help_text="Discount provider requires recipients to be students",
                     ),
                 ),
                 (
-                    'report_school',
+                    "report_school",
                     models.BooleanField(
                         default=False,
-                        help_text='Report MIT affiliation if participant is a student',
+                        help_text="Report MIT affiliation if participant is a student",
                     ),
                 ),
                 (
-                    'report_student',
+                    "report_student",
                     models.BooleanField(
                         default=False,
-                        help_text='Report MIT affiliation and student status to discount provider',
+                        help_text="Report MIT affiliation and student status to discount provider",
                     ),
                 ),
                 (
-                    'report_leader',
+                    "report_leader",
                     models.BooleanField(
                         default=False,
-                        help_text='Report MITOC leader status to discount provider',
+                        help_text="Report MITOC leader status to discount provider",
                     ),
                 ),
                 (
-                    'report_access',
+                    "report_access",
                     models.BooleanField(
                         default=False,
-                        help_text='Report if participant should have leader, student, or admin level access',
+                        help_text="Report if participant should have leader, student, or admin level access",
                     ),
                 ),
             ],
         ),
         migrations.CreateModel(
-            name='EmergencyContact',
+            name="EmergencyContact",
             fields=[
                 (
-                    'id',
+                    "id",
                     models.AutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name='ID',
+                        verbose_name="ID",
                     ),
                 ),
-                ('name', models.CharField(max_length=255)),
+                ("name", models.CharField(max_length=255)),
                 (
-                    'cell_phone',
+                    "cell_phone",
                     phonenumber_field.modelfields.PhoneNumberField(
                         max_length=128, region=None
                     ),
                 ),
-                ('relationship', models.CharField(max_length=63)),
-                ('email', models.EmailField(max_length=254)),
+                ("relationship", models.CharField(max_length=63)),
+                ("email", models.EmailField(max_length=254)),
             ],
         ),
         migrations.CreateModel(
-            name='EmergencyInfo',
+            name="EmergencyInfo",
             fields=[
                 (
-                    'id',
+                    "id",
                     models.AutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name='ID',
+                        verbose_name="ID",
                     ),
                 ),
-                ('allergies', models.CharField(max_length=255)),
-                ('medications', models.CharField(max_length=255)),
+                ("allergies", models.CharField(max_length=255)),
+                ("medications", models.CharField(max_length=255)),
                 (
-                    'medical_history',
+                    "medical_history",
                     models.TextField(
-                        help_text='Anything your trip leader would want to know about.',
+                        help_text="Anything your trip leader would want to know about.",
                         max_length=2000,
                     ),
                 ),
                 (
-                    'emergency_contact',
+                    "emergency_contact",
                     models.OneToOneField(
                         on_delete=django.db.models.deletion.CASCADE,
-                        to='ws.emergencycontact',
+                        to="ws.emergencycontact",
                     ),
                 ),
             ],
         ),
         migrations.CreateModel(
-            name='MentorActivity',
+            name="MentorActivity",
             fields=[
                 (
-                    'id',
+                    "id",
                     models.AutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name='ID',
+                        verbose_name="ID",
                     ),
                 ),
-                ('name', models.CharField(max_length=31, unique=True)),
+                ("name", models.CharField(max_length=31, unique=True)),
             ],
         ),
         migrations.CreateModel(
-            name='Participant',
+            name="Participant",
             fields=[
                 (
-                    'id',
+                    "id",
                     models.AutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name='ID',
+                        verbose_name="ID",
                     ),
                 ),
-                ('user_id', models.IntegerField()),
-                ('name', models.CharField(max_length=255)),
+                ("user_id", models.IntegerField()),
+                ("name", models.CharField(max_length=255)),
                 (
-                    'cell_phone',
+                    "cell_phone",
                     phonenumber_field.modelfields.PhoneNumberField(
                         blank=True, max_length=128, region=None
                     ),
                 ),
-                ('last_updated', models.DateTimeField(auto_now=True)),
+                ("last_updated", models.DateTimeField(auto_now=True)),
                 (
-                    'email',
+                    "email",
                     models.EmailField(
                         help_text="This will be shared with leaders & other participants. <a href='/accounts/email/'>Manage email addresses</a>.",
                         max_length=254,
@@ -386,126 +386,126 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 (
-                    'affiliation',
+                    "affiliation",
                     models.CharField(
                         choices=[
                             (
-                                'Undergraduate student',
-                                [('MU', 'MIT undergrad'), ('NU', 'Non-MIT undergrad')],
+                                "Undergraduate student",
+                                [("MU", "MIT undergrad"), ("NU", "Non-MIT undergrad")],
                             ),
                             (
-                                'Graduate student',
+                                "Graduate student",
                                 [
-                                    ('MG', 'MIT grad student'),
-                                    ('NG', 'Non-MIT grad student'),
+                                    ("MG", "MIT grad student"),
+                                    ("NG", "Non-MIT grad student"),
                                 ],
                             ),
-                            ('MA', 'MIT affiliate'),
-                            ('NA', 'Non-affiliate'),
+                            ("MA", "MIT affiliate"),
+                            ("NA", "Non-affiliate"),
                         ],
                         max_length=2,
                     ),
                 ),
                 (
-                    'car',
+                    "car",
                     models.OneToOneField(
                         blank=True,
                         null=True,
                         on_delete=django.db.models.deletion.CASCADE,
-                        to='ws.car',
+                        to="ws.car",
                     ),
                 ),
-                ('discounts', models.ManyToManyField(blank=True, to='ws.Discount')),
+                ("discounts", models.ManyToManyField(blank=True, to="ws.Discount")),
                 (
-                    'emergency_info',
+                    "emergency_info",
                     models.OneToOneField(
                         on_delete=django.db.models.deletion.CASCADE,
-                        to='ws.emergencyinfo',
+                        to="ws.emergencyinfo",
                     ),
                 ),
-                ('profile_last_updated', models.DateTimeField(blank=True, null=True)),
+                ("profile_last_updated", models.DateTimeField(blank=True, null=True)),
             ],
             options={
-                'ordering': ['name', 'email'],
+                "ordering": ["name", "email"],
             },
         ),
         migrations.CreateModel(
-            name='SignUp',
+            name="SignUp",
             fields=[
                 (
-                    'id',
+                    "id",
                     models.AutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name='ID',
+                        verbose_name="ID",
                     ),
                 ),
-                ('time_created', models.DateTimeField(auto_now_add=True)),
-                ('last_updated', models.DateTimeField(auto_now=True)),
-                ('notes', models.TextField(blank=True, max_length=1000)),
-                ('order', models.IntegerField(blank=True, null=True)),
-                ('manual_order', models.IntegerField(blank=True, null=True)),
-                ('on_trip', models.BooleanField(default=False)),
+                ("time_created", models.DateTimeField(auto_now_add=True)),
+                ("last_updated", models.DateTimeField(auto_now=True)),
+                ("notes", models.TextField(blank=True, max_length=1000)),
+                ("order", models.IntegerField(blank=True, null=True)),
+                ("manual_order", models.IntegerField(blank=True, null=True)),
+                ("on_trip", models.BooleanField(default=False)),
                 (
-                    'participant',
+                    "participant",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to='ws.participant'
+                        on_delete=django.db.models.deletion.CASCADE, to="ws.participant"
                     ),
                 ),
             ],
             options={
-                'ordering': ['manual_order', 'last_updated'],
+                "ordering": ["manual_order", "last_updated"],
             },
         ),
         migrations.CreateModel(
-            name='Trip',
+            name="Trip",
             fields=[
                 (
-                    'id',
+                    "id",
                     models.AutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name='ID',
+                        verbose_name="ID",
                     ),
                 ),
                 (
-                    'activity',
+                    "activity",
                     models.CharField(
                         choices=[
-                            ('biking', 'Biking'),
-                            ('boating', 'Boating'),
-                            ('cabin', 'Cabin'),
-                            ('climbing', 'Climbing'),
-                            ('hiking', 'Hiking'),
-                            ('winter_school', 'Winter School'),
-                            ('circus', 'Circus'),
-                            ('official_event', 'Official Event'),
-                            ('course', 'Course'),
+                            ("biking", "Biking"),
+                            ("boating", "Boating"),
+                            ("cabin", "Cabin"),
+                            ("climbing", "Climbing"),
+                            ("hiking", "Hiking"),
+                            ("winter_school", "Winter School"),
+                            ("circus", "Circus"),
+                            ("official_event", "Official Event"),
+                            ("course", "Course"),
                         ],
-                        default='winter_school',
+                        default="winter_school",
                         max_length=31,
                     ),
                 ),
                 (
-                    'allow_leader_signups',
+                    "allow_leader_signups",
                     models.BooleanField(
                         default=False,
-                        help_text='Allow leaders to sign themselves up as trip leaders. (Leaders can always sign up as participants). Recommended for Circuses!',
+                        help_text="Allow leaders to sign themselves up as trip leaders. (Leaders can always sign up as participants). Recommended for Circuses!",
                     ),
                 ),
-                ('name', models.CharField(max_length=127)),
-                ('description', models.TextField()),
+                ("name", models.CharField(max_length=127)),
+                ("description", models.TextField()),
                 (
-                    'maximum_participants',
+                    "maximum_participants",
                     models.PositiveIntegerField(
-                        default=8, verbose_name='Max participants'
+                        default=8, verbose_name="Max participants"
                     ),
                 ),
-                ('difficulty_rating', models.CharField(max_length=63)),
+                ("difficulty_rating", models.CharField(max_length=63)),
                 (
-                    'level',
+                    "level",
                     models.CharField(
                         blank=True,
                         help_text="This trip's A, B, or C designation (plus I/S rating if applicable).",
@@ -514,92 +514,92 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 (
-                    'prereqs',
+                    "prereqs",
                     models.CharField(
-                        blank=True, max_length=255, verbose_name='Prerequisites'
+                        blank=True, max_length=255, verbose_name="Prerequisites"
                     ),
                 ),
-                ('chair_approved', models.BooleanField(default=False)),
+                ("chair_approved", models.BooleanField(default=False)),
                 (
-                    'notes',
+                    "notes",
                     models.TextField(
                         blank=True,
-                        help_text='Participants must add notes to their signups if you complete this field. This is a great place to ask important questions.',
+                        help_text="Participants must add notes to their signups if you complete this field. This is a great place to ask important questions.",
                         max_length=2000,
                     ),
                 ),
-                ('time_created', models.DateTimeField(auto_now_add=True)),
-                ('last_edited', models.DateTimeField(auto_now=True)),
-                ('trip_date', models.DateField(default=ws.utils.dates.nearest_sat)),
+                ("time_created", models.DateTimeField(auto_now_add=True)),
+                ("last_edited", models.DateTimeField(auto_now=True)),
+                ("trip_date", models.DateField(default=ws.utils.dates.nearest_sat)),
                 (
-                    'signups_open_at',
+                    "signups_open_at",
                     models.DateTimeField(default=django.utils.timezone.now),
                 ),
                 (
-                    'signups_close_at',
+                    "signups_close_at",
                     models.DateTimeField(
                         blank=True, default=ws.utils.dates.wed_morning, null=True
                     ),
                 ),
                 (
-                    'let_participants_drop',
+                    "let_participants_drop",
                     models.BooleanField(
                         default=False,
-                        help_text='Allow participants to remove themselves from the trip any time before its start date.',
+                        help_text="Allow participants to remove themselves from the trip any time before its start date.",
                     ),
                 ),
                 (
-                    'honor_participant_pairing',
+                    "honor_participant_pairing",
                     models.BooleanField(
                         default=True,
-                        help_text='Try to place paired participants together on the trip.',
+                        help_text="Try to place paired participants together on the trip.",
                     ),
                 ),
                 (
-                    'algorithm',
+                    "algorithm",
                     models.CharField(
                         choices=[
-                            ('lottery', 'lottery'),
-                            ('fcfs', 'first-come, first-serve'),
+                            ("lottery", "lottery"),
+                            ("fcfs", "first-come, first-serve"),
                         ],
-                        default='lottery',
+                        default="lottery",
                         max_length=31,
                     ),
                 ),
                 (
-                    'lottery_task_id',
+                    "lottery_task_id",
                     models.CharField(blank=True, max_length=36, null=True, unique=True),
                 ),
-                ('lottery_log', models.TextField(blank=True, null=True)),
+                ("lottery_log", models.TextField(blank=True, null=True)),
                 (
-                    'creator',
+                    "creator",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        related_name='created_trips',
-                        to='ws.participant',
+                        related_name="created_trips",
+                        to="ws.participant",
                     ),
                 ),
             ],
             options={
-                'ordering': ['-trip_date', '-time_created'],
+                "ordering": ["-trip_date", "-time_created"],
             },
         ),
         migrations.CreateModel(
-            name='TripInfo',
+            name="TripInfo",
             fields=[
                 (
-                    'id',
+                    "id",
                     models.AutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name='ID',
+                        verbose_name="ID",
                     ),
                 ),
-                ('start_location', models.CharField(max_length=127)),
-                ('start_time', models.CharField(max_length=63)),
+                ("start_location", models.CharField(max_length=127)),
+                ("start_time", models.CharField(max_length=63)),
                 (
-                    'turnaround_time',
+                    "turnaround_time",
                     models.CharField(
                         blank=True,
                         help_text="The time at which you'll turn back and head for your car/starting location",
@@ -607,872 +607,872 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 (
-                    'return_time',
+                    "return_time",
                     models.CharField(
-                        help_text='When you expect to return to your car/starting location and be able to call the WIMP',
+                        help_text="When you expect to return to your car/starting location and be able to call the WIMP",
                         max_length=63,
                     ),
                 ),
                 (
-                    'worry_time',
+                    "worry_time",
                     models.CharField(
-                        help_text='Suggested: return time +3 hours. If the WIMP has not heard from you after this time and is unable to make contact with any leaders or participants, the authorities will be called.',
+                        help_text="Suggested: return time +3 hours. If the WIMP has not heard from you after this time and is unable to make contact with any leaders or participants, the authorities will be called.",
                         max_length=63,
                     ),
                 ),
                 (
-                    'itinerary',
+                    "itinerary",
                     models.TextField(
-                        help_text='A detailed account of your trip plan. Where will you be going? What route will you be taking? Include trails, peaks, intermediate destinations, back-up plans- anything that would help rescuers find you.'
+                        help_text="A detailed account of your trip plan. Where will you be going? What route will you be taking? Include trails, peaks, intermediate destinations, back-up plans- anything that would help rescuers find you."
                     ),
                 ),
                 (
-                    'drivers',
+                    "drivers",
                     models.ManyToManyField(
                         blank=True,
                         help_text="If a trip participant is driving, but is not on this list, they must first submit <a href='/profile/edit/#car'>information about their car</a>. They should then be added here.",
-                        to='ws.Participant',
+                        to="ws.Participant",
                     ),
                 ),
             ],
         ),
         migrations.CreateModel(
-            name='WaitList',
+            name="WaitList",
             fields=[
                 (
-                    'id',
+                    "id",
                     models.AutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name='ID',
+                        verbose_name="ID",
                     ),
                 ),
                 (
-                    'trip',
+                    "trip",
                     models.OneToOneField(
-                        on_delete=django.db.models.deletion.CASCADE, to='ws.trip'
+                        on_delete=django.db.models.deletion.CASCADE, to="ws.trip"
                     ),
                 ),
             ],
         ),
         migrations.CreateModel(
-            name='WaitListSignup',
+            name="WaitListSignup",
             fields=[
                 (
-                    'id',
+                    "id",
                     models.AutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name='ID',
+                        verbose_name="ID",
                     ),
                 ),
-                ('time_created', models.DateTimeField(auto_now_add=True)),
-                ('manual_order', models.IntegerField(blank=True, null=True)),
+                ("time_created", models.DateTimeField(auto_now_add=True)),
+                ("manual_order", models.IntegerField(blank=True, null=True)),
                 (
-                    'signup',
+                    "signup",
                     models.OneToOneField(
-                        on_delete=django.db.models.deletion.CASCADE, to='ws.signup'
+                        on_delete=django.db.models.deletion.CASCADE, to="ws.signup"
                     ),
                 ),
                 (
-                    'waitlist',
+                    "waitlist",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to='ws.waitlist'
+                        on_delete=django.db.models.deletion.CASCADE, to="ws.waitlist"
                     ),
                 ),
             ],
             options={
-                'ordering': ['-manual_order', 'time_created'],
+                "ordering": ["-manual_order", "time_created"],
             },
         ),
         migrations.CreateModel(
-            name='WinterSchoolLeaderApplication',
+            name="WinterSchoolLeaderApplication",
             fields=[
                 (
-                    'id',
+                    "id",
                     models.AutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name='ID',
+                        verbose_name="ID",
                     ),
                 ),
-                ('time_created', models.DateTimeField(auto_now_add=True)),
+                ("time_created", models.DateTimeField(auto_now_add=True)),
                 (
-                    'previous_rating',
+                    "previous_rating",
                     models.CharField(
-                        blank=True, help_text='Previous rating (if any)', max_length=255
+                        blank=True, help_text="Previous rating (if any)", max_length=255
                     ),
                 ),
                 (
-                    'year',
+                    "year",
                     models.PositiveIntegerField(
                         default=ws.utils.dates.ws_year,
-                        help_text='Year this application pertains to.',
+                        help_text="Year this application pertains to.",
                         validators=[django.core.validators.MinValueValidator(2014)],
                     ),
                 ),
-                ('desired_rating', models.CharField(max_length=255)),
+                ("desired_rating", models.CharField(max_length=255)),
                 (
-                    'taking_wfa',
+                    "taking_wfa",
                     models.CharField(
                         choices=[
-                            ('Yes', 'Yes'),
-                            ('No', 'No'),
-                            ('Maybe', "Maybe/don't know"),
+                            ("Yes", "Yes"),
+                            ("No", "No"),
+                            ("Maybe", "Maybe/don't know"),
                         ],
-                        help_text='Save $100 on the course fee by leading two or more trips!',
+                        help_text="Save $100 on the course fee by leading two or more trips!",
                         max_length=10,
-                        verbose_name='Do you plan on taking the subsidized WFA at MIT?',
+                        verbose_name="Do you plan on taking the subsidized WFA at MIT?",
                     ),
                 ),
                 (
-                    'training',
+                    "training",
                     models.TextField(
                         blank=True,
-                        help_text='Details of any medical, technical, or leadership training and qualifications relevant to the winter environment. State the approximate dates of these activities. Leave blank if not applicable.',
+                        help_text="Details of any medical, technical, or leadership training and qualifications relevant to the winter environment. State the approximate dates of these activities. Leave blank if not applicable.",
                         max_length=5000,
-                        verbose_name='Formal training and qualifications',
+                        verbose_name="Formal training and qualifications",
                     ),
                 ),
                 (
-                    'winter_experience',
+                    "winter_experience",
                     models.TextField(
                         blank=True,
-                        help_text='Details of previous winter outdoors experience. Include the type of trip (x-country skiiing, above treeline, snowshoeing, ice climbing, etc), approximate dates and locations, numbers of participants, notable trail and weather conditions. Please also give details of whether you participated, led, or co-led these trips.',
-                        max_length=5000,
-                    ),
-                ),
-                (
-                    'other_experience',
-                    models.TextField(
-                        blank=True,
-                        help_text='Details about any relevant non-winter experience',
-                        max_length=5000,
-                        verbose_name='Other outdoors/leadership experience',
-                    ),
-                ),
-                (
-                    'notes_or_comments',
-                    models.TextField(
-                        blank=True,
-                        help_text='Any relevant details, such as any limitations on availability on Tue/Thurs nights or weekends during IAP.',
+                        help_text="Details of previous winter outdoors experience. Include the type of trip (x-country skiiing, above treeline, snowshoeing, ice climbing, etc), approximate dates and locations, numbers of participants, notable trail and weather conditions. Please also give details of whether you participated, led, or co-led these trips.",
                         max_length=5000,
                     ),
                 ),
                 (
-                    'mentee_activities',
+                    "other_experience",
+                    models.TextField(
+                        blank=True,
+                        help_text="Details about any relevant non-winter experience",
+                        max_length=5000,
+                        verbose_name="Other outdoors/leadership experience",
+                    ),
+                ),
+                (
+                    "notes_or_comments",
+                    models.TextField(
+                        blank=True,
+                        help_text="Any relevant details, such as any limitations on availability on Tue/Thurs nights or weekends during IAP.",
+                        max_length=5000,
+                    ),
+                ),
+                (
+                    "mentee_activities",
                     models.ManyToManyField(
                         blank=True,
-                        help_text='Please select at least one.',
-                        related_name='mentee_activities',
-                        to='ws.MentorActivity',
-                        verbose_name='For which activities would you like a mentor?',
+                        help_text="Please select at least one.",
+                        related_name="mentee_activities",
+                        to="ws.MentorActivity",
+                        verbose_name="For which activities would you like a mentor?",
                     ),
                 ),
                 (
-                    'mentor_activities',
+                    "mentor_activities",
                     models.ManyToManyField(
                         blank=True,
-                        help_text='Please select at least one.',
-                        related_name='activities_mentored',
-                        to='ws.MentorActivity',
-                        verbose_name='Which activities would you like to mentor?',
+                        help_text="Please select at least one.",
+                        related_name="activities_mentored",
+                        to="ws.MentorActivity",
+                        verbose_name="Which activities would you like to mentor?",
                     ),
                 ),
                 (
-                    'participant',
+                    "participant",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to='ws.participant'
+                        on_delete=django.db.models.deletion.CASCADE, to="ws.participant"
                     ),
                 ),
             ],
             options={
-                'ordering': ['time_created'],
-                'abstract': False,
+                "ordering": ["time_created"],
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='WinterSchoolSettings',
+            name="WinterSchoolSettings",
             fields=[
                 (
-                    'id',
+                    "id",
                     models.AutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name='ID',
+                        verbose_name="ID",
                     ),
                 ),
-                ('time_created', models.DateTimeField(auto_now_add=True)),
-                ('last_updated', models.DateTimeField(auto_now=True)),
+                ("time_created", models.DateTimeField(auto_now_add=True)),
+                ("last_updated", models.DateTimeField(auto_now=True)),
                 (
-                    'allow_setting_attendance',
+                    "allow_setting_attendance",
                     models.BooleanField(
                         default=False,
-                        verbose_name='Let participants set lecture attendance',
+                        verbose_name="Let participants set lecture attendance",
                     ),
                 ),
                 (
-                    'last_updated_by',
+                    "last_updated_by",
                     models.ForeignKey(
                         blank=True,
                         null=True,
                         on_delete=django.db.models.deletion.CASCADE,
-                        to='ws.participant',
+                        to="ws.participant",
                     ),
                 ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.AddField(
-            model_name='waitlist',
-            name='unordered_signups',
-            field=models.ManyToManyField(through='ws.WaitListSignup', to='ws.SignUp'),
+            model_name="waitlist",
+            name="unordered_signups",
+            field=models.ManyToManyField(through="ws.WaitListSignup", to="ws.SignUp"),
         ),
         migrations.AddField(
-            model_name='trip',
-            name='info',
+            model_name="trip",
+            name="info",
             field=models.OneToOneField(
                 blank=True,
                 null=True,
                 on_delete=django.db.models.deletion.CASCADE,
-                to='ws.tripinfo',
+                to="ws.tripinfo",
             ),
         ),
         migrations.AddField(
-            model_name='trip',
-            name='leaders',
+            model_name="trip",
+            name="leaders",
             field=models.ManyToManyField(
-                blank=True, related_name='trips_led', to='ws.Participant'
+                blank=True, related_name="trips_led", to="ws.Participant"
             ),
         ),
         migrations.AddField(
-            model_name='trip',
-            name='signed_up_participants',
-            field=models.ManyToManyField(through='ws.SignUp', to='ws.Participant'),
+            model_name="trip",
+            name="signed_up_participants",
+            field=models.ManyToManyField(through="ws.SignUp", to="ws.Participant"),
         ),
         migrations.AddField(
-            model_name='signup',
-            name='trip',
+            model_name="signup",
+            name="trip",
             field=models.ForeignKey(
-                on_delete=django.db.models.deletion.CASCADE, to='ws.trip'
+                on_delete=django.db.models.deletion.CASCADE, to="ws.trip"
             ),
         ),
         migrations.CreateModel(
-            name='LotteryInfo',
+            name="LotteryInfo",
             fields=[
                 (
-                    'id',
+                    "id",
                     models.AutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name='ID',
+                        verbose_name="ID",
                     ),
                 ),
                 (
-                    'car_status',
+                    "car_status",
                     models.CharField(
                         choices=[
-                            ('none', 'Not driving'),
-                            ('own', 'Can drive own car'),
-                            ('rent', 'Willing to rent'),
+                            ("none", "Not driving"),
+                            ("own", "Can drive own car"),
+                            ("rent", "Willing to rent"),
                         ],
-                        default='none',
+                        default="none",
                         max_length=7,
                     ),
                 ),
                 (
-                    'number_of_passengers',
+                    "number_of_passengers",
                     models.PositiveIntegerField(
                         blank=True,
                         null=True,
                         validators=[
                             django.core.validators.MaxValueValidator(
-                                13, message='Do you drive a bus?'
+                                13, message="Do you drive a bus?"
                             )
                         ],
                     ),
                 ),
-                ('last_updated', models.DateTimeField(auto_now=True)),
+                ("last_updated", models.DateTimeField(auto_now=True)),
                 (
-                    'paired_with',
+                    "paired_with",
                     models.ForeignKey(
                         blank=True,
                         null=True,
                         on_delete=django.db.models.deletion.CASCADE,
-                        related_name='paired_by',
-                        to='ws.participant',
+                        related_name="paired_by",
+                        to="ws.participant",
                     ),
                 ),
                 (
-                    'participant',
+                    "participant",
                     models.OneToOneField(
-                        on_delete=django.db.models.deletion.CASCADE, to='ws.participant'
+                        on_delete=django.db.models.deletion.CASCADE, to="ws.participant"
                     ),
                 ),
             ],
             options={
-                'ordering': ['car_status', 'number_of_passengers'],
+                "ordering": ["car_status", "number_of_passengers"],
             },
         ),
         migrations.CreateModel(
-            name='LectureAttendance',
+            name="LectureAttendance",
             fields=[
                 (
-                    'id',
+                    "id",
                     models.AutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name='ID',
+                        verbose_name="ID",
                     ),
                 ),
                 (
-                    'year',
+                    "year",
                     models.PositiveIntegerField(
                         default=ws.utils.dates.ws_year,
-                        help_text='Winter School year when lectures were attended.',
+                        help_text="Winter School year when lectures were attended.",
                         validators=[django.core.validators.MinValueValidator(2016)],
                     ),
                 ),
-                ('time_created', models.DateTimeField(auto_now_add=True)),
+                ("time_created", models.DateTimeField(auto_now_add=True)),
                 (
-                    'creator',
+                    "creator",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        related_name='lecture_attendances_marked',
-                        to='ws.participant',
+                        related_name="lecture_attendances_marked",
+                        to="ws.participant",
                     ),
                 ),
                 (
-                    'participant',
+                    "participant",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to='ws.participant'
+                        on_delete=django.db.models.deletion.CASCADE, to="ws.participant"
                     ),
                 ),
             ],
         ),
         migrations.CreateModel(
-            name='LeaderSignUp',
+            name="LeaderSignUp",
             fields=[
                 (
-                    'id',
+                    "id",
                     models.AutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name='ID',
+                        verbose_name="ID",
                     ),
                 ),
-                ('time_created', models.DateTimeField(auto_now_add=True)),
-                ('last_updated', models.DateTimeField(auto_now=True)),
-                ('notes', models.TextField(blank=True, max_length=1000)),
+                ("time_created", models.DateTimeField(auto_now_add=True)),
+                ("last_updated", models.DateTimeField(auto_now=True)),
+                ("notes", models.TextField(blank=True, max_length=1000)),
                 (
-                    'participant',
+                    "participant",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to='ws.participant'
+                        on_delete=django.db.models.deletion.CASCADE, to="ws.participant"
                     ),
                 ),
                 (
-                    'trip',
+                    "trip",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to='ws.trip'
+                        on_delete=django.db.models.deletion.CASCADE, to="ws.trip"
                     ),
                 ),
             ],
             options={
-                'ordering': ['time_created'],
+                "ordering": ["time_created"],
             },
         ),
         migrations.CreateModel(
-            name='LeaderRecommendation',
+            name="LeaderRecommendation",
             fields=[
                 (
-                    'id',
+                    "id",
                     models.AutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name='ID',
+                        verbose_name="ID",
                     ),
                 ),
-                ('time_created', models.DateTimeField(auto_now_add=True)),
+                ("time_created", models.DateTimeField(auto_now_add=True)),
                 (
-                    'activity',
+                    "activity",
                     models.CharField(
                         choices=[
-                            ('biking', 'Biking'),
-                            ('boating', 'Boating'),
-                            ('cabin', 'Cabin'),
-                            ('climbing', 'Climbing'),
-                            ('hiking', 'Hiking'),
-                            ('winter_school', 'Winter School'),
-                            ('circus', 'Circus'),
-                            ('official_event', 'Official Event'),
-                            ('course', 'Course'),
+                            ("biking", "Biking"),
+                            ("boating", "Boating"),
+                            ("cabin", "Cabin"),
+                            ("climbing", "Climbing"),
+                            ("hiking", "Hiking"),
+                            ("winter_school", "Winter School"),
+                            ("circus", "Circus"),
+                            ("official_event", "Official Event"),
+                            ("course", "Course"),
                         ],
                         max_length=31,
                     ),
                 ),
-                ('rating', models.CharField(max_length=31)),
-                ('notes', models.TextField(blank=True, max_length=500)),
+                ("rating", models.CharField(max_length=31)),
+                ("notes", models.TextField(blank=True, max_length=500)),
                 (
-                    'creator',
+                    "creator",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        related_name='recommendations_created',
-                        to='ws.participant',
+                        related_name="recommendations_created",
+                        to="ws.participant",
                     ),
                 ),
                 (
-                    'participant',
+                    "participant",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to='ws.participant'
+                        on_delete=django.db.models.deletion.CASCADE, to="ws.participant"
                     ),
                 ),
             ],
             options={
-                'ordering': ['participant'],
-                'abstract': False,
+                "ordering": ["participant"],
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='LeaderRating',
+            name="LeaderRating",
             fields=[
                 (
-                    'id',
+                    "id",
                     models.AutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name='ID',
+                        verbose_name="ID",
                     ),
                 ),
-                ('time_created', models.DateTimeField(auto_now_add=True)),
+                ("time_created", models.DateTimeField(auto_now_add=True)),
                 (
-                    'activity',
+                    "activity",
                     models.CharField(
                         choices=[
-                            ('biking', 'Biking'),
-                            ('boating', 'Boating'),
-                            ('cabin', 'Cabin'),
-                            ('climbing', 'Climbing'),
-                            ('hiking', 'Hiking'),
-                            ('winter_school', 'Winter School'),
-                            ('circus', 'Circus'),
-                            ('official_event', 'Official Event'),
-                            ('course', 'Course'),
+                            ("biking", "Biking"),
+                            ("boating", "Boating"),
+                            ("cabin", "Cabin"),
+                            ("climbing", "Climbing"),
+                            ("hiking", "Hiking"),
+                            ("winter_school", "Winter School"),
+                            ("circus", "Circus"),
+                            ("official_event", "Official Event"),
+                            ("course", "Course"),
                         ],
                         max_length=31,
                     ),
                 ),
-                ('rating', models.CharField(max_length=31)),
-                ('notes', models.TextField(blank=True, max_length=500)),
-                ('active', models.BooleanField(default=True)),
+                ("rating", models.CharField(max_length=31)),
+                ("notes", models.TextField(blank=True, max_length=500)),
+                ("active", models.BooleanField(default=True)),
                 (
-                    'creator',
+                    "creator",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        related_name='ratings_created',
-                        to='ws.participant',
+                        related_name="ratings_created",
+                        to="ws.participant",
                     ),
                 ),
                 (
-                    'participant',
+                    "participant",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to='ws.participant'
+                        on_delete=django.db.models.deletion.CASCADE, to="ws.participant"
                     ),
                 ),
             ],
             options={
-                'ordering': ['participant'],
-                'abstract': False,
+                "ordering": ["participant"],
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='HikingLeaderApplication',
+            name="HikingLeaderApplication",
             fields=[
                 (
-                    'id',
+                    "id",
                     models.AutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name='ID',
+                        verbose_name="ID",
                     ),
                 ),
-                ('time_created', models.DateTimeField(auto_now_add=True)),
+                ("time_created", models.DateTimeField(auto_now_add=True)),
                 (
-                    'previous_rating',
+                    "previous_rating",
                     models.CharField(
-                        blank=True, help_text='Previous rating (if any)', max_length=255
+                        blank=True, help_text="Previous rating (if any)", max_length=255
                     ),
                 ),
                 (
-                    'year',
+                    "year",
                     models.PositiveIntegerField(
                         default=ws.utils.dates.ws_year,
-                        help_text='Year this application pertains to.',
+                        help_text="Year this application pertains to.",
                         validators=[django.core.validators.MinValueValidator(2014)],
                     ),
                 ),
                 (
-                    'desired_rating',
+                    "desired_rating",
                     models.CharField(
-                        choices=[('Leader', 'Leader'), ('Co-Leader', 'Co-Leader')],
-                        help_text='Co-Leader: Can co-lead a 3-season hiking trip with a Leader. Leader: Can run 3-season hiking trips.',
+                        choices=[("Leader", "Leader"), ("Co-Leader", "Co-Leader")],
+                        help_text="Co-Leader: Can co-lead a 3-season hiking trip with a Leader. Leader: Can run 3-season hiking trips.",
                         max_length=10,
                     ),
                 ),
                 (
-                    'mitoc_experience',
+                    "mitoc_experience",
                     models.TextField(
-                        help_text='How long have you been a MITOC member? Please indicate what official MITOC hikes and Circuses you have been on. Include approximate dates and locations, number of participants, trail conditions, type of trip, etc. Give details of whether you participated, led, or co-led these trips. [Optional]: If you like, briefly summarize your experience on unofficial trips or experience outside of New England.',
+                        help_text="How long have you been a MITOC member? Please indicate what official MITOC hikes and Circuses you have been on. Include approximate dates and locations, number of participants, trail conditions, type of trip, etc. Give details of whether you participated, led, or co-led these trips. [Optional]: If you like, briefly summarize your experience on unofficial trips or experience outside of New England.",
                         max_length=5000,
-                        verbose_name='Hiking Experience with MITOC',
+                        verbose_name="Hiking Experience with MITOC",
                     ),
                 ),
                 (
-                    'formal_training',
+                    "formal_training",
                     models.TextField(
                         blank=True,
-                        help_text='Please give details of any medical training and qualifications, with dates. Also include any other formal outdoor education or qualifications.',
+                        help_text="Please give details of any medical training and qualifications, with dates. Also include any other formal outdoor education or qualifications.",
                         max_length=5000,
                     ),
                 ),
                 (
-                    'leadership_experience',
+                    "leadership_experience",
                     models.TextField(
                         blank=True,
                         help_text="If you've been a leader elsewhere, please describe that here. This could include leadership in other collegiate outing clubs, student sports clubs, NOLS, Outward Bound, or AMC; working as a guide, summer camp counselor, or Scout leader; or organizing hikes with friends.",
                         max_length=5000,
-                        verbose_name='Group outdoor/leadership experience',
+                        verbose_name="Group outdoor/leadership experience",
                     ),
                 ),
                 (
-                    'participant',
+                    "participant",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to='ws.participant'
+                        on_delete=django.db.models.deletion.CASCADE, to="ws.participant"
                     ),
                 ),
             ],
             options={
-                'ordering': ['time_created'],
-                'abstract': False,
+                "ordering": ["time_created"],
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='Feedback',
+            name="Feedback",
             fields=[
                 (
-                    'id',
+                    "id",
                     models.AutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name='ID',
+                        verbose_name="ID",
                     ),
                 ),
-                ('showed_up', models.BooleanField(default=True)),
-                ('comments', models.TextField(max_length=2000)),
-                ('time_created', models.DateTimeField(auto_now_add=True)),
+                ("showed_up", models.BooleanField(default=True)),
+                ("comments", models.TextField(max_length=2000)),
+                ("time_created", models.DateTimeField(auto_now_add=True)),
                 (
-                    'leader',
+                    "leader",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        related_name='authored_feedback',
-                        to='ws.participant',
+                        related_name="authored_feedback",
+                        to="ws.participant",
                     ),
                 ),
                 (
-                    'participant',
+                    "participant",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to='ws.participant'
+                        on_delete=django.db.models.deletion.CASCADE, to="ws.participant"
                     ),
                 ),
                 (
-                    'trip',
+                    "trip",
                     models.ForeignKey(
                         blank=True,
                         null=True,
                         on_delete=django.db.models.deletion.CASCADE,
-                        to='ws.trip',
+                        to="ws.trip",
                     ),
                 ),
             ],
             options={
-                'ordering': ['participant', '-time_created'],
+                "ordering": ["participant", "-time_created"],
             },
         ),
         migrations.AddField(
-            model_name='discount',
-            name='administrators',
+            model_name="discount",
+            name="administrators",
             field=models.ManyToManyField(
                 blank=True,
-                help_text='Persons selected to administer this discount',
-                related_name='discounts_administered',
-                to='ws.Participant',
+                help_text="Persons selected to administer this discount",
+                related_name="discounts_administered",
+                to="ws.Participant",
             ),
         ),
         migrations.CreateModel(
-            name='ClimbingLeaderApplication',
+            name="ClimbingLeaderApplication",
             fields=[
                 (
-                    'id',
+                    "id",
                     models.AutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name='ID',
+                        verbose_name="ID",
                     ),
                 ),
-                ('time_created', models.DateTimeField(auto_now_add=True)),
+                ("time_created", models.DateTimeField(auto_now_add=True)),
                 (
-                    'previous_rating',
+                    "previous_rating",
                     models.CharField(
-                        blank=True, help_text='Previous rating (if any)', max_length=255
+                        blank=True, help_text="Previous rating (if any)", max_length=255
                     ),
                 ),
                 (
-                    'year',
+                    "year",
                     models.PositiveIntegerField(
                         default=ws.utils.dates.ws_year,
-                        help_text='Year this application pertains to.',
+                        help_text="Year this application pertains to.",
                         validators=[django.core.validators.MinValueValidator(2014)],
                     ),
                 ),
                 (
-                    'desired_rating',
+                    "desired_rating",
                     models.CharField(
                         choices=[
-                            ('Bouldering', 'Bouldering'),
-                            ('Single-pitch', 'Single-pitch'),
-                            ('Multi-pitch', 'Multi-pitch'),
-                            ('Bouldering + Single-pitch', 'Bouldering + Single-pitch'),
-                            ('Bouldering + Multi-pitch', 'Bouldering + Multi-pitch'),
+                            ("Bouldering", "Bouldering"),
+                            ("Single-pitch", "Single-pitch"),
+                            ("Multi-pitch", "Multi-pitch"),
+                            ("Bouldering + Single-pitch", "Bouldering + Single-pitch"),
+                            ("Bouldering + Multi-pitch", "Bouldering + Multi-pitch"),
                         ],
                         max_length=32,
                     ),
                 ),
-                ('years_climbing', models.IntegerField()),
-                ('years_climbing_outside', models.IntegerField()),
+                ("years_climbing", models.IntegerField()),
+                ("years_climbing_outside", models.IntegerField()),
                 (
-                    'outdoor_bouldering_grade',
+                    "outdoor_bouldering_grade",
                     models.CharField(
-                        help_text='At what grade are you comfortable bouldering outside?',
+                        help_text="At what grade are you comfortable bouldering outside?",
                         max_length=255,
                     ),
                 ),
                 (
-                    'outdoor_sport_leading_grade',
+                    "outdoor_sport_leading_grade",
                     models.CharField(
-                        help_text='At what grade are you comfortable leading outside on sport routes?',
+                        help_text="At what grade are you comfortable leading outside on sport routes?",
                         max_length=255,
                     ),
                 ),
                 (
-                    'outdoor_trad_leading_grade',
+                    "outdoor_trad_leading_grade",
                     models.CharField(
-                        help_text='At what grade are you comfortable leading outside on trad routes?',
+                        help_text="At what grade are you comfortable leading outside on trad routes?",
                         max_length=255,
                     ),
                 ),
                 (
-                    'familiarity_spotting',
+                    "familiarity_spotting",
                     models.CharField(
                         choices=[
-                            ('none', 'not at all'),
-                            ('some', 'some exposure'),
-                            ('comfortable', 'comfortable'),
-                            ('very comfortable', 'very comfortable'),
+                            ("none", "not at all"),
+                            ("some", "some exposure"),
+                            ("comfortable", "comfortable"),
+                            ("very comfortable", "very comfortable"),
                         ],
                         max_length=16,
-                        verbose_name='Familarity with spotting boulder problems',
+                        verbose_name="Familarity with spotting boulder problems",
                     ),
                 ),
                 (
-                    'familiarity_bolt_anchors',
+                    "familiarity_bolt_anchors",
                     models.CharField(
                         choices=[
-                            ('none', 'not at all'),
-                            ('some', 'some exposure'),
-                            ('comfortable', 'comfortable'),
-                            ('very comfortable', 'very comfortable'),
+                            ("none", "not at all"),
+                            ("some", "some exposure"),
+                            ("comfortable", "comfortable"),
+                            ("very comfortable", "very comfortable"),
                         ],
                         max_length=16,
                         verbose_name="Familiarity with 2-bolt 'sport' anchors",
                     ),
                 ),
                 (
-                    'familiarity_gear_anchors',
+                    "familiarity_gear_anchors",
                     models.CharField(
                         choices=[
-                            ('none', 'not at all'),
-                            ('some', 'some exposure'),
-                            ('comfortable', 'comfortable'),
-                            ('very comfortable', 'very comfortable'),
+                            ("none", "not at all"),
+                            ("some", "some exposure"),
+                            ("comfortable", "comfortable"),
+                            ("very comfortable", "very comfortable"),
                         ],
                         max_length=16,
                         verbose_name="Familiarity with trad 'gear' anchors",
                     ),
                 ),
                 (
-                    'familiarity_sr',
+                    "familiarity_sr",
                     models.CharField(
                         choices=[
-                            ('none', 'not at all'),
-                            ('some', 'some exposure'),
-                            ('comfortable', 'comfortable'),
-                            ('very comfortable', 'very comfortable'),
+                            ("none", "not at all"),
+                            ("some", "some exposure"),
+                            ("comfortable", "comfortable"),
+                            ("very comfortable", "very comfortable"),
                         ],
                         max_length=16,
-                        verbose_name='Familiarity with multi-pitch self-rescue',
+                        verbose_name="Familiarity with multi-pitch self-rescue",
                     ),
                 ),
                 (
-                    'spotting_description',
+                    "spotting_description",
                     models.TextField(
                         blank=True,
-                        help_text='Describe how you would spot a climber on a meandering tall bouldering problem.',
+                        help_text="Describe how you would spot a climber on a meandering tall bouldering problem.",
                     ),
                 ),
                 (
-                    'tr_anchor_description',
+                    "tr_anchor_description",
                     models.TextField(
                         blank=True,
-                        help_text='Describe how you would build a top-rope anchor at a sport crag.',
-                        verbose_name='Top rope anchor description',
+                        help_text="Describe how you would build a top-rope anchor at a sport crag.",
+                        verbose_name="Top rope anchor description",
                     ),
                 ),
                 (
-                    'rappel_description',
+                    "rappel_description",
                     models.TextField(
                         blank=True,
-                        help_text='Describe how you would set up a safe rappel.',
+                        help_text="Describe how you would set up a safe rappel.",
                     ),
                 ),
                 (
-                    'gear_anchor_description',
+                    "gear_anchor_description",
                     models.TextField(
                         blank=True,
-                        help_text='Describe what you look for when building a typical gear anchor.',
+                        help_text="Describe what you look for when building a typical gear anchor.",
                     ),
                 ),
-                ('formal_training', models.TextField(blank=True)),
-                ('teaching_experience', models.TextField(blank=True)),
+                ("formal_training", models.TextField(blank=True)),
+                ("teaching_experience", models.TextField(blank=True)),
                 (
-                    'notable_climbs',
+                    "notable_climbs",
                     models.TextField(
                         blank=True,
-                        help_text='What are some particularly memorable climbs you have done?',
+                        help_text="What are some particularly memorable climbs you have done?",
                     ),
                 ),
                 (
-                    'favorite_route',
+                    "favorite_route",
                     models.TextField(
                         blank=True,
-                        help_text='Do you have a favorite route? If so, what is it and why?',
+                        help_text="Do you have a favorite route? If so, what is it and why?",
                     ),
                 ),
                 (
-                    'extra_info',
+                    "extra_info",
                     models.TextField(
                         blank=True,
-                        help_text='Is there anything else you would like us to know?',
+                        help_text="Is there anything else you would like us to know?",
                     ),
                 ),
                 (
-                    'participant',
+                    "participant",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to='ws.participant'
+                        on_delete=django.db.models.deletion.CASCADE, to="ws.participant"
                     ),
                 ),
             ],
             options={
-                'ordering': ['time_created'],
-                'abstract': False,
+                "ordering": ["time_created"],
+                "abstract": False,
             },
         ),
         migrations.AlterField(
-            model_name='participant',
-            name='profile_last_updated',
+            model_name="participant",
+            name="profile_last_updated",
             field=models.DateTimeField(auto_now_add=True),
         ),
         migrations.AddField(
-            model_name='trip',
-            name='wimp',
+            model_name="trip",
+            name="wimp",
             field=models.ForeignKey(
                 blank=True,
-                help_text='Ensures the trip returns safely. Can view trip itinerary, participant medical info.',
+                help_text="Ensures the trip returns safely. Can view trip itinerary, participant medical info.",
                 null=True,
                 on_delete=django.db.models.deletion.CASCADE,
-                related_name='wimp_trips',
-                to='ws.participant',
-                verbose_name='WIMP',
+                related_name="wimp_trips",
+                to="ws.participant",
+                verbose_name="WIMP",
             ),
         ),
         migrations.CreateModel(
-            name='Membership',
+            name="Membership",
             fields=[
                 (
-                    'id',
+                    "id",
                     models.AutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name='ID',
+                        verbose_name="ID",
                     ),
                 ),
                 (
-                    'membership_expires',
+                    "membership_expires",
                     models.DateField(
                         blank=True,
-                        help_text='Last day that annual membership dues are valid',
+                        help_text="Last day that annual membership dues are valid",
                         null=True,
                     ),
                 ),
                 (
-                    'waiver_expires',
+                    "waiver_expires",
                     models.DateField(
                         blank=True,
-                        help_text='Day after which liability waiver is no longer valid',
+                        help_text="Day after which liability waiver is no longer valid",
                         null=True,
                     ),
                 ),
-                ('last_cached', models.DateTimeField(auto_now=True)),
+                ("last_cached", models.DateTimeField(auto_now=True)),
             ],
         ),
         migrations.AddField(
-            model_name='participant',
-            name='membership',
+            model_name="participant",
+            name="membership",
             field=models.OneToOneField(
                 blank=True,
                 null=True,
                 on_delete=django.db.models.deletion.CASCADE,
-                to='ws.membership',
+                to="ws.membership",
             ),
         ),
         migrations.AddField(
-            model_name='trip',
-            name='membership_required',
+            model_name="trip",
+            name="membership_required",
             field=models.BooleanField(
                 default=True,
-                help_text='Require an active MITOC membership to participate. If disabled, only waivers will be mandated.',
+                help_text="Require an active MITOC membership to participate. If disabled, only waivers will be mandated.",
             ),
         ),
         migrations.AddField(
-            model_name='participant',
-            name='gravatar_opt_out',
+            model_name="participant",
+            name="gravatar_opt_out",
             field=models.BooleanField(
                 default=False,
                 help_text="Don't use Gravatar to show an avatar for this account",
-                verbose_name='Opt out of Gravatar',
+                verbose_name="Opt out of Gravatar",
             ),
         ),
         migrations.RunPython(
@@ -1480,197 +1480,197 @@ class Migration(migrations.Migration):
             reverse_code=do_nothing,
         ),
         migrations.CreateModel(
-            name='DistinctAccounts',
+            name="DistinctAccounts",
             fields=[
                 (
-                    'id',
+                    "id",
                     models.AutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name='ID',
+                        verbose_name="ID",
                     ),
                 ),
                 (
-                    'left',
+                    "left",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        related_name='distinctions_left',
-                        to='ws.participant',
+                        related_name="distinctions_left",
+                        to="ws.participant",
                     ),
                 ),
                 (
-                    'right',
+                    "right",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        related_name='distinctions_right',
-                        to='ws.participant',
+                        related_name="distinctions_right",
+                        to="ws.participant",
                     ),
                 ),
             ],
         ),
         migrations.AlterUniqueTogether(
-            name='leadersignup',
-            unique_together={('participant', 'trip')},
+            name="leadersignup",
+            unique_together={("participant", "trip")},
         ),
         migrations.AlterUniqueTogether(
-            name='signup',
-            unique_together={('participant', 'trip')},
+            name="signup",
+            unique_together={("participant", "trip")},
         ),
         migrations.AlterField(
-            model_name='participant',
-            name='affiliation',
+            model_name="participant",
+            name="affiliation",
             field=models.CharField(
                 choices=[
                     (
-                        'Undergraduate student',
-                        [('MU', 'MIT undergrad'), ('NU', 'Non-MIT undergrad')],
+                        "Undergraduate student",
+                        [("MU", "MIT undergrad"), ("NU", "Non-MIT undergrad")],
                     ),
                     (
-                        'Graduate student',
-                        [('MG', 'MIT grad student'), ('NG', 'Non-MIT grad student')],
+                        "Graduate student",
+                        [("MG", "MIT grad student"), ("NG", "Non-MIT grad student")],
                     ),
                     (
-                        'MIT',
+                        "MIT",
                         [
-                            ('MA', 'MIT affiliate (staff, faculty, etc.)'),
-                            ('ML', 'MIT alum (former student)'),
+                            ("MA", "MIT affiliate (staff, faculty, etc.)"),
+                            ("ML", "MIT alum (former student)"),
                         ],
                     ),
-                    ('NA', 'Non-affiliate'),
+                    ("NA", "Non-affiliate"),
                 ],
                 max_length=2,
             ),
         ),
         migrations.AlterField(
-            model_name='participant',
-            name='affiliation',
+            model_name="participant",
+            name="affiliation",
             field=models.CharField(
                 choices=[
                     (
-                        'Undergraduate student',
-                        [('MU', 'MIT undergrad'), ('MU', 'Non-MIT undergrad')],
+                        "Undergraduate student",
+                        [("MU", "MIT undergrad"), ("MU", "Non-MIT undergrad")],
                     ),
                     (
-                        'Graduate student',
-                        [('MG', 'MIT grad student'), ('NG', 'Non-MIT grad student')],
+                        "Graduate student",
+                        [("MG", "MIT grad student"), ("NG", "Non-MIT grad student")],
                     ),
                     (
-                        'MIT',
+                        "MIT",
                         [
-                            ('MA', 'MIT affiliate (staff or faculty)'),
-                            ('ML', 'MIT alum (former student)'),
+                            ("MA", "MIT affiliate (staff or faculty)"),
+                            ("ML", "MIT alum (former student)"),
                         ],
                     ),
-                    ('NA', 'Non-affiliate'),
+                    ("NA", "Non-affiliate"),
                 ],
                 max_length=2,
             ),
         ),
         migrations.AlterField(
-            model_name='participant',
-            name='affiliation',
+            model_name="participant",
+            name="affiliation",
             field=models.CharField(
                 choices=[
                     (
-                        'Undergraduate student',
-                        [('MU', 'MIT undergrad'), ('NU', 'Non-MIT undergrad')],
+                        "Undergraduate student",
+                        [("MU", "MIT undergrad"), ("NU", "Non-MIT undergrad")],
                     ),
                     (
-                        'Graduate student',
-                        [('MG', 'MIT grad student'), ('NG', 'Non-MIT grad student')],
+                        "Graduate student",
+                        [("MG", "MIT grad student"), ("NG", "Non-MIT grad student")],
                     ),
                     (
-                        'MIT',
+                        "MIT",
                         [
-                            ('MA', 'MIT affiliate (staff or faculty)'),
-                            ('ML', 'MIT alum (former student)'),
+                            ("MA", "MIT affiliate (staff or faculty)"),
+                            ("ML", "MIT alum (former student)"),
                         ],
                     ),
-                    ('NA', 'Non-affiliate'),
+                    ("NA", "Non-affiliate"),
                 ],
                 max_length=2,
             ),
         ),
         migrations.AlterField(
-            model_name='trip',
-            name='description',
+            model_name="trip",
+            name="description",
             field=models.TextField(
                 help_text='<a href="https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet">Markdown</a> supported! Please use HTTPS images sparingly, and only if properly licensed.'
             ),
         ),
         migrations.CreateModel(
-            name='LotteryAdjustment',
+            name="LotteryAdjustment",
             fields=[
                 (
-                    'id',
+                    "id",
                     models.AutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name='ID',
+                        verbose_name="ID",
                     ),
                 ),
-                ('adjustment', models.IntegerField()),
-                ('time_created', models.DateTimeField(auto_now_add=True)),
+                ("adjustment", models.IntegerField()),
+                ("time_created", models.DateTimeField(auto_now_add=True)),
                 (
-                    'expires',
+                    "expires",
                     models.DateTimeField(
-                        help_text='Time at which this override should no longer apply'
+                        help_text="Time at which this override should no longer apply"
                     ),
                 ),
                 (
-                    'creator',
+                    "creator",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        related_name='adjustments_made',
-                        to='ws.participant',
+                        related_name="adjustments_made",
+                        to="ws.participant",
                     ),
                 ),
                 (
-                    'participant',
+                    "participant",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        related_name='adjustments_received',
-                        to='ws.participant',
+                        related_name="adjustments_received",
+                        to="ws.participant",
                     ),
                 ),
             ],
         ),
         migrations.AddField(
-            model_name='climbingleaderapplication',
-            name='archived',
+            model_name="climbingleaderapplication",
+            name="archived",
             field=models.BooleanField(
                 default=False,
-                help_text='Application should not be considered pending. Allows participant to submit another application if they desire.',
+                help_text="Application should not be considered pending. Allows participant to submit another application if they desire.",
             ),
         ),
         migrations.AddField(
-            model_name='hikingleaderapplication',
-            name='archived',
+            model_name="hikingleaderapplication",
+            name="archived",
             field=models.BooleanField(
                 default=False,
-                help_text='Application should not be considered pending. Allows participant to submit another application if they desire.',
+                help_text="Application should not be considered pending. Allows participant to submit another application if they desire.",
             ),
         ),
         migrations.AddField(
-            model_name='winterschoolleaderapplication',
-            name='archived',
+            model_name="winterschoolleaderapplication",
+            name="archived",
             field=models.BooleanField(
                 default=False,
-                help_text='Application should not be considered pending. Allows participant to submit another application if they desire.',
+                help_text="Application should not be considered pending. Allows participant to submit another application if they desire.",
             ),
         ),
         migrations.AddField(
-            model_name='participant',
-            name='insecure_password',
+            model_name="participant",
+            name="insecure_password",
             field=models.BooleanField(
-                default=False, verbose_name='Password shown to be insecure'
+                default=False, verbose_name="Password shown to be insecure"
             ),
         ),
         migrations.AddField(
-            model_name='participant',
-            name='password_last_checked',
+            model_name="participant",
+            name="password_last_checked",
             field=models.DateTimeField(
                 blank=True,
                 null=True,
@@ -1678,266 +1678,266 @@ class Migration(migrations.Migration):
             ),
         ),
         migrations.AlterField(
-            model_name='winterschoolleaderapplication',
-            name='taking_wfa',
+            model_name="winterschoolleaderapplication",
+            name="taking_wfa",
             field=models.CharField(
-                choices=[('Yes', 'Yes'), ('No', 'No'), ('Maybe', "Maybe/don't know")],
+                choices=[("Yes", "Yes"), ("No", "No"), ("Maybe", "Maybe/don't know")],
                 help_text="You can subsidize your WFA certification by $100 by leading two or more trips! We will be holding a WFA course on MIT's campus (dates to be announced soon).",
                 max_length=10,
-                verbose_name='Do you plan on taking a WFA course before Winter School?',
+                verbose_name="Do you plan on taking a WFA course before Winter School?",
             ),
         ),
         migrations.AddField(
-            model_name='winterschoolleaderapplication',
-            name='technical_skills',
+            model_name="winterschoolleaderapplication",
+            name="technical_skills",
             field=models.TextField(
                 blank=True,
-                help_text='Please summarize how you meet the criteria for the leader rating you are requesting, including any relevant technical skills (traction use, navigation, use of overnight equipment, etc.)',
+                help_text="Please summarize how you meet the criteria for the leader rating you are requesting, including any relevant technical skills (traction use, navigation, use of overnight equipment, etc.)",
                 max_length=5000,
             ),
         ),
         migrations.AddField(
-            model_name='winterschoolleaderapplication',
-            name='ice_experience',
+            model_name="winterschoolleaderapplication",
+            name="ice_experience",
             field=models.TextField(
                 blank=True,
-                help_text='Please describe your ice-climbing experience, including the approximate number of days you have ice-climbed in the last two years.',
+                help_text="Please describe your ice-climbing experience, including the approximate number of days you have ice-climbed in the last two years.",
                 max_length=5000,
-                verbose_name='Ice-climbing experience (ice leader applicants only)',
+                verbose_name="Ice-climbing experience (ice leader applicants only)",
             ),
         ),
         migrations.AddField(
-            model_name='winterschoolleaderapplication',
-            name='ski_experience',
+            model_name="winterschoolleaderapplication",
+            name="ski_experience",
             field=models.TextField(
                 blank=True,
-                help_text='Please describe your skiing experience, including both resort and back-country experience, and an estimate of the number of days you have backcountry skied in the last two years.',
+                help_text="Please describe your skiing experience, including both resort and back-country experience, and an estimate of the number of days you have backcountry skied in the last two years.",
                 max_length=5000,
-                verbose_name='Ski experience (ski leader applicants only)',
+                verbose_name="Ski experience (ski leader applicants only)",
             ),
         ),
         migrations.AddField(
-            model_name='winterschoolleaderapplication',
-            name='mentorship_goals',
+            model_name="winterschoolleaderapplication",
+            name="mentorship_goals",
             field=models.TextField(
                 blank=True,
-                help_text='What are you looking to get out of the mentorship program?',
+                help_text="What are you looking to get out of the mentorship program?",
                 max_length=5000,
             ),
         ),
         migrations.AlterField(
-            model_name='climbingleaderapplication',
-            name='familiarity_spotting',
+            model_name="climbingleaderapplication",
+            name="familiarity_spotting",
             field=models.CharField(
                 choices=[
-                    ('none', 'not at all'),
-                    ('some', 'some exposure'),
-                    ('comfortable', 'comfortable'),
-                    ('very comfortable', 'very comfortable'),
+                    ("none", "not at all"),
+                    ("some", "some exposure"),
+                    ("comfortable", "comfortable"),
+                    ("very comfortable", "very comfortable"),
                 ],
                 max_length=16,
-                verbose_name='Familiarity with spotting boulder problems',
+                verbose_name="Familiarity with spotting boulder problems",
             ),
         ),
         migrations.AlterField(
-            model_name='winterschoolleaderapplication',
-            name='winter_experience',
+            model_name="winterschoolleaderapplication",
+            name="winter_experience",
             field=models.TextField(
                 blank=True,
-                help_text='Details of previous winter outdoors experience. Include the type of trip (x-country skiing, above treeline, snowshoeing, ice climbing, etc), approximate dates and locations, numbers of participants, notable trail and weather conditions. Please also give details of whether you participated, led, or co-led these trips.',
+                help_text="Details of previous winter outdoors experience. Include the type of trip (x-country skiing, above treeline, snowshoeing, ice climbing, etc), approximate dates and locations, numbers of participants, notable trail and weather conditions. Please also give details of whether you participated, led, or co-led these trips.",
                 max_length=5000,
             ),
         ),
         migrations.AddField(
-            model_name='trip',
-            name='program',
+            model_name="trip",
+            name="program",
             field=models.CharField(
                 choices=[
                     (
-                        'Specific rating required',
+                        "Specific rating required",
                         [
-                            ('biking', 'Biking'),
-                            ('boating', 'Boating'),
-                            ('cabin', 'Cabin'),
-                            ('climbing', 'Climbing'),
-                            ('hiking', '3-season hiking'),
-                            ('mitoc_rock_program', 'MITOC Rock Program'),
-                            ('winter_school', 'Winter School'),
-                            ('winter_non_iap', 'Winter (outside IAP)'),
+                            ("biking", "Biking"),
+                            ("boating", "Boating"),
+                            ("cabin", "Cabin"),
+                            ("climbing", "Climbing"),
+                            ("hiking", "3-season hiking"),
+                            ("mitoc_rock_program", "MITOC Rock Program"),
+                            ("winter_school", "Winter School"),
+                            ("winter_non_iap", "Winter (outside IAP)"),
                         ],
                     ),
                     (
-                        'Any leader rating allowed',
+                        "Any leader rating allowed",
                         [
-                            ('circus', 'Circus'),
-                            ('service', 'Service'),
-                            ('none', 'None'),
+                            ("circus", "Circus"),
+                            ("service", "Service"),
+                            ("none", "None"),
                         ],
                     ),
                 ],
-                default='none',
+                default="none",
                 max_length=255,
             ),
         ),
         migrations.AddField(
-            model_name='trip',
-            name='trip_type',
+            model_name="trip",
+            name="trip_type",
             field=models.CharField(
                 choices=[
                     (
-                        'Biking',
+                        "Biking",
                         [
-                            ('biking_road', 'Road biking'),
-                            ('biking_mountain', 'Mountain biking'),
+                            ("biking_road", "Road biking"),
+                            ("biking_mountain", "Mountain biking"),
                         ],
                     ),
                     (
-                        'Boating',
+                        "Boating",
                         [
-                            ('boating_canoeing', 'Canoeing'),
-                            ('boating_kayaking', 'Kayaking'),
-                            ('boating_kayaking_sea', 'Sea kayaking'),
-                            ('boating_surfing', 'Surfing'),
+                            ("boating_canoeing", "Canoeing"),
+                            ("boating_kayaking", "Kayaking"),
+                            ("boating_kayaking_sea", "Sea kayaking"),
+                            ("boating_surfing", "Surfing"),
                         ],
                     ),
                     (
-                        'Climbing',
+                        "Climbing",
                         [
-                            ('climbing_bouldering', 'Bouldering'),
-                            ('climbing_gym', 'Gym climbing'),
-                            ('climbing_ice', 'Ice climbing'),
-                            ('climbing_sport', 'Sport climbing, top rope'),
-                            ('climbing_trad', 'Trad climbing'),
+                            ("climbing_bouldering", "Bouldering"),
+                            ("climbing_gym", "Gym climbing"),
+                            ("climbing_ice", "Ice climbing"),
+                            ("climbing_sport", "Sport climbing, top rope"),
+                            ("climbing_trad", "Trad climbing"),
                         ],
                     ),
                     (
-                        'Hiking',
+                        "Hiking",
                         [
-                            ('hiking_hiking', 'Hiking'),
-                            ('hiking_trail_running', 'Trail running'),
+                            ("hiking_hiking", "Hiking"),
+                            ("hiking_trail_running", "Trail running"),
                         ],
                     ),
                     (
-                        'Skiing',
+                        "Skiing",
                         [
-                            ('skiing_bc', 'Backcountry skiing'),
-                            ('skiing_xc', 'Cross-country skiing'),
-                            ('skiing_resort', 'Resort skiing'),
+                            ("skiing_bc", "Backcountry skiing"),
+                            ("skiing_xc", "Cross-country skiing"),
+                            ("skiing_resort", "Resort skiing"),
                         ],
                     ),
                     (
-                        'Miscellaneous',
-                        [('ice_skating', 'Ice skating'), ('ultimate', 'Ultimate')],
+                        "Miscellaneous",
+                        [("ice_skating", "Ice skating"), ("ultimate", "Ultimate")],
                     ),
                     (
-                        'Other, N/A',
-                        [('none', 'None, or not applicable'), ('other', 'Other')],
+                        "Other, N/A",
+                        [("none", "None, or not applicable"), ("other", "Other")],
                     ),
                 ],
-                default='none',
+                default="none",
                 max_length=255,
             ),
         ),
         migrations.AlterField(
-            model_name='trip',
-            name='trip_type',
+            model_name="trip",
+            name="trip_type",
             field=models.CharField(
                 choices=[
                     (
-                        'Biking',
+                        "Biking",
                         [
-                            ('biking_road', 'Road biking'),
-                            ('biking_mountain', 'Mountain biking'),
+                            ("biking_road", "Road biking"),
+                            ("biking_mountain", "Mountain biking"),
                         ],
                     ),
                     (
-                        'Boating',
+                        "Boating",
                         [
-                            ('boating_canoeing', 'Canoeing'),
-                            ('boating_kayaking', 'Kayaking'),
-                            ('boating_kayaking_sea', 'Sea kayaking'),
-                            ('boating_surfing', 'Surfing'),
+                            ("boating_canoeing", "Canoeing"),
+                            ("boating_kayaking", "Kayaking"),
+                            ("boating_kayaking_sea", "Sea kayaking"),
+                            ("boating_surfing", "Surfing"),
                         ],
                     ),
                     (
-                        'Climbing',
+                        "Climbing",
                         [
-                            ('climbing_bouldering', 'Bouldering'),
-                            ('climbing_gym', 'Gym climbing'),
-                            ('climbing_ice', 'Ice climbing'),
-                            ('climbing_sport', 'Sport climbing, top rope'),
-                            ('climbing_trad', 'Trad climbing'),
+                            ("climbing_bouldering", "Bouldering"),
+                            ("climbing_gym", "Gym climbing"),
+                            ("climbing_ice", "Ice climbing"),
+                            ("climbing_sport", "Sport climbing, top rope"),
+                            ("climbing_trad", "Trad climbing"),
                         ],
                     ),
                     (
-                        'Hiking',
+                        "Hiking",
                         [
-                            ('hiking_hiking', 'Hiking'),
-                            ('hiking_trail_running', 'Trail running'),
+                            ("hiking_hiking", "Hiking"),
+                            ("hiking_trail_running", "Trail running"),
                         ],
                     ),
                     (
-                        'Skiing',
+                        "Skiing",
                         [
-                            ('skiing_bc', 'Backcountry skiing'),
-                            ('skiing_xc', 'Cross-country skiing'),
-                            ('skiing_resort', 'Resort skiing'),
+                            ("skiing_bc", "Backcountry skiing"),
+                            ("skiing_xc", "Cross-country skiing"),
+                            ("skiing_resort", "Resort skiing"),
                         ],
                     ),
                     (
-                        'Miscellaneous',
-                        [('ice_skating', 'Ice skating'), ('ultimate', 'Ultimate')],
+                        "Miscellaneous",
+                        [("ice_skating", "Ice skating"), ("ultimate", "Ultimate")],
                     ),
                     (
-                        'Other, N/A',
-                        [('none', 'None, or not applicable'), ('other', 'Other')],
+                        "Other, N/A",
+                        [("none", "None, or not applicable"), ("other", "Other")],
                     ),
                 ],
                 max_length=255,
             ),
         ),
         migrations.AlterModelOptions(
-            name='waitlistsignup',
-            options={'ordering': ['-manual_order', 'time_created', 'pk']},
+            name="waitlistsignup",
+            options={"ordering": ["-manual_order", "time_created", "pk"]},
         ),
         migrations.AlterField(
-            model_name='trip',
-            name='signups_close_at',
+            model_name="trip",
+            name="signups_close_at",
             field=models.DateTimeField(
                 blank=True, default=ws.utils.dates.default_signups_close_at, null=True
             ),
         ),
         migrations.AddField(
-            model_name='winterschoolsettings',
-            name='accept_applications',
+            model_name="winterschoolsettings",
+            name="accept_applications",
             field=models.BooleanField(
                 default=True,
-                verbose_name='Accept new Winter School leader applications',
+                verbose_name="Accept new Winter School leader applications",
             ),
         ),
         migrations.AlterField(
-            model_name='trip',
-            name='program',
+            model_name="trip",
+            name="program",
             field=models.CharField(
                 choices=[
                     (
-                        'Specific rating required',
+                        "Specific rating required",
                         [
-                            ('biking', 'Biking'),
-                            ('boating', 'Boating'),
-                            ('climbing', 'Climbing'),
-                            ('hiking', '3-season hiking'),
-                            ('mitoc_rock_program', 'MITOC Rock Program'),
-                            ('winter_school', 'Winter School'),
-                            ('winter_non_iap', 'Winter (outside IAP)'),
+                            ("biking", "Biking"),
+                            ("boating", "Boating"),
+                            ("climbing", "Climbing"),
+                            ("hiking", "3-season hiking"),
+                            ("mitoc_rock_program", "MITOC Rock Program"),
+                            ("winter_school", "Winter School"),
+                            ("winter_non_iap", "Winter (outside IAP)"),
                         ],
                     ),
                     (
-                        'Any leader rating allowed',
+                        "Any leader rating allowed",
                         [
-                            ('circus', 'Circus'),
-                            ('service', 'Service'),
-                            ('none', 'None'),
+                            ("circus", "Circus"),
+                            ("service", "Service"),
+                            ("none", "None"),
                         ],
                     ),
                 ],
@@ -1945,52 +1945,52 @@ class Migration(migrations.Migration):
             ),
         ),
         migrations.AlterField(
-            model_name='trip',
-            name='program',
+            model_name="trip",
+            name="program",
             field=models.CharField(
                 choices=[
                     (
-                        'Specific rating required',
+                        "Specific rating required",
                         [
-                            ('biking', 'Biking'),
-                            ('boating', 'Boating'),
-                            ('cabin', 'Cabin'),
-                            ('climbing', 'Climbing'),
-                            ('hiking', '3-season hiking'),
-                            ('mitoc_rock_program', 'MITOC Rock Program'),
-                            ('winter_school', 'Winter School'),
-                            ('winter_non_iap', 'Winter (outside IAP)'),
+                            ("biking", "Biking"),
+                            ("boating", "Boating"),
+                            ("cabin", "Cabin"),
+                            ("climbing", "Climbing"),
+                            ("hiking", "3-season hiking"),
+                            ("mitoc_rock_program", "MITOC Rock Program"),
+                            ("winter_school", "Winter School"),
+                            ("winter_non_iap", "Winter (outside IAP)"),
                         ],
                     ),
                     (
-                        'Any leader rating allowed',
+                        "Any leader rating allowed",
                         [
-                            ('circus', 'Circus'),
-                            ('service', 'Service'),
-                            ('none', 'None'),
+                            ("circus", "Circus"),
+                            ("service", "Service"),
+                            ("none", "None"),
                         ],
                     ),
                 ],
-                default='none',
+                default="none",
                 max_length=255,
             ),
         ),
         migrations.AddField(
-            model_name='tripinfo',
-            name='last_updated',
+            model_name="tripinfo",
+            name="last_updated",
             field=models.DateTimeField(auto_now=True),
         ),
         migrations.AlterField(
-            model_name='tripinfo',
-            name='worry_time',
+            model_name="tripinfo",
+            name="worry_time",
             field=models.CharField(
-                help_text='Suggested: 7 pm, or return time +2 hours (whichever is later). If the WIMP has not heard from you after this time and is unable to make contact with any leaders or participants, the authorities will be called.',
+                help_text="Suggested: 7 pm, or return time +2 hours (whichever is later). If the WIMP has not heard from you after this time and is unable to make contact with any leaders or participants, the authorities will be called.",
                 max_length=63,
             ),
         ),
         migrations.AlterField(
-            model_name='participant',
-            name='email',
+            model_name="participant",
+            name="email",
             field=models.EmailField(
                 help_text='This will be shared with leaders & other participants. <a href="/accounts/email/">Manage email addresses</a>.',
                 max_length=254,
@@ -1998,64 +1998,64 @@ class Migration(migrations.Migration):
             ),
         ),
         migrations.AlterField(
-            model_name='tripinfo',
-            name='drivers',
+            model_name="tripinfo",
+            name="drivers",
             field=models.ManyToManyField(
                 blank=True,
                 help_text='If a trip participant is driving, but is not on this list, they must first submit <a href="/profile/edit/#car">information about their car</a>. They should then be added here.',
-                to='ws.Participant',
+                to="ws.Participant",
             ),
         ),
         migrations.CreateModel(
-            name='LotterySeparation',
+            name="LotterySeparation",
             fields=[
                 (
-                    'id',
+                    "id",
                     models.AutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name='ID',
+                        verbose_name="ID",
                     ),
                 ),
-                ('time_created', models.DateTimeField(auto_now_add=True)),
+                ("time_created", models.DateTimeField(auto_now_add=True)),
                 (
-                    'creator',
+                    "creator",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        related_name='separations_created',
-                        to='ws.participant',
-                    ),
-                ),
-                (
-                    'initiator',
-                    models.ForeignKey(
-                        help_text='Participant requesting a separation',
-                        on_delete=django.db.models.deletion.CASCADE,
-                        related_name='separations_initiated',
-                        to='ws.participant',
+                        related_name="separations_created",
+                        to="ws.participant",
                     ),
                 ),
                 (
-                    'recipient',
+                    "initiator",
                     models.ForeignKey(
-                        help_text='The participant with whom the initiator should not be placed on a trip',
+                        help_text="Participant requesting a separation",
                         on_delete=django.db.models.deletion.CASCADE,
-                        related_name='separations_received',
-                        to='ws.participant',
+                        related_name="separations_initiated",
+                        to="ws.participant",
+                    ),
+                ),
+                (
+                    "recipient",
+                    models.ForeignKey(
+                        help_text="The participant with whom the initiator should not be placed on a trip",
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="separations_received",
+                        to="ws.participant",
                     ),
                 ),
             ],
             options={
-                'unique_together': {('initiator', 'recipient')},
+                "unique_together": {("initiator", "recipient")},
             },
         ),
         migrations.AlterField(
-            model_name='discount',
-            name='ga_key',
+            model_name="discount",
+            name="ga_key",
             field=models.CharField(
                 blank=True,
-                help_text='key for Google spreadsheet with membership information (shared as read-only with the company)',
+                help_text="key for Google spreadsheet with membership information (shared as read-only with the company)",
                 max_length=63,
             ),
         ),
@@ -2064,8 +2064,8 @@ class Migration(migrations.Migration):
             reverse_code=do_nothing,
         ),
         migrations.AddField(
-            model_name='participant',
-            name='temp_user',
+            model_name="participant",
+            name="temp_user",
             field=models.ForeignKey(
                 default=None,
                 null=True,
@@ -2074,41 +2074,41 @@ class Migration(migrations.Migration):
             ),
         ),
         migrations.RemoveField(
-            model_name='participant',
-            name='user_id',
+            model_name="participant",
+            name="user_id",
         ),
         migrations.RenameField(
-            model_name='participant',
-            old_name='temp_user',
-            new_name='user',
+            model_name="participant",
+            old_name="temp_user",
+            new_name="user",
         ),
         migrations.AlterField(
-            model_name='participant',
-            name='user',
+            model_name="participant",
+            name="user",
             field=models.OneToOneField(
                 on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL
             ),
         ),
         migrations.CreateModel(
-            name='PasswordQuality',
+            name="PasswordQuality",
             fields=[
                 (
-                    'id',
+                    "id",
                     models.AutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name='ID',
+                        verbose_name="ID",
                     ),
                 ),
                 (
-                    'is_insecure',
+                    "is_insecure",
                     models.BooleanField(
-                        default=False, verbose_name='Password shown to be insecure'
+                        default=False, verbose_name="Password shown to be insecure"
                     ),
                 ),
                 (
-                    'last_checked',
+                    "last_checked",
                     models.DateTimeField(
                         blank=True,
                         null=True,
@@ -2116,548 +2116,548 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 (
-                    'participant',
+                    "participant",
                     models.OneToOneField(
-                        on_delete=django.db.models.deletion.CASCADE, to='ws.participant'
+                        on_delete=django.db.models.deletion.CASCADE, to="ws.participant"
                     ),
                 ),
             ],
         ),
         migrations.RemoveField(
-            model_name='participant',
-            name='insecure_password',
+            model_name="participant",
+            name="insecure_password",
         ),
         migrations.RemoveField(
-            model_name='participant',
-            name='password_last_checked',
+            model_name="participant",
+            name="password_last_checked",
         ),
         migrations.AlterField(
-            model_name='trip',
-            name='allow_leader_signups',
+            model_name="trip",
+            name="allow_leader_signups",
             field=models.BooleanField(
                 default=False,
-                help_text='Leaders can add themselves directly to the list of trip leaders, even if trip is full or in lottery mode. Recommended for Circuses!',
+                help_text="Leaders can add themselves directly to the list of trip leaders, even if trip is full or in lottery mode. Recommended for Circuses!",
             ),
         ),
         migrations.AlterField(
-            model_name='trip',
-            name='honor_participant_pairing',
+            model_name="trip",
+            name="honor_participant_pairing",
             field=models.BooleanField(
                 default=True,
-                help_text='Try to place paired participants together on the trip (if both sign up).',
+                help_text="Try to place paired participants together on the trip (if both sign up).",
             ),
         ),
         migrations.AlterField(
-            model_name='trip',
-            name='membership_required',
+            model_name="trip",
+            name="membership_required",
             field=models.BooleanField(
                 default=True,
-                help_text='Require an active MITOC membership to participate (waivers are always required).',
+                help_text="Require an active MITOC membership to participate (waivers are always required).",
             ),
         ),
         migrations.AddField(
-            model_name='participant',
-            name='send_membership_reminder',
+            model_name="participant",
+            name="send_membership_reminder",
             field=models.BooleanField(
                 default=False,
                 help_text="MITOC cannot automatically renew memberships, but we can send you an email when it's time to renew.",
-                verbose_name='Send annual reminder to renew membership',
+                verbose_name="Send annual reminder to renew membership",
             ),
         ),
         migrations.CreateModel(
-            name='MembershipReminder',
+            name="MembershipReminder",
             fields=[
                 (
-                    'id',
+                    "id",
                     models.AutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name='ID',
+                        verbose_name="ID",
                     ),
                 ),
                 (
-                    'reminder_sent_at',
+                    "reminder_sent_at",
                     models.DateTimeField(
-                        verbose_name='Last time an email was sent reminding this participant to renew'
+                        verbose_name="Last time an email was sent reminding this participant to renew"
                     ),
                 ),
                 (
-                    'participant',
+                    "participant",
                     models.OneToOneField(
-                        on_delete=django.db.models.deletion.CASCADE, to='ws.participant'
+                        on_delete=django.db.models.deletion.CASCADE, to="ws.participant"
                     ),
                 ),
             ],
         ),
         migrations.AlterField(
-            model_name='lotteryinfo',
-            name='car_status',
+            model_name="lotteryinfo",
+            name="car_status",
             field=models.CharField(
                 choices=[
-                    ('none', 'Not driving'),
-                    ('own', 'Can drive others'),
-                    ('rent', 'Willing to rent'),
-                    ('self', 'Can drive self'),
+                    ("none", "Not driving"),
+                    ("own", "Can drive others"),
+                    ("rent", "Willing to rent"),
+                    ("self", "Can drive self"),
                 ],
-                default='none',
+                default="none",
                 max_length=7,
             ),
         ),
         migrations.AlterField(
-            model_name='trip',
-            name='program',
+            model_name="trip",
+            name="program",
             field=models.CharField(
                 choices=[
                     (
-                        'Specific rating required',
+                        "Specific rating required",
                         [
-                            ('biking', 'Biking'),
-                            ('boating', 'Boating'),
-                            ('cabin', 'Cabin'),
-                            ('climbing', 'Climbing'),
-                            ('hiking', '3-season hiking'),
-                            ('mitoc_rock_program', 'School of Rock'),
-                            ('winter_school', 'Winter School'),
-                            ('winter_non_iap', 'Winter (outside IAP)'),
+                            ("biking", "Biking"),
+                            ("boating", "Boating"),
+                            ("cabin", "Cabin"),
+                            ("climbing", "Climbing"),
+                            ("hiking", "3-season hiking"),
+                            ("mitoc_rock_program", "School of Rock"),
+                            ("winter_school", "Winter School"),
+                            ("winter_non_iap", "Winter (outside IAP)"),
                         ],
                     ),
                     (
-                        'Any leader rating allowed',
+                        "Any leader rating allowed",
                         [
-                            ('circus', 'Circus'),
-                            ('service', 'Service'),
-                            ('none', 'None'),
+                            ("circus", "Circus"),
+                            ("service", "Service"),
+                            ("none", "None"),
                         ],
                     ),
                 ],
-                default='none',
+                default="none",
                 max_length=255,
             ),
         ),
         migrations.AlterField(
-            model_name='trip',
-            name='signups_open_at',
+            model_name="trip",
+            name="signups_open_at",
             field=models.DateTimeField(default=ws.utils.dates.local_now_to_the_minute),
         ),
         migrations.AddField(
-            model_name='trip',
-            name='edit_revision',
+            model_name="trip",
+            name="edit_revision",
             field=models.PositiveIntegerField(
                 default=0,
-                help_text='An incremented integer, to avoid simultaneous edits to the trip.',
+                help_text="An incremented integer, to avoid simultaneous edits to the trip.",
             ),
         ),
         migrations.AddField(
-            model_name='trip',
-            name='last_updated_by',
+            model_name="trip",
+            name="last_updated_by",
             field=models.ForeignKey(
                 blank=True,
                 null=True,
                 on_delete=django.db.models.deletion.CASCADE,
-                related_name='trips_updated',
-                to='ws.participant',
+                related_name="trips_updated",
+                to="ws.participant",
             ),
         ),
         migrations.AddIndex(
-            model_name='trip',
+            model_name="trip",
             index=django.contrib.postgres.indexes.GistIndex(
                 django.contrib.postgres.search.CombinedSearchVector(
                     django.contrib.postgres.search.CombinedSearchVector(
                         django.contrib.postgres.search.SearchVector(
-                            'name', config='english', weight='A'
+                            "name", config="english", weight="A"
                         ),
-                        '||',
+                        "||",
                         django.contrib.postgres.search.SearchVector(
-                            'description', config='english', weight='B'
+                            "description", config="english", weight="B"
                         ),
-                        django.contrib.postgres.search.SearchConfig('english'),
+                        django.contrib.postgres.search.SearchConfig("english"),
                     ),
-                    '||',
+                    "||",
                     django.contrib.postgres.search.SearchVector(
-                        'prereqs', config='english', weight='B'
+                        "prereqs", config="english", weight="B"
                     ),
-                    django.contrib.postgres.search.SearchConfig('english'),
+                    django.contrib.postgres.search.SearchConfig("english"),
                 ),
-                name='search_vector_idx',
+                name="search_vector_idx",
             ),
         ),
         migrations.AddField(
-            model_name='trip',
-            name='summary',
+            model_name="trip",
+            name="summary",
             field=models.CharField(
-                help_text='Brief summary of the trip, to be displayed on lists of all trips',
+                help_text="Brief summary of the trip, to be displayed on lists of all trips",
                 max_length=80,
                 null=True,
             ),
         ),
         migrations.AlterField(
-            model_name='trip',
-            name='summary',
+            model_name="trip",
+            name="summary",
             field=models.CharField(
-                help_text='Brief summary of the trip, to be displayed on lists of all trips',
+                help_text="Brief summary of the trip, to be displayed on lists of all trips",
                 max_length=80,
             ),
         ),
         migrations.AlterField(
-            model_name='winterschoolleaderapplication',
-            name='taking_wfa',
+            model_name="winterschoolleaderapplication",
+            name="taking_wfa",
             field=models.CharField(
                 choices=[
-                    ('Yes', 'Yes'),
-                    ('Already', 'Already hold WFA or equivalent'),
-                    ('No', 'No'),
-                    ('Maybe', "Maybe/don't know"),
+                    ("Yes", "Yes"),
+                    ("Already", "Already hold WFA or equivalent"),
+                    ("No", "No"),
+                    ("Maybe", "Maybe/don't know"),
                 ],
                 help_text="You can subsidize your WFA certification by $100 by leading two or more trips! MITOC holds a WFA course every fall on MIT's campus.",
                 max_length=10,
-                verbose_name='Do you plan on taking a WFA course before Winter School?',
+                verbose_name="Do you plan on taking a WFA course before Winter School?",
             ),
         ),
         migrations.AlterField(
-            model_name='winterschoolleaderapplication',
-            name='training',
+            model_name="winterschoolleaderapplication",
+            name="training",
             field=models.TextField(
                 blank=True,
-                help_text='Details of any medical, technical, or leadership training and qualifications relevant to the winter environment, including WFA/WFR if previously taken. State the approximate dates of these activities. Leave blank if not applicable.',
+                help_text="Details of any medical, technical, or leadership training and qualifications relevant to the winter environment, including WFA/WFR if previously taken. State the approximate dates of these activities. Leave blank if not applicable.",
                 max_length=5000,
-                verbose_name='Formal training and qualifications',
+                verbose_name="Formal training and qualifications",
             ),
         ),
         migrations.AlterField(
-            model_name='trip',
-            name='trip_type',
+            model_name="trip",
+            name="trip_type",
             field=models.CharField(
                 choices=[
                     (
-                        'Biking',
+                        "Biking",
                         [
-                            ('biking_road', 'Road biking'),
-                            ('biking_mountain', 'Mountain biking'),
+                            ("biking_road", "Road biking"),
+                            ("biking_mountain", "Mountain biking"),
                         ],
                     ),
                     (
-                        'Boating',
+                        "Boating",
                         [
-                            ('boating_canoeing', 'Canoeing'),
-                            ('boating_kayaking', 'Kayaking'),
-                            ('boating_kayaking_sea', 'Sea kayaking'),
-                            ('boating_surfing', 'Surfing'),
+                            ("boating_canoeing", "Canoeing"),
+                            ("boating_kayaking", "Kayaking"),
+                            ("boating_kayaking_sea", "Sea kayaking"),
+                            ("boating_surfing", "Surfing"),
                         ],
                     ),
                     (
-                        'Climbing',
+                        "Climbing",
                         [
-                            ('climbing_bouldering', 'Bouldering'),
-                            ('climbing_gym', 'Gym climbing'),
-                            ('climbing_ice', 'Ice climbing'),
-                            ('climbing_sport', 'Sport climbing, top rope'),
-                            ('climbing_trad', 'Trad climbing'),
+                            ("climbing_bouldering", "Bouldering"),
+                            ("climbing_gym", "Gym climbing"),
+                            ("climbing_ice", "Ice climbing"),
+                            ("climbing_sport", "Sport climbing, top rope"),
+                            ("climbing_trad", "Trad climbing"),
                         ],
                     ),
                     (
-                        'Hiking',
+                        "Hiking",
                         [
-                            ('hiking_hiking', 'Hiking'),
-                            ('hiking_trail_running', 'Trail running'),
+                            ("hiking_hiking", "Hiking"),
+                            ("hiking_trail_running", "Trail running"),
                         ],
                     ),
                     (
-                        'Skiing',
+                        "Skiing",
                         [
-                            ('skiing_bc', 'Backcountry skiing'),
-                            ('skiing_xc', 'Cross-country skiing'),
-                            ('skiing_resort', 'Resort skiing'),
+                            ("skiing_bc", "Backcountry skiing"),
+                            ("skiing_xc", "Cross-country skiing"),
+                            ("skiing_resort", "Resort skiing"),
                         ],
                     ),
                     (
-                        'Miscellaneous',
+                        "Miscellaneous",
                         [
-                            ('ice_skating', 'Ice skating'),
-                            ('ultimate', 'Ultimate'),
-                            ('yoga', 'Yoga'),
+                            ("ice_skating", "Ice skating"),
+                            ("ultimate", "Ultimate"),
+                            ("yoga", "Yoga"),
                         ],
                     ),
                     (
-                        'Other, N/A',
-                        [('none', 'None, or not applicable'), ('other', 'Other')],
+                        "Other, N/A",
+                        [("none", "None, or not applicable"), ("other", "Other")],
                     ),
                 ],
                 max_length=255,
             ),
         ),
         migrations.AddField(
-            model_name='trip',
-            name='requires_reimbursement',
+            model_name="trip",
+            name="requires_reimbursement",
             field=models.BooleanField(
                 default=False,
-                help_text='If you have an approved budget for this trip, you must register with Atlas.',
+                help_text="If you have an approved budget for this trip, you must register with Atlas.",
             ),
         ),
         migrations.AlterField(
-            model_name='trip',
-            name='trip_type',
+            model_name="trip",
+            name="trip_type",
             field=models.CharField(
                 choices=[
                     (
-                        'Biking',
+                        "Biking",
                         [
-                            ('biking_road', 'Road biking'),
-                            ('biking_mountain', 'Mountain biking'),
+                            ("biking_road", "Road biking"),
+                            ("biking_mountain", "Mountain biking"),
                         ],
                     ),
                     (
-                        'Boating',
+                        "Boating",
                         [
-                            ('boating_canoeing', 'Canoeing'),
-                            ('boating_kayaking', 'Kayaking'),
-                            ('boating_kayaking_sea', 'Sea kayaking'),
-                            ('boating_surfing', 'Surfing'),
+                            ("boating_canoeing", "Canoeing"),
+                            ("boating_kayaking", "Kayaking"),
+                            ("boating_kayaking_sea", "Sea kayaking"),
+                            ("boating_surfing", "Surfing"),
                         ],
                     ),
                     (
-                        'Climbing',
+                        "Climbing",
                         [
-                            ('climbing_bouldering', 'Bouldering'),
-                            ('climbing_gym', 'Gym climbing'),
-                            ('climbing_ice', 'Ice climbing'),
-                            ('climbing_sport', 'Sport climbing, top rope'),
-                            ('climbing_trad', 'Trad climbing'),
+                            ("climbing_bouldering", "Bouldering"),
+                            ("climbing_gym", "Gym climbing"),
+                            ("climbing_ice", "Ice climbing"),
+                            ("climbing_sport", "Sport climbing, top rope"),
+                            ("climbing_trad", "Trad climbing"),
                         ],
                     ),
                     (
-                        'Hiking',
+                        "Hiking",
                         [
-                            ('hiking_hiking', 'Hiking'),
-                            ('hiking_trail_running', 'Trail running'),
+                            ("hiking_hiking", "Hiking"),
+                            ("hiking_trail_running", "Trail running"),
                         ],
                     ),
                     (
-                        'Skiing',
+                        "Skiing",
                         [
-                            ('skiing_bc', 'Backcountry skiing'),
-                            ('skiing_xc', 'Cross-country skiing'),
-                            ('skiing_resort', 'Resort skiing'),
+                            ("skiing_bc", "Backcountry skiing"),
+                            ("skiing_xc", "Cross-country skiing"),
+                            ("skiing_resort", "Resort skiing"),
                         ],
                     ),
                     (
-                        'Miscellaneous',
+                        "Miscellaneous",
                         [
-                            ('ice_skating', 'Ice skating'),
-                            ('ultimate', 'Ultimate'),
-                            ('yoga', 'Yoga'),
+                            ("ice_skating", "Ice skating"),
+                            ("ultimate", "Ultimate"),
+                            ("yoga", "Yoga"),
                         ],
                     ),
                     (
-                        'Other, N/A',
-                        [('none', 'None, or not applicable'), ('other', 'Other')],
+                        "Other, N/A",
+                        [("none", "None, or not applicable"), ("other", "Other")],
                     ),
                 ],
                 max_length=255,
-                verbose_name='Primary trip activity',
+                verbose_name="Primary trip activity",
             ),
         ),
         migrations.AddField(
-            model_name='trip',
-            name='winter_terrain_level',
+            model_name="trip",
+            name="winter_terrain_level",
             field=models.CharField(
                 blank=True,
                 choices=[
-                    ('A', 'A: <1 hour to intensive care, below treeline'),
-                    ('B', 'B: >1 hour to intensive care, below treeline'),
-                    ('C', 'C: above treeline'),
+                    ("A", "A: <1 hour to intensive care, below treeline"),
+                    ("B", "B: >1 hour to intensive care, below treeline"),
+                    ("C", "C: above treeline"),
                 ],
                 help_text='Trip leaders must meet <a href="/help/participants/ws_ratings/">requirements for terrain & activity ratings</a>.',
                 max_length=1,
                 null=True,
-                verbose_name='Terrain level',
+                verbose_name="Terrain level",
             ),
         ),
         migrations.AlterField(
-            model_name='trip',
-            name='program',
+            model_name="trip",
+            name="program",
             field=models.CharField(
                 choices=[
                     (
-                        'Specific rating required',
+                        "Specific rating required",
                         [
-                            ('biking', 'Biking'),
-                            ('boating', 'Boating'),
-                            ('cabin', 'Cabin'),
-                            ('climbing', 'Climbing'),
-                            ('hiking', '3-season hiking'),
-                            ('mitoc_rock_program', 'School of Rock'),
-                            ('winter_school', 'Winter School'),
-                            ('winter_non_iap', 'Winter (outside IAP)'),
+                            ("biking", "Biking"),
+                            ("boating", "Boating"),
+                            ("cabin", "Cabin"),
+                            ("climbing", "Climbing"),
+                            ("hiking", "3-season hiking"),
+                            ("mitoc_rock_program", "School of Rock"),
+                            ("winter_school", "Winter School"),
+                            ("winter_non_iap", "Winter (outside IAP)"),
                         ],
                     ),
                     (
-                        'Any leader rating allowed',
+                        "Any leader rating allowed",
                         [
-                            ('circus', 'Circus'),
-                            ('service', 'Service'),
-                            ('none', 'None'),
+                            ("circus", "Circus"),
+                            ("service", "Service"),
+                            ("none", "None"),
                         ],
                     ),
                 ],
                 db_index=True,
-                default='none',
+                default="none",
                 max_length=255,
             ),
         ),
         migrations.AlterField(
-            model_name='trip',
-            name='trip_type',
+            model_name="trip",
+            name="trip_type",
             field=models.CharField(
                 choices=[
                     (
-                        'Biking',
+                        "Biking",
                         [
-                            ('biking_road', 'Road biking'),
-                            ('biking_mountain', 'Mountain biking'),
+                            ("biking_road", "Road biking"),
+                            ("biking_mountain", "Mountain biking"),
                         ],
                     ),
                     (
-                        'Boating',
+                        "Boating",
                         [
-                            ('boating_canoeing', 'Canoeing'),
-                            ('boating_kayaking', 'Kayaking'),
-                            ('boating_kayaking_sea', 'Sea kayaking'),
-                            ('boating_surfing', 'Surfing'),
+                            ("boating_canoeing", "Canoeing"),
+                            ("boating_kayaking", "Kayaking"),
+                            ("boating_kayaking_sea", "Sea kayaking"),
+                            ("boating_surfing", "Surfing"),
                         ],
                     ),
                     (
-                        'Climbing',
+                        "Climbing",
                         [
-                            ('climbing_bouldering', 'Bouldering'),
-                            ('climbing_gym', 'Gym climbing'),
-                            ('climbing_ice', 'Ice climbing'),
-                            ('climbing_sport', 'Sport climbing, top rope'),
-                            ('climbing_trad', 'Trad climbing'),
+                            ("climbing_bouldering", "Bouldering"),
+                            ("climbing_gym", "Gym climbing"),
+                            ("climbing_ice", "Ice climbing"),
+                            ("climbing_sport", "Sport climbing, top rope"),
+                            ("climbing_trad", "Trad climbing"),
                         ],
                     ),
                     (
-                        'Hiking',
+                        "Hiking",
                         [
-                            ('hiking_hiking', 'Hiking'),
-                            ('hiking_trail_running', 'Trail running'),
+                            ("hiking_hiking", "Hiking"),
+                            ("hiking_trail_running", "Trail running"),
                         ],
                     ),
                     (
-                        'Skiing',
+                        "Skiing",
                         [
-                            ('skiing_bc', 'Backcountry skiing'),
-                            ('skiing_xc', 'Cross-country skiing'),
-                            ('skiing_resort', 'Resort skiing'),
+                            ("skiing_bc", "Backcountry skiing"),
+                            ("skiing_xc", "Cross-country skiing"),
+                            ("skiing_resort", "Resort skiing"),
                         ],
                     ),
                     (
-                        'Miscellaneous',
+                        "Miscellaneous",
                         [
-                            ('ice_skating', 'Ice skating'),
-                            ('ultimate', 'Ultimate'),
-                            ('yoga', 'Yoga'),
+                            ("ice_skating", "Ice skating"),
+                            ("ultimate", "Ultimate"),
+                            ("yoga", "Yoga"),
                         ],
                     ),
                     (
-                        'Other, N/A',
-                        [('none', 'None, or not applicable'), ('other', 'Other')],
+                        "Other, N/A",
+                        [("none", "None, or not applicable"), ("other", "Other")],
                     ),
                 ],
                 db_index=True,
                 max_length=255,
-                verbose_name='Primary trip activity',
+                verbose_name="Primary trip activity",
             ),
         ),
         migrations.AlterField(
-            model_name='trip',
-            name='winter_terrain_level',
+            model_name="trip",
+            name="winter_terrain_level",
             field=models.CharField(
                 blank=True,
                 choices=[
-                    ('A', 'A: <1 hour to intensive care, below treeline'),
-                    ('B', 'B: >1 hour to intensive care, below treeline'),
-                    ('C', 'C: above treeline'),
+                    ("A", "A: <1 hour to intensive care, below treeline"),
+                    ("B", "B: >1 hour to intensive care, below treeline"),
+                    ("C", "C: above treeline"),
                 ],
                 db_index=True,
                 help_text='Trip leaders must meet <a href="/help/participants/ws_ratings/">requirements for terrain & activity ratings</a>.',
                 max_length=1,
                 null=True,
-                verbose_name='Terrain level',
+                verbose_name="Terrain level",
             ),
         ),
         migrations.AlterField(
-            model_name='trip',
-            name='trip_date',
+            model_name="trip",
+            name="trip_date",
             field=models.DateField(db_index=True, default=ws.utils.dates.nearest_sat),
         ),
         migrations.RemoveIndex(
-            model_name='trip',
-            name='search_vector_idx',
+            model_name="trip",
+            name="search_vector_idx",
         ),
         migrations.AddIndex(
-            model_name='trip',
+            model_name="trip",
             index=django.contrib.postgres.indexes.GistIndex(
                 django.contrib.postgres.search.CombinedSearchVector(
                     django.contrib.postgres.search.CombinedSearchVector(
                         django.contrib.postgres.search.CombinedSearchVector(
                             django.contrib.postgres.search.SearchVector(
-                                'name', config='english', weight='A'
+                                "name", config="english", weight="A"
                             ),
-                            '||',
+                            "||",
                             django.contrib.postgres.search.SearchVector(
-                                'description', config='english', weight='B'
+                                "description", config="english", weight="B"
                             ),
-                            django.contrib.postgres.search.SearchConfig('english'),
+                            django.contrib.postgres.search.SearchConfig("english"),
                         ),
-                        '||',
+                        "||",
                         django.contrib.postgres.search.SearchVector(
-                            'prereqs', config='english', weight='B'
+                            "prereqs", config="english", weight="B"
                         ),
-                        django.contrib.postgres.search.SearchConfig('english'),
+                        django.contrib.postgres.search.SearchConfig("english"),
                     ),
-                    '||',
+                    "||",
                     django.contrib.postgres.search.SearchVector(
-                        'activity', 'trip_type', config='english', weight='C'
+                        "activity", "trip_type", config="english", weight="C"
                     ),
-                    django.contrib.postgres.search.SearchConfig('english'),
+                    django.contrib.postgres.search.SearchConfig("english"),
                 ),
-                name='search_vector_idx',
+                name="search_vector_idx",
             ),
         ),
         migrations.AlterField(
-            model_name='membershipreminder',
-            name='participant',
+            model_name="membershipreminder",
+            name="participant",
             field=models.ForeignKey(
-                on_delete=django.db.models.deletion.CASCADE, to='ws.participant'
+                on_delete=django.db.models.deletion.CASCADE, to="ws.participant"
             ),
         ),
         migrations.AlterField(
-            model_name='membershipreminder',
-            name='reminder_sent_at',
+            model_name="membershipreminder",
+            name="reminder_sent_at",
             field=models.DateTimeField(
                 blank=True,
                 null=True,
-                verbose_name='Last time an email was sent reminding this participant to renew',
+                verbose_name="Last time an email was sent reminding this participant to renew",
             ),
         ),
         migrations.AddConstraint(
-            model_name='membershipreminder',
+            model_name="membershipreminder",
             constraint=models.UniqueConstraint(
-                condition=models.Q(('reminder_sent_at__isnull', True)),
-                fields=('participant',),
-                name='ws_membershipreminder_par_reminder_sent_at_uniq',
+                condition=models.Q(("reminder_sent_at__isnull", True)),
+                fields=("participant",),
+                name="ws_membershipreminder_par_reminder_sent_at_uniq",
             ),
         ),
         migrations.AlterField(
-            model_name='discount',
-            name='url',
-            field=models.URLField(blank=True, default=''),
+            model_name="discount",
+            name="url",
+            field=models.URLField(blank=True, default=""),
             preserve_default=False,
         ),
         migrations.AlterField(
-            model_name='car',
-            name='year',
+            model_name="car",
+            name="year",
             field=models.PositiveIntegerField(
                 validators=[
                     django.core.validators.MaxValueValidator(2025),

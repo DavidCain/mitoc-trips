@@ -24,7 +24,7 @@ class LectureAttendanceView(FormView, LectureAttendanceMixin):
     form_class = forms.AttendedLecturesForm
 
     def get(self, request, *args, **kwargs):
-        return redirect(reverse('home'))  # (View lacks its own template)
+        return redirect(reverse("home"))  # (View lacks its own template)
 
     def form_invalid(self, form):
         """Provide custom behavior on invalidation to compensate for lack of template.
@@ -39,7 +39,7 @@ class LectureAttendanceView(FormView, LectureAttendanceMixin):
         2. The Winter School chairs disable lecture sign-in
         3. The participant then tries to submit the form, but is not allowed
         """
-        participant = form.cleaned_data['participant']
+        participant = form.cleaned_data["participant"]
 
         # Notifications aren't shown when viewing other participants
         if participant == self.request.participant:
@@ -48,10 +48,10 @@ class LectureAttendanceView(FormView, LectureAttendanceMixin):
             )
 
         # (note that some participants may not have access to this route!)
-        return redirect(reverse('view_participant', args=(participant.pk,)))
+        return redirect(reverse("view_participant", args=(participant.pk,)))
 
     def form_valid(self, form):
-        participant = form.cleaned_data['participant']
+        participant = form.cleaned_data["participant"]
         if not self.can_set_attendance(participant):
             return self.form_invalid(form)
 
@@ -64,7 +64,7 @@ class LectureAttendanceView(FormView, LectureAttendanceMixin):
         if participant == self.request.participant:
             messages.success(self.request, "Marked as having attended lectures!")
 
-        return redirect(reverse('view_participant', args=(participant.pk,)))
+        return redirect(reverse("view_participant", args=(participant.pk,)))
 
     @method_decorator(user_info_required)
     def dispatch(self, request, *args, **kwargs):
@@ -73,18 +73,18 @@ class LectureAttendanceView(FormView, LectureAttendanceMixin):
 
 class WinterSchoolSettingsView(CreateView):
     form_class = forms.WinterSchoolSettingsForm
-    template_name = 'chair/settings.html'
+    template_name = "chair/settings.html"
 
     def get_form_kwargs(self):
         """Load existing settings."""
         kwargs = super().get_form_kwargs()
-        kwargs['instance'] = models.WinterSchoolSettings.load()
+        kwargs["instance"] = models.WinterSchoolSettings.load()
         return kwargs
 
     def get_success_url(self):
         messages.success(self.request, "Updated Winter School settings!")
-        return reverse('ws_settings')
+        return reverse("ws_settings")
 
-    @method_decorator(group_required('WSC'))
+    @method_decorator(group_required("WSC"))
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)

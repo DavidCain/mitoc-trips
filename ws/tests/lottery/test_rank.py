@@ -98,19 +98,19 @@ class SeedTests(unittest.TestCase):
     def test_participant_must_be_saved_to_db(self):
         """We can't come up with a fair seed for a participant that lacks a pk."""
         with self.assertRaises(ValueError):
-            rank.seed_for(models.Participant(name='Not Saved'), lottery_key='hi')
+            rank.seed_for(models.Participant(name="Not Saved"), lottery_key="hi")
 
     def test_seed_contains_secret(self):
         """The seed should contain the secret that participant's don't know."""
-        seed = rank.seed_for(models.Participant(pk=33), 'some extra seed')
+        seed = rank.seed_for(models.Participant(pk=33), "some extra seed")
         self.assertIn(settings.PRNG_SEED_SECRET, seed)
 
     def test_uniqueness(self):
         """Seeds should be different from one another."""
         seeds = [
-            rank.seed_for(models.Participant(pk=33), '22'),
-            rank.seed_for(models.Participant(pk=22), '33'),
-            rank.seed_for(models.Participant(pk=22), '22'),
+            rank.seed_for(models.Participant(pk=33), "22"),
+            rank.seed_for(models.Participant(pk=22), "33"),
+            rank.seed_for(models.Participant(pk=22), "22"),
         ]
         self.assertEqual(len(seeds), len(set(seeds)))
 
@@ -119,10 +119,10 @@ class SeedTests(unittest.TestCase):
 
         This enables us to have repeatable lottery results.
         """
-        participant = models.Participant(pk=12, affiliation='MU')
+        participant = models.Participant(pk=12, affiliation="MU")
         self.assertEqual(
-            rank.affiliation_weighted_rand(participant, 'trip-542'),
-            rank.affiliation_weighted_rand(participant, 'trip-542'),
+            rank.affiliation_weighted_rand(participant, "trip-542"),
+            rank.affiliation_weighted_rand(participant, "trip-542"),
         )
 
     def test_weight_subtraction(self):
@@ -132,31 +132,31 @@ class SeedTests(unittest.TestCase):
         subtract a known offset according to the participant's affiliation.
         """
         # MIT undergraduates get an advantage: their number is more likely to be lower
-        mit_undergrad = models.Participant(pk=12, affiliation='MU')
-        seed = rank.seed_for(mit_undergrad, 'trip-142')
+        mit_undergrad = models.Participant(pk=12, affiliation="MU")
+        seed = rank.seed_for(mit_undergrad, "trip-142")
         random.seed(seed)
         self.assertEqual(
             random.random() - 0.3,
-            rank.affiliation_weighted_rand(mit_undergrad, 'trip-142'),
+            rank.affiliation_weighted_rand(mit_undergrad, "trip-142"),
         )
 
         # Non-affiliates are just a random number
-        non_affiliate = models.Participant(pk=24, affiliation='NA')
-        seed = rank.seed_for(non_affiliate, 'trip-142')
+        non_affiliate = models.Participant(pk=24, affiliation="NA")
+        seed = rank.seed_for(non_affiliate, "trip-142")
         random.seed(seed)
         self.assertEqual(
-            random.random(), rank.affiliation_weighted_rand(non_affiliate, 'trip-142')
+            random.random(), rank.affiliation_weighted_rand(non_affiliate, "trip-142")
         )
 
 
 class ParticipantRankingTests(SimpleTestCase):
     """Test the logic by which we determine users with "first pick" status."""
 
-    mocked_par_methods = ['number_trips_led', 'number_ws_trips', 'get_rank_override']
+    mocked_par_methods = ["number_trips_led", "number_ws_trips", "get_rank_override"]
 
     def setUp(self):
-        base = 'ws.lottery.run.WinterSchoolParticipantRanker'
-        patches = [patch(f'{base}.{name}') for name in self.mocked_par_methods]
+        base = "ws.lottery.run.WinterSchoolParticipantRanker"
+        patches = [patch(f"{base}.{name}") for name in self.mocked_par_methods]
 
         for patched in patches:
             patched.start()
@@ -175,31 +175,31 @@ class ParticipantRankingTests(SimpleTestCase):
     def test_flaking(self):
         """Those who flake on trips always come last."""
         # Flaking participant is an MIT undergrad (would normally get priority)
-        serial_flaker = models.Participant(pk=1, affiliation='MU', name='Serial Flaker')
-        flaked_once = models.Participant(pk=2, affiliation='MG', name='One-time Flaker')
-        reliable = models.Participant(pk=3, affiliation='NA', name='Reliable')
+        serial_flaker = models.Participant(pk=1, affiliation="MU", name="Serial Flaker")
+        flaked_once = models.Participant(pk=2, affiliation="MG", name="One-time Flaker")
+        reliable = models.Participant(pk=3, affiliation="NA", name="Reliable")
 
         mocked_counts = {
             flaked_once: {
-                'number_trips_led': 8,
-                'number_ws_trips': rank.TripCounts(attended=0, flaked=1, total=1),
+                "number_trips_led": 8,
+                "number_ws_trips": rank.TripCounts(attended=0, flaked=1, total=1),
             },
             serial_flaker: {
-                'number_trips_led': 4,
-                'number_ws_trips': rank.TripCounts(attended=0, flaked=3, total=3),
+                "number_trips_led": 4,
+                "number_ws_trips": rank.TripCounts(attended=0, flaked=3, total=3),
             },
             reliable: {
-                'number_trips_led': 0,
-                'number_ws_trips': rank.TripCounts(attended=4, flaked=0, total=4),
+                "number_trips_led": 0,
+                "number_ws_trips": rank.TripCounts(attended=4, flaked=0, total=4),
             },
         }
 
         self.ranker.get_rank_override.return_value = 0
         self.ranker.number_trips_led.side_effect = lambda par: mocked_counts[par][
-            'number_trips_led'
+            "number_trips_led"
         ]
         self.ranker.number_ws_trips.side_effect = lambda par: mocked_counts[par][
-            'number_ws_trips'
+            "number_ws_trips"
         ]
 
         self.expect_ranking(reliable, flaked_once, serial_flaker)
@@ -207,8 +207,8 @@ class ParticipantRankingTests(SimpleTestCase):
     def test_leader_bump(self):
         """All else held equal, the most active leaders get priority."""
         # Both participants are MIT undergraduates, equally likely to flake
-        novice = models.Participant(pk=1024, affiliation='MU', name='New Leader')
-        veteran = models.Participant(pk=256, affiliation='MU', name='Veteran Leader')
+        novice = models.Participant(pk=1024, affiliation="MU", name="New Leader")
+        veteran = models.Participant(pk=256, affiliation="MU", name="Veteran Leader")
 
         def attended_all(num):
             return rank.TripCounts(attended=num, flaked=0, total=num)
@@ -216,12 +216,12 @@ class ParticipantRankingTests(SimpleTestCase):
         # Key difference: the veteran leader has a greater balance of led trips
         mocked_counts = {
             veteran: {
-                'number_trips_led': 4,
-                'number_ws_trips': attended_all(1),
+                "number_trips_led": 4,
+                "number_ws_trips": attended_all(1),
             },  # Net 3
             novice: {
-                'number_trips_led': 2,
-                'number_ws_trips': attended_all(3),
+                "number_trips_led": 2,
+                "number_ws_trips": attended_all(3),
             },  # Net -1
         }
 
@@ -230,7 +230,7 @@ class ParticipantRankingTests(SimpleTestCase):
             return lambda par: mocked_counts[par][attribute]
 
         self.ranker.get_rank_override.return_value = 0
-        for attr in ['number_ws_trips', 'number_trips_led']:
+        for attr in ["number_ws_trips", "number_trips_led"]:
             getattr(self.ranker, attr).side_effect = by_participant(attr)
 
         # Sanity check that our net trips led balance works properly
@@ -242,8 +242,8 @@ class ParticipantRankingTests(SimpleTestCase):
 
     def test_sort_key_randomness(self):
         """We break ties with a random value."""
-        tweedle_dee = models.Participant(pk=5, affiliation='NG')
-        tweedle_dum = models.Participant(pk=6, affiliation='NG')
+        tweedle_dee = models.Participant(pk=5, affiliation="NG")
+        tweedle_dum = models.Participant(pk=6, affiliation="NG")
 
         # All other ranking factors are equal
         self.ranker.get_rank_override.return_value = 0
@@ -262,7 +262,7 @@ class SingleTripParticipantRankerTests(TestCase):
     @factory.django.mute_signals(signals.post_save)
     def test_deterministic_ranking(self):
         """Ranking of a particular single trip is based on its pk."""
-        trip = TripFactory.create(activity='hiking', pk=822)
+        trip = TripFactory.create(activity="hiking", pk=822)
 
         # TODO: This test relies pretty heavily on the database and is very slow
         participants = []
@@ -317,7 +317,7 @@ class FlakeFactorTests(TestCase):
 
     def test_previous_seasons_omitted(self):
         """Only trips from the current Winter School are considered."""
-        par_on_trip = {'participant': self.participant, 'on_trip': True}
+        par_on_trip = {"participant": self.participant, "on_trip": True}
         for trip in self.three_trips:
             models.SignUp.objects.create(trip=trip, **par_on_trip).save()
 
@@ -343,7 +343,7 @@ class FlakeFactorTests(TestCase):
 
     def test_each_trip_counted_once(self):
         """Multiple trip leaders declaring a participant a flake is no worse than 1."""
-        flaked = {'participant': self.participant, 'showed_up': False}
+        flaked = {"participant": self.participant, "showed_up": False}
         for trip in self.three_trips:
             for _ in range(3):
                 FeedbackFactory.create(trip=trip, **flaked)
@@ -380,7 +380,7 @@ class FlakeFactorTests(TestCase):
     def test_perfect_attendance(self):
         """Participants who've showed up for every trip score well."""
         # (The only trips considered are past trips from the current Winter School)
-        par_on_trip = {'participant': self.participant, 'on_trip': True}
+        par_on_trip = {"participant": self.participant, "on_trip": True}
         for trip in self.three_trips:
             models.SignUp.objects.create(trip=trip, **par_on_trip).save()
 
@@ -396,7 +396,7 @@ class FlakeFactorTests(TestCase):
 
     def test_leader_disagreement(self):
         """If only one leader reports them as flaking, that's a flake."""
-        subject = {'participant': self.participant, 'trip': self.three_trips[0]}
+        subject = {"participant": self.participant, "trip": self.three_trips[0]}
 
         models.SignUp(on_trip=True, **subject).save()
 

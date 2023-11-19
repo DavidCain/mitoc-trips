@@ -13,28 +13,28 @@ class LotteryRulesTest(SimpleTestCase):
     def test_single_trip_pairing_winter_school(self):
         """If a former lottery trip is now FCFS, we don't consider pairing."""
         fcfs_trip = factories.TripFactory.build(
-            algorithm='lottery', program=enums.Program.WINTER_SCHOOL
+            algorithm="lottery", program=enums.Program.WINTER_SCHOOL
         )
         self.assertFalse(fcfs_trip.single_trip_pairing)
 
     def test_single_trip_pairing_but_fcfs(self):
         """If a former lottery trip is now FCFS, we don't consider pairing."""
         fcfs_trip = factories.TripFactory.build(
-            algorithm='fcfs', honor_participant_pairing=True
+            algorithm="fcfs", honor_participant_pairing=True
         )
         self.assertFalse(fcfs_trip.single_trip_pairing)
 
     def test_single_trip_pairing_lottery(self):
         does_honor = factories.TripFactory.build(
             program=enums.Program.CLIMBING.value,
-            algorithm='lottery',
+            algorithm="lottery",
             honor_participant_pairing=True,
         )
         self.assertTrue(does_honor.single_trip_pairing)
 
         does_not_honor = factories.TripFactory.build(
             program=enums.Program.CLIMBING.value,
-            algorithm='lottery',
+            algorithm="lottery",
             honor_participant_pairing=False,
         )
         self.assertFalse(does_not_honor.single_trip_pairing)
@@ -140,39 +140,39 @@ class CleanTest(SimpleTestCase):
         """Any Winter School trip made between lotteries becomes a FCFS trip."""
         # This is a last-minute trip, will be coerced to FCFS
         trip = factories.TripFactory.build(
-            algorithm='lottery',
+            algorithm="lottery",
             program=enums.Program.WINTER_SCHOOL,
             trip_date=date(2020, 1, 18),
         )
         trip.clean()
-        self.assertEqual(trip.algorithm, 'fcfs')
+        self.assertEqual(trip.algorithm, "fcfs")
 
         # Will have time to run in the lottery on Wed, Jan 22
         normal_trip = factories.TripFactory.build(
-            algorithm='lottery',
+            algorithm="lottery",
             program=enums.Program.WINTER_SCHOOL,
             trip_date=date(2020, 1, 25),
         )
         normal_trip.clean()
-        self.assertEqual(normal_trip.algorithm, 'lottery')
+        self.assertEqual(normal_trip.algorithm, "lottery")
 
     @freeze_time("2020-01-16 18:45:22 EST")
     def test_non_winter_school_trip_between_lotteries(self):
         """We don't affect the lottery algorithm for non-WS trips!"""
         # This is a last-minute trip, but it will remain 'lottery' since it's not WS
         trip = factories.TripFactory.build(
-            algorithm='lottery',
+            algorithm="lottery",
             program=enums.Program.SERVICE,
             trip_date=date(2020, 1, 18),
         )
         trip.clean()
-        self.assertEqual(trip.algorithm, 'lottery')
+        self.assertEqual(trip.algorithm, "lottery")
 
     @freeze_time("2020-01-16 18:45:22 EST")
     def test_signups_closed_already(self):
         trip = factories.TripFactory.build(
             signups_close_at=datetime(
-                2020, 1, 15, 12, 0, tzinfo=ZoneInfo('America/New_York')
+                2020, 1, 15, 12, 0, tzinfo=ZoneInfo("America/New_York")
             ),
             trip_date=date(2020, 1, 18),
         )
@@ -195,16 +195,16 @@ class CleanTest(SimpleTestCase):
     def test_opens_after_closing(self):
         trip = factories.TripFactory.build(
             signups_open_at=datetime(
-                2020, 1, 15, 12, 0, tzinfo=ZoneInfo('America/New_York')
+                2020, 1, 15, 12, 0, tzinfo=ZoneInfo("America/New_York")
             ),
             signups_close_at=datetime(
-                2020, 1, 15, 2, 0, tzinfo=ZoneInfo('America/New_York')
+                2020, 1, 15, 2, 0, tzinfo=ZoneInfo("America/New_York")
             ),
             trip_date=date(2020, 1, 20),
         )
         with self.assertRaises(ValidationError) as cm:
             trip.clean()
-        self.assertEqual(cm.exception.message, 'Trips cannot open after they close.')
+        self.assertEqual(cm.exception.message, "Trips cannot open after they close.")
 
 
 class TripDatesTest(SimpleTestCase):
@@ -249,33 +249,33 @@ class AtlasLinkTest(TestCase):
     def test_trip_without_itinerary(self):
         self.assertEqual(
             self.trip.prefilled_atlas_form_link,
-            'https://docs.google.com/forms/d/e/1FAIpQLSeBgwQXEzbuBVdEpS6hAaII-sdlEajVnMQC84igt8plmigRdw/viewform'
-            '?usp=pp_url'
+            "https://docs.google.com/forms/d/e/1FAIpQLSeBgwQXEzbuBVdEpS6hAaII-sdlEajVnMQC84igt8plmigRdw/viewform"
+            "?usp=pp_url"
             # Encoded!
-            '&entry.64030440=Jaunt+to+Caf%C3%A9'
+            "&entry.64030440=Jaunt+to+Caf%C3%A9"
             # Names alphabetical!
-            '&entry.14051799=Bob+Bobberson%2C+Tim+Beaver%2C+Tzu+See+Queue'
+            "&entry.14051799=Bob+Bobberson%2C+Tim+Beaver%2C+Tzu+See+Queue"
             # Emails in the same order as names
-            '&entry.1718831235=bob%40mit.edu%2C+tim%40mit.edu%2C+sue%40mit.edu'
-            f'&entry.801739390=https%3A%2F%2Fmitoc-trips.mit.edu%2Ftrips%2F{self.trip.pk}%2F'
-            '&entry.260268802=Let%27s+go+get+a+cappucino'
-            '&entry.1651767815=2020-01-15',
+            "&entry.1718831235=bob%40mit.edu%2C+tim%40mit.edu%2C+sue%40mit.edu"
+            f"&entry.801739390=https%3A%2F%2Fmitoc-trips.mit.edu%2Ftrips%2F{self.trip.pk}%2F"
+            "&entry.260268802=Let%27s+go+get+a+cappucino"
+            "&entry.1651767815=2020-01-15",
         )
 
     def test_trip_with_itinerary(self):
-        factories.TripInfoFactory(trip=self.trip, start_location='Narnia')
+        factories.TripInfoFactory(trip=self.trip, start_location="Narnia")
         self.assertEqual(
             self.trip.prefilled_atlas_form_link,
-            'https://docs.google.com/forms/d/e/1FAIpQLSeBgwQXEzbuBVdEpS6hAaII-sdlEajVnMQC84igt8plmigRdw/viewform'
-            '?usp=pp_url'
+            "https://docs.google.com/forms/d/e/1FAIpQLSeBgwQXEzbuBVdEpS6hAaII-sdlEajVnMQC84igt8plmigRdw/viewform"
+            "?usp=pp_url"
             # Encoded!
-            '&entry.64030440=Jaunt+to+Caf%C3%A9'
+            "&entry.64030440=Jaunt+to+Caf%C3%A9"
             # Names alphabetical!
-            '&entry.14051799=Bob+Bobberson%2C+Tim+Beaver%2C+Tzu+See+Queue'
+            "&entry.14051799=Bob+Bobberson%2C+Tim+Beaver%2C+Tzu+See+Queue"
             # Emails in the same order as names
-            '&entry.1718831235=bob%40mit.edu%2C+tim%40mit.edu%2C+sue%40mit.edu'
-            f'&entry.801739390=https%3A%2F%2Fmitoc-trips.mit.edu%2Ftrips%2F{self.trip.pk}%2F'
-            '&entry.260268802=Let%27s+go+get+a+cappucino'
-            '&entry.1651767815=2020-01-15'
-            '&entry.1852696041=Narnia',
+            "&entry.1718831235=bob%40mit.edu%2C+tim%40mit.edu%2C+sue%40mit.edu"
+            f"&entry.801739390=https%3A%2F%2Fmitoc-trips.mit.edu%2Ftrips%2F{self.trip.pk}%2F"
+            "&entry.260268802=Let%27s+go+get+a+cappucino"
+            "&entry.1651767815=2020-01-15"
+            "&entry.1852696041=Narnia",
         )

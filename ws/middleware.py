@@ -30,7 +30,7 @@ class PrefetchGroupsMiddleware:
     def __call__(self, request: HttpRequest) -> HttpResponse:
         if request.user.is_authenticated:
             filtered_user = User.objects.filter(pk=request.user.pk)
-            request.user = filtered_user.prefetch_related('groups').get()
+            request.user = filtered_user.prefetch_related("groups").get()
         return self.get_response(request)
 
 

@@ -18,4 +18,4 @@ def get_cars(trip: models.Trip) -> QuerySet[models.Car]:
     cars = models.Car.objects.filter(par_on_trip).distinct()
     if trip.info:
         cars = cars.filter(participant__in=trip.info.drivers.all())
-    return cars.select_related('participant__lotteryinfo')
+    return cars.select_related("participant__lotteryinfo")

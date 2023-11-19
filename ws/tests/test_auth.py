@@ -10,16 +10,16 @@ from ws.tests import factories
 from ws.tests.helpers import PermHelpers
 
 login_required_routes = [
-    'all_trips_medical',
-    'account_change_password',
+    "all_trips_medical",
+    "account_change_password",
     #'manage_applications',
     #'manage_trips',
-    'participant_lookup',
-    'trip_signup',
-    'leader_trip_signup',
-    'discounts',
-    'lottery_preferences',
-    'lottery_pairing',
+    "participant_lookup",
+    "trip_signup",
+    "leader_trip_signup",
+    "discounts",
+    "lottery_preferences",
+    "lottery_pairing",
 ]
 
 
@@ -50,14 +50,14 @@ class AuthTests(TestCase):
     @classmethod
     def setUpTestData(cls) -> None:
         cls.user = factories.UserFactory.create(
-            email='fake@example.com',
-            password='password',  # noqa: S106
+            email="fake@example.com",
+            password="password",  # noqa: S106
         )
 
     def login(self):
         return self.client.login(
             email=self.user.email,
-            password='password',  # noqa: S106
+            password="password",  # noqa: S106
         )
 
     def assertProfileRedirectedTo(self, response, desired_page):  # noqa: N802
@@ -65,21 +65,21 @@ class AuthTests(TestCase):
         self.assertEqual(response.status_code, 302)
 
         parsed = urlparse(response.url)
-        self.assertEqual(parsed.path, reverse('edit_profile'))
+        self.assertEqual(parsed.path, reverse("edit_profile"))
         qs = parse_qs(parsed.query)
-        self.assertEqual(qs['next'], [desired_page])
+        self.assertEqual(qs["next"], [desired_page])
 
     def test_open_pages(self):
         """Anonymous users can browse a number of pages."""
         for open_url in [
-            'contact',
-            'help-home',
-            'help-about',
-            'help-personal_info',
-            'help-lottery',
-            'help-signups',
-            'upcoming_trips',
-            'stats',
+            "contact",
+            "help-home",
+            "help-about",
+            "help-personal_info",
+            "help-lottery",
+            "help-signups",
+            "upcoming_trips",
+            "stats",
         ]:
             response = self.client.get(reverse(open_url))
             self.assertEqual(response.status_code, 200)
@@ -87,7 +87,7 @@ class AuthTests(TestCase):
     def test_viewing_trips(self):
         """Anonymous users can view trips (they just can't sign up)."""
         trip = factories.TripFactory.create()
-        view_trip = self.client.get(reverse('view_trip', kwargs={'pk': trip.pk}))
+        view_trip = self.client.get(reverse("view_trip", kwargs={"pk": trip.pk}))
         self.assertEqual(view_trip.status_code, 200)
 
     def test_unregistered_participant_pages(self):
@@ -96,19 +96,19 @@ class AuthTests(TestCase):
         for login_required in login_required_routes:
             response = self.client.get(reverse(login_required))
             self.assertEqual(response.status_code, 302)
-            self.assertIn('login', response.url)
+            self.assertIn("login", response.url)
 
     def test_registered_participant_pages(self):
         """Registered users will be redirected on participant-only pages."""
-        desired_page = reverse('all_trips_medical')
+        desired_page = reverse("all_trips_medical")
         self.login()
         response = self.client.get(desired_page)
         self.assertProfileRedirectedTo(response, desired_page)
 
-    @unittest.mock.patch('ws.decorators.profile_needs_update')
+    @unittest.mock.patch("ws.decorators.profile_needs_update")
     def test_participant_pages(self, profile_needs_update):
         """Participants are allowed to view certain pages."""
-        par_only_page = reverse('discounts')
+        par_only_page = reverse("discounts")
         self.login()
 
         # When authenticated, but not a participant: redirected to edit profile
@@ -122,7 +122,7 @@ class AuthTests(TestCase):
         par_response = self.client.get(par_only_page)
         self.assertEqual(par_response.status_code, 200)
 
-    @unittest.mock.patch('ws.decorators.profile_needs_update')
+    @unittest.mock.patch("ws.decorators.profile_needs_update")
     def test_leader_pages(self, profile_needs_update):
         """Participants are given forbidden messages on leader-only pages.
 
@@ -136,7 +136,7 @@ class AuthTests(TestCase):
         profile_needs_update.return_value = False
 
         # leader-only GET pages that don't require pks
-        leader_pages = ['leaders', 'participant_lookup']
+        leader_pages = ["leaders", "participant_lookup"]
 
         # HTTP Forbidden on leader pages without group membership
         for leader_page in leader_pages:

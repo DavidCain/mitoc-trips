@@ -12,7 +12,7 @@ class MessageGeneratorTests(TestCase):
     @staticmethod
     @contextmanager
     def _spy_on_add_message():
-        patched = mock.patch.object(messages, 'add_message', wraps=messages.add_message)
+        patched = mock.patch.object(messages, "add_message", wraps=messages.add_message)
         with patched as add_message:
             yield add_message
 
@@ -24,7 +24,7 @@ class MessageGeneratorTests(TestCase):
 
     def test_supply(self):
         """The `supply()` method must be overridden by children."""
-        response = self.client.get('/')
+        response = self.client.get("/")
         request = response.wsgi_request
         base_generator = MessageGenerator(request)
         with self.assertRaises(NotImplementedError):
@@ -32,12 +32,12 @@ class MessageGeneratorTests(TestCase):
 
     def test_add_unique_message(self):
         """Once emitted, messages cannot be re-emitted!"""
-        response = self.client.get('/')
+        response = self.client.get("/")
         request = response.wsgi_request
         generator = MessageGenerator(request)
 
-        hello_call = mock.call(request, messages.INFO, "Hello", extra_tags='')
-        goodbye_call = mock.call(request, messages.INFO, "Goodbye", extra_tags='')
+        hello_call = mock.call(request, messages.INFO, "Hello", extra_tags="")
+        goodbye_call = mock.call(request, messages.INFO, "Goodbye", extra_tags="")
 
         with self._spy_on_add_message() as add_message:
             # On first invocation, sends out the message

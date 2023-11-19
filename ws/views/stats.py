@@ -5,17 +5,17 @@ from ws.decorators import group_required
 
 
 class StatsView(TemplateView):
-    template_name = 'stats/index.html'
+    template_name = "stats/index.html"
 
 
 class LeaderboardView(TemplateView):
-    template_name = 'stats/leaderboard.html'
+    template_name = "stats/leaderboard.html"
 
 
 class MembershipStatsView(TemplateView):
-    template_name = 'stats/membership.html'
+    template_name = "stats/membership.html"
 
-    @method_decorator(group_required('leaders'))
+    @method_decorator(group_required("leaders"))
     def dispatch(self, request, *args, **kwargs):
         # TODO: Restrict to BOD only
         return super().dispatch(request, *args, **kwargs)

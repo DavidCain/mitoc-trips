@@ -16,12 +16,12 @@ class JWTSecurityTest(TestCase):
         """Tokens signed with the wrong secret should be denied for obvious reasons."""
         year_2525 = 17514144000
         token = jwt.encode(
-            {'exp': year_2525, 'email': 'tim@mit.edu'},
-            algorithm='HS256',
-            key='this is definitely not the real secret',
+            {"exp": year_2525, "email": "tim@mit.edu"},
+            algorithm="HS256",
+            key="this is definitely not the real secret",
         )
         response = self.client.get(
-            '/data/verified_emails/', HTTP_AUTHORIZATION=f'Bearer: {token}'
+            "/data/verified_emails/", HTTP_AUTHORIZATION=f"Bearer: {token}"
         )
         self.assertEqual(response.status_code, 401)
 
@@ -29,12 +29,12 @@ class JWTSecurityTest(TestCase):
     def test_expired_token_denied(self):
         """Expired tokens must not work."""
         token = jwt.encode(
-            {'exp': int(time.time()) - 1, 'email': 'tim@mit.edu'},
-            algorithm='HS256',
-            key='this is definitely not the real secret',
+            {"exp": int(time.time()) - 1, "email": "tim@mit.edu"},
+            algorithm="HS256",
+            key="this is definitely not the real secret",
         )
         response = self.client.get(
-            '/data/verified_emails/', HTTP_AUTHORIZATION=f'Bearer: {token}'
+            "/data/verified_emails/", HTTP_AUTHORIZATION=f"Bearer: {token}"
         )
         self.assertEqual(response.status_code, 401)
 
@@ -42,12 +42,12 @@ class JWTSecurityTest(TestCase):
         """First, we show that requests using a signed, non-expired token work."""
         year_2525 = 17514144000
         real_token = jwt.encode(
-            {'exp': year_2525, 'email': 'tim@mit.edu'},
-            algorithm='HS256',
+            {"exp": year_2525, "email": "tim@mit.edu"},
+            algorithm="HS256",
             key=settings.MEMBERSHIP_SECRET_KEY,
         )
         response = self.client.get(
-            '/data/verified_emails/', HTTP_AUTHORIZATION=f'Bearer: {real_token}'
+            "/data/verified_emails/", HTTP_AUTHORIZATION=f"Bearer: {real_token}"
         )
         self.assertEqual(response.status_code, 200)
 
@@ -55,12 +55,12 @@ class JWTSecurityTest(TestCase):
         """We also support HMAC with SHA-512."""
         year_2525 = 17514144000
         real_token = jwt.encode(
-            {'exp': year_2525, 'email': 'tim@mit.edu'},
-            algorithm='HS512',
+            {"exp": year_2525, "email": "tim@mit.edu"},
+            algorithm="HS512",
             key=settings.MEMBERSHIP_SECRET_KEY,
         )
         response = self.client.get(
-            '/data/verified_emails/', HTTP_AUTHORIZATION=f'Bearer: {real_token}'
+            "/data/verified_emails/", HTTP_AUTHORIZATION=f"Bearer: {real_token}"
         )
         self.assertEqual(response.status_code, 200)
 
@@ -68,15 +68,15 @@ class JWTSecurityTest(TestCase):
         """A token signed with the correct secret but the wrong algorithm is denied."""
         year_2525 = 17514144000
         real_token = jwt.encode(
-            {'exp': year_2525, 'email': 'tim@mit.edu'},
-            algorithm='HS384',
+            {"exp": year_2525, "email": "tim@mit.edu"},
+            algorithm="HS384",
             key=settings.MEMBERSHIP_SECRET_KEY,
         )
         response = self.client.get(
-            '/data/verified_emails/', HTTP_AUTHORIZATION=f'Bearer: {real_token}'
+            "/data/verified_emails/", HTTP_AUTHORIZATION=f"Bearer: {real_token}"
         )
         self.assertEqual(response.status_code, 401)
-        self.assertEqual(response.json(), {'message': 'invalid algorithm'})
+        self.assertEqual(response.json(), {"message": "invalid algorithm"})
 
     def test_attempted_attack_fails(self):
         """Assert that we *always* require a token signed with the secret.
@@ -92,14 +92,14 @@ class JWTSecurityTest(TestCase):
         year_2525 = 17514144000
 
         malicious_token = jwt.encode(
-            {'exp': year_2525, 'email': 'tim@mit.edu'}, algorithm='none', key=None
+            {"exp": year_2525, "email": "tim@mit.edu"}, algorithm="none", key=None
         )
         response = self.client.get(
-            '/data/verified_emails/', HTTP_AUTHORIZATION=f'Bearer: {malicious_token}'
+            "/data/verified_emails/", HTTP_AUTHORIZATION=f"Bearer: {malicious_token}"
         )
         # Because the attacker gave a token without signing the secret, they get a 401
         self.assertEqual(response.status_code, 401)
-        self.assertEqual(response.json(), {'message': 'invalid algorithm'})
+        self.assertEqual(response.json(), {"message": "invalid algorithm"})
 
 
 class OtherVerifiedEmailsTest(TestCase):
@@ -107,30 +107,30 @@ class OtherVerifiedEmailsTest(TestCase):
 
     def _query_for(self, email):
         real_token = jwt.encode(
-            {'exp': time.time() + 60, 'email': email},
-            algorithm='HS512',
+            {"exp": time.time() + 60, "email": email},
+            algorithm="HS512",
             key=settings.MEMBERSHIP_SECRET_KEY,
         )
         return self.client.get(
-            '/data/verified_emails/', HTTP_AUTHORIZATION=f'Bearer: {real_token}'
+            "/data/verified_emails/", HTTP_AUTHORIZATION=f"Bearer: {real_token}"
         )
 
     def test_unknown_user(self):
         """We just report back the same email if we don't find a match."""
-        response = self._query_for('barry.o@whitehouse.gov')
+        response = self._query_for("barry.o@whitehouse.gov")
         self.assertEqual(
             response.json(),
             {
-                'name': None,
-                'primary': 'barry.o@whitehouse.gov',
-                'emails': ['barry.o@whitehouse.gov'],
+                "name": None,
+                "primary": "barry.o@whitehouse.gov",
+                "emails": ["barry.o@whitehouse.gov"],
             },
         )
 
     def test_normal_participant(self):
         """We handle the case of a participant with some verified & unverified emails."""
         tim = factories.ParticipantFactory.create(
-            name='Tim Beaver', email='tim@example.com'
+            name="Tim Beaver", email="tim@example.com"
         )
 
         factories.EmailFactory.create(
@@ -138,38 +138,38 @@ class OtherVerifiedEmailsTest(TestCase):
             verified=False,
             primary=False,
             # Tim clearly doesn't own this email
-            email='tim@whitehouse.gov',
+            email="tim@whitehouse.gov",
         )
         factories.EmailFactory.create(
-            user_id=tim.user_id, verified=True, primary=False, email='tim@mit.edu'
+            user_id=tim.user_id, verified=True, primary=False, email="tim@mit.edu"
         )
 
-        response = self._query_for('tim@mit.edu')
+        response = self._query_for("tim@mit.edu")
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             response.json(),
             {
-                'name': 'Tim Beaver',
-                'primary': 'tim@example.com',
-                'emails': ['tim@example.com', 'tim@mit.edu'],
+                "name": "Tim Beaver",
+                "primary": "tim@example.com",
+                "emails": ["tim@example.com", "tim@mit.edu"],
             },
         )
         # We get the same result when querying under a different known email!
-        self.assertEqual(response.json(), self._query_for('tim@example.com').json())
+        self.assertEqual(response.json(), self._query_for("tim@example.com").json())
 
     def test_user_without_participant(self):
         """We handle the case of a user who never completed a participant record."""
 
-        factories.UserFactory.create(email='tim@mit.edu')
-        response = self._query_for('tim@mit.edu')
+        factories.UserFactory.create(email="tim@mit.edu")
+        response = self._query_for("tim@mit.edu")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             response.json(),
             {
-                'name': None,
-                'primary': 'tim@mit.edu',
-                'emails': ['tim@mit.edu'],
+                "name": None,
+                "primary": "tim@mit.edu",
+                "emails": ["tim@mit.edu"],
             },
         )
 
@@ -182,134 +182,134 @@ class JsonProgramLeadersViewTest(TestCase):
 
     def test_unauthenticated(self):
         self.client.logout()
-        response = self.client.get('/programs/climbing/leaders.json')
+        response = self.client.get("/programs/climbing/leaders.json")
         self.assertEqual(response.status_code, 302)
         self.assertEqual(
             response.url, "/accounts/login/?next=/programs/climbing/leaders.json"
         )
 
     def test_bad_program(self):
-        response = self.client.get('/programs/snowmobiling/leaders.json')
+        response = self.client.get("/programs/snowmobiling/leaders.json")
         self.assertEqual(response.status_code, 404)
 
     def test_no_leaders(self):
-        response = self.client.get('/programs/climbing/leaders.json')
-        self.assertEqual(response.json(), {'leaders': []})
+        response = self.client.get("/programs/climbing/leaders.json")
+        self.assertEqual(response.json(), {"leaders": []})
 
         factories.LeaderRatingFactory.create(activity=enums.Activity.HIKING.value)
-        response = self.client.get('/programs/climbing/leaders.json')
-        self.assertEqual(response.json(), {'leaders': []})
+        response = self.client.get("/programs/climbing/leaders.json")
+        self.assertEqual(response.json(), {"leaders": []})
 
     def test_open_program(self):
         """Any active leader is allowed for an open program."""
         factories.LeaderRatingFactory.create(
-            rating='Inactive', activity=enums.Activity.BIKING.value, active=False
+            rating="Inactive", activity=enums.Activity.BIKING.value, active=False
         )
         h = factories.LeaderRatingFactory.create(
-            participant__name='Hiker',
-            rating='Leader',
+            participant__name="Hiker",
+            rating="Leader",
             activity=enums.Activity.HIKING.value,
         )
         c = factories.LeaderRatingFactory.create(
-            participant__name='Climber',
-            rating='Sport',
+            participant__name="Climber",
+            rating="Sport",
             activity=enums.Activity.CLIMBING.value,
         )
         # Climbing leader is also a leader on a different activity!
         # (they will not be counted twice)
         factories.LeaderRatingFactory.create(
             participant=c.participant,
-            rating='Downhill',
+            rating="Downhill",
             activity=enums.Activity.BIKING.value,
         )
 
-        response = self.client.get('/programs/circus/leaders.json')
+        response = self.client.get("/programs/circus/leaders.json")
         self.assertEqual(
             response.json(),
             {
-                'leaders': [
-                    {'id': c.participant_id, 'name': 'Climber', 'rating': None},
-                    {'id': h.participant_id, 'name': 'Hiker', 'rating': None},
+                "leaders": [
+                    {"id": c.participant_id, "name": "Climber", "rating": None},
+                    {"id": h.participant_id, "name": "Hiker", "rating": None},
                 ]
             },
         )
 
     def test_alphabetical(self):
         """Leaders are sorted by name."""
-        c = factories.LeaderRatingFactory.create(participant__name='Carl', rating='A')
-        b = factories.LeaderRatingFactory.create(participant__name='Bob', rating='B')
-        d = factories.LeaderRatingFactory.create(participant__name='Dee', rating='I')
-        a = factories.LeaderRatingFactory.create(participant__name='Alice', rating='C')
+        c = factories.LeaderRatingFactory.create(participant__name="Carl", rating="A")
+        b = factories.LeaderRatingFactory.create(participant__name="Bob", rating="B")
+        d = factories.LeaderRatingFactory.create(participant__name="Dee", rating="I")
+        a = factories.LeaderRatingFactory.create(participant__name="Alice", rating="C")
         activity = a.activity_enum.value
 
-        response = self.client.get(f'/programs/{activity}/leaders.json')
+        response = self.client.get(f"/programs/{activity}/leaders.json")
         self.assertEqual(
             response.json(),
             {
-                'leaders': [
-                    {'id': a.participant_id, 'name': 'Alice', 'rating': 'C'},
-                    {'id': b.participant_id, 'name': 'Bob', 'rating': 'B'},
-                    {'id': c.participant_id, 'name': 'Carl', 'rating': 'A'},
-                    {'id': d.participant_id, 'name': 'Dee', 'rating': 'I'},
+                "leaders": [
+                    {"id": a.participant_id, "name": "Alice", "rating": "C"},
+                    {"id": b.participant_id, "name": "Bob", "rating": "B"},
+                    {"id": c.participant_id, "name": "Carl", "rating": "A"},
+                    {"id": d.participant_id, "name": "Dee", "rating": "I"},
                 ]
             },
         )
 
     def test_inactive_ratings_excluded(self):
         factories.LeaderRatingFactory.create(
-            rating='Inactive', activity=enums.Activity.BIKING.value, active=False
+            rating="Inactive", activity=enums.Activity.BIKING.value, active=False
         )
 
         # A participant with an old (inactive) rating only includes the active one
-        jane = factories.ParticipantFactory.create(name='Jane Ng')
+        jane = factories.ParticipantFactory.create(name="Jane Ng")
         factories.LeaderRatingFactory.create(
-            rating='Co-leader',
+            rating="Co-leader",
             participant=jane,
             activity=enums.Activity.BIKING.value,
             active=False,
         )
         factories.LeaderRatingFactory.create(
-            rating='Leader',
+            rating="Leader",
             participant=jane,
             activity=enums.Activity.BIKING.value,
             active=True,
         )
-        response = self.client.get('/programs/biking/leaders.json')
+        response = self.client.get("/programs/biking/leaders.json")
         self.assertEqual(
             response.json(),
-            {'leaders': [{'id': jane.pk, 'name': 'Jane Ng', 'rating': 'Leader'}]},
+            {"leaders": [{"id": jane.pk, "name": "Jane Ng", "rating": "Leader"}]},
         )
 
     def test_latest_rating_taken(self):
         """If, somehow multiple active ratings exist, we don't duplicate!"""
-        par = factories.ParticipantFactory.create(name='Steve O')
+        par = factories.ParticipantFactory.create(name="Steve O")
 
         with freeze_time("2019-02-22 12:25:00 EST"):
             factories.LeaderRatingFactory.create(
-                rating='A',
+                rating="A",
                 participant=par,
                 activity=enums.Activity.WINTER_SCHOOL.value,
                 active=True,
             )
         with freeze_time("2019-03-30 12:25:00 EST"):
             factories.LeaderRatingFactory.create(
-                rating='B',
+                rating="B",
                 participant=par,
                 activity=enums.Activity.WINTER_SCHOOL.value,
                 active=True,
             )
         with freeze_time("2019-04-04 12:25:00 EST"):
             factories.LeaderRatingFactory.create(
-                rating='C',
+                rating="C",
                 participant=par,
                 activity=enums.Activity.WINTER_SCHOOL.value,
                 active=True,
             )
 
-        response = self.client.get('/programs/winter_school/leaders.json')
+        response = self.client.get("/programs/winter_school/leaders.json")
         self.assertEqual(
             response.json(),
-            {'leaders': [{'id': par.pk, 'name': 'Steve O', 'rating': 'C'}]},
+            {"leaders": [{"id": par.pk, "name": "Steve O", "rating": "C"}]},
         )
 
 
@@ -324,22 +324,22 @@ class JsonParticipantsTest(TestCase):
     def test_just_user(self):
         user = factories.UserFactory.create()
         self.client.force_login(user)
-        response = self.client.get('/participants.json')
+        response = self.client.get("/participants.json")
         self.assertEqual(response.status_code, 403)
 
     def test_unauthenticated(self):
         self.client.logout()
-        response = self.client.get('/participants.json')
+        response = self.client.get("/participants.json")
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/accounts/login/?next=/participants.json")
 
     @staticmethod
     def _expect(par):
         return {
-            'id': par.pk,
-            'name': par.name,
-            'email': par.email,
-            'avatar': mock.ANY,  # (we test elsewhere)
+            "id": par.pk,
+            "name": par.name,
+            "email": par.email,
+            "avatar": mock.ANY,  # (we test elsewhere)
         }
 
     def test_search(self):
@@ -349,28 +349,28 @@ class JsonParticipantsTest(TestCase):
         factories.ParticipantFactory.create(name="Aaron Blake")
 
         searcher = {
-            'id': self.participant.pk,
-            'name': 'Mr. Bolton',
-            'email': 'michael@example.com',  # Match was on email, not name
-            'avatar': 'https://www.gravatar.com/avatar/03ea78c0884c9ac0f73e6af7b9649e90?d=mm&s=200&r=pg',
+            "id": self.participant.pk,
+            "name": "Mr. Bolton",
+            "email": "michael@example.com",  # Match was on email, not name
+            "avatar": "https://www.gravatar.com/avatar/03ea78c0884c9ac0f73e6af7b9649e90?d=mm&s=200&r=pg",
         }
 
         others = [self._expect(michaela), self._expect(michele), self._expect(miguel)]
 
         # Search for something nobody will match on.
-        response = self.client.get('/participants.json?search=Michelada')
-        self.assertEqual(response.json(), {'participants': []})
+        response = self.client.get("/participants.json?search=Michelada")
+        self.assertEqual(response.json(), {"participants": []})
 
         # Search everybody matching 'mich' (matches all but Aaron)
-        response = self.client.get('/participants.json?search=Mich')
-        matches = response.json()['participants']
+        response = self.client.get("/participants.json?search=Mich")
+        matches = response.json()["participants"]
         # TODO: Once using FTS or something, assert order.
         # For now, we just return in any given order.
         self.assertCountEqual(matches, [searcher, *others])
 
         # Exclude self when searching
-        response = self.client.get('/participants.json?search=Mich&exclude_self=1')
-        no_self_matches = response.json()['participants']
+        response = self.client.get("/participants.json?search=Mich&exclude_self=1")
+        no_self_matches = response.json()["participants"]
         self.assertCountEqual(no_self_matches, others)
 
     def test_exact_id(self):
@@ -379,17 +379,17 @@ class JsonParticipantsTest(TestCase):
         two = factories.ParticipantFactory.create()
         factories.ParticipantFactory.create()
 
-        response = self.client.get(f'/participants.json?id={one.pk}&id={two.pk}')
+        response = self.client.get(f"/participants.json?id={one.pk}&id={two.pk}")
         self.assertEqual(
-            response.json(), {'participants': [self._expect(one), self._expect(two)]}
+            response.json(), {"participants": [self._expect(one), self._expect(two)]}
         )
 
 
 class JsonLeaderParticipantSignupTest(TestCase):
     def setUp(self):
         super().setUp()
-        self.trip = factories.TripFactory.create(algorithm='lottery')
-        self.url = f'/trips/{self.trip.pk}/signup/'
+        self.trip = factories.TripFactory.create(algorithm="lottery")
+        self.url = f"/trips/{self.trip.pk}/signup/"
         self.leader = factories.ParticipantFactory.create()
         self.trip.leaders.add(self.leader)
         self.client.force_login(self.leader.user)
@@ -419,78 +419,78 @@ class JsonLeaderParticipantSignupTest(TestCase):
     def test_leader_but_not_on_the_trip(self):
         """Participants must be a leader for the trip in question."""
         other_trip = factories.TripFactory.create()
-        response = self.client.post(f'/trips/{other_trip.pk}/signup/')
+        response = self.client.post(f"/trips/{other_trip.pk}/signup/")
         self.assertEqual(response.status_code, 403)
 
     def test_unknown_target_participant(self):
         """If the caller is a leader, we'll tell them if the participant isn't found."""
         response = self.client.post(
             self.url,
-            {'participant_id': -37},
-            content_type='application/json',
+            {"participant_id": -37},
+            content_type="application/json",
         )
         self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.json(), {'message': "No participant found"})
+        self.assertEqual(response.json(), {"message": "No participant found"})
 
     def test_signup_exists_but_not_on_lottery_trip(self):
         """We won't edit notes and the trip remains in lottery mode."""
         signup = factories.SignUpFactory.create(
-            on_trip=False, trip=self.trip, notes='original, participant-supplied notes'
+            on_trip=False, trip=self.trip, notes="original, participant-supplied notes"
         )
         response = self.client.post(
             self.url,
-            {'participant_id': signup.participant.pk, 'notes': 'leader notes'},
-            content_type='application/json',
+            {"participant_id": signup.participant.pk, "notes": "leader notes"},
+            content_type="application/json",
         )
 
         # Participant was already signed up for the lottery
-        self.assertEqual(self.trip.algorithm, 'lottery')
+        self.assertEqual(self.trip.algorithm, "lottery")
         self.assertEqual(response.status_code, 200)
         signup.refresh_from_db()
         self.assertFalse(signup.on_trip)
-        self.assertEqual(signup.notes, 'original, participant-supplied notes')
+        self.assertEqual(signup.notes, "original, participant-supplied notes")
 
     def test_signup_exists_but_not_on_fcfs_trip(self):
         """We won't edit notes, but we can add the participant to the trip."""
         signup = factories.SignUpFactory.create(
-            on_trip=False, trip=self.trip, notes='original, participant-supplied notes'
+            on_trip=False, trip=self.trip, notes="original, participant-supplied notes"
         )
 
-        self.trip.algorithm = 'fcfs'
+        self.trip.algorithm = "fcfs"
         self.trip.save()
 
         response = self.client.post(
             self.url,
-            {'participant_id': signup.participant.pk, 'notes': 'leader notes'},
-            content_type='application/json',
+            {"participant_id": signup.participant.pk, "notes": "leader notes"},
+            content_type="application/json",
         )
 
         self.assertEqual(response.status_code, 201)
         signup.refresh_from_db()
         self.assertTrue(signup.on_trip)
-        self.assertEqual(signup.notes, 'original, participant-supplied notes')
+        self.assertEqual(signup.notes, "original, participant-supplied notes")
 
     def test_new_signup_to_fcfs_trip(self):
         """Test the simplest case: adding a participant to a FCFS trip with spaces."""
-        self.trip.algorithm = 'fcfs'
+        self.trip.algorithm = "fcfs"
         self.trip.save()
 
         par = factories.ParticipantFactory.create()
 
         response = self.client.post(
             self.url,
-            {'participant_id': par.pk, 'notes': 'leader notes'},
-            content_type='application/json',
+            {"participant_id": par.pk, "notes": "leader notes"},
+            content_type="application/json",
         )
 
         self.assertEqual(response.status_code, 201)
         signup = models.SignUp.objects.get(participant=par, trip=self.trip)
         self.assertTrue(signup.on_trip)
-        self.assertEqual(signup.notes, 'leader notes')
+        self.assertEqual(signup.notes, "leader notes")
 
     def test_add_new_waitlist_entry(self):
         """We can add a participant to the waitlist for a full trip."""
-        self.trip.algorithm = 'fcfs'
+        self.trip.algorithm = "fcfs"
         self.trip.maximum_participants = 1
         self.trip.save()
 
@@ -501,36 +501,36 @@ class JsonLeaderParticipantSignupTest(TestCase):
 
         response = self.client.post(
             self.url,
-            {'participant_id': par.pk},
-            content_type='application/json',
+            {"participant_id": par.pk},
+            content_type="application/json",
         )
 
         self.assertEqual(response.status_code, 201)
         signup = models.SignUp.objects.get(participant=par, trip=self.trip)
         self.assertFalse(signup.on_trip)
         self.assertTrue(signup.waitlistsignup)
-        self.assertEqual(signup.notes, '')
+        self.assertEqual(signup.notes, "")
 
     def test_already_on_trip(self):
         """Leaders can't add a participant already on the trip!"""
         signup = factories.SignUpFactory.create(
-            trip=self.trip, on_trip=True, participant__name='Abdul McTest'
+            trip=self.trip, on_trip=True, participant__name="Abdul McTest"
         )
 
         response = self.client.post(
             self.url,
-            {'participant_id': signup.participant_id},
-            content_type='application/json',
+            {"participant_id": signup.participant_id},
+            content_type="application/json",
         )
 
         self.assertEqual(response.status_code, 409)
         self.assertEqual(
-            response.json(), {'message': "Abdul McTest is already on the trip"}
+            response.json(), {"message": "Abdul McTest is already on the trip"}
         )
 
     def test_already_on_waitlist(self):
         """Leaders can't add a participant already on the waitlist!"""
-        self.trip.algorithm = 'fcfs'
+        self.trip.algorithm = "fcfs"
         self.trip.maximum_participants = 1
         self.trip.save()
 
@@ -538,19 +538,19 @@ class JsonLeaderParticipantSignupTest(TestCase):
         factories.SignUpFactory.create(trip=self.trip)
 
         signup = factories.SignUpFactory.create(
-            trip=self.trip, participant__name='Jane McJaney'
+            trip=self.trip, participant__name="Jane McJaney"
         )
         add_to_waitlist(signup)
 
         response = self.client.post(
             self.url,
-            {'participant_id': signup.participant_id},
-            content_type='application/json',
+            {"participant_id": signup.participant_id},
+            content_type="application/json",
         )
 
         self.assertEqual(response.status_code, 409)
         self.assertEqual(
-            response.json(), {'message': "Jane McJaney is already on the waitlist"}
+            response.json(), {"message": "Jane McJaney is already on the waitlist"}
         )
 
 
@@ -562,16 +562,16 @@ class ApproveTripViewTest(TestCase):
 
     def _approve(self, trip, approved=True):
         return self.client.post(
-            f'/trips/{trip.pk}/approve/',
-            {'approved': approved},
-            content_type='application/json',
+            f"/trips/{trip.pk}/approve/",
+            {"approved": approved},
+            content_type="application/json",
         )
 
     def test_unknown_activity(self):
         trip = factories.TripFactory.create(program=enums.Program.CIRCUS.value)
         response = self._approve(trip)
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.json(), {'message': 'No chair for Circus'})
+        self.assertEqual(response.json(), {"message": "No chair for Circus"})
 
     def test_wrong_chair(self):
         trip = factories.TripFactory.create(

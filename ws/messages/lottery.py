@@ -39,12 +39,12 @@ class Messages(MessageGenerator):
     @staticmethod
     def profile_link(text: str) -> str:
         # Remember to set extra_tags='safe' to avoid escaping HTML
-        return f'''<a href="{reverse('edit_profile')}">{text}</a>'''
+        return f"""<a href="{reverse('edit_profile')}">{text}</a>"""
 
     @staticmethod
-    def prefs_link(text: str = 'lottery preferences') -> str:
+    def prefs_link(text: str = "lottery preferences") -> str:
         # Remember to set extra_tags='safe' to avoid escaping HTML
-        return f'''<a href="{reverse('lottery_preferences')}">{text}</a>'''
+        return f"""<a href="{reverse('lottery_preferences')}">{text}</a>"""
 
     def warn_if_missing_lottery(self):
         """Warn if lottery information isn't found for the participant.
@@ -55,21 +55,21 @@ class Messages(MessageGenerator):
         if not self.lotteryinfo:
             prefs = self.prefs_link()
             self.add_unique_message(
-                messages.WARNING, f"You haven't set your {prefs}.", extra_tags='safe'
+                messages.WARNING, f"You haven't set your {prefs}.", extra_tags="safe"
             )
 
     def warn_if_car_missing(self):
         lottery = self.lotteryinfo
         if not lottery:
             return
-        if lottery.car_status == 'own' and not self.request.participant.car:
+        if lottery.car_status == "own" and not self.request.participant.car:
             edit_car = self.profile_link("submitted car information")
             prefs = self.prefs_link()
             msg = (
                 f"You're a driver in the lottery, but haven't {edit_car}. "
                 f"If you can no longer drive, please update your {prefs}."
             )
-            self.add_unique_message(messages.WARNING, msg, extra_tags='safe')
+            self.add_unique_message(messages.WARNING, msg, extra_tags="safe")
 
     def warn_if_no_ranked_trips(self):
         """Warn the user if there are future signups, and none are ranked.
@@ -83,15 +83,15 @@ class Messages(MessageGenerator):
         future_signups = models.SignUp.objects.filter(
             participant=self.request.participant,
             on_trip=False,
-            trip__algorithm='lottery',
+            trip__algorithm="lottery",
             trip__program=enums.Program.WINTER_SCHOOL.value,
             trip__trip_date__gte=date_utils.local_date(),
-        ).values_list('order', flat=True)
+        ).values_list("order", flat=True)
         some_trips_ranked = any(order for order in future_signups)
 
         if len(future_signups) > 1 and not some_trips_ranked:
             msg = "You haven't " + self.prefs_link("ranked upcoming trips.")
-            self.add_unique_message(messages.WARNING, msg, extra_tags='safe')
+            self.add_unique_message(messages.WARNING, msg, extra_tags="safe")
 
     def warn_if_dated_info(self):
         """Remind participants if they've not updated lottery preferences."""
@@ -110,4 +110,4 @@ class Messages(MessageGenerator):
             f"You haven't updated your {prefs} in {days_old} days. "
             f"You will be counted as a {driver_prefix}driver in the next lottery."
         )
-        self.add_unique_message(messages.INFO, msg, extra_tags='safe')
+        self.add_unique_message(messages.INFO, msg, extra_tags="safe")

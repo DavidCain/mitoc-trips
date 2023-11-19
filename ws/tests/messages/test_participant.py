@@ -10,7 +10,7 @@ from ws.tests.messages import MessagesTestCase
 class ParticipantMessagesTest(MessagesTestCase):
     def test_anonymous_user(self):
         """With no participant object, no messages should be emitted."""
-        request = self.factory.get('/')
+        request = self.factory.get("/")
 
         # Simulate the effects of the ParticipantMiddleware for an anonymous user
         request.user = AnonymousUser()
@@ -23,7 +23,7 @@ class ParticipantMessagesTest(MessagesTestCase):
 
     def test_participant_with_current_info(self):
         """In the usual case (participant with current info, we do nothing."""
-        request = self.factory.get('/')
+        request = self.factory.get("/")
 
         par = factories.ParticipantFactory.create()
         self.assertTrue(par.info_current)  # (just created!)
@@ -37,7 +37,7 @@ class ParticipantMessagesTest(MessagesTestCase):
 
     def test_user_but_no_participant_on_request(self):
         """Users must have a participant in order to be on trips."""
-        request = self.factory.get('/')
+        request = self.factory.get("/")
 
         # Simulate the effects of the ParticipantMiddleware for a known user
         request.user = factories.UserFactory.create()
@@ -50,12 +50,12 @@ class ParticipantMessagesTest(MessagesTestCase):
             request,
             messages.WARNING,
             '<a href="/profile/edit/">Update your profile</a> to sign up for trips.',
-            extra_tags='safe',
+            extra_tags="safe",
         )
 
     def test_dated_participant(self):
         """Users must have up-to-date information to go on trips."""
-        request = self.factory.get('/')
+        request = self.factory.get("/")
 
         with freeze_time("2017-01-17 14:56:00 EST"):
             par = factories.ParticipantFactory.create()
@@ -69,5 +69,5 @@ class ParticipantMessagesTest(MessagesTestCase):
             request,
             messages.WARNING,
             '<a href="/profile/edit/">Update your profile</a> to sign up for trips.',
-            extra_tags='safe',
+            extra_tags="safe",
         )

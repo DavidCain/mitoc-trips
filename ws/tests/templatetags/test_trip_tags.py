@@ -21,27 +21,27 @@ class TripTagsTest(TestCase):
                 name="Later Trip", trip_date=date(2019, 1, 19)
             ),
         ]
-        html_template = Template('{% load trip_tags %}{% simple_trip_list trips %}')
-        context = Context({'trips': trips})
-        soup = BeautifulSoup(html_template.render(context), 'html.parser')
-        table = soup.find('table')
-        heading = table.find('thead').find_all('th')
-        self.assertEqual([tr.text for tr in heading], ['Trip', 'Date', 'Leaders'])
+        html_template = Template("{% load trip_tags %}{% simple_trip_list trips %}")
+        context = Context({"trips": trips})
+        soup = BeautifulSoup(html_template.render(context), "html.parser")
+        table = soup.find("table")
+        heading = table.find("thead").find_all("th")
+        self.assertEqual([tr.text for tr in heading], ["Trip", "Date", "Leaders"])
 
-        rows = [tr.find_all('td') for tr in table.find('tbody').find_all('tr')]
+        rows = [tr.find_all("td") for tr in table.find("tbody").find_all("tr")]
 
         date_per_trip = [
-            (trip.find('a').text, rendered_date.text.strip())
+            (trip.find("a").text, rendered_date.text.strip())
             for (trip, rendered_date, _leaders) in rows
         ]
         # We render the dates for each trip unambiguously
         self.assertEqual(
             date_per_trip,
             [
-                ('Past Trip', '2017-08-02'),
-                ('Today!', 'Today'),
-                ('Soon Trip', 'Wed'),
-                ('Later Trip', 'Jan 19'),
+                ("Past Trip", "2017-08-02"),
+                ("Today!", "Today"),
+                ("Soon Trip", "Wed"),
+                ("Later Trip", "Jan 19"),
             ],
         )
 
@@ -66,22 +66,22 @@ class TripTagsTest(TestCase):
             date(2019, 1, 11), trip_type=enums.TripType.ICE_CLIMBING.value
         )
 
-        html_template = Template('{% load trip_tags %}{% trip_list_table trips True %}')
-        context = Context({'trips': models.Trip.objects.all().order_by('pk')})
-        soup = BeautifulSoup(html_template.render(context), 'html.parser')
+        html_template = Template("{% load trip_tags %}{% trip_list_table trips True %}")
+        context = Context({"trips": models.Trip.objects.all().order_by("pk")})
+        soup = BeautifulSoup(html_template.render(context), "html.parser")
 
-        table = soup.find('table')
-        heading = table.find('thead').find_all('th')
+        table = soup.find("table")
+        heading = table.find("thead").find_all("th")
         self.assertEqual(
             [tr.text for tr in heading],
-            ['Name', 'Date', 'Terrain level', 'Description', 'Leaders', 'Approve'],
+            ["Name", "Date", "Terrain level", "Description", "Leaders", "Approve"],
         )
 
-        rows = [tr.find_all('td') for tr in table.find('tbody').find_all('tr')]
+        rows = [tr.find_all("td") for tr in table.find("tbody").find_all("tr")]
         trip_info = [
             {
-                'link': row[0].find('a').attrs['href'],
-                'icon_classes': row[0].find('i').attrs['class'],
+                "link": row[0].find("a").attrs["href"],
+                "icon_classes": row[0].find("i").attrs["class"],
             }
             for row in rows
         ]
@@ -91,26 +91,26 @@ class TripTagsTest(TestCase):
             trip_info,
             [
                 {
-                    'link': f'/winter_school/trips/{has_itinerary.pk}/',
-                    'icon_classes': ['fa', 'fa-fw', 'fa-hiking'],
+                    "link": f"/winter_school/trips/{has_itinerary.pk}/",
+                    "icon_classes": ["fa", "fa-fw", "fa-hiking"],
                 },
                 {
-                    'link': f'/winter_school/trips/{no_itinerary1.pk}/',
-                    'icon_classes': ['fa', 'fa-fw', 'fa-skiing'],
+                    "link": f"/winter_school/trips/{no_itinerary1.pk}/",
+                    "icon_classes": ["fa", "fa-fw", "fa-skiing"],
                 },
                 {
-                    'link': f'/winter_school/trips/{no_itinerary2.pk}/',
-                    'icon_classes': ['fa', 'fa-fw', 'fa-icicles'],
+                    "link": f"/winter_school/trips/{no_itinerary2.pk}/",
+                    "icon_classes": ["fa", "fa-fw", "fa-icicles"],
                 },
             ],
         )
 
     def test_feedback_for_trip_rated_leader(self):
-        leader = factories.ParticipantFactory.create(name='Janet Yellin')
+        leader = factories.ParticipantFactory.create(name="Janet Yellin")
         rating = factories.LeaderRatingFactory.create(
             participant=leader,
             activity=models.BaseRating.CLIMBING,
-            rating='Leader',
+            rating="Leader",
             active=True,
         )
         leader.leaderrating_set.add(rating)
@@ -118,22 +118,22 @@ class TripTagsTest(TestCase):
             leader=leader,
             participant__name="Jerome Powell",
             comments="Shows promise",
-            trip__name='Free solo 5.13 finger crack climbing',
+            trip__name="Free solo 5.13 finger crack climbing",
             trip__program=enums.Program.CLIMBING.value,
         )
         self.assertEqual(str(feedback), 'Jerome Powell: "Shows promise" - Janet Yellin')
 
-        template = Template('{% load trip_tags %}{{ feedback|leader_display }}')
-        context = Context({'feedback': feedback})
-        self.assertEqual(template.render(context), 'Janet Yellin (Leader)')
+        template = Template("{% load trip_tags %}{{ feedback|leader_display }}")
+        context = Context({"feedback": feedback})
+        self.assertEqual(template.render(context), "Janet Yellin (Leader)")
 
     def test_feedback_but_no_trip(self):
         """While it's rarely used, the data model supports feedback with a null trip."""
-        leader = factories.ParticipantFactory.create(name='Janet Yellin')
+        leader = factories.ParticipantFactory.create(name="Janet Yellin")
         rating = factories.LeaderRatingFactory.create(
             participant=leader,
             activity=models.BaseRating.CLIMBING,
-            rating='Leader',
+            rating="Leader",
             active=True,
         )
         leader.leaderrating_set.add(rating)
@@ -145,20 +145,20 @@ class TripTagsTest(TestCase):
         )
         self.assertEqual(str(feedback), 'Jerome Powell: "Shows promise" - Janet Yellin')
 
-        template = Template('{% load trip_tags %}{{ feedback|leader_display }}')
-        context = Context({'feedback': feedback})
-        self.assertEqual(template.render(context), 'Janet Yellin')
+        template = Template("{% load trip_tags %}{{ feedback|leader_display }}")
+        context = Context({"feedback": feedback})
+        self.assertEqual(template.render(context), "Janet Yellin")
 
 
 class TripStage(TestCase):
     @staticmethod
     def _render(trip: models.Trip, *, signups_on_trip: int) -> str:
-        template = Template('{% load trip_tags %}{% trip_stage trip signups_on_trip %}')
-        context = Context({'trip': trip, 'signups_on_trip': signups_on_trip})
+        template = Template("{% load trip_tags %}{% trip_stage trip signups_on_trip %}")
+        context = Context({"trip": trip, "signups_on_trip": signups_on_trip})
         return template.render(context).strip()
 
     def test_fcfs_open(self):
-        trip = factories.TripFactory.create(algorithm='fcfs')
+        trip = factories.TripFactory.create(algorithm="fcfs")
 
         self.assertEqual(
             self._render(trip, signups_on_trip=0),
@@ -166,7 +166,7 @@ class TripStage(TestCase):
         )
 
     def test_lottery_open(self):
-        trip = factories.TripFactory.create(algorithm='lottery')
+        trip = factories.TripFactory.create(algorithm="lottery")
 
         self.assertEqual(
             self._render(trip, signups_on_trip=0),

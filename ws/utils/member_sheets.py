@@ -57,13 +57,13 @@ class SheetWriter:
 
     # Use constants to refer to columns
     labels = SpreadsheetLabels(
-        name='Name',
-        email='Email',
-        membership='Membership Status',
-        access='Access Level',
-        leader='Leader Status',
-        student='Student Status',
-        school='School',
+        name="Name",
+        email="Email",
+        membership="Membership Status",
+        access="Access Level",
+        leader="Leader Status",
+        student="Student Status",
+        school="School",
     )
 
     discount: models.Discount
@@ -100,36 +100,36 @@ class SheetWriter:
         specific ranking.
         """
         active_ratings = participant.leaderrating_set.filter(active=True)
-        for activity in active_ratings.values_list('activity', flat=True):
+        for activity in active_ratings.values_list("activity", flat=True):
             activity_enum = enums.Activity(activity)
             position = (
-                'chair'
+                "chair"
                 if is_chair(participant.user, activity_enum, False)
-                else 'leader'
+                else "leader"
             )
             yield f"{activity_enum.label} {position}"
 
     def leader_text(self, participant: models.Participant) -> str:
-        return ', '.join(self.activity_descriptors(participant))
+        return ", ".join(self.activity_descriptors(participant))
 
     @staticmethod
     def school(participant: models.Participant) -> str:
         """Return what school participant goes to, if applicable."""
         if not participant.is_student:
-            return 'N/A'
+            return "N/A"
         if participant.affiliation in MIT_STUDENT_AFFILIATIONS:
-            return 'MIT'
-        return 'Other'  # We don't collect non-MIT affiliation
+            return "MIT"
+        return "Other"  # We don't collect non-MIT affiliation
 
     def access_text(self, participant: models.Participant) -> str:
         """Simple string indicating level of access person should have."""
         if self.discount.administrators.filter(pk=participant.pk).exists():
-            return 'Admin'
+            return "Admin"
         if participant.is_leader:
-            return 'Leader'
+            return "Leader"
         if participant.is_student:
-            return 'Student'
-        return 'Standard'
+            return "Student"
+        return "Standard"
 
     @staticmethod
     def _cache_recent_enough(membership: models.Membership) -> bool:
@@ -177,14 +177,14 @@ class SheetWriter:
             # This is hopefully a temporary error...
             # Discount sheets are re-generated every day at the very least.
             # Avoid breaking the whole sheet for all users; continue on
-            return 'Unknown'
+            return "Unknown"
 
         # We report Active/Expired, since companies don't care about waiver status
         if membership.membership_active:
-            return 'Active'
+            return "Active"
         if membership.membership_expires:
-            return f'Expired {membership.membership_expires.isoformat()}'
-        return 'Missing'
+            return f"Expired {membership.membership_expires.isoformat()}"
+        return "Missing"
 
     def get_row(self, participant: models.Participant) -> tuple[str, ...]:
         """Get the row values that match the header for this discount sheet."""
@@ -253,7 +253,7 @@ def update_discount_sheet(discount: models.Discount, trust_cache: bool) -> None:
     client = gspread.service_account(settings.OAUTH_JSON_CREDENTIALS)
     wks: gspread.worksheet.Worksheet = client.open_by_key(discount.ga_key).sheet1
     participants = list(
-        discount.participant_set.select_related('membership', 'user').order_by('name')
+        discount.participant_set.select_related("membership", "user").order_by("name")
     )
 
     writer = SheetWriter(discount, trust_cache)

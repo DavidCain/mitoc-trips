@@ -11,11 +11,11 @@ from ws.utils import perms as perm_utils
 
 class PermUtilTests(TestCase):
     def test_chair_group(self):
-        self.assertEqual(perm_utils.chair_group(enums.Activity.WINTER_SCHOOL), 'WSC')
+        self.assertEqual(perm_utils.chair_group(enums.Activity.WINTER_SCHOOL), "WSC")
         self.assertEqual(
-            perm_utils.chair_group(enums.Activity.CLIMBING), 'climbing_chair'
+            perm_utils.chair_group(enums.Activity.CLIMBING), "climbing_chair"
         )
-        self.assertEqual(perm_utils.chair_group(enums.Activity.HIKING), 'hiking_chair')
+        self.assertEqual(perm_utils.chair_group(enums.Activity.HIKING), "hiking_chair")
 
     def test_is_chair_no_activity(self):
         """When activity is None, `is_chair` is always false!"""
@@ -31,7 +31,7 @@ class PermUtilTests(TestCase):
         anon = AnonymousUser()
         self.assertFalse(perm_utils.is_leader(anon), False)
         self.assertFalse(perm_utils.is_chair(anon, enums.Activity.CLIMBING))
-        self.assertFalse(perm_utils.in_any_group(anon, ['group_name']))
+        self.assertFalse(perm_utils.in_any_group(anon, ["group_name"]))
 
     def test_leader_on_trip_creator(self):
         trip = TripFactory()

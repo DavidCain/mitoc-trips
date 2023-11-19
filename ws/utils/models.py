@@ -8,7 +8,7 @@ if TYPE_CHECKING:
 
 
 def problems_with_profile(
-    participant: Optional['Participant'],
+    participant: Optional["Participant"],
 ) -> Iterator[enums.ProfileProblem]:
     if participant is None:
         yield enums.ProfileProblem.NO_INFO

@@ -24,53 +24,53 @@ class DataDumpTest(TestCase):
             OrderedDict(
                 [
                     (
-                        'user',
+                        "user",
                         {
-                            'last_login': None,
-                            'date_joined': mock.ANY,
-                            'name': 'Test Participant',
-                            'profile_last_updated': mock.ANY,
-                            'cell_phone': '',
-                            'affiliation': 'Non-affiliate',
-                            'emails': [
+                            "last_login": None,
+                            "date_joined": mock.ANY,
+                            "name": "Test Participant",
+                            "profile_last_updated": mock.ANY,
+                            "cell_phone": "",
+                            "affiliation": "Non-affiliate",
+                            "emails": [
                                 {
-                                    'email': participant.email,
-                                    'verified': True,
-                                    'primary': True,
+                                    "email": participant.email,
+                                    "verified": True,
+                                    "primary": True,
                                 }
                             ],
                         },
                     ),
                     (
-                        'membership',
+                        "membership",
                         {
-                            'membership_expires': date(2020, 10, 30),
-                            'waiver_expires': date(2020, 10, 29),
+                            "membership_expires": date(2020, 10, 30),
+                            "waiver_expires": date(2020, 10, 29),
                         },
                     ),
-                    ('discounts', []),
-                    ('car', None),
+                    ("discounts", []),
+                    ("car", None),
                     (
-                        'medical',
+                        "medical",
                         {
-                            'emergency_contact': {
-                                'name': 'My Mother',
-                                'cell_phone': '+17815550342',
-                                'relationship': 'Mother',
-                                'email': 'mum@example.com',
+                            "emergency_contact": {
+                                "name": "My Mother",
+                                "cell_phone": "+17815550342",
+                                "relationship": "Mother",
+                                "email": "mum@example.com",
                             },
-                            'allergies': 'None',
-                            'medications': 'None',
-                            'medical_history': 'None',
+                            "allergies": "None",
+                            "medications": "None",
+                            "medical_history": "None",
                         },
                     ),
-                    ('lottery_info', None),
-                    ('leader_ratings', {}),
-                    ('leader_applications', {}),
-                    ('winter_school_lecture_attendance', []),
-                    ('trips', {'wimped': [], 'led': [], 'created': []}),
-                    ('signups', []),
-                    ('feedback', {'received': [], 'given': []}),
+                    ("lottery_info", None),
+                    ("leader_ratings", {}),
+                    ("leader_applications", {}),
+                    ("winter_school_lecture_attendance", []),
+                    ("trips", {"wimped": [], "led": [], "created": []}),
+                    ("signups", []),
+                    ("feedback", {"received": [], "given": []}),
                 ]
             ),
         )
@@ -107,17 +107,17 @@ class DataDumpTest(TestCase):
         results = data.all_data
         self.assertTrue(isinstance(results, OrderedDict))
         self.assertEqual(
-            results['winter_school_lecture_attendance'],
+            results["winter_school_lecture_attendance"],
             [
                 {
-                    'year': 2017,
-                    'time_created': datetime(
+                    "year": 2017,
+                    "time_created": datetime(
                         2017, 1, 5, 18, 35, 40, tzinfo=ZoneInfo("America/New_York")
                     ),
                 },
                 {
-                    'year': 2019,
-                    'time_created': datetime(
+                    "year": 2019,
+                    "time_created": datetime(
                         2019, 1, 10, 18, 45, 20, tzinfo=ZoneInfo("America/New_York")
                     ),
                 },
@@ -125,17 +125,17 @@ class DataDumpTest(TestCase):
         )
         # (Won't inspect the results of every value, since factory defaults may change)
         # Just ensure that they're actually filled.
-        self.assertTrue(results['feedback']['received'])
-        self.assertTrue(results['feedback']['given'])
-        self.assertTrue(results['lottery_info'])
-        self.assertTrue(results['leader_ratings'])
-        self.assertTrue(results['signups'])
+        self.assertTrue(results["feedback"]["received"])
+        self.assertTrue(results["feedback"]["given"])
+        self.assertTrue(results["lottery_info"])
+        self.assertTrue(results["leader_ratings"])
+        self.assertTrue(results["signups"])
 
     def test_participant_without_membership(self):
         participant = factories.ParticipantFactory.create(membership=None)
         data = DataDump(participant.pk)
 
-        self.assertIsNone(data.all_data['membership'])
+        self.assertIsNone(data.all_data["membership"])
 
     def test_leader_school_applications(self):
         par = factories.ParticipantFactory.create()
@@ -145,56 +145,56 @@ class DataDumpTest(TestCase):
 
         data = DataDump(par.pk)
 
-        all_apps = data.all_data['leader_applications']
-        self.assertCountEqual(all_apps, ['Winter School', 'Climbing'])
+        all_apps = data.all_data["leader_applications"]
+        self.assertCountEqual(all_apps, ["Winter School", "Climbing"])
         self.assertEqual(
-            all_apps['Winter School'],
+            all_apps["Winter School"],
             [
                 {
-                    'previous_rating': '',
-                    'archived': False,
-                    'year': 2021,
-                    'desired_rating': 'B coC',
-                    'taking_wfa': 'No',
-                    'training': 'EMT Basic',
-                    'technical_skills': 'I know how to self arrest',
-                    'winter_experience': 'Several years hiking in the Whites',
-                    'ice_experience': '',
-                    'ski_experience': '',
-                    'other_experience': 'Leader in my college outing club',
-                    'notes_or_comments': '',
-                    'mentorship_goals': '',
-                    'mentor_activities': [],
-                    'mentee_activities': [],
+                    "previous_rating": "",
+                    "archived": False,
+                    "year": 2021,
+                    "desired_rating": "B coC",
+                    "taking_wfa": "No",
+                    "training": "EMT Basic",
+                    "technical_skills": "I know how to self arrest",
+                    "winter_experience": "Several years hiking in the Whites",
+                    "ice_experience": "",
+                    "ski_experience": "",
+                    "other_experience": "Leader in my college outing club",
+                    "notes_or_comments": "",
+                    "mentorship_goals": "",
+                    "mentor_activities": [],
+                    "mentee_activities": [],
                 }
             ],
         )
         self.assertEqual(
-            all_apps['Climbing'],
+            all_apps["Climbing"],
             [
                 {
-                    'previous_rating': '',
-                    'archived': False,
-                    'year': 2021,
-                    'desired_rating': '',
-                    'years_climbing': 9,
-                    'years_climbing_outside': 7,
-                    'outdoor_bouldering_grade': 'V3',
-                    'outdoor_sport_leading_grade': '5.11',
-                    'outdoor_trad_leading_grade': 'Trad is too rad for me',
-                    'familiarity_spotting': 'none',
-                    'familiarity_bolt_anchors': 'very comfortable',
-                    'familiarity_gear_anchors': 'none',
-                    'familiarity_sr': 'some',
-                    'spotting_description': '',
-                    'tr_anchor_description': '',
-                    'rappel_description': '',
-                    'gear_anchor_description': '',
-                    'formal_training': 'Wilderness First Responder',
-                    'teaching_experience': 'Leader in my college outing club',
-                    'notable_climbs': 'The Nose of El Capitan',
-                    'favorite_route': 'Jaws II',
-                    'extra_info': 'An extinct giant sloth is largely responsible for the existence of the avocado.',
+                    "previous_rating": "",
+                    "archived": False,
+                    "year": 2021,
+                    "desired_rating": "",
+                    "years_climbing": 9,
+                    "years_climbing_outside": 7,
+                    "outdoor_bouldering_grade": "V3",
+                    "outdoor_sport_leading_grade": "5.11",
+                    "outdoor_trad_leading_grade": "Trad is too rad for me",
+                    "familiarity_spotting": "none",
+                    "familiarity_bolt_anchors": "very comfortable",
+                    "familiarity_gear_anchors": "none",
+                    "familiarity_sr": "some",
+                    "spotting_description": "",
+                    "tr_anchor_description": "",
+                    "rappel_description": "",
+                    "gear_anchor_description": "",
+                    "formal_training": "Wilderness First Responder",
+                    "teaching_experience": "Leader in my college outing club",
+                    "notable_climbs": "The Nose of El Capitan",
+                    "favorite_route": "Jaws II",
+                    "extra_info": "An extinct giant sloth is largely responsible for the existence of the avocado.",
                 }
             ],
         )

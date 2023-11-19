@@ -17,7 +17,7 @@ class CanAttendTripTests(TestCase):
             # (Hiking isn't special, we just choose to avoid WS-specific rules)
             program=enums.Program.HIKING.value,
             trip_date=date(2018, 11, 30),
-            algorithm='fcfs',
+            algorithm="fcfs",
             membership_required=True,
         )
 
@@ -50,7 +50,7 @@ class CanAttendTripTests(TestCase):
         participant = factories.ParticipantFactory.create(membership=None)
 
         responses.get(
-            'https://mitoc-gear.mit.edu/api-auth/v1/membership_waiver/', status=500
+            "https://mitoc-gear.mit.edu/api-auth/v1/membership_waiver/", status=500
         )
         self.assertTrue(self._can_attend(participant.user))
 
@@ -63,7 +63,7 @@ class CanAttendTripTests(TestCase):
                 waiver_expires=date(2018, 12, 18),  # Active, expires after trip
             )
         participant = factories.ParticipantFactory.create(
-            email='tim@mit.edu', membership=dated_membership
+            email="tim@mit.edu", membership=dated_membership
         )
         before_refreshing_ts = dated_membership.last_cached
 
@@ -74,7 +74,7 @@ class CanAttendTripTests(TestCase):
         )
 
         responses.get(
-            url='https://mitoc-gear.mit.edu/api-auth/v1/membership_waiver/?email=tim@mit.edu',
+            url="https://mitoc-gear.mit.edu/api-auth/v1/membership_waiver/?email=tim@mit.edu",
             json={
                 "count": 1,
                 "next": None,

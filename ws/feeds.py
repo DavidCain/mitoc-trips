@@ -15,7 +15,7 @@ class UpcomingTripsFeed(Feed):
 
     def items(self):
         upcoming_trips = Trip.objects.filter(trip_date__gte=local_date())
-        return upcoming_trips.order_by('-trip_date')
+        return upcoming_trips.order_by("-trip_date")
 
     def item_title(self, item):
         return item.name
@@ -24,7 +24,7 @@ class UpcomingTripsFeed(Feed):
         return item.description
 
     def item_link(self, item):
-        return reverse('view_trip', args=[item.pk])
+        return reverse("view_trip", args=[item.pk])
 
     def item_pubdate(self, item):
         return item.time_created.astimezone(DEFAULT_TIMEZONE)

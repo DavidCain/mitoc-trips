@@ -32,7 +32,7 @@ from ws.car_states import CAR_STATE_CHOICES
 from ws.utils.avatar import avatar_url
 
 alphanum = RegexValidator(
-    r'^[a-zA-Z0-9 ]*$', "Only alphanumeric characters and spaces allowed"
+    r"^[a-zA-Z0-9 ]*$", "Only alphanumeric characters and spaces allowed"
 )
 
 
@@ -97,7 +97,7 @@ class EmergencyInfo(models.Model):
     )
 
     def __str__(self):
-        return ' | '.join(
+        return " | ".join(
             [
                 f"Allergies: {self.allergies}"
                 f"Medications: {self.medications}"
@@ -111,17 +111,17 @@ class LeaderManager(models.Manager):
     def get_queryset(self):
         all_participants = super().get_queryset()
         leaders = all_participants.filter(leaderrating__active=True).distinct()
-        return leaders.prefetch_related('leaderrating_set')
+        return leaders.prefetch_related("leaderrating_set")
 
 
 class Discount(models.Model):
     """Discount at another company available to MITOC members."""
 
     administrators = models.ManyToManyField(
-        'Participant',
+        "Participant",
         blank=True,
         help_text="Persons selected to administer this discount",
-        related_name='discounts_administered',
+        related_name="discounts_administered",
     )
 
     active = models.BooleanField(
@@ -222,7 +222,7 @@ class Membership(models.Model):
             return False
         return expires >= date_utils.local_date()
 
-    def should_sign_waiver_for(self, trip: 'Trip') -> bool:
+    def should_sign_waiver_for(self, trip: "Trip") -> bool:
         """Return if the waiver will be valid for the day of the trip.
 
         We consider waivers "expired" 365 days after being signed.
@@ -283,7 +283,7 @@ class Membership(models.Model):
         assert self.membership_expires
         return self.membership_expires + timedelta(days=365)
 
-    def should_renew_for(self, trip: 'Trip') -> bool:
+    def should_renew_for(self, trip: "Trip") -> bool:
         """Return if membership renewal is required to attend a future trip.
 
         If a participant's membership will expire on the given date, and it's
@@ -329,9 +329,9 @@ class Participant(models.Model):
     email = models.EmailField(
         unique=True,
         help_text=format_lazy(
-            'This will be shared with leaders & other participants. '
+            "This will be shared with leaders & other participants. "
             '<a href="{url}">Manage email addresses</a>.',
-            url=reverse_lazy('account_email'),
+            url=reverse_lazy("account_email"),
         ),
     )
     gravatar_opt_out = models.BooleanField(
@@ -352,27 +352,27 @@ class Participant(models.Model):
 
     AFFILIATION_CHOICES: list[tuple[str, str | list[tuple[str, str]]]] = [
         (
-            'Undergraduate student',
+            "Undergraduate student",
             [
                 (affiliations.MIT_UNDERGRAD.CODE, "MIT undergrad"),
                 (affiliations.NON_MIT_UNDERGRAD.CODE, "Non-MIT undergrad"),
             ],
         ),
         (
-            'Graduate student',
+            "Graduate student",
             [
                 (affiliations.MIT_GRAD_STUDENT.CODE, "MIT grad student"),
                 (affiliations.NON_MIT_GRAD_STUDENT.CODE, "Non-MIT grad student"),
             ],
         ),
         (
-            'MIT',
+            "MIT",
             [
-                (affiliations.MIT_AFFILIATE.CODE, 'MIT affiliate (staff or faculty)'),
+                (affiliations.MIT_AFFILIATE.CODE, "MIT affiliate (staff or faculty)"),
                 (affiliations.MIT_ALUM.CODE, "MIT alum (former student)"),
             ],
         ),
-        (affiliations.NON_AFFILIATE.CODE, 'Non-affiliate'),
+        (affiliations.NON_AFFILIATE.CODE, "Non-affiliate"),
     ]
     # We used to not collect level of student + MIT affiliation
     # Any participants with single-digit affiliation codes have dated status
@@ -390,7 +390,7 @@ class Participant(models.Model):
     discounts = models.ManyToManyField(Discount, blank=True)
 
     class Meta:
-        ordering = ['name', 'email']
+        ordering = ["name", "email"]
 
     def __str__(self):  # pylint: disable=invalid-str-returned
         return self.name
@@ -400,13 +400,13 @@ class Participant(models.Model):
         """NOTE: This uses the cache, should only be called on a fresh cache."""
         return bool(self.membership and self.membership.membership_active)
 
-    def should_sign_waiver_for(self, trip: 'Trip') -> bool:
+    def should_sign_waiver_for(self, trip: "Trip") -> bool:
         """NOTE: This uses the cache, should only be called on a fresh cache."""
         if not self.membership:
             return True
         return self.membership.should_sign_waiver_for(trip)
 
-    def should_renew_for(self, trip: 'Trip') -> bool:
+    def should_renew_for(self, trip: "Trip") -> bool:
         """NOTE: This uses the cache, should only be called on a fresh cache."""
         if not trip.membership_required:
             return False
@@ -448,7 +448,7 @@ class Participant(models.Model):
 
         if not self.emergency_info.emergency_contact.cell_phone:
             yield enums.ProfileProblem.INVALID_EMERGENCY_CONTACT_PHONE
-        if ' ' not in self.name:  # pylint: disable=unsupported-membership-test
+        if " " not in self.name:  # pylint: disable=unsupported-membership-test
             yield enums.ProfileProblem.MISSING_FULL_NAME
 
         emails = self.user.emailaddress_set  # type: ignore[attr-defined]
@@ -482,7 +482,7 @@ class Participant(models.Model):
         if len(self.affiliation) == 1:  # Old one-letter affiliation
             return True
 
-        force_reset = datetime(2018, 10, 27, 4, 30, tzinfo=ZoneInfo('America/New_York'))
+        force_reset = datetime(2018, 10, 27, 4, 30, tzinfo=ZoneInfo("America/New_York"))
         return self.profile_last_updated < force_reset
 
     @classmethod
@@ -490,7 +490,7 @@ class Participant(models.Model):
         cls,
         email: str,
         join_membership: bool = False,
-    ) -> Optional['Participant']:
+    ) -> Optional["Participant"]:
         addr = EmailAddress.objects.filter(email__iexact=email, verified=True).first()
         return cls.from_user(addr.user, join_membership) if addr else None
 
@@ -499,13 +499,13 @@ class Participant(models.Model):
         cls,
         user: User | AnonymousUser,
         join_membership: bool = False,
-    ) -> Optional['Participant']:
+    ) -> Optional["Participant"]:
         if not user.is_authenticated:
             return None
 
         one_or_none = cls.objects.filter(user_id=user.id)
         if join_membership:
-            one_or_none = one_or_none.select_related('membership')
+            one_or_none = one_or_none.select_related("membership")
 
         try:
             return one_or_none.get()
@@ -524,7 +524,7 @@ class Participant(models.Model):
 
         return not self.attended_lectures(year)
 
-    def missed_lectures_for(self, trip: 'Trip') -> bool:
+    def missed_lectures_for(self, trip: "Trip") -> bool:
         """Should we regard the participant as having missed lectures for this trip.
 
         This only applies to WS trips - all other trips will return False.
@@ -539,7 +539,7 @@ class Participant(models.Model):
 
         return self.missed_lectures(trip.trip_date.year)
 
-    def _cannot_attend_because_missed_lectures(self, trip: 'Trip') -> bool:
+    def _cannot_attend_because_missed_lectures(self, trip: "Trip") -> bool:
         """Return if the participant's lack of attendance should prevent their attendance.
 
         This method exists to allow WS leaders to attend trips as a
@@ -557,7 +557,7 @@ class Participant(models.Model):
             return True
 
         try:
-            last_attendance = self.lectureattendance_set.latest('year')
+            last_attendance = self.lectureattendance_set.latest("year")
         except LectureAttendance.DoesNotExist:
             return True  # First-time leaders must have attended lectures!
 
@@ -567,7 +567,7 @@ class Participant(models.Model):
         return years_since_last_lecture > 4
 
     def reasons_cannot_attend(
-        self, trip: 'Trip'
+        self, trip: "Trip"
     ) -> Iterator[enums.TripIneligibilityReason]:
         """Can this participant attend the trip? (based off cached membership)
 
@@ -629,7 +629,7 @@ class Participant(models.Model):
         must_be_active: bool = True,
         at_time: datetime | None = None,
         after_time: datetime | None = None,
-    ) -> Iterator['LeaderRating']:
+    ) -> Iterator["LeaderRating"]:
         """Return all ratings matching the supplied filters.
 
         must_be_active: Only format a rating if it's still active
@@ -648,7 +648,7 @@ class Participant(models.Model):
             ratings = (r for r in ratings if r.time_created > after_time)
         return ratings
 
-    def name_with_rating(self, trip: 'Trip') -> str:
+    def name_with_rating(self, trip: "Trip") -> str:
         """Give the leader's name plus rating at the time of the trip.
 
         Note: Some leaders from Winter School 2014 or 2015 may not have any
@@ -687,7 +687,7 @@ class Participant(models.Model):
     def allowed_programs(self) -> Iterator[enums.Program]:
         """Yield all programs which this participant can currently lead."""
         active_ratings = self.leaderrating_set.filter(active=True)
-        rated_activities = active_ratings.values_list('activity', flat=True)
+        rated_activities = active_ratings.values_list("activity", flat=True)
         if not rated_activities:
             # Not a MITOC leader, can't lead anything
             return
@@ -745,18 +745,18 @@ class MembershipReminder(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                name='%(app_label)s_%(class)s_par_reminder_sent_at_uniq',
-                fields=('participant',),
+                name="%(app_label)s_%(class)s_par_reminder_sent_at_uniq",
+                fields=("participant",),
                 condition=Q(reminder_sent_at__isnull=True),
             )
         ]
 
     def __str__(self) -> str:
         if self.reminder_sent_at is None:
-            return f'{self.participant}, not yet reminder'
+            return f"{self.participant}, not yet reminder"
 
         timestamp = self.reminder_sent_at.isoformat(timespec="minutes")
-        return f'{self.participant}, last reminded at {timestamp}'
+        return f"{self.participant}, last reminded at {timestamp}"
 
 
 class PasswordQuality(models.Model):
@@ -777,7 +777,7 @@ class PasswordQuality(models.Model):
     )
 
     def __str__(self):  # pylint: disable=invalid-str-returned
-        label = 'INSECURE' if self.is_insecure else 'not known to be breached'
+        label = "INSECURE" if self.is_insecure else "not known to be breached"
         return f"{label} (as of {self.last_checked})"
 
 
@@ -789,12 +789,12 @@ class LectureAttendance(models.Model):
     )
     participant = models.ForeignKey(Participant, on_delete=models.CASCADE)
     creator = models.ForeignKey(
-        Participant, related_name='lecture_attendances_marked', on_delete=models.CASCADE
+        Participant, related_name="lecture_attendances_marked", on_delete=models.CASCADE
     )
     time_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
-        return f'{self.participant.name} attended {self.year} lectures, recorded by {self.creator}'
+        return f"{self.participant.name} attended {self.year} lectures, recorded by {self.creator}"
 
 
 class WinterSchoolSettings(SingletonModel):
@@ -839,24 +839,24 @@ class BaseRating(models.Model):
     HIKING = enums.Activity.HIKING.value
     WINTER_SCHOOL = enums.Activity.WINTER_SCHOOL.value
     CLOSED_ACTIVITY_CHOICES = [
-        (BIKING, 'Biking'),
-        (BOATING, 'Boating'),
-        (CABIN, 'Cabin'),
-        (CLIMBING, 'Climbing'),
-        (HIKING, 'Hiking'),
-        (WINTER_SCHOOL, 'Winter School'),
+        (BIKING, "Biking"),
+        (BOATING, "Boating"),
+        (CABIN, "Cabin"),
+        (CLIMBING, "Climbing"),
+        (HIKING, "Hiking"),
+        (WINTER_SCHOOL, "Winter School"),
     ]
     CLOSED_ACTIVITIES = [val for (val, label) in CLOSED_ACTIVITY_CHOICES]
 
     # Activities for which a specific leader rating is not necessary
     # (You must be a MITOC leader, but not necessarily in these activities)
-    CIRCUS = 'circus'
-    OFFICIAL_EVENT = 'official_event'  # Training, films, etc.
-    COURSE = 'course'
+    CIRCUS = "circus"
+    OFFICIAL_EVENT = "official_event"  # Training, films, etc.
+    COURSE = "course"
     OPEN_ACTIVITY_CHOICES = [
-        (CIRCUS, 'Circus'),
-        (OFFICIAL_EVENT, 'Official Event'),
-        (COURSE, 'Course'),
+        (CIRCUS, "Circus"),
+        (OFFICIAL_EVENT, "Official Event"),
+        (COURSE, "Course"),
     ]
 
     OPEN_ACTIVITIES = [val for (val, label) in OPEN_ACTIVITY_CHOICES]
@@ -895,14 +895,14 @@ class LeaderRating(BaseRating):
     """
 
     creator = models.ForeignKey(
-        Participant, related_name='ratings_created', on_delete=models.CASCADE
+        Participant, related_name="ratings_created", on_delete=models.CASCADE
     )
     active = models.BooleanField(default=True)
 
 
 class LeaderRecommendation(BaseRating):
     creator = models.ForeignKey(
-        Participant, related_name='recommendations_created', on_delete=models.CASCADE
+        Participant, related_name="recommendations_created", on_delete=models.CASCADE
     )
 
 
@@ -925,7 +925,7 @@ class LeaderSignUp(BaseSignUp):
 
     class Meta:
         ordering = ["time_created"]
-        unique_together = ('participant', 'trip')
+        unique_together = ("participant", "trip")
 
 
 class SignUp(BaseSignUp):
@@ -945,7 +945,7 @@ class SignUp(BaseSignUp):
         # 1. `manual_order` (applied if leaders sort signups)
         # 2. `last_updated` (first to be on the trip -> first on trip)
         ordering = ["manual_order", "last_updated"]
-        unique_together = ('participant', 'trip')
+        unique_together = ("participant", "trip")
 
     def __str__(self) -> str:
         return f"{self.participant.name}, {'' if self.on_trip else 'not currently '}on {self.trip}"
@@ -958,10 +958,10 @@ class TripInfo(models.Model):
         Participant,
         blank=True,
         help_text=format_lazy(
-            'If a trip participant is driving, but is not on this list, '
+            "If a trip participant is driving, but is not on this list, "
             'they must first submit <a href="{url}#car">information about their car</a>. '
-            'They should then be added here.',
-            url=reverse_lazy('edit_profile'),
+            "They should then be added here.",
+            url=reverse_lazy("edit_profile"),
         ),
     )
     start_location = models.CharField(max_length=127)
@@ -995,10 +995,10 @@ class TripInfo(models.Model):
 
 
 trips_search_vector = (
-    SearchVector('name', config='english', weight='A')
-    + SearchVector('description', config='english', weight='B')
-    + SearchVector('prereqs', config='english', weight='B')
-    + SearchVector('activity', 'trip_type', config='english', weight='C')
+    SearchVector("name", config="english", weight="A")
+    + SearchVector("description", config="english", weight="B")
+    + SearchVector("prereqs", config="english", weight="B")
+    + SearchVector("activity", "trip_type", config="english", weight="C")
 )
 
 
@@ -1006,10 +1006,10 @@ class Trip(models.Model):
     # When ordering trips which need approval, apply consistent ordering
     # (Defined here to keep the table's default ordering in sync with prev/next buttons
     ordering_for_approval: tuple[str, ...] = (
-        'trip_date',
-        'trip_type',
-        'info',
-        'winter_terrain_level',
+        "trip_date",
+        "trip_type",
+        "info",
+        "winter_terrain_level",
     )
 
     last_updated_by = models.ForeignKey(
@@ -1038,22 +1038,22 @@ class Trip(models.Model):
     )
     trip_type = models.CharField(
         max_length=255,
-        verbose_name='Primary trip activity',
+        verbose_name="Primary trip activity",
         choices=enums.TripType.choices(),
         db_index=True,
     )
     creator = models.ForeignKey(
-        Participant, related_name='created_trips', on_delete=models.CASCADE
+        Participant, related_name="created_trips", on_delete=models.CASCADE
     )
     # Leaders should be privileged at time of trip creation, but may no longer
     # be leaders later (and we don't want to break the relation)
-    leaders = models.ManyToManyField(Participant, related_name='trips_led', blank=True)
+    leaders = models.ManyToManyField(Participant, related_name="trips_led", blank=True)
     wimp = models.ForeignKey(
         Participant,
         null=True,
         blank=True,
-        related_name='wimp_trips',
-        verbose_name='WIMP',
+        related_name="wimp_trips",
+        verbose_name="WIMP",
         on_delete=models.CASCADE,
         help_text="Ensures the trip returns safely. "
         "Can view trip itinerary, participant medical info.",
@@ -1063,7 +1063,7 @@ class Trip(models.Model):
         help_text=mark_safe(  # noqa: S308
             '<a href="https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet">'
             "Markdown</a> supported! "
-            'Please use HTTPS images sparingly, and only if properly licensed.'
+            "Please use HTTPS images sparingly, and only if properly licensed."
         )
     )
     summary = models.CharField(
@@ -1081,14 +1081,14 @@ class Trip(models.Model):
         help_text="This trip's A, B, or C designation (plus I/S rating if applicable).",
     )
     winter_terrain_level = models.CharField(
-        verbose_name='Terrain level',
+        verbose_name="Terrain level",
         null=True,
         blank=True,
         max_length=1,
         choices=[
-            ('A', 'A: <1 hour to intensive care, below treeline'),
-            ('B', 'B: >1 hour to intensive care, below treeline'),
-            ('C', 'C: above treeline'),
+            ("A", "A: <1 hour to intensive care, below treeline"),
+            ("B", "B: >1 hour to intensive care, below treeline"),
+            ("C", "C: above treeline"),
         ],
         help_text=mark_safe(  # noqa: S308
             'Trip leaders must meet <a href="/help/participants/ws_ratings/">requirements for terrain & activity ratings</a>.',
@@ -1148,8 +1148,8 @@ class Trip(models.Model):
     signed_up_participants = models.ManyToManyField(Participant, through=SignUp)
     algorithm = models.CharField(
         max_length=31,
-        default='lottery',
-        choices=[('lottery', 'lottery'), ('fcfs', 'first-come, first-serve')],
+        default="lottery",
+        choices=[("lottery", "lottery"), ("fcfs", "first-come, first-serve")],
     )
 
     lottery_task_id = models.CharField(
@@ -1162,7 +1162,7 @@ class Trip(models.Model):
         indexes = [
             GistIndex(
                 trips_search_vector,
-                name='search_vector_idx',
+                name="search_vector_idx",
             )
         ]
 
@@ -1171,12 +1171,12 @@ class Trip(models.Model):
 
     def description_to_text(self, maxchars: int | None = None) -> str:
         html = markdown2.markdown(self.description)
-        raw_text = BeautifulSoup(html, 'html.parser').text.strip()
-        text = re.sub(r'[\s\n\r]+', ' ', raw_text)  # convert newlines to single spaces
+        raw_text = BeautifulSoup(html, "html.parser").text.strip()
+        text = re.sub(r"[\s\n\r]+", " ", raw_text)  # convert newlines to single spaces
         if maxchars is None or maxchars > len(text):
             return text
         cutoff = max(maxchars - 3, 0)
-        return text[:cutoff].strip() + '...'
+        return text[:cutoff].strip() + "..."
 
     @property
     def program_enum(self) -> enums.Program:
@@ -1191,7 +1191,7 @@ class Trip(models.Model):
         """Return an 'activity' from the given program."""
         activity_enum = self.program_enum.required_activity()
         if activity_enum is None:
-            return 'official_event'
+            return "official_event"
         return cast(str, activity_enum.value)
 
     def required_activity_enum(self) -> enums.Activity | None:
@@ -1229,14 +1229,14 @@ class Trip(models.Model):
             .filter(trip__trip_date__range=self._within_three_days)
             # Manual hack for weekend 3 of WS: don't count lectures or shuttles
             .exclude(trip_id__in=[1506, 1476, 1477])
-            .select_related('trip')
-            .order_by('trip__trip_date')
+            .select_related("trip")
+            .order_by("trip__trip_date")
         )
 
     def other_trips_by_participant(
         self,
         for_participants: Iterable[Participant] | None = None,
-    ) -> Iterator[tuple[int, list['Trip']]]:
+    ) -> Iterator[tuple[int, list["Trip"]]]:
         """Identify which other trips this trip's participants are on.
 
         Specifically, for each participant that is signed up for this trip,
@@ -1264,10 +1264,10 @@ class Trip(models.Model):
             .objects.filter(
                 leaders__in=par_pks, trip_date__range=self._within_three_days
             )
-            .order_by('trip_date')
-            .annotate(leader_pk=F('leaders'))
+            .order_by("trip_date")
+            .annotate(leader_pk=F("leaders"))
         )
-        for trip in trips_led_by_participants.order_by('-trip_date', '-time_created'):
+        for trip in trips_led_by_participants.order_by("-trip_date", "-time_created"):
             trips_by_par[trip.leader_pk].append(trip)
             del trip.leader_pk  # Remove annotation so it's not accessed elsewhere
 
@@ -1391,7 +1391,7 @@ class Trip(models.Model):
 
     def make_fcfs(self, signups_open_at: datetime | None = None) -> None:
         """Set the algorithm to FCFS, adjust signup times appropriately."""
-        self.algorithm = 'fcfs'
+        self.algorithm = "fcfs"
         now = date_utils.local_now()
         if signups_open_at:
             self.signups_open_at = signups_open_at
@@ -1432,12 +1432,12 @@ class Trip(models.Model):
         text: str,
         filters: None | Q,
         limit: int = 100,
-    ) -> QuerySet['Trip']:
+    ) -> QuerySet["Trip"]:
         trips = cls.objects.filter(filters) if filters else cls.objects.all()
         # It's valid to not provide a search term at all.
         # In this case, there's no real meaningful way to "rank" matches; put newest first.
         if not text:
-            return trips.order_by('-pk')[:limit]
+            return trips.order_by("-pk")[:limit]
 
         query = SearchQuery(text)
         return (
@@ -1446,22 +1446,22 @@ class Trip(models.Model):
                 rank=SearchRank(trips_search_vector, query),
             )
             .filter(search=text)
-            .order_by('-rank')[:limit]
+            .order_by("-rank")[:limit]
         )
 
     @property
     def prefilled_atlas_form_link(self) -> str:
         """Pre-fill known information for submission on the Atlas form link."""
-        leaders = list(self.leaders.order_by('name'))
-        trip_link = reverse('view_trip', args=(self.pk,))
+        leaders = list(self.leaders.order_by("name"))
+        trip_link = reverse("view_trip", args=(self.pk,))
         prefilled_values = {
-            'usp': 'pp_url',
-            'entry.64030440': self.name,
-            'entry.14051799': ', '.join(leader.name for leader in leaders),
-            'entry.1718831235': ', '.join(leader.email for leader in leaders),
-            'entry.801739390': urljoin('https://mitoc-trips.mit.edu', trip_link),
-            'entry.260268802': self.summary,
-            'entry.1651767815': self.trip_date.isoformat(),
+            "usp": "pp_url",
+            "entry.64030440": self.name,
+            "entry.14051799": ", ".join(leader.name for leader in leaders),
+            "entry.1718831235": ", ".join(leader.email for leader in leaders),
+            "entry.801739390": urljoin("https://mitoc-trips.mit.edu", trip_link),
+            "entry.260268802": self.summary,
+            "entry.1651767815": self.trip_date.isoformat(),
             # 'entry.240172613':Food
             # 'entry.2093739261':10
         }
@@ -1473,7 +1473,7 @@ class Trip(models.Model):
         if info:
             prefilled_values.update(
                 {
-                    'entry.1852696041': info.start_location,
+                    "entry.1852696041": info.start_location,
                     # We record start time, but only as free text...
                     # 'entry.845875220': '10:00',
                     # We don't record trip end date!
@@ -1484,7 +1484,7 @@ class Trip(models.Model):
             )
 
         return (
-            'https://docs.google.com/forms/d/e/1FAIpQLSeBgwQXEzbuBVdEpS6hAaII-sdlEajVnMQC84igt8plmigRdw/viewform?'
+            "https://docs.google.com/forms/d/e/1FAIpQLSeBgwQXEzbuBVdEpS6hAaII-sdlEajVnMQC84igt8plmigRdw/viewform?"
             + urlencode(prefilled_values)
         )
 
@@ -1554,7 +1554,7 @@ class LotteryInfo(models.Model):
         Participant,
         null=True,
         blank=True,
-        related_name='paired_by',
+        related_name="paired_by",
         on_delete=models.CASCADE,
     )
 
@@ -1587,7 +1587,7 @@ class LotteryInfo(models.Model):
 
     @property
     def is_driver(self) -> bool:
-        return self.car_status in ['own', 'rent']
+        return self.car_status in ["own", "rent"]
 
 
 class LotterySeparation(models.Model):
@@ -1604,26 +1604,26 @@ class LotterySeparation(models.Model):
 
     time_created = models.DateTimeField(auto_now_add=True)
     creator = models.ForeignKey(
-        Participant, related_name='separations_created', on_delete=models.CASCADE
+        Participant, related_name="separations_created", on_delete=models.CASCADE
     )
 
     initiator = models.ForeignKey(
         Participant,
         help_text="Participant requesting a separation",
-        related_name='separations_initiated',
+        related_name="separations_initiated",
         on_delete=models.CASCADE,
     )
 
     recipient = models.ForeignKey(
         Participant,
         help_text="The participant with whom the initiator should not be placed on a trip",
-        related_name='separations_received',
+        related_name="separations_received",
         on_delete=models.CASCADE,
     )
 
     class Meta:
         # TODO (Django 2.2+): Add constraint that initiator != recipient
-        unique_together = ('initiator', 'recipient')
+        unique_together = ("initiator", "recipient")
 
     def __str__(self) -> str:
         return f"{self.initiator} to be separated from {self.recipient}"
@@ -1648,10 +1648,10 @@ class LotteryAdjustment(models.Model):
         help_text="Time at which this override should no longer apply"
     )
     creator = models.ForeignKey(
-        Participant, on_delete=models.CASCADE, related_name='adjustments_made'
+        Participant, on_delete=models.CASCADE, related_name="adjustments_made"
     )
     participant = models.ForeignKey(
-        Participant, on_delete=models.CASCADE, related_name='adjustments_received'
+        Participant, on_delete=models.CASCADE, related_name="adjustments_received"
     )
 
     # Lower value: Ranked earlier in the lottery
@@ -1705,8 +1705,8 @@ class WaitList(models.Model):
         # TODO (Django 2): Just use the below, once we can use F-expressions in `ordering`
         # return self.unordered_signups.order_by('waitlistsignup')
         return self.unordered_signups.order_by(
-            F('waitlistsignup__manual_order').desc(nulls_last=True),
-            F('waitlistsignup__time_created').asc(),
+            F("waitlistsignup__manual_order").desc(nulls_last=True),
+            F("waitlistsignup__time_created").asc(),
         )
 
     @property
@@ -1732,7 +1732,7 @@ class WaitList(models.Model):
         # last_wl_signup = self.waitlistsignup_set.filter(manual_order__isnull=False).last()
         last_wl_signup = (
             self.waitlistsignup_set.filter(manual_order__isnull=False)
-            .order_by(F('manual_order').desc(nulls_last=True))
+            .order_by(F("manual_order").desc(nulls_last=True))
             .last()
         )
 
@@ -1818,7 +1818,7 @@ class LeaderApplication(models.Model):
         return True
 
     @classmethod
-    def can_reapply(cls, latest_application: 'LeaderApplication') -> bool:
+    def can_reapply(cls, latest_application: "LeaderApplication") -> bool:
         """Return if a participant can re-apply to the activity, given their latest application.
 
         This implements the default behavior for most activities.
@@ -1842,16 +1842,16 @@ class LeaderApplication(models.Model):
         """
         content_type = cast(ContentTypeManager, ContentType.objects).get_for_model(self)
         model_name: str = content_type.model
-        activity = model_name[: model_name.rfind('leaderapplication')]
-        return 'winter_school' if (activity == 'winterschool') else activity
+        activity = model_name[: model_name.rfind("leaderapplication")]
+        return "winter_school" if (activity == "winterschool") else activity
 
     @staticmethod
-    def model_from_activity(activity: enums.Activity) -> type['LeaderApplication']:
+    def model_from_activity(activity: enums.Activity) -> type["LeaderApplication"]:
         """Get the specific inheriting child from the activity.
 
         Inverse of activity().
         """
-        model = ''.join(activity.value.split('_')).lower() + 'leaderapplication'
+        model = "".join(activity.value.split("_")).lower() + "leaderapplication"
         try:
             content_type = ContentType.objects.get(app_label="ws", model=model)
         except ContentType.DoesNotExist as e:
@@ -1976,14 +1976,14 @@ class WinterSchoolLeaderApplication(LeaderApplication):
         MentorActivity,
         blank=True,
         related_name="activities_mentored",
-        verbose_name='Which activities would you like to mentor?',
+        verbose_name="Which activities would you like to mentor?",
         help_text="Please select at least one.",
     )
     mentee_activities = models.ManyToManyField(
         MentorActivity,
         blank=True,
         related_name="mentee_activities",
-        verbose_name='For which activities would you like a mentor?',
+        verbose_name="For which activities would you like a mentor?",
         help_text="Please select at least one.",
     )
     mentorship_goals = models.TextField(
@@ -1999,13 +1999,13 @@ class WinterSchoolLeaderApplication(LeaderApplication):
 
 
 class ClimbingLeaderApplication(LeaderApplication):
-    GOOGLE_FORM_ID = '1FAIpQLSeWeIjtQ-p4mH_zGS-YvedvkbmVzBQOarIvzfzBzEgHMKuZzw'
+    GOOGLE_FORM_ID = "1FAIpQLSeWeIjtQ-p4mH_zGS-YvedvkbmVzBQOarIvzfzBzEgHMKuZzw"
 
     FAMILIARITY_CHOICES = [
-        ('none', "not at all"),
-        ('some', "some exposure"),
-        ('comfortable', "comfortable"),
-        ('very comfortable', "very comfortable"),
+        ("none", "not at all"),
+        ("some", "some exposure"),
+        ("comfortable", "comfortable"),
+        ("very comfortable", "very comfortable"),
     ]
 
     desired_rating = models.CharField(
@@ -2098,11 +2098,11 @@ class ClimbingLeaderApplication(LeaderApplication):
         """
         kwargs: dict[str, str] = {}
         if embedded:
-            kwargs['embedded'] = 'true'
+            kwargs["embedded"] = "true"
         if participant:
             # Sadly, Google forms cannot pre-fill an email address.
             # But we can at least pre-fill a name
-            kwargs['entry.1371106720'] = participant.name
+            kwargs["entry.1371106720"] = participant.name
         return f"https://docs.google.com/forms/d/e/{cls.GOOGLE_FORM_ID}/viewform?{urlencode(kwargs)}"
 
 
@@ -2110,10 +2110,10 @@ class DistinctAccounts(models.Model):
     """Pairs of participants that are cleared as potential duplicates."""
 
     left = models.ForeignKey(
-        Participant, on_delete=models.CASCADE, related_name='distinctions_left'
+        Participant, on_delete=models.CASCADE, related_name="distinctions_left"
     )
     right = models.ForeignKey(
-        Participant, on_delete=models.CASCADE, related_name='distinctions_right'
+        Participant, on_delete=models.CASCADE, related_name="distinctions_right"
     )
 
     def __str__(self) -> str:

@@ -38,21 +38,21 @@ class SimpleSignupsView(DetailView):
 
         on_trip = trip.signed_up_participants.filter(signup__on_trip=True)
         signups = {
-            'onTrip': on_trip.values('name', 'email'),
-            'waitlist': [
-                {'name': s.participant.name, 'email': s.participant.email}
-                for s in trip.waitlist.signups.select_related('participant')
+            "onTrip": on_trip.values("name", "email"),
+            "waitlist": [
+                {"name": s.participant.name, "email": s.participant.email}
+                for s in trip.waitlist.signups.select_related("participant")
             ],
         }
         participant_signups = {}
         for key, participants in signups.items():
-            participant_signups[key] = [{'participant': par} for par in participants]
+            participant_signups[key] = [{"participant": par} for par in participants]
 
         return JsonResponse(
             {
-                'signups': participant_signups,
-                'leaders': list(trip.leaders.values('name', 'email')),
-                'creator': {'name': trip.creator.name, 'email': trip.creator.email},
+                "signups": participant_signups,
+                "leaders": list(trip.leaders.values("name", "email")),
+                "creator": {"name": trip.creator.name, "email": trip.creator.email},
             }
         )
 
@@ -94,27 +94,27 @@ class FormatSignupMixin:
             paired_with = None
 
         return {
-            'id': signup.id,
-            'participant': {'id': par.id, 'name': par.name, 'email': par.email},
-            'missed_lectures': par.missed_lectures_for(signup.trip),
-            'feedback': [
+            "id": signup.id,
+            "participant": {"id": par.id, "name": par.name, "email": par.email},
+            "missed_lectures": par.missed_lectures_for(signup.trip),
+            "feedback": [
                 {
-                    'showed_up': f.showed_up,
-                    'leader': f.leader.name,
-                    'comments': f.comments,
-                    'trip': {'id': f.trip.id, 'name': f.trip.name},
+                    "showed_up": f.showed_up,
+                    "leader": f.leader.name,
+                    "comments": f.comments,
+                    "trip": {"id": f.trip.id, "name": f.trip.name},
                 }
                 for f in feedback
             ],
-            'also_on': [{'id': trip.pk, 'name': trip.name} for trip in other_trips],
-            'paired_with': (
-                {'id': paired_with.pk, 'name': paired_with.name}
+            "also_on": [{"id": trip.pk, "name": trip.name} for trip in other_trips],
+            "paired_with": (
+                {"id": paired_with.pk, "name": paired_with.name}
                 if paired_with
                 else None
             ),
-            'car_status': lotteryinfo and lotteryinfo.car_status,
-            'number_of_passengers': num_passengers,
-            'notes': signup.notes,
+            "car_status": lotteryinfo and lotteryinfo.car_status,
+            "number_of_passengers": num_passengers,
+            "notes": signup.notes,
         }
 
 
@@ -149,11 +149,11 @@ class AdminTripSignupsView(SingleObjectMixin, FormatSignupMixin, TripLeadersOnly
         trip = self.object = self.get_object()
 
         postdata = json.loads(self.request.body)  # TODO: assumes valid JSON.
-        signup_list = postdata.get('signups', [])
-        maximum_participants = postdata.get('maximum_participants')
+        signup_list = postdata.get("signups", [])
+        maximum_participants = postdata.get("maximum_participants")
 
         def error(msg):
-            return JsonResponse({'message': msg}, status=400)
+            return JsonResponse({"message": msg}, status=400)
 
         # Any non-validation errors will trigger rollback
         with transaction.atomic():
@@ -190,19 +190,19 @@ class AdminTripSignupsView(SingleObjectMixin, FormatSignupMixin, TripLeadersOnly
         if trip.on_trip_or_waitlisted.count() != len(signup_list):
             raise SignupsChangedError("There are signups not included in the request")
 
-        deletions = [s['id'] for s in signup_list if s.get('deleted')]
-        normal_signups = [s['id'] for s in signup_list if not s.get('deleted')]
+        deletions = [s["id"] for s in signup_list if s.get("deleted")]
+        normal_signups = [s["id"] for s in signup_list if not s.get("deleted")]
 
         # Use raw SQL to maintain the original list order in our QuerySet
-        ordering = ' '.join(
-            f'when ws_signup.id={pk} then {i}' for i, pk in enumerate(normal_signups)
+        ordering = " ".join(
+            f"when ws_signup.id={pk} then {i}" for i, pk in enumerate(normal_signups)
         )
 
         # Return unevaluated QuerySet objects (allows update() and all() calls)
         keep_on_trip = (
             trip.signup_set.filter(pk__in=normal_signups)
-            .extra(select={'ordering': f'case {ordering} end'}, order_by=('ordering',))
-            .select_related('waitlistsignup')
+            .extra(select={"ordering": f"case {ordering} end"}, order_by=("ordering",))
+            .select_related("waitlistsignup")
         )
         to_delete = trip.signup_set.filter(pk__in=deletions)
 
@@ -234,14 +234,14 @@ class AdminTripSignupsView(SingleObjectMixin, FormatSignupMixin, TripLeadersOnly
         trip = self.get_object()
         return (
             trip.on_trip_or_waitlisted.select_related(
-                'participant', 'participant__lotteryinfo__paired_with__lotteryinfo'
+                "participant", "participant__lotteryinfo__paired_with__lotteryinfo"
             )
             .prefetch_related(
-                'participant__feedback_set',
-                'participant__feedback_set__leader',
-                'participant__feedback_set__trip',
+                "participant__feedback_set",
+                "participant__feedback_set__leader",
+                "participant__feedback_set__trip",
             )
-            .order_by('-on_trip', 'waitlistsignup', 'last_updated')
+            .order_by("-on_trip", "waitlistsignup", "last_updated")
         )
 
     def describe_all_signups(self):
@@ -253,14 +253,14 @@ class AdminTripSignupsView(SingleObjectMixin, FormatSignupMixin, TripLeadersOnly
         other_trips_by_par = dict(trip.other_trips_by_participant())
 
         return {
-            'signups': [
+            "signups": [
                 self.describe_signup(
                     s, trip_participants, other_trips_by_par[s.participant_id]
                 )
                 for s in self.get_signups()
             ],
-            'leaders': list(trip.leaders.values('name', 'email')),
-            'creator': {'name': trip.creator.name, 'email': trip.creator.email},
+            "leaders": list(trip.leaders.values("name", "email")),
+            "creator": {"name": trip.creator.name, "email": trip.creator.email},
         }
 
 
@@ -278,17 +278,17 @@ class LeaderParticipantSignupView(
         """
 
         postdata = json.loads(self.request.body)
-        par_pk = postdata.get('participant_id')
-        notes = postdata.get('notes', '')
+        par_pk = postdata.get("participant_id")
+        notes = postdata.get("notes", "")
 
         try:
             par = models.Participant.objects.get(pk=par_pk)
         except models.Participant.DoesNotExist:
-            return JsonResponse({'message': "No participant found"}, status=404)
+            return JsonResponse({"message": "No participant found"}, status=404)
 
         trip = self.get_object()
         signup, created = models.SignUp.objects.get_or_create(
-            trip=trip, participant=par, defaults={'notes': notes}
+            trip=trip, participant=par, defaults={"notes": notes}
         )
 
         if not created:  # (SignUp exists, but participant may not be on trip)
@@ -300,14 +300,14 @@ class LeaderParticipantSignupView(
             if already_on_trip:
                 queue = "trip" if signup.on_trip else "waitlist"
                 return JsonResponse(
-                    {'message': f"{par.name} is already on the {queue}"}, status=409
+                    {"message": f"{par.name} is already on the {queue}"}, status=409
                 )
 
         signup = signup_utils.trip_or_wait(signup)
 
         trip_participants = {
             s.participant
-            for s in trip.on_trip_or_waitlisted.select_related('participant')
+            for s in trip.on_trip_or_waitlisted.select_related("participant")
         }
 
         other_trips_by_par = dict(
@@ -320,8 +320,8 @@ class LeaderParticipantSignupView(
         #          (either at the bottom of the trip list or waiting list)
         return JsonResponse(
             {
-                'signup': self.describe_signup(signup, trip_participants, other_trips),
-                'on_trip': signup.on_trip,
+                "signup": self.describe_signup(signup, trip_participants, other_trips),
+                "on_trip": signup.on_trip,
             },
             status=201 if (created or signup.on_trip) else 200,
         )
@@ -351,22 +351,22 @@ class JsonParticipantsView(ListView):
     def _serialize_participants(participants):
         for participant in participants:
             yield {
-                'id': participant.pk,
-                'name': participant.name,
-                'email': participant.email,
-                'avatar': participant.avatar_url(100),
+                "id": participant.pk,
+                "name": participant.name,
+                "email": participant.email,
+                "avatar": participant.avatar_url(100),
             }
 
     def render_to_response(self, context, **response_kwargs):
-        participant_ids = self.request.GET.getlist('id')
+        participant_ids = self.request.GET.getlist("id")
         if participant_ids:
             matches = self.from_pk(participant_ids)
         else:
-            search = self.request.GET.get('search')
-            exclude_self = bool(self.request.GET.get('exclude_self'))
+            search = self.request.GET.get("search")
+            exclude_self = bool(self.request.GET.get("exclude_self"))
             matches = self.top_matches(search, exclude_self)
 
-        return JsonResponse({'participants': list(matches)})
+        return JsonResponse({"participants": list(matches)})
 
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
@@ -388,29 +388,29 @@ class JsonProgramLeadersView(View):
             leaders = leaders.filter(activity=activity_enum.value)
 
         ratings = (
-            leaders.select_related('participant')
+            leaders.select_related("participant")
             # (If there are duplicates activity ratings for an activity, just take most recent)
             # (If we have an open program, the leader may have multiple ratings -- just pick one)
-            .order_by('participant__id', '-time_created').distinct('participant_id')
+            .order_by("participant__id", "-time_created").distinct("participant_id")
         )
 
         for rating in ratings:
             yield {
-                'id': rating.participant.pk,
-                'name': rating.participant.name,
-                'rating': rating.rating if activity_enum else None,
+                "id": rating.participant.pk,
+                "name": rating.participant.name,
+                "rating": rating.rating if activity_enum else None,
             }
 
     def get(self, context, **response_kwargs):
         try:
-            program_enum = enums.Program(self.kwargs['program'])
+            program_enum = enums.Program(self.kwargs["program"])
         except ValueError:
             return JsonResponse({}, status=404)
 
         return JsonResponse(
             {
-                'leaders': sorted(
-                    self.describe_leaders(program_enum), key=lambda par: par['name']
+                "leaders": sorted(
+                    self.describe_leaders(program_enum), key=lambda par: par["name"]
                 )
             }
         )
@@ -423,7 +423,7 @@ class JsonProgramLeadersView(View):
 @login_required
 def get_rating(request, pk, activity):
     query = Q(participant__pk=pk, activity=activity, active=True)
-    lr = models.LeaderRating.objects.filter(query).values('rating', 'notes')
+    lr = models.LeaderRating.objects.filter(query).values("rating", "notes")
     return JsonResponse(lr[0] if lr else {})
 
 
@@ -433,16 +433,16 @@ class ApproveTripView(SingleObjectMixin, View):
     def post(self, request, *args, **kwargs):
         postdata = json.loads(self.request.body)
         trip = self.get_object()
-        trip.chair_approved = bool(postdata.get('approved'))
+        trip.chair_approved = bool(postdata.get("approved"))
         trip.save()
-        return JsonResponse({'approved': trip.chair_approved})
+        return JsonResponse({"approved": trip.chair_approved})
 
     def dispatch(self, request, *args, **kwargs):
         trip = self.get_object()
         activity_enum = trip.required_activity_enum()
         if activity_enum is None:
             return JsonResponse(
-                {'message': f'No chair for {trip.program_enum.label}'}, status=400
+                {"message": f"No chair for {trip.program_enum.label}"}, status=400
             )
         if not perm_utils.chair_or_admin(request.user, activity_enum):
             return JsonResponse({}, status=403)
@@ -495,16 +495,16 @@ class UserRentalsView(UserView):
         rented_items = [
             # TODO: Could instead use a dataclass with an `as_dict()` invocation or a TypedDict
             {
-                'email': r.email,
-                'id': r.id,
-                'name': r.name,
-                'cost': r.cost,
-                'checkedout': r.checkedout,
-                'overdue': r.overdue,
+                "email": r.email,
+                "id": r.id,
+                "name": r.name,
+                "cost": r.cost,
+                "checkedout": r.checkedout,
+                "overdue": r.overdue,
             }
             for r in geardb_utils.user_rentals(user)
         ]
-        return JsonResponse({'rentals': rented_items})
+        return JsonResponse({"rentals": rented_items})
 
 
 class JWTView(View):
@@ -520,15 +520,15 @@ class JWTView(View):
         try:
             token = jwt_token_from_headers(request)
         except ValueError:
-            return JsonResponse({'message': 'token missing'}, status=401)
+            return JsonResponse({"message": "token missing"}, status=401)
 
         secret = settings.MEMBERSHIP_SECRET_KEY
         try:
-            self.payload = jwt.decode(token, secret, algorithms=['HS512', 'HS256'])
+            self.payload = jwt.decode(token, secret, algorithms=["HS512", "HS256"])
         except jwt.exceptions.InvalidAlgorithmError:
-            return JsonResponse({'message': 'invalid algorithm'}, status=401)
+            return JsonResponse({"message": "invalid algorithm"}, status=401)
         except (jwt.exceptions.InvalidTokenError, KeyError):
-            return JsonResponse({'message': 'invalid token'}, status=401)
+            return JsonResponse({"message": "invalid token"}, status=401)
 
         return super().dispatch(request, *args, **kwargs)
 
@@ -537,14 +537,14 @@ class UpdateMembershipView(JWTView):
     def post(self, request, *args, **kwargs):
         """Receive a message that the user's membership was updated."""
 
-        participant = models.Participant.from_email(self.payload['email'])
+        participant = models.Participant.from_email(self.payload["email"])
         if not participant:  # Not in our system, nothing to do
             return JsonResponse({})
 
         # Can be true in case of early renewal!
         was_already_active = participant.membership_active
 
-        keys = ('membership_expires', 'waiver_expires')
+        keys = ("membership_expires", "waiver_expires")
         update_fields = {
             key: date.fromisoformat(self.payload[key])
             for key in keys
@@ -567,23 +567,23 @@ class OtherVerifiedEmailsView(JWTView):
     def get(self, request, *args, **kwargs):
         """Return any other verified emails that tie to the same user."""
 
-        email = self.payload['email']
+        email = self.payload["email"]
 
         addr = EmailAddress.objects.filter(email=email, verified=True).first()
         if not addr:  # Not in our system, so just return the original
             # This API endpoint is for trusted entities; it's okay to give a null name.
             # (in other words, there's no user enumeration vulnerability here)
-            return JsonResponse({'name': None, 'primary': email, 'emails': [email]})
+            return JsonResponse({"name": None, "primary": email, "emails": [email]})
 
         # Normal case: Email is verified. Return all other verified emails
         verifed_emails = addr.user.emailaddress_set.filter(verified=True)
         participant = models.Participant.objects.filter(user=addr.user).first()
         return JsonResponse(
             {
-                'name': participant and participant.name,
-                'primary': addr.user.email,
+                "name": participant and participant.name,
+                "primary": addr.user.email,
                 # No real reason to sort these, apart from making return order deterministic)
-                'emails': sorted(verifed_emails.values_list('email', flat=True)),
+                "emails": sorted(verifed_emails.values_list("email", flat=True)),
             }
         )
 
@@ -598,19 +598,19 @@ class MembershipStatusesView(View):
     def post(self, request, *args, **kwargs):
         """Return a mapping of participant IDs to membership statuses."""
         postdata = json.loads(self.request.body)
-        par_pks = postdata.get('participant_ids')
+        par_pks = postdata.get("participant_ids")
         if not isinstance(par_pks, list):
-            return JsonResponse({'message': 'Bad request'}, status=400)
+            return JsonResponse({"message": "Bad request"}, status=400)
 
         participants = models.Participant.objects.filter(pk__in=par_pks).select_related(
-            'membership'
+            "membership"
         )
 
         participant_memberships = {
             participant.pk: membership_api.format_cached_membership(participant)
             for participant in participants
         }
-        return JsonResponse({'memberships': participant_memberships})
+        return JsonResponse({"memberships": participant_memberships})
 
     def dispatch(self, request, *args, **kwargs):
         if not perm_utils.is_leader(request.user):
@@ -623,8 +623,8 @@ class RawMembershipStatsView(View):
     def _all_members_info() -> Iterator[dict[str, str | int]]:
         for info in geardb_utils.membership_information().values():
             flat_info: dict[str, str | int] = {
-                'last_known_affiliation': info.last_known_affiliation,
-                'num_rentals': info.num_rentals,
+                "last_known_affiliation": info.last_known_affiliation,
+                "num_rentals": info.num_rentals,
             }
 
             # TODO (Python 3.11, PEP 655): Could TypedDict w/ NotRequired fields
@@ -634,9 +634,9 @@ class RawMembershipStatsView(View):
             yield flat_info
 
     def get(self, request, *args, **kwargs):
-        return JsonResponse({'members': list(self._all_members_info())})
+        return JsonResponse({"members": list(self._all_members_info())})
 
-    @method_decorator(group_required('leaders'))
+    @method_decorator(group_required("leaders"))
     def dispatch(self, request, *args, **kwargs):
         # TODO: Restrict to BOD only
         return super().dispatch(request, *args, **kwargs)

@@ -38,7 +38,7 @@ class CustomPasswordChangeView(PasswordChangeView):
 
     @property
     def success_url(self):
-        return reverse('account_login')
+        return reverse("account_login")
 
     def form_valid(self, form):
         response = super().form_valid(form)
@@ -46,11 +46,11 @@ class CustomPasswordChangeView(PasswordChangeView):
             models.PasswordQuality.objects.update_or_create(
                 participant=self.request.participant,
                 defaults={
-                    'is_insecure': False,
+                    "is_insecure": False,
                     # NOTE: Technically, we cannot know for sure if the API call to HIBP failed
                     # (and thus, we might be updating this timestamp incorrectly)
                     # However, we log API failures and could use that information to identify the last success.
-                    'last_checked': local_now(),
+                    "last_checked": local_now(),
                 },
             )
         return response
@@ -78,15 +78,15 @@ class CheckIfPwnedOnLoginView(LoginView):
 
         As a side effect, this populates `self.request.user`
         """
-        times_seen = times_seen_in_hibp(form.cleaned_data['password'])
+        times_seen = times_seen_in_hibp(form.cleaned_data["password"])
 
         if times_seen:
-            change_password_url = reverse('account_change_password')
+            change_password_url = reverse("account_change_password")
 
             # Make sure we preserve the original redirect, if there was one
-            next_url = self.request.GET.get('next')
+            next_url = self.request.GET.get("next")
             if next_url:
-                change_password_url += '?' + urlencode({'next': next_url})
+                change_password_url += "?" + urlencode({"next": next_url})
             response = form.login(self.request, redirect_url=change_password_url)
         else:
             response = super().form_valid(form)
@@ -131,8 +131,8 @@ class CheckIfPwnedOnLoginView(LoginView):
             # If they ignore the reset, they'll be locked out once creating a Participant record.
             messages.error(
                 self.request,
-                'This password has been compromised! Please choose a new password. '
-                'If you use this password on any other sites, we recommend changing it immediately.',
+                "This password has been compromised! Please choose a new password. "
+                "If you use this password on any other sites, we recommend changing it immediately.",
             )
 
     def form_valid(self, form):

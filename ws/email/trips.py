@@ -14,7 +14,7 @@ def _eligible_trips() -> QuerySet[AnnotatedTrip]:
     upcoming_trips = (
         models.Trip.objects.filter(trip_date__gte=now.date())
         .filter(signups_close_at__gt=now)
-        .order_by('trip_date', 'time_created')
+        .order_by("trip_date", "time_created")
     )
 
     return annotated_for_trip_list(upcoming_trips)
@@ -38,15 +38,15 @@ def _trips_to_summarize() -> tuple[list[models.Trip], list[models.Trip]]:
     return (open_for_signup, not_yet_open)
 
 
-def send_trips_summary(recipient: str = 'mitoc-trip-announce@mit.edu') -> None:
+def send_trips_summary(recipient: str = "mitoc-trip-announce@mit.edu") -> None:
     """Send a weekly blast of upcoming trips!"""
     open_for_signup, not_yet_open = _trips_to_summarize()
     if not (open_for_signup or not_yet_open):
         return  # No need to send empty email
-    context = {'open_for_signup': open_for_signup, 'not_yet_open': not_yet_open}
+    context = {"open_for_signup": open_for_signup, "not_yet_open": not_yet_open}
 
-    text = get_template('email/trips/upcoming_trips.txt').render(context).strip()
-    html = get_template('email/trips/upcoming_trips.html').render(context)
+    text = get_template("email/trips/upcoming_trips.txt").render(context).strip()
+    html = get_template("email/trips/upcoming_trips.html").render(context)
 
     subject = f"MITOC Trips | {len(open_for_signup)} currently open, {len(not_yet_open)} upcoming"
     msg = EmailMultiAlternatives(subject, text, to=[recipient])
