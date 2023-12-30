@@ -315,6 +315,32 @@ class EditTripViewTest(TestCase, Helpers):
         self.assertFalse(soup.find("form"))
 
     @freeze_time("2022-01-15 12:25:00 EST")
+    def test_editing_old_trip(self):
+        leader = factories.ParticipantFactory.create()
+        self.client.force_login(leader.user)
+
+        # It doesn't matter that they created the trip, they still cannot edit!
+        trip = factories.TripFactory.create(
+            creator=leader,
+            trip_date=date(2021, 12, 10),
+            program=enums.Program.CLIMBING.value,
+        )
+        trip.leaders.add(leader)
+
+        _edit_resp, soup = self._get(f"/trips/{trip.pk}/edit/")
+        self.assertTrue(
+            soup.find("h2", string="Only activity chairs or admins can edit old trips")
+        )
+        self.assertIsNone(soup.find("form"))
+
+        # However, activity chairs can still edit!
+        chair = factories.ParticipantFactory.create()
+        perm_utils.make_chair(chair.user, enums.Activity.CLIMBING)
+        self.client.force_login(chair.user)
+        _edit_resp, chair_soup = self._get(f"/trips/{trip.pk}/edit/")
+        self.assertTrue(chair_soup.find("form"))
+
+    @freeze_time("2022-01-15 12:25:00 EST")
     def test_editing_non_ws_trip_during_iap(self):
         """Existing trips, which are not WS, don't have the program enum changed.
 
@@ -468,6 +494,43 @@ class EditTripViewTest(TestCase, Helpers):
         # No edit was made; we have form errors
         trip.refresh_from_db()
         self.assertEqual(trip.edit_revision, 2)
+
+
+class DeleteTripViewTest(TestCase, Helpers):
+    def test_cannot_get(self):
+        """Supporting GET would let attackers embed "images" and such."""
+        participant = factories.ParticipantFactory.create()
+        self.client.force_login(participant.user)
+
+        trip = factories.TripFactory.create(creator=participant)
+
+        resp = self.client.get(f"/trips/{trip.pk}/delete/")
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(resp.url, f"/trips/{trip.pk}/")
+
+    def test_can_delete_your_own_trip(self):
+        participant = factories.ParticipantFactory.create()
+        self.client.force_login(participant.user)
+
+        trip = factories.TripFactory.create(creator=participant)
+
+        resp = self.client.post(f"/trips/{trip.pk}/delete/")
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(resp.url, "/trips/")
+        self.assertFalse(models.Trip.objects.filter(pk=trip.pk).exists())
+
+    def test_cannot_delete_old_trips(self):
+        participant = factories.ParticipantFactory.create()
+        self.client.force_login(participant.user)
+
+        trip = factories.TripFactory.create(
+            creator=participant,
+            trip_date=date(2020, 2, 5),
+        )
+        with freeze_time("2020-03-12 12:25:00 EST"):
+            resp = self.client.post(f"/trips/{trip.pk}/delete/")
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue(models.Trip.objects.filter(pk=trip.pk).exists())
 
 
 class SearchTripsViewTest(TestCase):

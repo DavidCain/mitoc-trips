@@ -1,10 +1,13 @@
 """
 Mixins used across multiple views.
 """
+from datetime import timedelta
+
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.http import HttpRequest, JsonResponse
 from django.shortcuts import render
+from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.generic import View
 
@@ -67,26 +70,56 @@ class LectureAttendanceMixin:
         return settings.allow_setting_attendance
 
 
-def _allowed_to_modify_trip(trip: models.Trip, request: HttpRequest) -> bool:
+class TripTooOldError(Exception):
+    pass
+
+
+class NotATripLeaderError(Exception):
+    pass
+
+
+def _ensure_trip_modification_allowed(
+    trip: models.Trip,
+    request: HttpRequest,
+    forbid_old_trips: bool = False,
+) -> None:
     activity_enum = trip.required_activity_enum()
-    if activity_enum:
-        is_chair = perm_utils.chair_or_admin(request.user, activity_enum)
-    else:  # (There is no required activity, so no chairs. Allow superusers, though)
-        is_chair = request.user.is_superuser
+    is_chair = (
+        perm_utils.chair_or_admin(request.user, activity_enum)
+        if activity_enum
+        # There is no required activity, so no chairs. Allow superusers, though
+        else request.user.is_superuser
+    )
+
+    if is_chair:
+        return
+
+    if forbid_old_trips:
+        cutoff_date = (timezone.localtime() - timedelta(days=30)).date()
+        if trip.trip_date < cutoff_date:
+            raise TripTooOldError
 
     participant: models.Participant = request.participant  # type: ignore[attr-defined]
-    trip_leader = perm_utils.leader_on_trip(participant, trip, True)
-    return is_chair or trip_leader
+    if not perm_utils.leader_on_trip(participant, trip, True):
+        raise NotATripLeaderError
 
 
 class TripLeadersOnlyView(View):
+    forbid_modifying_old_trips: bool
+
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         """Only allow creator, leaders of the trip, and chairs."""
+        forbid_old_trips = getattr(self, "forbid_modifying_old_trips", False)
 
         trip = self.get_object()
-        if not _allowed_to_modify_trip(trip, request):
+        try:
+            _ensure_trip_modification_allowed(trip, request, forbid_old_trips)
+        except TripTooOldError:
+            return render(request, "cannot_edit_old_trip.html", {"trip": trip})
+        except NotATripLeaderError:
             return render(request, "not_your_trip.html", {"trip": trip})
+
         return super().dispatch(request, *args, **kwargs)
 
 
@@ -94,6 +127,8 @@ class JsonTripLeadersOnlyView(View):
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         """Only allow creator, leaders of the trip, and chairs."""
-        if not _allowed_to_modify_trip(self.get_object(), request):
+        try:
+            _ensure_trip_modification_allowed(self.get_object(), request)
+        except NotATripLeaderError:
             return JsonResponse({"message": "Must be a leader"}, status=403)
         return super().dispatch(request, *args, **kwargs)

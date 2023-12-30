@@ -326,6 +326,7 @@ class CreateTripView(CreateView):
 # Definition of "object" in base class "DeletionMixin"
 # is incompatible with definition in base class "BaseDetailView"
 class DeleteTripView(DeleteView, TripLeadersOnlyView):  # type: ignore[misc]
+    forbid_modifying_old_trips = True
     model = models.Trip
     success_url = reverse_lazy("upcoming_trips")
 
@@ -336,6 +337,8 @@ class DeleteTripView(DeleteView, TripLeadersOnlyView):  # type: ignore[misc]
 
 
 class EditTripView(UpdateView, TripLeadersOnlyView):
+    forbid_modifying_old_trips = True
+
     model = models.Trip
     form_class = forms.TripForm
     template_name = "trips/edit.html"
@@ -659,6 +662,10 @@ class ApproveTripsView(ListView):
 
 class RunTripLotteryView(DetailView, TripLeadersOnlyView):
     model = models.Trip
+
+    # There's no need to build in this prevention;
+    # old trips will never be in lottery mode
+    forbid_modifying_old_trips = False
 
     def get(self, request, *args, **kwargs):
         return redirect(reverse("view_trip", kwargs=self.kwargs))

@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block head_title %}Editing old trips is forbidden{% endblock %}
+{% block content %}
+<h2>Only activity chairs or admins can edit old trips</h2>
+<p>"<a href="{% url 'view_trip' trip.pk %}">{{ trip.name }}</a>" took place on {{ trip.trip_date }}.</p>
+<p>
+  At least a month has passed since this trip's date.
+  If you need to make any modifications, contact the appropriate activity chair!
+</p>
+{% endblock content %}

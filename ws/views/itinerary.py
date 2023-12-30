@@ -30,6 +30,9 @@ class TripItineraryView(UpdateView, TripLeadersOnlyView):
     template_name = "trips/itinerary.html"
     form_class = forms.TripInfoForm
 
+    # This class has its own logic for preventing edits
+    forbid_modifying_old_trips = False
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         trip = context["trip"]
