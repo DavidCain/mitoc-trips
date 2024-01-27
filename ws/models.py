@@ -1516,8 +1516,7 @@ class Feedback(models.Model):
     )
     showed_up = models.BooleanField(default=True)
     comments = models.TextField(max_length=2000)
-    # Allows general feedback (i.e. not linked to a trip)
-    trip = models.ForeignKey(Trip, null=True, blank=True, on_delete=models.CASCADE)
+    trip = models.ForeignKey(Trip, on_delete=models.PROTECT)
     time_created = models.DateTimeField(auto_now_add=True)
 
     everything = models.Manager()  # Give the option to look at older feedback
