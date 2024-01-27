@@ -336,6 +336,8 @@ class EditProfileViewTests(TestCase):
 
 
 class ParticipantDetailViewTest(TestCase):
+    maxDiff = None
+
     def setUp(self):
         super().setUp()
         self.user = factories.UserFactory.create()
@@ -418,3 +420,40 @@ class ParticipantDetailViewTest(TestCase):
             strip_whitespace(feedback.find_next("td").text),
             "Flaked! Slept through their alarm, did not answer phone calls",
         )
+
+    def test_bygone_feedback(self):
+        """Feedback older than 13 months is automatically hidden!"""
+        # Make the viewer a leader so they can view feedback
+        par = factories.ParticipantFactory.create(user_id=self.user.pk)
+        factories.LeaderRatingFactory.create(participant=par)
+
+        # Simulate some old feedback!
+        with freeze_time("2022-12-26 12:00 UTC"):
+            factories.FeedbackFactory.create(
+                participant=self.participant,
+                showed_up=False,
+                comments="Slept through their alarm, did not answer phone calls",
+            )
+        with freeze_time("2024-01-27 12:00 UTC"):
+            factories.FeedbackFactory.create(
+                participant=self.participant,
+                comments="Right on time! Figured out their alarm.",
+            )
+
+        response = self.client.get(
+            f"/participants/{self.participant.pk}/?show_feedback=1"
+        )
+        soup = BeautifulSoup(response.content, "html.parser")
+
+        self.assertEqual(
+            strip_whitespace(soup.find(class_="alert").text),
+            (
+                "This participant was also given feedback before Dec. 29, 2022. "
+                "Per club policy, we hide all feedback after thirteen months. "
+                "If you truly need to see old feedback, please reach out to the appropriate activity chair(s)."
+            ),
+        )
+
+        feedback = soup.find(id="feedback").find_next("table")
+        self.assertIn("Right on time!", feedback.text)
+        self.assertNotIn("Slept through their alarm", feedback.text)

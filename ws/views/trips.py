@@ -6,7 +6,7 @@ attended by any interested participants.
 """
 from collections import defaultdict
 from datetime import date, timedelta
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 from urllib.parse import urlencode
 
 from django.contrib import messages
@@ -44,6 +44,9 @@ from ws.mixins import TripLeadersOnlyView
 from ws.templatetags.trip_tags import annotated_for_trip_list
 from ws.utils.dates import is_currently_iap, local_date
 from ws.utils.geardb import outstanding_items
+
+if TYPE_CHECKING:
+    from ws.middleware import RequestWithParticipant
 
 
 class TripView(DetailView):
@@ -146,6 +149,7 @@ class ReviewTripView(DetailView):
     success_msg = "Thanks for your feedback!"
 
     object: models.Trip  # noqa: A003
+    request: "RequestWithParticipant"
 
     @property
     def posted_feedback(self):
@@ -219,9 +223,9 @@ class ReviewTripView(DetailView):
         accepted_signups = accepted_signups.select_related("participant")
         return [signup.participant for signup in accepted_signups]
 
-    def get_existing_feedback(self):
+    def get_existing_feedback(self) -> QuerySet[models.Feedback]:
         leader = self.request.participant
-        return models.Feedback.everything.filter(trip=self.object, leader=leader)
+        return models.Feedback.objects.filter(trip=self.object, leader=leader)
 
     @property
     def feedback_list(self):

@@ -1,4 +1,5 @@
 import enum
+from collections.abc import Iterable
 from datetime import timedelta
 from typing import TYPE_CHECKING, Any, TypedDict
 
@@ -9,6 +10,7 @@ import ws.utils.dates as date_utils
 import ws.utils.perms as perm_utils
 import ws.utils.ratings as ratings_utils
 from ws import enums, icons, models
+from ws.utils.feedback import feedback_cutoff
 
 register = template.Library()
 
@@ -148,11 +150,18 @@ def numeric_trip_stage_for_sorting(
 
 
 @register.inclusion_tag("for_templatetags/feedback_table.html")
-def feedback_table(all_feedback, scramble_contents=False, display_log_notice=False):
+def feedback_table(
+    all_feedback: Iterable[models.Feedback],
+    scramble_contents: bool = False,
+    display_log_notice: bool = False,
+    warn_about_old_feedback: bool = False,
+) -> dict[str, Any]:
     return {
         "all_feedback": all_feedback,
         "scramble_contents": scramble_contents,
         "display_log_notice": display_log_notice,
+        "warn_about_old_feedback": warn_about_old_feedback,
+        "feedback_cutoff": feedback_cutoff().date(),
     }
 
 

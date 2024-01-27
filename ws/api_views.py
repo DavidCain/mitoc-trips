@@ -1,6 +1,7 @@
 import json
-from collections.abc import Iterator
+from collections.abc import Collection, Iterable, Iterator
 from datetime import date
+from typing import Any, cast
 
 import jwt
 import jwt.exceptions
@@ -11,7 +12,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Q
-from django.http import JsonResponse
+from django.http import HttpRequest, JsonResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import DetailView, ListView, View
@@ -23,9 +24,11 @@ import ws.utils.perms as perm_utils
 import ws.utils.signups as signup_utils
 from ws import enums, models, tasks
 from ws.decorators import group_required
+from ws.middleware import RequestWithParticipant
 from ws.mixins import JsonTripLeadersOnlyView, TripLeadersOnlyView
 from ws.utils import membership_api
 from ws.utils.api import jwt_token_from_headers
+from ws.utils.feedback import feedback_is_recent
 
 
 class SimpleSignupsView(DetailView):
@@ -64,7 +67,14 @@ class SimpleSignupsView(DetailView):
 
 
 class FormatSignupMixin:
-    def describe_signup(self, signup, trip_participants, other_trips):
+    request: HttpRequest
+
+    def describe_signup(
+        self,
+        signup: models.SignUp,
+        trip_participants: Collection[models.Participant],
+        other_trips: Iterable[models.Trip],
+    ) -> dict[str, Any]:
         """Yield everything used in the participant-selecting modal.
 
         The signup object should come with related models already selected,
@@ -76,10 +86,17 @@ class FormatSignupMixin:
         """
         par = signup.participant
 
-        # In rare cases, a trip creator can be a participant on their own trip
-        # Be sure we hide feedback from them if this is the case
-        hide_feedback = signup.participant == self.request.participant
-        feedback = [] if hide_feedback else par.feedback_set.all()
+        # Normally, we could annotate the class request as RequestWithParticipant.
+        # However, annotating that contradicts the parent class. Just cast.
+        viewing_participant = cast(RequestWithParticipant, self.request).participant
+        feedback = (
+            []
+            # In rare cases, a trip creator can be a participant on their own trip.
+            # Be sure we hide feedback from them if this is the case.
+            if signup.participant == viewing_participant
+            # Filter in Python, since this is prefetched
+            else [f for f in par.feedback_set.all() if feedback_is_recent(f)]
+        )
 
         try:
             lotteryinfo = par.lotteryinfo
@@ -237,6 +254,7 @@ class AdminTripSignupsView(SingleObjectMixin, FormatSignupMixin, TripLeadersOnly
                 "participant", "participant__lotteryinfo__paired_with__lotteryinfo"
             )
             .prefetch_related(
+                # Older feedback should still be filtered out
                 "participant__feedback_set",
                 "participant__feedback_set__leader",
                 "participant__feedback_set__trip",

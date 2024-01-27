@@ -464,7 +464,7 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type:
         see their own feedback.
         """
         return (
-            models.Feedback.everything.filter(participant=self.object.participant)
+            models.Feedback.objects.filter(participant=self.object.participant)
             .exclude(participant=self.chair)
             .select_related("leader", "trip")
             .prefetch_related("leader__leaderrating_set")

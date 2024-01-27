@@ -74,4 +74,14 @@
     </tbody>
     {% endfor %}
   </table>
+{% if warn_about_old_feedback %}
+<div class="alert alert-warning">
+  This participant was also given feedback before {{ feedback_cutoff }}.
+
+  Per club policy, we hide all feedback after thirteen months. If you truly
+  need to see old feedback, please reach out to the appropriate activity
+  chair(s).
+</div>
+{% endif %}
+
 {% endif %}

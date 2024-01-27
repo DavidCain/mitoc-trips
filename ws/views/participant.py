@@ -30,6 +30,7 @@ from ws.decorators import admin_only, group_required, user_info_required
 from ws.middleware import RequestWithParticipant
 from ws.mixins import LectureAttendanceMixin
 from ws.templatetags.trip_tags import annotated_for_trip_list
+from ws.utils.feedback import feedback_cutoff, without_old_feedback
 from ws.utils.models import problems_with_profile
 
 logger = logging.getLogger(__name__)
@@ -446,8 +447,8 @@ class ParticipantView(
         }
 
         if not user_viewing:
-            context["all_feedback"] = participant.feedback_set.select_related(
-                "trip", "leader"
+            context["all_feedback"] = without_old_feedback(
+                participant.feedback_set.select_related("trip", "leader")
             ).prefetch_related("leader__leaderrating_set")
 
         return context
@@ -506,6 +507,11 @@ class ParticipantDetailView(ParticipantView, FormView, DetailView):
             )
         context["hide_comments"] = not show_feedback
         context["display_log_notice"] = show_feedback
+        # Only reveal old feedback if they've *asked* to see feedback
+        context["warn_about_old_feedback"] = (
+            show_feedback
+            and participant.feedback_set.filter(time_created__lt=feedback_cutoff())
+        )
         return context
 
     def dispatch(self, request, *args, **kwargs):

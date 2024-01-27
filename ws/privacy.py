@@ -70,7 +70,8 @@ class DataDump:
     def authored_feedback(self):
         """Feedback supplied by the participant."""
         about_participant = Q(leader=self.par)
-        all_feedback = models.Feedback.everything.filter(about_participant)
+        # We intentionally include *all* feedback ever.
+        all_feedback = models.Feedback.objects.filter(about_participant)
 
         for f in all_feedback.select_related("trip", "participant"):
             trip = None if f.trip is None else {"id": f.trip.pk, "name": f.trip.name}
@@ -86,7 +87,8 @@ class DataDump:
     def received_feedback(self):
         """Feedback _about_ the participant."""
         about_participant = Q(participant=self.par)
-        all_feedback = models.Feedback.everything.filter(about_participant)
+        # We intentionally include *all* feedback ever received.
+        all_feedback = models.Feedback.objects.filter(about_participant)
 
         for f in all_feedback.select_related("trip", "leader"):
             trip = None if f.trip is None else {"id": f.trip.pk, "name": f.trip.name}

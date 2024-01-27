@@ -1489,24 +1489,6 @@ class Trip(models.Model):
         )
 
 
-class BygonesManager(models.Manager):
-    """Automatically exclude feedback that's sufficiently far in the past."""
-
-    def get_queryset(self):
-        feedback = super().get_queryset()
-        now = date_utils.local_now()
-
-        bygones_window = timedelta(days=13 * 30)
-        # Only for WS 2022: we temporarily show feedback for 25 months
-        if date(2021, 12, 19) < now.date() < date(2022, 2, 1):
-            # TEMPORARY: Use a ~25 month window until the end of WS 2022
-            # (we can clean this up later)
-            bygones_window = timedelta(days=25 * 30)
-
-        feedback_cutoff = now - bygones_window
-        return feedback.exclude(trip__trip_date__lt=feedback_cutoff)
-
-
 class Feedback(models.Model):
     """Feedback given for a participant on one trip."""
 
@@ -1518,9 +1500,6 @@ class Feedback(models.Model):
     comments = models.TextField(max_length=2000)
     trip = models.ForeignKey(Trip, on_delete=models.PROTECT)
     time_created = models.DateTimeField(auto_now_add=True)
-
-    everything = models.Manager()  # Give the option to look at older feedback
-    objects = BygonesManager()  # By default, ignore feedback older than ~13 months
 
     class Meta:
         ordering = ["participant", "-time_created"]
