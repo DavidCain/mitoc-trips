@@ -1,5 +1,4 @@
-"""
-Winter School-specific views.
+"""Winter School-specific views.
 
 Some views only make sense in the context of Winter School. For example,
 recording lecture attendance or toggling settings that take effect during

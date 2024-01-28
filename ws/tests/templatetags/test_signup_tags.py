@@ -78,7 +78,7 @@ class SignupForTripTests(TestCase):
         self.assertIn("update your personal information", text)
 
     def test_wimp_cannot_sign_up_for_trip(self):
-        """ " You can't be the emergency contact while attending a trip."""
+        """You can't be the emergency contact while attending a trip."""
         wimp_participant = factories.ParticipantFactory.create()
         trip = self._make_trip(wimp=wimp_participant)
         self.assertCountEqual(

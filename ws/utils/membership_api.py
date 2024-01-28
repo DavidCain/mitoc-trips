@@ -1,5 +1,4 @@
-"""
-Utilities for creating JSON response structures pertaining to membership.
+"""Utilities for creating JSON response structures pertaining to membership.
 
 Basic structure of the shared response type:
 

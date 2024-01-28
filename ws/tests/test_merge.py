@@ -128,7 +128,7 @@ class MergeTest(TestCase):
         self.old.refresh_from_db()  # Still exists! We rolled back.
 
     def test_feedback_migrated(self):
-        """This is an example of a model with two separate FK's to the participant table."""
+        """Migrate a model with two separate FK's to the participant table."""
         feedback_as_participant = factories.FeedbackFactory.create(participant=self.old)
         feedback_as_leader = factories.FeedbackFactory.create(leader=self.old)
 

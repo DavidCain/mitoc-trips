@@ -1,6 +1,4 @@
-"""
-Messages for leaders!
-"""
+"""Messages for leaders!"""
 from datetime import timedelta
 
 from django.contrib import messages

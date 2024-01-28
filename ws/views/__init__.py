@@ -1,6 +1,4 @@
-"""
-Views are broken up, loosely grouped by purpose.
-"""
+"""Views are broken up, loosely grouped by purpose."""
 # I really should move away from `import *` and do imports explicitly.
 
 from .account import *  # noqa: F403

@@ -1,5 +1,4 @@
-"""
-Functions that take a request, create messages if applicable.
+"""Functions that take a request, create messages if applicable.
 
 Some messages may be called on *every* request, others as needed.
 """

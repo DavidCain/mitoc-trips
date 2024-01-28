@@ -1,6 +1,4 @@
-"""
-Messages pertaining to the Winter School lottery.
-"""
+"""Messages pertaining to the Winter School lottery."""
 
 from django.contrib import messages
 from django.urls import reverse

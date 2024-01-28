@@ -1,4 +1,4 @@
-""" Test settings
+"""Test settings
 
 Intended to mirror production as much as is possible.
 """

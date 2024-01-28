@@ -1,6 +1,4 @@
-"""
-Local settings, intended for use on a local computer for basic
-feature testing.
+"""Local settings, intended for use on a local computer for basic feature testing.
 
   - Exposed secret key
   - DEBUG enabled

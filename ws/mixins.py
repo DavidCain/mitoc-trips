@@ -1,6 +1,4 @@
-"""
-Mixins used across multiple views.
-"""
+"""Mixins used across multiple views."""
 from datetime import timedelta
 
 from django.contrib.auth.decorators import login_required

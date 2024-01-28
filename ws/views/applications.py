@@ -1,5 +1,4 @@
-"""
-Views relating to leader applications.
+"""Views relating to leader applications.
 
 Participants can express interest in becoming a leader for a specific activity,
 and activity chairs can respond to those applications with recommendations

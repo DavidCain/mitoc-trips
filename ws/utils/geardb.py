@@ -1,5 +1,4 @@
-"""
-Functions for interacting with the gear database.
+"""Functions for interacting with the gear database.
 
 The gear database is itself a Django application, which we interface with
 via machine-to-machine API endpoints.

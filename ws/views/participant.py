@@ -1,5 +1,4 @@
-"""
-Views that interact with the Participant model.
+"""Views that interact with the Participant model.
 
 The "Participant" is the core organization model of the trips system. Every
 user who has completed the mandatory signup information is given a Participant

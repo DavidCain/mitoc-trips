@@ -1,5 +1,4 @@
-"""
-Allow merging two duplicate participants.
+"""Allow merging two duplicate participants.
 
 Some users forget their old account information, and either are not aware of how they
 can reset their passwords, or just don't bother.

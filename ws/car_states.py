@@ -1,5 +1,4 @@
-"""
-Provide a *simple* enumeration of US states without third-party deps.
+"""Provide a *simple* enumeration of US states without third-party deps.
 
 We used to rely on `localflavor` for this, but given that plates are
 the *only* use for this enum, it's easy/simple to just enumerate.

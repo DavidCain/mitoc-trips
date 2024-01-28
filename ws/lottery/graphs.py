@@ -122,7 +122,7 @@ class SeparationGraph:
         return not bool(self._graph)
 
     def isolated_cycles(self, start_par: models.Participant) -> list[Cycle]:
-        r""" Return any directed cycles containing this participant (with no terminal nodes reachable)
+        r"""Return any directed cycles containing this participant (with no terminal nodes reachable)
 
         If cycles are detected, we will eventually need to place one of the participants
         to break a potential race condition wherein all participants are waiting for

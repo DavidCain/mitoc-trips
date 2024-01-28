@@ -1,5 +1,4 @@
-"""
-Views relating to a trip's itinerary management, & medical information.
+"""Views relating to a trip's itinerary management, & medical information.
 
 Each official trip should have an itinerary completed by trip leaders.
 That itinerary specifies who (if anybody) will be driving for the trip,

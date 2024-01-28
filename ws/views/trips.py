@@ -1,5 +1,4 @@
-"""
-Trip views.
+"""Trip views.
 
 A "trip" is any official trip registered in the system - created by leaders, to be
 attended by any interested participants.

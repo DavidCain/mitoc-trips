@@ -1,5 +1,4 @@
-"""
-Views relating to an individual's membership management.
+"""Views relating to an individual's membership management.
 
 Every MITOC member is required to have a current membership and waiver. Each of
 these documents expire after 12 months.

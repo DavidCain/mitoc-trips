@@ -199,7 +199,7 @@ class GraphTests(TestCase):
             self.assertFalse(graph.isolated_cycles(par))
 
     def test_graph_is_a_tree(self):
-        r""" Test when the directed graph is just a tree (has no cycles)
+        r"""Test when the directed graph is just a tree (has no cycles)
 
              A ---> B --> C
                     \

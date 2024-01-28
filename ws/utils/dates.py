@@ -1,6 +1,4 @@
-"""
-Some shortcuts to retrieve meaningful dates.
-"""
+"""Some shortcuts to retrieve meaningful dates."""
 from datetime import date, datetime, time, timedelta
 
 from django.utils import timezone

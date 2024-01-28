@@ -369,7 +369,7 @@ class LotteryPreferencesSignupTests(TestCase, LotteryPrefsPostHelper):
         self.assertTrue(models.SignUp.objects.filter(pk=other_signup.pk).exists())
 
     def test_can_only_delete_ws_lottery_signups(self):
-        """This route must not provide an undocumented means to drop off trips.
+        """Route must not provide an undocumented means to drop off trips.
 
         Deletion of signups should *only* be for signups where the user is not on
         the trip because it's in the lottery stage of a Winter School trip.

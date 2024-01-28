@@ -46,8 +46,13 @@ select = [
   "W",     # pycodestyle warning
   "YTT",   # flake8-2020
 
+  # Docstring normalization
+  "D404",  # Don't start docstrings with "This"
+  "D200",  # One-line docstrings on one line
+  "D210",  # No superfluous whitespace
+  "D212",  # Multi-line docstrings start on first line
+
   # Interesting, should perhaps turn on later:
-  # "D",    # pydocstyle
   # "PTH",  # flake8-use-pathlib
   # "FLY",  # flynt
 

@@ -1,5 +1,4 @@
-"""
-Views relating to leader management.
+"""Views relating to leader management.
 
 Any participant in the system can be granted ratings in one or more activities,
 which will entitle them to create trips, view participant information, and more.

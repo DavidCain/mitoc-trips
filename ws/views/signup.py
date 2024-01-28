@@ -1,5 +1,4 @@
-"""
-Signup views.
+"""Signup views.
 
 The "signup" object is the core way in which trips are organized. To express
 interest in a lottery trip, a participant "signs up" in the UI. This creates a

@@ -1,5 +1,4 @@
-"""
-Allows maintenance of Google Spreadsheets with membership information.
+"""Allows maintenance of Google Spreadsheets with membership information.
 
 Users can opt-in to have their information shared with third parties.
 

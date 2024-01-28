@@ -1,5 +1,4 @@
-"""
-A simple module for creating tokens to let users unsubscribe.
+"""A simple module for creating tokens to let users unsubscribe.
 
 Ideally, participants just control their email preferences directly.
 However, we provide this method for single-click unsubscribe links.
