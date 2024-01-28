@@ -60,7 +60,7 @@ class TripView(DetailView):
     context_object_name = "trip"
     template_name = "trips/view.html"
 
-    object: models.Trip  # noqa: A003
+    object: models.Trip
 
     def get_queryset(self):
         trips = super().get_queryset().select_related("info")
@@ -147,7 +147,7 @@ class ReviewTripView(DetailView):
     template_name = "trips/review.html"
     success_msg = "Thanks for your feedback!"
 
-    object: models.Trip  # noqa: A003
+    object: models.Trip
     request: "RequestWithParticipant"
 
     @property
@@ -346,7 +346,7 @@ class EditTripView(UpdateView, TripLeadersOnlyView):
     form_class = forms.TripForm
     template_name = "trips/edit.html"
 
-    object: models.Trip  # noqa: A003
+    object: models.Trip
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()

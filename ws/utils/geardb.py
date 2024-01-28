@@ -41,7 +41,7 @@ class Rental(NamedTuple):
     """
 
     email: str
-    id: str  # Example, 'BK-19-04'  # noqa: A003
+    id: str  # Example, 'BK-19-04'
     name: str
     cost: float  # How much the daily cost for the item is
     checkedout: date

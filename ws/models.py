@@ -815,6 +815,12 @@ class WinterSchoolSettings(SingletonModel):
         default=True, verbose_name="Accept new Winter School leader applications"
     )
 
+    def __str__(self):
+        return (
+            f"Applications: {'on' if self.accepting_applications else 'off'}, "
+            f"Lecture attendance: {'on' if self.allow_setting_attendance else 'off'}"
+        )
+
 
 class MentorActivity(models.Model):
     """An activity which can be mentored.
@@ -1749,6 +1755,9 @@ class LeaderApplication(models.Model):
         # Important!!! Child classes must be named: <activity>LeaderApplication
         abstract = True  # See model_from_activity for more
         ordering = ["time_created"]
+
+    def __str__(self) -> str:
+        return f"Application by {self.participant} to be leader in {self.year}"
 
     @property
     def rating_given(self):

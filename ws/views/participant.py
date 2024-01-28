@@ -367,7 +367,7 @@ class ParticipantView(
             return []
 
         def count(
-            key: Literal["on_trip", "creator", "leader", "wimp", "waitlisted"]
+            key: Literal["on_trip", "creator", "leader", "wimp", "waitlisted"],
         ) -> str:
             matching_trips = trips["past"][key]
             assert matching_trips is not None  # waitlisted can be omitted
