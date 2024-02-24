@@ -3,6 +3,7 @@
 We used to rely on `localflavor` for this, but given that plates are
 the *only* use for this enum, it's easy/simple to just enumerate.
 """
+
 from typing import Final
 
 US_STATES: Final[tuple[tuple[str, str], ...]] = (

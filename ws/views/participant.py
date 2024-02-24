@@ -4,6 +4,7 @@ The "Participant" is the core organization model of the trips system. Every
 user who has completed the mandatory signup information is given a Participant
 object that's linked to their user account.
 """
+
 import logging
 from typing import Any, Literal, TypedDict, cast
 

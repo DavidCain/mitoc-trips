@@ -5,6 +5,7 @@ recording lecture attendance or toggling settings that take effect during
 Winter School. This module contains those views. The majority of the system
 works the same during Winter School as it does during the rest of the year.
 """
+
 from django.contrib import messages
 from django.shortcuts import redirect
 from django.urls import reverse

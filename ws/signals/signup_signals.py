@@ -1,4 +1,5 @@
 """Handle aspects of trip creation/modification when receiving signup changes."""
+
 # Signals are a terrible pattern that I aim to replace eventually.
 # Ruff will complain about the large number of arguments. We can ignore for now.
 # ruff: noqa: PLR0913

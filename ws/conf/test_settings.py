@@ -2,6 +2,7 @@
 
 Intended to mirror production as much as is possible.
 """
+
 from typing import Any
 
 DEBUG = False

@@ -1,4 +1,5 @@
 """Views relating to account management."""
+
 import logging
 from urllib.parse import urlencode
 

@@ -4,6 +4,7 @@ Each official trip should have an itinerary completed by trip leaders.
 That itinerary specifies who (if anybody) will be driving for the trip,
 what the intended route will be, when to worry, and more.
 """
+
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q

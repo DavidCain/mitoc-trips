@@ -3,6 +3,7 @@
 The gear database is itself a Django application, which we interface with
 via machine-to-machine API endpoints.
 """
+
 import logging
 from collections.abc import Iterable, Iterator
 from datetime import date, datetime, timedelta

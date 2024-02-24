@@ -6,6 +6,7 @@ These methods will post information about users' membership status to Google
 spreadsheets. Each spreadsheet will be shared with the company offering the
 discount, so that they can verify membership status.
 """
+
 import bisect
 import logging
 import random

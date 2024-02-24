@@ -4,6 +4,7 @@ Users can enroll in discounts, rank their preferred trips, or elect to be
 paired with another participant. All of these options are deemed "preferences"
 of the participant.
 """
+
 import contextlib
 import json
 from datetime import datetime

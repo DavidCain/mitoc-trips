@@ -2,6 +2,7 @@
 
 Some messages may be called on *every* request, others as needed.
 """
+
 from django.contrib import messages
 from django.contrib.messages.storage.base import Message
 from django.http import HttpRequest

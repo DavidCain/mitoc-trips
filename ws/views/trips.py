@@ -3,6 +3,7 @@
 A "trip" is any official trip registered in the system - created by leaders, to be
 attended by any interested participants.
 """
+
 from collections import defaultdict
 from datetime import date, timedelta
 from typing import TYPE_CHECKING, Any, cast

@@ -8,6 +8,7 @@ occasionally merge these accounts into one. The end result is that they get an
 account where they can log in with either email address, and get access to a
 complete history.
 """
+
 from collections.abc import Iterable
 from typing import cast
 

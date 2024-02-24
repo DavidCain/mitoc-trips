@@ -15,6 +15,7 @@ Basic structure of the shared response type:
         'status': 'Missing',
     }
 """
+
 from datetime import date
 from typing import Any, Literal, TypedDict
 

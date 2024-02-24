@@ -5,6 +5,7 @@ which will entitle them to create trips, view participant information, and more.
 
 For views relating to the leader application process, see ws.views.applications
 """
+
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.db.models import Max

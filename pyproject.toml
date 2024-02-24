@@ -1,5 +1,5 @@
 [tool.ruff]
-select = [
+lint.select = [
   "A",     # flake8-builtins
   "ANN",   # flake8-annotations
   "ARG",   # flake8-unused-arguments
@@ -65,7 +65,7 @@ select = [
   # "NPY",   # NumPy-specific rules -- I don't use numpy
 ]
 
-ignore = [
+lint.ignore = [
   # Specific rules ignored from checkers I otherwise view as valuable:
   "ANN001",   # Type annotations are knowingly incomplete.
   "ANN002",   # Type annotations are knowingly incomplete.
@@ -113,10 +113,10 @@ exclude = [
   "static/",
 ]
 
-fixable = ["ALL"]
-unfixable = []
+lint.fixable = ["ALL"]
+lint.unfixable = []
 
-[tool.ruff.flake8-self]
+[tool.ruff.lint.flake8-self]
 ignore-names = [
   "_asdict",
   "_replace",

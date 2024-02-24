@@ -1,10 +1,11 @@
 """Local settings, intended for use on a local computer for basic feature testing.
 
-  - Exposed secret key
-  - DEBUG enabled
-  - Project root is just '/'
-  - Send emails to console
+- Exposed secret key
+- DEBUG enabled
+- Project root is just '/'
+- Send emails to console
 """
+
 from typing import Any
 
 DEBUG = True

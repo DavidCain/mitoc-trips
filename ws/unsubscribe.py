@@ -3,6 +3,7 @@
 Ideally, participants just control their email preferences directly.
 However, we provide this method for single-click unsubscribe links.
 """
+
 import enum
 from datetime import timedelta
 from typing import NamedTuple, TypedDict
