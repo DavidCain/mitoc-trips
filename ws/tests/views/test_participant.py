@@ -397,6 +397,7 @@ class ParticipantDetailViewTest(TestCase):
         feedback = soup.find(id="feedback").find_next("table")
         self.assertEqual(
             strip_whitespace(feedback.find_next("td").text),
+            # 'Slept through their alarm, did not answer phone calls'
             "oo srephh ,twihlien lnSd rmleartpagtsal choeanrudt",
         )
 

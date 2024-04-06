@@ -42,5 +42,15 @@ def subtract(value, arg):
 
 
 @register.filter
-def scramble(text):
+def scramble(text: str) -> str:
+    """Reorder the characters in the text so as be not easily read by humans.
+
+    This is *not* meant to be a cipher, the goal is simply to make the text
+    appear scrambled (we'll apply a Gaussian blur atop the text too). Because
+    HTML strips extra spaces, we ideally want to take care to avoid:
+
+    - leading spaces
+    - trailing spaces
+    - double spaces between "words"
+    """
     return "".join(random.sample(text, len(text)))

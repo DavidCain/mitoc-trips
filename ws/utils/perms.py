@@ -113,6 +113,7 @@ def activity_chairs(activity_enum: enums.Activity) -> QuerySet[User]:
 
 def chair_activities(
     user: User,
+    *,
     allow_superusers: bool = False,
 ) -> list[enums.Activity]:
     """All activities for which the user is the chair."""

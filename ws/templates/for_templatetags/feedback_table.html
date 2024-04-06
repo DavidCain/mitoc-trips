@@ -40,7 +40,17 @@
     </thead>
     <tbody>
     {% for feedback in all_feedback %}
-      <tr{% if not feedback.showed_up and not scramble_contents %} class="danger"{% endif %}>
+      <tr
+          {% if not scramble_contents %}
+            {% if not feedback.showed_up %}
+              class="danger"
+            {% elif feedback.display_date < feedback_cutoff %}
+              {# Give a subtle hint to activity chairs that this feedback is old #}
+              {# Yes, "active" is misleading CSS, the goal is to just gray out the rows a bit #}
+              class="active"
+            {% endif %}
+          {% endif %}
+            >
         <td>
           {% if not feedback.showed_up and not scramble_contents %}
             <span class="label label-danger">Flaked!</span>
@@ -71,7 +81,6 @@
               </a>
             {% endif %}
           </span>
-          {% if feedback.trip %}
           <div class="text-right">
             <small>
               <em><a href="{% url 'view_trip' feedback.trip.id %}">{{ feedback.trip }}</a></em>
@@ -80,13 +89,12 @@
               </div>
             </small>
           </div>
-          {% endif %}
         </td>
       </tr>
     </tbody>
     {% endfor %}
   </table>
-  {% if has_old_feedback and not scramble_contents %}
+  {% if has_old_feedback and not scramble_contents and not showing_old_feedback %}
     <div class="alert alert-warning">
       This participant was also given feedback before {{ feedback_cutoff }}.
 

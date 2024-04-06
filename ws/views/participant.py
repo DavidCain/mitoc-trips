@@ -24,6 +24,7 @@ import ws.messages.leader
 import ws.messages.lottery
 import ws.messages.participant
 import ws.utils.dates as date_utils
+import ws.utils.feedback as feedback_utils
 import ws.utils.perms as perm_utils
 from ws import enums, forms, models, tasks, wimp
 from ws.decorators import admin_only, group_required, user_info_required
@@ -432,7 +433,7 @@ class ParticipantView(
         e_contact = e_info.emergency_contact
         user_viewing = self.request.participant == participant
 
-        context = {
+        return {
             **super().get_context_data(**kwargs),
             **self._lecture_info(participant, user_viewing),
             "car_form": participant.car and forms.CarForm(instance=participant.car),
@@ -445,13 +446,6 @@ class ParticipantView(
             "user_viewing": user_viewing,
             "wimp": self.wimp,
         }
-
-        if not user_viewing:
-            context["all_feedback"] = without_old_feedback(
-                participant.feedback_set.select_related("trip", "leader")
-            ).prefetch_related("leader__leaderrating_set")
-
-        return context
 
     @property
     def wimp(self) -> models.Participant | None:
@@ -493,10 +487,9 @@ class ParticipantDetailView(ParticipantView, FormView, DetailView):
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        args = self.request.GET
-        show_feedback = args.get("show_feedback", "0") not in {"0", ""}
         participant = self.object
 
+        show_feedback = self.request.GET.get("show_feedback", "0") not in {"0", ""}
         if show_feedback:
             logger.info(
                 "%s (#%d) viewed feedback for %s (#%d)",
@@ -505,12 +498,27 @@ class ParticipantDetailView(ParticipantView, FormView, DetailView):
                 participant,
                 participant.pk,
             )
-        context["hide_comments"] = not show_feedback
-        context["display_log_notice"] = show_feedback
-        context["has_old_feedback"] = participant.feedback_set.filter(
-            time_created__lt=feedback_cutoff()
+
+        feedback = feedback_utils.for_feedback_table_display(
+            participant.feedback_set,
+            viewing_participant=self.request.participant,
         )
-        return context
+
+        has_old_feedback = feedback.filter(time_created__lt=feedback_cutoff()).exists()
+        assert self.request.user.is_authenticated  # Ensured by dispatch
+        show_old_feedback = perm_utils.chair_activities(
+            self.request.user, allow_superusers=True
+        )
+
+        return {
+            **context,
+            "display_log_notice": show_feedback,
+            "hide_comments": not show_feedback,
+            "all_feedback": (
+                feedback if show_old_feedback else without_old_feedback(feedback)
+            ),
+            "has_old_feedback": has_old_feedback,
+        }
 
     def dispatch(self, request, *args, **kwargs):
         if request.participant == self.get_object():

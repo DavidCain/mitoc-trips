@@ -13,7 +13,7 @@ def chair_activities(
     user: User,
     allow_superusers: bool = True,
 ) -> list[enums.Activity]:
-    return perm_utils.chair_activities(user, allow_superusers)
+    return perm_utils.chair_activities(user, allow_superusers=allow_superusers)
 
 
 @register.filter

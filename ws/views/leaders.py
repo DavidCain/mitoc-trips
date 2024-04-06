@@ -108,7 +108,9 @@ class ActivityLeadersView(OnlyForActivityChair, CreateView):
     def get_form_kwargs(self):
         return {
             **super().get_form_kwargs(),
-            "allowed_activities": perm_utils.chair_activities(self.request.user, True),
+            "allowed_activities": perm_utils.chair_activities(
+                self.request.user, allow_superusers=True
+            ),
             "hide_activity": True,
         }
 

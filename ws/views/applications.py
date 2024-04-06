@@ -12,8 +12,6 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q, QuerySet
-from django.db.models.fields import DateField
-from django.db.models.functions import Cast, Least
 from django.forms.models import model_to_dict
 from django.http import Http404
 from django.shortcuts import redirect, render
@@ -24,6 +22,7 @@ from django.views.generic import CreateView, DetailView, ListView, TemplateView,
 from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.edit import FormMixin
 
+import ws.utils.feedback as feedback_utils
 import ws.utils.perms as perm_utils
 import ws.utils.ratings as ratings_utils
 from ws import enums, forms, models
@@ -463,15 +462,9 @@ class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type:
         "clean slate" period). The only exception is that activity chairs cannot
         see their own feedback.
         """
-        return (
-            models.Feedback.objects.filter(participant=self.object.participant)
-            .exclude(participant=self.chair)
-            .select_related("leader", "trip")
-            .prefetch_related("leader__leaderrating_set")
-            .annotate(
-                display_date=Least("trip__trip_date", Cast("time_created", DateField()))
-            )
-            .order_by("-display_date")
+        return feedback_utils.for_feedback_table_display(
+            models.Feedback.objects.filter(participant=self.object.participant),
+            viewing_participant=self.chair,
         )
 
     def get_context_data(self, **kwargs):

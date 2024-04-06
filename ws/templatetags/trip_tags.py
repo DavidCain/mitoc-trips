@@ -1,5 +1,5 @@
 import enum
-from collections.abc import Iterable
+from collections.abc import Collection
 from datetime import timedelta
 from typing import TYPE_CHECKING, Any, TypedDict
 
@@ -151,17 +151,22 @@ def numeric_trip_stage_for_sorting(
 
 @register.inclusion_tag("for_templatetags/feedback_table.html")
 def feedback_table(
-    all_feedback: Iterable[models.Feedback],
+    all_feedback: Collection[models.Feedback],
     scramble_contents: bool = False,
     display_log_notice: bool = False,
     has_old_feedback: bool = False,
 ) -> dict[str, Any]:
+    cutoff = feedback_cutoff()
+    showing_old_feedback = any(
+        feedback.time_created < cutoff for feedback in all_feedback
+    )
     return {
         "all_feedback": all_feedback,
         "scramble_contents": scramble_contents,
         "display_log_notice": display_log_notice,
         "has_old_feedback": has_old_feedback,
-        "feedback_cutoff": feedback_cutoff().date(),
+        "showing_old_feedback": showing_old_feedback,
+        "feedback_cutoff": cutoff.date(),
     }
 
 
