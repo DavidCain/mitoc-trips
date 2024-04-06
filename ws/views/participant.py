@@ -495,9 +495,9 @@ class ParticipantDetailView(ParticipantView, FormView, DetailView):
         context = super().get_context_data(**kwargs)
         args = self.request.GET
         show_feedback = args.get("show_feedback", "0") not in {"0", ""}
-        if show_feedback:
-            participant = self.object
+        participant = self.object
 
+        if show_feedback:
             logger.info(
                 "%s (#%d) viewed feedback for %s (#%d)",
                 self.request.participant,
@@ -507,10 +507,8 @@ class ParticipantDetailView(ParticipantView, FormView, DetailView):
             )
         context["hide_comments"] = not show_feedback
         context["display_log_notice"] = show_feedback
-        # Only reveal old feedback if they've *asked* to see feedback
-        context["warn_about_old_feedback"] = (
-            show_feedback
-            and participant.feedback_set.filter(time_created__lt=feedback_cutoff())
+        context["has_old_feedback"] = participant.feedback_set.filter(
+            time_created__lt=feedback_cutoff()
         )
         return context
 

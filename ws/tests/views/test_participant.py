@@ -421,6 +421,53 @@ class ParticipantDetailViewTest(TestCase):
             "Flaked! Slept through their alarm, did not answer phone calls",
         )
 
+    def test_only_old_feedback(self):
+        """We convey if a participant has *only* old feedback on record."""
+        # Make the viewer a leader so they can view feedback
+        par = factories.ParticipantFactory.create(user_id=self.user.pk)
+        factories.LeaderRatingFactory.create(participant=par)
+
+        # Simulate some old feedback!
+        with freeze_time("2022-12-26 12:00 UTC"):
+            factories.FeedbackFactory.create(
+                participant=self.participant,
+                showed_up=False,
+                comments="Slept through their alarm, did not answer phone calls",
+            )
+        with freeze_time("2024-01-28T12:00-05:00"):
+            response = self.client.get(f"/participants/{self.participant.pk}/")
+        soup = BeautifulSoup(response.content, "html.parser")
+
+        # There's nothing to alert the leader about -- no feedback is *expected*
+        # We'll instead just surface this information in a plain `<p>`
+        self.assertIsNone(soup.find(class_="alert"))
+
+        old_feedback_msg = (
+            "This participant was given feedback before Dec. 29, 2022. "
+            "Per club policy, we hide all feedback after thirteen months. "
+            "If you need to see old feedback, reach out to the appropriate activity chair(s)."
+        )
+        self.assertEqual(
+            strip_whitespace(soup.find("p", id="has-old-feedback").text),
+            old_feedback_msg,
+        )
+
+        # We handle "show_feedback" even though there won't be a button for it.
+        self.assertIsNone(
+            soup.find("button", string="Show feedback for trip-planning purposes")
+        )
+        with freeze_time("2024-01-28T12:00-05:00"):
+            response2 = self.client.get(
+                f"/participants/{self.participant.pk}/?show_feedback=1"
+            )
+        soup2 = BeautifulSoup(response2.content, "html.parser")
+        # We won't warn about "access logged" since there's nothing to show
+        self.assertIsNone(soup2.find("span", class_="label-info"))
+        self.assertEqual(
+            strip_whitespace(soup.find("p", id="has-old-feedback").text),
+            old_feedback_msg,
+        )
+
     def test_bygone_feedback(self):
         """Feedback older than 13 months is automatically hidden!"""
         # Make the viewer a leader so they can view feedback
@@ -444,6 +491,10 @@ class ParticipantDetailViewTest(TestCase):
                 f"/participants/{self.participant.pk}/?show_feedback=1"
             )
         soup = BeautifulSoup(response.content, "html.parser")
+        self.assertEqual(
+            soup.find("span", class_="label-info").text,
+            "Your access has been logged.",
+        )
 
         self.assertEqual(
             strip_whitespace(soup.find(class_="alert").text),

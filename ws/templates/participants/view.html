@@ -167,7 +167,7 @@
 
       {% if not user_viewing %}
         <div class="{{ all_feedback|yesno:'col-md-12, col-sm-6' }}">
-          {% feedback_table all_feedback hide_comments display_log_notice warn_about_old_feedback %}
+          {% feedback_table all_feedback hide_comments display_log_notice has_old_feedback %}
         </div>
       {% endif %}
     </div>

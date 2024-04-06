@@ -4,20 +4,32 @@
 <h3 id='feedback'>
   <i class="fas fa-comments"></i>
   Feedback
-  {% if scramble_contents and all_feedback %}
-    {# Keep this flow (a simple link) for people running no JavaScript #}
-    {# TODO, though, is to support AJAX "descrambling" of the content below #}
-    <a class="btn btn-default pull-right"
-       data-uib-tooltip="Participant feedback should only be viewed for the purposes of planning a trip. Views of feedback will be logged."
-       href="{% url 'view_participant' all_feedback.0.participant.pk %}?show_feedback=1">
-      Show feedback for trip-planning purposes
-    </a>
-  {% elif display_log_notice %}
-    <span class ="label label-info pull-right">Your access has been logged.</span>
+  {% if all_feedback %}
+    {% if scramble_contents %}
+      {# We use a simple query arg to "descramble" feedback. Keeps this page working w/o JS. #}
+      <a class="btn btn-default pull-right"
+         data-uib-tooltip="Participant feedback should only be viewed for the purposes of planning a trip. Views of feedback will be logged."
+         href="{% url 'view_participant' all_feedback.0.participant.pk %}?show_feedback=1">
+        Show feedback for trip-planning purposes
+      </a>
+    {% elif display_log_notice %}
+      {# Notably, we don't say "access logged" if there's no feedback even shown. #}
+      <span class ="label label-info pull-right">Your access has been logged.</span>
+    {% endif %}
   {% endif %}
 </h3>
+
 {% if not all_feedback %}
-  <p>None available.</p>
+  {% if has_old_feedback %}
+    <p id="has-old-feedback">
+      This participant was given feedback before {{ feedback_cutoff }}.
+
+      Per club policy, we hide all feedback after thirteen months. If you need
+      to see old feedback, reach out to the appropriate activity chair(s).
+    </p>
+  {% else %}
+    <p>None available.</p>
+  {% endif %}
 {% else %}
   <table class="table">
     <thead>
@@ -74,14 +86,14 @@
     </tbody>
     {% endfor %}
   </table>
-{% if warn_about_old_feedback %}
-<div class="alert alert-warning">
-  This participant was also given feedback before {{ feedback_cutoff }}.
+  {% if has_old_feedback %}
+    <div class="alert alert-warning">
+      This participant was also given feedback before {{ feedback_cutoff }}.
 
-  Per club policy, we hide all feedback after thirteen months. If you truly
-  need to see old feedback, please reach out to the appropriate activity
-  chair(s).
-</div>
-{% endif %}
+      Per club policy, we hide all feedback after thirteen months. If you truly
+      need to see old feedback, please reach out to the appropriate activity
+      chair(s).
+    </div>
+  {% endif %}
 
 {% endif %}

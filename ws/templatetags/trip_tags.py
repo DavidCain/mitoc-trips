@@ -154,13 +154,13 @@ def feedback_table(
     all_feedback: Iterable[models.Feedback],
     scramble_contents: bool = False,
     display_log_notice: bool = False,
-    warn_about_old_feedback: bool = False,
+    has_old_feedback: bool = False,
 ) -> dict[str, Any]:
     return {
         "all_feedback": all_feedback,
         "scramble_contents": scramble_contents,
         "display_log_notice": display_log_notice,
-        "warn_about_old_feedback": warn_about_old_feedback,
+        "has_old_feedback": has_old_feedback,
         "feedback_cutoff": feedback_cutoff().date(),
     }
 
