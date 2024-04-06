@@ -10,9 +10,11 @@ register = template.Library()
 
 @register.filter
 def chair_activities(
-    user: User,
+    user: User | None,
     allow_superusers: bool = True,
 ) -> list[enums.Activity]:
+    if user is None:
+        return []
     return perm_utils.chair_activities(user, allow_superusers=allow_superusers)
 
 

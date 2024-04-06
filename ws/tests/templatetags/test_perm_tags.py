@@ -75,6 +75,9 @@ class ChairActivitiesTest(TestCase):
         lines = html_template.render(context)
         return lines.split("\n") if lines else []
 
+    def test_null_user(self):
+        self.assertEqual(self._chair_activities(None), [])
+
     def test_not_chair(self):
         normal_user = factories.UserFactory.create()
         self.assertEqual(self._chair_activities(normal_user), [])
