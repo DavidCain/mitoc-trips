@@ -434,15 +434,15 @@ class ParticipantDetailViewTest(TestCase):
                 showed_up=False,
                 comments="Slept through their alarm, did not answer phone calls",
             )
-        with freeze_time("2024-01-27 12:00 UTC"):
+        with freeze_time("2024-01-28T12:00-05:00"):
             factories.FeedbackFactory.create(
                 participant=self.participant,
                 comments="Right on time! Figured out their alarm.",
             )
 
-        response = self.client.get(
-            f"/participants/{self.participant.pk}/?show_feedback=1"
-        )
+            response = self.client.get(
+                f"/participants/{self.participant.pk}/?show_feedback=1"
+            )
         soup = BeautifulSoup(response.content, "html.parser")
 
         self.assertEqual(
