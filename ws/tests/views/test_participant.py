@@ -404,7 +404,10 @@ class ParticipantDetailViewTest(TestCase):
         reveal = soup.find(
             "a", href=f"/participants/{self.participant.pk}/?show_feedback=1"
         )
-        self.assertTrue(reveal)
+        self.assertEqual(
+            strip_whitespace(reveal.text),
+            "Show feedback for trip-planning purposes",
+        )
         with mock.patch.object(logger, "info") as log_info:
             response = self.client.get(reveal.attrs["href"])
         log_info.assert_called_once_with(
@@ -487,10 +490,17 @@ class ParticipantDetailViewTest(TestCase):
                 comments="Right on time! Figured out their alarm.",
             )
 
-            response = self.client.get(
+            default_response = self.client.get(f"/participants/{self.participant.pk}/")
+            show_feedback_response = self.client.get(
                 f"/participants/{self.participant.pk}/?show_feedback=1"
             )
-        soup = BeautifulSoup(response.content, "html.parser")
+
+        default_soup = BeautifulSoup(default_response.content, "html.parser")
+        # Until they click "Show feedback for trip-planning purposes," we don't reveal old feedback
+        # (there's no point in warning about old feedback when *current* feedback is obscured)
+        self.assertIsNone(default_soup.find(class_="alert"))
+
+        soup = BeautifulSoup(show_feedback_response.content, "html.parser")
         self.assertEqual(
             soup.find("span", class_="label-info").text,
             "Your access has been logged.",

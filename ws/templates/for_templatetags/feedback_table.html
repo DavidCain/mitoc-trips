@@ -86,7 +86,7 @@
     </tbody>
     {% endfor %}
   </table>
-  {% if has_old_feedback %}
+  {% if has_old_feedback and not scramble_contents %}
     <div class="alert alert-warning">
       This participant was also given feedback before {{ feedback_cutoff }}.
 
