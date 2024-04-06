@@ -1,5 +1,7 @@
+import itertools
 import random
 import re
+from typing import Final
 
 from django import template
 from django.template.base import Node
@@ -9,7 +11,7 @@ register = template.Library()
 
 
 @keep_lazy(str)
-def strip_empty_lines(value):
+def strip_empty_lines(value: str) -> str:
     """Return the given HTML with empty and all-whitespace lines removed."""
     return re.sub(r"\n[ \t]*(?=\n)", "", value)
 
@@ -41,16 +43,34 @@ def subtract(value, arg):
     return value - arg
 
 
+SCRAMBLER: Final = random.Random()
+
+
 @register.filter
 def scramble(text: str) -> str:
     """Reorder the characters in the text so as be not easily read by humans.
 
     This is *not* meant to be a cipher, the goal is simply to make the text
-    appear scrambled (we'll apply a Gaussian blur atop the text too). Because
-    HTML strips extra spaces, we ideally want to take care to avoid:
+    appear unreadable to humans (we'll apply a Gaussian blur atop the text
+    too). Because HTML strips extra spaces, we ideally want to take care to
+    avoid:
 
     - leading spaces
     - trailing spaces
     - double spaces between "words"
+
+    The more we can avoid pointless spaces, the closer we get to preserving the
+    original size of the unscrambled text.
     """
-    return "".join(random.sample(text, len(text)))
+    # Strip ASCII spaces, Unicode spaces, newlines, tab characters, etc.
+    # We'll preserve existing spaces in the order string.
+    spaceless = "".join(text.split())
+
+    # Scramble all non-whitespace chars, map them *back* (Preserves word size!)
+    # We could use a plain `iter()` in place of `cycle()`, but I'm being defensive.
+    # In other words, if `isspace()` and `split()` ever disagree on a char,
+    # or if I messed up some Unicode rules (very likely), we won't `StopIteration`
+    # At time of writing, none of the 14,607 feedback options needed to cycle.
+    scrambler = itertools.cycle(SCRAMBLER.sample(spaceless, len(spaceless)))
+
+    return "".join(char if char.isspace() else next(scrambler) for char in text)

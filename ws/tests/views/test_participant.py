@@ -1,4 +1,3 @@
-import random
 from datetime import date, datetime
 from unittest import mock
 from zoneinfo import ZoneInfo
@@ -10,6 +9,7 @@ from freezegun import freeze_time
 
 import ws.utils.perms as perm_utils
 from ws import enums, models, tasks
+from ws.templatetags import general_tags
 from ws.tests import factories, strip_whitespace
 from ws.views.participant import logger
 
@@ -388,7 +388,7 @@ class ParticipantDetailViewTest(TestCase):
         # Any leader may view - it doesn't matter which activity!
         factories.LeaderRatingFactory.create(participant=par)
         self.assertTrue(perm_utils.is_leader(self.user))
-        random.seed("Set seed, for predictable 'scrambling'")
+        general_tags.SCRAMBLER.seed("Set seed, for predictable 'scrambling'")
         response = self.client.get(f"/participants/{self.participant.pk}/")
         self.assertEqual(response.status_code, 200)
 
@@ -398,7 +398,7 @@ class ParticipantDetailViewTest(TestCase):
         self.assertEqual(
             strip_whitespace(feedback.find_next("td").text),
             # 'Slept through their alarm, did not answer phone calls'
-            "oo srephh ,twihlien lnSd rmleartpagtsal choeanrudt",
+            "ursde itdhate toeah ailgnS wos rlt plamlh ropcr neh,n",
         )
 
         # There's a button which enables us to view this feedback, unscrambled.
