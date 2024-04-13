@@ -1,3 +1,6 @@
+from collections.abc import Iterator
+from datetime import timedelta
+
 from django.contrib import messages
 from django.db import connections
 from django.db.utils import IntegrityError
@@ -26,7 +29,9 @@ class PotentialDuplicatesView(AdminOnlyView, TemplateView):
     template_name = "duplicates/index.html"
 
     @property
-    def potential_duplicates(self):
+    def potential_duplicates(
+        self,
+    ) -> Iterator[tuple[models.Participant, models.Participant]]:
         """Yield pairs of potential duplicates.
 
         Each pair of potential duplicates has the most recently active person
@@ -70,8 +75,33 @@ class PotentialDuplicatesView(AdminOnlyView, TemplateView):
         ).select_related("emergency_info__emergency_contact", "car")
         par_by_pk = {par.pk: par for par in participants}
 
-        for old, new in pairs:
-            yield (par_by_pk[old], par_by_pk[new])
+        as_participants = ((par_by_pk[old], par_by_pk[new]) for old, new in pairs)
+
+        def _probably_lost_edu_email(
+            old_and_new: tuple[models.Participant, models.Participant],
+        ) -> bool:
+            """Return if the pairing is likely the same person, but with an old .edu
+
+            MIT and other institutions don't let you keep your email indefinitely.
+
+            If we were to merge old accounts with new, there's a security vulnerability
+            where your old email address could be claimed by a *new* person holding
+            that email address. We really need a generic solution to this problem beyond
+            expecting users to just remove old emails from their own account.
+
+            For now though, make a simple filter for identifying people who probably
+            lost access to their old email address.
+            """
+            old_par, new_par = old_and_new
+            email = old_par.email.lower()
+            profile_diff = new_par.profile_last_updated - old_par.profile_last_updated
+            return (
+                email.endswith(".edu")
+                and not email.endswith("@alum.mit.edu")
+                and profile_diff > timedelta(days=180)
+            )
+
+        return iter(sorted(as_participants, key=_probably_lost_edu_email, reverse=True))
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
