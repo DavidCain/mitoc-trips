@@ -4,9 +4,11 @@ The gear database is itself a Django application, which we interface with
 via machine-to-machine API endpoints.
 """
 
+import csv
 import logging
 from collections.abc import Iterable, Iterator
 from datetime import date, datetime, timedelta
+from pathlib import Path
 from typing import Any, NamedTuple
 from urllib.parse import urljoin
 
@@ -14,6 +16,7 @@ import requests
 from allauth.account.models import EmailAddress
 from django.contrib.auth.models import User
 from django.db.models import Case, Count, IntegerField, Sum, When
+from django.db.models.functions import Lower
 
 from ws import models, settings
 from ws.utils import api as api_util
@@ -258,6 +261,42 @@ def update_affiliation(participant: models.Participant) -> requests.Response | N
     )
 
 
+def _stats_only_all_active_members() -> Iterator[tuple[str, MembershipInformation]]:
+    """Yield emails and rental activity for all members with current dues."""
+
+    # Populated with a psql command:
+    # COPY (
+    #     SELECT p.id AS person_id,
+    #            coalesce(p.affiliation, 'Unknown') AS last_known_affiliation,
+    #            lower(p.email) AS email,
+    #            lower(pe.alternate_email) AS alternate_email,
+    #            count(r.id) AS num_rentals
+    #       FROM people p
+    #            join people_memberships       pm on p.id = pm.person_id
+    #            left join geardb_peopleemails pe on p.id = pe.person_id
+    #            left join rentals             r  on p.id = r.person_id
+    #      where pm.expires > now()
+    #      group by p.id, p.affiliation, p.email, pe.alternate_email
+    # ) To '/tmp/members.csv' With CSV DELIMITER ',' HEADER;
+    members_path = Path(__file__).parent.parent / "members.csv"
+
+    with open(members_path, encoding="utf-8") as member_file:
+        reader = csv.DictReader(member_file)
+        for row in reader:
+            known_emails = (e for e in (row["email"], row["alternate_email"]) if e)
+            for email in known_emails:
+                info = MembershipInformation(
+                    # NOTE: Anyone with >1 alternate email will have multiple rows!
+                    # (We'll use multiple emails to look up). Ensure we enforce uniqueness
+                    person_id=int(row["person_id"]),
+                    last_known_affiliation=row["last_known_affiliation"],
+                    num_rentals=int(row["num_rentals"]),
+                    # We don't have any trips information here.
+                    trips_information=None,
+                )
+                yield email, info
+
+
 def trips_information() -> dict[int, TripsInformation]:
     """Give important counts, indexed by user IDs.
 
@@ -310,9 +349,27 @@ def membership_information() -> dict[int, MembershipInformation]:
     - have rented gear
     - make use MITOC discounts
     """
-    info_by_user_id = (  # pylint: disable=unused-variable  # noqa: F841
-        trips_information()
+    info_by_user_id = trips_information()
+
+    # Bridge from a lowercase email address to a Trips user ID
+    email_to_user_id: dict[str, int] = dict(
+        EmailAddress.objects.filter(verified=True)
+        .annotate(lower_email=Lower("email"))
+        .values_list("lower_email", "user_id")
     )
 
-    # This method should soon be replaced by an API call to mitoc-gear
-    return {}
+    def trips_info_for(email: str) -> TripsInformation | None:
+        try:
+            user_id = email_to_user_id[email]
+        except KeyError:  # No Trips account
+            return None
+
+        try:
+            return info_by_user_id[user_id]
+        except KeyError:  # User, but no corresponding Participant
+            return None
+
+    return {
+        info.person_id: info._replace(trips_information=trips_info_for(email))
+        for email, info in _stats_only_all_active_members()
+    }
