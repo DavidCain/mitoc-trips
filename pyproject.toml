@@ -163,6 +163,8 @@ psycopg2 = "*"
 pwned-passwords-django = "*"
 requests = "*"
 sentry-sdk = "^1.30.0"
+setuptools = "^69.5.1"  # Required by django-pipeline in prod!
+
 
 [tool.poetry.group.test.dependencies]
 coverage = { version = "*" }
