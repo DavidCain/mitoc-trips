@@ -198,6 +198,9 @@
         var justLeaders = _.filter(allMembers, 'num_trips_led');
         renderChart("#leaders", justLeaders);
 
+        var ratedLeaders = _.filter(allMembers, 'is_leader');
+        renderChart("#rated_leaders", ratedLeaders);
+
         var justDiscounts = _.filter(allMembers, function(info) {
           return (info.num_discounts && !info.num_rentals && !info.num_trips_attended);
         });
@@ -239,10 +242,13 @@
   </p>
   <div id="stacked"></div>
 
-  <h3>Leaders</h3>
-  <p>Current affiliation of people who have ever led a trip.</p>
-  <div id="leaders"></div>
+  <h3>Current Leaders</h3>
+  <p>Affiliation of people who hold a leader rating, even if they never lead trips.</p>
+  <div id="rated_leaders"></div>
 
+  <h3>Leaders</h3>
+  <p>Current affiliation of people who have ever led a trip (even if they're not currently rated).</p>
+  <div id="leaders"></div>
 
   <h3>All dues-paying members</h3>
   <p>This is a count of all MITOCers who've paid their dues (but may not have

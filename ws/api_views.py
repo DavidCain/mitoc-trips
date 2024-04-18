@@ -639,7 +639,7 @@ class MembershipStatusesView(View):
 
 class RawMembershipStatsView(View):
     @staticmethod
-    def _all_members_info() -> Iterator[dict[str, str | int]]:
+    def _all_members_info() -> Iterator[dict[str, str | int | bool]]:
         for info in geardb_utils.membership_information().values():
             flat_info: dict[str, str | int] = {
                 "last_known_affiliation": info.last_known_affiliation,

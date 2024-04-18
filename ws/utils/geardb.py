@@ -15,7 +15,7 @@ from urllib.parse import urljoin
 import requests
 from allauth.account.models import EmailAddress
 from django.contrib.auth.models import User
-from django.db.models import Case, Count, IntegerField, Sum, When
+from django.db.models import Case, Count, IntegerField, Q, Sum, When
 from django.db.models.functions import Lower
 
 from ws import models, settings
@@ -53,6 +53,7 @@ class Rental(NamedTuple):
 
 
 class TripsInformation(NamedTuple):
+    is_leader: bool
     num_trips_attended: int
     num_trips_led: int
     num_discounts: int
@@ -328,11 +329,13 @@ def trips_information() -> dict[int, TripsInformation]:
     additional_stats = models.Participant.objects.all().annotate(
         num_discounts=Count("discounts", distinct=True),
         num_trips_led=Count("trips_led", distinct=True),
+        num_leader_ratings=Count("leaderrating", filter=Q(leaderrating__active=True)),
     )
 
     return {
         par.user_id: TripsInformation(
             email=par.email,
+            is_leader=bool(par.num_leader_ratings),
             num_trips_attended=trips_per_participant[par.pk],
             num_trips_led=par.num_trips_led,
             num_discounts=par.num_discounts,
