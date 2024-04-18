@@ -6,7 +6,7 @@ via machine-to-machine API endpoints.
 
 import csv
 import logging
-from collections.abc import Iterable, Iterator
+from collections.abc import Iterator
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Any, NamedTuple
@@ -56,9 +56,13 @@ class TripsInformation(NamedTuple):
     num_trips_attended: int
     num_trips_led: int
     num_discounts: int
+    # Email address as given on Participant object
+    # (We assume this is their preferred current email)
+    email: str
 
 
 class MembershipInformation(NamedTuple):
+    email: str
     person_id: int
     last_known_affiliation: str
     num_rentals: int
@@ -286,6 +290,7 @@ def _stats_only_all_active_members() -> Iterator[tuple[str, MembershipInformatio
             known_emails = (e for e in (row["email"], row["alternate_email"]) if e)
             for email in known_emails:
                 info = MembershipInformation(
+                    email=row["email"],
                     # NOTE: Anyone with >1 alternate email will have multiple rows!
                     # (We'll use multiple emails to look up). Ensure we enforce uniqueness
                     person_id=int(row["person_id"]),
@@ -320,22 +325,19 @@ def trips_information() -> dict[int, TripsInformation]:
         .values_list("pk", "num_trips_attended")
     )
 
-    additional_stats: Iterable[tuple[int, int, int, int]] = (
-        models.Participant.objects.all()
-        .annotate(
-            num_discounts=Count("discounts", distinct=True),
-            num_trips_led=Count("trips_led", distinct=True),
-        )
-        .values_list("pk", "user_id", "num_discounts", "num_trips_led")
+    additional_stats = models.Participant.objects.all().annotate(
+        num_discounts=Count("discounts", distinct=True),
+        num_trips_led=Count("trips_led", distinct=True),
     )
 
     return {
-        user_id: TripsInformation(
-            num_trips_attended=trips_per_participant[pk],
-            num_trips_led=num_trips_led,
-            num_discounts=num_discounts,
+        par.user_id: TripsInformation(
+            email=par.email,
+            num_trips_attended=trips_per_participant[par.pk],
+            num_trips_led=par.num_trips_led,
+            num_discounts=par.num_discounts,
         )
-        for (pk, user_id, num_discounts, num_trips_led) in additional_stats
+        for par in additional_stats
     }
 
 
@@ -369,7 +371,14 @@ def membership_information() -> dict[int, MembershipInformation]:
         except KeyError:  # User, but no corresponding Participant
             return None
 
-    return {
-        info.person_id: info._replace(trips_information=trips_info_for(email))
-        for email, info in _stats_only_all_active_members()
-    }
+    mapping: dict[int, MembershipInformation] = {}
+    for email, info in _stats_only_all_active_members():
+        trips_info = trips_info_for(email)
+        mapping[info.person_id] = info._replace(
+            # Email will only be shown in the raw JSON.
+            # Because this is a leaders-only viewpoint, we can show this info.
+            # Given that we also count rentals, we *might* consider a BOD-only restriction.
+            email=trips_info.email if trips_info else email,
+            trips_information=trips_info,
+        )
+    return mapping
