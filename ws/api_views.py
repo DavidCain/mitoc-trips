@@ -1,7 +1,7 @@
 import json
 from collections.abc import Collection, Iterable, Iterator
 from datetime import date
-from typing import Any, cast
+from typing import Any, TypedDict, cast
 
 import jwt
 import jwt.exceptions
@@ -17,6 +17,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import DetailView, ListView, View
 from django.views.generic.detail import SingleObjectMixin
+from typing_extensions import NotRequired
 
 import ws.utils.geardb as geardb_utils
 import ws.utils.membership as membership_utils
@@ -637,19 +638,38 @@ class MembershipStatusesView(View):
         return super().dispatch(request, *args, **kwargs)
 
 
+class MemberInfo(TypedDict):
+    email: str
+    affiliation: str
+    num_rentals: int
+    # Fields from TripInformation, if found
+    is_leader: NotRequired[bool]
+    num_trips_attended: NotRequired[int]
+    num_trips_led: NotRequired[int]
+    num_discounts: NotRequired[int]
+
+
 class RawMembershipStatsView(View):
     @staticmethod
-    def _all_members_info() -> Iterator[dict[str, str | int | bool]]:
-        for info in geardb_utils.membership_information().values():
-            flat_info: dict[str, str | int] = {
-                "last_known_affiliation": info.last_known_affiliation,
+    def _all_members_info() -> Iterator[MemberInfo]:
+        for info in geardb_utils.membership_information():
+            flat_info: MemberInfo = {
+                "email": info.email,
+                "affiliation": info.affiliation,
                 "num_rentals": info.num_rentals,
             }
 
-            # TODO (Python 3.11, PEP 655): Could TypedDict w/ NotRequired fields
-            # Alternatively, could just fix the janky JS to handle.
             if info.trips_information:
-                flat_info.update(info.trips_information._asdict())
+                flat_info.update(
+                    # A bit repetetive, but `_as_dict()` won't satisfy mypy
+                    {
+                        "email": info.trips_information.email,
+                        "is_leader": info.trips_information.is_leader,
+                        "num_trips_attended": info.trips_information.num_trips_attended,
+                        "num_trips_led": info.trips_information.num_trips_led,
+                        "num_discounts": info.trips_information.num_discounts,
+                    }
+                )
             yield flat_info
 
     def get(self, request, *args, **kwargs):

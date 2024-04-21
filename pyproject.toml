@@ -156,6 +156,7 @@ django-pipeline = "*"  # TODO: To eventually be replaced by webpack-loader
 django-smtp-ssl = "*"
 django-webpack-loader = "^1.1.0"  # Should maintain parity with frontend/package.json
 gspread = "*"
+gunicorn = "^22.0.0"  # Used to run production worker
 markdown2 = "*"
 mitoc-const = "^1.0.0"  # (1.0.0 includes type hints)
 phonenumberslite = "*"
@@ -164,7 +165,7 @@ pwned-passwords-django = "*"
 requests = "*"
 sentry-sdk = "^1.30.0"
 setuptools = "^69.5.1"  # Required by django-pipeline in prod!
-gunicorn = "^22.0.0"
+typing-extensions = "^4.11.0"  # Can remove after Python 3.11
 
 
 [tool.poetry.group.test.dependencies]

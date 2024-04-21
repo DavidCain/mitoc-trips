@@ -4,11 +4,9 @@ The gear database is itself a Django application, which we interface with
 via machine-to-machine API endpoints.
 """
 
-import csv
 import logging
-from collections.abc import Iterator
+from collections.abc import Collection, Iterator
 from datetime import date, datetime, timedelta
-from pathlib import Path
 from typing import Any, NamedTuple
 from urllib.parse import urljoin
 
@@ -64,8 +62,9 @@ class TripsInformation(NamedTuple):
 
 class MembershipInformation(NamedTuple):
     email: str
+    alternate_emails: list[str]
     person_id: int
-    last_known_affiliation: str
+    affiliation: str
     num_rentals: int
 
     trips_information: TripsInformation | None
@@ -94,8 +93,11 @@ def query_api(route: str, **params: Any) -> list[JsonDict]:
     response.raise_for_status()
 
     body = response.json()
-    results: list[JsonDict] = body["results"]
+    # If pagination class is none, we'll just return a list as-is.
+    if isinstance(body, list):
+        return body
 
+    results: list[JsonDict] = body["results"]
     if body["next"]:
         logger.error(
             "Results are paginated; this is not expected or handled. "
@@ -266,52 +268,31 @@ def update_affiliation(participant: models.Participant) -> requests.Response | N
     )
 
 
-def _stats_only_all_active_members() -> Iterator[tuple[str, MembershipInformation]]:
+def _stats_only_all_active_members() -> list[MembershipInformation]:
     """Yield emails and rental activity for all members with current dues."""
 
-    # Populated with a psql command:
-    # COPY (
-    #     SELECT p.id AS person_id,
-    #            coalesce(p.affiliation, 'Unknown') AS last_known_affiliation,
-    #            lower(p.email) AS email,
-    #            lower(pe.alternate_email) AS alternate_email,
-    #            count(r.id) AS num_rentals
-    #       FROM people p
-    #            join people_memberships       pm on p.id = pm.person_id
-    #            left join geardb_peopleemails pe on p.id = pe.person_id
-    #            left join rentals             r  on p.id = r.person_id
-    #      where pm.expires > now()
-    #      group by p.id, p.affiliation, p.email, pe.alternate_email
-    # ) To '/tmp/members.csv' With CSV DELIMITER ',' HEADER;
-    members_path = Path(__file__).parent.parent / "members.csv"
-
-    with open(members_path, encoding="utf-8") as member_file:
-        reader = csv.DictReader(member_file)
-        for row in reader:
-            known_emails = (e for e in (row["email"], row["alternate_email"]) if e)
-            for email in known_emails:
-                info = MembershipInformation(
-                    email=row["email"],
-                    # NOTE: Anyone with >1 alternate email will have multiple rows!
-                    # (We'll use multiple emails to look up). Ensure we enforce uniqueness
-                    person_id=int(row["person_id"]),
-                    last_known_affiliation=row["last_known_affiliation"],
-                    num_rentals=int(row["num_rentals"]),
-                    # We don't have any trips information here.
-                    trips_information=None,
-                )
-                yield email, info
+    return [
+        MembershipInformation(
+            email=member["email"],
+            alternate_emails=member["alternate_emails"],
+            person_id=int(member["id"]),
+            affiliation=member["affiliation"],
+            num_rentals=int(member["num_rentals"]),
+            # We don't have any trips information here.
+            trips_information=None,
+        )
+        for member in query_api("/api-auth/v1/stats")
+    ]
 
 
-def trips_information() -> dict[int, TripsInformation]:
+def _get_trips_information() -> dict[int, TripsInformation]:
     """Give important counts, indexed by user IDs.
 
     Each participant has a singular underlying user. This user has one or more
     email addresses, which form the link back to the gear database.
-    The user database lives separately from the participant database, so we'll
-    need to make a separate query for user information anyway.
     """
-    # TODO: Last year only?
+    # Notably this counts *all* historical attendance on trips.
+    # Do we perhaps just want to count participants who've gone on a trip this last year?
     signup_on_trip = Case(
         When(signup__on_trip=True, then=1), default=0, output_field=IntegerField()
     )
@@ -344,8 +325,7 @@ def trips_information() -> dict[int, TripsInformation]:
     }
 
 
-# NOTE: This method is only used for the (leaders-only, hacky, `/stats` endpoint)
-def membership_information() -> dict[int, MembershipInformation]:
+def membership_information() -> Iterator[MembershipInformation]:
     """All current active members, annotated with additional info.
 
     For each paying member, we also mark if they:
@@ -354,7 +334,7 @@ def membership_information() -> dict[int, MembershipInformation]:
     - have rented gear
     - make use MITOC discounts
     """
-    info_by_user_id = trips_information()
+    info_by_user_id = _get_trips_information()
 
     # Bridge from a lowercase email address to a Trips user ID
     email_to_user_id: dict[str, int] = dict(
@@ -363,25 +343,25 @@ def membership_information() -> dict[int, MembershipInformation]:
         .values_list("lower_email", "user_id")
     )
 
-    def trips_info_for(email: str) -> TripsInformation | None:
+    def trips_info_for(all_known_emails: Collection[str]) -> TripsInformation | None:
         try:
-            user_id = email_to_user_id[email]
-        except KeyError:  # No Trips account
+            email = next(e for e in all_known_emails if e.lower() in email_to_user_id)
+        except StopIteration:
             return None
+
+        user_id = email_to_user_id[email]
 
         try:
             return info_by_user_id[user_id]
         except KeyError:  # User, but no corresponding Participant
             return None
 
-    mapping: dict[int, MembershipInformation] = {}
-    for email, info in _stats_only_all_active_members():
-        trips_info = trips_info_for(email)
-        mapping[info.person_id] = info._replace(
+    for info in _stats_only_all_active_members():
+        trips_info = trips_info_for({info.email, *info.alternate_emails})
+        yield info._replace(
             # Email will only be shown in the raw JSON.
-            # Because this is a leaders-only viewpoint, we can show this info.
+            # Because this is a leaders-only viewpoint, we can show such personal info.
             # Given that we also count rentals, we *might* consider a BOD-only restriction.
-            email=trips_info.email if trips_info else email,
+            email=trips_info.email if trips_info else info.email,
             trips_information=trips_info,
         )
-    return mapping

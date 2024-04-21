@@ -2,11 +2,14 @@ import time
 from unittest import mock
 
 import jwt
+import responses
 from django.test import TestCase
 from freezegun import freeze_time
 
+import ws.utils.geardb as geardb_utils
 import ws.utils.perms as perm_utils
 from ws import enums, models, settings
+from ws.api_views import MemberInfo
 from ws.tests import factories
 from ws.utils.signups import add_to_waitlist
 
@@ -598,3 +601,202 @@ class ApproveTripViewTest(TestCase):
         self._approve(trip, approved=False)
         trip.refresh_from_db()
         self.assertFalse(trip.chair_approved)
+
+
+class RawMembershipStatsviewTest(TestCase):
+    def setUp(self):
+        super().setUp()
+        self.participant = factories.ParticipantFactory.create()
+        self.client.force_login(self.participant.user)
+        factories.LeaderRatingFactory.create(participant=self.participant)
+
+    def test_must_be_leader(self):
+        models.LeaderRating.objects.filter(participant=self.participant).delete()
+        response = self.client.get("/stats/membership.json")
+        self.assertEqual(response.status_code, 403)
+
+    @responses.activate
+    def test_no_members(self):
+        responses.get(url="https://mitoc-gear.mit.edu/api-auth/v1/stats", json=[])
+        response = self.client.get("/stats/membership.json")
+        self.assertEqual(response.json(), {"members": []})
+
+    @responses.activate
+    def test_no_matching_participant(self):
+        responses.get(
+            url="https://mitoc-gear.mit.edu/api-auth/v1/stats",
+            json=[
+                {
+                    "id": 37,
+                    "affiliation": "MIT undergrad",
+                    "alternate_emails": ["tim@mit.edu"],
+                    "email": "tim@example.com",
+                    "num_rentals": 3,
+                }
+            ],
+        )
+        self._expect_members(
+            {
+                "email": "tim@example.com",
+                "affiliation": "MIT undergrad",
+                "num_rentals": 3,
+            }
+        )
+
+    def _expect_members(self, *expected_members: MemberInfo) -> None:
+        response = self.client.get("/stats/membership.json")
+        resp_json = response.json()
+        self.assertCountEqual(resp_json, {"members"})
+        # self.assertEqual(len(resp_json['members'], len(expected_members)))
+        self.assertCountEqual(resp_json["members"], expected_members)
+
+    @responses.activate
+    def test_matches_on_verified_emails_only(self) -> None:
+        responses.get(
+            url="https://mitoc-gear.mit.edu/api-auth/v1/stats",
+            json=[
+                {
+                    "id": 42,
+                    "affiliation": "Non-MIT undergrad",
+                    "alternate_emails": ["bob@bu.edu"],
+                    "email": "bob@example.com",
+                    "num_rentals": 0,
+                },
+                {
+                    "id": 404,
+                    "affiliation": "MIT affiliate",
+                    "alternate_emails": [],
+                    "email": "404@example.com",
+                    "num_rentals": 0,
+                },
+            ],
+        )
+
+        # Matches on a verified email!
+        bob = factories.ParticipantFactory.create(email="bob+preferred@example.com")
+        factories.EmailAddressFactory.create(
+            user=bob.user, email="bob@bu.edu", verified=True, primary=False
+        )
+
+        # Email isn't verified, so no match
+        wat = factories.ParticipantFactory.create(email="404@gmail.com")
+        factories.EmailAddressFactory.create(
+            user=wat.user, email="404@example.com", verified=False
+        )
+
+        self._expect_members(
+            {
+                # We report their trips email as preferred!
+                "email": "bob+preferred@example.com",
+                "affiliation": "Non-MIT undergrad",
+                # Found a matching account!
+                "is_leader": False,
+                "num_discounts": 0,
+                "num_rentals": 0,
+                "num_trips_attended": 0,
+                "num_trips_led": 0,
+            },
+            # We did not find a matching trips account
+            {
+                "affiliation": "MIT affiliate",
+                "email": "404@example.com",
+                "num_rentals": 0,
+            },
+        )
+
+    @responses.activate
+    def test_trips_data_included(self):
+        responses.get(
+            url="https://mitoc-gear.mit.edu/api-auth/v1/stats",
+            json=[
+                {
+                    "id": 42,
+                    "affiliation": "Non-MIT undergrad",
+                    "alternate_emails": ["bob@bu.edu"],
+                    "email": "bob@example.com",
+                    "num_rentals": 0,
+                },
+                {
+                    "id": 37,
+                    "affiliation": "MIT undergrad",
+                    "alternate_emails": ["tim@mit.edu"],
+                    "email": "tim@example.com",
+                    "num_rentals": 3,
+                },
+                {
+                    "id": 404,
+                    "affiliation": "MIT affiliate",
+                    "alternate_emails": [],
+                    "email": "404@example.com",
+                    "num_rentals": 0,
+                },
+            ],
+        )
+
+        factories.EmailAddressFactory.create(
+            user=self.participant.user,
+            email="tim@example.com",
+            verified=True,
+            primary=False,
+        )
+        bob = factories.ParticipantFactory.create(email="bob+bu@example.com")
+        factories.EmailAddressFactory.create(
+            user=bob.user, email="bob@bu.edu", verified=True, primary=False
+        )
+
+        # Bob's been on 1 trip
+        factories.SignUpFactory.create(participant=bob, on_trip=True)
+        factories.SignUpFactory.create(participant=bob, on_trip=False)
+
+        # Has led 2 trips, but not presently a leader
+        factories.LeaderRatingFactory.create(participant=bob, active=False)
+        factories.TripFactory.create().leaders.add(bob)
+        factories.TripFactory.create().leaders.add(bob)
+
+        # Tim has been on 2 trips, led 1
+        factories.SignUpFactory.create(participant=self.participant, on_trip=True)
+        factories.SignUpFactory.create(participant=self.participant, on_trip=True)
+        factories.SignUpFactory.create(participant=self.participant, on_trip=False)
+
+        # Has led 1 trip, but not presently a leader
+        factories.LeaderRatingFactory.create(participant=self.participant, active=False)
+        factories.TripFactory.create().leaders.add(self.participant)
+
+        # Enjoys one discount, administers another!
+        discount = factories.DiscountFactory.create()
+        self.participant.discounts.add(discount)
+        factories.DiscountFactory.create().administrators.add(self.participant)
+
+        self._expect_members(
+            {
+                "email": "bob+bu@example.com",  # Preferred email!
+                "affiliation": "Non-MIT undergrad",
+                "num_rentals": 0,
+                "is_leader": False,  # Not presently a leader!
+                "num_trips_attended": 1,
+                "num_trips_led": 2,
+                "num_discounts": 0,
+            },
+            {
+                "email": self.participant.email,
+                "affiliation": "MIT undergrad",
+                "num_rentals": 3,
+                "is_leader": True,
+                "num_trips_attended": 2,
+                "num_trips_led": 1,
+                "num_discounts": 1,
+            },
+            # We did not find a matching trips account
+            {
+                "affiliation": "MIT affiliate",
+                "email": "404@example.com",
+                "num_rentals": 0,
+            },
+        )
+
+        # Ignoring the overhead of API queries, this is an efficient endpoint:
+        # 1. Count trips per participant (separate to avoid double-counting)
+        # 2. Count discounts, trips led, per participant
+        # 3. Get all emails (lowercased, for mapping back to participant records)
+        with self.assertNumQueries(3):
+            list(geardb_utils.membership_information())

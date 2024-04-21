@@ -127,7 +127,7 @@
     var allAffiliationCategories = ["MIT student", "MIT affiliate & alumni", "Non-affiliate"];
 
     var getChart = function(memberRows) {
-      var counts = _.countBy(memberRows, 'last_known_affiliation');
+      var counts = _.countBy(memberRows, 'affiliation');
       var chartValues = _.map(counts, function(count, affiliation) {
         var affiliationCategory = categoryMapper[affiliation] || 'Non-affiliate';
         return {
@@ -183,7 +183,7 @@
           if (info.num_trips_attended) {
             return true;
           }
-          return _.includes(['MIT undergrad', 'MIT grad student'], info.last_known_affiliation);
+          return _.includes(['MIT undergrad', 'MIT grad student'], info.affiliation);
         });
         renderChart("#just_members", newDefinitionMembers);
 
