@@ -269,7 +269,7 @@ def update_affiliation(participant: models.Participant) -> requests.Response | N
 
 
 def _stats_only_all_active_members() -> list[MembershipInformation]:
-    """Yield emails and rental activity for all members with current dues."""
+    """Report emails & rental activity for all members with current dues."""
 
     return [
         MembershipInformation(

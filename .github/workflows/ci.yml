@@ -8,7 +8,7 @@ jobs:
       fail-fast: false
       matrix:
         command:
-          - "ruff ."
+          - "ruff check ."
           - "ruff format --check ws"
           - "mypy ws"
           - "pylint --jobs=0 ws"

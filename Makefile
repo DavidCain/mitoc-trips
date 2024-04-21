@@ -53,7 +53,7 @@ check: lint test
 .PHONY: fix
 fix: install-python-dev
 	poetry run ruff format .
-	poetry run ruff --fix .
+	poetry run ruff check --fix .
 
 .PHONY: lint
 lint: lint-python typecheck-python lint-js
@@ -61,7 +61,7 @@ lint: lint-python typecheck-python lint-js
 .PHONY: lint-python
 lint-python: install-python-dev
 	poetry run ruff format --check .
-	poetry run ruff .
+	poetry run ruff check .
 	poetry run pylint --jobs 0 ws  # '0' tells pylint to auto-detect available processors
 
 .PHONY: typecheck-python

@@ -647,7 +647,6 @@ class RawMembershipStatsviewTest(TestCase):
         response = self.client.get("/stats/membership.json")
         resp_json = response.json()
         self.assertCountEqual(resp_json, {"members"})
-        # self.assertEqual(len(resp_json['members'], len(expected_members)))
         self.assertCountEqual(resp_json["members"], expected_members)
 
     @responses.activate
