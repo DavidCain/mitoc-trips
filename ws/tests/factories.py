@@ -46,7 +46,7 @@ class EmergencyInfoFactory(BaseFactory):
     medical_history = "None"
 
 
-class EmailFactory(BaseFactory):
+class EmailAddressFactory(BaseFactory):
     class Meta:
         model = account_models.EmailAddress
 
@@ -61,7 +61,7 @@ class UserFactory(BaseFactory):
 
     username = factory.Sequence(lambda n: f"user{n + 1}")
     email = factory.Sequence(lambda n: f"user{n + 1}@example.com")
-    emailaddress = factory.RelatedFactory(EmailFactory, "user")
+    emailaddress = factory.RelatedFactory(EmailAddressFactory, "user")
     password = "password"  # (Will be hashed & salted by `create_user`)  # noqa: S105
 
     @classmethod

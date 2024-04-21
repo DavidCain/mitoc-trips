@@ -146,7 +146,7 @@ class UpdateAffiliationTest(TestCase):
         """We report all known verified emails."""
         tim = factories.ParticipantFactory.create(affiliation="NA", email="tim@mit.edu")
 
-        factories.EmailFactory.create(
+        factories.EmailAddressFactory.create(
             user_id=tim.user_id,
             verified=False,
             primary=False,
@@ -154,7 +154,7 @@ class UpdateAffiliationTest(TestCase):
             email="tim@whitehouse.gov",
         )
         for verified_email in ["tim@example.com", "tim+two@mit.edu"]:
-            factories.EmailFactory.create(
+            factories.EmailAddressFactory.create(
                 user_id=tim.user_id, verified=True, primary=False, email=verified_email
             )
 
@@ -247,7 +247,7 @@ class QueryGearDBForMembershipTest(TestCase):
     @freeze_time("2022-07-11 22:00 EDT")
     def test_success(self):
         user = factories.UserFactory(email="bob@mit.edu")
-        factories.EmailFactory(email="robert@mit.edu", verified=True, user=user)
+        factories.EmailAddressFactory(email="robert@mit.edu", verified=True, user=user)
         responses.get(
             url="https://mitoc-gear.mit.edu/api-auth/v1/membership_waiver/?email=bob@mit.edu&email=robert@mit.edu",
             json={

@@ -133,14 +133,14 @@ class OtherVerifiedEmailsTest(TestCase):
             name="Tim Beaver", email="tim@example.com"
         )
 
-        factories.EmailFactory.create(
+        factories.EmailAddressFactory.create(
             user_id=tim.user_id,
             verified=False,
             primary=False,
             # Tim clearly doesn't own this email
             email="tim@whitehouse.gov",
         )
-        factories.EmailFactory.create(
+        factories.EmailAddressFactory.create(
             user_id=tim.user_id, verified=True, primary=False, email="tim@mit.edu"
         )
 
