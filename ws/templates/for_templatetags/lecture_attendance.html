@@ -1,3 +1,4 @@
+{% load crispy_forms_tags %}
 {% if attended_lectures %}
   <h3>Lecture Attendance</h3>
   <p>
@@ -13,7 +14,7 @@
 {% elif can_set_attendance %}  {# User (or chair) can mark attendance. #}
   <form method="post" action="{% url 'lecture_attendance' %}">
     {% csrf_token %}
-    {{ form }}
+    {{ form|crispy }}
     <div class="panel panel-primary">
       <div class="panel-heading">
         Winter School lecture attendance
