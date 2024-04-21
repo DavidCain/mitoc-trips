@@ -59,7 +59,14 @@ NODE_MODULES = os.path.join(BASE_DIR, "node_modules")
 STATIC_URL = "/static/"
 STATIC_ROOT = os.getenv("STATIC_ROOT", os.path.join(BASE_DIR, "static"))
 
-STATICFILES_STORAGE = "ws.storage.ManifestStorage"
+STORAGE = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "ws.storage.ManifestStorage",
+    },
+}
 
 STATICFILES_DIRS = [
     # For the legacy frontend, just put all the files directly in static root
@@ -318,7 +325,6 @@ DISABLE_GSHEETS = bool(os.getenv("DISABLE_GSHEETS"))
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "America/New_York"
 USE_I18N = True
-USE_L10N = True
 USE_TZ = True
 
 # Participants must update their profile information every ~6 months
