@@ -337,6 +337,8 @@ def membership_information() -> Iterator[MembershipInformation]:
     info_by_user_id = _get_trips_information()
 
     # Bridge from a lowercase email address to a Trips user ID
+    # Yes, lowercasing an email could technically cause collisions (Turkish dotless i)...
+    # This is just for statistics, though, so hopefully it's fine.
     email_to_user_id: dict[str, int] = dict(
         EmailAddress.objects.filter(verified=True)
         .annotate(lower_email=Lower("email"))
@@ -345,7 +347,10 @@ def membership_information() -> Iterator[MembershipInformation]:
 
     def trips_info_for(all_known_emails: Collection[str]) -> TripsInformation | None:
         try:
-            email = next(e for e in all_known_emails if e.lower() in email_to_user_id)
+            # Maintain ordering, to prefer first email!
+            email = next(
+                e.lower() for e in all_known_emails if e.lower() in email_to_user_id
+            )
         except StopIteration:
             return None
 

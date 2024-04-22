@@ -718,8 +718,8 @@ class RawMembershipStatsviewTest(TestCase):
                 {
                     "id": 37,
                     "affiliation": "MIT undergrad",
-                    "alternate_emails": ["tim@mit.edu"],
-                    "email": "tim@example.com",
+                    "alternate_emails": ["tim@MIT.EDU"],  # Case-insensitive!
+                    "email": "tim@EXAMPLE.COM",
                     "num_rentals": 3,
                 },
                 {
