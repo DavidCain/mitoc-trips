@@ -1,7 +1,7 @@
 import contextlib
 import logging
 from collections.abc import Iterator
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 from time import monotonic
 
 import requests
@@ -137,6 +137,28 @@ def update_participant_affiliation(participant_id: int) -> None:
     response = geardb.update_affiliation(participant)
     if response:  # `None` implies nothing to do
         response.raise_for_status()
+
+
+@shared_task(
+    autoretry_for=(requests.exceptions.RequestException,),
+    # Account for brief outages by retrying after 1 minute, then 2, then 4, then 8
+    retry_backoff=60,
+    max_retries=4,
+)
+def update_member_stats(
+    acceptable_staleness_seconds: float,
+) -> models.MembershipStats:
+    cached = models.MembershipStats.load()
+    acceptable_staleness = timedelta(seconds=acceptable_staleness_seconds)
+    now = datetime.now(timezone.utc)
+    if (now - cached.retrieved_at) > acceptable_staleness or not cached.response:
+        response = geardb.query_api("/api-auth/v1/stats")
+
+        # There's no need to worry about race conditions.
+        # If this gets overwritten by a response at roughly the same time, we're fine.
+        cached.response = response
+        cached.save()
+    return cached
 
 
 @shared_task  # Locking done at db level to ensure idempotency

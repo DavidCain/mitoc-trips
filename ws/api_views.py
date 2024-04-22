@@ -2,6 +2,7 @@ import json
 from collections.abc import Collection, Iterable, Iterator
 from datetime import date
 from typing import Any, TypedDict, cast
+from zoneinfo import ZoneInfo
 
 import jwt
 import jwt.exceptions
@@ -30,6 +31,11 @@ from ws.mixins import JsonTripLeadersOnlyView, TripLeadersOnlyView
 from ws.utils import membership_api
 from ws.utils.api import jwt_token_from_headers
 from ws.utils.feedback import feedback_is_recent
+from ws.utils.member_stats import (
+    CacheStrategy,
+    MembershipInformation,
+    fetch_membership_information,
+)
 
 
 class SimpleSignupsView(DetailView):
@@ -651,8 +657,10 @@ class MemberInfo(TypedDict):
 
 class RawMembershipStatsView(View):
     @staticmethod
-    def _all_members_info() -> Iterator[MemberInfo]:
-        for info in geardb_utils.membership_information():
+    def _flat_members_info(
+        members: list[MembershipInformation],
+    ) -> Iterator[MemberInfo]:
+        for info in members:
             flat_info: MemberInfo = {
                 "email": info.email,
                 "affiliation": info.affiliation,
@@ -672,8 +680,30 @@ class RawMembershipStatsView(View):
                 )
             yield flat_info
 
-    def get(self, request, *args, **kwargs):
-        return JsonResponse({"members": list(self._all_members_info())})
+    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> JsonResponse:
+        cache_str = self.request.GET.get(
+            "cache_strategy",
+            CacheStrategy.FETCH_IF_STALE_ASYNC.value,  # "default"
+        )
+        try:
+            cache_strategy = CacheStrategy(cache_str)
+        except ValueError:
+            valid_values = ", ".join(strat.value for strat in CacheStrategy)
+            return JsonResponse(
+                {"message": f"Cache strategy must be one of {valid_values}"},
+                status=400,
+            )
+
+        stats = fetch_membership_information(cache_strategy)
+
+        return JsonResponse(
+            {
+                "retrieved_at": stats.retrieved_at.astimezone(
+                    ZoneInfo("America/New_York")
+                ).isoformat(timespec="seconds"),
+                "members": list(self._flat_members_info(stats.members)),
+            }
+        )
 
     @method_decorator(group_required("leaders"))
     def dispatch(self, request, *args, **kwargs):

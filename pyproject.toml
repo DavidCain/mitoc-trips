@@ -276,6 +276,7 @@ disable = [
   ####################################
   # We let ruff handle these instead #
   ####################################
+  "consider-using-in",
   "logging-fstring-interpolation",
   "protected-access",
   "raise-missing-from",

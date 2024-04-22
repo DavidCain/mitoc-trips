@@ -44,7 +44,7 @@ class SingletonModel(models.Model):
     class Meta:
         abstract = True
 
-    def save(self, *args, **kwargs):  # pylint: disable=signature-differs
+    def save(self, *args: Any, **kwargs: Any) -> None:  # pylint: disable=signature-differs
         self.pk = 1
         super().save(*args, **kwargs)
 
@@ -162,6 +162,36 @@ class Discount(models.Model):
 
     def __str__(self):  # pylint: disable=invalid-str-returned
         return self.name
+
+
+class MembershipStats(SingletonModel):
+    """Cached response from https://mitoc-gear.mit.edu/api-auth/v1/stats
+
+    This model exists so that we can still report on member body statistics
+    even if the gear database is down (it goes down semi-frequently).
+
+    Why exactly use a single-row Postgres table for this?
+    In short, because this is our only data store -- we don't have or really
+    even need a proper caching framework.
+
+    We don't use Redis, so a semi-persistent fast-retrieval cache is out.
+
+    An in-memory cache (e.g. `functools.cache`) would absolutely work, *but*
+    that'll only work for the lifetime of a worker and needlessly makes web
+    workers hold onto memory. Also, when gunicorn restarts after 2,000
+    requests, we'd need to fetch information again.
+
+    Finally, the ideal cache is one that only fetches data if it's necessary,
+    but Python's stdlib doesn't come built-in with the notion of a time-based
+    cache. We could build one but, again, why not just shove everything in Postgres?
+    """
+
+    retrieved_at = models.DateTimeField(auto_now=True)
+
+    response = models.JSONField(default=list)  # Default just to ease singleton init
+
+    def __str__(self):
+        return f"Cached results from /api-auth/v1/stats, {len(self.response)} retrieved: {self.retrieved_at}"
 
 
 class Membership(models.Model):

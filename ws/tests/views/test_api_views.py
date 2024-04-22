@@ -6,11 +6,11 @@ import responses
 from django.test import TestCase
 from freezegun import freeze_time
 
-import ws.utils.geardb as geardb_utils
 import ws.utils.perms as perm_utils
-from ws import enums, models, settings
+from ws import enums, models, settings, tasks
 from ws.api_views import MemberInfo
 from ws.tests import factories
+from ws.utils import member_stats
 from ws.utils.signups import add_to_waitlist
 
 
@@ -615,11 +615,86 @@ class RawMembershipStatsviewTest(TestCase):
         response = self.client.get("/stats/membership.json")
         self.assertEqual(response.status_code, 403)
 
+    def test_invalid_cache_strategy(self):
+        response = self.client.get("/stats/membership.json?cache_strategy=delete")
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            response.json(),
+            {
+                "message": "Cache strategy must be one of default, fetch_if_stale, bypass"
+            },
+        )
+
+    def test_first_load_inits_cache(self):
+        self.assertFalse(models.MembershipStats.objects.exists())
+        with freeze_time("2019-02-22 12:25:00 EST"):
+            with mock.patch.object(tasks.update_member_stats, "delay"):
+                response = self.client.get("/stats/membership.json")
+        self.assertTrue(models.MembershipStats.objects.exists())
+
+        self.assertEqual(
+            response.json(),
+            # Yeah, technically this is a bit misleading since we've retrieved nothing.
+            # Oh well, will only mislead on its first load.
+            {"retrieved_at": "2019-02-22T12:25:00-05:00", "members": []},
+        )
+
+    @responses.activate
+    def test_fetches_async_by_default(self):
+        with freeze_time("2019-02-22 12:25:00 EST"):
+            cached = models.MembershipStats.load()
+            cached.response = [
+                {
+                    "id": 37,
+                    "affiliation": "MIT undergrad",
+                    "alternate_emails": ["tim@mit.edu"],
+                    "email": "tim@example.com",
+                    "num_rentals": 3,
+                }
+            ]
+            cached.save()
+
+        factories.EmailAddressFactory.create(
+            user=self.participant.user,
+            email="tim@example.com",
+            verified=True,
+            primary=False,
+        )
+        factories.SignUpFactory.create(participant=self.participant, on_trip=True)
+
+        with mock.patch.object(tasks.update_member_stats, "delay") as update:
+            response = self.client.get("/stats/membership.json")  # No cache_strategy
+        update.assert_called_once_with(3600)
+
+        self.assertEqual(
+            response.json(),
+            {
+                # We used the cached information from the geardb
+                "retrieved_at": "2019-02-22T12:25:00-05:00",
+                "members": [
+                    {
+                        "email": self.participant.email,
+                        "affiliation": "MIT undergrad",
+                        "num_rentals": 3,
+                        # Notably, augmented by fresh trips info!
+                        "is_leader": True,
+                        "num_trips_attended": 1,
+                        "num_trips_led": 0,
+                        "num_discounts": 0,
+                    },
+                ],
+            },
+        )
+
     @responses.activate
     def test_no_members(self):
         responses.get(url="https://mitoc-gear.mit.edu/api-auth/v1/stats", json=[])
-        response = self.client.get("/stats/membership.json")
-        self.assertEqual(response.json(), {"members": []})
+        with freeze_time("2019-02-22 12:25:00 EST"):
+            response = self.client.get("/stats/membership.json?cache_strategy=bypass")
+        self.assertEqual(
+            response.json(),
+            {"retrieved_at": "2019-02-22T12:25:00-05:00", "members": []},
+        )
 
     @responses.activate
     def test_no_matching_participant(self):
@@ -644,9 +719,9 @@ class RawMembershipStatsviewTest(TestCase):
         )
 
     def _expect_members(self, *expected_members: MemberInfo) -> None:
-        response = self.client.get("/stats/membership.json")
+        response = self.client.get("/stats/membership.json?cache_strategy=bypass")
         resp_json = response.json()
-        self.assertCountEqual(resp_json, {"members"})
+        self.assertCountEqual(resp_json, {"members", "retrieved_at"})
         self.assertCountEqual(resp_json["members"], expected_members)
 
     @responses.activate
@@ -793,9 +868,16 @@ class RawMembershipStatsviewTest(TestCase):
             },
         )
 
-        # Ignoring the overhead of API queries, this is an efficient endpoint:
+        # Ignoring the overhead of API queries, this is an efficient endpoint!
+        # 1. Read cache object (or create)
+        # 2. Save cache
+        with self.assertNumQueries(2):
+            stats = member_stats.fetch_geardb_stats_for_all_members(
+                member_stats.CacheStrategy.BYPASS
+            )
+
         # 1. Count trips per participant (separate to avoid double-counting)
         # 2. Count discounts, trips led, per participant
         # 3. Get all emails (lowercased, for mapping back to participant records)
         with self.assertNumQueries(3):
-            list(geardb_utils.membership_information())
+            stats.with_trips_information()

@@ -174,7 +174,9 @@
     };
 
     vega.loader()
-      .load("{% url 'json-membership_stats' %}")
+      {# Load the last-cached version by default, refreshing in background if needed. #}
+      {# Other strategies are accepted, though (e.g. "bypass") #}
+      .load("{% url 'json-membership_stats' %}?cache_strategy={{ cache_strategy }}")
       .then(function(data) {
         var allMembers = JSON.parse(data).members;
         renderChart("#paid_dues", allMembers);
@@ -221,6 +223,15 @@
     download the <a href="{% url 'json-membership_stats' %}">raw data</a> to
     explore further.
   </p>
+
+  {% if retrieved_at %}
+  <p>
+    <small>
+      Membership stats retrieved {{ retrieved_at }}
+    </small>
+    <a href="{% url 'membership_stats' %}?cache_strategy=bypass">Query servers for the latest?</a>
+  </p>
+  {% endif %}
 
   <hr>
 

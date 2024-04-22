@@ -4,21 +4,24 @@ The gear database is itself a Django application, which we interface with
 via machine-to-machine API endpoints.
 """
 
+from __future__ import annotations
+
 import logging
-from collections.abc import Collection, Iterator
 from datetime import date, datetime, timedelta
-from typing import Any, NamedTuple
+from typing import TYPE_CHECKING, Any, NamedTuple
 from urllib.parse import urljoin
 
 import requests
 from allauth.account.models import EmailAddress
-from django.contrib.auth.models import User
-from django.db.models import Case, Count, IntegerField, Q, Sum, When
-from django.db.models.functions import Lower
 
 from ws import models, settings
 from ws.utils import api as api_util
 from ws.utils.dates import local_date
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
+
+    from django.contrib.auth.models import User
 
 logger = logging.getLogger(__name__)
 
@@ -266,107 +269,3 @@ def update_affiliation(participant: models.Participant) -> requests.Response | N
         json=payload,
         timeout=10,
     )
-
-
-def _stats_only_all_active_members() -> list[MembershipInformation]:
-    """Report emails & rental activity for all members with current dues."""
-
-    return [
-        MembershipInformation(
-            email=member["email"],
-            alternate_emails=member["alternate_emails"],
-            person_id=int(member["id"]),
-            affiliation=member["affiliation"],
-            num_rentals=int(member["num_rentals"]),
-            # We don't have any trips information here.
-            trips_information=None,
-        )
-        for member in query_api("/api-auth/v1/stats")
-    ]
-
-
-def _get_trips_information() -> dict[int, TripsInformation]:
-    """Give important counts, indexed by user IDs.
-
-    Each participant has a singular underlying user. This user has one or more
-    email addresses, which form the link back to the gear database.
-    """
-    # Notably this counts *all* historical attendance on trips.
-    # Do we perhaps just want to count participants who've gone on a trip this last year?
-    signup_on_trip = Case(
-        When(signup__on_trip=True, then=1), default=0, output_field=IntegerField()
-    )
-
-    trips_per_participant: dict[int, int] = dict(
-        models.Participant.objects.all()
-        .annotate(
-            # NOTE: Adding other annotations results in double-counting signups
-            # (We do multiple JOINs, and can't easily pass a DISTINCT to the Sum)
-            num_trips_attended=Sum(signup_on_trip)
-        )
-        .values_list("pk", "num_trips_attended")
-    )
-
-    additional_stats = models.Participant.objects.all().annotate(
-        num_discounts=Count("discounts", distinct=True),
-        num_trips_led=Count("trips_led", distinct=True),
-        num_leader_ratings=Count("leaderrating", filter=Q(leaderrating__active=True)),
-    )
-
-    return {
-        par.user_id: TripsInformation(
-            email=par.email,
-            is_leader=bool(par.num_leader_ratings),
-            num_trips_attended=trips_per_participant[par.pk],
-            num_trips_led=par.num_trips_led,
-            num_discounts=par.num_discounts,
-        )
-        for par in additional_stats
-    }
-
-
-def membership_information() -> Iterator[MembershipInformation]:
-    """All current active members, annotated with additional info.
-
-    For each paying member, we also mark if they:
-    - have attended any trips
-    - have led any trips
-    - have rented gear
-    - make use MITOC discounts
-    """
-    info_by_user_id = _get_trips_information()
-
-    # Bridge from a lowercase email address to a Trips user ID
-    # Yes, lowercasing an email could technically cause collisions (Turkish dotless i)...
-    # This is just for statistics, though, so hopefully it's fine.
-    email_to_user_id: dict[str, int] = dict(
-        EmailAddress.objects.filter(verified=True)
-        .annotate(lower_email=Lower("email"))
-        .values_list("lower_email", "user_id")
-    )
-
-    def trips_info_for(all_known_emails: Collection[str]) -> TripsInformation | None:
-        try:
-            # Maintain ordering, to prefer first email!
-            email = next(
-                e.lower() for e in all_known_emails if e.lower() in email_to_user_id
-            )
-        except StopIteration:
-            return None
-
-        user_id = email_to_user_id[email]
-
-        try:
-            return info_by_user_id[user_id]
-        except KeyError:  # User, but no corresponding Participant
-            return None
-
-    for info in _stats_only_all_active_members():
-        trips_info = trips_info_for({info.email, *info.alternate_emails})
-        yield info._replace(
-            # Email will only be shown in the raw JSON.
-            # Because this is a leaders-only viewpoint, we can show such personal info.
-            # Given that we also count rentals, we *might* consider a BOD-only restriction.
-            email=trips_info.email if trips_info else info.email,
-            trips_information=trips_info,
-        )
