@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any, NamedTuple
 
 from allauth.account.models import EmailAddress
-from django.db.models import Case, Count, IntegerField, Q, Sum, When
+from django.db.models import Count, Exists, OuterRef
 from django.db.models.functions import Lower
 from typing_extensions import assert_never
 
@@ -50,6 +50,10 @@ class MemberStatsResponse(NamedTuple):
 
     def with_trips_information(self) -> MemberStatsResponse:
         """Add information about trip attendance to the geardb members."""
+        # Future optimization -- rather than fetching info about *all* users,
+        # try just those who are active MITOC members.
+        # If we wanted, we could try to rely on the cached Membership object.
+        # (though that's more prone to failure on cache mismatches)
         info_by_user_id = _get_trip_stats_by_user()
 
         # Bridge from a lowercase email address to a Trips user ID
@@ -151,35 +155,43 @@ def _get_trip_stats_by_user() -> dict[int, TripsInformation]:
     Each participant has a singular underlying user. This user has one or more
     email addresses, which form the link back to the gear database.
     """
-    # Notably this counts *all* historical attendance on trips.
-    # Do we perhaps just want to count participants who've gone on a trip this last year?
-    signup_on_trip = Case(
-        When(signup__on_trip=True, then=1), default=0, output_field=IntegerField()
+    trips_per_participant: dict[int, int] = dict(
+        models.SignUp.objects.filter(on_trip=True)
+        .values("participant_id")
+        .annotate(num_trips=Count("participant_id"))
+        .values_list("participant_id", "num_trips")
     )
 
-    trips_per_participant: dict[int, int] = dict(
+    additional_stats = (
         models.Participant.objects.all()
         .annotate(
-            # NOTE: Adding other annotations results in double-counting signups
-            # (We do multiple JOINs, and can't easily pass a DISTINCT to the Sum)
-            num_trips_attended=Sum(signup_on_trip)
+            # Future optimization: *most* participants don't lead trips or use discounts.
+            # Querying those separately should avoid the need to do pointless JOINs
+            num_discounts=Count("discounts", distinct=True),
+            num_trips_led=Count("trips_led", distinct=True),
+            is_leader=Exists(
+                models.LeaderRating.objects.filter(
+                    participant=OuterRef("pk"), active=True
+                )
+            ),
         )
-        .values_list("pk", "num_trips_attended")
-    )
-
-    additional_stats = models.Participant.objects.all().annotate(
-        num_discounts=Count("discounts", distinct=True),
-        num_trips_led=Count("trips_led", distinct=True),
-        num_leader_ratings=Count("leaderrating", filter=Q(leaderrating__active=True)),
+        .values(
+            "pk",
+            "user_id",
+            "email",
+            "is_leader",
+            "num_trips_led",
+            "num_discounts",
+        )
     )
 
     return {
-        par.user_id: TripsInformation(
-            email=par.email,
-            is_leader=bool(par.num_leader_ratings),
-            num_trips_attended=trips_per_participant[par.pk],
-            num_trips_led=par.num_trips_led,
-            num_discounts=par.num_discounts,
+        par["user_id"]: TripsInformation(
+            email=par["email"],
+            is_leader=par["is_leader"],
+            num_trips_attended=trips_per_participant.get(par["pk"], 0),
+            num_trips_led=par["num_trips_led"],
+            num_discounts=par["num_discounts"],
         )
         for par in additional_stats
     }
