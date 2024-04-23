@@ -933,7 +933,7 @@ class LeaderRating(BaseRating):
     creator = models.ForeignKey(
         Participant, related_name="ratings_created", on_delete=models.CASCADE
     )
-    active = models.BooleanField(default=True)
+    active = models.BooleanField(default=True, db_index=True)
 
 
 class LeaderRecommendation(BaseRating):
@@ -973,7 +973,7 @@ class SignUp(BaseSignUp):
     order = models.IntegerField(null=True, blank=True)  # As ranked by participant
     manual_order = models.IntegerField(null=True, blank=True)  # Order on trip
 
-    on_trip = models.BooleanField(default=False)
+    on_trip = models.BooleanField(default=False, db_index=True)
 
     class Meta:
         # When ordering for an individual, should order by priority (i.e. 'order')
