@@ -224,6 +224,14 @@
     explore further.
   </p>
 
+  <p>
+    This page combines two sources of data:
+    <ol>
+      <li><strong>Gear database</strong>: source of truth for membership, gear rental history, and present affiliation.</li>
+      <li><strong>MITOC Trips</strong>: adds trip participation, leader status, discount enrollment, preferred email address.</li>
+    </ol>
+  </p>
+
   {% if retrieved_at %}
   <p>
     <small>
@@ -261,8 +269,9 @@
   <p>Current affiliation of people who have ever led a trip (even if they're not currently rated).</p>
   <div id="leaders"></div>
 
-  <h3>All dues-paying members</h3>
-  <p>This is a count of all MITOCers who've paid their dues (but may not have
+  <h3>All dues-paying MITOCers</h3>
+  <p>
+    This is a count of all MITOCers who've paid their dues (but may not have
     rented gear, participated on trips, or otherwise made use of the club).
   </p>
   <div id="paid_dues"></div>
