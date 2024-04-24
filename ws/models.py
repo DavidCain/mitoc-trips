@@ -1601,7 +1601,7 @@ class LotteryInfo(models.Model):
 
     @property
     def is_driver(self) -> bool:
-        return self.car_status in ["own", "rent"]
+        return self.car_status in {"own", "rent"}
 
 
 class LotterySeparation(models.Model):

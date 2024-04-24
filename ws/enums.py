@@ -305,13 +305,13 @@ class Program(enum.Enum):
     @classmethod
     def _is_open(cls, value: str) -> bool:
         """Return True if any leader can lead."""
-        return cls(value) in (cls.CIRCUS, cls.SERVICE, cls.NONE)
+        return cls(value) in {cls.CIRCUS, cls.SERVICE, cls.NONE}
 
     def is_winter_school(self) -> bool:
         return self == Program(self.WINTER_SCHOOL)
 
     def winter_rules_apply(self) -> bool:
-        return self in (Program(self.WINTER_SCHOOL), Program(self.WINTER_NON_IAP))
+        return self in {Program(self.WINTER_SCHOOL), Program(self.WINTER_NON_IAP)}
 
     def required_activity(self) -> Activity | None:
         """For the program, return a required leader rating to make trips.

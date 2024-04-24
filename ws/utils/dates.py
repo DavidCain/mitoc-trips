@@ -38,7 +38,7 @@ def itinerary_available_at(trip_date: date) -> datetime:
     # For midweek trips (Wed, Thursday, Friday), the Thursday before is inadequate:
     # - Wed/Thursday trips: That's a full *week* too soon!
     # - Friday trips: 24 hours is not enough time.
-    open_dt = (trip_date - timedelta(days=2)) if trip_dow in (2, 3, 4) else thur_before
+    open_dt = (trip_date - timedelta(days=2)) if trip_dow in {2, 3, 4} else thur_before
 
     return localize(datetime.combine(open_dt, time(hour=18, minute=0)))
 
@@ -220,7 +220,7 @@ def ws_lectures_complete() -> bool:
     )
 
     dow = now.weekday()
-    after_thursday = dow > 3 or dow == 3 and now.hour >= 21
+    after_thursday = dow > 3 or (dow == 3 and now.hour >= 21)
 
     if trips_this_ws.filter(trip_date__lt=today):
         return True

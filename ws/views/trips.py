@@ -598,7 +598,7 @@ class TripSearchView(ListView, FormView):
         specified_filters = {
             field: value
             for field, value in self.request.GET.items()
-            if value and field in ("winter_terrain_level", "trip_type", "program")
+            if value and field in {"winter_terrain_level", "trip_type", "program"}
         }
         return annotated_for_trip_list(
             models.Trip.search_trips(
