@@ -201,9 +201,9 @@ class GraphTests(TestCase):
     def test_graph_is_a_tree(self):
         r"""Test when the directed graph is just a tree (has no cycles)
 
-             A ---> B --> C
-                    \
-                     \--> D
+        A ---> B --> C
+               \
+                 \--> D
         """
         a, b, c, d = (
             factories.ParticipantFactory.create(name=letter) for letter in "ABCD"

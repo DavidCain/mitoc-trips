@@ -12,8 +12,7 @@ def readonly_form(form):
 
 @register.filter
 def instances_and_widgets(bound_field):
-    """Yields two-tuples of instances and widgets, designed to
-    be used with ModelMultipleChoiceField and CheckboxSelectMultiple widgets.
+    """Yields instances and widgets for use with ModelMultipleChoiceField & CheckboxSelectMultiple.
 
     Allows templates to loop over a multiple checkbox field and display the
     related model instance, such as for a table with checkboxes.

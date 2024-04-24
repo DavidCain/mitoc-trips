@@ -301,7 +301,6 @@ class LeaderParticipantSignupView(
         - Participant has never signed up for the trip, will be placed
         - Participant has signed up before, but is not on the trip
         """
-
         postdata = json.loads(self.request.body)
         par_pk = postdata.get("participant_id")
         notes = postdata.get("notes", "")
@@ -562,7 +561,6 @@ class JWTView(View):
 class UpdateMembershipView(JWTView):
     def post(self, request, *args, **kwargs):
         """Receive a message that the user's membership was updated."""
-
         participant = models.Participant.from_email(self.payload["email"])
         if not participant:  # Not in our system, nothing to do
             return JsonResponse({})
@@ -592,7 +590,6 @@ class UpdateMembershipView(JWTView):
 class OtherVerifiedEmailsView(JWTView):
     def get(self, request, *args, **kwargs):
         """Return any other verified emails that tie to the same user."""
-
         email = self.payload["email"]
 
         addr = EmailAddress.objects.filter(email=email, verified=True).first()

@@ -236,7 +236,6 @@ class LecturesCompleteTests(TestCase):
 
     def test_future_trips(self):
         """When there are no past trips, but there are upcoming trips."""
-
         self._create_ws_trip(date(2018, 1, 5))
         self._create_ws_trip(date(2018, 1, 6))
 

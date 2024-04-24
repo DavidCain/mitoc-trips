@@ -80,7 +80,6 @@ class SuperUserTestCase(TestCase):
 
     def test_activity_chair(self):
         """The admin can be considered an activity chair in some contexts."""
-
         self.assertTrue(perm_utils.chair_or_admin(self.admin, enums.Activity.HIKING))
         self.assertTrue(perm_utils.is_chair(self.admin, enums.Activity.HIKING))
         self.assertTrue(

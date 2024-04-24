@@ -81,9 +81,11 @@ def generate_unsubscribe_token(participant: models.Participant) -> str:
 def unsign_token(token: str) -> UnsubscribeTarget:
     """Extract the participant & desired unsubscribe topics from a signed payload.
 
-    Raises:
+    Raises
+    ------
         signing.SignatureExpired: Token is >30 days old
         signing.BadSignature: Token is invalid (or just >30 days old)
+
     """
     payload: TokenPayload = _get_signer().unsign_object(
         token,
@@ -108,8 +110,10 @@ def _bad_token_reason(exception: signing.BadSignature) -> str:
 def unsubscribe_from_token(token: str) -> models.Participant:
     """Attempt to unsubscribe the participant based on an (assumed valid) token.
 
-    Raises:
+    Raises
+    ------
         InvalidTokenError: Expired token, invalid token, or participant gone
+
     """
     # Any exceptions this method raises have messages meant to be consumed by humans.
     # We don't need the full traceback.

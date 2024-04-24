@@ -87,7 +87,8 @@ class ParticipantEditMixin(TemplateView):
         return "has_car" in self.request.POST
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
-        """Return a dictionary primarily of forms to for template rendering.
+        """Return a dictionary primarily of forms for template rendering.
+
         Also includes a value for the "I have a car" checkbox.
 
         Outputs three types of forms:

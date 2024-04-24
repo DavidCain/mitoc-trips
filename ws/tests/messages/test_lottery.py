@@ -57,7 +57,6 @@ class LotteryMessagesTest(MessagesTestCase):
     @freeze_time("2017-01-17 12:00:00 EST")
     def test_driver_with_no_info(self):
         """We ask participants who said they could drive to supply info."""
-
         par = factories.ParticipantFactory.create()
         factories.LotteryInfoFactory.create(participant=par, car_status="own")
         self.assertIsNone(par.car)

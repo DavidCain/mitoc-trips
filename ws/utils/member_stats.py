@@ -115,7 +115,6 @@ def fetch_geardb_stats_for_all_members(
     cache_strategy: CacheStrategy,
 ) -> MemberStatsResponse:
     """Report emails & rental activity for all members with current dues."""
-
     acceptable_staleness = timedelta(
         hours=(0 if cache_strategy == CacheStrategy.BYPASS else 1)
     ).total_seconds()

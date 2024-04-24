@@ -163,7 +163,6 @@ class OtherVerifiedEmailsTest(TestCase):
 
     def test_user_without_participant(self):
         """We handle the case of a user who never completed a participant record."""
-
         factories.UserFactory.create(email="tim@mit.edu")
         response = self._query_for("tim@mit.edu")
         self.assertEqual(response.status_code, 200)

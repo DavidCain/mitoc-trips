@@ -9,6 +9,7 @@ lint.select = [
   "C4",    # flake8-comprehensions
   "C90",   # mccabe
   "COM",   # flake8-commas
+  "D",     # pydocstyle
   "DJ",    # flake8-django
   "DTZ",   # flake8-datetimez
   "E",     # pycodestyle error
@@ -46,12 +47,6 @@ lint.select = [
   "W",     # pycodestyle warning
   "YTT",   # flake8-2020
 
-  # Docstring normalization
-  "D404",  # Don't start docstrings with "This"
-  "D200",  # One-line docstrings on one line
-  "D210",  # No superfluous whitespace
-  "D212",  # Multi-line docstrings start on first line
-
   # Interesting, should perhaps turn on later:
   # "PTH",  # flake8-use-pathlib
   # "FLY",  # flynt
@@ -82,7 +77,14 @@ lint.ignore = [
   "D100",     # Not all public classes need docstrings.
   "D101",     # Not all public classes need docstrings.
   "D102",     # Not all public methods need docstrings.
+  "D103",     # Not all public methods need docstrings.
+  "D104",     # Not all packages need docstrings.
+  "D105",     # Not all magic methods need docstrings.
+  "D106",     # Not all public classes need docstrings.
   "D107",     # Not all `__init__` methods need docstrings.
+  "D400",     # I don't care if summary lines are sentences
+  "D401",     # I don't care how summary lines are conjugated
+  "D415",     # I don't care if summary lines are sentences
   "N806",     # Function arguments are frequently uppercase in migrations.
   "PLR2004",  # Tests & simple logic extensively use "magic values"
   "PT009",    # I intentionally use `unittest`-style tests.
@@ -103,6 +105,10 @@ lint.ignore = [
   "ISC001",
   "COM812",   # Formatter manages commas.
   "E501",     # Formatter manages line length.
+
+  # Errors that conflict with *other* rules in their own ruleset
+  "D213",     # Method summaries can go on the first line (conflicts with D212)
+  "D203",     # No blank line before class (conflicts with D211)
 ]
 
 # By default, `ruff` will respect `.gitignore`

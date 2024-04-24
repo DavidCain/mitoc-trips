@@ -40,7 +40,6 @@ class LeaderApplicationMixin:
 
     def activity_chairs(self) -> QuerySet[User]:
         """Return the chairs for this activity."""
-
         # It's important that this remain a method, not stored at init.
         # This way, views that want to get activity from self.kwargs can inherit from the mixin
         return perm_utils.activity_chairs(self.activity_enum)

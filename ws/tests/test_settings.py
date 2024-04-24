@@ -46,7 +46,6 @@ class SettingsTests(unittest.TestCase):
 
     def _fresh_settings_load(self):
         """Do a fresh re-import of the settings module!"""
-
         with mock.patch("builtins.__import__", side_effect=self._reimport_if_needed):
             reload(settings)
 
@@ -108,7 +107,6 @@ class SettingsTests(unittest.TestCase):
     def test_local_development_without_debug_toolbar(self):
         """We configure installed applications properly when debug toolbar is absent.
 
-
         In most test builds, we won't have `debug_toolbar` installed, but this guarantees
         coverage of behavior when we do not.
         """
@@ -146,7 +144,6 @@ class SettingsTests(unittest.TestCase):
 
     def test_sentry_not_initialized_if_envvar_present(self):
         """During local development, we can disable Sentry."""
-
         with mock.patch.dict("os.environ", {"WS_DJANGO_LOCAL": "1"}, clear=True):
             with mock.patch.object(settings.sentry_sdk, "init") as init_sentry:
                 self._fresh_settings_load()
