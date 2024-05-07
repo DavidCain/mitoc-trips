@@ -659,6 +659,15 @@ class RawMembershipStatsviewTest(TestCase):
             verified=True,
             primary=False,
         )
+        # Reflect reality -- to be an MIT student, you *must* have a verified mit.edu
+        self.participant.affiliation = "MU"
+        self.participant.save()
+        factories.EmailAddressFactory.create(
+            user=self.participant.user,
+            verified=True,
+            primary=False,
+            email="tim@mit.edu",
+        )
         factories.SignUpFactory.create(participant=self.participant, on_trip=True)
 
         with mock.patch.object(tasks.update_member_stats, "delay") as update:
@@ -680,6 +689,7 @@ class RawMembershipStatsviewTest(TestCase):
                         "num_trips_attended": 1,
                         "num_trips_led": 0,
                         "num_discounts": 0,
+                        "mit_email": "tim@mit.edu",
                     },
                 ],
             },
@@ -712,6 +722,8 @@ class RawMembershipStatsviewTest(TestCase):
         self._expect_members(
             {
                 "email": "tim@example.com",
+                # We still report the MIT email from the geardb!
+                "mit_email": "tim@mit.edu",
                 "affiliation": "MIT undergrad",
                 "num_rentals": 3,
             }
@@ -761,6 +773,7 @@ class RawMembershipStatsviewTest(TestCase):
             {
                 # We report their trips email as preferred!
                 "email": "bob+preferred@example.com",
+                "mit_email": None,
                 "affiliation": "Non-MIT undergrad",
                 # Found a matching account!
                 "is_leader": False,
@@ -773,7 +786,58 @@ class RawMembershipStatsviewTest(TestCase):
             {
                 "affiliation": "MIT affiliate",
                 "email": "404@example.com",
+                "mit_email": None,
                 "num_rentals": 0,
+            },
+        )
+
+    @responses.activate
+    def test_ignores_possibly_old_mit_edu(self):
+        with freeze_time("2019-02-22 12:25:00 EST"):
+            cached = models.MembershipStats.load()
+            cached.response = [
+                {
+                    "id": 37,
+                    "affiliation": "MIT alum (former student)",
+                    "alternate_emails": ["tim@mit.edu"],
+                    "email": "tim@example.com",
+                    "num_rentals": 3,
+                }
+            ]
+            cached.save()
+
+        # Simulate an old MIT email they may no longer own!
+        factories.EmailAddressFactory.create(
+            user=self.participant.user,
+            email="tim@mit.edu",
+            verified=True,
+            primary=False,
+        )
+        # MIT alum -- they *used* to own tim@mit.edu
+        self.participant.affiliation = "ML"
+        self.participant.save()
+
+        with mock.patch.object(tasks.update_member_stats, "delay"):
+            response = self.client.get("/stats/membership.json")  # No cache_strategy
+
+        self.assertEqual(
+            response.json(),
+            {
+                # We used the cached information from the geardb
+                "retrieved_at": "2019-02-22T12:25:00-05:00",
+                "members": [
+                    {
+                        "email": self.participant.email,
+                        "affiliation": "MIT alum (former student)",
+                        "num_rentals": 3,
+                        "is_leader": True,
+                        "num_trips_attended": 0,
+                        "num_trips_led": 0,
+                        "num_discounts": 0,
+                        # We do *not* report the mit.edu email -- it may be old
+                        "mit_email": None,
+                    },
+                ],
             },
         )
 
@@ -812,6 +876,15 @@ class RawMembershipStatsviewTest(TestCase):
             verified=True,
             primary=False,
         )
+        # Reflect reality -- to be an MIT student, you *must* have a verified mit.edu
+        self.participant.affiliation = "MU"
+        self.participant.save()
+        factories.EmailAddressFactory.create(
+            user=self.participant.user,
+            verified=True,
+            primary=False,
+            email="tim@mit.edu",
+        )
         bob = factories.ParticipantFactory.create(email="bob+bu@example.com")
         factories.EmailAddressFactory.create(
             user=bob.user, email="bob@bu.edu", verified=True, primary=False
@@ -843,6 +916,7 @@ class RawMembershipStatsviewTest(TestCase):
         self._expect_members(
             {
                 "email": "bob+bu@example.com",  # Preferred email!
+                "mit_email": None,
                 "affiliation": "Non-MIT undergrad",
                 "num_rentals": 0,
                 "is_leader": False,  # Not presently a leader!
@@ -852,6 +926,7 @@ class RawMembershipStatsviewTest(TestCase):
             },
             {
                 "email": self.participant.email,
+                "mit_email": "tim@mit.edu",
                 "affiliation": "MIT undergrad",
                 "num_rentals": 3,
                 "is_leader": True,
@@ -863,6 +938,7 @@ class RawMembershipStatsviewTest(TestCase):
             {
                 "affiliation": "MIT affiliate",
                 "email": "404@example.com",
+                "mit_email": None,
                 "num_rentals": 0,
             },
         )
@@ -878,5 +954,6 @@ class RawMembershipStatsviewTest(TestCase):
         # 1. Count trips per participant (separate to avoid double-counting)
         # 2. Count discounts, trips led, per participant
         # 3. Get all emails (lowercased, for mapping back to participant records)
-        with self.assertNumQueries(3):
+        # 4. Get MIT email addresses
+        with self.assertNumQueries(4):
             stats.with_trips_information()

@@ -8,12 +8,13 @@ from typing import TYPE_CHECKING, Any, NamedTuple
 from allauth.account.models import EmailAddress
 from django.db.models import Count, Exists, OuterRef
 from django.db.models.functions import Lower
+from mitoc_const import affiliations
 from typing_extensions import assert_never
 
 from ws import models, tasks
 
 if TYPE_CHECKING:
-    from collections.abc import Collection
+    from collections.abc import Collection, Iterator
 
 
 logger = logging.getLogger(__name__)
@@ -32,10 +33,15 @@ class TripsInformation(NamedTuple):
     # Email address as given on Participant object
     # (We assume this is their preferred current email)
     email: str
+    # If they are a student & have verified an mit.edu email, we report it
+    verified_mit_email: str | None
 
 
 class MembershipInformation(NamedTuple):
     email: str
+    # In order to claim MIT student status, you must verify you own an @mit.edu email.
+    # We'll only report this for *current* students (since many others will lack).
+    mit_email: str | None
     alternate_emails: list[str]
     person_id: int
     affiliation: str
@@ -133,9 +139,26 @@ def fetch_geardb_stats_for_all_members(
     else:
         assert_never(cache_strategy)
 
+    def _mit_emails(member: dict[str, Any]) -> Iterator[str]:
+        for email in {member["email"], *member["alternate_emails"]}:
+            if email.lower().endswith("@mit.edu"):  # Exclude alum.mit.edu!
+                yield email.lower()
+
     info = [
         MembershipInformation(
             email=member["email"],
+            # If they are a current MIT student, assume they own the first mit.edu.
+            # To pay dues on the trips site, we *require* they own an MIT email.
+            # However, it's possible a desk worker manually added the membership.
+            mit_email=(
+                next(_mit_emails(member), None)
+                if member["affiliation"]
+                in {
+                    affiliations.MIT_UNDERGRAD.VALUE,
+                    affiliations.MIT_GRAD_STUDENT.VALUE,
+                }
+                else None
+            ),
             alternate_emails=member["alternate_emails"],
             person_id=int(member["id"]),
             affiliation=member["affiliation"],
@@ -159,6 +182,19 @@ def _get_trip_stats_by_user() -> dict[int, TripsInformation]:
         .values("participant_id")
         .annotate(num_trips=Count("participant_id"))
         .values_list("participant_id", "num_trips")
+    )
+
+    # Technically, yes, one could have multiple verified mit.edu addresses.
+    # But that's going to be exceptionally rare, and the dict will handle dupes.
+    mit_email_for_students: dict[int, str] = dict(
+        models.Participant.objects.filter(
+            affiliation__in=[
+                affiliations.MIT_UNDERGRAD.CODE,
+                affiliations.MIT_GRAD_STUDENT.CODE,
+            ],
+            user__emailaddress__verified=True,
+            user__emailaddress__email__iendswith="@mit.edu",
+        ).values_list("pk", "user__emailaddress__email")
     )
 
     additional_stats = (
@@ -187,6 +223,7 @@ def _get_trip_stats_by_user() -> dict[int, TripsInformation]:
     return {
         par["user_id"]: TripsInformation(
             email=par["email"],
+            verified_mit_email=mit_email_for_students.get(par["pk"]),
             is_leader=par["is_leader"],
             num_trips_attended=trips_per_participant.get(par["pk"], 0),
             num_trips_led=par["num_trips_led"],

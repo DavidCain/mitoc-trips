@@ -645,6 +645,8 @@ class MemberInfo(TypedDict):
     email: str
     affiliation: str
     num_rentals: int
+    # Only reported if they are an MIT student!
+    mit_email: str | None
     # Fields from TripInformation, if found
     is_leader: NotRequired[bool]
     num_trips_attended: NotRequired[int]
@@ -660,6 +662,7 @@ class RawMembershipStatsView(View):
         for info in members:
             flat_info: MemberInfo = {
                 "email": info.email,
+                "mit_email": info.mit_email,
                 "affiliation": info.affiliation,
                 "num_rentals": info.num_rentals,
             }
@@ -675,6 +678,9 @@ class RawMembershipStatsView(View):
                         "num_discounts": info.trips_information.num_discounts,
                     }
                 )
+                # If there's a verified MIT email address from the trips site, use it!
+                if info.trips_information.verified_mit_email is not None:
+                    flat_info["mit_email"] = info.trips_information.verified_mit_email
             yield flat_info
 
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> JsonResponse:
