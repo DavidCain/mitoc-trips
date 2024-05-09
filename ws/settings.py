@@ -217,6 +217,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.common.CommonMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
     "ws.middleware.PrefetchGroupsMiddleware",
     "ws.middleware.ParticipantMiddleware",
     "ws.middleware.CustomMessagesMiddleware",
