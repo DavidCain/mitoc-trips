@@ -13,16 +13,21 @@ import random
 from collections.abc import Iterable, Iterator
 from datetime import timedelta
 from itertools import zip_longest
-from typing import Any, NamedTuple
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, NamedTuple
 
-import gspread
 import requests
 from django.utils import timezone
+from gspread.auth import service_account
+from gspread.cell import Cell
 from mitoc_const import affiliations
 
 from ws import enums, models, settings
 from ws.utils import membership as membership_utils
 from ws.utils.perms import is_chair
+
+if TYPE_CHECKING:
+    from gspread.worksheet import Worksheet
 
 logger = logging.getLogger(__name__)
 
@@ -205,7 +210,7 @@ class SheetWriter:
         return tuple(row_mapper[label] for label in self.header)
 
 
-def _assign(cells: Iterable[gspread.cell.Cell], values: Iterable[Any]) -> None:
+def _assign(cells: Iterable[Cell], values: Iterable[Any]) -> None:
     """Set the values of cells, but **do not** issue an API call to update."""
     for cell, value in zip(cells, values, strict=True):
         cell.value = value
@@ -219,7 +224,8 @@ def update_participant(
 
     Much more efficient than updating the entire sheet.
     """
-    client = gspread.service_account(settings.OAUTH_JSON_CREDENTIALS)
+    assert settings.OAUTH_JSON_CREDENTIALS is not None, "gpread not configured?"
+    client = service_account(Path(settings.OAUTH_JSON_CREDENTIALS))
     wks = client.open_by_key(discount.ga_key).sheet1
     writer = SheetWriter(discount, trust_cache=False)
 
@@ -250,8 +256,9 @@ def update_discount_sheet(discount: models.Discount, trust_cache: bool) -> None:
     For individual updates, this approach should be avoided (instead, opting to
     update individual cells in the spreadsheet).
     """
-    client = gspread.service_account(settings.OAUTH_JSON_CREDENTIALS)
-    wks: gspread.worksheet.Worksheet = client.open_by_key(discount.ga_key).sheet1
+    assert settings.OAUTH_JSON_CREDENTIALS is not None, "gpread not configured?"
+    client = service_account(Path(settings.OAUTH_JSON_CREDENTIALS))
+    wks: Worksheet = client.open_by_key(discount.ga_key).sheet1
     participants = list(
         discount.participant_set.select_related("membership", "user").order_by("name")
     )

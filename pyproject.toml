@@ -237,7 +237,6 @@ module = [
     "debug_toolbar",
     "factory.*",
     "freezegun",
-    "gspread",
     "kombu.*",
     "localflavor.*",
     "markdown2",
