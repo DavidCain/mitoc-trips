@@ -802,7 +802,13 @@ class WaiverForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["name"].widget.attrs["placeholder"] = "Tim Beaver"
+        self.fields["name"].widget.attrs.update(
+            {
+                "title": "Full legal name",
+                "pattern": r"^.* .*$",
+                "placeholder": "Tim Beaver",
+            }
+        )
         self.fields["email"].widget.attrs["placeholder"] = "tim@mit.edu"
 
 
