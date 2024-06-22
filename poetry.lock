@@ -881,19 +881,18 @@ tool = ["click (>=6.0.0)"]
 
 [[package]]
 name = "gspread"
-version = "6.1.0"
+version = "6.1.2"
 description = "Google Spreadsheets Python API"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "gspread-6.1.0-py3-none-any.whl", hash = "sha256:67aa3335cfcbb2625e41b53129433ba779f2890244a4c532624362ce5e022342"},
-    {file = "gspread-6.1.0.tar.gz", hash = "sha256:576b72b628b251d2ee41e02b982d3c714d511d2a5aa3a88e587ed9efc4d6e752"},
+    {file = "gspread-6.1.2-py3-none-any.whl", hash = "sha256:345996fbb74051ee574e3d330a375ac625774f289459f73cb1f8b6fb3cf4cac5"},
+    {file = "gspread-6.1.2.tar.gz", hash = "sha256:b147688b8c7a18c9835d5f998997ec17c97c0470babcab17f65ac2b3a32402b7"},
 ]
 
 [package.dependencies]
 google-auth = ">=1.12.0"
 google-auth-oauthlib = ">=0.4.1"
-StrEnum = "0.4.15"
 
 [[package]]
 name = "gunicorn"
@@ -1969,22 +1968,6 @@ pure-eval = "*"
 
 [package.extras]
 tests = ["cython", "littleutils", "pygments", "pytest", "typeguard"]
-
-[[package]]
-name = "strenum"
-version = "0.4.15"
-description = "An Enum that inherits from str."
-optional = false
-python-versions = "*"
-files = [
-    {file = "StrEnum-0.4.15-py3-none-any.whl", hash = "sha256:a30cda4af7cc6b5bf52c8055bc4bf4b2b6b14a93b574626da33df53cf7740659"},
-    {file = "StrEnum-0.4.15.tar.gz", hash = "sha256:878fb5ab705442070e4dd1929bb5e2249511c0bcf2b0eeacf3bcd80875c82eff"},
-]
-
-[package.extras]
-docs = ["myst-parser[linkify]", "sphinx", "sphinx-rtd-theme"]
-release = ["twine"]
-test = ["pylint", "pytest", "pytest-black", "pytest-cov", "pytest-pylint"]
 
 [[package]]
 name = "tomli"

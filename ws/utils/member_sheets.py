@@ -235,14 +235,18 @@ def update_participant(
     last_col = len(writer.header)
     for cell in wks.findall(participant.email):
         if cell.col == 2:  # (Participants _could_ name themselves an email...)
-            # pylint: disable=too-many-function-args
-            row_cells = wks.range(cell.row, 1, cell.row, last_col)
+            row_cells = wks.range(  # pylint: disable=too-many-function-args
+                cell.row, 1, cell.row, last_col
+            )
             _assign(row_cells, new_row)
             wks.update_cells(row_cells)
             return
 
-    # Insert a new row if no existing row found
-    sorted_names = wks.col_values(1)[1:]
+    # No existing row was found for the participant, so insert (maintaining sort)
+    sorted_names: list[str] = []
+    for name in wks.col_values(1)[1:]:
+        assert isinstance(name, str)  # (not numeric, not null)
+        sorted_names.append(name)
     row_index = bisect.bisect(sorted_names, participant.name) + 1
     wks.insert_row(new_row, row_index + 1)
 
