@@ -758,16 +758,21 @@ class RawMembershipStatsviewTest(TestCase):
         )
 
         # Matches on a verified email!
-        bob = factories.ParticipantFactory.create(email="bob+preferred@example.com")
-        factories.EmailAddressFactory.create(
-            user=bob.user, email="bob@bu.edu", verified=True, primary=False
+        bob_user = factories.UserFactory.create(
+            email="bob@bu.edu",
+            emailaddress__verified=True,
+            emailaddress__primary=False,
+        )
+        factories.ParticipantFactory.create(
+            user=bob_user, email="bob+preferred@example.com"
         )
 
         # Email isn't verified, so no match
-        wat = factories.ParticipantFactory.create(email="404@gmail.com")
-        factories.EmailAddressFactory.create(
-            user=wat.user, email="404@example.com", verified=False
+        user_404 = factories.UserFactory.create(
+            email="404@example.com",
+            emailaddress__verified=False,
         )
+        factories.ParticipantFactory.create(user=user_404, email="404@example.com")
 
         self._expect_members(
             {

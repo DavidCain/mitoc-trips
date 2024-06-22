@@ -1,7 +1,6 @@
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-from allauth.account.models import EmailAddress
 from django.test import SimpleTestCase, TestCase
 from freezegun import freeze_time
 from mitoc_const import affiliations
@@ -62,10 +61,11 @@ class FormTests(SimpleTestCase):
 class ParticipantFormTests(TestCase):
     def test_non_mit_affiliation(self):
         """It's valid to have a non-MIT email address with non-MIT affiliations."""
-        user = factories.UserFactory.create()
-        EmailAddress(
-            user_id=user.pk, email="not_mit@example.com", primary=True, verified=True
-        ).save()
+        user = factories.UserFactory.create(
+            emailaddress__email="not_mit@example.com",
+            emailaddress__primary=True,
+            emailaddress__verified=True,
+        )
         form = forms.ParticipantForm(
             data={
                 "name": "Some User",
@@ -79,13 +79,11 @@ class ParticipantFormTests(TestCase):
 
     def test_mit_affiliation_without_mit_email(self):
         """You must have an MIT email address to be an MIT student."""
-        user = factories.UserFactory.create()
-        EmailAddress(
-            user_id=user.pk,
-            email="still_not_mit@example.com",
-            primary=True,
-            verified=True,
-        ).save()
+        user = factories.UserFactory.create(
+            emailaddress__email="still_not_mit@example.com",
+            emailaddress__primary=True,
+            emailaddress__verified=True,
+        )
         form = forms.ParticipantForm(
             user=user,
             data={
