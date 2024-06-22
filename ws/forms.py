@@ -432,7 +432,9 @@ class TripForm(forms.ModelForm):
         program = self.cleaned_data.get("program")
         if program and not enums.Program(program).winter_rules_apply():
             return None
-        return self.cleaned_data.get("winter_terrain_level", "")
+        level = self.cleaned_data.get("winter_terrain_level", "")
+        assert isinstance(level, str)
+        return level
 
     def _init_wimp(self):
         """Configure the WIMP widget, load saved participant if applicable."""

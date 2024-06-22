@@ -46,7 +46,13 @@ class LeaderApplicationMixin:
 
     # The model is meant to be a class attribute of SingleObjectMixin
     @property
-    def model(self) -> type[models.LeaderApplication]:
+    def model(
+        self,
+    ) -> (
+        type[models.ClimbingLeaderApplication]
+        | type[models.HikingLeaderApplication]
+        | type[models.WinterSchoolLeaderApplication]
+    ):
         """Return the application model for this activity type.
 
         The model will be None if no application exists for the activity.

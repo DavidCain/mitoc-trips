@@ -10,7 +10,7 @@ from allauth.account.models import EmailAddress
 from bs4 import BeautifulSoup
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser, User
-from django.contrib.contenttypes.models import ContentType, ContentTypeManager
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.indexes import GistIndex
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
 from django.core.exceptions import ValidationError
@@ -53,8 +53,9 @@ class SingletonModel(models.Model):
 
     @classmethod
     def load(cls) -> Self:
-        obj, _created = cls.objects.get_or_create(pk=1)
-        return obj
+        manager: QuerySet = cls.objects  # type:ignore[attr-defined]
+        obj, _created = manager.get_or_create(pk=1)
+        return cast(Self, obj)
 
 
 class Car(models.Model):
@@ -118,7 +119,7 @@ class Discount(models.Model):
     """Discount at another company available to MITOC members."""
 
     administrators = models.ManyToManyField(
-        "Participant",
+        "ws.Participant",
         blank=True,
         help_text="Persons selected to administer this discount",
         related_name="discounts_administered",
@@ -1857,13 +1858,21 @@ class LeaderApplication(models.Model):
         If any class wants to break the naming convention, they should
         set db_name to be the activity without underscores.
         """
-        content_type = cast(ContentTypeManager, ContentType.objects).get_for_model(self)
+        content_type = ContentType.objects.get_for_model(self)
         model_name: str = content_type.model
         activity = model_name[: model_name.rfind("leaderapplication")]
         return "winter_school" if (activity == "winterschool") else activity
 
     @staticmethod
-    def model_from_activity(activity: enums.Activity) -> type["LeaderApplication"]:
+    def model_from_activity(
+        activity: enums.Activity,
+    ) -> (
+        # Technically, `type[LeaderApplication]` would work too.
+        # However, being specific about supported applications helps mypy.
+        type["ClimbingLeaderApplication"]
+        | type["HikingLeaderApplication"]
+        | type["WinterSchoolLeaderApplication"]
+    ):
         """Get the specific inheriting child from the activity.
 
         Inverse of activity().
@@ -1879,7 +1888,14 @@ class LeaderApplication(models.Model):
         model_class = content_type.model_class()
         if model_class is None:
             raise NoApplicationDefinedError(f"No application for {activity.label}")
-        assert issubclass(model_class, LeaderApplication)
+        assert issubclass(
+            model_class,
+            (
+                ClimbingLeaderApplication
+                | HikingLeaderApplication
+                | WinterSchoolLeaderApplication
+            ),
+        )
         return model_class
 
 
