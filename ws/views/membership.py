@@ -144,7 +144,7 @@ class SignWaiverView(FormView):
         Authenticated users with a participant record can just use the overridden post()
         """
         releasor: waivers.Person | None = None
-        participant: "Participant" | None = self.request.participant  # type: ignore[attr-defined]
+        participant: Participant | None = self.request.participant  # type: ignore[attr-defined]
 
         # When there's a participant object, we'll just use that as releasor
         # (We'll bypass form validation for participants, but handle just in case)
