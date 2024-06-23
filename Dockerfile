@@ -7,7 +7,7 @@
 # - Ensure that Celery works as well
 # - Run WSGI with an ENTRYPOINT
 
-FROM ubuntu:22.04 as build
+FROM ubuntu:22.04 AS build
 
 WORKDIR /app/
 
@@ -40,10 +40,10 @@ ENV LANGUAGE=en_US.UTF-8
 ENV LANG=en_US.UTF-8
 ENV LC_ALL=en_US.UTF-8
 
-RUN pip3 install --upgrade pip==22.0.4
+RUN pip3 install --upgrade pip==24.1
 
-# TODO: Check asdf's .tool-versions
-RUN pip install poetry==1.7.1
+COPY .tool-versions .
+RUN pip install poetry==$(awk '/poetry/{printf $2}' .tool-versions)
 COPY poetry.lock .
 
 # Instruct poetry to create a venv in `.venv`, then auto-add it to path
@@ -72,7 +72,7 @@ RUN WS_DJANGO_TEST=1 ./manage.py collectstatic
 
 # ------------------------------------------------------------------------
 
-FROM build as installer
+FROM build AS installer
 
 # Remove dev dependencies (smaller venv, no dev deps in prod)
 RUN poetry install --no-root --sync --only=prod
