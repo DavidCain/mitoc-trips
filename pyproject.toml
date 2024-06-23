@@ -134,7 +134,7 @@ ignore-names = [
 # When poetry full supports PEP 621, should migrate more information here!
 # See: https://github.com/python-poetry/roadmap/issues/3
 name = "ws"
-requires-python = "~=3.10"  # Keep in sync with Poetry
+requires-python = "~=3.12"  # Keep in sync with Poetry
 
 [tool.poetry]
 name = "ws"
@@ -147,7 +147,7 @@ repository = "https://github.com/DavidCain/mitoc-trips/"
 authors = ["David Cain <davidjosephcain@gmail.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.10.0"
+python = "^3.12.0"
 
 [tool.poetry.group.prod.dependencies]
 Django = "^4.2"
@@ -171,7 +171,6 @@ pwned-passwords-django = "*"
 requests = "*"
 sentry-sdk = "^1.30.0"
 setuptools = "^69.5.1"  # Required by django-pipeline in prod!
-typing-extensions = "^4.11.0"  # Can remove after Python 3.11
 
 
 [tool.poetry.group.test.dependencies]
@@ -209,7 +208,7 @@ ipdb = { version = "*" }
 
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.12"
 plugins = ["mypy_django_plugin.main"]
 
 # Better errors

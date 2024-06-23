@@ -1,5 +1,5 @@
 # TODO:
-# - Consider python:3.10-slim
+# - Consider python:3.12-slim
 # - Once dropping legacy AngularJS, build FE bundles separately
 
 # Things needed to use this in production:
@@ -7,7 +7,7 @@
 # - Ensure that Celery works as well
 # - Run WSGI with an ENTRYPOINT
 
-FROM ubuntu:22.04 AS build
+FROM ubuntu:24.04 AS build
 
 WORKDIR /app/
 
@@ -22,7 +22,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     locales \
     # Postgres client (for accessing RDS in production) \
     postgresql-client postgresql-contrib libpq-dev \
-    python3.10 python3-dev python3-pip \
+    python3.12 python3-dev python3-pip pipx \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -40,11 +40,12 @@ ENV LANGUAGE=en_US.UTF-8
 ENV LANG=en_US.UTF-8
 ENV LC_ALL=en_US.UTF-8
 
-RUN pip3 install --upgrade pip==24.1
-
 COPY .tool-versions .
-RUN pip install poetry==$(awk '/poetry/{printf $2}' .tool-versions)
+RUN pipx install poetry==$(awk '/poetry/{printf $2}' .tool-versions)
 COPY poetry.lock .
+
+# pipx puts the poetry binary here
+ENV PATH="/root/.local/bin:$PATH"
 
 # Instruct poetry to create a venv in `.venv`, then auto-add it to path
 RUN poetry config virtualenvs.in-project true
