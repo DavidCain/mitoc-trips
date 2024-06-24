@@ -30,7 +30,12 @@
   <h3>Recent trips</h3>
   {% trip_list_table recent_trips %}
   <hr>
-  <p><a href="{% url 'all_trips' %}"><i class="fas fa-history"></i> View all past trips</a></p>
+  <p>
+    <a href="{% url 'trips' %}?after={{ previous_lookup_date|date:"Y-m-d" }}">
+      <i class="fas fa-history"></i>
+      Previous trips
+    </a>
+  </p>
 {% endif %}
 
 

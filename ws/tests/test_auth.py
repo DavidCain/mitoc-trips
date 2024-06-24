@@ -78,7 +78,7 @@ class AuthTests(TestCase):
             "help-personal_info",
             "help-lottery",
             "help-signups",
-            "upcoming_trips",
+            "trips",
             "stats",
         ]:
             response = self.client.get(reverse(open_url))

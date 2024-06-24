@@ -65,7 +65,7 @@ class Helpers:
 
 
 @freeze_time("2019-02-15 12:25:00 EST")
-class UpcomingTripsViewTest(TestCase, Helpers):
+class TripListViewTest(TestCase, Helpers):
     def test_upcoming_trips_without_filter(self):
         """With no default filter, we only show upcoming trips."""
         response, soup = self._get("/trips/")

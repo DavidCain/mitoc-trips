@@ -537,15 +537,18 @@ class ProfileView(ParticipantView):
     @staticmethod
     def render_landing_page(request: HttpRequest) -> HttpResponse:
         today = date_utils.local_date()
-        context = {
-            "current_trips": annotated_for_trip_list(
-                models.Trip.objects.filter(trip_date__gte=today).order_by(
-                    "trip_date", "-time_created"
-                )
+        current_trips = annotated_for_trip_list(
+            models.Trip.objects.filter(trip_date__gte=today).order_by(
+                "trip_date", "-time_created"
             )
+        )
+
+        context = {
+            "current_trips": current_trips,
+            "previous_lookup_date": today - models.Trip.TRIPS_LOOKBACK,
         }
 
-        num_trips = len(context["current_trips"])  # Use len to avoid extra query
+        num_trips = len(current_trips)  # Use len to avoid extra query
 
         # If we don't have many upcoming trips, show some recent ones
         if num_trips < 8:

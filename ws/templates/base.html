@@ -78,7 +78,7 @@
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Trips <span class="caret"></span></a>
                             <ul class="dropdown-menu">
                                 <li><a href="{% url 'create_trip' %}">Create trip</a></li>
-                                <li><a href="{% url 'upcoming_trips' %}">Upcoming trips</a></li>
+                                <li><a href="{% url 'trips' %}">Upcoming trips</a></li>
                                 <li><a href="{% url 'search_trips' %}">Search trips</a></li>
                             </ul>
                         </li>
@@ -91,7 +91,7 @@
                         </li>
                     {% else %}
                         {# No need for a menu at all -- just show "trips" #}
-                        <li><a href="{% url 'upcoming_trips' %}">Trips</a></li>
+                        <li><a href="{% url 'trips' %}">Trips</a></li>
                     {% endif %}
 
                     {% if user.is_superuser %}

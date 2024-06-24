@@ -5,7 +5,7 @@ attended by any interested participants.
 """
 
 from collections import defaultdict
-from datetime import date, timedelta
+from datetime import date
 from typing import TYPE_CHECKING, Any, cast
 from urllib.parse import urlencode
 
@@ -52,6 +52,8 @@ if TYPE_CHECKING:
 # Hardcode the result of `models.Trip.objects.earliest('trip_date')
 # There will never be any *older* trips, so we can save db queries.
 FIRST_TRIP_DATE = date(2015, 1, 10)
+
+TRIPS_LOOKBACK = models.Trip.TRIPS_LOOKBACK
 
 
 class TripView(DetailView):
@@ -337,7 +339,7 @@ class CreateTripView(CreateView):
 class DeleteTripView(DeleteView, TripLeadersOnlyView):  # type: ignore[misc]
     forbid_modifying_old_trips = True
     model = models.Trip
-    success_url = reverse_lazy("upcoming_trips")
+    success_url = reverse_lazy("trips")
 
     def get(self, request, *args, **kwargs):
         """Request is valid, but method is not (use POST)."""
@@ -486,7 +488,6 @@ class TripListView(ListView):
     model = models.Trip
     template_name = "trips/all/view.html"
     context_object_name = "trip_queryset"
-    include_past_trips = True
 
     def get_queryset(self):
         trips = super().get_queryset()
@@ -536,13 +537,13 @@ class TripListView(ListView):
         if oldest_trip_date >= FIRST_TRIP_DATE:
             # Get approximately one year prior for use in paginating back in time.
             # (need not be exact/handle leap years)
-            context["one_year_prior"] = oldest_trip_date - timedelta(days=365)
+            context["one_year_prior"] = oldest_trip_date - TRIPS_LOOKBACK
 
         # By default, just show upcoming trips.
         context["current_trips"] = trips.filter(trip_date__gte=today)
 
         # However, if we've explicitly opted in to showing past trips, include them.
-        if self.include_past_trips or on_or_after_date:
+        if on_or_after_date:
             # Note that we need to sort past trips in descending order (most recent trips first).
             # This is because we have a cutoff in the past, and it would display strangely to sort ascending.
             context["past_trips"] = trips.filter(trip_date__lt=today).order_by(
@@ -552,16 +553,6 @@ class TripListView(ListView):
                 # We're on the special 'all trips' view, so there are no add'l previous trips
                 context["one_year_prior"] = None
         return context
-
-
-class UpcomingTripsView(TripListView):
-    """By default, view only upcoming (future) trips.
-
-    If given a date, filter to only trips after that date (which may be past dates!)
-    """
-
-    # Default value, but past trips can appear by including a date filter
-    include_past_trips = False
 
 
 class TripSearchView(ListView, FormView):

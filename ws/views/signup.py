@@ -139,7 +139,7 @@ class SignUpView(BaseSignUpView):
 
 class DeleteSignupView(DeleteView):
     model = models.SignUp
-    success_url = reverse_lazy("upcoming_trips")
+    success_url = reverse_lazy("trips")
 
     def get(self, request, *args, **kwargs):
         """Request is valid, but method is not (use POST)."""

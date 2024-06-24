@@ -137,7 +137,7 @@
     {% if form.instance.pk %}
       href="{% url 'view_trip' form.instance.pk %}"
     {% else %}
-      href="{% url 'upcoming_trips' %}"
+      href="{% url 'trips' %}"
     {% endif %}
       >Cancel</a>
 </form>

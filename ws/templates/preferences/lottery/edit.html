@@ -129,7 +129,7 @@
         {% if not ranked_signups %}
           <p>You're not signed up for any upcoming trips.</p>
           <ol>
-            <li>Begin by signing up for <a href="{% url 'upcoming_trips' %}">any trips you're interested in</a>.</li>
+            <li>Begin by signing up for <a href="{% url 'trips' %}">any trips you're interested in</a>.</li>
             {% if has_paired_par %}<li>Have your partner sign up for the same trips!</li>{% endif %}
             <li>Come back here to rank trips in order of preference.</li>
             <li>The next <a href="{% url 'help-lottery' %}">lottery run</a> will try to place you on your most-preferred trip.</li>
@@ -139,7 +139,7 @@
             <p><strong>We strongly recommend signing up for at least four trips!</strong></p>
             <p>
               Without some backup options, it's likely that you won't be placed on a trip at all.
-              <a href="{% url 'upcoming_trips' %}">Sign up for more trips</a> to increase your odds of being placed on a trip.
+              <a href="{% url 'trips' %}">Sign up for more trips</a> to increase your odds of being placed on a trip.
             </p>
           </div>
         {% endif %}

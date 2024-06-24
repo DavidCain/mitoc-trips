@@ -191,11 +191,11 @@ urlpatterns = [
     path("trips.rss", feeds.UpcomingTripsFeed(), name="rss-upcoming_trips"),
     # By default, `/trips/` shows only upcoming trips
     # Both views support filtering for trips after a certain date, though
-    path("trips/", views.UpcomingTripsView.as_view(), name="upcoming_trips"),
+    path("trips/", views.TripListView.as_view(), name="trips"),
     # With thousands of trips, we can no longer render them all on one page.
     path(
         "trips/all/",
-        RedirectView.as_view(url=reverse_lazy("upcoming_trips"), permanent=True),
+        RedirectView.as_view(url=reverse_lazy("trips"), permanent=True),
         name="all_trips",
     ),
     path("trips/signup/", views.SignUpView.as_view(), name="trip_signup"),

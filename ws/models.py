@@ -1040,6 +1040,11 @@ trips_search_vector = (
 
 
 class Trip(models.Model):
+    # Constant to control the default "page size" when viewing old trips.
+    #
+    # Putting this on the model so the business logic has one source of truth.
+    TRIPS_LOOKBACK = timedelta(days=365)
+
     # When ordering trips which need approval, apply consistent ordering
     # (Defined here to keep the table's default ordering in sync with prev/next buttons
     ordering_for_approval: tuple[str, ...] = (
