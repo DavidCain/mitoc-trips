@@ -5,6 +5,7 @@ attended by any interested participants.
 """
 
 from collections import defaultdict
+from dataclasses import dataclass
 from datetime import date
 from typing import TYPE_CHECKING, Any, cast
 from urllib.parse import urlencode
@@ -18,6 +19,7 @@ from django.forms.fields import TypedChoiceField
 from django.forms.utils import ErrorList
 from django.http import (
     Http404,
+    HttpRequest,
     HttpResponseBadRequest,
     HttpResponseRedirect,
 )
@@ -54,6 +56,10 @@ if TYPE_CHECKING:
 FIRST_TRIP_DATE = date(2015, 1, 10)
 
 TRIPS_LOOKBACK = models.Trip.TRIPS_LOOKBACK
+
+
+def _earliest_allowed_anon_lookback_date() -> date:
+    return local_date() - TRIPS_LOOKBACK
 
 
 class TripView(DetailView):
@@ -474,6 +480,20 @@ class EditTripView(UpdateView, TripLeadersOnlyView):
             return super().form_valid(form)
 
 
+@dataclass(frozen=True)
+class PreviousLookup:
+    on_or_after_date: date | None
+    date_invalid: bool
+    previous_lookup_date: date | None
+
+    def must_login_to_view_older_trips(self, request: HttpRequest) -> bool:
+        if request.user.is_authenticated or self.on_or_after_date is None:
+            return False
+        if self.previous_lookup_date is None:
+            return False
+        return self.previous_lookup_date < _earliest_allowed_anon_lookback_date()
+
+
 class TripListView(ListView):
     """Superclass for any view that displays a list of trips.
 
@@ -488,6 +508,14 @@ class TripListView(ListView):
     model = models.Trip
     template_name = "trips/all/view.html"
     context_object_name = "trip_queryset"
+
+    def _can_view_requested_trips(self) -> bool:
+        if self.request.user.is_authenticated:
+            return True
+        start_date, _ = self._optionally_filter_from_args()
+        if start_date is None:
+            return True  # We'll just show upcoming trips
+        return start_date >= _earliest_allowed_anon_lookback_date()
 
     def get_queryset(self):
         trips = super().get_queryset()
@@ -510,12 +538,42 @@ class TripListView(ListView):
         except (TypeError, ValueError):
             return None, True
 
-        return (
-            # Guard against a weird edge case -- we can accept the year 1!
-            # We'll try to *subtract* time, and end up an exception rather than BCE datetimes
-            # There were no trips in our database before the 2010s anyway.
-            max(start_date, date(1900, 1, 1)),
-            False,
+        return start_date, False
+
+    def _get_lookback_info(self) -> PreviousLookup:
+        """Describe the lookup range for trip dates, control links for larger ranges."""
+        on_or_after_date, date_invalid = self._optionally_filter_from_args()
+        oldest_requested_trip_date = on_or_after_date or local_date()
+
+        # Prevent rendering "Previous trips" if we know there won't be any.
+        # Also prevents a weird edge case -- you can pass a date in the year 1.
+        # (When the server tries to subtract 365 days, Python declines to make BCE dates)
+        if oldest_requested_trip_date < FIRST_TRIP_DATE:
+            previous_lookup_date = None
+        else:
+            # Get approximately one year prior for use in paginating back in time.
+            # (need not be exact/handle leap years)
+            one_year_prior = oldest_requested_trip_date - TRIPS_LOOKBACK
+            if not self.request.user.is_authenticated:
+                earliest_allowed = _earliest_allowed_anon_lookback_date()
+                previous_lookup_date = (
+                    # If we can't go back any further, we'll show a link
+                    one_year_prior
+                    if earliest_allowed >= oldest_requested_trip_date
+                    # We shouldn't link anonymous users to a page they can't see.
+                    else max(earliest_allowed, one_year_prior)
+                )
+            else:
+                previous_lookup_date = one_year_prior
+
+        # Sanity check -- the previous date should *always* be in the past.
+        if previous_lookup_date is not None:
+            assert previous_lookup_date < oldest_requested_trip_date
+
+        return PreviousLookup(
+            on_or_after_date=on_or_after_date,
+            date_invalid=date_invalid,
+            previous_lookup_date=previous_lookup_date,
         )
 
     def get_context_data(self, **kwargs):
@@ -525,33 +583,43 @@ class TripListView(ListView):
         today = local_date()
         context["today"] = today
 
-        on_or_after_date, context["date_invalid"] = self._optionally_filter_from_args()
-        if on_or_after_date:
-            context["on_or_after_date"] = on_or_after_date
-            trips = trips.filter(trip_date__gte=on_or_after_date)
+        info = self._get_lookback_info()
+        context["must_login_to_view_older_trips"] = info.must_login_to_view_older_trips(
+            self.request
+        )
+        context["date_invalid"] = info.date_invalid
+        context["previous_lookup_date"] = info.previous_lookup_date
 
-        oldest_trip_date = on_or_after_date or today
-        # Prevent rendering "Previous trips" if we know there won't be any.
-        # Also prevents a weird edge case -- you can pass a date in the year 1.
-        # (When the server tries to subtract 365 days, Python declines to make BCE dates)
-        if oldest_trip_date >= FIRST_TRIP_DATE:
-            # Get approximately one year prior for use in paginating back in time.
-            # (need not be exact/handle leap years)
-            context["one_year_prior"] = oldest_trip_date - TRIPS_LOOKBACK
+        if info.on_or_after_date:
+            context["on_or_after_date"] = info.on_or_after_date
+            trips = trips.filter(trip_date__gte=info.on_or_after_date)
 
         # By default, just show upcoming trips.
         context["current_trips"] = trips.filter(trip_date__gte=today)
 
         # However, if we've explicitly opted in to showing past trips, include them.
-        if on_or_after_date:
+        if not self._can_view_requested_trips():
+            requested_url = (
+                reverse("trips") + "?after=" + info.on_or_after_date.isoformat()
+            )
+            # URL encoding is unnecessary, but might as well use safer patterns.
+            next_url = (
+                reverse("account_login") + "?" + urlencode({"next": requested_url})
+            )
+            messages.error(
+                self.request,
+                f'You must <a href="{next_url}">log in to view trips</a> before {_earliest_allowed_anon_lookback_date()}.',
+                extra_tags="safe",
+            )
+        elif info.on_or_after_date:
             # Note that we need to sort past trips in descending order (most recent trips first).
             # This is because we have a cutoff in the past, and it would display strangely to sort ascending.
             context["past_trips"] = trips.filter(trip_date__lt=today).order_by(
                 "-trip_date", "-time_created"
             )
-            if not on_or_after_date:
+            if not info.on_or_after_date:
                 # We're on the special 'all trips' view, so there are no add'l previous trips
-                context["one_year_prior"] = None
+                context["previous_lookup_date"] = None
         return context
 
 

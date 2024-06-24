@@ -56,6 +56,10 @@ class LandingPageTests(TestCase):
         # Recent trips are shown until we have 8 total
         self.assertEqual(list(response.context["recent_trips"]), ten_past_trips[:6])
 
+        soup = BeautifulSoup(response.content, "html.parser")
+        prev_trips = soup.find("a", href="/trips/?after=2019-01-12")
+        self.assertEqual(prev_trips.get_text(strip=True), "Previous trips")
+
 
 # NOTE: See test_ws_tags.py for direct testing of the templatetag too
 class LectureAttendanceTests(TestCase):

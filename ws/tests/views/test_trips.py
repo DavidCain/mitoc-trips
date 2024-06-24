@@ -31,7 +31,7 @@ class Helpers:
 
     def _get(self, url):
         response = self.client.get(url)
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, 200)
         soup = BeautifulSoup(response.content, "html.parser")
         return response, soup
 
@@ -100,6 +100,9 @@ class TripListViewTest(TestCase, Helpers):
     @freeze_time("2018-01-10 12:25:00 EST")
     def test_trips_with_filter(self):
         """We support filtering the responded list of trips."""
+        # Need to log in to see old trips
+        self.client.force_login(factories.UserFactory.create())
+
         # Make a very old trip that will not be in our filter
         factories.TripFactory.create(trip_date="2016-12-23")
 
@@ -126,16 +129,33 @@ class TripListViewTest(TestCase, Helpers):
         self._expect_past_trips(response, [one_week_ago.pk, one_month_ago.pk])
         self._expect_link_for_date(soup, "2016-11-15")
 
+    def trips_after_first_trip_date(self):
+        """We don't show 'Previous trips' before the first trip."""
+        trip = factories.TripFactory.create(name="Tecumseh", trip_date="2015-01-10")
+
+        # Filter based on a date in the past
+        response, soup = self._get("/trips/?after=2015-01-10")
+        self.assertFalse(response.context["date_invalid"])
+
+        self._expect_title(soup, "Trips after 2015-01-10")
+        self._expect_past_trips(response, [trip.pk])
+
+        self.assertIsNone(soup.find(string="Previous trips"))
+
     def test_trips_with_very_early_date(self):
-        """You can ask for trips starting after the year 1."""
+        """Authed users can ask for trips starting after the year 1."""
+        self.client.force_login(factories.UserFactory.create())
+
         trip = factories.TripFactory.create(trip_date="2016-12-23")
 
         # Filter based on a date in the past
         response, soup = self._get("/trips/?after=0001-10-17")
         self.assertFalse(response.context["date_invalid"])
 
-        self._expect_title(soup, "Trips after 1900-01-01")
+        self._expect_title(soup, "Trips after 0001-10-17")
         self._expect_past_trips(response, [trip.pk])
+
+        self.assertIsNone(soup.find(string="Previous trips"))
 
     def test_upcoming_trips_can_be_filtered(self):
         """If supplying an 'after' date in the future, that still permits filtering!"""
@@ -152,6 +172,83 @@ class TripListViewTest(TestCase, Helpers):
         # The trip next month & year is included, but not next week.
         # Per usual, the next-upcoming trips are shown first!
         self._expect_current_trips(response, [next_month.pk, next_year.pk])
+
+
+class AnonymousTripListViewTest(TestCase, Helpers):
+    @freeze_time("2024-06-25 12:45:59 EDT")
+    def test_custom_recent_trips(self):
+        """Anonymous users can view any date in the last 365 days."""
+        this_year = factories.TripFactory.create(trip_date="2024-02-02")
+        factories.TripFactory.create(trip_date="2023-12-25")
+
+        response, soup = self._get("/trips/?after=2024-01-01")
+        self.assertIs(response.context["must_login_to_view_older_trips"], False)
+
+        self._expect_past_trips(response, [this_year.pk])
+        # We don't offer to go back an extra 365 days, just to the cutoff
+        self._expect_link_for_date(soup, "2023-06-26")
+
+    @freeze_time("2024-06-25 12:45:59 EDT")
+    def test_lookback_to_earliest_date(self):
+        """We support lookback up to 365 days."""
+        within_window = factories.TripFactory.create(trip_date="2023-07-07")
+        factories.TripFactory.create(trip_date="2023-01-02")
+
+        response, soup = self._get("/trips/?after=2023-06-26")
+        self.assertIs(response.context["must_login_to_view_older_trips"], True)
+
+        self._expect_past_trips(response, [within_window.pk])
+        link = soup.find("a", href="/accounts/login/?next=/trips/?after=2022-06-26")
+        self.assertEqual(link.get_text(strip=True), "Log in to view previous trips")
+
+    @freeze_time("2024-06-25 12:45:59 EDT")
+    def test_lookback_too_old(self):
+        factories.TripFactory.create(trip_date="2023-07-07")
+        response, soup = self._get("/trips/?after=2016-01-12")
+
+        # Even though there *is* a trip that's viewable, we hide it.
+        # If anybody's writing a parser or similar, we don't want to mislead.
+        # (Showing *some* past trips in response to an invalid request is unwise)
+        self.assertNotIn("past_trips", response.context)
+        self.assertIsNone(soup.find(string="Previous trips"))
+
+        alert = soup.find(class_="alert-danger")
+        self.assertEqual(
+            strip_whitespace(alert.text),
+            "You must log in to view trips before 2023-06-26.",
+        )
+        self.assertEqual(
+            alert.find("a").attrs,
+            {"href": "/accounts/login/?next=%2Ftrips%2F%3Fafter%3D2016-01-12"},
+        )
+
+        # The footer links to another 365 days back, just for consistency
+        link = soup.find("a", href="/accounts/login/?next=/trips/?after=2015-01-12")
+        self.assertEqual(link.get_text(strip=True), "Log in to view previous trips")
+
+    @freeze_time("2024-06-25 12:45:59 EDT")
+    def test_lookup_before_first_trip(self):
+        factories.TripFactory.create(trip_date="2023-07-07")
+        response, soup = self._get("/trips/?after=2010-07-20")
+
+        # Even though there *is* a trip that's viewable, we hide it.
+        # If anybody's writing a parser or similar, we don't want to mislead.
+        # (Showing *some* past trips in response to an invalid request is unwise)
+        self.assertNotIn("past_trips", response.context)
+        self.assertIsNone(soup.find(string="Previous trips"))
+
+        alert = soup.find(class_="alert-danger")
+        self.assertEqual(
+            strip_whitespace(alert.text),
+            "You must log in to view trips before 2023-06-26.",
+        )
+        self.assertEqual(
+            alert.find("a").attrs,
+            {"href": "/accounts/login/?next=%2Ftrips%2F%3Fafter%3D2010-07-20"},
+        )
+
+        # Even if logged in, we couldn't show older trips!
+        self.assertIsNone(soup.find(string="Log in to view previous trips"))
 
 
 class AllTripsViewTest(TestCase):

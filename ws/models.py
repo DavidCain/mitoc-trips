@@ -1040,7 +1040,15 @@ trips_search_vector = (
 
 
 class Trip(models.Model):
-    # Constant to control the default "page size" when viewing old trips.
+    # Constant to control two things:
+    # 1. The default "page size" when letting users click back
+    #    Generally, users only want to see more recent trips not *all* old ones.
+    # 2. The number of old trips anonymous users can view.
+    #    The `/trips` endpoint lets you display over 2,000 trips.
+    #    We make efforts for it to be available to end users even though it's slow.
+    #    However, we've observed scrapers being employed in the wild.
+    #    We don't want these scrapers to sap system resources.
+    #    (and if somebody is abusing the endpoint, I'd like to know who they are)
     #
     # Putting this on the model so the business logic has one source of truth.
     TRIPS_LOOKBACK = timedelta(days=365)
