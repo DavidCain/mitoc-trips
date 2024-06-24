@@ -126,6 +126,17 @@ class UpcomingTripsViewTest(TestCase, Helpers):
         self._expect_past_trips(response, [one_week_ago.pk, one_month_ago.pk])
         self._expect_link_for_date(soup, "2016-11-15")
 
+    def test_trips_with_very_early_date(self):
+        """You can ask for trips starting after the year 1."""
+        trip = factories.TripFactory.create(trip_date="2016-12-23")
+
+        # Filter based on a date in the past
+        response, soup = self._get("/trips/?after=0001-10-17")
+        self.assertFalse(response.context["date_invalid"])
+
+        self._expect_title(soup, "Trips after 1900-01-01")
+        self._expect_past_trips(response, [trip.pk])
+
     def test_upcoming_trips_can_be_filtered(self):
         """If supplying an 'after' date in the future, that still permits filtering!"""
         _next_week = factories.TripFactory.create(trip_date="2019-02-22")

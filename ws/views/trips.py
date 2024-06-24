@@ -49,6 +49,11 @@ if TYPE_CHECKING:
     from ws.middleware import RequestWithParticipant
 
 
+# Hardcode the result of `models.Trip.objects.earliest('trip_date')
+# There will never be any *older* trips, so we can save db queries.
+FIRST_TRIP_DATE = date(2015, 1, 10)
+
+
 class TripView(DetailView):
     """Display the trip to both unregistered users and known participants.
 
@@ -487,25 +492,30 @@ class TripListView(ListView):
         trips = super().get_queryset()
         return annotated_for_trip_list(trips)
 
-    def _optionally_filter_from_args(self):
+    def _optionally_filter_from_args(self) -> tuple[date | None, bool]:
         """Return the date at which we want to omit previous trips, plus validity boolean.
 
         If the user passes an invalid date (for example, because they were
         manually building the query arguments), we don't want to 500 and
         instead should just give them a simple warning message.
         """
-        start_date = None
-        start_date_invalid = False
-        if "after" in self.request.GET:
-            after = self.request.GET["after"]
-            try:
-                start_date = date.fromisoformat(after)
-            except (TypeError, ValueError):
-                start_date_invalid = True
-            else:
-                start_date_invalid = False
+        if "after" not in self.request.GET:
+            # No filtering, which is obviously valid
+            return None, False
 
-        return (start_date, start_date_invalid)
+        after = self.request.GET["after"]
+        try:
+            start_date = date.fromisoformat(after)
+        except (TypeError, ValueError):
+            return None, True
+
+        return (
+            # Guard against a weird edge case -- we can accept the year 1!
+            # We'll try to *subtract* time, and end up an exception rather than BCE datetimes
+            # There were no trips in our database before the 2010s anyway.
+            max(start_date, date(1900, 1, 1)),
+            False,
+        )
 
     def get_context_data(self, **kwargs):
         """Sort trips into past and present trips."""
@@ -519,9 +529,14 @@ class TripListView(ListView):
             context["on_or_after_date"] = on_or_after_date
             trips = trips.filter(trip_date__gte=on_or_after_date)
 
-        # Get approximately one year prior for use in paginating back in time.
-        # (need not be exact/handle leap years)
-        context["one_year_prior"] = (on_or_after_date or today) - timedelta(days=365)
+        oldest_trip_date = on_or_after_date or today
+        # Prevent rendering "Previous trips" if we know there won't be any.
+        # Also prevents a weird edge case -- you can pass a date in the year 1.
+        # (When the server tries to subtract 365 days, Python declines to make BCE dates)
+        if oldest_trip_date >= FIRST_TRIP_DATE:
+            # Get approximately one year prior for use in paginating back in time.
+            # (need not be exact/handle leap years)
+            context["one_year_prior"] = oldest_trip_date - timedelta(days=365)
 
         # By default, just show upcoming trips.
         context["current_trips"] = trips.filter(trip_date__gte=today)
