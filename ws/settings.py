@@ -67,6 +67,8 @@ STORAGE = {
         "BACKEND": "ws.storage.ManifestStorage",
     },
 }
+# This setting is still required to make django-pipeline work...
+STATICFILES_STORAGE = "ws.storage.ManifestStorage"
 
 STATICFILES_DIRS = [
     # For the legacy frontend, just put all the files directly in static root

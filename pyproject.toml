@@ -304,4 +304,6 @@ filterwarnings = [
     "error",
     # This is issued by `django-pipeline`, itself deprecated
     "ignore:pkg_resources is deprecated as an API:DeprecationWarning",
+    # If we don't set this deprecated setting, django-pipeline won't make bundles
+    "ignore:The STATICFILES_STORAGE setting is deprecated",
 ]
