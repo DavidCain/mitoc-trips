@@ -1,11 +1,19 @@
+from allauth.account.models import EmailAddress
 from django import template
+from django.db.models import QuerySet
 
 from ws import enums
+from ws.models import Trip
 
 register = template.Library()
 
 
-def _conditional_rendering(trip):
+@register.filter
+def has_unverified_email(emails: QuerySet[EmailAddress]) -> bool:
+    return any(not email.verified for email in emails)
+
+
+def _conditional_rendering(trip: Trip) -> dict[str, bool]:
     return {
         "show_program": trip.program_enum != enums.Program.NONE,
         "show_trip_type": trip.trip_type_enum != enums.TripType.NONE,

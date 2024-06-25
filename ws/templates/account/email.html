@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load crispy_forms_tags %}
+{% load email_tags %}
 
 {% block head_title %}Emails{% endblock %}
 
@@ -33,9 +34,41 @@
       </div>
 
       <div class="btn-group" role="group">
-        <button class="btn btn-default" type="submit" name="action_primary">Make Primary</button>
-        <button class="btn btn-default" type="submit" name="action_send">Re-send Verification</button>
-        <button class="btn btn-default" type="submit" name="action_remove">Remove</button>
+        {# Disable if there's only one email #}
+        {# Always display the button to self-document multi-email support #}
+        <button
+          class="btn btn-default"
+          type="submit"
+          {% if user.emailaddress_set.all|length < 2 %}
+          disabled
+          title="Email address is already primary."
+          {% endif %}
+          name="action_primary">
+            Make Primary
+        </button>
+
+        {# Without using JavaScript, there's no way to disable this per-email #}
+        {# But we can handle the usual case of *all* emails being verified #}
+        {% if user.emailaddress_set.all|has_unverified_email %}
+          <button
+            class="btn btn-default"
+            type="submit"
+            name="action_send">
+              Re-send Verification
+          </button>
+        {% endif %}
+
+        {# Always display the button to self-document multi-email support #}
+        <button
+          class="btn btn-default"
+          type="submit"
+          {% if user.emailaddress_set.all|length < 2 %}
+          disabled
+          title="Cannot remove your only email address."
+          {% endif %}
+          name="action_remove">
+            Remove
+        </button>
       </div>
     </form>
 

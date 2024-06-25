@@ -270,3 +270,163 @@ class PasswordChangeTests(TestCase):
         form_group = soup.find(class_="has-error")
         self.assertTrue(form_group)
         self.assertTrue(form_group.find(string="This password is too common."))
+
+
+class ManageEmailsTest(TestCase):
+    maxDiff = None
+
+    def _get_buttons(self, user):
+        self.client.force_login(user)
+        response = self.client.get("/accounts/email/")
+        soup = BeautifulSoup(response.content, "html.parser")
+        form = soup.find("form", action="/accounts/email/")
+        return {btn.text.strip(): btn.attrs for btn in form.find_all("button")}
+
+    def test_one_primary_email(self):
+        """Test the usual case -- just one verified primary email."""
+        user = factories.UserFactory(
+            emailaddress__primary=True,
+            emailaddress__verified=True,
+        )
+
+        self.assertEqual(
+            self._get_buttons(user),
+            {
+                "Make Primary": {
+                    "class": ["btn", "btn-default"],
+                    "type": "submit",
+                    "disabled": "",
+                    "title": "Email address is already primary.",
+                    "name": "action_primary",
+                },
+                # Notably "Re-send Verification" is missing entirely
+                "Remove": {
+                    "class": ["btn", "btn-default"],
+                    "type": "submit",
+                    "disabled": "",
+                    "title": "Cannot remove your only email address.",
+                    "name": "action_remove",
+                },
+            },
+        )
+
+    def test_one_unverified_email(self):
+        user = factories.UserFactory(emailaddress__verified=False)
+
+        self.assertEqual(
+            self._get_buttons(user),
+            {
+                "Make Primary": {
+                    "class": ["btn", "btn-default"],
+                    "type": "submit",
+                    "disabled": "",
+                    "title": "Email address is already primary.",
+                    "name": "action_primary",
+                },
+                "Re-send Verification": {
+                    "class": ["btn", "btn-default"],
+                    "type": "submit",
+                    "name": "action_send",
+                },
+                "Remove": {
+                    "class": ["btn", "btn-default"],
+                    "type": "submit",
+                    "disabled": "",
+                    "title": "Cannot remove your only email address.",
+                    "name": "action_remove",
+                },
+            },
+        )
+
+    def test_two_verified_emails(self):
+        """With two emails, we can remove either or make either primary."""
+        user = factories.UserFactory()
+        factories.EmailAddressFactory(
+            user=user,
+            email="some.other.email@example.com",
+            primary=False,
+            verified=True,
+        )
+
+        self.assertEqual(
+            self._get_buttons(user),
+            {
+                "Make Primary": {
+                    "class": ["btn", "btn-default"],
+                    "type": "submit",
+                    "name": "action_primary",
+                },
+                # Notably "Re-send Verification" is missing entirely -- both are verified!
+                "Remove": {
+                    "class": ["btn", "btn-default"],
+                    "type": "submit",
+                    "name": "action_remove",
+                },
+            },
+        )
+
+    def test_two_emails_but_one_unverified(self):
+        """Test the case of a newly-added but still unverified email."""
+        user = factories.UserFactory(
+            emailaddress__verified=True,
+        )
+        factories.EmailAddressFactory(
+            user=user,
+            email="some.other.email@example.com",
+            primary=False,
+            verified=False,
+        )
+
+        self.assertEqual(
+            self._get_buttons(user),
+            {
+                "Make Primary": {
+                    "class": ["btn", "btn-default"],
+                    "type": "submit",
+                    "name": "action_primary",
+                },
+                # Because there's at least one unverified email, we allow re-sending
+                "Re-send Verification": {
+                    "class": ["btn", "btn-default"],
+                    "type": "submit",
+                    "name": "action_send",
+                },
+                "Remove": {
+                    "class": ["btn", "btn-default"],
+                    "type": "submit",
+                    "name": "action_remove",
+                },
+            },
+        )
+
+    def test_multiple_unverified(self):
+        """You can still add an email even if one is unverified!"""
+        user = factories.UserFactory()
+        factories.EmailAddressFactory(
+            user=user,
+            email="some.other.email@example.com",
+            primary=False,
+            verified=False,
+        )
+
+        self.assertEqual(
+            self._get_buttons(user),
+            {
+                "Make Primary": {
+                    "class": ["btn", "btn-default"],
+                    "type": "submit",
+                    "name": "action_primary",
+                },
+                # Because there's at least one unverified email, we allow re-sending
+                "Re-send Verification": {
+                    "class": ["btn", "btn-default"],
+                    "type": "submit",
+                    "name": "action_send",
+                },
+                "Remove": {
+                    "class": ["btn", "btn-default"],
+                    "type": "submit",
+                    "name": "action_remove",
+                },
+            },
+        )
