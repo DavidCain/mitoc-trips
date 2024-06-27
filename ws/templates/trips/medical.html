@@ -15,5 +15,14 @@
   {% endif %}
 </h2>
 
+{% if not has_wimp %}
+  <div id="wimp-missing" class="alert alert-warning">
+    No WIMP has been assigned to this trip!
+    {% if is_trip_leader %}
+      <a href="{% url 'edit_trip' trip.pk %}">Set a WIMP?</a>
+    {% endif %}
+  </div>
+{% endif %}
+
 {% trip_info trip True %}
 {% endblock content %}

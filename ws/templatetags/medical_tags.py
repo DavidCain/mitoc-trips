@@ -38,8 +38,12 @@ def trip_itinerary(trip):
 
 
 @register.inclusion_tag("for_templatetags/trip_info.html", takes_context=True)
-def trip_info(context, trip, show_participants_if_no_itinerary=False):
-    participant = context["viewing_participant"]
+def trip_info(
+    context: dict[str, Any],
+    trip: models.Trip,
+    show_participants_if_no_itinerary: bool = False,
+) -> dict[str, Any]:
+    participant: models.Participant = context["viewing_participant"]
 
     # After a sufficiently long waiting period, hide medical information
     # (We could need medical info a day or two after a trip was due back)

@@ -5,6 +5,8 @@ That itinerary specifies who (if anybody) will be driving for the trip,
 what the intended route will be, when to worry, and more.
 """
 
+from typing import Any
+
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
@@ -121,14 +123,19 @@ class TripMedicalView(DetailView):
             return render(request, "not_your_trip.html", {"trip": trip})
         return normal_response
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         """Get a trip info form for display as readonly."""
         context_data = super().get_context_data(**kwargs)
         trip = self.object
-        participant = self.request.participant
-        context_data["is_trip_leader"] = perm_utils.leader_on_trip(participant, trip)
-
-        return context_data
+        participant = self.request.participant  # type: ignore[attr-defined]
+        return {
+            "is_trip_leader": perm_utils.leader_on_trip(participant, trip),
+            "has_wimp": (
+                trip.program_enum == enums.Program.WINTER_SCHOOL
+                or (trip.wimp_id is not None)
+            ),
+            **context_data,
+        }
 
 
 class ChairTripView(DetailView):

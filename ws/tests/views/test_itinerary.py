@@ -266,8 +266,33 @@ class TripMedicalViewTest(TestCase):
         trip = factories.TripFactory.create()
         self._assert_cannot_view(trip)
 
-    def test_view_as_leader(self):
-        trip = factories.TripFactory.create(program=enums.Program.HIKING.value)
+    def test_view_as_leader_with_no_wimp(self):
+        trip = factories.TripFactory.create(
+            wimp=None, program=enums.Program.HIKING.value
+        )
+
+        leader = factories.ParticipantFactory.create(user=self.user)
+        factories.LeaderRatingFactory.create(
+            participant=leader, activity=models.LeaderRating.HIKING
+        )
+        trip.leaders.add(leader)
+        response = self.client.get(f"/trips/{trip.pk}/medical/")
+        soup = BeautifulSoup(response.content, "html.parser")
+
+        self.assertIsNone(trip.wimp)
+        self.assertNotEqual(trip.program_enum, enums.Program.WINTER_SCHOOL)
+        missing = soup.find(id="wimp-missing")
+        self.assertEqual(
+            strip_whitespace(missing.text),
+            "No WIMP has been assigned to this trip! Set a WIMP?",
+        )
+        self.assertIsNotNone(missing.find("a", href=f"/trips/{trip.pk}/edit/"))
+
+    def test_view_as_leader_with_wimp_set(self):
+        trip = factories.TripFactory.create(
+            wimp=factories.ParticipantFactory.create(),
+            program=enums.Program.HIKING.value,
+        )
 
         factories.SignUpFactory.create(
             participant__emergency_info__allergies="Bee stings", trip=trip, on_trip=True
@@ -281,6 +306,11 @@ class TripMedicalViewTest(TestCase):
         response = self.client.get(f"/trips/{trip.pk}/medical/")
         soup = BeautifulSoup(response.content, "html.parser")
 
+        # This is a non-WS trip with a single WIMP set!
+        self.assertIsNotNone(trip.wimp)
+        self.assertNotEqual(trip.program_enum, enums.Program.WINTER_SCHOOL)
+        self.assertIsNone(soup.find(id="wimp-missing"))
+
         # Participant medical info is given
         self.assertTrue(soup.find("td", string="Bee stings"))
 
@@ -293,9 +323,12 @@ class TripMedicalViewTest(TestCase):
             )
         )
 
-    def test_view_as_wimp(self):
-        wimp = factories.ParticipantFactory.create(user=self.user)
-        trip = factories.TripFactory.create(wimp=wimp)
+    def test_view_ws_trip_as_wimp(self):
+        Group.objects.get(name="WIMP").user_set.add(self.user)
+        trip = factories.TripFactory.create(
+            wimp=None,
+            program=enums.Program.WINTER_SCHOOL.value,
+        )
 
         factories.SignUpFactory.create(
             participant__emergency_info__allergies="Bee stings", trip=trip, on_trip=True
@@ -303,6 +336,35 @@ class TripMedicalViewTest(TestCase):
 
         response = self.client.get(f"/trips/{trip.pk}/medical/")
         soup = BeautifulSoup(response.content, "html.parser")
+
+        # It's a Winter School trip -- we have one WIMP for *all* trips
+        self.assertIsNone(trip.wimp_id)
+        self.assertIsNone(soup.find(id="wimp-missing"))
+
+        # Participant medical info is given
+        self.assertTrue(soup.find("td", string="Bee stings"))
+
+        # The WIMP cannot provide an itinerary, they're not a leader
+        self.assertFalse(soup.find("a", href=f"/trips/{trip.pk}/itinerary/"))
+
+    def test_view_as_single_trip_wimp(self):
+        wimp = factories.ParticipantFactory.create(user=self.user)
+        trip = factories.TripFactory.create(
+            wimp=wimp,
+            # It's important that this *not* be a WS trip, since it has a WIMP!
+            program=enums.Program.HIKING.value,
+        )
+
+        factories.SignUpFactory.create(
+            participant__emergency_info__allergies="Bee stings", trip=trip, on_trip=True
+        )
+
+        response = self.client.get(f"/trips/{trip.pk}/medical/")
+        soup = BeautifulSoup(response.content, "html.parser")
+
+        # We of course have a WIMP
+        self.assertIsNotNone(trip.wimp_id)
+        self.assertIsNone(soup.find(id="wimp-missing"))
 
         # Participant medical info is given
         self.assertTrue(soup.find("td", string="Bee stings"))
