@@ -181,9 +181,8 @@ class ApplicationManager(LeaderApplicationMixin, RatingsRecommendationsMixin):
             return False
         if app.num_recs:  # The chair has already made a recommendation
             return False
-        if app.num_ratings:  # The application received a rating
-            return False
-        return True
+        # If the application received a rating, we don't need recommendations
+        return not app.num_ratings
 
     def needs_rec(
         self,

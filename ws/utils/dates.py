@@ -224,7 +224,4 @@ def ws_lectures_complete() -> bool:
 
     if trips_this_ws.filter(trip_date__lt=today):
         return True
-    if trips_this_ws.filter(trip_date__gte=today) and after_thursday:
-        return True
-    # It's Winter School, but it's not late enough in the first week
-    return False
+    return trips_this_ws.filter(trip_date__gte=today).exists() and after_thursday
