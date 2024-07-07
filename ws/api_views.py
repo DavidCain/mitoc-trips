@@ -225,7 +225,10 @@ class AdminTripSignupsView(SingleObjectMixin, FormatSignupMixin, TripLeadersOnly
         # Return unevaluated QuerySet objects (allows update() and all() calls)
         keep_on_trip = (
             trip.signup_set.filter(pk__in=normal_signups)
-            .extra(select={"ordering": f"case {ordering} end"}, order_by=("ordering",))
+            .extra(  # noqa: S610
+                select={"ordering": f"case {ordering} end"},
+                order_by=("ordering",),
+            )
             .select_related("waitlistsignup")
         )
         to_delete = trip.signup_set.filter(pk__in=deletions)

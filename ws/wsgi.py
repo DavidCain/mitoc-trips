@@ -10,7 +10,7 @@ import os
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "ws.settings")
 
-from django.core.wsgi import get_wsgi_application  # noqa: E402,I001
+from django.core.wsgi import get_wsgi_application  # noqa: I001
 
 
 application = get_wsgi_application()
