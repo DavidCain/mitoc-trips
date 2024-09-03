@@ -120,14 +120,14 @@ def unsubscribe_from_token(token: str) -> models.Participant:
     try:
         target = unsign_token(token)
     except signing.BadSignature as e:
-        raise InvalidTokenError(  # noqa: B904, TRY200
+        raise InvalidTokenError(  # noqa: B904
             f"{_bad_token_reason(e)}, cannot unsubscribe automatically."
         )
 
     try:
         par = models.Participant.objects.get(pk=target.participant_pk)  # Might raise!
     except models.Participant.DoesNotExist:
-        raise InvalidTokenError("Participant no longer exists")  # noqa: B904, TRY200
+        raise InvalidTokenError("Participant no longer exists")  # noqa: B904
 
     if EmailType.membership_renewal in target.email_types:
         par.send_membership_reminder = False
