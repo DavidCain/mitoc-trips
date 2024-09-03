@@ -29,7 +29,6 @@ class TripsInformation(NamedTuple):
     is_leader: bool
     num_trips_attended: int
     num_trips_led: int
-    num_discounts: int
     # Email address as given on Participant object
     # (We assume this is their preferred current email)
     email: str
@@ -200,9 +199,8 @@ def _get_trip_stats_by_user() -> dict[int, TripsInformation]:
     additional_stats = (
         models.Participant.objects.all()
         .annotate(
-            # Future optimization: *most* participants don't lead trips or use discounts.
+            # Future optimization: *most* participants don't lead trips
             # Querying those separately should avoid the need to do pointless JOINs
-            num_discounts=Count("discounts", distinct=True),
             num_trips_led=Count("trips_led", distinct=True),
             is_leader=Exists(
                 models.LeaderRating.objects.filter(
@@ -216,7 +214,6 @@ def _get_trip_stats_by_user() -> dict[int, TripsInformation]:
             "email",
             "is_leader",
             "num_trips_led",
-            "num_discounts",
         )
     )
 
@@ -227,7 +224,6 @@ def _get_trip_stats_by_user() -> dict[int, TripsInformation]:
             is_leader=par["is_leader"],
             num_trips_attended=trips_per_participant.get(par["pk"], 0),
             num_trips_led=par["num_trips_led"],
-            num_discounts=par["num_discounts"],
         )
         for par in additional_stats
     }
@@ -240,7 +236,6 @@ def fetch_membership_information(cache_strategy: CacheStrategy) -> MemberStatsRe
     - have attended any trips
     - have led any trips
     - have rented gear
-    - make use MITOC discounts
     """
     stats = fetch_geardb_stats_for_all_members(cache_strategy)
     return stats.with_trips_information()

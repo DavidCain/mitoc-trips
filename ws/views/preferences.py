@@ -1,8 +1,7 @@
 """Participant preference views.
 
-Users can enroll in discounts, rank their preferred trips, or elect to be
-paired with another participant. All of these options are deemed "preferences"
-of the participant.
+Users can rank their preferred trips, or elect to be paired with another participant.
+All of these options are deemed "preferences" of the participant.
 """
 
 import contextlib
@@ -11,14 +10,13 @@ from datetime import datetime
 from typing import Any
 
 from django.contrib import messages
-from django.db.models import Q
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import redirect
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
-from django.views.generic import CreateView, FormView, TemplateView
+from django.views.generic import CreateView, TemplateView
 
-from ws import enums, forms, models, tasks, unsubscribe
+from ws import enums, forms, models, unsubscribe
 from ws.decorators import participant_required, user_info_required
 from ws.mixins import LotteryPairingMixin
 from ws.utils.dates import is_currently_iap, local_date
@@ -85,50 +83,8 @@ class LotteryPairingView(CreateView, LotteryPairingMixin):
         return super().dispatch(request, *args, **kwargs)
 
 
-class DiscountsView(FormView):
-    form_class = forms.DiscountForm
+class DiscountsView(TemplateView):
     template_name = "preferences/discounts.html"
-    success_url = reverse_lazy("discounts")
-
-    def get_queryset(self):
-        available = Q(active=True)
-        par = self.request.participant
-        if not (par and par.is_student):
-            available &= Q(student_required=False)
-        return models.Discount.objects.filter(available)
-
-    def get_form(self, form_class=None):
-        form = super().get_form(form_class)
-        form.fields["discounts"].queryset = self.get_queryset().order_by("name")
-        return form
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs["instance"] = self.request.participant
-        return kwargs
-
-    def form_valid(self, form):
-        participant = form.save()
-        for discount in participant.discounts.all():
-            tasks.update_discount_sheet_for_participant.delay(
-                discount.pk, participant.pk
-            )
-
-        if participant.membership and participant.membership.membership_active:
-            messages.success(self.request, "Discount choices updated!")
-        else:
-            messages.error(
-                self.request,
-                "You must be a current MITOC member to receive discounts. "
-                "We recorded your discount choices, but please pay dues to be eligible",
-            )
-            return redirect(reverse("pay_dues"))
-
-        return super().form_valid(form)
-
-    @method_decorator(user_info_required)
-    def dispatch(self, request, *args, **kwargs):
-        return super().dispatch(request, *args, **kwargs)
 
 
 class LotteryPreferencesView(TemplateView, LotteryPairingMixin):

@@ -1,10 +1,8 @@
 {% extends "base.html" %}
 {% load crispy_forms_tags %}
-{% load discount_tags %}
 {% block head_title %}Privacy Settings{% endblock head_title %}
 
 {% block content %}
-{% active_discounts viewing_participant %}
 
 <h2>Configurable Settings</h2>
 {% if viewing_participant.gravatar_opt_out %}

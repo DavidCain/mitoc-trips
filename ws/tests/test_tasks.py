@@ -4,7 +4,6 @@ from unittest.mock import patch
 from zoneinfo import ZoneInfo
 
 from django.core import mail
-from django.core.cache import cache
 from django.test import TestCase
 from freezegun import freeze_time
 from mitoc_const import affiliations
@@ -12,17 +11,9 @@ from mitoc_const import affiliations
 from ws import models, tasks
 from ws.email import renew
 from ws.tests import factories
-from ws.utils import member_sheets
 
 
 class TaskTests(TestCase):
-    @staticmethod
-    def test_update_discount_sheet():
-        discount = factories.DiscountFactory.create(pk=9123, ga_key="test-key")
-        with patch.object(member_sheets, "update_discount_sheet") as update_sheet:
-            tasks.update_discount_sheet(9123)
-        update_sheet.assert_called_with(discount, trust_cache=True)
-
     @staticmethod
     @patch("ws.utils.geardb.update_affiliation")
     def test_update_participant_affiliation(update_affiliation):
@@ -71,78 +62,6 @@ class TaskTests(TestCase):
             [trip for (trip,), kwargs in send_email_to_funds.call_args_list],
             [*trips_with_itinerary, no_itinerary_trip],
         )
-
-    @staticmethod
-    @patch("ws.utils.member_sheets.update_discount_sheet")
-    @patch("ws.utils.member_sheets.update_participant")
-    def test_discount_tasks_share_same_key(
-        _update_participant,
-        _update_discount_sheet,
-    ):
-        """All tasks modifying the same discount sheet must share a task ID.
-
-        This prevents multiple tasks modifying the Google Sheet at the same time.
-        """
-        discount = factories.DiscountFactory.create(ga_key="some-key")
-        participant = factories.ParticipantFactory.create()
-        expected_lock_id = f"update_discount-{discount.pk}"
-
-        with patch("ws.tasks.cache", wraps=cache) as mock_cache_one:
-            tasks.update_discount_sheet_for_participant(discount.pk, participant.pk)
-        mock_cache_one.add.assert_called_with(expected_lock_id, "true", 600)
-
-        with patch("ws.tasks.cache", wraps=cache) as mock_cache_two:
-            tasks.update_discount_sheet(discount.pk)
-        mock_cache_two.add.assert_called_with(expected_lock_id, "true", 600)
-
-
-class DiscountsWithoutGaKeyTest(TestCase):
-    """Test our handling of discounts which opt out of the Google Sheets flow."""
-
-    def setUp(self):
-        self.par = factories.ParticipantFactory.create()
-        # Some discounts opt out of the Google Sheets flow
-        self.discount = factories.DiscountFactory.create(ga_key="")
-
-    def test_update_sheet_for_participant(self):
-        """If we mistakenly wrote a discount without a Google Sheets key, Celery handles it."""
-        # Participants shouldn't be able to opt in to these discounts,
-        # but make sure Celery doesn't choke if they do.
-        self.par.discounts.add(self.discount)
-
-        with patch.object(member_sheets, "update_participant") as update_par:
-            with patch.object(tasks.logger, "error") as log_error:
-                tasks.update_discount_sheet_for_participant(
-                    self.discount.pk, self.par.pk
-                )
-
-        log_error.assert_called()
-        update_par.assert_not_called()
-
-    def test_update_sheet(self):
-        """Updating just a single sheet is handled if that sheet has no Google Sheets key."""
-        with patch.object(member_sheets, "update_participant") as update_par:
-            with patch.object(tasks.logger, "error") as log_error:
-                tasks.update_discount_sheet(self.discount.pk)
-
-        log_error.assert_called()
-        update_par.assert_not_called()
-
-    @staticmethod
-    def test_update_all():
-        """When updating the sheets for all discounts, we exclude ones without a sheet."""
-        # Because this discount has no Google Sheets key, we don't do anything
-        with patch.object(tasks.update_discount_sheet, "s") as update_sheet:
-            tasks.update_all_discount_sheets()
-        update_sheet.assert_not_called()
-
-        # If we add another discount, we can bulk update but will exclude the current one
-        other_discount = factories.DiscountFactory.create(ga_key="some-koy")
-
-        with patch.object(tasks.update_discount_sheet, "s") as update_sheet:
-            with patch.object(tasks, "group"):
-                tasks.update_all_discount_sheets()
-        update_sheet.assert_called_once_with(other_discount.pk)
 
 
 @freeze_time("2019-01-25 12:00:00 EST")

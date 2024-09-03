@@ -204,7 +204,11 @@ urlpatterns = [
         views.LeaderSignUpView.as_view(),
         name="leader_trip_signup",
     ),
-    path("preferences/discounts/", views.DiscountsView.as_view(), name="discounts"),
+    path(
+        "preferences/discounts/",
+        views.DiscountsView.as_view(),
+        name="discounts",
+    ),
     path(
         "preferences/email/",
         views.EmailPreferencesView.as_view(),

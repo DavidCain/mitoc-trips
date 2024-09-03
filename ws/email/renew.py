@@ -44,7 +44,6 @@ def send_email_reminding_to_renew(
 
     context = {
         "participant": participant,
-        "discounts": participant.discounts.all().order_by("name"),
         "expiry_if_renewing": membership.membership_expires + timedelta(days=365),
         "unsubscribe_token": unsubscribe.generate_unsubscribe_token(participant),
     }

@@ -24,7 +24,6 @@ class DataDump:
         fields = [
             "user",
             "membership",
-            "discounts",
             "car",
             "medical",
             "lottery_info",
@@ -59,12 +58,6 @@ class DataDump:
     def car(self):
         """Participant's car information."""
         return self.par.car and model_to_dict(self.par.car, exclude="id")
-
-    @property
-    def discounts(self):
-        """Discounts where the participant elected to share their info."""
-        for d in self.par.discounts.all():
-            yield model_to_dict(d, fields=["name", "active", "summary", "url"])
 
     @property
     def authored_feedback(self):

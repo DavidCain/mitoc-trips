@@ -57,7 +57,6 @@ class TripsInformation(NamedTuple):
     is_leader: bool
     num_trips_attended: int
     num_trips_led: int
-    num_discounts: int
     # Email address as given on Participant object
     # (We assume this is their preferred current email)
     email: str

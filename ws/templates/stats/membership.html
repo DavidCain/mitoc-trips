@@ -203,11 +203,6 @@
         var ratedLeaders = _.filter(allMembers, 'is_leader');
         renderChart("#rated_leaders", ratedLeaders);
 
-        var justDiscounts = _.filter(allMembers, function(info) {
-          return (info.num_discounts && !info.num_rentals && !info.num_trips_attended);
-        });
-        renderChart("#discounts", justDiscounts);
-
       });
 
   </script>
@@ -228,7 +223,7 @@
     This page combines two sources of data:
     <ol>
       <li><strong>Gear database</strong>: source of truth for membership, gear rental history, and present affiliation.</li>
-      <li><strong>MITOC Trips</strong>: adds trip participation, leader status, discount enrollment, preferred email address.</li>
+      <li><strong>MITOC Trips</strong>: adds trip participation, leader status, preferred email address.</li>
     </ol>
   </p>
 
@@ -250,7 +245,7 @@
       <li>Have paid current annual dues</li>
       <li>Are MIT students, or have ever participated on a trip</li>
     </ul>
-    (This excludes people who only use the club for rentals or MITOC discounts)
+    (This excludes people who only use the club for rentals)
   </p>
   <div id="just_members"></div>
 
@@ -279,12 +274,5 @@
   <h3>Just renters</h3>
   <p>People who pay dues and rent gear, but have never been on a trip.</p>
   <div id="renters"></div>
-
-  <h3>Just discounts</h3>
-  <p>
-    People who use <a href="{% url 'discounts' %}">MITOC discounts</a>, but
-    have never rented gear or been on a trip.
-  </p>
-  <div id="discounts"></div>
 
 {% endblock content %}

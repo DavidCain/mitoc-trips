@@ -138,17 +138,9 @@ CELERY_BROKER_TRANSPORT_OPTIONS: dict[str, Any] = {
 }
 
 CELERY_BEAT_SCHEDULE = {
-    "purge-non-student-discounts": {
-        "task": "ws.tasks.purge_non_student_discounts",
-        "schedule": crontab(minute=0, hour=2, day_of_week=1),
-    },
     "purge-old-medical-data": {
         "task": "ws.tasks.purge_old_medical_data",
         "schedule": crontab(minute=0, hour=2, day_of_week=2),
-    },
-    "refresh-all-discount-spreadsheets": {
-        "task": "ws.tasks.update_all_discount_sheets",
-        "schedule": crontab(minute=0, hour=3),
     },
     "send-trip-summaries-email": {
         "task": "ws.tasks.send_trip_summaries_email",
@@ -318,10 +310,6 @@ DOCUSIGN_EVENT_NOTIFICATION = {
     "envelopeEvents": [{"envelopeEventStatusCode": "completed"}],
     "recipientEvents": [{"recipientEventStatusCode": "Completed"}],
 }
-
-# Google Sheet (discount roster) settings
-OAUTH_JSON_CREDENTIALS = os.getenv("OAUTH_JSON_CREDENTIALS")
-DISABLE_GSHEETS = bool(os.getenv("DISABLE_GSHEETS"))
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/

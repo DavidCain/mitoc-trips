@@ -24,7 +24,7 @@ import ws.utils.geardb as geardb_utils
 import ws.utils.membership as membership_utils
 import ws.utils.perms as perm_utils
 import ws.utils.signups as signup_utils
-from ws import enums, models, tasks
+from ws import enums, models
 from ws.decorators import group_required
 from ws.middleware import RequestWithParticipant
 from ws.mixins import JsonTripLeadersOnlyView, TripLeadersOnlyView
@@ -568,9 +568,6 @@ class UpdateMembershipView(JWTView):
         if not participant:  # Not in our system, nothing to do
             return JsonResponse({})
 
-        # Can be true in case of early renewal!
-        was_already_active = participant.membership_active
-
         keys = ("membership_expires", "waiver_expires")
         update_fields = {
             key: date.fromisoformat(self.payload[key])
@@ -578,14 +575,6 @@ class UpdateMembershipView(JWTView):
             if self.payload.get(key)
         }
         _membership, created = participant.update_membership(**update_fields)
-
-        # If the participant has reactivated a membership, update any discount sheets
-        # (this will ensure that they do not have to wait for the next daily refresh)
-        if not was_already_active:
-            for discount in participant.discounts.all():
-                tasks.update_discount_sheet_for_participant.delay(
-                    discount.pk, participant.pk
-                )
 
         return JsonResponse({}, status=201 if created else 200)
 
@@ -654,7 +643,6 @@ class MemberInfo(TypedDict):
     is_leader: NotRequired[bool]
     num_trips_attended: NotRequired[int]
     num_trips_led: NotRequired[int]
-    num_discounts: NotRequired[int]
 
 
 class RawMembershipStatsView(View):
@@ -678,7 +666,6 @@ class RawMembershipStatsView(View):
                         "is_leader": info.trips_information.is_leader,
                         "num_trips_attended": info.trips_information.num_trips_attended,
                         "num_trips_led": info.trips_information.num_trips_led,
-                        "num_discounts": info.trips_information.num_discounts,
                     }
                 )
                 # If there's a verified MIT email address from the trips site, use it!

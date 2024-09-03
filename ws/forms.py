@@ -57,37 +57,6 @@ class RequiredModelForm(forms.ModelForm):
     error_css_class = "warning"
 
 
-class DiscountForm(forms.ModelForm):
-    send_membership_reminder = forms.BooleanField(
-        label="Email me when it's time to renew my membership",
-        help_text="Ensure continued access to discounts (not required, but strongly recommended!)",
-        required=False,
-    )
-
-    def clean_discounts(self):
-        """Ensure the participant meets the requirements for each discount."""
-        participant = self.instance
-        discounts = self.cleaned_data["discounts"]
-
-        if not participant.is_student:
-            for discount in discounts:
-                if discount.student_required:
-                    raise ValidationError(f"{discount.name} is a student-only discount")
-                if not discount.ga_key:
-                    # The UI should prevent "enrolling" in these read-only discounts, but check anyway.
-                    raise ValidationError(
-                        f"{discount.name} does not support sharing your information automatically. "
-                        "See discount terms for instructions."
-                    )
-
-        return discounts
-
-    class Meta:
-        model = models.Participant
-        fields = ["discounts", "send_membership_reminder"]
-        widgets = {"discounts": forms.CheckboxSelectMultiple}
-
-
 class ParticipantForm(forms.ModelForm):
     class Meta:
         model = models.Participant

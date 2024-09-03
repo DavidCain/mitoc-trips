@@ -18,14 +18,6 @@ class BaseFactory(DjangoModelFactory):
         skip_postgeneration_save = True
 
 
-class DiscountFactory(BaseFactory):
-    class Meta:
-        model = models.Discount
-
-    name = "Local Climbing Gym"
-    active = True
-
-
 class EmergencyContactFactory(BaseFactory):
     class Meta:
         model = models.EmergencyContact

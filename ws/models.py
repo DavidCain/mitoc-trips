@@ -115,56 +115,6 @@ class LeaderManager(models.Manager):
         return leaders.prefetch_related("leaderrating_set")
 
 
-class Discount(models.Model):
-    """Discount at another company available to MITOC members."""
-
-    administrators = models.ManyToManyField(
-        "ws.Participant",
-        blank=True,
-        help_text="Persons selected to administer this discount",
-        related_name="discounts_administered",
-    )
-
-    active = models.BooleanField(
-        default=True, help_text="Discount is currently open & active"
-    )
-    name = models.CharField(max_length=255)
-    summary = models.CharField(max_length=255)
-    terms = models.TextField(max_length=4095)
-    url = models.URLField(blank=True)
-    ga_key = models.CharField(
-        max_length=63,
-        # If blank, then we don't actually report this information to a spreadsheet
-        blank=True,
-        help_text="key for Google spreadsheet with membership information (shared as read-only with the company)",
-    )
-
-    time_created = models.DateTimeField(auto_now_add=True)
-    last_updated = models.DateTimeField(auto_now=True)
-
-    student_required = models.BooleanField(
-        default=False, help_text="Discount provider requires recipients to be students"
-    )
-
-    report_school = models.BooleanField(
-        default=False, help_text="Report MIT affiliation if participant is a student"
-    )
-    report_student = models.BooleanField(
-        default=False,
-        help_text="Report MIT affiliation and student status to discount provider",
-    )
-    report_leader = models.BooleanField(
-        default=False, help_text="Report MITOC leader status to discount provider"
-    )
-    report_access = models.BooleanField(
-        default=False,
-        help_text="Report if participant should have leader, student, or admin level access",
-    )
-
-    def __str__(self):  # pylint: disable=invalid-str-returned
-        return self.name
-
-
 class MembershipStats(SingletonModel):
     """Cached response from https://mitoc-gear.mit.edu/api-auth/v1/stats
 
@@ -417,8 +367,6 @@ class Participant(models.Model):
             affiliations.NON_MIT_GRAD_STUDENT.CODE,
         }
     )
-
-    discounts = models.ManyToManyField(Discount, blank=True)
 
     class Meta:
         ordering = ["name", "email"]

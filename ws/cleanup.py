@@ -45,22 +45,6 @@ def lapsed_participants() -> QuerySet[models.Participant]:
     return models.Participant.objects.filter(lapsed_update).exclude(active_members)
 
 
-def purge_non_student_discounts() -> None:
-    """Purge non-students from student-only discounts.
-
-    Student eligibility is enforced at the API and form level. If somebody was
-    a student at the time of enrolling but is no longer a student, we should
-    unenroll them.
-    """
-    stu_discounts = models.Discount.objects.filter(student_required=True)
-    not_student = ~Q(affiliation__in=models.Participant.STUDENT_AFFILIATIONS)
-
-    # Remove student discounts from all non-students who have them
-    participants = models.Participant.objects.all()
-    for par in participants.filter(not_student, discounts__in=stu_discounts):
-        par.discounts.set(par.discounts.filter(student_required=False))
-
-
 @transaction.atomic
 def purge_old_medical_data() -> None:
     """For privacy reasons, purge old medical information.

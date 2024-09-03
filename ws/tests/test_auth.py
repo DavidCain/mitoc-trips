@@ -17,7 +17,6 @@ login_required_routes = [
     "participant_lookup",
     "trip_signup",
     "leader_trip_signup",
-    "discounts",
     "lottery_preferences",
     "lottery_pairing",
 ]
@@ -104,23 +103,6 @@ class AuthTests(TestCase):
         self.login()
         response = self.client.get(desired_page)
         self.assertProfileRedirectedTo(response, desired_page)
-
-    @unittest.mock.patch("ws.decorators.profile_needs_update")
-    def test_participant_pages(self, profile_needs_update):
-        """Participants are allowed to view certain pages."""
-        par_only_page = reverse("discounts")
-        self.login()
-
-        # When authenticated, but not a participant: redirected to edit profile
-        no_par_response = self.client.get(par_only_page)
-        self.assertProfileRedirectedTo(no_par_response, par_only_page)
-
-        PermHelpers.mark_participant(self.user)
-        profile_needs_update.return_value = False
-
-        # When authenticated and a participant: success
-        par_response = self.client.get(par_only_page)
-        self.assertEqual(par_response.status_code, 200)
 
     @unittest.mock.patch("ws.decorators.profile_needs_update")
     def test_leader_pages(self, profile_needs_update):

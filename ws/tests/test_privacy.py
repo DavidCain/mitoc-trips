@@ -48,7 +48,6 @@ class DataDumpTest(TestCase):
                             "waiver_expires": date(2020, 10, 29),
                         },
                     ),
-                    ("discounts", []),
                     ("car", None),
                     (
                         "medical",
@@ -78,7 +77,6 @@ class DataDumpTest(TestCase):
     def test_success(self):
         """Create a bunch of data about the participant, ensure that dumping it works."""
         participant = factories.ParticipantFactory.create()
-        participant.discounts.add(factories.DiscountFactory.create())
         participant.car = factories.CarFactory.create()
         participant.save()
         factories.LeaderRatingFactory.create(participant=participant)

@@ -22,9 +22,6 @@ there to easily launch an instance.
 ## Account management
 ![Email address management][screenshots-email_address_management]
 
-## Member discounts
-![MITOC members can receive discounts][screenshots-discounts]
-
 ## Leader application
 ![Submitted application][screenshots-leader_application_submitted]
 
@@ -78,7 +75,6 @@ trip formats once subject to same problems as Winter School.
 
   [screenshots-profile]: https://dcain.me/static/images/mitoc-trips/profile.png
   [screenshots-email_address_management]: https://dcain.me/static/images/mitoc-trips/email_address_management.png
-  [screenshots-discounts]: https://dcain.me/static/images/mitoc-trips/discounts.png
   [screenshots-leader_application_submitted]: https://dcain.me/static/images/mitoc-trips/leader_application_submitted.png
   [screenshots-leader_application_queue]: https://dcain.me/static/images/mitoc-trips/leader_application_queue.png
   [screenshots-leader_application]: https://dcain.me/static/images/mitoc-trips/leader_application.png

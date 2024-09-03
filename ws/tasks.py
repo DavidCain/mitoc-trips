@@ -5,18 +5,18 @@ from datetime import datetime, timedelta, timezone
 from time import monotonic
 
 import requests
-from celery import group, shared_task
+from celery import shared_task
 from django.core.cache import cache
 from django.db import connections, transaction
 from django.db.utils import IntegrityError
 
-from ws import cleanup, models, settings
+from ws import cleanup, models
 from ws.email import renew
 from ws.email.sole import send_email_to_funds
 from ws.email.trips import send_trips_summary
 from ws.lottery.run import SingleTripLotteryRunner, WinterSchoolLotteryRunner
 from ws.utils import dates as date_utils
-from ws.utils import geardb, member_sheets
+from ws.utils import geardb
 
 logger = logging.getLogger(__name__)
 
@@ -49,80 +49,6 @@ def exclusive_lock(task_identifier: str) -> Iterator[bool]:
         # If we're close to the timeout, just let the cache self-clean
         if got_lock and monotonic() < timeout_at:
             cache.delete(task_identifier)
-
-
-@shared_task
-def update_discount_sheet_for_participant(
-    discount_id: int,
-    participant_id: int,
-) -> None:
-    """Lock the sheet and add/update a single participant.
-
-    Updating of the sheet should not be done at the same time that we're
-    updating the sheet for another participant (or for all participants, as we
-    do nightly). Simultaneous edits are prevented with a Redis lock.
-    """
-    discount = models.Discount.objects.get(pk=discount_id)
-    if not discount.ga_key:
-        # Form logic should prevent ever letting participants "enroll" in this type of discount
-        logger.error("Discount %s does not have a Google Sheet!", discount.name)
-        return
-
-    participant = models.Participant.objects.get(pk=participant_id)
-
-    if settings.DISABLE_GSHEETS:
-        logger.warning(
-            "Google Sheets functionality is disabled, not updating '%s' for %s",
-            discount.name,
-            participant.name,
-        )
-        return
-
-    with exclusive_lock(f"update_discount-{discount_id}"):
-        member_sheets.update_participant(discount, participant)
-
-
-@shared_task
-def update_discount_sheet(
-    discount_id: int,
-    *,
-    check_all_lapsed_members: bool = False,
-) -> None:
-    """Overwrite the sheet to include all members desiring the discount.
-
-    This is the only means of removing users if they no longer
-    wish to share their information, so it should be run periodically.
-
-    This task should not run at the same time that we're updating the sheet for
-    another participant (or for all participants, as we do nightly).
-    """
-    discount = models.Discount.objects.get(pk=discount_id)
-    if not discount.ga_key:
-        # Form logic should prevent ever letting participants "enroll" in this type of discount
-        logger.error("Discount %s does not have a Google Sheet!", discount.name)
-        return
-
-    logger.info("Updating the discount sheet for %s", discount.name)
-
-    if settings.DISABLE_GSHEETS:
-        logger.warning(
-            "Google Sheets functionality is disabled, not updating sheet for '%s'",
-            discount.name,
-        )
-        return
-
-    trust_cache = not check_all_lapsed_members
-    with exclusive_lock(f"update_discount-{discount_id}"):
-        member_sheets.update_discount_sheet(discount, trust_cache=trust_cache)
-
-
-@shared_task
-def update_all_discount_sheets() -> None:
-    logger.info("Updating the member roster for all discount sheets")
-    discount_pks = models.Discount.objects.exclude(ga_key="").values_list(
-        "pk", flat=True
-    )
-    group([update_discount_sheet.s(pk) for pk in discount_pks])()
 
 
 @shared_task(
@@ -285,13 +211,6 @@ def run_ws_lottery() -> None:
     logger.info("Commencing Winter School lottery run")
     runner = WinterSchoolLotteryRunner()
     runner()
-
-
-@shared_task
-def purge_non_student_discounts() -> None:
-    """Purge non-students from student-only discounts."""
-    logger.info("Purging non-students from student-only discounts")
-    cleanup.purge_non_student_discounts()
 
 
 @shared_task

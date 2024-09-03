@@ -688,7 +688,6 @@ class RawMembershipStatsviewTest(TestCase):
                         "is_leader": True,
                         "num_trips_attended": 1,
                         "num_trips_led": 0,
-                        "num_discounts": 0,
                         "mit_email": "tim@mit.edu",
                     },
                 ],
@@ -782,7 +781,6 @@ class RawMembershipStatsviewTest(TestCase):
                 "affiliation": "Non-MIT undergrad",
                 # Found a matching account!
                 "is_leader": False,
-                "num_discounts": 0,
                 "num_rentals": 0,
                 "num_trips_attended": 0,
                 "num_trips_led": 0,
@@ -838,7 +836,6 @@ class RawMembershipStatsviewTest(TestCase):
                         "is_leader": True,
                         "num_trips_attended": 0,
                         "num_trips_led": 0,
-                        "num_discounts": 0,
                         # We do *not* report the mit.edu email -- it may be old
                         "mit_email": None,
                     },
@@ -913,11 +910,6 @@ class RawMembershipStatsviewTest(TestCase):
         factories.LeaderRatingFactory.create(participant=self.participant, active=False)
         factories.TripFactory.create().leaders.add(self.participant)
 
-        # Enjoys one discount, administers another!
-        discount = factories.DiscountFactory.create()
-        self.participant.discounts.add(discount)
-        factories.DiscountFactory.create().administrators.add(self.participant)
-
         self._expect_members(
             {
                 "email": "bob+bu@example.com",  # Preferred email!
@@ -927,7 +919,6 @@ class RawMembershipStatsviewTest(TestCase):
                 "is_leader": False,  # Not presently a leader!
                 "num_trips_attended": 1,
                 "num_trips_led": 2,
-                "num_discounts": 0,
             },
             {
                 "email": self.participant.email,
@@ -937,7 +928,6 @@ class RawMembershipStatsviewTest(TestCase):
                 "is_leader": True,
                 "num_trips_attended": 2,
                 "num_trips_led": 1,
-                "num_discounts": 1,
             },
             # We did not find a matching trips account
             {
@@ -957,7 +947,7 @@ class RawMembershipStatsviewTest(TestCase):
             )
 
         # 1. Count trips per participant (separate to avoid double-counting)
-        # 2. Count discounts, trips led, per participant
+        # 2. Count trips led per participant
         # 3. Get all emails (lowercased, for mapping back to participant records)
         # 4. Get MIT email addresses
         with self.assertNumQueries(4):
