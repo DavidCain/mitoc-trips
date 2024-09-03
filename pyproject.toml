@@ -193,7 +193,7 @@ ruff = "*"
 optional = true
 [tool.poetry.group.mypy.dependencies]
 celery-types = "^0.19.0"
-django-stubs = { version = "*" }
+django-stubs = { version = "==5.0.2" }  # Temporarily pin for QuerySet issue
 mypy = { version = "*"}
 types-certifi = { version = "*" }
 types-cryptography = { version = "*" }
