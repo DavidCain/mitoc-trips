@@ -33,13 +33,11 @@ EXPECTED_PARTICIPANT_TABLES: dict[str, tuple[str, ...]] = {
     "ws_leaderrecommendation": ("creator_id", "participant_id"),
     "ws_lectureattendance": ("participant_id", "creator_id"),
     "ws_winterschoolsettings": ("last_updated_by_id",),
-    "ws_discount_administrators": ("participant_id",),
     "ws_distinctaccounts": ("left_id", "right_id"),
     # Each of these tables should only have one row for the given person.
     # (For example, it's possible that two participants representing the same human are on the same trip.
     # In practice, though, this should never actually be happening. Uniqueness constraints will protect us.
     "ws_tripinfo_drivers": ("participant_id",),
-    "ws_participant_discounts": ("participant_id",),
     "ws_trip_leaders": ("participant_id",),
     "ws_leadersignup": ("participant_id",),
     "ws_signup": ("participant_id",),
