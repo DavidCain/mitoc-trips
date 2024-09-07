@@ -55,7 +55,7 @@ def group_required(
     allow_anonymous: bool = False,
     allow_superusers: bool = True,
 ) -> Callable:
-    """Requires user membership in at least one of the groups passed in.
+    """Requires the user to belong to at least one of the Django groups.
 
     If the user does not belong to any of these groups and `redir_url` is
     specified, redirect them to that URL so that they may attempt again.

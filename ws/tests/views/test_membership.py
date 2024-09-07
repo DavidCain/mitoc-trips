@@ -226,12 +226,13 @@ class PayDuesTests(TestCase):
         soup = BeautifulSoup(response.content, "html.parser")
         lead_par = soup.find("p", class_="lead")
         self.assertEqual(
-            lead_par.text, "To make the most of MITOC, you must be an active member."
+            lead_par.text,
+            "To make the most of MITOC, you must be up-to-date on annual dues.",
         )
         self.assertEqual(
             strip_whitespace(lead_par.find_next("p").text),
-            "Renewing today keeps your membership active until Dec 25, 2022. "
-            "Membership enables you to rent gear from the office, participate in upcoming trips, and stay at MITOC's cabins.",
+            "Renewing today keeps your account active until Dec 25, 2022. "
+            "Staying current on dues enables you to rent gear from the office, participate in upcoming trips, and stay at MITOC's cabins.",
         )
 
     @freeze_time("2021-12-10 12:00:00 EST")
@@ -249,11 +250,12 @@ class PayDuesTests(TestCase):
         soup = BeautifulSoup(response.content, "html.parser")
         lead_par = soup.find("p", class_="lead")
         self.assertEqual(
-            lead_par.text, "To make the most of MITOC, you must be an active member."
+            lead_par.text,
+            "To make the most of MITOC, you must be up-to-date on annual dues.",
         )
         self.assertEqual(
             strip_whitespace(lead_par.find_next("p").text),
-            "Membership lasts for 365 days after dues are paid, and enables you to "
+            "Dues are valid for 365 days. Paying dues enables you to "
             "rent gear from the office, participate in upcoming trips, and stay at MITOC's cabins.",
         )
 

@@ -50,7 +50,7 @@ describe("current membership - 'Active' and 'Expiring Soon'", () => {
     });
     const paragraphs = wrapper.findAll("p");
     expect(strippedText(paragraphs.at(0))).toEqual(
-      "Your membership is active, and expires on Jan 23, 1999."
+      "Your account is active! Dues are valid through Jan 23, 1999."
     );
     expect(paragraphs.at(1).text()).toEqual(
       "Your waiver will expire on Jan 19, 1999."
@@ -76,13 +76,13 @@ describe("current membership - 'Active' and 'Expiring Soon'", () => {
     });
 
     expect(strippedText(wrapper)).toContain(
-      "Your membership is expiring soon! Renew today to keep your membership valid until Oct 2, 2026."
+      "Annual dues expire soon! Renew today to keep your account valid until Oct 2, 2026."
     );
   });
 });
 
-describe("bad membership - 'Expired,' 'Missing,' and 'Missing Membership'", () => {
-  it("tells the user if we've never had a membership before", () => {
+describe("bad membership - 'Expired,' 'Missing,' and 'Missing Dues'", () => {
+  it("tells the user if we've never received a dues payment", () => {
     const wrapper = shallowMount(MembershipStatusSummaryPersonal, {
       propsData: {
         data: {
@@ -93,8 +93,8 @@ describe("bad membership - 'Expired,' 'Missing,' and 'Missing Membership'", () =
       },
     });
     expect(strippedText(wrapper)).toEqual(
-      "We have no membership information on file for any of your verified email addresses. " +
-        "You must become a member and sign a new waiver in order to participate on trips, rent gear, or use cabins."
+      "We have no information on file for any of your verified email addresses. " +
+        "You must pay annual dues and sign a waiver in order to participate on trips, rent gear, or use cabins."
     );
     expect(wrapper.html()).toContain('href="/profile/membership/"');
     expect(wrapper.html()).toContain('href="/profile/waiver/"');
@@ -102,7 +102,7 @@ describe("bad membership - 'Expired,' 'Missing,' and 'Missing Membership'", () =
 });
 
 describe("bad waiver - 'Missing Waiver' and 'Waiver Expired'", () => {
-  it("prompts active members without a waiver to sign one", () => {
+  it("prompts members (even with current dues) without a waiver to sign one", () => {
     const wrapper = shallowMount(MembershipStatusSummaryPersonal, {
       propsData: {
         data: {

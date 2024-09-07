@@ -18,11 +18,11 @@ describe("active statuses", () => {
 });
 
 describe("inactive statuses", () => {
-  it("handles missing or expired memberships", () => {
+  it("handles missing or expired dues payments", () => {
     const wrapper = shallowMount(MembershipStatusFaq, {
       propsData: { membershipStatus: "Missing" },
     });
-    expect(wrapper.text()).toContain("Why isn't my membership showing up?");
+    expect(wrapper.text()).toContain("Why isn't my dues payment showing up?");
     expect(wrapper.text()).toContain("But I'm positive");
   });
 

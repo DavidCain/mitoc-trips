@@ -230,9 +230,9 @@ def _get_trip_stats_by_user() -> dict[int, TripsInformation]:
 
 
 def fetch_membership_information(cache_strategy: CacheStrategy) -> MemberStatsResponse:
-    """All current active members, annotated with additional info.
+    """All current active MITOCers, annotated with additional info.
 
-    For each paying member, we also mark if they:
+    For each paying MITOCer, we also mark if they:
     - have attended any trips
     - have led any trips
     - have rented gear

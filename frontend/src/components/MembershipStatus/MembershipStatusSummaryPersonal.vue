@@ -8,10 +8,10 @@
     </p>
     <div v-else-if="membershipStatus === 'Expiring Soon'">
       <div class="alert alert-warning">
-        <h4>Your membership is expiring soon!</h4>
+        <h4>Annual dues expire soon!</h4>
         <p>
           <a href="/profile/membership/">Renew today</a>
-          to keep your membership valid until
+          to keep your account valid until
           {{ renewalValidUntil | formatDate }}.
         </p>
       </div>
@@ -22,38 +22,39 @@
     </div>
     <div v-else-if="membershipStatus === 'Active'">
       <p>
-        Your membership is active, and expires on
+        Your account is active! Dues are valid through
         {{ data.membership.expires | formatDate }}.
       </p>
       <p>Your waiver will expire on {{ data.waiver.expires | formatDate }}.</p>
     </div>
-    <div v-else-if="membershipStatus === 'Missing Membership'">
-      <p>We have a current waiver on file, but no active membership.</p>
+    <div v-else-if="membershipStatus === 'Missing Dues'">
+      <p>We have a current waiver on file, but no active dues.</p>
       <p>
-        You can still participate in mini-trips, but you'll need
-        <a href="/profile/membership/">a full MITOC membership</a>
+        You can still participate in mini-trips, but you'll need to
+        <a href="/profile/membership/">pay annual dues</a>
         in order to rent gear, use cabins, or join other trips.
       </p>
     </div>
     <div v-else-if="membershipStatus === 'Missing'">
       <p>
-        We have no membership information on file for any of your
+        We have no information on file for any of your
         <a href="/accounts/email/">verified email addresses.</a>
       </p>
 
       <p>
-        You must <a href="/profile/membership/">become a member</a> and
-        <a href="/profile/waiver/">sign a new waiver</a>
+        You must <a href="/profile/membership/">pay annual dues</a> and
+        <a href="/profile/waiver/">sign a waiver</a>
         in order to participate on trips, rent gear, or use cabins.
       </p>
     </div>
     <div v-else-if="membershipStatus === 'Expired'">
       <p>
-        Your membership expired on {{ data.membership.expires | formatDate }}.
+        Your last-paid dues expired on
+        {{ data.membership.expires | formatDate }}.
       </p>
       <p>
-        Please <a href="/profile/membership/">renew your membership</a> and
-        <a href="/profile/waiver/">sign a new waiver</a>.
+        Please <a href="/profile/membership/">pay annual dues</a> and
+        <a href="/profile/waiver/">sign a waiver</a>.
       </p>
     </div>
   </div>

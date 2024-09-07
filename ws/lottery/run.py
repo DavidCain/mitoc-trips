@@ -19,7 +19,7 @@ from ws.utils.dates import closest_wed_at_noon, local_now
 # Map two-letter codes to a human-readable label
 AFFILIATION_MAPPING: Mapping[str, str] = MappingProxyType(
     {
-        # Excludes the deprecated student code, since new members don't have that
+        # Excludes the deprecated student code (it's been many years!)
         aff.CODE: aff.VALUE
         for aff in affiliations.ALL
     }

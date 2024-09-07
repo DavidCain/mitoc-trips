@@ -77,7 +77,7 @@ class FormatCachedMembershipTest(SimpleTestCase):
             {
                 "membership": {"expires": None, "active": False, "email": par.email},
                 "waiver": {"expires": "2022-12-23", "active": True},
-                "status": "Missing Membership",
+                "status": "Missing Dues",
             },
         )
 

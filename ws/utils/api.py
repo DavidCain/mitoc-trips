@@ -20,7 +20,7 @@ def bearer_jwt(secret: str, **payload: Any) -> str:
     A few MITOC repositories are configured to talk to each other by using
     requests signed with shared secrets. For example, Lambdas in the `mitoc-aws`
     repository can ask this project for all the emails known to be linked to a
-    given email. This repository can ask the gear database for membership
+    given email. This repository can ask the gear database for dues/waiver
     information.
     """
     expires = timezone.now() + timedelta(minutes=15)

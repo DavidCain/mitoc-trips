@@ -492,13 +492,13 @@ class UserView(DetailView):
 
 
 class UserMembershipView(UserView):
-    """Fetch the user's membership information."""
+    """Fetch the user's dues and waiver information."""
 
     def get(self, request, *args, **kwargs):
         user = self.get_object()
 
         # TODO: Hitting the gear database *every time* is probably not necessary.
-        # For most people, knowing that their membership & waiver are active is enough.
+        # For most people, knowing that their dues & waiver are active is enough.
         # (We can rely on the membership cache to tell us if somebody's active)
         # Similarly, if mitoc-gear is down, falling back on the cache would be nice.
 
@@ -563,15 +563,14 @@ class JWTView(View):
 
 class UpdateMembershipView(JWTView):
     def post(self, request, *args, **kwargs):
-        """Receive a message that the user's membership was updated."""
+        """Receive a message that the user's dues and/or waiver were updated."""
         participant = models.Participant.from_email(self.payload["email"])
         if not participant:  # Not in our system, nothing to do
             return JsonResponse({})
 
-        keys = ("membership_expires", "waiver_expires")
         update_fields = {
             key: date.fromisoformat(self.payload[key])
-            for key in keys
+            for key in ("membership_expires", "waiver_expires")
             if self.payload.get(key)
         }
         _membership, created = participant.update_membership(**update_fields)
@@ -611,21 +610,22 @@ class MembershipStatusesView(View):
     """
 
     def post(self, request, *args, **kwargs):
-        """Return a mapping of participant IDs to membership statuses."""
+        """Return a mapping of participant IDs to dues/waiver statuses."""
         postdata = json.loads(self.request.body)
         par_pks = postdata.get("participant_ids")
         if not isinstance(par_pks, list):
             return JsonResponse({"message": "Bad request"}, status=400)
 
-        participants = models.Participant.objects.filter(pk__in=par_pks).select_related(
-            "membership"
+        return JsonResponse(
+            {
+                "memberships": {
+                    participant.pk: membership_api.format_cached_membership(participant)
+                    for participant in models.Participant.objects.filter(
+                        pk__in=par_pks
+                    ).select_related("membership")
+                }
+            }
         )
-
-        participant_memberships = {
-            participant.pk: membership_api.format_cached_membership(participant)
-            for participant in participants
-        }
-        return JsonResponse({"memberships": participant_memberships})
 
     def dispatch(self, request, *args, **kwargs):
         if not perm_utils.is_leader(request.user):

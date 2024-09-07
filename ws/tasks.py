@@ -126,7 +126,7 @@ def remind_lapsed_participant_to_renew(participant_id: int) -> None:
             logger.info(
                 "Last reminded %s: %s", participant, last_reminder.reminder_sent_at
             )
-            # Reminders should be sent ~40 days before the participant's membership has expired.
+            # Reminders should be sent ~40 days before the participant's dues will expire.
             # We should only send one reminder every ~365 days or so.
             # Pick 300 days as a sanity check that we send one message yearly (+/- some days)
             if last_reminder.reminder_sent_at > (now - timedelta(days=300)):
@@ -147,27 +147,26 @@ def remind_lapsed_participant_to_renew(participant_id: int) -> None:
 
 @shared_task  # Locking done at db level to ensure idempotency
 def remind_participants_to_renew() -> None:
-    """Identify all participants who requested membership reminders, email them.
+    """Email all participants who requested annual dues reminders.
 
     This method is designed to be idempotent (one email per participant).
     """
     now = date_utils.local_now()
 
-    # Reminders should be sent ~40 days before the participant's membership has expired.
+    # Reminders should be sent ~40 days before the participant's dues will expire.
     # We should only send one reminder every ~365 days or so.
     most_recent_allowed_reminder_time = now - timedelta(days=300)
 
     participants_needing_reminder = models.Participant.objects.filter(
         # Crucially, we *only* send these reminders to those who've opted in.
         send_membership_reminder=True,
-        # Anybody with soon-expiring membership is eligible to renew.
+        # Anybody with soon-expiring dues is eligible to renew.
         membership__membership_expires__lte=(
             now + models.Membership.RENEWAL_WINDOW
         ).date(),
         # While it should technically be okay to tell people to renew *after* expiry, don't.
         # We'll run this task daily, targeting each participant for ~40 days before expiry.
         # Accordingly, various edge cases should have been handled some time in those 40 days.
-        # The language in emails will suggest that renewal is for an active membership, too.
         membership__membership_expires__gte=now.date(),
     ).exclude(
         # Don't attempt to remind anybody who has already been reminded.

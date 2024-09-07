@@ -263,7 +263,7 @@ class EmailPreferencesView(CreateView):
             renewal = datetime.strftime(date_to_remind, "%b %-d, %Y")
             return f"We'll send you an email on {renewal} reminding you to renew."
 
-        return "If you have an active membership, we'll remind you when it's time to renew."
+        return "If you are current on dues, we'll remind you when it's time to renew."
 
     def form_valid(self, form):
         messages.success(

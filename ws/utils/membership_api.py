@@ -26,14 +26,14 @@ from ws.utils.dates import local_date
 JsonDict = dict[str, Any]
 
 
-# This is a simple string literal we show to humans to summarize membership status.
+# This is a simple string literal we show to humans to summarize MITOC account status.
 Status = Literal[
     "Missing",
     "Missing Waiver",
     "Waiver Expired",
     "Active",
     "Expiring Soon",  # (optional subtype of `Active`)
-    "Missing Membership",
+    "Missing Dues",
     "Expired",
 ]
 
@@ -92,7 +92,7 @@ def _represent_status(
         return "Missing"
 
     if not membership["active"]:
-        return "Missing Membership" if waiver["active"] else "Expired"
+        return "Missing Dues" if waiver["active"] else "Expired"
 
     if not waiver["expires"]:
         return "Missing Waiver"

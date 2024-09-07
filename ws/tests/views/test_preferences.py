@@ -542,7 +542,7 @@ class EmailPreferencesTest(TestCase):
             factories.ParticipantFactory.create(
                 membership__membership_expires=date(2019, 1, 1)
             ),
-            msg="If you have an active membership, we'll remind you when it's time to renew.",
+            msg="If you are current on dues, we'll remind you when it's time to renew.",
             send_reminder=True,
         )
 

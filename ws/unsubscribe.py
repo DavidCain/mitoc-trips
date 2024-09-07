@@ -21,7 +21,7 @@ class InvalidTokenError(Exception):
 class EmailType(enum.IntEnum):
     """Describe a class of automated emails we may send users."""
 
-    # Once (at most) yearly reminders to renew membership
+    # Once (at most) yearly reminders to pay dues & renew
     membership_renewal = 0
 
 

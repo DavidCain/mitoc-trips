@@ -40,8 +40,8 @@ def empty_waitlist(sender, instance, using, **kwargs):
 
     This is needed because `free_spot_on_trip` will be triggered as part of the
     trip deletion process. If signups on the trip are deleted with a waitlist
-    present, members of the waitlist will be emailed saying they made it on the
-    trip (only to see the trip removed).
+    present, participants on the waitlist will be emailed saying they made it
+    on the trip (only to see the trip removed).
     """
     with contextlib.suppress(WaitList.DoesNotExist):
         instance.waitlist.signups.delete()

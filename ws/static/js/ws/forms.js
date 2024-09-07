@@ -51,7 +51,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize'])
     'Active':             'label-success',
     'Waiver Expired':     'label-warning',
     'Missing Waiver':     'label-warning',
-    'Missing Membership': 'label-warning',
+    'Missing Dues':       'label-warning',
     'Expiring Soon':      'label-info',  // Special front-end only status
     'Expired':            'label-danger',
     'Missing':            'label-danger',

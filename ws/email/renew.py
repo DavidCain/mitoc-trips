@@ -29,17 +29,17 @@ def send_email_reminding_to_renew(
     if not (membership and membership.membership_expires):
         raise ValueError(f"Can't email {par} about renewal (no membership on file!)")
 
-    # Language in our email assumes that the membership is still active.
-    # Accordingly, never send a reminder if membership has expired already.
+    # Language in our email assumes that the dues are still current.
+    # Accordingly, never send a reminder if annual dues are expired already.
     if today > membership.membership_expires:
         raise ValueError(f"Membership has already expired for {par}")
 
     renewal_date = membership.date_when_renewal_is_recommended(report_past_dates=True)
-    assert renewal_date is not None, "Should not recommend renewal for non-member!"
+    assert renewal_date is not None, "Should not recommend renewal for lapsed dues!"
 
     # We should never remind people to renew before it's actually possible.
     if today < renewal_date:
-        # (Buying a new membership today won't credit them the remaining days)
+        # (Paying dues today won't credit them the remaining days)
         raise ValueError(f"We don't yet recommend renewal for {par}")
 
     context = {
@@ -58,5 +58,5 @@ def send_email_reminding_to_renew(
     )
     msg.attach_alternative(html_content, "text/html")
     msg.send()
-    logger.info("Reminded %s to renew their membership", par)
+    logger.info("Reminded %s to pay dues", par)
     return msg

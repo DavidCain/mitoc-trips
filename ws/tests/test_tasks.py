@@ -71,14 +71,14 @@ class RemindAllParticipantsToRenewTest(TestCase):
         for exp_date in [
             date(2019, 1, 1),  # In the past
             date(2019, 3, 5),  # Can't renew just yet
-            None,  # Never had a membership
+            None,  # Never paid dues
         ]:
             factories.ParticipantFactory.create(
                 send_membership_reminder=True,
                 membership__membership_expires=exp_date,
             )
 
-        # Participants with no known membership (or just a waiver) are never reminded
+        # Participants with no known dues payments (or just a waiver) are never reminded
         factories.ParticipantFactory.create(
             send_membership_reminder=True, membership=None
         )

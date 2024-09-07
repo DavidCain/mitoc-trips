@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_latest_membership(participant: models.Participant) -> models.Membership:
-    """Request latest membership/waiver info from geardb, updating the cache."""
+    """Request latest dues/waiver info from geardb, updating the cache."""
     membership_waiver = geardb.query_geardb_for_membership(participant.user)
     assert membership_waiver, "Somehow we have a participant with no verified emails"
 
@@ -31,7 +31,7 @@ def reasons_cannot_attend(
     """Yield reasons why the user is not allowed to attend the trip.
 
     Their cached membership may be sufficient to show that the last
-    membership/waiver stored allows them to go on the trip. Otherwise, we
+    dues/waiver stored allows them to go on the trip. Otherwise, we
     must consult the gear database to be sure whether or not they can go.
     """
     if not user.is_authenticated:

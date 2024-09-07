@@ -357,7 +357,7 @@ class TripForm(forms.ModelForm):
         }
 
     def clean_membership_required(self):
-        """Ensure that all WS trips require membership."""
+        """Ensure that all WS trips require current dues."""
         if self.cleaned_data.get("program") == enums.Program.WINTER_SCHOOL.value:
             return True
         return self.cleaned_data["membership_required"]
@@ -678,7 +678,7 @@ def amount_choices(
     def include_amount_in_label(
         affiliation_code: str, label: str
     ) -> tuple[int | str, str]:
-        amount = models.Participant.affiliation_to_membership_price(affiliation_code)
+        amount = models.Participant.affiliation_to_annual_dues(affiliation_code)
         annotated_label = f"{label} (${amount})"
 
         if value_is_amount:
@@ -699,14 +699,16 @@ class DuesForm(forms.Form):
 
     Specifically, each of these named fields is what's expected for MIT's
     payment system to process a credit card payment and link it to user-supplied
-    metadata. For example, `merchantDefinedData3` is the member's email address.
+    metadata. For example, `merchantDefinedData3` is the MITOCer's email address.
 
     The expected URL is https://shopmitprd.mit.edu/controller/index.php
     """
 
     merchant_id = forms.CharField(widget=forms.HiddenInput(), initial=MERCHANT_ID)
     description = forms.CharField(
-        widget=forms.HiddenInput(), initial="membership fees."
+        widget=forms.HiddenInput(),
+        # Keep this description even though we may not consider anybody paying dues a "member."
+        initial="membership fees.",
     )
 
     merchantDefinedData1 = forms.CharField(  # noqa: N815
@@ -718,7 +720,7 @@ class DuesForm(forms.Form):
     merchantDefinedData3 = forms.EmailField(required=True, label="Email")  # noqa: N815
     merchantDefinedData4 = forms.CharField(  # noqa: N815
         required=True,
-        label="Member name",
+        label="Full name",
         widget=forms.TextInput(
             attrs={
                 "placeholder": "Tim Beaver",
@@ -732,7 +734,7 @@ class DuesForm(forms.Form):
     # set by an Angular directive that updates the amount based on the affiliation.
     # For users _without_ JavaScript, it will display as a Select widget.
     amount = forms.ChoiceField(
-        label="Please confirm membership level",
+        label="Please confirm your affiliation",
         required=True,
         help_text="(We're showing this because you have scripts disabled)",
         choices=list(amount_choices(value_is_amount=True)),

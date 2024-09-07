@@ -145,7 +145,7 @@ class MergeTest(TestCase):
         self._migrate()
         self.assertFalse(self.tim.passwordquality.is_insecure)
 
-    def test_membership_reminders(self):
+    def test_dues_reminders(self):
         """The newest reminder is honored, even if delivered to the older participant."""
         newer_reminder_sent_at = datetime(2020, 12, 25, tzinfo=ZoneInfo("UTC"))
         factories.MembershipReminderFactory.create(

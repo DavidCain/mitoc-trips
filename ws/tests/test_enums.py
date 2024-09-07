@@ -21,7 +21,7 @@ class TripIneligibilityReasonTest(SimpleTestCase):
 
     def test_related_to_membership(self):
         self.assertTrue(
-            enums.TripIneligibilityReason.MEMBERSHIP_MISSING.related_to_membership
+            enums.TripIneligibilityReason.DUES_MISSING.related_to_membership
         )
         self.assertTrue(
             enums.TripIneligibilityReason.WAIVER_MISSING.related_to_membership

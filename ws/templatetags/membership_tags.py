@@ -18,7 +18,7 @@ STATUS_TO_BOOTSTRAP_LABEL: Mapping[membership_api.Status, str] = MappingProxyTyp
         "Missing": "label-danger",
         "Waiver Expired": "label-warning",
         "Missing Waiver": "label-warning",
-        "Missing Membership": "label-warning",
+        "Missing Dues": "label-warning",
         "Expiring Soon": "label-info",
     }
 )
@@ -43,7 +43,7 @@ def membership_status(
     status = "Expiring Soon" if can_renew_early else membership_info["status"]
 
     link_to_pay_dues = can_link_to_pay_dues and (
-        can_renew_early or not (membership and membership.membership_active)
+        can_renew_early or not (membership and membership.dues_active)
     )
 
     # Waivers can be signed free of cost any time.
@@ -56,7 +56,6 @@ def membership_status(
         can_renew_early or not (membership and membership.waiver_active)
     )
 
-    # query_geardb_for_membership(user)
     return {
         "participant": participant,
         "viewing_participant": context["viewing_participant"],

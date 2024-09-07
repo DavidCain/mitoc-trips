@@ -112,8 +112,8 @@ class AuthTests(TestCase):
         """
         self.login()
 
-        # Membership in participant group is sufficient to validate participant
-        # (Making profile_needs_update return False skips participant checks)
+        # Membership in participant group is sufficient to validate participant.
+        # (Making profile_needs_update return False skips participant checks).
         PermHelpers.mark_participant(self.user)
         profile_needs_update.return_value = False
 

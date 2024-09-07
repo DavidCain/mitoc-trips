@@ -11,11 +11,7 @@ it("renders the active state", () => {
 });
 
 it("renders warning statuses", () => {
-  const warningStatuses = [
-    "Waiver Expired",
-    "Missing Waiver",
-    "Missing Membership",
-  ];
+  const warningStatuses = ["Waiver Expired", "Missing Waiver", "Missing Dues"];
   warningStatuses.forEach((membershipStatus) => {
     const wrapper = shallowMount(MembershipStatusIndicator, {
       propsData: { membershipStatus },

@@ -146,10 +146,10 @@ class MembershipStats(SingletonModel):
 
 
 class Membership(models.Model):
-    """Cached data about a participant's MITOC membership.
+    """Cached data about a participant's MITOC dues and waiver.
 
     The gear database is the ultimate authority about a given participant's
-    membership. However, since paying dues and signing waivers happens so
+    MITOC account. However, since paying dues and signing waivers happens so
     rarely (once a year), we can cache this information locally for faster access.
 
     `membership_expires` and `waiver_expires` should be regarded as the
@@ -173,7 +173,7 @@ class Membership(models.Model):
     membership_expires = models.DateField(
         null=True,
         blank=True,
-        help_text="Last day that annual membership dues are valid",
+        help_text="Last day that annual dues are valid",
     )
     waiver_expires = models.DateField(
         null=True,
@@ -190,7 +190,7 @@ class Membership(models.Model):
         )
 
     @property
-    def membership_active(self) -> bool:
+    def dues_active(self) -> bool:
         expires = self.membership_expires
         if expires is None:
             return False
@@ -248,7 +248,7 @@ class Membership(models.Model):
     @property
     def in_early_renewal_period(self) -> bool:
         """Return if the member is in their last ~40 days of membership, can renew."""
-        if not self.membership_active:
+        if not self.dues_active:
             return False
         renewal_date = self.date_when_renewal_is_recommended(report_past_dates=True)
         if renewal_date is None:
@@ -265,12 +265,12 @@ class Membership(models.Model):
         return self.membership_expires + timedelta(days=365)
 
     def should_renew_for(self, trip: "Trip") -> bool:
-        """Return if membership renewal is required to attend a future trip.
+        """Return if dues renewal is required to attend a future trip.
 
-        If a participant's membership will expire on the given date, and it's
-        close enough in the future that they can renew, we should not allow
-        them to sign up for the trip (since they won't be an active member on
-        that day).
+        If a participant's dues will expire on the given date, and it's close
+        enough in the future that they can renew, we should not allow them to
+        sign up for the trip (since they won't be current on their dues when
+        that day comes).
 
         Most MITOC trips are announced just a week or two in advance, very few
         are more than 30 days out.
@@ -322,8 +322,8 @@ class Participant(models.Model):
     )
     send_membership_reminder = models.BooleanField(
         default=False,
-        verbose_name="Send annual reminder to renew membership",
-        help_text="MITOC cannot automatically renew memberships, but we can send you an email when it's time to renew.",
+        verbose_name="Send annual reminder to renew dues",
+        help_text="MITOC cannot automatically charge you, but we can send you an email when it's time to renew.",
     )
     car = models.OneToOneField(Car, null=True, blank=True, on_delete=models.CASCADE)
 
@@ -375,9 +375,9 @@ class Participant(models.Model):
         return self.name
 
     @property
-    def membership_active(self) -> bool:
+    def dues_active(self) -> bool:
         """NOTE: This uses the cache, should only be called on a fresh cache."""
-        return bool(self.membership and self.membership.membership_active)
+        return bool(self.membership and self.membership.dues_active)
 
     def should_sign_waiver_for(self, trip: "Trip") -> bool:
         """NOTE: This uses the cache, should only be called on a fresh cache."""
@@ -397,13 +397,13 @@ class Participant(models.Model):
         return avatar_url(self, size)
 
     @staticmethod
-    def affiliation_to_membership_price(affiliation: str) -> int:
+    def affiliation_to_annual_dues(affiliation: str) -> int:
         prices = {aff.CODE: aff.ANNUAL_DUES for aff in affiliations.ALL}
         return prices.get(affiliation, affiliations.NON_AFFILIATE.ANNUAL_DUES)
 
     @property
     def annual_dues(self) -> int:
-        return self.affiliation_to_membership_price(self.affiliation)
+        return self.affiliation_to_annual_dues(self.affiliation)
 
     @property
     def is_student(self) -> bool:
@@ -576,9 +576,9 @@ class Participant(models.Model):
 
         if self.should_renew_for(trip):
             if self.membership and self.membership.membership_expires:
-                yield enums.TripIneligibilityReason.MEMBERSHIP_NEEDS_RENEWAL
+                yield enums.TripIneligibilityReason.DUES_NEED_RENEWAL
             else:
-                yield enums.TripIneligibilityReason.MEMBERSHIP_MISSING
+                yield enums.TripIneligibilityReason.DUES_MISSING
 
         if self.should_sign_waiver_for(trip):
             if self.membership and self.membership.waiver_expires:

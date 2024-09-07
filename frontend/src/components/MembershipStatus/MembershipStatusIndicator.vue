@@ -15,7 +15,7 @@ const statusToBootstrapClass: Record<MembershipStatus, string> = {
   Missing: "label-danger",
   "Waiver Expired": "label-warning",
   "Missing Waiver": "label-warning",
-  "Missing Membership": "label-warning",
+  "Missing Dues": "label-warning",
   "Expiring Soon": "label-info", // Special front-end only status
 };
 

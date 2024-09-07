@@ -28,8 +28,8 @@ def lapsed_participants() -> QuerySet[models.Participant]:
     lapsed_update = Q(profile_last_updated__lt=(now - multiple_update_periods))
 
     today = now.date()
-    active_members = (
-        # Anybody with a current membership/waiver is active
+    active_participants = (
+        # Anybody with current dues/waiver is active
         Q(membership__membership_expires__gte=today)
         | Q(membership__waiver_expires__gte=today)
         |
@@ -42,7 +42,7 @@ def lapsed_participants() -> QuerySet[models.Participant]:
         Q(signup__trip__trip_date__gte=today)
     )
 
-    return models.Participant.objects.filter(lapsed_update).exclude(active_members)
+    return models.Participant.objects.filter(lapsed_update).exclude(active_participants)
 
 
 @transaction.atomic

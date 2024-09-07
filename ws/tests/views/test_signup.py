@@ -21,7 +21,7 @@ class SignupsViewTest(TestCase):
 
     def _active_member(self):
         par = factories.ParticipantFactory.create()
-        self.assertTrue(par.membership_active)
+        self.assertTrue(par.dues_active)
         return par
 
     @staticmethod
@@ -41,16 +41,16 @@ class SignupsViewTest(TestCase):
 
         In this case:
         - signups are currently open
-        - the participant is an active member
+        - the participant is current on dues
         """
         trip = self._upcoming_trip(algorithm="lottery")
 
-        # The participant has an active membership that will last at least until the trip
+        # The participant has dues that will be valid at least until the trip.
         par = self._active_member()
         self.assertFalse(par.should_renew_for(trip))
 
         self.client.force_login(par.user)
-        # The user's membership & waiver will be current enough, no need to update.
+        # The user's dues & waiver will be current enough, no need to update.
         with responses.RequestsMock():  # No API calls expected
             resp = self._signup(trip)
 
@@ -129,7 +129,7 @@ class SignupsViewTest(TestCase):
             ),
         )
 
-        # The participant has an active membership that will last at least until the trip
+        # The participant has dues that will be valid at least until the trip.
         par = self._active_member()
         self.assertFalse(par.should_renew_for(not_yet_open_trip))
 
@@ -144,7 +144,7 @@ class SignupsViewTest(TestCase):
 
     @responses.activate
     def test_membership_required(self):
-        """Only active members are allowed on the trip."""
+        """Only participants with current dues are allowed on the trip."""
         par = factories.ParticipantFactory.create(
             membership=None, email="par@example.com"
         )
@@ -179,7 +179,7 @@ class SignupsViewTest(TestCase):
             form.errors,
             {
                 "__all__": [
-                    "An active membership is required",
+                    "Current dues are required",
                     "A current waiver is required",
                 ]
             },
@@ -190,7 +190,7 @@ class SignupsViewTest(TestCase):
 
     @responses.activate
     def test_active_waiver_required(self):
-        """Only active members are allowed on the trip."""
+        """Only participants with current waivers are allowed on the trip."""
         par = factories.ParticipantFactory.create(
             membership=factories.MembershipFactory.create(
                 membership_expires=date(2020, 1, 5), waiver_expires=None

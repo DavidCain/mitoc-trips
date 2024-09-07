@@ -35,8 +35,8 @@ class LapsedTests(TestCase):
         self.assertEqual(len(cleanup.lapsed_participants()), 0)
 
     @freeze_time("Tue, 31 Dec 2019 23:59:00 EST")
-    def test_membership_current(self):
-        """Members aren't lapsed if they have a membership, even with dated profile."""
+    def test_dues_current(self):
+        """MITOCers aren't lapsed if they have current dues, even with dated profile."""
         membership = models.Membership(
             membership_expires=date(2020, 1, 1),
             waiver_expires=None,
@@ -50,7 +50,7 @@ class LapsedTests(TestCase):
 
     @freeze_time("Tue, 31 Dec 2019 23:59:00 EST")
     def test_waiver_current(self):
-        """Members aren't lapsed if they have a waiver, even with dated profile."""
+        """MITOCers aren't lapsed if they have a waiver, even with dated profile."""
         membership = models.Membership(
             waiver_expires=date(2020, 1, 1),
             membership_expires=None,
@@ -64,7 +64,7 @@ class LapsedTests(TestCase):
 
     @freeze_time("Tue, 31 Dec 2019 23:59:00 EST")
     def test_recently_participated(self):
-        """Members aren't lapsed if they participated in trips recently."""
+        """MITOCers aren't lapsed if they participated in trips recently."""
         # Participant was on a trip in the last year
         trip = factories.TripFactory.create(trip_date=date(2019, 2, 28))
         signup = factories.SignUpFactory.create(

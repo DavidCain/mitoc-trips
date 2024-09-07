@@ -19,7 +19,7 @@ const MEMBERSHIP_RESPONSE: MembershipResponse = {
     email: "foo@example.com",
   },
   waiver: { expires: "2020-02-02", active: true },
-  status: "Missing Membership",
+  status: "Missing Dues",
 };
 let mockAxios: MockAdapter;
 
@@ -86,7 +86,7 @@ describe("Expiring Soon", () => {
     dateNowSpy.mockRestore();
   });
 
-  it("Applies a special status for active memberships soon expiring", async () => {
+  it("Applies a special status for active dues soon expiring", async () => {
     respondsWith({
       membership: {
         // Active, but expiring in a couple days!
@@ -104,7 +104,7 @@ describe("Expiring Soon", () => {
     expect(statusIndicator.props("membershipStatus")).toEqual("Expiring Soon");
   });
 
-  it("Leaves memberships with plenty of time remaining as 'Active'", async () => {
+  it("Leaves dues with plenty of time remaining as 'Active'", async () => {
     respondsWith({
       membership: {
         // Active, plenty of time left

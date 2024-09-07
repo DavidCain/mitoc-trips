@@ -32,9 +32,9 @@ def should_renew_for(participant, trip):
 
 
 @register.filter
-def membership_active(participant):
+def dues_active(participant):
     """NOTE: This uses the cache, should only be called if cache was updated."""
-    return participant.membership_active
+    return participant.dues_active
 
 
 def leader_signup_is_allowed(trip, participant):

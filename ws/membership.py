@@ -1,2 +1,4 @@
-MERCHANT_ID = "mit_sao_mitoc"  # CyberSource merchant ID for MITOC/SOLE
-PAYMENT_TYPE = "membership"  # Value expected in mitoc-aws membership processing code
+from typing import Final
+
+MERCHANT_ID: Final = "mit_sao_mitoc"  # CyberSource merchant ID for MITOC/SOLE
+PAYMENT_TYPE: Final = "membership"  # Expected in mitoc-aws membership processing code

@@ -19,7 +19,7 @@ describe("getMemberStatus", () => {
         email: "mitoc.member@example.com",
       },
       waiver: { expires: "2020-02-02", active: true },
-      status: "Missing Membership",
+      status: "Missing Dues",
     };
     mockAxios.onGet("/users/37/membership.json").replyOnce((config) => {
       return [200, rawResp];
@@ -51,7 +51,7 @@ describe("getMemberStatus", () => {
         expires: waiverExpires,
       },
       // Renamed from the keyword `status`
-      membershipStatus: "Missing Membership",
+      membershipStatus: "Missing Dues",
     };
     expect(data).toEqual(expectedData);
   });

@@ -75,29 +75,30 @@ class TripIneligibilityReason(enum.Enum):
     # Specific to Program.WINTER_SCHOOL -- participant hasn't attended lectures, and it's required
     MISSED_WS_LECTURES = 4
 
-    # A ProfileProblem exists for this user
+    # A ProfileProblem exists for this user.
     PROFILE_PROBLEM = 5
 
-    # The participant has never been a MITOC member or had a waiver before
-    MEMBERSHIP_MISSING = 6
+    # The participant has never paid dues to MITOC.
+    DUES_MISSING = 6
+    # The participant has never signed a waiver.
     WAIVER_MISSING = 7
 
-    # Membership or waiver already exist, but must be renewed, either because:
+    # Dues or waiver already exist, but must be renewed, either because:
     # 1. they've expired
     # 2. they will have expired by the time the trip starts (and we can renew today)
     WAIVER_NEEDS_RENEWAL = 8
-    MEMBERSHIP_NEEDS_RENEWAL = 9
+    DUES_NEED_RENEWAL = 9
 
     @property
     def related_to_membership(self):
-        """Return if this problem relates to the MITOCer's membership.
+        """Return if this problem relates to the MITOCer's dues or waiver.
 
-        Useful for determining if we need to hit the membership database to refresh
+        Useful for determining if we need to hit the gear database to refresh
         the cache in the case of a problem preventing trip attendance.
         """
         return self in {
-            self.MEMBERSHIP_MISSING,
-            self.MEMBERSHIP_NEEDS_RENEWAL,
+            self.DUES_MISSING,
+            self.DUES_NEED_RENEWAL,
             self.WAIVER_MISSING,
             self.WAIVER_NEEDS_RENEWAL,
         }
@@ -111,8 +112,8 @@ class TripIneligibilityReason(enum.Enum):
             self.IS_TRIP_WIMP: "Cannot attend a trip as its WIMP",
             self.MISSED_WS_LECTURES: "Must have attended mandatory safety lectures",
             self.PROFILE_PROBLEM: "Profile requires modification",
-            self.MEMBERSHIP_MISSING: "An active membership is required",
-            self.MEMBERSHIP_NEEDS_RENEWAL: "Membership must be renewed",
+            self.DUES_MISSING: "Current dues are required",
+            self.DUES_NEED_RENEWAL: "Annual dues must be paid",
             self.WAIVER_MISSING: "A current waiver is required",
             self.WAIVER_NEEDS_RENEWAL: "Waiver must be renewed",
         }
@@ -144,8 +145,8 @@ class TripIneligibilityReason(enum.Enum):
             self.IS_TRIP_WIMP: "be replaced in your role as the trip WIMP",
             self.PROFILE_PROBLEM: f'update your <a href="{edit_profile}">personal information</a>',
             self.MISSED_WS_LECTURES: """have attended this year's lectures. Questions? Contact the <a href="mailto:ws-chair@mit.edu">Winter School Chair</a>.""",
-            self.MEMBERSHIP_MISSING: f'have an <a href="{pay_dues}">active membership</a>',
-            self.MEMBERSHIP_NEEDS_RENEWAL: f"""have a <a href="{pay_dues}">membership that's valid until at least {trip_date}</a>""",
+            self.DUES_MISSING: f'be current on <a href="{pay_dues}">annual dues</a>',
+            self.DUES_NEED_RENEWAL: f"""have <a href="{pay_dues}">annual dues that are valid until at least {trip_date}</a>""",
             self.WAIVER_MISSING: f'<a href="{initiate_waiver}">sign a waiver</a>',
             self.WAIVER_NEEDS_RENEWAL: f"""have a <a href="{initiate_waiver}">waiver that's valid until at least {trip_date}</a>""",
         }

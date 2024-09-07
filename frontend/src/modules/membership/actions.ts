@@ -38,7 +38,7 @@ interface Waiver {
 //     email: "davidjosephcain@gmail.com"
 //   },
 //   waiver: { expires: "2020-02-02", active: true },
-//   status: "Missing Membership"
+//   status: "Missing Dues"
 // };
 export interface MembershipResponse {
   membership: RawMembership;

@@ -5,8 +5,8 @@
 This is a Django-based trip management system for the [MIT Outing Club][mitoc].
 
 MITOC's volunteer leaders craft trips to take participants climbing, hiking,
-biking, skiing, mountaineering, rafting, canoeing, and surfing. All trips are
-open to MITOC members - a community of thousands.
+biking, skiing, mountaineering, rafting, canoeing, and surfing. Trips are open
+to everyone in the club - a community of thousands.
 
 
 # Deployment

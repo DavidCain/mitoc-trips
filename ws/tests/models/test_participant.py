@@ -38,7 +38,7 @@ class ParticipantTest(TestCase):
 
 class ReasonsCannotAttendTest(TestCase):
     def test_is_wimp(self):
-        # Note that the participant also has no membership!
+        # Note that the participant also has not paid dues or signed a waiver.
         # We *only* highlight the WIMP issue, since nothing else really matters.
         participant = factories.ParticipantFactory.create(membership=None)
         trip = factories.TripFactory.create(wimp=participant)
@@ -49,7 +49,7 @@ class ReasonsCannotAttendTest(TestCase):
 
     @freeze_time("12 Jan 2020 12:00:00 EST")
     def test_missed_lectures(self):
-        # Note that the participant has no membership!
+        # Note that the participant also has not paid dues or signed a waiver.
         participant = factories.ParticipantFactory.create(membership=None)
 
         # The trip takes place during Winter School, but they've missed lectures.
@@ -64,7 +64,7 @@ class ReasonsCannotAttendTest(TestCase):
         self.assertCountEqual(
             all_reasons,
             # We *only* highlight the lectures issue.
-            # We don't want to prompt the user to pay membership dues
+            # We don't want to prompt the user to pay dues.
             [enums.TripIneligibilityReason.MISSED_WS_LECTURES],
         )
 
@@ -164,7 +164,7 @@ class ReasonsCannotAttendTest(TestCase):
         self.assertCountEqual(
             participant.reasons_cannot_attend(trip),
             # We *only* highlight the lectures issue.
-            # We don't want to prompt the user to pay membership dues
+            # We don't want to prompt the user to pay dues.
             [enums.TripIneligibilityReason.PROFILE_PROBLEM],
         )
 
@@ -175,7 +175,7 @@ class ReasonsCannotAttendTest(TestCase):
         self.assertCountEqual(
             participant.reasons_cannot_attend(trip),
             [
-                enums.TripIneligibilityReason.MEMBERSHIP_MISSING,
+                enums.TripIneligibilityReason.DUES_MISSING,
                 enums.TripIneligibilityReason.WAIVER_MISSING,
             ],
         )
@@ -192,7 +192,7 @@ class ReasonsCannotAttendTest(TestCase):
         self.assertCountEqual(
             participant.reasons_cannot_attend(trip),
             [
-                enums.TripIneligibilityReason.MEMBERSHIP_NEEDS_RENEWAL,
+                enums.TripIneligibilityReason.DUES_NEED_RENEWAL,
                 enums.TripIneligibilityReason.WAIVER_NEEDS_RENEWAL,
             ],
         )
@@ -223,7 +223,7 @@ class ReasonsCannotAttendTest(TestCase):
         trip = factories.TripFactory.create(program=enums.Program.CLIMBING.value)
         self.assertCountEqual(
             participant.reasons_cannot_attend(trip),
-            [enums.TripIneligibilityReason.MEMBERSHIP_NEEDS_RENEWAL],
+            [enums.TripIneligibilityReason.DUES_NEED_RENEWAL],
         )
 
 
@@ -399,7 +399,7 @@ class MembershipActiveTest(unittest.TestCase):
         trip = factories.TripFactory.build(membership_required=True)
 
         # Both a waiver & a membership are required
-        self.assertFalse(par.membership_active)
+        self.assertFalse(par.dues_active)
         self.assertTrue(par.should_renew_for(trip))
         self.assertTrue(par.should_sign_waiver_for(trip))
 
@@ -412,7 +412,7 @@ class MembershipActiveTest(unittest.TestCase):
         trip = factories.TripFactory.build(membership_required=True)
 
         # Both a waiver & a membership are required
-        self.assertFalse(membership.membership_active)
+        self.assertFalse(membership.dues_active)
         self.assertTrue(membership.should_renew_for(trip))
         self.assertTrue(membership.should_sign_waiver_for(trip))
 
@@ -424,7 +424,7 @@ class MembershipActiveTest(unittest.TestCase):
 
         trip = factories.TripFactory.build(membership_required=False)
 
-        self.assertFalse(membership.membership_active)
+        self.assertFalse(membership.dues_active)
 
         # Membership isn't required, but a waiver still is.
         self.assertFalse(membership.should_renew_for(trip))
@@ -435,7 +435,7 @@ class MembershipActiveTest(unittest.TestCase):
         membership = factories.MembershipFactory.build(
             membership_expires=date(2016, 11, 4), waiver_expires=None
         )
-        self.assertTrue(membership.membership_active)
+        self.assertTrue(membership.dues_active)
 
         trip = factories.TripFactory.build(trip_date=date(2015, 11, 17))
 
@@ -451,7 +451,7 @@ class MembershipActiveTest(unittest.TestCase):
         )
 
         trip = factories.TripFactory.build(trip_date=date(2025, 12, 12))
-        self.assertFalse(membership.membership_active)
+        self.assertFalse(membership.dues_active)
         self.assertTrue(membership.should_renew_for(trip))
         self.assertTrue(membership.should_sign_waiver_for(trip))
 
@@ -466,7 +466,7 @@ class MembershipActiveTest(unittest.TestCase):
         # More than a year out!
         trip = factories.TripFactory.build(trip_date=date(2026, 12, 13))
 
-        self.assertTrue(membership.membership_active)
+        self.assertTrue(membership.dues_active)
 
         # Much to early to renew a membership (364 days into current membership!)
         # Signing a waiver won't do any good yet.

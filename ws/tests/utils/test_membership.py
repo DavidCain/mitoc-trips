@@ -67,10 +67,10 @@ class CanAttendTripTests(TestCase):
         )
         before_refreshing_ts = dated_membership.last_cached
 
-        # Right now, with our last-cached copy of their membership, they cannot attend
+        # Right now, with our last-cached copy of their membership, they cannot attend.
         self.assertCountEqual(
             participant.reasons_cannot_attend(self.trip),
-            [enums.TripIneligibilityReason.MEMBERSHIP_NEEDS_RENEWAL],
+            [enums.TripIneligibilityReason.DUES_NEED_RENEWAL],
         )
 
         responses.get(

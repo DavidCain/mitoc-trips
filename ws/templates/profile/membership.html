@@ -2,18 +2,19 @@
 {% load crispy_forms_tags %}
 {% load membership_tags %}
 
-{% block head_title %}Membership dues{% endblock head_title %}
+{% block head_title %}Annual dues{% endblock head_title %}
 
 {% block content %}
-  <h1>Pay MITOC membership dues</h1>
+  <h1>Pay MITOC dues</h1>
 
-  <p class="lead">To make the most of MITOC, you must be an active member.</p>
+  <p class="lead">To make the most of MITOC, you must be up-to-date on annual dues.</p>
   <p>
     {% if viewing_participant.membership.in_early_renewal_period %}
-      Renewing today keeps your membership active until {{ viewing_participant.membership.expiry_if_paid_today|date:"M j, Y" }}.
-      Membership
+      Renewing today keeps your account active until {{ viewing_participant.membership.expiry_if_paid_today|date:"M j, Y" }}.
+
+      Staying current on dues
     {% else %}
-      Membership lasts for 365 days after dues are paid, and
+      Dues are valid for 365 days. Paying dues
     {% endif %}
     enables you to
     <a href="https://mitoc.mit.edu/rentals">rent gear</a> from the office,
@@ -25,7 +26,7 @@
 
   {% if not user.is_authenticated %}
     <p class="lead">
-      Already a member?
+        Have an account?
       <a href="{% url 'account_signup' %}?next={% url 'pay_dues' %}">Sign up</a>
       or
       <a href="{% url 'account_login' %}?next={% url 'pay_dues' %}">log in</a>
@@ -108,9 +109,8 @@
         </div>
 
         <p data-ng-show="['MU', 'MG'].includes(affiliation)">
-            If <noscript>you are an MIT student and</noscript> the cost of membership dues is prohibitive to your participation,
-           please email <a href="mailto:mitoc-owner@mit.edu">mitoc-owner@mit.edu</a>
-           to ask about this fee being waived.
+            If <noscript>you are an MIT student and</noscript> the cost of club participation is prohibitive,
+            please see our <a href="https://mitoc.mit.edu/about/financial-aid">need-blind financial aid policies</a>.
         </p>
         <div class="btn-group">
           {% if viewing_participant %}
@@ -128,7 +128,7 @@
         </div>
         <div>
           <small>
-            <em>Membership dues are non-refundable.</em>
+            <em>Dues payments are non-refundable.</em>
           </small>
         </div>
       </form>

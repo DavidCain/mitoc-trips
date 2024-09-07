@@ -11,7 +11,7 @@ const PADDED_RENEWAL_ALLOWED_WITH_DAYS_LEFT = Math.max(
   RENEWAL_ALLOWED_WITH_DAYS_LEFT - 2
 );
 
-// When a membership is nearing the end of its time, prompt users to renew!
+// When dues are going to expire soon, prompt users to renew!
 const PROMPT_RENEWAL_WITH_DAYS_REMAINING = Math.min(
   30,
   PADDED_RENEWAL_ALLOWED_WITH_DAYS_LEFT
@@ -22,7 +22,7 @@ export type MembershipStatus =
   | "Active"
   | "Waiver Expired"
   | "Missing Waiver"
-  | "Missing Membership"
+  | "Missing Dues"
   | "Expiring Soon"
   | "Expired"
   | "Missing";
@@ -53,7 +53,7 @@ export function expiringSoon(expiresOn: Moment | null): boolean {
 }
 
 /*
- * Return if we're positive that renewing membership today would extend membership by one year.
+ * Return if we're positive that renewing today would extend membership by one year.
  *
  * Towards the end of a one-year membership, we allow early renewal. This lets members ensure
  * that they have uninterrupted membership, while also not double-paying for the overlap period
@@ -67,9 +67,9 @@ export function earlyRenewalAllowed(expiresOn: Moment | null): boolean {
 }
 
 /**
- * Return the date that membership would be valid until if paying for a membership today.
+ * Return the date that membership would be valid until if paying dues today.
  *
- * In normal circumstances (first membership or renewal), that's just one full year from today.
+ * In normal circumstances (first payment or renewal), that's just one full year from today.
  * If early renewal is permitted, we add remaining valid membership onto the next one.
  */
 export function expirationIfRenewingToday(expiresOn: Moment | null): Moment {
