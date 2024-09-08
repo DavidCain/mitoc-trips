@@ -327,8 +327,6 @@ class ParticipantView(
         is_par = Q(signup__participant=participant)
         par_on_trip = is_par & Q(signup__on_trip=True)
         leading_trip = Q(leaders=participant)
-        in_future = Q(trip_date__gte=today)
-        in_past = Q(trip_date__lt=today)
 
         # Prefetch data to avoid n+1 queries enumerating trips
         prefetches = ["leaders__leaderrating_set"]
@@ -339,30 +337,42 @@ class ParticipantView(
         waitlisted = trips.filter(is_par, signup__waitlistsignup__isnull=False)
 
         trips_led = participant.trips_led.prefetch_related(*prefetches)
-        trips_created = models.Trip.objects.filter(
-            creator=participant
-        ).prefetch_related(*prefetches)
 
         # Avoid doubly-listing trips where they participated or led the trip
-        created_but_not_on = trips_created.exclude(leading_trip | par_on_trip)
+        created_but_not_on = (
+            models.Trip.objects.filter(creator=participant)
+            .prefetch_related(*prefetches)
+            .exclude(leading_trip | par_on_trip)
+        )
 
-        upcoming_first = ("trip_date", "-time_created")
-        recent_first = ("-trip_date", "-time_created")
-        upcoming_trips: _TripDescriptor = {
-            "on_trip": accepted.filter(in_future).order_by(*upcoming_first),
-            "waitlisted": waitlisted.filter(in_future).order_by(*upcoming_first),
-            "leader": trips_led.filter(in_future).order_by(*upcoming_first),
-            "creator": created_but_not_on.filter(in_future).order_by(*upcoming_first),
-            "wimp": participant.wimp_trips.filter(in_future).order_by(*upcoming_first),
+        def _get_current_trips(query: QuerySet[models.Trip]) -> QuerySet[models.Trip]:
+            return query.filter(trip_date__gte=today).order_by(
+                "trip_date",  # Upcoming trips first
+                "-time_created",
+            )
+
+        def _get_past_trips(query: QuerySet[models.Trip]) -> QuerySet[models.Trip]:
+            return query.filter(trip_date__lt=today).order_by(
+                "-trip_date",  # Recent trips first
+                "-time_created",
+            )
+
+        return {
+            "current": {
+                "on_trip": _get_current_trips(accepted),
+                "waitlisted": _get_current_trips(waitlisted),
+                "leader": _get_current_trips(trips_led),
+                "creator": _get_current_trips(created_but_not_on),
+                "wimp": _get_current_trips(participant.wimp_trips),
+            },
+            "past": {
+                "on_trip": _get_past_trips(accepted),
+                "waitlisted": None,
+                "leader": _get_past_trips(trips_led),
+                "creator": _get_past_trips(created_but_not_on),
+                "wimp": _get_past_trips(participant.wimp_trips),
+            },
         }
-        past_trips: _TripDescriptor = {
-            "on_trip": accepted.filter(in_past).order_by(*recent_first),
-            "waitlisted": None,
-            "leader": trips_led.filter(in_past).order_by(*recent_first),
-            "creator": created_but_not_on.filter(in_past).order_by(*recent_first),
-            "wimp": participant.wimp_trips.filter(in_past).order_by(*recent_first),
-        }
-        return {"current": upcoming_trips, "past": past_trips}
 
     @staticmethod
     def get_stats(trips: GroupedTrips) -> list[str]:
