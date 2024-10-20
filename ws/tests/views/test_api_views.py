@@ -556,6 +556,173 @@ class JsonLeaderParticipantSignupTest(TestCase):
         )
 
 
+class AdminTripSignupsViewTest(TestCase):
+    maxDiff = None
+
+    def setUp(self) -> None:
+        super().setUp()
+        self.user = factories.UserFactory.create()
+        self.client.force_login(self.user)
+
+    def test_not_leader(self) -> None:
+        trip = factories.TripFactory()
+        resp = self.client.get(f"/trips/{trip.pk}/admin/signups/")
+        self.assertEqual(resp.status_code, 403)
+
+    # Note to future me -- this test relies on signals creating waitlist signups
+    # Ideally, we can change to just invoking `trip_or_wait`
+    def test_signup_ordering(self) -> None:
+        par = factories.ParticipantFactory.create(name="Tim B", user=self.user)
+        trip = factories.TripFactory(
+            algorithm="fcfs", creator=par, maximum_participants=2
+        )
+
+        first_on_trip = factories.SignUpFactory(trip=trip, notes="Hi")
+        second_on_trip = factories.SignUpFactory(trip=trip)
+
+        # Two signups come in, but the leader manually ordered them!
+        second_on_waitlist = factories.SignUpFactory(trip=trip, on_trip=False)
+        second_on_waitlist.waitlistsignup.manual_order = -3
+        second_on_waitlist.waitlistsignup.save()
+
+        top_of_waitlist = factories.SignUpFactory(trip=trip, on_trip=False)
+        top_of_waitlist.waitlistsignup.manual_order = -2
+        top_of_waitlist.waitlistsignup.save()
+
+        # This represents somebody who added themselves to the waitlist
+        # Previously, they would appear at the *top* of the list!
+        bottom_of_waitlist = factories.SignUpFactory(trip=trip)
+
+        self.assertEqual(
+            list(trip.waitlist.signups),
+            [top_of_waitlist, second_on_waitlist, bottom_of_waitlist],
+        )
+
+        resp = self.client.get(f"/trips/{trip.pk}/admin/signups/")
+        expected = {
+            "signups": [
+                {
+                    "id": first_on_trip.pk,
+                    "participant": {
+                        "id": first_on_trip.participant.pk,
+                        "name": mock.ANY,
+                        "email": mock.ANY,
+                    },
+                    "missed_lectures": True,
+                    "feedback": [],
+                    "also_on": [],
+                    "paired_with": None,
+                    "car_status": None,
+                    "number_of_passengers": None,
+                    "notes": "Hi",
+                },
+                {
+                    "id": second_on_trip.pk,
+                    "participant": {
+                        "id": second_on_trip.participant.pk,
+                        "name": mock.ANY,
+                        "email": mock.ANY,
+                    },
+                    "missed_lectures": True,
+                    "feedback": [],
+                    "also_on": [],
+                    "paired_with": None,
+                    "car_status": None,
+                    "number_of_passengers": None,
+                    "notes": "",
+                },
+                {
+                    "id": top_of_waitlist.pk,
+                    "participant": {
+                        "id": top_of_waitlist.participant.pk,
+                        "name": mock.ANY,
+                        "email": mock.ANY,
+                    },
+                    "missed_lectures": True,
+                    "feedback": [],
+                    "also_on": [],
+                    "paired_with": None,
+                    "car_status": None,
+                    "number_of_passengers": None,
+                    "notes": "",
+                },
+                {
+                    "id": second_on_waitlist.pk,
+                    "participant": {
+                        "id": second_on_waitlist.participant.pk,
+                        "name": mock.ANY,
+                        "email": mock.ANY,
+                    },
+                    "missed_lectures": True,
+                    "feedback": [],
+                    "also_on": [],
+                    "paired_with": None,
+                    "car_status": None,
+                    "number_of_passengers": None,
+                    "notes": "",
+                },
+                {
+                    "id": bottom_of_waitlist.pk,
+                    "participant": {
+                        "id": bottom_of_waitlist.participant.pk,
+                        "name": mock.ANY,
+                        "email": mock.ANY,
+                    },
+                    "missed_lectures": True,
+                    "feedback": [],
+                    "also_on": [],
+                    "paired_with": None,
+                    "car_status": None,
+                    "number_of_passengers": None,
+                    "notes": "",
+                },
+            ],
+            "leaders": [],
+            "creator": {"name": "Tim B", "email": mock.ANY},
+        }
+        self.assertEqual(resp.json(), expected)
+        simple_resp = self.client.get(f"/trips/{trip.pk}/signups/")
+        self.assertEqual(
+            simple_resp.json()["signups"],
+            {
+                "onTrip": [
+                    {
+                        "participant": {
+                            "name": first_on_trip.participant.name,
+                            "email": first_on_trip.participant.email,
+                        }
+                    },
+                    {
+                        "participant": {
+                            "name": second_on_trip.participant.name,
+                            "email": second_on_trip.participant.email,
+                        }
+                    },
+                ],
+                "waitlist": [
+                    {
+                        "participant": {
+                            "name": top_of_waitlist.participant.name,
+                            "email": top_of_waitlist.participant.email,
+                        }
+                    },
+                    {
+                        "participant": {
+                            "name": second_on_waitlist.participant.name,
+                            "email": second_on_waitlist.participant.email,
+                        }
+                    },
+                    {
+                        "participant": {
+                            "name": bottom_of_waitlist.participant.name,
+                            "email": bottom_of_waitlist.participant.email,
+                        }
+                    },
+                ],
+            },
+        )
+
+
 class ApproveTripViewTest(TestCase):
     def setUp(self):
         super().setUp()

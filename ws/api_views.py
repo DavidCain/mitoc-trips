@@ -12,7 +12,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import Q, QuerySet
+from django.db.models import F, Q, QuerySet
 from django.http import HttpRequest, JsonResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
@@ -27,7 +27,7 @@ import ws.utils.signups as signup_utils
 from ws import enums, models
 from ws.decorators import group_required
 from ws.middleware import RequestWithParticipant
-from ws.mixins import JsonTripLeadersOnlyView, TripLeadersOnlyView
+from ws.mixins import JsonTripLeadersOnlyView
 from ws.utils import membership_api
 from ws.utils.api import jwt_token_from_headers
 from ws.utils.feedback import feedback_is_recent
@@ -43,7 +43,7 @@ class SimpleSignupsView(DetailView):
 
     model = models.Trip
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> JsonResponse:
         trip = self.get_object()
 
         on_trip = trip.signed_up_participants.filter(signup__on_trip=True)
@@ -54,13 +54,13 @@ class SimpleSignupsView(DetailView):
                 for s in trip.waitlist.signups.select_related("participant")
             ],
         }
-        participant_signups = {}
-        for key, participants in signups.items():
-            participant_signups[key] = [{"participant": par} for par in participants]
 
         return JsonResponse(
             {
-                "signups": participant_signups,
+                "signups": {
+                    key: [{"participant": par} for par in participants]
+                    for key, participants in signups.items()
+                },
                 "leaders": list(trip.leaders.values("name", "email")),
                 "creator": {"name": trip.creator.name, "email": trip.creator.email},
             }
@@ -157,7 +157,9 @@ class JsonSignup(TypedDict):
     deleted: NotRequired["bool"]
 
 
-class AdminTripSignupsView(SingleObjectMixin, FormatSignupMixin, TripLeadersOnlyView):
+class AdminTripSignupsView(
+    SingleObjectMixin, FormatSignupMixin, JsonTripLeadersOnlyView
+):
     model = models.Trip
 
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> JsonResponse:
@@ -273,11 +275,17 @@ class AdminTripSignupsView(SingleObjectMixin, FormatSignupMixin, TripLeadersOnly
             signup_utils.next_in_order(signup, order)
 
     def get_signups(self) -> QuerySet[models.SignUp]:
-        """Trip signups with selected models for use in describe_signup."""
+        """Trip signups with selected models for use in describe_signup.
+
+        Unlike in normal Django template uses, this method reports signups that
+        are on the trip in the same collection as signups which represent a
+        spot on the waitlist.
+        """
         trip: models.Trip = self.get_object()
         return (
             trip.on_trip_or_waitlisted.select_related(
-                "participant", "participant__lotteryinfo__paired_with__lotteryinfo"
+                "participant",
+                "participant__lotteryinfo__paired_with__lotteryinfo",
             )
             .prefetch_related(
                 # Older feedback should still be filtered out
@@ -285,7 +293,12 @@ class AdminTripSignupsView(SingleObjectMixin, FormatSignupMixin, TripLeadersOnly
                 "participant__feedback_set__leader",
                 "participant__feedback_set__trip",
             )
-            .order_by("-on_trip", "waitlistsignup", "last_updated")
+            .order_by(
+                "-on_trip",
+                F("waitlistsignup__manual_order").desc(nulls_last=True),
+                F("waitlistsignup__time_created").asc(),
+                "last_updated",
+            )
         )
 
     def describe_all_signups(self) -> dict[str, Any]:
@@ -301,7 +314,7 @@ class AdminTripSignupsView(SingleObjectMixin, FormatSignupMixin, TripLeadersOnly
                 self.describe_signup(
                     s, trip_participants, other_trips_by_par[s.participant_id]
                 )
-                for s in self.get_signups()
+                for s in signups
             ],
             "leaders": list(trip.leaders.values("name", "email")),
             "creator": {"name": trip.creator.name, "email": trip.creator.email},

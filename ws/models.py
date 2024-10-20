@@ -920,6 +920,8 @@ class SignUp(BaseSignUp):
     """
 
     order = models.IntegerField(null=True, blank=True)  # As ranked by participant
+    # TODO: Make this *ascending* (so 1 is first, 2 is second)
+    # Right now, it's descending - which is both confusing & conflicts with SignUp
     manual_order = models.IntegerField(null=True, blank=True)  # Order on trip
 
     on_trip = models.BooleanField(default=False, db_index=True)
@@ -1646,17 +1648,9 @@ class WaitListSignup(models.Model):
     signup = models.OneToOneField(SignUp, on_delete=models.CASCADE)
     waitlist = models.ForeignKey("WaitList", on_delete=models.CASCADE)
     time_created = models.DateTimeField(auto_now_add=True)
-    # Specify to override ordering by time created
-    # TODO: Make this *ascending* (so 1 is first, 2 is second)
-    # Right now, it's descending - which is both confusing & conflicts with SignUp
-    manual_order = models.IntegerField(null=True, blank=True)
 
-    class Meta:
-        # TODO (Django 2): Use F-expressions. [F('manual_order').desc(nulls_last=True), ...]
-        # TODO (Django 2): Also update WaitList.signups property definition
-        # WARNING: Postgres will put nulls first, not last.
-        ordering = ["-manual_order", "time_created", "pk"]  # NOT CORRECT!
-        # WARNING: This default ordering is not fully correct. Manually call `order_by`)
+    # Specify to override ordering by time created
+    manual_order = models.IntegerField(null=True, blank=True)
 
     def __str__(self) -> str:
         return f"{self.signup.participant.name} waitlisted on {self.signup.trip}"
@@ -1678,23 +1672,22 @@ class WaitList(models.Model):
         This method is useful because the SignUp object has the useful information
         for display, but the WaitListSignup object has information for ordering.
         """
+        # Also see `AdminTripSignupsView.get_signups()`
         return self.unordered_signups.order_by(
             F("waitlistsignup__manual_order").desc(nulls_last=True),
             F("waitlistsignup__time_created").asc(),
         )
 
     @property
-    def first_of_priority(self):
+    def first_of_priority(self) -> int:
         """The 'manual_order' value to be first in the waitlist."""
-        # TODO (Django 2): Just use the below, refactor code to avoid extra lookups
-        # first_wl_signup = self.waitlistsignup_set.first()
         first_signup = self.signups.first()
         if first_signup is None:
             return 10
         return (first_signup.waitlistsignup.manual_order or 0) + 1
 
     @property
-    def last_of_priority(self):
+    def last_of_priority(self) -> int:
         """The 'manual_order' value to be below all manual orders, but above non-ordered.
 
         Waitlist signups are ordered first by `manual_order`, then by time created. This
@@ -1702,8 +1695,6 @@ class WaitList(models.Model):
         waitlist, but to not surpass others who were previously added to the top of the
         waitlist.
         """
-        # TODO (Django 2): Just use the below
-        # last_wl_signup = self.waitlistsignup_set.filter(manual_order__isnull=False).last()
         last_wl_signup = (
             self.waitlistsignup_set.filter(manual_order__isnull=False)
             .order_by(F("manual_order").desc(nulls_last=True))

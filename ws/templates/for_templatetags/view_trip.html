@@ -47,7 +47,7 @@
   </email-trip-members>
 
   {% if signups.waitlist %}
-    <h3>Waiting List ({{ signups.waitlist.count }}) </h3>
+    <h3>Waiting List ({{ signups.waitlist | length }}) </h3>
     {% signup_table signups.waitlist has_notes show_drivers=viewing_participant.is_leader %}
   {% endif %}
 
