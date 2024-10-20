@@ -12,7 +12,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, QuerySet
 from django.http import HttpRequest, JsonResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
@@ -152,13 +152,18 @@ class SignupsChangedError(Exception):
     """
 
 
+class JsonSignup(TypedDict):
+    id: int
+    deleted: NotRequired["bool"]
+
+
 class AdminTripSignupsView(SingleObjectMixin, FormatSignupMixin, TripLeadersOnlyView):
     model = models.Trip
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> JsonResponse:
         return JsonResponse(self.describe_all_signups())
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> JsonResponse:
         """Take a list of exactly how signups should be ordered and apply it.
 
         To avoid dealing with concurrency, calculating diffs, etc. we just
@@ -173,10 +178,10 @@ class AdminTripSignupsView(SingleObjectMixin, FormatSignupMixin, TripLeadersOnly
         trip = self.object = self.get_object()
 
         postdata = json.loads(self.request.body)  # TODO: assumes valid JSON.
-        signup_list = postdata.get("signups", [])
-        maximum_participants = postdata.get("maximum_participants")
+        signup_list: list[JsonSignup] = postdata.get("signups", [])
+        maximum_participants: int | None = postdata.get("maximum_participants")
 
-        def error(msg):
+        def error(msg: str) -> JsonResponse:
             return JsonResponse({"message": msg}, status=400)
 
         # Any non-validation errors will trigger rollback
@@ -192,7 +197,12 @@ class AdminTripSignupsView(SingleObjectMixin, FormatSignupMixin, TripLeadersOnly
                 )
             return JsonResponse({})
 
-    def update(self, trip, signup_list, maximum_participants):
+    def update(
+        self,
+        trip: models.Trip,
+        signup_list: list[JsonSignup],
+        maximum_participants: int | None,
+    ) -> None:
         """Take parsed input data and apply the changes."""
         if maximum_participants:
             trip.maximum_participants = maximum_participants
@@ -202,7 +212,10 @@ class AdminTripSignupsView(SingleObjectMixin, FormatSignupMixin, TripLeadersOnly
         self.update_signups(signup_list, trip)
 
     @staticmethod
-    def signups_to_update(signup_list, trip):
+    def signups_to_update(
+        signup_list: list[JsonSignup],
+        trip: models.Trip,
+    ) -> tuple[QuerySet[models.SignUp], QuerySet[models.SignUp]]:
         """From the payload, break signups into deletion & those that stay.
 
         All signups are given (in order) in `signup_list`. If the `deleted` key
@@ -238,7 +251,7 @@ class AdminTripSignupsView(SingleObjectMixin, FormatSignupMixin, TripLeadersOnly
 
         return (keep_on_trip, to_delete)
 
-    def update_signups(self, signup_list, trip):
+    def update_signups(self, signup_list: list[JsonSignup], trip: models.Trip) -> None:
         """Mark all signups as not on trip, then add signups in order."""
         keep_on_trip, to_delete = self.signups_to_update(signup_list, trip)
 
@@ -246,7 +259,10 @@ class AdminTripSignupsView(SingleObjectMixin, FormatSignupMixin, TripLeadersOnly
         # Both methods (update and skip_signals) ignore waitlist-bumping
         keep_on_trip.update(on_trip=False)
         for kill_signup in to_delete:
-            kill_signup.skip_signals = True
+            # Setting properties dynamically on an object is a huge anti-pattern.
+            # *Almost* as bad as using Django signals in the first place...
+            # Hopefully we change this at a later date.
+            kill_signup.skip_signals = True  # type: ignore[attr-defined]
             kill_signup.delete()
 
         # `all()` hits the db, will fetch current (`on_trip=False`) signups
@@ -256,9 +272,9 @@ class AdminTripSignupsView(SingleObjectMixin, FormatSignupMixin, TripLeadersOnly
             signup_utils.trip_or_wait(signup, trip_must_be_open=False)
             signup_utils.next_in_order(signup, order)
 
-    def get_signups(self):
+    def get_signups(self) -> QuerySet[models.SignUp]:
         """Trip signups with selected models for use in describe_signup."""
-        trip = self.get_object()
+        trip: models.Trip = self.get_object()
         return (
             trip.on_trip_or_waitlisted.select_related(
                 "participant", "participant__lotteryinfo__paired_with__lotteryinfo"
@@ -272,7 +288,7 @@ class AdminTripSignupsView(SingleObjectMixin, FormatSignupMixin, TripLeadersOnly
             .order_by("-on_trip", "waitlistsignup", "last_updated")
         )
 
-    def describe_all_signups(self):
+    def describe_all_signups(self) -> dict[str, Any]:
         """Get information about the trip's signups."""
         trip = self.get_object()
         signups = self.get_signups()

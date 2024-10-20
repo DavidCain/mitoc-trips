@@ -1672,14 +1672,12 @@ class WaitList(models.Model):
         return f"Waitlist for {self.trip}"
 
     @property
-    def signups(self):
+    def signups(self) -> QuerySet[SignUp]:
         """Return signups ordered with the waitlist rules.
 
         This method is useful because the SignUp object has the useful information
         for display, but the WaitListSignup object has information for ordering.
         """
-        # TODO (Django 2): Just use the below, once we can use F-expressions in `ordering`
-        # return self.unordered_signups.order_by('waitlistsignup')
         return self.unordered_signups.order_by(
             F("waitlistsignup__manual_order").desc(nulls_last=True),
             F("waitlistsignup__time_created").asc(),

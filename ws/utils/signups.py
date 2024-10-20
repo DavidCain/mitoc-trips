@@ -2,13 +2,13 @@ import contextlib
 
 from django.contrib import messages
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, QuerySet
 from django.http import HttpRequest
 
 from ws import models
 
 
-def next_in_order(signup, manual_order=None):
+def next_in_order(signup: models.SignUp, manual_order: int | None = None) -> None:
     """Add the signup to the next-ordered spot on the trip or in waitlist.
 
     Waitlists are ordered in reverse so that those without a manual override
@@ -63,16 +63,24 @@ def add_to_waitlist(
 
 
 def trip_or_wait(
-    signup, request=None, prioritize=False, top_spot=False, trip_must_be_open=False
-):
+    signup: models.SignUp,
+    request: HttpRequest | None = None,
+    prioritize: bool = False,
+    top_spot: bool = False,
+    trip_must_be_open: bool = False,
+) -> models.SignUp:
     """Given a signup object, attempt to place the participant on the trip.
 
     If the trip is full, instead place that person on the waiting list.
 
-    :param request: If given, will supply messages to the request
-    :param prioritize: Give any waitlist signup priority
-    :param top_spot: Give any waitlist signup top priority
-    :param trip_must_be_open: If true, don't sign up on closed trip
+    Args:
+    ----
+    signup: Signup object to add to the trip *or* the waitlist
+    request: If given, will supply messages to the request
+    prioritize: Give any waitlist signup priority
+    top_spot: Give any waitlist signup top priority
+    trip_must_be_open: If true, don't sign up on closed trip
+
     """
     trip = signup.trip
     if signup.on_trip:
@@ -100,7 +108,7 @@ def trip_or_wait(
     return signup
 
 
-def update_queues_if_trip_open(trip):
+def update_queues_if_trip_open(trip: models.Trip) -> None:
     """Update queues if the trip is an open, first-come, first-serve trip.
 
     This is intended to be used when the trip size changes (either from changing
@@ -119,13 +127,14 @@ def update_queues_if_trip_open(trip):
     elif diff < 0:  # Trip is shrinking, move lowest signups to waitlist
         for _ in range(abs(diff)):
             last = trip.signup_set.filter(on_trip=True).last()
+            assert last is not None  # TODO: Don't use implicit ordering, use `latest()`
             last.on_trip = False
             last.save()
             # Make sure they're at the top!
             add_to_waitlist(last, prioritize=True, top_spot=True)
 
 
-def non_trip_participants(trip):
+def non_trip_participants(trip: models.Trip) -> QuerySet[models.Participant]:
     """All participants not currently on the given trip."""
     all_participants = models.Participant.objects.all()
     signups = trip.signup_set.filter(on_trip=True)

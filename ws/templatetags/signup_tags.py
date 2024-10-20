@@ -2,7 +2,7 @@ from itertools import chain
 from typing import Any
 
 from django import template
-from django.db.models import Q
+from django.db.models import Q, QuerySet
 from django.forms import HiddenInput
 
 import ws.utils.perms as perm_utils
@@ -179,7 +179,12 @@ def drop_off_trip(trip, existing_signup):
 
 
 @register.inclusion_tag("for_templatetags/signup_table.html")
-def signup_table(signups, has_notes=False, show_drivers=False, all_participants=None):
+def signup_table(
+    signups: QuerySet[models.SignUp],
+    has_notes: bool = False,
+    show_drivers: bool = False,
+    all_participants: QuerySet[models.Participant] | None = None,
+) -> dict[str, Any]:
     """Display a table of signups (either leaders or participants).
 
     The all_participants argument is especially useful for including leaders
@@ -188,12 +193,18 @@ def signup_table(signups, has_notes=False, show_drivers=False, all_participants=
     """
     # If there are participants not included in the signup list, put these
     # participants in the front of the list
+
     if all_participants:
         signed_up = {signup.participant.id for signup in signups}
         no_signup = all_participants.exclude(id__in=signed_up)
         fake_signups = [{"participant": leader} for leader in no_signup]
-        signups = chain(fake_signups, signups)
-    return {"signups": signups, "has_notes": has_notes, "show_drivers": show_drivers}
+        # TODO: Combining fake dictionaries & real models isn't smart.
+        signups = chain(fake_signups, signups)  # type: ignore[assignment]
+    return {
+        "signups": signups,
+        "has_notes": has_notes,
+        "show_drivers": show_drivers,
+    }
 
 
 @register.inclusion_tag("for_templatetags/trip_summary.html", takes_context=True)

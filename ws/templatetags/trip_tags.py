@@ -4,6 +4,7 @@ from datetime import timedelta
 from typing import TYPE_CHECKING, Any, TypedDict
 
 from django import template
+from django.contrib.auth.models import User
 from django.db.models import Case, Count, IntegerField, QuerySet, Sum, When
 
 import ws.utils.dates as date_utils
@@ -233,46 +234,44 @@ def trip_edit_buttons(trip, participant, user, hide_approve=False):
 
 
 @register.inclusion_tag("for_templatetags/view_trip.html")
-def view_trip(trip, participant, user):
-    # For efficiency, the trip should be called with:
-    #      select_related('info')
-    #      prefetch_related('leaders', 'leaders__leaderrating_set')
-
-    def get_signups(model=models.SignUp):
-        """Signups, with related fields used in template preselected."""
-        signups = model.objects.filter(trip=trip)
-        signups = signups.select_related("participant", "trip")
-        return signups.select_related("participant__lotteryinfo")
-
+def view_trip(
+    trip: models.Trip,  # Should select `info`, prefetch `leaders` & `leaders__leaderrating_set`
+    participant: models.Participant,
+    user: User,
+) -> dict[str, Any]:
     trip_leaders = trip.leaders.all()
-    leader_signups = get_signups(models.LeaderSignUp)
-    context = {
+    leader_signups = models.LeaderSignUp.objects.filter(trip=trip).select_related(
+        "participant", "participant__lotteryinfo", "trip"
+    )
+    signups = models.SignUp.objects.filter(trip=trip).select_related(
+        "participant", "participant__lotteryinfo", "trip"
+    )
+    wl_signups = trip.waitlist.signups.select_related(
+        "participant", "participant__lotteryinfo"
+    )
+    return {
         "trip": trip,
         "is_trip_leader": perm_utils.leader_on_trip(participant, trip),
         "viewing_participant": participant,
         "user": user,
+        "has_notes": (
+            bool(trip.notes)
+            or any(s.notes for s in signups)
+            or any(s.notes for s in leader_signups)
+        ),
+        "signups": {
+            "waitlist": wl_signups,
+            "off_trip": signups.filter(on_trip=False).exclude(pk__in=wl_signups),
+            "on_trip": signups.filter(on_trip=True),
+            "leaders_on_trip": [
+                s for s in leader_signups if s.participant in trip_leaders
+            ],
+            "leaders_off_trip": [
+                s for s in leader_signups if s.participant not in trip_leaders
+            ],
+        },
+        "par_signup": signups.filter(participant=participant).first(),
     }
-
-    signups = get_signups(models.SignUp)
-    context["par_signup"] = signups.filter(participant=participant).first()
-    wl_signups = trip.waitlist.signups.select_related(
-        "participant", "participant__lotteryinfo"
-    )
-    context["signups"] = {
-        "waitlist": wl_signups,
-        "off_trip": signups.filter(on_trip=False).exclude(pk__in=wl_signups),
-        "on_trip": signups.filter(on_trip=True),
-        "leaders_on_trip": [s for s in leader_signups if s.participant in trip_leaders],
-        "leaders_off_trip": [
-            s for s in leader_signups if s.participant not in trip_leaders
-        ],
-    }
-    context["has_notes"] = (
-        bool(trip.notes)
-        or any(s.notes for s in signups)
-        or any(s.notes for s in leader_signups)
-    )
-    return context
 
 
 @register.inclusion_tag("for_templatetags/wimp_trips.html")
