@@ -1972,7 +1972,19 @@ class WinterSchoolLeaderApplication(LeaderApplication):
     mentorship_goals = models.TextField(
         blank=True,
         max_length=5000,
-        help_text="What are you looking to get out of the mentorship program?",
+        help_text=(
+            "What are you looking to get out of the mentorship program? "
+            "Possible examples include learning how to: "
+            '"lead trips in winter," '
+            '"be an ice-climbing leader," '
+            '"lead full C/I/S trips," '
+            'or "manage group dynamics."'
+        ),
+    )
+    mentorship_longevity = models.TextField(
+        blank=True,
+        max_length=5000,
+        help_text="How long are you planning stay with MITOC? No need to be exact, just a tentative timeframe which can help us pair mentors/mentees?",
     )
 
     @classmethod
