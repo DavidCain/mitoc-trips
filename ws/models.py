@@ -12,7 +12,7 @@ from django.conf import settings
 from django.contrib.auth.models import AnonymousUser, User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.indexes import GistIndex
-from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
+from django.contrib.postgres.search import SearchVector
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.db import models
@@ -1425,29 +1425,6 @@ class Trip(models.Model):
     def leaders_with_rating(self):
         """All leaders with the rating they had at the time of the trip."""
         return [leader.name_with_rating(self) for leader in self.leaders.all()]
-
-    @classmethod
-    def search_trips(
-        cls,
-        text: str,
-        filters: None | Q,
-        limit: int = 100,
-    ) -> QuerySet["Trip"]:
-        trips = cls.objects.filter(filters) if filters else cls.objects.all()
-        # It's valid to not provide a search term at all.
-        # In this case, there's no real meaningful way to "rank" matches; put newest first.
-        if not text:
-            return trips.order_by("-pk")[:limit]
-
-        query = SearchQuery(text)
-        return (
-            trips.annotate(
-                search=trips_search_vector,
-                rank=SearchRank(trips_search_vector, query),
-            )
-            .filter(search=text)
-            .order_by("-rank")[:limit]
-        )
 
     @property
     def prefilled_atlas_form_link(self) -> str:

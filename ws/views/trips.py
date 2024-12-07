@@ -12,6 +12,7 @@ from urllib.parse import urlencode
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.db.models import Q, QuerySet
@@ -623,6 +624,31 @@ class TripListView(ListView):
         return context
 
 
+def search_trips(
+    text: str,
+    filters: None | Q,
+    limit: int = 100,
+) -> QuerySet[models.Trip]:
+    trips = models.Trip.objects.all()
+    if filters:
+        trips = trips.filter(filters)
+
+    # It's valid to not provide a search term at all.
+    # In this case, there's no real meaningful way to "rank" matches; put newest first.
+    if not text:
+        return trips.order_by("-pk")[:limit]
+
+    query = SearchQuery(text)
+    return (
+        trips.annotate(
+            search=models.trips_search_vector,
+            rank=SearchRank(models.trips_search_vector, query),
+        )
+        .filter(search=text)
+        .order_by("-rank")[:limit]
+    )
+
+
 class TripSearchView(ListView, FormView):
     form_class = forms.TripSearchForm
 
@@ -675,7 +701,7 @@ class TripSearchView(ListView, FormView):
             if value and field in {"winter_terrain_level", "trip_type", "program"}
         }
         return annotated_for_trip_list(
-            models.Trip.search_trips(
+            search_trips(
                 query,
                 filters=Q(**specified_filters) if specified_filters else None,
                 limit=self.limit,
