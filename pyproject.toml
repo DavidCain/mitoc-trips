@@ -65,8 +65,6 @@ lint.ignore = [
   "ANN001",   # Type annotations are knowingly incomplete.
   "ANN002",   # Type annotations are knowingly incomplete.
   "ANN003",   # Type annotations are knowingly incomplete.
-  "ANN101",   # Type annotations are knowingly incomplete.
-  "ANN102",   # Type annotations are knowingly incomplete.
   "ANN201",   # Type annotations are knowingly incomplete.
   "ANN202",   # Type annotations are knowingly incomplete.
   "ANN204",   # Type annotations are knowingly incomplete.
@@ -194,7 +192,7 @@ optional = true
 [tool.poetry.group.mypy.dependencies]
 celery-types = "^0.19.0"
 django-stubs = { version = "==5.0.2" }  # Temporarily pin for QuerySet issue
-mypy = { version = "*"}
+mypy = { version = "<1.12"}  # Can unpin when `django-stubs` is unpinned
 types-certifi = { version = "*" }
 types-cryptography = { version = "*" }
 types-requests = { version = "*" }
@@ -261,6 +259,7 @@ disable = [
   "too-few-public-methods",
   "too-many-ancestors",
   "too-many-arguments",
+  "too-many-positional-arguments",
   "too-many-public-methods",
 
   ################################
