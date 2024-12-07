@@ -10,14 +10,14 @@ from ws.utils import perms as perm_utils
 
 
 class PermUtilTests(TestCase):
-    def test_chair_group(self):
+    def test_chair_group(self) -> None:
         self.assertEqual(perm_utils.chair_group(enums.Activity.WINTER_SCHOOL), "WSC")
         self.assertEqual(
             perm_utils.chair_group(enums.Activity.CLIMBING), "climbing_chair"
         )
         self.assertEqual(perm_utils.chair_group(enums.Activity.HIKING), "hiking_chair")
 
-    def test_is_chair_no_activity(self):
+    def test_is_chair_no_activity(self) -> None:
         """When activity is None, `is_chair` is always false!"""
         self.assertFalse(perm_utils.is_chair(AnonymousUser(), activity_enum=None))
 
@@ -26,14 +26,14 @@ class PermUtilTests(TestCase):
         trip = factories.TripFactory.create(program=enums.Program.SERVICE.value)
         self.assertFalse(perm_utils.is_chair(par, trip.required_activity_enum()))
 
-    def test_anonymous_leaders(self):
+    def test_anonymous_leaders(self) -> None:
         """Anonymous users are never leaders, chairs, etc.."""
         anon = AnonymousUser()
         self.assertFalse(perm_utils.is_leader(anon), False)
         self.assertFalse(perm_utils.is_chair(anon, enums.Activity.CLIMBING))
-        self.assertFalse(perm_utils.in_any_group(anon, ["group_name"]))
+        self.assertFalse(perm_utils.in_any_group(anon, {"group_name"}))
 
-    def test_leader_on_trip_creator(self):
+    def test_leader_on_trip_creator(self) -> None:
         trip = TripFactory()
         self.assertTrue(
             perm_utils.leader_on_trip(trip.creator, trip, creator_allowed=True)
@@ -42,13 +42,13 @@ class PermUtilTests(TestCase):
             perm_utils.leader_on_trip(trip.creator, trip, creator_allowed=False)
         )
 
-    def test_leader_on_trip(self):
+    def test_leader_on_trip(self) -> None:
         trip = TripFactory()
         self.assertFalse(perm_utils.leader_on_trip(trip.creator, trip))
         trip.leaders.add(trip.creator)
         self.assertTrue(perm_utils.leader_on_trip(trip.creator, trip))
 
-    def test_make_chair(self):
+    def test_make_chair(self) -> None:
         """Users can be promoted to being activity chairs."""
         # To begin with, our user is not a chair (nobody is, for that matter)
         user = UserFactory.create()
@@ -78,7 +78,7 @@ class SuperUserTestCase(TestCase):
         cls.admin = factories.UserFactory.create(is_superuser=True)
         super().setUpClass()
 
-    def test_activity_chair(self):
+    def test_activity_chair(self) -> None:
         """The admin can be considered an activity chair in some contexts."""
         self.assertTrue(perm_utils.chair_or_admin(self.admin, enums.Activity.HIKING))
         self.assertTrue(perm_utils.is_chair(self.admin, enums.Activity.HIKING))
@@ -93,7 +93,7 @@ class SuperUserTestCase(TestCase):
             )
         )
 
-    def test_chair_activities(self):
+    def test_chair_activities(self) -> None:
         """The admin qualifies as a chair when allow_superusers is set."""
         # This admin is not a chair in the normal context
         self.assertFalse(
@@ -108,6 +108,6 @@ class SuperUserTestCase(TestCase):
         # Considered the chair for closed activities
         self.assertCountEqual(admin_allowed_activities, enums.Activity)
 
-    def test_admin_not_counted_in_list(self):
+    def test_admin_not_counted_in_list(self) -> None:
         """The admin isn't considered in the count of chairs."""
         self.assertFalse(perm_utils.activity_chairs(enums.Activity.CLIMBING))

@@ -1,5 +1,4 @@
 import functools
-from collections.abc import Collection
 
 from django.contrib.auth.models import AnonymousUser, Group, User
 from django.db.models import QuerySet
@@ -21,7 +20,7 @@ def is_leader(user: AnonymousUser | User) -> bool:
     Take advantage of the prefetched 'leaders' group for more efficient
     querying of a user's leader status.
     """
-    return in_any_group(user, ["leaders"], allow_superusers=False)
+    return in_any_group(user, {"leaders"}, allow_superusers=False)
 
 
 def leader_on_trip(
@@ -49,7 +48,7 @@ def chair_group(activity_enum: enums.Activity) -> str:
 
 def in_any_group(
     user: AnonymousUser | User,
-    group_names: Collection[str],
+    group_names: set[str],
     allow_superusers: bool = True,
 ) -> bool:
     """Return if the user belongs to any of the passed groups.
@@ -91,7 +90,7 @@ def is_chair(
     """
     if activity_enum is None:  # (e.g. when the required activity is None)
         return False
-    return in_any_group(user, [chair_group(activity_enum)], allow_superusers)
+    return in_any_group(user, {chair_group(activity_enum)}, allow_superusers)
 
 
 def chair_or_admin(

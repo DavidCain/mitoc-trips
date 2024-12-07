@@ -138,7 +138,7 @@ class AllTripsMedicalViewTest(TestCase):
         self.client.force_login(self.user)
 
     def test_not_the_wimp(self):
-        self.assertFalse(perm_utils.in_any_group(self.user, ["WSC", "WIMP"]))
+        self.assertFalse(perm_utils.in_any_group(self.user, {"WSC", "WIMP"}))
         response = self.client.get("/trips/medical/")
         self.assertEqual(response.status_code, 403)
 

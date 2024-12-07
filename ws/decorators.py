@@ -1,4 +1,4 @@
-from collections.abc import Callable, Collection
+from collections.abc import Callable
 from functools import wraps
 
 from django.contrib.auth import REDIRECT_FIELD_NAME
@@ -44,7 +44,7 @@ def participant_required(view_func: Callable) -> Callable:
 
 
 def group_required(
-    group_names: str | Collection[str],
+    group_names: str | set[str],
     *,
     # A URL to redirect to after which the user _should_ have permissions
     # Be careful about redirect loops here!
@@ -60,7 +60,7 @@ def group_required(
     A good example of this is user_info_required - participants should be
     given the chance to supply user info and successfully redirect after.
     """
-    allowed_groups = (group_names) if isinstance(group_names, str) else group_names
+    allowed_groups = {group_names} if isinstance(group_names, str) else group_names
 
     def in_groups(user):
         if perm_utils.in_any_group(user, allowed_groups, allow_superusers):

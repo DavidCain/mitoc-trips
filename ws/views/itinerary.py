@@ -106,7 +106,7 @@ class TripMedicalView(DetailView):
     def _can_view(trip, request):
         """Leaders, chairs, and a trip WIMP can view this page."""
         return (
-            perm_utils.in_any_group(request.user, ["WIMP"])
+            perm_utils.in_any_group(request.user, {"WIMP"})
             or (trip.wimp and request.participant == trip.wimp)
             or perm_utils.leader_on_trip(request.participant, trip, True)
             or perm_utils.chair_or_admin(request.user, trip.required_activity_enum())
