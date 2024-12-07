@@ -14,14 +14,14 @@ from ws.tests import factories
 
 
 class ParticipantTest(TestCase):
-    def test_from_anonymous_user(self):
+    def test_from_anonymous_user(self) -> None:
         self.assertIsNone(models.Participant.from_user(AnonymousUser()))
 
-    def test_from_user(self):
+    def test_from_user(self) -> None:
         user = factories.UserFactory.create()
         self.assertIsNone(models.Participant.from_user(user))
 
-    def test_from_user_with_participant(self):
+    def test_from_user_with_participant(self) -> None:
         participant = factories.ParticipantFactory.create()
         self.assertEqual(models.Participant.from_user(participant.user), participant)
         self.assertEqual(
@@ -29,7 +29,7 @@ class ParticipantTest(TestCase):
             participant,
         )
 
-    def test_email_addr(self):
+    def test_email_addr(self) -> None:
         ada = factories.ParticipantFactory.build(
             name="Ada Lovelace", email="ada@example.com"
         )
@@ -37,7 +37,7 @@ class ParticipantTest(TestCase):
 
 
 class ReasonsCannotAttendTest(TestCase):
-    def test_is_wimp(self):
+    def test_is_wimp(self) -> None:
         # Note that the participant also has not paid dues or signed a waiver.
         # We *only* highlight the WIMP issue, since nothing else really matters.
         participant = factories.ParticipantFactory.create(membership=None)
@@ -48,7 +48,7 @@ class ReasonsCannotAttendTest(TestCase):
         )
 
     @freeze_time("12 Jan 2020 12:00:00 EST")
-    def test_missed_lectures(self):
+    def test_missed_lectures(self) -> None:
         # Note that the participant also has not paid dues or signed a waiver.
         participant = factories.ParticipantFactory.create(membership=None)
 
@@ -68,7 +68,7 @@ class ReasonsCannotAttendTest(TestCase):
             [enums.TripIneligibilityReason.MISSED_WS_LECTURES],
         )
 
-    def test_missed_lectures_but_attended_before(self):
+    def test_missed_lectures_but_attended_before(self) -> None:
         participant = factories.ParticipantFactory.create()
         factories.LectureAttendanceFactory.create(participant=participant, year=2016)
 
@@ -106,8 +106,77 @@ class ReasonsCannotAttendTest(TestCase):
         self.assertTrue(missed_lectures_for_trip_in_year(2021))
         self.assertTrue(missed_lectures_for_trip_in_year(2022))
 
+    @freeze_time("2024-12-07 12:00 UTC")
+    def test_non_iap_outdated_attendance(self) -> None:
+        par = factories.ParticipantFactory.create()
+
+        # Previous attendance to January 2023 lectures does not work
+        factories.LectureAttendanceFactory.create(
+            year=2023, participant=par, creator=par
+        )
+
+        trip = factories.TripFactory.create(
+            program=enums.Program.WINTER_NON_IAP.value, trip_date=date(2024, 12, 14)
+        )
+        self.assertTrue(par.missed_lectures_for(trip))
+
+        reasons = par.reasons_cannot_attend(trip)
+        self.assertCountEqual(
+            reasons, {enums.TripIneligibilityReason.MISSED_WS_LECTURES}
+        )
+
+    @freeze_time("2024-12-07 12:00 UTC")
+    def test_non_iap_special_same_year_lectures(self) -> None:
+        par = factories.ParticipantFactory.create()
+        factories.LectureAttendanceFactory.create(
+            year=2025, participant=par, creator=par
+        )
+
+        trip = factories.TripFactory.create(
+            program=enums.Program.WINTER_NON_IAP.value, trip_date=date(2024, 12, 14)
+        )
+        # The participant's attendance to special lectures makes them okay!
+        self.assertFalse(par.missed_lectures_for(trip))
+
+        self.assertFalse(set(par.reasons_cannot_attend(trip)))
+
+    @freeze_time("2025-01-02 12:00 UTC")
+    def test_non_iap_special_same_year_lectures_but_in_jan(self) -> None:
+        """If it's still IAP, early lecture attendance works for trip attendance."""
+        par = factories.ParticipantFactory.create()
+        factories.LectureAttendanceFactory.create(
+            year=2025, participant=par, creator=par
+        )
+
+        # Trip is on a weekend *before* IAP (and thus before lectures!)
+        trip = factories.TripFactory.create(
+            program=enums.Program.WINTER_NON_IAP.value, trip_date=date(2025, 1, 5)
+        )
+        # The participant's attendance to special lectures in the fall works!
+        self.assertFalse(par.missed_lectures_for(trip))
+
+        self.assertFalse(set(par.reasons_cannot_attend(trip)))
+
+    @freeze_time("2025-01-02 12:00 UTC")
+    def test_non_iap_special_last_ws_lectures_but_in_jan(self) -> None:
+        """If lectures haven't started yet (but it's Jan), we allow last year's WS lectures."""
+        par = factories.ParticipantFactory.create()
+        # Participant attended lectures for last year's WS
+        factories.LectureAttendanceFactory.create(
+            year=2024, participant=par, creator=par
+        )
+
+        # Trip is on a weekend *before* IAP (and thus before lectures!)
+        trip = factories.TripFactory.create(
+            program=enums.Program.WINTER_NON_IAP.value, trip_date=date(2025, 1, 5)
+        )
+        # The participant's attendance to last year's WS works
+        self.assertFalse(par.missed_lectures_for(trip))
+
+        self.assertFalse(set(par.reasons_cannot_attend(trip)))
+
     @freeze_time("12 Jan 2020 12:00:00 EST")
-    def test_missed_lectures_as_first_time_ws_leader(self):
+    def test_missed_lectures_as_first_time_ws_leader(self) -> None:
         """If a first-time WS leader missed lectures, they are not allowed to participate."""
         participant = factories.ParticipantFactory.create()
         self.assertFalse(participant.lectureattendance_set.exists())
@@ -128,7 +197,7 @@ class ReasonsCannotAttendTest(TestCase):
         )
 
     @freeze_time("25 Oct 2018 12:00:00 EST")
-    def test_problem_with_profile_legacy(self):
+    def test_problem_with_profile_legacy(self) -> None:
         """If the affiliation was given before we started collecting more detail, warn!"""
         participant = factories.ParticipantFactory.create(
             membership=factories.MembershipFactory.create(
@@ -144,7 +213,7 @@ class ReasonsCannotAttendTest(TestCase):
             [enums.TripIneligibilityReason.PROFILE_PROBLEM],
         )
 
-    def test_problems_with_profile_multiple(self):
+    def test_problems_with_profile_multiple(self) -> None:
         """If a participant has multiple profile problems, we give only one reason."""
         participant = factories.ParticipantFactory.create(
             name="Cher",
@@ -168,7 +237,7 @@ class ReasonsCannotAttendTest(TestCase):
             [enums.TripIneligibilityReason.PROFILE_PROBLEM],
         )
 
-    def test_no_membership_or_waiver(self):
+    def test_no_membership_or_waiver(self) -> None:
         participant = factories.ParticipantFactory.create(membership=None)
 
         trip = factories.TripFactory.create(program=enums.Program.CLIMBING.value)
@@ -181,7 +250,7 @@ class ReasonsCannotAttendTest(TestCase):
         )
 
     @freeze_time("11 Dec 2019 12:00:00 EST")
-    def test_expired_membership_and_waiver(self):
+    def test_expired_membership_and_waiver(self) -> None:
         participant = factories.ParticipantFactory.create(
             membership=factories.MembershipFactory.create(
                 membership_expires=date(2018, 11, 1), waiver_expires=date(2018, 11, 1)
@@ -198,7 +267,7 @@ class ReasonsCannotAttendTest(TestCase):
         )
 
     @freeze_time("11 Dec 2019 12:00:00 EST")
-    def test_waiver_needs_renewal(self):
+    def test_waiver_needs_renewal(self) -> None:
         participant = factories.ParticipantFactory.create(
             membership=factories.MembershipFactory.create(
                 membership_expires=date(2020, 11, 4), waiver_expires=date(2019, 11, 1)
@@ -213,7 +282,7 @@ class ReasonsCannotAttendTest(TestCase):
         )
 
     @freeze_time("11 Dec 2019 12:00:00 EST")
-    def test_membership_needs_renewal(self):
+    def test_membership_needs_renewal(self) -> None:
         participant = factories.ParticipantFactory.create(
             membership=factories.MembershipFactory.create(
                 membership_expires=date(2019, 11, 4), waiver_expires=date(2020, 11, 11)
@@ -228,12 +297,12 @@ class ReasonsCannotAttendTest(TestCase):
 
 
 class ProblemsWithProfileTest(TestCase):
-    def test_our_factory_is_okay(self):
+    def test_our_factory_is_okay(self) -> None:
         """The participant factory that we use is expected to have no problems."""
         participant = factories.ParticipantFactory.create()
         self.assertFalse(any(participant.problems_with_profile))
 
-    def test_no_cell_phone_on_emergency_contact(self):
+    def test_no_cell_phone_on_emergency_contact(self) -> None:
         participant = factories.ParticipantFactory.create()
         e_contact = factories.EmergencyContactFactory.create(cell_phone="")
         participant.emergency_info.emergency_contact = e_contact
@@ -244,13 +313,13 @@ class ProblemsWithProfileTest(TestCase):
             [enums.ProfileProblem.INVALID_EMERGENCY_CONTACT_PHONE],
         )
 
-    def test_full_name_required(self):
+    def test_full_name_required(self) -> None:
         participant = factories.ParticipantFactory.create(name="Cher")
         self.assertCountEqual(
             participant.problems_with_profile, [enums.ProfileProblem.MISSING_FULL_NAME]
         )
 
-    def test_verified_email_required(self):
+    def test_verified_email_required(self) -> None:
         participant = factories.ParticipantFactory.create()
 
         # Directly assign the participant an invalid email
@@ -262,7 +331,7 @@ class ProblemsWithProfileTest(TestCase):
             [enums.ProfileProblem.PRIMARY_EMAIL_NOT_VALIDATED],
         )
 
-    def test_old_student_affiliation_dated(self):
+    def test_old_student_affiliation_dated(self) -> None:
         student = factories.ParticipantFactory.create(
             affiliation="S",  # Ambiguous! Is it an MIT student? non-MIT? Undergrad/grad?
             last_updated=date_utils.local_now(),
@@ -272,7 +341,7 @@ class ProblemsWithProfileTest(TestCase):
             student.problems_with_profile, [enums.ProfileProblem.LEGACY_AFFILIATION]
         )
 
-    def test_not_updated_since_affiliation_overhaul(self):
+    def test_not_updated_since_affiliation_overhaul(self) -> None:
         """Any participant with affiliation predating our new categories should re-submit!"""
         # This is right before the time when we released new categories!
         before_cutoff = datetime.datetime(
@@ -291,13 +360,13 @@ class ProblemsWithProfileTest(TestCase):
 
 
 class LeaderTest(TestCase):
-    def test_name_with_rating_no_rating(self):
+    def test_name_with_rating_no_rating(self) -> None:
         """Participants who aren't actively leaders just return their name."""
         trip = factories.TripFactory.create()
         participant = factories.ParticipantFactory.create(name="Tommy Caldwell")
         self.assertEqual("Tommy Caldwell", participant.name_with_rating(trip))
 
-    def test_open_trip(self):
+    def test_open_trip(self) -> None:
         """When ratings aren't required, only the name is returned."""
         trip = factories.TripFactory.create(program=enums.Program.CIRCUS.value)
         participant = factories.ParticipantFactory.create(name="Tommy Caldwell")
@@ -311,7 +380,7 @@ class LeaderTest(TestCase):
         )
         self.assertEqual("Tommy Caldwell", participant.name_with_rating(trip))
 
-    def test_past_rating(self):
+    def test_past_rating(self) -> None:
         """We will display a past rating that was applicable at the time!"""
         alex = factories.ParticipantFactory.create(name="Alex Honnold")
 
@@ -342,7 +411,7 @@ class LeaderTest(TestCase):
         self.assertEqual("Alex Honnold (Full leader)", alex.name_with_rating(trip))
 
     @freeze_time("2018-11-10 12:25:00 EST")
-    def test_future_trip(self):
+    def test_future_trip(self) -> None:
         john = factories.ParticipantFactory.create(name="John Long")
 
         john.leaderrating_set.add(
@@ -357,14 +426,14 @@ class LeaderTest(TestCase):
         )
         self.assertEqual("John Long (Full leader)", john.name_with_rating(trip))
 
-    def test_participants_cannot_lead(self):
+    def test_participants_cannot_lead(self) -> None:
         participant = factories.ParticipantFactory()
         self.assertFalse(participant.can_lead(enums.Program.WINTER_SCHOOL))
         # Even open programs aren't able to be led by any participant
         self.assertFalse(participant.can_lead(enums.Program.CIRCUS))
         self.assertCountEqual(participant.allowed_programs, [])
 
-    def test_can_lead_own_activity_and_open(self):
+    def test_can_lead_own_activity_and_open(self) -> None:
         participant = factories.ParticipantFactory()
         participant.leaderrating_set.add(
             factories.LeaderRatingFactory.create(
@@ -392,7 +461,7 @@ class LeaderTest(TestCase):
 
 
 class MembershipActiveTest(unittest.TestCase):
-    def test_no_cached_membership(self):
+    def test_no_cached_membership(self) -> None:
         """Convenience methods on the participant require membership/waiver!"""
         par = factories.ParticipantFactory.build(membership=None)
 
@@ -404,7 +473,7 @@ class MembershipActiveTest(unittest.TestCase):
         self.assertTrue(par.should_sign_waiver_for(trip))
 
     @freeze_time("12 Dec 2020 12:00:00 EST")
-    def test_no_membership(self):
+    def test_no_membership(self) -> None:
         membership = factories.MembershipFactory.build(
             membership_expires=None, waiver_expires=None
         )
@@ -417,7 +486,7 @@ class MembershipActiveTest(unittest.TestCase):
         self.assertTrue(membership.should_sign_waiver_for(trip))
 
     @freeze_time("12 Dec 2020 12:00:00 EST")
-    def test_no_cached_membership_but_not_required(self):
+    def test_no_cached_membership_but_not_required(self) -> None:
         membership = factories.MembershipFactory.build(
             membership_expires=None, waiver_expires=None
         )
@@ -431,7 +500,7 @@ class MembershipActiveTest(unittest.TestCase):
         self.assertTrue(membership.should_sign_waiver_for(trip))
 
     @freeze_time("11 Dec 2015 12:00:00 EST")
-    def test_active_membership(self):
+    def test_active_membership(self) -> None:
         membership = factories.MembershipFactory.build(
             membership_expires=date(2016, 11, 4), waiver_expires=None
         )
@@ -443,7 +512,7 @@ class MembershipActiveTest(unittest.TestCase):
         self.assertTrue(membership.should_sign_waiver_for(trip))
 
     @freeze_time("11 Dec 2025 12:00:00 EST")
-    def test_stale_membership(self):
+    def test_stale_membership(self) -> None:
         membership = factories.MembershipFactory.build(
             # Both are in the past, so currently expired!
             membership_expires=date(2023, 11, 15),
@@ -456,7 +525,7 @@ class MembershipActiveTest(unittest.TestCase):
         self.assertTrue(membership.should_sign_waiver_for(trip))
 
     @freeze_time("11 Dec 2025 12:00:00 EST")
-    def test_very_distant_trip(self):
+    def test_very_distant_trip(self) -> None:
         membership = factories.MembershipFactory.build(
             # Renewed just the day before!
             membership_expires=date(2026, 12, 10),
@@ -473,7 +542,7 @@ class MembershipActiveTest(unittest.TestCase):
         self.assertFalse(membership.should_renew_for(trip))
         self.assertFalse(membership.should_sign_waiver_for(trip))
 
-    def test_str(self):
+    def test_str(self) -> None:
         par = factories.ParticipantFactory.build(
             name="Frida Kahlo",
             membership=factories.MembershipFactory.build(
@@ -487,7 +556,7 @@ class MembershipActiveTest(unittest.TestCase):
 
 
 class AffiliationTest(SimpleTestCase):
-    def test_is_student(self):
+    def test_is_student(self) -> None:
         for affiliation in ["MU", "MG", "NU", "NG"]:
             par = factories.ParticipantFactory.build(affiliation=affiliation)
             self.assertTrue(par.is_student)
@@ -495,9 +564,11 @@ class AffiliationTest(SimpleTestCase):
             par = factories.ParticipantFactory.build(affiliation=affiliation)
             self.assertFalse(par.is_student)
 
-    def test_annual_dues(self):
-        def _dues_for(affiliation):
-            par = factories.ParticipantFactory.build(affiliation=affiliation)
+    def test_annual_dues(self) -> None:
+        def _dues_for(affiliation: str) -> int:
+            par: models.Participant = factories.ParticipantFactory.build(
+                affiliation=affiliation
+            )
             return par.annual_dues
 
         # NOTE: These may change if the version of `mitoc_const` changes!
@@ -512,7 +583,7 @@ class AffiliationTest(SimpleTestCase):
 class MissedLectureTests(TestCase):
     """Test the logic that checks if a participant has missed lectures."""
 
-    def test_legacy_years(self):
+    def test_legacy_years(self) -> None:
         """Participants are not marked as missing lectures in first years."""
         # We lack records for these early years, so we just assume presence
         participant = factories.ParticipantFactory.create()
@@ -529,7 +600,7 @@ class MissedLectureTests(TestCase):
         self.assertFalse(participant.missed_lectures_for(past_trip))
 
     @freeze_time("Thursday, Jan 4 2018 15:00:00 EST")
-    def test_lectures_incomplete(self):
+    def test_lectures_incomplete(self) -> None:
         """If this year's lectures haven't completed, nobody can be absent."""
         participant = factories.ParticipantFactory.create()
 
@@ -548,7 +619,7 @@ class MissedLectureTests(TestCase):
         self.assertFalse(participant.missed_lectures_for(sat_trip))
 
     @freeze_time("Thursday, Jan 19 2018 15:00:00 EST")
-    def test_current_year(self):
+    def test_current_year(self) -> None:
         """Check attendance in current year, after lectures complete.
 
         We're in a year where attendance is recorded, and we're asking about the current

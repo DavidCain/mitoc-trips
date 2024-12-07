@@ -506,13 +506,33 @@ class Participant(models.Model):
     def missed_lectures_for(self, trip: "Trip") -> bool:
         """Should we regard the participant as having missed lectures for this trip.
 
-        This only applies to WS trips - all other trips will return False.
+        This only applies to winter trips - all other trips will return False.
 
         During the first week of Winter School (where people sign up for trips
         _before_ being marked as having attended lectures), we don't want to consider
         people as having missed lectures.
         """
-        # Notably, winter trips outside IAP don't require lecture attendance
+        # ~December trips (before IAP) are a special case.
+        # Lecture attendance is required, but two different years can both work!
+        if trip.program_enum == enums.Program.WINTER_NON_IAP:
+            today = date_utils.local_date()
+            allowed_years = {
+                # Attendance to the same calendar year's lectures is *always* valid.
+                # In December of 2024, lectures from Jan 2024 are valid.
+                # In January of 2025, lectures from Jan 2025 are valid.
+                today.year,
+                # Special ~November/December lectures are recorded as being for the *next* cal year.
+                # (e.g. November 2024 lectures are recorded as being for WS 2025)
+                today.year + 1,
+            }
+            # If it's January, we also allow last year's WS.
+            if today.month == 1:
+                allowed_years.add(today.year - 1)
+
+            return not self.lectureattendance_set.filter(
+                year__in=allowed_years
+            ).exists()
+
         if trip.program_enum != enums.Program.WINTER_SCHOOL:
             return False
 
