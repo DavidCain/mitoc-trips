@@ -571,6 +571,7 @@ class AdminTripSignupsViewTest(TestCase):
 
     # Note to future me -- this test relies on signals creating waitlist signups
     # Ideally, we can change to just invoking `trip_or_wait`
+    @freeze_time("2024-12-01 12:45")
     def test_signup_ordering(self) -> None:
         par = factories.ParticipantFactory.create(name="Tim B", user=self.user)
         trip = factories.TripFactory(
