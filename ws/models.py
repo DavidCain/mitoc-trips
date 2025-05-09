@@ -1080,7 +1080,7 @@ class Trip(models.Model):
     )
     name = models.CharField(max_length=127)
     description = models.TextField(
-        help_text=mark_safe(  # noqa: S308
+        help_text=mark_safe(
             '<a href="https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet" target="_blank">'
             "Markdown</a> supported! "
             "Please use HTTPS images sparingly, and only if properly licensed."
@@ -1110,7 +1110,7 @@ class Trip(models.Model):
             ("B", "B: >1 hour to intensive care, below treeline"),
             ("C", "C: above treeline"),
         ],
-        help_text=mark_safe(  # noqa: S308
+        help_text=mark_safe(
             'Trip leaders must meet <a href="/help/participants/ws_ratings/" target="_blank">requirements for terrain & activity ratings</a>.',
         ),
         db_index=True,

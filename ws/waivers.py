@@ -1,5 +1,5 @@
-import xml.etree.ElementTree as ET
 from typing import Any, NamedTuple, TypedDict, cast
+from xml.etree import ElementTree as ET
 
 import requests
 from mitoc_const import affiliations

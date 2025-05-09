@@ -98,6 +98,7 @@ lint.ignore = [
   # Errors which I'll plan to fix soon:
   "DJ001",    # Avoid nullable charfields
   "RUF012",   # I should make better use of ClassVar and Final
+  "TC006",    # Runtime casts are broadly fine, especially with builtins
 
   # Errors that conflict with `ruff format`
   "ISC001",
@@ -185,7 +186,7 @@ responses = "*"
 optional = true
 [tool.poetry.group.lint.dependencies]
 pylint = "^3.0"
-ruff = "*"
+ruff = ">=0.11.9"
 
 [tool.poetry.group.mypy]
 optional = true

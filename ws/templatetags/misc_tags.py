@@ -23,4 +23,4 @@ def format_phone_number(number):
 @register.filter
 def redact(content: str, should_redact: bool) -> str:
     """Optionally replace content that should be redacted."""
-    return mark_safe("<em>redacted</em>") if should_redact else content  # noqa: S308
+    return mark_safe("<em>redacted</em>") if should_redact else content
