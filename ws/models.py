@@ -2,7 +2,7 @@ import re
 from collections.abc import Collection, Iterable, Iterator
 from datetime import date, datetime, timedelta
 from typing import Any, Optional, cast
-from urllib.parse import urlencode, urljoin
+from urllib.parse import urlencode
 from zoneinfo import ZoneInfo
 
 import markdown2
@@ -17,7 +17,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.db import models
 from django.db.models import F, Q, QuerySet
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse_lazy
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 from django.utils.text import format_lazy
@@ -1156,10 +1156,6 @@ class Trip(models.Model):
         help_text="Allow participants to remove themselves "
         "from the trip any time before its start date.",
     )
-    requires_reimbursement = models.BooleanField(
-        default=False,
-        help_text="If you have an approved budget for this trip, you must register with Atlas.",
-    )
 
     info = models.OneToOneField(
         TripInfo, null=True, blank=True, on_delete=models.CASCADE
@@ -1445,45 +1441,6 @@ class Trip(models.Model):
     def leaders_with_rating(self):
         """All leaders with the rating they had at the time of the trip."""
         return [leader.name_with_rating(self) for leader in self.leaders.all()]
-
-    @property
-    def prefilled_atlas_form_link(self) -> str:
-        """Pre-fill known information for submission on the Atlas form link."""
-        leaders = list(self.leaders.order_by("name"))
-        trip_link = reverse("view_trip", args=(self.pk,))
-        prefilled_values = {
-            "usp": "pp_url",
-            "entry.64030440": self.name,
-            "entry.14051799": ", ".join(leader.name for leader in leaders),
-            "entry.1718831235": ", ".join(leader.email for leader in leaders),
-            "entry.801739390": urljoin("https://mitoc-trips.mit.edu", trip_link),
-            "entry.260268802": self.summary,
-            "entry.1651767815": self.trip_date.isoformat(),
-            # 'entry.240172613':Food
-            # 'entry.2093739261':10
-        }
-        try:
-            info: TripInfo | None = self.info
-        except TripInfo.DoesNotExist:
-            info = None
-
-        if info:
-            prefilled_values.update(
-                {
-                    "entry.1852696041": info.start_location,
-                    # We record start time, but only as free text...
-                    # 'entry.845875220': '10:00',
-                    # We don't record trip end date!
-                    # 'entry.2038085654':2022-12-30
-                    # We record end time, but only as free text...
-                    # 'entry.2004693073':23:45
-                }
-            )
-
-        return (
-            "https://docs.google.com/forms/d/e/1FAIpQLSeBgwQXEzbuBVdEpS6hAaII-sdlEajVnMQC84igt8plmigRdw/viewform?"
-            + urlencode(prefilled_values)
-        )
 
 
 class Feedback(models.Model):

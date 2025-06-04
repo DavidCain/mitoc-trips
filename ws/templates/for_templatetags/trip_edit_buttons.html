@@ -34,14 +34,6 @@
           data-approved="{{ trip.chair_approved|yesno:'true,false' }}">
       </data-approve-trip>
     {% endif %}
-
-    {% if is_trip_leader and trip.requires_reimbursement %}
-    <a type="button"
-       class="btn btn-default"
-       href="{{ trip.prefilled_atlas_form_link }}"
-    ><i class="fas fa-hand-holding-usd"></i>&nbsp;Reimbursement</a>
-    {% endif %}
-
   </div>
 
   {% if is_creator or is_chair %} {# Other trip leaders cannot delete the trip #}

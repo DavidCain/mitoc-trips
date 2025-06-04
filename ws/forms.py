@@ -311,7 +311,6 @@ class TripForm(forms.ModelForm):
             "allow_leader_signups",
             "honor_participant_pairing",
             "let_participants_drop",
-            "requires_reimbursement",
             # About
             "description",
             "summary",
@@ -488,9 +487,6 @@ class TripForm(forms.ModelForm):
         self.fields["leaders"].widget.attrs["data-ng-model"] = "leaders"
 
         _bind_input(self, "program", initial=initial_program and initial_program.value)
-        _bind_input(
-            self, "requires_reimbursement", initial=trip and trip.requires_reimbursement
-        )
         _bind_input(self, "algorithm", initial=trip and trip.algorithm)
 
 

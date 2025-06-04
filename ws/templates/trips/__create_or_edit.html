@@ -85,19 +85,6 @@
         {{ form.let_participants_drop|as_crispy_field }}
       </div>
 
-      <hr>
-      {{ form.requires_reimbursement|as_crispy_field }}
-      <div data-ng-if="requires_reimbursement">
-          {# MIT students will be prompted (in form instructions) to just use Atlas directly. #}
-          {# We could link to https://atlas.mit.edu/atlas/Home.action here, but it's easier to have *one* link #}
-          <a href="{% if form.instance.pk %}{{ form.instance.prefilled_atlas_form_link }}{% else %}https://docs.google.com/forms/d/e/1FAIpQLSeBgwQXEzbuBVdEpS6hAaII-sdlEajVnMQC84igt8plmigRdw/viewform{% endif %}">
-            Complete registration now
-          </a>
-          {% if not form.instance.pk and not viewing_participant.is_mit_student %}
-          (or create your trip first to get a pre-filled link)
-          {% endif %}
-      </div>
-
     </div>
 
     <div class="col-md-6">
