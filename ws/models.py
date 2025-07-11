@@ -336,14 +336,14 @@ class Participant(models.Model):
             "Undergraduate student",
             [
                 (affiliations.MIT_UNDERGRAD.CODE, "MIT undergrad"),
-                (affiliations.NON_MIT_UNDERGRAD.CODE, "Non-MIT undergrad"),
+                (affiliations.NON_MIT_UNDERGRAD.CODE, "Non-MIT undergrad (includes cross-registered students)"),
             ],
         ),
         (
             "Graduate student",
             [
                 (affiliations.MIT_GRAD_STUDENT.CODE, "MIT grad student"),
-                (affiliations.NON_MIT_GRAD_STUDENT.CODE, "Non-MIT grad student"),
+                (affiliations.NON_MIT_GRAD_STUDENT.CODE, "Non-MIT grad student (includes cross-registered students)"),
             ],
         ),
         (
