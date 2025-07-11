@@ -96,6 +96,21 @@
 
         </div>
 
+        <div class="alert alert-warning" data-ng-cloak data-ng-show="membershipform.$valid && ['MU', 'MG'].includes(affiliation)">
+          <p>
+            You must be directly enrolled as a full-time student at MIT to qualify for an MIT student rate. Cross-registered students from other institutions do not qualify. Failure to abide 
+            <strong>You must own an MIT email address</strong> in order to claim the MIT student rate.
+          </p>
+          <p>
+            Prefer to use your personal email address for your membership?
+            <a href="{% url 'account_signup' %}?next={% url 'pay_dues' %}">Sign up</a>
+            with your MIT email address, then add your personal email to your
+            <a href="{% url 'account_email' %}">verified email addresses</a>.
+          </p>
+        </div>
+
+
+
         <div class="alert alert-warning" data-ng-cloak data-ng-show="membershipform.$valid && ['MU', 'MG'].includes(affiliation) && !email.endsWith('mit.edu')">
           <p>
             <strong>You must own an MIT email address</strong> in order to claim the MIT student rate.
@@ -105,6 +120,13 @@
             <a href="{% url 'account_signup' %}?next={% url 'pay_dues' %}">Sign up</a>
             with your MIT email address, then add your personal email to your
             <a href="{% url 'account_email' %}">verified email addresses</a>.
+          </p>
+        </div>
+
+        <div class="alert alert-warning" data-ng-cloak data-ng-show="membershipform.$valid && ['MU', 'MG'].includes(affiliation)">
+          <p>
+            You must be enrolled at MIT as a full-time student in order to qualify as an MIT student member. Verification may be requested.
+            Cross-registered students from other instutitions (e.g. Harvard) do not qualify. 
           </p>
         </div>
 
