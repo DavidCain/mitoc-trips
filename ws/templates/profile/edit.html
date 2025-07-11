@@ -24,7 +24,8 @@ Edit profile {% if participant %} - {{ participant.name }}{% endif %}
                    data-ng-cloak
                    data-ng-show="['MU', 'MG'].includes(affiliation)">
                 You must have a <a href="{% url 'account_email' %}">verified MIT email address</a>
-                in order to claim MIT student status.
+                in order to claim MIT student status. Cross-registered students are not eligible for 
+                MIT student status.
               </div>
 
               {# We allow people to claim MIT affiliation without an MIT email, but warn all the same #}
