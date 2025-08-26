@@ -730,10 +730,9 @@ class ApproveTripViewTest(TestCase):
         self.user = factories.UserFactory.create()
         self.client.force_login(self.user)
 
-    def _approve(self, trip, approved=True):
+    def _approve(self, trip):
         return self.client.post(
             f"/trips/{trip.pk}/approve/",
-            {"approved": approved},
             content_type="application/json",
         )
 
@@ -765,9 +764,21 @@ class ApproveTripViewTest(TestCase):
         trip.refresh_from_db()
         self.assertTrue(trip.chair_approved)
 
-        self._approve(trip, approved=False)
+    def test_double_approve(self):
+        trip = factories.TripFactory.create(
+            program=enums.Program.WINTER_SCHOOL.value, chair_approved=False
+        )
+        perm_utils.make_chair(self.user, enums.Activity.WINTER_SCHOOL)
+        response = self._approve(trip)
+        self.assertEqual(response.status_code, 200)
+
         trip.refresh_from_db()
-        self.assertFalse(trip.chair_approved)
+        self.assertTrue(trip.chair_approved)
+
+        response = self._approve(trip)
+        trip.refresh_from_db()
+        self.assertTrue(trip.chair_approved)
+
 
 
 class RawMembershipStatsviewTest(TestCase):

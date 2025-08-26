@@ -488,9 +488,8 @@ class ApproveTripView(SingleObjectMixin, View):
     model = models.Trip
 
     def post(self, request, *args, **kwargs):
-        postdata = json.loads(self.request.body)
         trip = self.get_object()
-        trip.chair_approved = bool(postdata.get("approved"))
+        trip.chair_approved = True
         trip.save()
         return JsonResponse({"approved": trip.chair_approved})
 

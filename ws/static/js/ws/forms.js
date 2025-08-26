@@ -349,9 +349,9 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize'])
     },
     templateUrl: '/static/template/approve-trip.html',
     link: function (scope, element, attrs) {
-      scope.toggleApproval = function(){
-        scope.approved = !scope.approved;
-        $http.post(`/trips/${scope.tripId}/approve/`, {approved: scope.approved});
+      scope.markApproved = function(){
+        scope.approved = true;
+        $http.post(`/trips/${scope.tripId}/approve/`);
       };
     }
   };
