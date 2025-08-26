@@ -22,6 +22,7 @@ from ws import models
 # Unless explicitly handled, each will be automatically migrated
 EXPECTED_PARTICIPANT_TABLES: dict[str, tuple[str, ...]] = {
     "ws_trip": ("creator_id", "wimp_id", "last_updated_by_id"),
+    "ws_chairapproval": ("approver_id",),
     "ws_leaderrating": ("participant_id", "creator_id"),
     "ws_feedback": ("participant_id", "leader_id"),
     "ws_lotteryinfo": ("participant_id", "paired_with_id"),

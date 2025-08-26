@@ -1116,7 +1116,11 @@ class Trip(models.Model):
         db_index=True,
     )
     prereqs = models.CharField(max_length=255, blank=True, verbose_name="Prerequisites")
+
+    # NOTE: For older trips, this simple boolean was set to reflect chair approval.
+    # For newer trips, `ChairApproval` should be consulted.
     chair_approved = models.BooleanField(default=False)
+
     notes = models.TextField(
         blank=True,
         max_length=2000,
@@ -1441,6 +1445,30 @@ class Trip(models.Model):
     def leaders_with_rating(self):
         """All leaders with the rating they had at the time of the trip."""
         return [leader.name_with_rating(self) for leader in self.leaders.all()]
+
+
+class ChairApproval(models.Model):
+    """Record an activity chair's approval of a given trip.
+
+    At least for now, approval cannot be rescinded.
+    (This greatly simplifies our business logic, as we needn't consider
+    the case that a previously-approved trip, which we told leaders about,
+    needs activity chair attention once more).
+    """
+
+    time_created = models.DateTimeField(auto_now_add=True)
+
+    trip = models.ForeignKey(Trip, on_delete=models.PROTECT)
+    approver = models.ForeignKey(Participant, on_delete=models.PROTECT)
+    trip_edit_revision = models.PositiveIntegerField(
+        help_text="The version of the trip which the chair approved",
+    )
+
+    def __str__(self):
+        return (
+            f"{self.trip.name} [v{self.trip_edit_revision}]: "
+            f"Approved by {self.approver.name} on {self.time_created}"
+        )
 
 
 class Feedback(models.Model):
