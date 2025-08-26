@@ -339,23 +339,6 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize'])
     }
   };
 })
-.directive('approveTrip', function($http) {
-  return {
-    restrict: 'E',
-    replace: true,
-    scope: {
-      tripId: '=',
-      approved: '=',
-    },
-    templateUrl: '/static/template/approve-trip.html',
-    link: function (scope, element, attrs) {
-      scope.markApproved = function(){
-        scope.approved = true;
-        $http.post(`/trips/${scope.tripId}/approve/`);
-      };
-    }
-  };
-})
 .directive('delete', function($http, $window, $uibModal) {
   return {
     restrict: 'E',

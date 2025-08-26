@@ -29,10 +29,24 @@
 
     {# Approval is a chair-only function #}
     {% if is_chair and not hide_approve %}
-      <data-approve-trip
-          data-trip-id="{{ trip.pk }}"
-          data-approved="{{ trip.chair_approved|yesno:'true,false' }}">
-      </data-approve-trip>
+      {% if not trip.chair_approved %}
+        <a type="button"
+           class="btn btn-default"
+           href="{% url 'view_trip_for_approval' trip.activity trip.pk %}"
+           >
+           <i class="fas fa-fw fa-square"></i>
+           Review
+        </a>
+      {% else %}
+        <button
+           class="btn btn-success"
+           disabled
+           href="{% url 'view_trip_for_approval' trip.activity trip.pk %}"
+           >
+           <i class="fas fa-fw fa-check-square"></i>
+           Approved!
+        </button>
+      {% endif %}
     {% endif %}
   </div>
 

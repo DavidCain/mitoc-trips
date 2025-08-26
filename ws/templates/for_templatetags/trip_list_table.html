@@ -16,9 +16,6 @@
         <th data-type="numeric" class="nowrap">Spaces</th>
       {% endif %}
       <th data-hide="phone,tablet">Leaders</th>
-      {% if approve_mode %}
-        <th data-sort-ignore="true">Approve</th>
-      {% endif %}
     </tr>
   </thead>
 
@@ -77,15 +74,6 @@
         <td>
           {{ trip.leaders_with_rating|slice:':5'|join:', ' }}{% if trip.leaders.count > 5 %}... ({{ trip.leaders.count }} in total){% endif %}
         </td>
-
-        {% if approve_mode %}
-          <td>
-            <data-approve-trip
-                data-trip-id="{{ trip.pk }}"
-                data-approved="{{ trip.chair_approved|yesno:'true,false' }}">
-            </data-approve-trip>
-          </td>
-        {% endif %}
       </tr>
     {% endfor %}
   </tbody>

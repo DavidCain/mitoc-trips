@@ -74,7 +74,7 @@ class TripTagsTest(TestCase):
         heading = table.find("thead").find_all("th")
         self.assertEqual(
             [tr.text for tr in heading],
-            ["Name", "Date", "Terrain level", "Description", "Leaders", "Approve"],
+            ["Name", "Date", "Terrain level", "Description", "Leaders"],
         )
 
         rows = [tr.find_all("td") for tr in table.find("tbody").find_all("tr")]
