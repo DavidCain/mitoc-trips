@@ -484,27 +484,6 @@ def get_rating(request, pk, activity):
     return JsonResponse(lr[0] if lr else {})
 
 
-class ApproveTripView(SingleObjectMixin, View):
-    model = models.Trip
-
-    def post(self, request, *args, **kwargs):
-        trip = self.get_object()
-        trip.chair_approved = True
-        trip.save()
-        return JsonResponse({"approved": trip.chair_approved})
-
-    def dispatch(self, request, *args, **kwargs):
-        trip = self.get_object()
-        activity_enum = trip.required_activity_enum()
-        if activity_enum is None:
-            return JsonResponse(
-                {"message": f"No chair for {trip.program_enum.label}"}, status=400
-            )
-        if not perm_utils.chair_or_admin(request.user, activity_enum):
-            return JsonResponse({}, status=403)
-        return super().dispatch(request, *args, **kwargs)
-
-
 class UserView(DetailView):
     model = User
 

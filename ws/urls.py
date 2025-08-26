@@ -93,11 +93,6 @@ urlpatterns = [
         views.ChairTripView.as_view(),
         name="view_trip_for_approval",
     ),
-    path(
-        "trips/<int:pk>/approve/",
-        api_views.ApproveTripView.as_view(),
-        name="json-approve_trip",
-    ),
     # Activity Chairs or WIMP views
     path(
         "trips/medical/",

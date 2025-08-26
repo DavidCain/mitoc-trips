@@ -6,7 +6,6 @@ import responses
 from django.test import TestCase
 from freezegun import freeze_time
 
-import ws.utils.perms as perm_utils
 from ws import enums, models, settings, tasks
 from ws.api_views import MemberInfo
 from ws.tests import factories
@@ -722,63 +721,6 @@ class AdminTripSignupsViewTest(TestCase):
                 ],
             },
         )
-
-
-class ApproveTripViewTest(TestCase):
-    def setUp(self):
-        super().setUp()
-        self.user = factories.UserFactory.create()
-        self.client.force_login(self.user)
-
-    def _approve(self, trip):
-        return self.client.post(
-            f"/trips/{trip.pk}/approve/",
-            content_type="application/json",
-        )
-
-    def test_unknown_activity(self):
-        trip = factories.TripFactory.create(program=enums.Program.CIRCUS.value)
-        response = self._approve(trip)
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.json(), {"message": "No chair for Circus"})
-
-    def test_wrong_chair(self):
-        trip = factories.TripFactory.create(
-            program=enums.Program.WINTER_SCHOOL.value, chair_approved=False
-        )
-        perm_utils.make_chair(self.user, enums.Activity.CLIMBING)
-        response = self._approve(trip)
-        self.assertEqual(response.status_code, 403)
-
-        trip.refresh_from_db()
-        self.assertFalse(trip.chair_approved)
-
-    def test_approve(self):
-        trip = factories.TripFactory.create(
-            program=enums.Program.WINTER_SCHOOL.value, chair_approved=False
-        )
-        perm_utils.make_chair(self.user, enums.Activity.WINTER_SCHOOL)
-        response = self._approve(trip)
-        self.assertEqual(response.status_code, 200)
-
-        trip.refresh_from_db()
-        self.assertTrue(trip.chair_approved)
-
-    def test_double_approve(self):
-        trip = factories.TripFactory.create(
-            program=enums.Program.WINTER_SCHOOL.value, chair_approved=False
-        )
-        perm_utils.make_chair(self.user, enums.Activity.WINTER_SCHOOL)
-        response = self._approve(trip)
-        self.assertEqual(response.status_code, 200)
-
-        trip.refresh_from_db()
-        self.assertTrue(trip.chair_approved)
-
-        response = self._approve(trip)
-        trip.refresh_from_db()
-        self.assertTrue(trip.chair_approved)
-
 
 
 class RawMembershipStatsviewTest(TestCase):
