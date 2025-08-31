@@ -7,21 +7,24 @@ what the intended route will be, when to worry, and more.
 
 from typing import Any
 
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
-from django.db.models import Q
+from django.db.models import Q, QuerySet
 from django.forms.utils import ErrorList
-from django.http import Http404
+from django.http import Http404, HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.decorators import method_decorator
-from django.views.generic import DetailView, ListView, UpdateView
+from django.views.generic import DetailView, ListView, RedirectView, UpdateView
 
 import ws.utils.perms as perm_utils
 from ws import enums, forms, models, wimp
 from ws.decorators import group_required
+from ws.middleware import RequestWithParticipant
 from ws.mixins import TripLeadersOnlyView
 from ws.utils.dates import itinerary_available_at, local_date, local_now
+from ws.utils.itinerary import approve_trip
 
 
 class TripItineraryView(UpdateView, TripLeadersOnlyView):
@@ -138,7 +141,47 @@ class TripMedicalView(DetailView):
         }
 
 
-class ChairTripView(DetailView):
+class ChairTripView(RedirectView):
+    """Redirect to the most-current version of the trip.
+
+    This view serves two useful purposes:
+
+    1. We can easily link to "whatever the most current version of the trip is"
+       (ensuring that the most recent version is always shown if/when the link
+       is actually clicked)
+       - NOTE: The present implementation will *always* redirect to newer trip
+         versions, though, so you can always link to an arbirary version and
+         still assume that a redirect will occur. It's probably better UX
+         for humans though if we don't hard link to a specific version
+         (only to redirect away from that version)
+    2. We can still serve old URLs that did not have the version
+    """
+
+    # There's zero harm in exposing a trip's version to anybody with creds.
+    # (we're only redirecting, the next view will handle creds)
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_redirect_url(self, *args: Any, **kwargs: Any) -> str:
+        trip_id = kwargs["pk"]
+        try:
+            trip = models.Trip.objects.get(pk=trip_id)
+        except models.Trip.DoesNotExist as e:
+            raise Http404 from e
+
+        return reverse(
+            "view_versioned_trip_for_approval",
+            kwargs={
+                # Might as well just correct the activity if it's wrong...
+                "activity": trip.activity,
+                "pk": trip.pk,
+                "edit_revision": trip.edit_revision,
+            },
+        )
+
+
+class VersionedChairTripView(DetailView):
     """Give a view of the trip intended to let chairs approve or not.
 
     Will show just the important details, like leaders, description, & itinerary.
@@ -147,12 +190,43 @@ class ChairTripView(DetailView):
     model = models.Trip
     template_name = "chair/trips/view.html"
 
+    def get(self, request: HttpRequest, **kwargs: Any) -> HttpResponse:
+        """Redirect to the current trip version if an old/incorrect one was requested.
+
+        At least for now (and likely into the future), we can't load old versions.
+        If an old or incorrect version was requested, redirect to the newest version.
+
+        This redirect serves two key purposes:
+        1. It ensures the UI is not incorrectly implying "this was the older trip version's info"
+        2. If/when an activity chair clicks "approve," we record the correct version they saw.
+        """
+        trip = self.get_object()
+        if trip.edit_revision != kwargs["edit_revision"]:
+            if not (0 <= kwargs["edit_revision"] <= trip.edit_revision):
+                messages.warning(
+                    self.request,
+                    "Requested a trip version that's never existed. Redirecting to the latest.",
+                )
+            return redirect(
+                reverse(
+                    # WARNING: it's technically possible for this to be an infinite redirect loop.
+                    # In practice, that shouldn't happen.
+                    "view_versioned_trip_for_approval",
+                    kwargs={
+                        "activity": kwargs["activity"],
+                        "pk": trip.pk,
+                        "edit_revision": trip.edit_revision,
+                    },
+                ),
+            )
+        return super().get(request, **kwargs)
+
     @property
     def activity_enum(self) -> enums.Activity:
         """Note that this may raise a ValueError if given an unknown activity!"""
         return enums.Activity(self.kwargs["activity"])
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet[models.Trip]:
         """All trips of this activity type.
 
         For identifying only trips that need attention, callers
@@ -167,7 +241,7 @@ class ChairTripView(DetailView):
             *models.Trip.ordering_for_approval
         )
 
-    def get_other_trips(self):
+    def get_other_trips(self) -> tuple[models.Trip | None, models.Trip | None]:
         """Get the trips that come before and after this trip & need approval."""
         this_trip = self.get_object()
 
@@ -190,25 +264,49 @@ class ChairTripView(DetailView):
             return None, None  # (Could be the last unapproved trip)
         return prev_trip, next_trip
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["activity_enum"] = self.activity_enum
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        trip = self.get_object()
+        prev_trip, next_trip = self.get_other_trips()
+        last_approval = (
+            models.ChairApproval.objects.filter(trip_id=trip.pk)
+            .select_related("approver")
+            .order_by("pk")
+            .last()
+        )
+        return {
+            **super().get_context_data(**kwargs),
+            "activity_enum": self.activity_enum,
+            "prev_trip": prev_trip,
+            "next_trip": next_trip,
+            "last_approval": last_approval,
+        }
 
-        # Provide buttons for quick navigation between upcoming trips needing approval
-        context["prev_trip"], context["next_trip"] = self.get_other_trips()
-        return context
-
-    def post(self, request, *args, **kwargs):
+    def post(
+        self,
+        request: RequestWithParticipant,
+        *args: Any,
+        **kwargs: Any,
+    ) -> HttpResponseRedirect:
         """Mark the trip approved and move to the next one, if any."""
         trip = self.get_object()
         _, next_trip = self.get_other_trips()  # Do this before saving trip
-        trip.chair_approved = True
-        trip.save()
+
+        approve_trip(
+            trip,
+            approving_chair=request.participant,
+            trip_edit_revision=kwargs["edit_revision"],
+        )
         if next_trip:
             return redirect(
                 reverse(
-                    "view_trip_for_approval",
-                    args=(self.activity_enum.value, next_trip.id),
+                    "view_versioned_trip_for_approval",
+                    kwargs={
+                        "activity": self.activity_enum.value,
+                        "pk": next_trip.pk,
+                        # This is *likely* the most current version.
+                        # (If not, we'll be redirected again to the proper one)
+                        "edit_revision": next_trip.edit_revision,
+                    },
                 )
             )
         return redirect(reverse("manage_trips", args=(self.activity_enum.value,)))

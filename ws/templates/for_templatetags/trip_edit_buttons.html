@@ -42,6 +42,9 @@
            class="btn btn-success"
            disabled
            href="{% url 'view_trip_for_approval' trip.activity trip.pk %}"
+           {% if last_approval %}
+             uib-tooltip="by {{ last_approval.approver.name }} {{ last_approval.time_created }}"
+           {% endif %}
            >
            <i class="fas fa-fw fa-check-square"></i>
            Approved!

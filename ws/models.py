@@ -1040,7 +1040,7 @@ class Trip(models.Model):
         related_name="trips_updated",
     )
     edit_revision = models.PositiveIntegerField(
-        default=0,
+        default=1,
         help_text="An incremented integer, to avoid simultaneous edits to the trip.",
     )
     program = models.CharField(
@@ -1117,8 +1117,8 @@ class Trip(models.Model):
     )
     prereqs = models.CharField(max_length=255, blank=True, verbose_name="Prerequisites")
 
-    # NOTE: For older trips, this simple boolean was set to reflect chair approval.
-    # For newer trips, `ChairApproval` should be consulted.
+    # NOTE: For older trips, all we had was this simple boolean.
+    # For newer trips, `ChairApproval` should be consulted to get a log!
     chair_approved = models.BooleanField(default=False)
 
     notes = models.TextField(

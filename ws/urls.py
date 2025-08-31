@@ -93,6 +93,11 @@ urlpatterns = [
         views.ChairTripView.as_view(),
         name="view_trip_for_approval",
     ),
+    path(
+        "<slug:activity>/trips/<int:pk>/v<int:edit_revision>/",
+        views.VersionedChairTripView.as_view(),
+        name="view_versioned_trip_for_approval",
+    ),
     # Activity Chairs or WIMP views
     path(
         "trips/medical/",

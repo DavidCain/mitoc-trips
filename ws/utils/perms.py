@@ -95,7 +95,7 @@ def is_chair(
 
 def chair_or_admin(
     user: AnonymousUser | User,
-    activity_enum: enums.Activity,
+    activity_enum: enums.Activity | None,
 ) -> bool:
     """Return if the user is the chair of the activity, or if they're an admin.
 

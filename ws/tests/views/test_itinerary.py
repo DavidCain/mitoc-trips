@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime, timezone
 
 from bs4 import BeautifulSoup
 from django.contrib.auth.models import Group
@@ -8,6 +8,7 @@ from freezegun import freeze_time
 import ws.utils.perms as perm_utils
 from ws import enums, models
 from ws.tests import factories, strip_whitespace
+from ws.utils.itinerary import approve_trip
 
 
 class TripItineraryViewTest(TestCase):
@@ -379,6 +380,38 @@ class ChairTripViewTest(TestCase):
         self.user = factories.UserFactory.create()
         self.client.force_login(self.user)
 
+    def test_no_trip(self):
+        response = self.client.get("/climbing/trips/123927341/")
+        self.assertEqual(response.status_code, 404)
+
+    def test_redirects_even_if_wrong_activity(self):
+        trip = factories.TripFactory.create(
+            program=enums.Program.CLIMBING.value,
+            activity=enums.Activity.CLIMBING.value,
+            edit_revision=1,
+        )
+        response = self.client.get(f"/hiking/trips/{trip.pk}/")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, f"/climbing/trips/{trip.pk}/v1/")
+
+    def test_simple_redirect(self):
+        trip = factories.TripFactory.create(
+            program=enums.Program.CLIMBING.value,
+            activity=enums.Activity.CLIMBING.value,
+            edit_revision=3,
+        )
+        response = self.client.get(f"/climbing/trips/{trip.pk}/")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, f"/climbing/trips/{trip.pk}/v3/")
+
+
+@freeze_time("2019-02-15 12:25:00 EST")
+class VersionedChairTripViewTest(TestCase):
+    def setUp(self):
+        self.participant = factories.ParticipantFactory.create(name="Billy Mays")
+        self.user = self.participant.user
+        self.client.force_login(self.user)
+
     @staticmethod
     def _make_climbing_trip(chair_approved=False, **kwargs):
         return factories.TripFactory.create(
@@ -390,22 +423,40 @@ class ChairTripViewTest(TestCase):
 
     def test_invalid_activity(self):
         trip = self._make_climbing_trip()
-        response = self.client.get(f"/curling/trips/{trip.pk}/")
+        response = self.client.get(f"/curling/trips/{trip.pk}/v37/")
         self.assertEqual(response.status_code, 404)
 
     def test_must_be_chair(self):
-        trip = self._make_climbing_trip()
-        response = self.client.get(f"/climbing/trips/{trip.pk}/")
+        trip = self._make_climbing_trip(edit_revision=1)
+        response = self.client.get(f"/climbing/trips/{trip.pk}/v1/")
         self.assertEqual(response.status_code, 403)
+
+    def test_redirects_to_newer_version(self):
+        trip = self._make_climbing_trip(
+            chair_approved=False, trip_date=date(2018, 3, 4), edit_revision=2
+        )
+        perm_utils.make_chair(self.user, enums.Activity.CLIMBING)
+        response = self.client.get(f"/climbing/trips/{trip.pk}/v1/")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, f"/climbing/trips/{trip.pk}/v2/")
+
+    def test_redirects_from_non_existent_version(self):
+        trip = self._make_climbing_trip(
+            chair_approved=False, trip_date=date(2018, 3, 4), edit_revision=1
+        )
+        perm_utils.make_chair(self.user, enums.Activity.CLIMBING)
+        response = self.client.get(f"/climbing/trips/{trip.pk}/v234802314/")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, f"/climbing/trips/{trip.pk}/v1/")
 
     def test_view_old_unapproved_trip(self):
         trip = self._make_climbing_trip(
-            chair_approved=False, trip_date=date(2018, 3, 4)
+            chair_approved=False, trip_date=date(2018, 3, 4), edit_revision=1
         )
 
         perm_utils.make_chair(self.user, enums.Activity.CLIMBING)
 
-        response = self.client.get(f"/climbing/trips/{trip.pk}/")
+        response = self.client.get(f"/climbing/trips/{trip.pk}/v1/")
         self.assertEqual(response.status_code, 200)
 
         soup = BeautifulSoup(response.content, "html.parser")
@@ -420,32 +471,40 @@ class ChairTripViewTest(TestCase):
 
         # Submitting the form approves the trip!
         # Because it's the last one, it goes back to the main listing.
-        approve_resp = self.client.post(f"/climbing/trips/{trip.pk}/")
+        approve_resp = self.client.post(f"/climbing/trips/{trip.pk}/v1/")
         self.assertEqual(approve_resp.status_code, 302)
         self.assertEqual(approve_resp.url, "/climbing/trips/")
 
     def test_view_old_approved_trip(self):
-        trip = self._make_climbing_trip(chair_approved=True, trip_date=date(2018, 3, 4))
+        trip = self._make_climbing_trip(trip_date=date(2018, 3, 4), edit_revision=42)
         perm_utils.make_chair(self.user, enums.Activity.CLIMBING)
+        approve_trip(trip, approving_chair=self.participant, trip_edit_revision=42)
 
-        response = self.client.get(f"/climbing/trips/{trip.pk}/")
+        response = self.client.get(f"/climbing/trips/{trip.pk}/v42/")
         self.assertEqual(response.status_code, 200)
 
         soup = BeautifulSoup(response.content, "html.parser")
 
         # There's no approval form, just an indicator that it's approved
         self.assertFalse(soup.find("form", action="."))
-        self.assertTrue(soup.find("button", string="Approved!"))
+        approved = soup.find("button", string="Approved!")
+        self.assertTrue(approved)
+        self.assertEqual(
+            approved.attrs["uib-tooltip"],
+            "by Billy Mays Feb. 15, 2019, 12:25 p.m.",
+        )
 
     def test_upcoming_trips(self):
         # Make each of these the same trip type, so we sort just by date
         four = self._make_climbing_trip(
             trip_date=date(2019, 3, 4),
             trip_type=enums.TripType.BOULDERING.value,
+            edit_revision=5,
         )
         two = self._make_climbing_trip(
             trip_date=date(2019, 3, 2),
             trip_type=enums.TripType.BOULDERING.value,
+            edit_revision=37,
         )
         three = self._make_climbing_trip(
             trip_date=date(2019, 3, 3),
@@ -459,7 +518,7 @@ class ChairTripViewTest(TestCase):
         perm_utils.make_chair(self.user, enums.Activity.CLIMBING)
 
         # "Next" and "previous" are in chronological order!
-        response = self.client.get(f"/climbing/trips/{two.pk}/")
+        response = self.client.get(f"/climbing/trips/{two.pk}/v37/")
         self.assertEqual(response.context["prev_trip"], one)
         self.assertEqual(response.context["next_trip"], three)
 
@@ -471,14 +530,25 @@ class ChairTripViewTest(TestCase):
         # Also, next and previous only navigate between unapproved trips
         three.chair_approved = True
         three.save()
-        response = self.client.get(f"/climbing/trips/{two.pk}/")
+        response = self.client.get(f"/climbing/trips/{two.pk}/v37/")
         self.assertEqual(response.context["prev_trip"], one)
         self.assertEqual(response.context["next_trip"], four)
 
         # Finally, approving a trip brings us straight to the page for the next.
-        approve_resp = self.client.post(f"/climbing/trips/{two.pk}/")
+        self.assertIs(two.chair_approved, False)
+        self.assertFalse(models.ChairApproval.objects.exists())
+        approve_resp = self.client.post(f"/climbing/trips/{two.pk}/v37/")
         self.assertEqual(approve_resp.status_code, 302)
-        self.assertEqual(approve_resp.url, f"/climbing/trips/{four.pk}/")
+        self.assertEqual(approve_resp.url, f"/climbing/trips/{four.pk}/v5/")
+        two.refresh_from_db()
+        approval = models.ChairApproval.objects.get()
+        self.assertEqual(approval.trip, two)
+        self.assertEqual(
+            approval.time_created,
+            datetime(2019, 2, 15, 17, 25, tzinfo=timezone.utc),
+        )
+        self.assertEqual(approval.approver, self.participant)
+        self.assertIs(two.chair_approved, True)
 
         # The last trip in the series has no "next" button
         resp = self.client.get(approve_resp.url)
@@ -487,14 +557,17 @@ class ChairTripViewTest(TestCase):
 
     def test_no_navigation_between_old_trips(self):
         trip = self._make_climbing_trip(
-            chair_approved=False, trip_date=date(2018, 3, 4)
+            chair_approved=False,
+            trip_date=date(2018, 3, 4),
+            edit_revision=64,
         )
         self._make_climbing_trip(chair_approved=False, trip_date=date(2018, 3, 3))
         self._make_climbing_trip(chair_approved=False, trip_date=date(2018, 3, 5))
 
         perm_utils.make_chair(self.user, enums.Activity.CLIMBING)
 
-        response = self.client.get(f"/climbing/trips/{trip.pk}/")
+        response = self.client.get(f"/climbing/trips/{trip.pk}/v64/")
+        self.assertEqual(response.status_code, 200)
 
         # We don't prompt the chair to approve other old trips.
         self.assertIsNone(response.context["prev_trip"])

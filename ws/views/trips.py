@@ -365,7 +365,7 @@ class EditTripView(UpdateView, TripLeadersOnlyView):
         trip = self.object
         activity_enum = trip.required_activity_enum()
         if activity_enum is None:
-            return False  # No required activity, thus no chair to rescind"
+            return False  # No required activity, thus no chair to rescind
 
         return (
             trip.chair_approved

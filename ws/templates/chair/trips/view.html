@@ -24,8 +24,13 @@
   <div class="col-xs-4 text-center">
     {% if trip.chair_approved %}
       {# It's possible that we loaded an already approved trip this way. #}
-      {# We could theoretically make this into a toggle, but that could be confusing UX. #}
-      <button class="btn btn-success" disabled>Approved!</button>
+      <button
+          class="btn btn-success"
+          disabled
+          {% if last_approval %}
+            uib-tooltip="by {{ last_approval.approver.name }} {{ last_approval.time_created }}"
+          {% endif %}
+        >Approved!</button>
     {% else %}
       <form method="post" action=".">
         {% csrf_token %}

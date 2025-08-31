@@ -3,6 +3,27 @@ from django.db.models import Q, QuerySet
 from ws import models
 
 
+def approve_trip(
+    trip: models.Trip,
+    *,
+    approving_chair: models.Participant,
+    trip_edit_revision: int,
+) -> None:
+    """Mark a trip as approved, even if it already *has* been approved!"""
+    # No lock necessary, this should always be an *increasing* integer.
+    assert trip.edit_revision >= trip_edit_revision, (
+        f"Trip #{trip.pk} has no version {trip_edit_revision}"
+    )
+    # It's fine if the trip is edited mid-execution of this function.
+    trip.chair_approved = True
+    trip.save()
+    models.ChairApproval(
+        trip=trip,
+        approver=approving_chair,
+        trip_edit_revision=trip.edit_revision,
+    ).save()
+
+
 def get_cars(trip: models.Trip) -> QuerySet[models.Car]:
     """Return cars of specified drivers, otherwise all drivers' cars.
 

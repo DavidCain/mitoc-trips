@@ -353,7 +353,7 @@ class CreateTripViewTest(TestCase, Helpers):
         trip = models.Trip.objects.get(pk=trip_pk)
         self.assertEqual(trip.creator, trip_leader)
         self.assertEqual(trip.last_updated_by, trip_leader)
-        self.assertEqual(trip.edit_revision, 0)
+        self.assertEqual(trip.edit_revision, 1)
         self.assertEqual(trip.name, "My Great Trip")
         self.assertEqual(trip.summary, "Let's go biking!")
 

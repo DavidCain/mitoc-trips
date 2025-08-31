@@ -219,14 +219,27 @@ def wimp_toolbar(trip):
 
 
 @register.inclusion_tag("for_templatetags/trip_edit_buttons.html")
-def trip_edit_buttons(trip, participant, user, hide_approve=False):
+def trip_edit_buttons(
+    trip: models.Trip,
+    participant: models.Participant,
+    user: User,
+    hide_approve: bool = False,
+) -> dict[str, Any]:
     available_at = date_utils.itinerary_available_at(trip.trip_date)
+    last_approval = (
+        models.ChairApproval.objects.filter(trip_id=trip.pk)
+        .select_related("approver")
+        .order_by("pk")
+        .last()
+    )
+
     return {
         "trip": trip,
         "is_chair": perm_utils.chair_or_admin(user, trip.required_activity_enum()),
         "is_creator": trip.creator == participant,
         "is_trip_leader": perm_utils.leader_on_trip(participant, trip, False),
         "hide_approve": hide_approve,  # Hide approval even if user is a chair
+        "last_approval": last_approval,
         "itinerary_available_at": available_at,
         "available_today": available_at.date() == date_utils.local_date(),
         "info_form_available": date_utils.local_now() >= available_at,
