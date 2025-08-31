@@ -226,16 +226,27 @@ def trip_edit_buttons(
     hide_approve: bool = False,
 ) -> dict[str, Any]:
     available_at = date_utils.itinerary_available_at(trip.trip_date)
+
+    required_activity = trip.required_activity_enum()
     last_approval = (
-        models.ChairApproval.objects.filter(trip_id=trip.pk)
-        .select_related("approver")
-        .order_by("pk")
-        .last()
+        (
+            models.ChairApproval.objects.filter(trip_id=trip.pk)
+            .select_related("approver")
+            .order_by("pk")
+            .last()
+        )
+        if required_activity and not hide_approve
+        else None
     )
+
+    # If there's no activity chair possible, hide approval (even from superusers!)
+    if required_activity is None:
+        hide_approve = True
 
     return {
         "trip": trip,
-        "is_chair": perm_utils.chair_or_admin(user, trip.required_activity_enum()),
+        "required_activity": required_activity,
+        "is_chair": perm_utils.chair_or_admin(user, required_activity),
         "is_creator": trip.creator == participant,
         "is_trip_leader": perm_utils.leader_on_trip(participant, trip, False),
         "hide_approve": hide_approve,  # Hide approval even if user is a chair
