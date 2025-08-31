@@ -471,7 +471,10 @@ class VersionedChairTripViewTest(TestCase):
 
         # Submitting the form approves the trip!
         # Because it's the last one, it goes back to the main listing.
-        approve_resp = self.client.post(f"/climbing/trips/{trip.pk}/v1/")
+        approve_resp = self.client.post(
+            f"/climbing/trips/{trip.pk}/v1/",
+            {"notes": "", "trip": trip.pk, "trip_edit_revision": 1},
+        )
         self.assertEqual(approve_resp.status_code, 302)
         self.assertEqual(approve_resp.url, "/climbing/trips/")
 
@@ -537,7 +540,10 @@ class VersionedChairTripViewTest(TestCase):
         # Finally, approving a trip brings us straight to the page for the next.
         self.assertIs(two.chair_approved, False)
         self.assertFalse(models.ChairApproval.objects.exists())
-        approve_resp = self.client.post(f"/climbing/trips/{two.pk}/v37/")
+        approve_resp = self.client.post(
+            f"/climbing/trips/{two.pk}/v37/",
+            {"notes": "", "trip": two.pk, "trip_edit_revision": 37},
+        )
         self.assertEqual(approve_resp.status_code, 302)
         self.assertEqual(approve_resp.url, f"/climbing/trips/{four.pk}/v5/")
         two.refresh_from_db()

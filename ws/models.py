@@ -1460,6 +1460,7 @@ class ChairApproval(models.Model):
 
     trip = models.ForeignKey(Trip, on_delete=models.PROTECT)
     approver = models.ForeignKey(Participant, on_delete=models.PROTECT)
+    notes = models.TextField(max_length=500, blank=True)
     trip_edit_revision = models.PositiveIntegerField(
         help_text="The version of the trip which the chair approved",
     )

@@ -12,16 +12,21 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q, QuerySet
 from django.forms.utils import ErrorList
-from django.http import Http404, HttpRequest, HttpResponse, HttpResponseRedirect
+from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.decorators import method_decorator
-from django.views.generic import DetailView, ListView, RedirectView, UpdateView
+from django.views.generic import (
+    DetailView,
+    FormView,
+    ListView,
+    RedirectView,
+    UpdateView,
+)
 
 import ws.utils.perms as perm_utils
 from ws import enums, forms, models, wimp
 from ws.decorators import group_required
-from ws.middleware import RequestWithParticipant
 from ws.mixins import TripLeadersOnlyView
 from ws.utils.dates import itinerary_available_at, local_date, local_now
 from ws.utils.itinerary import approve_trip
@@ -50,8 +55,8 @@ class TripItineraryView(UpdateView, TripLeadersOnlyView):
                 field.disabled = True
         return context
 
-    def get_initial(self):
-        self.trip = self.object  # Form instance will become object
+    def get_initial(self) -> dict[str, Any]:
+        self.trip = self.get_object()
         return {"trip": self.trip}
 
     def get_form_kwargs(self):
@@ -181,13 +186,14 @@ class ChairTripView(RedirectView):
         )
 
 
-class VersionedChairTripView(DetailView):
+class VersionedChairTripView(DetailView, FormView):
     """Give a view of the trip intended to let chairs approve or not.
 
     Will show just the important details, like leaders, description, & itinerary.
     """
 
     model = models.Trip
+    form_class = forms.ChairApprovalForm
     template_name = "chair/trips/view.html"
 
     def get(self, request: HttpRequest, **kwargs: Any) -> HttpResponse:
@@ -220,6 +226,14 @@ class VersionedChairTripView(DetailView):
                 ),
             )
         return super().get(request, **kwargs)
+
+    def get_initial(self) -> dict[str, Any]:
+        trip = self.get_object()
+        return {
+            "trip": trip,
+            "trip_edit_revision": trip.edit_revision,
+            "approver": self.request.participant,  # type: ignore[attr-defined]
+        }
 
     @property
     def activity_enum(self) -> enums.Activity:
@@ -267,34 +281,28 @@ class VersionedChairTripView(DetailView):
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         trip = self.get_object()
         prev_trip, next_trip = self.get_other_trips()
-        last_approval = (
+        approvals = (
             models.ChairApproval.objects.filter(trip_id=trip.pk)
             .select_related("approver")
-            .order_by("pk")
-            .last()
+            .order_by("-pk")
         )
         return {
             **super().get_context_data(**kwargs),
             "activity_enum": self.activity_enum,
             "prev_trip": prev_trip,
             "next_trip": next_trip,
-            "last_approval": last_approval,
+            "approvals": approvals,
+            "last_approval": approvals[0] if approvals else None,
         }
 
-    def post(
-        self,
-        request: RequestWithParticipant,
-        *args: Any,
-        **kwargs: Any,
-    ) -> HttpResponseRedirect:
-        """Mark the trip approved and move to the next one, if any."""
+    def form_valid(self, form: forms.ChairApprovalForm) -> HttpResponse:
         trip = self.get_object()
         _, next_trip = self.get_other_trips()  # Do this before saving trip
-
         approve_trip(
             trip,
-            approving_chair=request.participant,
-            trip_edit_revision=kwargs["edit_revision"],
+            approving_chair=self.request.participant,  # type: ignore[attr-defined]
+            trip_edit_revision=form.cleaned_data["trip_edit_revision"],
+            notes=form.cleaned_data["notes"],
         )
         if next_trip:
             return redirect(
@@ -309,6 +317,7 @@ class VersionedChairTripView(DetailView):
                     },
                 )
             )
+
         return redirect(reverse("manage_trips", args=(self.activity_enum.value,)))
 
     @method_decorator(login_required)

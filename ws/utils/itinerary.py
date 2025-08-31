@@ -8,6 +8,7 @@ def approve_trip(
     *,
     approving_chair: models.Participant,
     trip_edit_revision: int,
+    notes: str = "",
 ) -> None:
     """Mark a trip as approved, even if it already *has* been approved!"""
     # No lock necessary, this should always be an *increasing* integer.
@@ -21,6 +22,7 @@ def approve_trip(
         trip=trip,
         approver=approving_chair,
         trip_edit_revision=trip.edit_revision,
+        notes=notes,
     ).save()
 
 

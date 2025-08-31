@@ -490,6 +490,25 @@ class TripForm(forms.ModelForm):
         _bind_input(self, "algorithm", initial=trip and trip.algorithm)
 
 
+class ChairApprovalForm(forms.ModelForm):
+    class Meta:
+        model = models.ChairApproval
+        # Approver will be populated from request!
+        fields = ["notes", "trip", "trip_edit_revision"]
+
+        widgets = {
+            "notes": forms.Textarea(
+                attrs={"rows": 1, "placeholder": "Optional approval notes"}
+            ),
+            "trip": forms.HiddenInput(),
+            "trip_edit_revision": forms.HiddenInput(),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["notes"].label = False
+
+
 class SignUpForm(forms.ModelForm):
     class Meta:
         model = models.SignUp
