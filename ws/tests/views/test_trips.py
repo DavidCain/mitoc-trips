@@ -1,7 +1,10 @@
 import re
+from collections.abc import Iterator
 from datetime import date
+from typing import Any
 
 from bs4 import BeautifulSoup
+from django.http import HttpResponseBase
 from django.test import Client, TestCase
 from freezegun import freeze_time
 
@@ -14,7 +17,7 @@ class Helpers:
     client: Client
 
     @staticmethod
-    def _form_data(form):
+    def _form_data(form: Any) -> Iterator[tuple[str, Any]]:
         for elem in form.find_all("textarea"):
             yield elem["name"], elem.text
 
@@ -29,9 +32,9 @@ class Helpers:
             value = selection["value"] if selection else ""
             yield select["name"], value
 
-    def _get(self, url):
+    def _get(self, url: str) -> tuple[HttpResponseBase, Any]:
         response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
+        assert response.status_code == 200
         soup = BeautifulSoup(response.content, "html.parser")
         return response, soup
 
@@ -273,7 +276,7 @@ class CreateTripViewTest(TestCase, Helpers):
         )
 
     @freeze_time("2022-01-24 12:25:00 EST")
-    def test_winter_school_is_default_during_iap(self):
+    def test_winter_school_is_default_during_iap(self) -> None:
         """For simplicity, we assume that new trips in IAP are in the WS program."""
         leader = factories.ParticipantFactory.create()
         factories.LeaderRatingFactory.create(
@@ -290,7 +293,7 @@ class CreateTripViewTest(TestCase, Helpers):
         self.assertIn("selected", ws_option.attrs)
 
     @freeze_time("2019-12-15 12:25:00 EST")
-    def test_winter_school_not_available_outside_iap(self):
+    def test_winter_school_not_available_outside_iap(self) -> None:
         """Normal trip leaders can only make normal winter trips outside IAP."""
         leader = factories.ParticipantFactory.create()
         factories.LeaderRatingFactory.create(
@@ -357,7 +360,7 @@ class CreateTripViewTest(TestCase, Helpers):
         self.assertEqual(trip.name, "My Great Trip")
         self.assertEqual(trip.summary, "Let's go biking!")
 
-    def test_creation_without_summary(self):
+    def test_creation_without_summary(self) -> None:
         user = factories.UserFactory.create()
         self.client.force_login(user)
         trip_leader = factories.ParticipantFactory.create(user=user)
@@ -389,11 +392,85 @@ class CreateTripViewTest(TestCase, Helpers):
 
         self.client.post("/trips/create/", form_data)
 
-        trip = models.Trip.objects.order_by("id").last()
+        trip = models.Trip.objects.latest("id")
         self.assertEqual(
             trip.summary,
             "What is Mt Tam? Mt Tam is the birthplace of mountain biking, located in the S...",
         )
+
+    def test_duplicate_bad_trip_id(self) -> None:
+        leader = factories.ParticipantFactory.create()
+        factories.LeaderRatingFactory.create(
+            participant=leader, activity=models.LeaderRating.WINTER_SCHOOL
+        )
+        self.client.force_login(leader.user)
+        _resp, soup = self._get("/trips/create/?duplicate_trip_id=123686213")
+        text = soup.find(class_="alert alert-danger").get_text(strip=True)
+        self.assertEqual(text, "No such trip #123686213")
+
+    def test_duplicate_trip_id_no_injection(self) -> None:
+        leader = factories.ParticipantFactory.create()
+        factories.LeaderRatingFactory.create(
+            participant=leader, activity=models.LeaderRating.WINTER_SCHOOL
+        )
+        self.client.force_login(leader.user)
+        _resp, soup = self._get(
+            "/trips/create/?duplicate_trip_id=<script>alert('xss');</script>"
+        )
+        alert = soup.find(class_="alert alert-danger")
+        self.assertEqual(
+            alert.get_text(strip=True), "No such trip #<script>alert('xss');</script>"
+        )
+        self.assertEqual(
+            alert.decode_contents().strip(),
+            "No such trip #&lt;script&gt;alert('xss');&lt;/script&gt;",
+        )
+
+    def test_duplicate_trip_id(self) -> None:
+        trip = factories.TripFactory.create(
+            # Let's also prove that we properly escape HTML chars!
+            name="Clean Up & BBQ <no membership required!>",
+            description="**Help clean up the park**",
+            notes="Do you have work gloves?",
+            program=enums.Program.SERVICE.value,
+            trip_date=date(2014, 10, 22),
+            summary="Dummy text to prove this is not copied",
+        )
+        with freeze_time("2025-12-15 12:25:00 EST"):
+            leader = factories.ParticipantFactory.create()
+            factories.LeaderRatingFactory.create(participant=leader)
+            self.client.force_login(leader.user)
+            _resp, soup = self._get(f"/trips/create/?duplicate_trip_id={trip.pk}")
+
+        alert = soup.find(class_="alert alert-info")
+        self.assertEqual(
+            alert.decode_contents().strip(),
+            (
+                "Copied name, description, notes from "
+                f'<a href="/trips/{trip.pk}/">Clean Up &amp; BBQ &lt;no membership required!&gt; '
+                "[2014-10-22]</a>. Please review remaining fields."
+            ),
+        )
+        self.assertEqual(
+            soup.find("input", attrs={"name": "name"}).attrs["value"],
+            "Clean Up & BBQ <no membership required!>",
+        )
+        self.assertEqual(
+            soup.find("textarea", attrs={"name": "description"}).text,
+            "\n**Help clean up the park**",
+        )
+        self.assertEqual(
+            soup.find("textarea", attrs={"name": "notes"}).text,
+            "\nDo you have work gloves?",
+        )
+        # Other fields are notably *not* copied
+        self.assertEqual(
+            soup.find("input", attrs={"name": "trip_date"}).attrs["value"],
+            # Nearest Saturday from the tested date (logic tested elsewhere!)
+            "2025-12-20",
+        )
+        summary = soup.find("input", attrs={"name": "summary"})
+        self.assertNotIn("value", summary.attrs)
 
 
 class EditTripViewTest(TestCase, Helpers):

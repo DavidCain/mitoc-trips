@@ -22,11 +22,13 @@ from django.http import (
     Http404,
     HttpRequest,
     HttpResponseBadRequest,
+    HttpResponseBase,
     HttpResponseRedirect,
 )
 from django.shortcuts import redirect, render
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
+from django.utils.html import escape
 from django.views.generic import (
     CreateView,
     DeleteView,
@@ -270,11 +272,39 @@ class CreateTripView(CreateView):
     form_class = forms.TripForm
     template_name = "trips/create.html"
 
-    def get_form_kwargs(self):
+    def _trip_to_duplicate(self) -> models.Trip | None:
+        if "duplicate_trip_id" not in self.request.GET:
+            return None
+
+        trip_id = self.request.GET["duplicate_trip_id"]
+        try:
+            return models.Trip.objects.get(pk=trip_id)
+        except (ValueError, models.Trip.DoesNotExist):
+            # Notably HTML special chars are escaped, so we needn't worry about injection.
+            messages.error(self.request, f"No such trip #{trip_id}")
+            return None
+
+    def get_form_kwargs(self) -> dict[str, Any]:
         kwargs = super().get_form_kwargs()
         kwargs["initial"] = kwargs.get("initial", {})
+
+        trip = self._trip_to_duplicate()
+        if trip:
+            fields = ("name", "description", "notes")
+            kwargs["initial"].update({field: getattr(trip, field) for field in fields})
+            messages.info(
+                self.request,
+                (
+                    f"Copied {', '.join(fields)} from "
+                    f'<a href="/trips/{trip.pk}/">{escape(trip.name)} [{trip.trip_date.isoformat()}]</a>. '
+                    "Please review remaining fields."
+                ),
+                extra_tags="safe",
+            )
+
         if not self.request.user.is_superuser:
-            allowed_programs = list(self.request.participant.allowed_programs)
+            participant = self.request.participant  # type: ignore[attr-defined]
+            allowed_programs = list(participant.allowed_programs)
             kwargs["allowed_programs"] = allowed_programs
 
             if is_currently_iap() and enums.Program.WINTER_SCHOOL in allowed_programs:
@@ -326,7 +356,12 @@ class CreateTripView(CreateView):
         return context
 
     @method_decorator(group_required("leaders"))
-    def dispatch(self, request, *args, **kwargs):
+    def dispatch(
+        self,
+        request: HttpRequest,
+        *args: Any,
+        **kwargs: Any,
+    ) -> HttpResponseBase:
         return super().dispatch(request, *args, **kwargs)
 
 
