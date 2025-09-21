@@ -152,6 +152,7 @@ class DataDumpTest(TestCase):
                     "previous_rating": "",
                     "archived": False,
                     "year": 2021,
+                    "aspirational_rating": "C",
                     "desired_rating": "B coC",
                     "taking_wfa": "No",
                     "training": "EMT Basic",

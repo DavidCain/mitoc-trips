@@ -303,6 +303,7 @@ class WinterSchoolLeaderApplicationFactory(BaseFactory):
         model = models.WinterSchoolLeaderApplication
 
     participant = factory.SubFactory(ParticipantFactory)
+    aspirational_rating = "C"
     desired_rating = "B coC"
     taking_wfa = "No"
     training = "EMT Basic"
