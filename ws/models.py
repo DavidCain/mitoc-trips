@@ -1869,9 +1869,24 @@ class HikingLeaderApplication(LeaderApplication):
 
 
 class WinterSchoolLeaderApplication(LeaderApplication):
-    # Leave ratings long for miscellaneous comments
-    # (Omitted from base - some activities might not have users request ratings)
-    desired_rating = models.CharField(max_length=255)
+    desired_rating = models.CharField(
+        # Leave ratings long for miscellaneous comments
+        # (Omitted from base - some activities might not have users request ratings)
+        max_length=255,
+        verbose_name="Expected rating",
+        help_text="The rating you believe you would be qualified for based on the criteria above",
+    )
+
+    aspirational_rating = models.CharField(
+        blank=True,
+        max_length=255,
+        verbose_name="Aspirational rating",
+        help_text=(
+            "Please share if you hope to improve your rating in a specific "
+            'domain this winter (e.g. "coI interested in coleading with I to '
+            'become full I and lead ice climbing trips in the future")'
+        ),
+    )
 
     taking_wfa = models.CharField(
         max_length=10,
@@ -1882,9 +1897,13 @@ class WinterSchoolLeaderApplication(LeaderApplication):
             ("Maybe", "Maybe/don't know"),
         ],
         verbose_name="Do you plan on taking a WFA course before Winter School?",
-        help_text="You can subsidize your WFA certification by $100 by leading two or more trips! "
-        "MITOC holds a WFA course every fall on MIT's campus.",
+        help_text=(
+            "You can receive a WFA subsidy from MITOC by leading two or more trips! "
+            "While WFA typically costs $250-$350, the MITOC-discounted cost is "
+            "$100 for MIT students and $150 for other leaders."
+        ),
     )
+
     training = models.TextField(
         blank=True,
         max_length=5000,
@@ -1955,19 +1974,21 @@ class WinterSchoolLeaderApplication(LeaderApplication):
     mentorship_goals = models.TextField(
         blank=True,
         max_length=5000,
+        verbose_name="What are you looking to get out of the mentorship program?",
         help_text=(
-            "What are you looking to get out of the mentorship program? "
-            "Possible examples include learning how to: "
-            '"lead trips in winter," '
-            '"be an ice-climbing leader," '
-            '"lead full C/I/S trips," '
-            'or "manage group dynamics."'
+            "For example, "
+            '"learning how to lead trips in winter," '
+            '"looking to become an ice climbing leader with MITOC", '
+            '"skill development/support from MITOC leaders", '
+            '"learning how to lead C/I/S trips, having been a B/coI/coS in the past", '
+            'or "learning how to manage group dynamics."'
         ),
     )
     mentorship_longevity = models.TextField(
         blank=True,
         max_length=5000,
-        help_text="How long are you planning stay with MITOC? No need to be exact, just a tentative timeframe which can help us pair mentors/mentees?",
+        verbose_name="How long are you planning to stay with MITOC?",
+        help_text="Need not be exact -- an estimate can help us pair you with a mentor/mentee",
     )
 
     @classmethod
