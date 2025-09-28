@@ -1,9 +1,10 @@
+from typing import Any
+
 from allauth.account.models import EmailAddress
 from django import template
 from django.db.models import QuerySet
 
-from ws import enums
-from ws.models import Trip
+from ws import enums, models
 
 register = template.Library()
 
@@ -13,7 +14,7 @@ def has_unverified_email(emails: QuerySet[EmailAddress]) -> bool:
     return any(not email.verified for email in emails)
 
 
-def _conditional_rendering(trip: Trip) -> dict[str, bool]:
+def _conditional_rendering(trip: models.Trip) -> dict[str, bool]:
     return {
         "show_program": trip.program_enum != enums.Program.NONE,
         "show_trip_type": trip.trip_type_enum != enums.TripType.NONE,
@@ -40,3 +41,10 @@ def upcoming_trip_summary_html(trip):
     Trip should be annotated to have `signups_on_trip`
     """
     return {"trip": trip, **_conditional_rendering(trip)}
+
+
+@register.inclusion_tag("for_templatetags/email/trip_needing_approval.html")
+def trip_needing_approval(
+    activity_enum: enums.Activity, trip: models.Trip
+) -> dict[str, Any]:
+    return {"trip": trip, "activity_enum": activity_enum}

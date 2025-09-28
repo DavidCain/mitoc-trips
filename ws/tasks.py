@@ -10,8 +10,8 @@ from django.core.cache import cache
 from django.db import connections, transaction
 from django.db.utils import IntegrityError
 
-from ws import cleanup, models
-from ws.email import renew
+from ws import cleanup, enums, models
+from ws.email import approval, renew
 from ws.email.sole import send_email_to_funds
 from ws.email.trips import send_trips_summary
 from ws.lottery.run import SingleTripLotteryRunner, WinterSchoolLotteryRunner
@@ -245,3 +245,53 @@ def run_lottery(trip_id: int) -> None:
     logger.info("Running lottery for trip #%d", trip.pk)
     runner = SingleTripLotteryRunner(trip)
     runner()
+
+
+@shared_task
+def email_all_activity_chairs_about_unapproved_trips() -> None:
+    pending_trips_by_activity: dict[enums.Activity, list[int]] = {}
+
+    for trip in models.Trip.objects.filter(
+        trip_date__gte=date_utils.local_date(),
+        # We can exclude trips for which no activity chair needs to approve them
+        # (e.g. Circus trips should not be cought by this!)
+        program__in={
+            program.value
+            for program, activity in enums.REQUIRED_ACTIVITY_BY_PROGRAM.items()
+            if activity is not None
+        },
+        chair_approved=False,
+    ):
+        activity = trip.required_activity_enum()
+        assert activity is not None, f"Trip {trip.pk} should need approval!"
+        pending_trips_by_activity.setdefault(activity, []).append(trip.pk)
+
+    for activity, trips in pending_trips_by_activity.items():
+        email_activity_chair_about_unapproved_trips.delay(activity.value, trips)
+
+
+@shared_task
+def email_activity_chair_about_unapproved_trips(
+    activity: str, trip_ids: list[int]
+) -> None:
+    activity_enum = enums.Activity(activity)
+    trips = list(
+        models.Trip.objects.filter(pk__in=trip_ids)
+        .select_related("info")
+        .prefetch_related("leaders")
+        # Technically possible that they've since been approved.
+        # (Notably, `ChairApproval` is the true source of truth, this was an old boolean)
+        # (Don't bother with other exclusion criteria though)
+        .exclude(chair_approved=True)
+        # At least for now, sort simply by date.
+        # (In the future, we may break up by itinerary status)
+        .order_by("trip_date", "pk")
+    )
+
+    # NOTE: It's technically possible that one or more trips changed activity!
+    # That's fine - it's pretty rare for trips to change activity anyway.
+    # We at least know the activity was correct at the time this task was scheduled.
+    # We'll send a reminder later to the new appropriate activity chair!
+    if not approval.at_least_one_trip_merits_reminder_email(trips):
+        return
+    approval.notify_activity_chair(activity_enum, trips)

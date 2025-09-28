@@ -1,0 +1,27 @@
+{% extends "email/responsive_base.html" %}
+{% load email_tags %}
+{# When modifying this message, be sure to update its text equivalent #}
+{# CSS inlined by https://htmlemail.io/inline/ #}
+{% block head_title %}{{ activity_enum.label }} trips needing activity chair approval as of {% now "l, F j" %}{% endblock head_title %}
+
+{% block body %}
+  <h1 style="color: #000000; font-family: sans-serif; line-height: 1.4; margin: 0; font-size: 35px; font-weight: 300; text-align: center; text-transform: capitalize; margin-bottom: 30px;">
+    {{ trips|length }} trip{{ trips|pluralize }} are
+    <a href="{% url 'manage_trips' activity_enum.value %}">awaiting approval</a>
+  </h1>
+  {% for trip in trips %}
+    {% trip_needing_approval activity_enum trip %}
+  {% endfor %}
+{% endblock body %}
+
+{% block footer %}
+  You received this email because you are an activity chair.
+  <br>
+  The only way to unsubscribe to these automated messages is to remove yourself
+  from the activity chair mailing list.
+  <br>
+  If you have questions, contact
+  <a href="mailto:mitoc-webmaster@mit.edu" style="text-decoration: underline; color: #999999; font-size: 12px; text-align: center;">mitoc-webmaster@mit.edu</a>
+  or
+  <a href="mailto:mitoc-owner@mit.edu" style="text-decoration: underline; color: #999999; font-size: 12px; text-align: center;">mitoc-owner@mit.edu</a>.
+{% endblock footer %}

@@ -1,9 +1,3 @@
-"""Django settings for ws project.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/3.2/topics/settings/
-"""
-
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
 from typing import Any
@@ -159,6 +153,10 @@ CELERY_BEAT_SCHEDULE = {
     "run-ws-lottery": {
         "task": "ws.tasks.run_ws_lottery",
         "schedule": crontab(minute=0, hour=14, month_of_year=[1, 2], day_of_week=3),
+    },
+    "email-all-activity-chairs-about-unapproved-trips": {
+        "task": "ws.tasks.email_all_activity_chairs_about_unapproved_trips",
+        "schedule": crontab(hour=17),
     },
 }
 

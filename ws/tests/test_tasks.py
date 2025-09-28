@@ -8,8 +8,8 @@ from django.test import TestCase
 from freezegun import freeze_time
 from mitoc_const import affiliations
 
-from ws import models, tasks
-from ws.email import renew
+from ws import enums, models, tasks
+from ws.email import approval, renew
 from ws.tests import factories
 
 
@@ -309,3 +309,46 @@ class RunLotteryTest(TestCase):
         tasks.run_lottery(trip.pk)
         trip.refresh_from_db()
         self.assertEqual(trip.algorithm, "fcfs")
+
+
+class UnapprovedTripsReminderTest(TestCase):
+    @freeze_time("2025-10-25 17:00-05:00")
+    def test_no_reminders_necessary(self):
+        factories.TripFactory.create(trip_date=date(2025, 10, 24))
+        factories.TripFactory.create(program=enums.Program.NONE.value)
+        factories.TripFactory.create(program=enums.Program.CIRCUS.value)
+        approved = factories.TripFactory.create(
+            trip_date=date(2025, 10, 26), chair_approved=True
+        )
+        # Not actually consulted at present, but let's favor a complete data model
+        factories.ChairApprovalFactory.create(
+            trip=approved, trip_edit_revision=approved.edit_revision
+        )
+
+        with patch.object(
+            tasks.email_activity_chair_about_unapproved_trips, "delay"
+        ) as email:
+            tasks.email_all_activity_chairs_about_unapproved_trips()
+        email.assert_not_called()
+
+    @freeze_time("2025-10-25 17:00-05:00")
+    def test_reminders_necessary(self) -> None:
+        factories.TripFactory.create(
+            program=enums.Program.CLIMBING.value, chair_approved=True
+        )
+        trip = factories.TripFactory.create(
+            program=enums.Program.HIKING.value,
+            trip_date=date(2025, 10, 26),
+            chair_approved=False,
+        )
+        with patch.object(
+            tasks.email_activity_chair_about_unapproved_trips, "delay"
+        ) as email:
+            tasks.email_all_activity_chairs_about_unapproved_trips()
+        email.assert_called_once_with("hiking", [trip.id])
+
+        with patch.object(approval, "notify_activity_chair") as send_email:
+            tasks.email_activity_chair_about_unapproved_trips(
+                enums.Activity.HIKING.value, [trip.id]
+            )
+        send_email.assert_called_once_with(enums.Activity.HIKING, [trip])

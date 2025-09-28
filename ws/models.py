@@ -736,7 +736,7 @@ class MembershipReminder(models.Model):
     participant = models.ForeignKey(Participant, on_delete=models.CASCADE)
     reminder_sent_at = models.DateTimeField(
         verbose_name="Last time an email was sent reminding this participant to renew",
-        # We allow (temporary) null rows participant to ensure we can lock something
+        # We allow (temporary) null rows to ensure we can lock something
         null=True,
         blank=True,
     )
@@ -1396,7 +1396,11 @@ class Trip(models.Model):
         return (last_signup.manual_order or 0) + 1
 
     @property
-    def info_editable(self):
+    def itinerary_available_at(self) -> datetime:
+        return date_utils.itinerary_available_at(self.trip_date)
+
+    @property
+    def info_editable(self) -> bool:
         now = date_utils.local_now()
 
         # Past trips may not be edited!
@@ -1404,7 +1408,7 @@ class Trip(models.Model):
             return False
 
         # Otherwise, info (including itinerary) should be editable after the cutoff has passed
-        return now > date_utils.itinerary_available_at(self.trip_date)
+        return now > self.itinerary_available_at
 
     def make_fcfs(self, signups_open_at: datetime | None = None) -> None:
         """Set the algorithm to FCFS, adjust signup times appropriately."""
@@ -1466,6 +1470,33 @@ class ChairApproval(models.Model):
         return (
             f"{self.trip.name} [v{self.trip_edit_revision}]: "
             f"Approved by {self.approver.name} on {self.time_created}"
+        )
+
+
+class ChairApprovalReminder(models.Model):
+    """Log which trips we've already asked the activity chairs to review.
+
+    (If there are trips awaiting review *but* we've already notified chairs, we
+    don't want to inundandate their email and risk getting flagged as spammers)
+    """
+
+    time_created = models.DateTimeField(auto_now_add=True)
+
+    trip = models.ForeignKey(Trip, on_delete=models.PROTECT)
+
+    # You can change a trip's activity once created.
+    # Log the activity *at the time we sent the reminder*
+    activity = models.CharField(
+        max_length=31,
+        choices=LeaderRating.CLOSED_ACTIVITY_CHOICES,
+    )
+
+    # If the trip *previously* had no itinerary, we can notify chairs again.
+    had_trip_info = models.BooleanField()
+
+    def __str__(self):
+        return (
+            f"{self.trip.name} (#{self.trip.pk}, Reminder sent on {self.time_created}"
         )
 
 

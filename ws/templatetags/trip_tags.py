@@ -205,7 +205,7 @@ def pending_applications_count(
 
 
 @register.filter
-def unapproved_trip_count(activity_enum):
+def unapproved_trip_count(activity_enum: enums.Activity) -> int:
     today = date_utils.local_date()
     # TODO: Migrate away from legacy activity
     return models.Trip.objects.filter(

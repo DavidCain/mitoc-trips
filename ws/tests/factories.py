@@ -222,6 +222,21 @@ class TripFactory(BaseFactory):
     creator = factory.SubFactory(ParticipantFactory)
 
 
+class ChairApprovalFactory(BaseFactory):
+    class Meta:
+        model = models.ChairApproval
+
+    trip = factory.SubFactory(TripFactory)
+    approver = factory.SubFactory(ParticipantFactory)
+
+
+class ChairApprovalReminderFactory(BaseFactory):
+    class Meta:
+        model = models.ChairApprovalReminder
+
+    trip = factory.SubFactory(TripFactory)
+
+
 class TripInfoFactory(BaseFactory):
     class Meta:
         model = models.TripInfo

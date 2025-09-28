@@ -5,6 +5,7 @@ attended by any interested participants.
 """
 
 from collections import defaultdict
+from collections.abc import Iterator
 from dataclasses import dataclass
 from datetime import date
 from typing import TYPE_CHECKING, Any, cast
@@ -778,7 +779,7 @@ class ApproveTripsView(ListView):
         return super().dispatch(request, *args, **kwargs)
 
     @staticmethod
-    def _leader_emails_missing_itinerary(trips):
+    def _leader_emails_missing_itinerary(trips: list[models.Trip]) -> Iterator[str]:
         now = date_utils.local_now()
         no_itinerary_trips = (trip for trip in trips if not trip.info)
 

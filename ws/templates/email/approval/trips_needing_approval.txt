@@ -1,0 +1,6 @@
+{{ trips|length }} trip{{ trips|pluralize }} are awaiting approval.
+{% url 'manage_trips' trip.required_activity_enum.value %}
+
+{% for trip in trips%}
+- {{ trip.name }} ({{ trip.trip_date|date:"D, M j" }})
+{% endfor %}
