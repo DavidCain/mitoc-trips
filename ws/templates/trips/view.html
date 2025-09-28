@@ -13,9 +13,7 @@
 {% endif %}
 
 {% if can_admin or viewing_participant.is_leader %}
-  {% if can_admin %}
-    {% trip_edit_buttons trip viewing_participant user %}
-  {% endif %}
+  {% trip_edit_buttons trip viewing_participant user %}
 
   <div data-ng-controller="tripTabManager">
     <uib-tabset id="admin-trip-tabs">

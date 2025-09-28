@@ -1,17 +1,5 @@
-{% if is_chair or is_creator or is_trip_leader %}
-  {# Show label that describes all available functions #}
-  <h4>
-    {% if is_chair %}
-      Activity chair
-    {% elif is_creator %}
-      Creator
-    {% elif is_trip_leader %}
-      Leader
-    {% endif %}
-    functions
-  </h4>
-
-  <div class="btn-group" role="group">
+<div class="btn-group" role="group">
+  {% if is_chair or is_creator or is_trip_leader %}
     <a type="button" class="btn btn-default" href="{% url 'edit_trip' trip.pk %}"   ><i class="fas fa-edit"  ></i>&nbsp;Edit</a>
     <a type="button" class="btn btn-default" href="{% url 'trip_medical' trip.pk %}"><i class="fas fa-medkit"></i>&nbsp;WIMP info</a>
 
@@ -51,10 +39,11 @@
         </button>
       {% endif %}
     {% endif %}
-  </div>
-
-  {% if is_creator or is_chair %} {# Other trip leaders cannot delete the trip #}
-    <data-delete class="pull-right" data-api-slug="trips" data-obj-id="{{ trip.pk }}"></data-delete>
   {% endif %}
 
+  <a type="button" class="btn btn-default" href="{% url 'create_trip' %}?duplicate_trip_id={{ trip.pk }}"><i class="fas fa-copy"  ></i>&nbsp;Duplicate</a>
+</div>
+
+{% if is_creator or is_chair %} {# Other trip leaders cannot delete the trip #}
+  <data-delete class="pull-right" data-api-slug="trips" data-obj-id="{{ trip.pk }}"></data-delete>
 {% endif %}
