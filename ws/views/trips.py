@@ -340,20 +340,29 @@ class CreateTripView(CreateView):
         trip.activity = trip.get_legacy_activity()
         return super().form_valid(form)
 
+    @staticmethod
+    def _can_select_ws_program(form: forms.TripForm) -> bool:
+        program_field = cast(TypedChoiceField, form.fields["program"])
+
+        for category, choices in program_field.choices:
+            if not category:  # Ignore the default "none" option
+                continue
+            if any(
+                enums.Program(value) == enums.Program.WINTER_SCHOOL
+                for value, label in choices
+            ):
+                return True
+        return False
+
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        context["is_currently_iap"] = is_currently_iap()
-
-        # There is separate logic for determining if we allow choosing the WS program.
-        # Rather than duplicate that logic here, just see if it's a selectable choice.
-        form: forms.TripForm = context["form"]
-        program_field = cast(TypedChoiceField, form.fields["program"])
-        context["can_select_ws_program"] = any(
-            enums.Program(value) == enums.Program.WINTER_SCHOOL
-            for category, choices in program_field.choices
-            for value, label in choices
-        )
-        return context
+        return {
+            **context,
+            "is_currently_iap": is_currently_iap(),
+            # There is separate logic for determining if we allow choosing the WS program.
+            # Rather than duplicate that logic here, just see if it's a selectable choice.
+            "can_select_ws_program": self._can_select_ws_program(context["form"]),
+        }
 
     @method_decorator(group_required("leaders"))
     def dispatch(

@@ -597,7 +597,9 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize'])
       var checkSelectedLeaders = function() {
         var programLeaderIds = _.map(scope.programLeaders, 'id');
         _.each(scope.selected.leaders, function(leader) {
-          leader.canLead = _.includes(programLeaderIds, leader.id);
+          // The default "no option selected" program makes for an invalid form.
+          // It's not valid to say "these leaders can't lead the null program"
+          leader.canLead = !scope.program || _.includes(programLeaderIds, leader.id);
         });
       };
 
