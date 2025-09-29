@@ -1,167 +1,41 @@
+{% extends "email/responsive_base.html" %}
 {% load email_tags %}
-{# CSS by leemunroe/responsive-html-email-template #}
+
 {# CSS inlined by https://htmlemail.io/inline/ #}
-<!doctype html>
-<html>
-  <head>
-    <meta name="viewport" content="width=device-width">
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <title>Upcoming MITOC trips | {% now "l, F j" %}</title>
-    <style>
-@media only screen and (max-width: 620px) {
-  table[class=body] h1 {
-    font-size: 28px !important;
-    margin-bottom: 10px !important;
-  }
 
-  table[class=body] p,
-table[class=body] ul,
-table[class=body] ol,
-table[class=body] td,
-table[class=body] span,
-table[class=body] a {
-    font-size: 16px !important;
-  }
+{% block head_title %}Upcoming MITOC trips | {% now "l, F j" %}{% endblock head_title %}
+{% block preheader %}Weekly digest of upcoming MITOC trips for {% now "F j, Y" %}{% endblock preheader %}
+{% block body %}
+  <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">
+    This is a weekly digest of upcoming trips hosted by the <a href="https://mitoc.mit.edu" style="color: #3498db; text-decoration: underline;">MIT Outing Club</a>.
+    <br>
+    To unsubscribe, visit <a href="http://mailman.mit.edu/mailman/listinfo/mitoc-trip-announce" style="color: #3498db; text-decoration: underline;">http://mailman.mit.edu/mailman/listinfo/mitoc-trip-announce</a>
+  </p>
 
-  table[class=body] .wrapper,
-table[class=body] .article {
-    padding: 10px !important;
-  }
+  <hr style="border: 0; border-bottom: 1px solid #f6f6f6; margin: 20px 0;">
 
-  table[class=body] .content {
-    padding: 0 !important;
-  }
+  {% for trip in open_for_signup %}
+    {% if forloop.first %}
+      <h1 style="color: #000000; font-family: sans-serif; line-height: 1.4; margin: 0; font-size: 35px; font-weight: 300; text-align: center; text-transform: capitalize; margin-bottom: 30px;">Trips currently open for signup</h1>
+    {% endif %}
+    {% upcoming_trip_summary_html trip %}
+  {% endfor %}
 
-  table[class=body] .container {
-    padding: 0 !important;
-    width: 100% !important;
-  }
-
-  table[class=body] .main {
-    border-left-width: 0 !important;
-    border-radius: 0 !important;
-    border-right-width: 0 !important;
-  }
-
-  table[class=body] .btn table {
-    width: 100% !important;
-  }
-
-  table[class=body] .btn a {
-    width: 100% !important;
-  }
-
-  table[class=body] .img-responsive {
-    height: auto !important;
-    max-width: 100% !important;
-    width: auto !important;
-  }
-}
-@media all {
-  .ExternalClass {
-    width: 100%;
-  }
-
-  .ExternalClass,
-.ExternalClass p,
-.ExternalClass span,
-.ExternalClass font,
-.ExternalClass td,
-.ExternalClass div {
-    line-height: 100%;
-  }
-
-  .apple-link a {
-    color: inherit !important;
-    font-family: inherit !important;
-    font-size: inherit !important;
-    font-weight: inherit !important;
-    line-height: inherit !important;
-    text-decoration: none !important;
-  }
-
-  .btn-primary table td:hover {
-    background-color: #34495e !important;
-  }
-
-  .btn-primary a:hover {
-    background-color: #34495e !important;
-    border-color: #34495e !important;
-  }
-}
-</style>
-  </head>
-  <body class="" style="background-color: #f6f6f6; font-family: sans-serif; -webkit-font-smoothing: antialiased; font-size: 14px; line-height: 1.4; margin: 0; padding: 0; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;">
-    <span class="preheader" style="color: transparent; display: none; height: 0; max-height: 0; max-width: 0; opacity: 0; overflow: hidden; mso-hide: all; visibility: hidden; width: 0;">Weekly digest of upcoming MITOC trips for {% now "F j, Y" %}</span>
-    <table role="presentation" border="0" cellpadding="0" cellspacing="0" class="body" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; background-color: #f6f6f6; width: 100%;" width="100%" bgcolor="#f6f6f6">
-      <tr>
-        <td style="font-family: sans-serif; font-size: 14px; vertical-align: top;" valign="top">&nbsp;</td>
-        <td class="container" style="font-family: sans-serif; font-size: 14px; vertical-align: top; display: block; max-width: 580px; padding: 10px; width: 580px; margin: 0 auto;" width="580" valign="top">
-          <div class="content" style="box-sizing: border-box; display: block; margin: 0 auto; max-width: 580px; padding: 10px;">
-
-            <!-- START CENTERED WHITE CONTAINER -->
-            <table role="presentation" class="main" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; background: #ffffff; border-radius: 3px; width: 100%;" width="100%">
-
-              <!-- START MAIN CONTENT AREA -->
-              <tr>
-                <td class="wrapper" style="font-family: sans-serif; font-size: 14px; vertical-align: top; box-sizing: border-box; padding: 20px;" valign="top">
-                  <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;" width="100%">
-                    <tr>
-                      <td style="font-family: sans-serif; font-size: 14px; vertical-align: top;" valign="top">
-                        <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">
-                          This is a weekly digest of upcoming trips hosted by the <a href="https://mitoc.mit.edu" style="color: #3498db; text-decoration: underline;">MIT Outing Club</a>.
-                          <br>
-                          To unsubscribe, visit <a href="http://mailman.mit.edu/mailman/listinfo/mitoc-trip-announce" style="color: #3498db; text-decoration: underline;">http://mailman.mit.edu/mailman/listinfo/mitoc-trip-announce</a>
-                        </p>
-
-                        <hr style="border: 0; border-bottom: 1px solid #f6f6f6; margin: 20px 0;">
-
-                        {% for trip in open_for_signup %}
-                          {% if forloop.first %}
-                            <h1 style="color: #000000; font-family: sans-serif; line-height: 1.4; margin: 0; font-size: 35px; font-weight: 300; text-align: center; text-transform: capitalize; margin-bottom: 30px;">Trips currently open for signup</h1>
-                          {% endif %}
-                          {% upcoming_trip_summary_html trip %}
-                        {% endfor %}
+  {% for trip in not_yet_open %}
+    {% if forloop.first %}
+      <hr style="border: 0; border-bottom: 1px solid #f6f6f6; margin: 20px 0;">
+      <h1 style="color: #000000; font-family: sans-serif; line-height: 1.4; margin: 0; font-size: 35px; font-weight: 300; text-align: center; text-transform: capitalize; margin-bottom: 30px;">Upcoming trips (not yet open)</h1>
+    {% endif %}
+    {% upcoming_trip_summary_html trip %}
+  {% endfor %}
+{% endblock body %}
 
 
-                        {% for trip in not_yet_open %}
-                          {% if forloop.first %}
-                            <hr style="border: 0; border-bottom: 1px solid #f6f6f6; margin: 20px 0;">
-                            <h1 style="color: #000000; font-family: sans-serif; line-height: 1.4; margin: 0; font-size: 35px; font-weight: 300; text-align: center; text-transform: capitalize; margin-bottom: 30px;">Upcoming trips (not yet open)</h1>
-                          {% endif %}
-                          {% upcoming_trip_summary_html trip %}
-                        {% endfor %}
-                      </td>
-                    </tr>
-                  </table>
-                </td>
-              </tr>
-
-            <!-- END MAIN CONTENT AREA -->
-            </table>
-            <!-- END CENTERED WHITE CONTAINER -->
-
-            <!-- START FOOTER -->
-            <div class="footer" style="clear: both; margin-top: 10px; text-align: center; width: 100%;">
-              <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;" width="100%">
-                <tr>
-                  <td class="content-block" style="font-family: sans-serif; vertical-align: top; padding-bottom: 10px; padding-top: 10px; color: #999999; font-size: 12px; text-align: center;" valign="top" align="center">
-                    You received this email because you subscribed to <a href="http://mailman.mit.edu/mailman/listinfo/mitoc-trip-announce" style="text-decoration: underline; color: #999999; font-size: 12px; text-align: center;">mitoc-trip-announce@mit.edu</a>.
-                    <br>
-                    <a href="https://mitoc-trips.mit.edu/trips.rss" style="text-decoration: underline; color: #999999; font-size: 12px; text-align: center;">Subscribe to our RSS feed</a>
-                    <br>
-                    <br>
-                    <a href="http://mailman.mit.edu/mailman/listinfo/mitoc-trip-announce" style="text-decoration: underline; color: #999999; font-size: 12px; text-align: center;">Unsubscribe</a>
-                  </td>
-                </tr>
-              </table>
-            </div>
-            <!-- END FOOTER -->
-
-          </div>
-        </td>
-        <td style="font-family: sans-serif; font-size: 14px; vertical-align: top;" valign="top">&nbsp;</td>
-      </tr>
-    </table>
-  </body>
-</html>
+{% block footer %}
+  You received this email because you subscribed to <a href="http://mailman.mit.edu/mailman/listinfo/mitoc-trip-announce" style="text-decoration: underline; color: #999999; font-size: 12px; text-align: center;">mitoc-trip-announce@mit.edu</a>.
+  <br>
+  <a href="https://mitoc-trips.mit.edu/trips.rss" style="text-decoration: underline; color: #999999; font-size: 12px; text-align: center;">Subscribe to our RSS feed</a>
+  <br>
+  <br>
+  <a href="http://mailman.mit.edu/mailman/listinfo/mitoc-trip-announce" style="text-decoration: underline; color: #999999; font-size: 12px; text-align: center;">Unsubscribe</a>
+{% endblock footer %}
