@@ -360,6 +360,7 @@ class TripType(enum.Enum):
     SEA_KAYAKING = "boating_kayaking_sea"
     CANOEING = "boating_canoeing"
     SURFING = "boating_surfing"
+    PADDLEBOARDING = "boating_paddleboarding"
 
     # Climbing
     BOULDERING = "climbing_bouldering"
@@ -396,6 +397,7 @@ class TripType(enum.Enum):
             self.MOUNTAIN_BIKING: "Mountain biking",
             self.NONE: "None, or not applicable",
             self.OTHER: "Other",
+            self.PADDLEBOARDING: "Paddleboarding",
             self.RESORT_SKIING: "Resort skiing",
             self.ROAD_BIKING: "Road biking",
             self.SEA_KAYAKING: "Sea kayaking",
@@ -419,6 +421,7 @@ class TripType(enum.Enum):
             "Boating": [
                 cls.CANOEING,
                 cls.KAYAKING,
+                cls.PADDLEBOARDING,
                 cls.SEA_KAYAKING,
                 cls.SURFING,
             ],

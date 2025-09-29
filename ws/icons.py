@@ -27,7 +27,7 @@ ICON_BY_TRIP_TYPE: Mapping[TripType, str] = MappingProxyType(
         TripType.BOULDERING: "hands",  # kinda looks like a spotter?
         TripType.MOUNTAIN_BIKING: "biking",  # pro has `biking-mountain`
         TripType.ROAD_BIKING: "biking",
-        TripType.YOGA: "om",  # yoga has been requested, but doesn't exist yet
+        TripType.YOGA: "om",
     }
 )
 
