@@ -416,11 +416,17 @@ class TripForm(forms.ModelForm):
 
     def _allowed_program_choices(self, allowed_program_enums):
         # If editing an existing trip, the old program can persist.
-        if self.instance and self.instance.program_enum not in allowed_program_enums:
+        if (
+            self.instance
+            and self.instance.pk is not None
+            and self.instance.program_enum not in allowed_program_enums
+        ):
             allowed_program_enums = [self.instance.program_enum, *allowed_program_enums]
 
         for category, choices in enums.Program.choices():
             assert isinstance(category, str)
+            if category == "":  # The special unselected category
+                continue
             assert isinstance(choices, list)
             valid_choices = [
                 (value, label)

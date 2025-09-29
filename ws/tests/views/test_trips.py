@@ -271,8 +271,8 @@ class CreateTripViewTest(TestCase, Helpers):
         _resp, soup = self._get("/trips/create/")
         options = soup.find("select", attrs={"name": "program"}).find_all("option")
         self.assertCountEqual(
-            [opt["value"] for opt in options],
-            [program.value for program in enums.Program],
+            [opt["value"] for opt in options if opt["value"]],
+            ["", *(program.value for program in enums.Program)],
         )
 
     @freeze_time("2022-01-24 12:25:00 EST")

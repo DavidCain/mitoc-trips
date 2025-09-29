@@ -1046,9 +1046,6 @@ class Trip(models.Model):
     program = models.CharField(
         max_length=255,
         choices=enums.Program.choices(),
-        # For now, just default program to 'none' (we don't yet have form handling)
-        # Later, do not define a default - we'll populate based on leader/time of year
-        default=enums.Program.NONE.value,
         db_index=True,
     )
     activity = models.CharField(
