@@ -108,6 +108,13 @@
           </p>
         </div>
 
+        <div class="alert alert-warning" data-ng-show="['MU', 'MG'].includes(affiliation)">
+          <p>
+            You must be enrolled at MIT as a full-time student in order to qualify as an MIT student member. Verification may be requested.
+            Cross-registered students from other instutitions (e.g. Harvard) <strong>do not</strong> qualify. 
+          </p>
+        </div>
+
         <p data-ng-show="['MU', 'MG'].includes(affiliation)">
             If <noscript>you are an MIT student and</noscript> the cost of club participation is prohibitive,
             please see our <a href="https://mitoc.mit.edu/about/financial-aid">need-blind financial aid policies</a>.
