@@ -284,7 +284,7 @@ class ManageEmailsTest(TestCase):
 
     def test_one_primary_email(self):
         """Test the usual case -- just one verified primary email."""
-        user = factories.UserFactory(
+        user = factories.UserFactory.create(
             emailaddress__primary=True,
             emailaddress__verified=True,
         )
@@ -311,7 +311,7 @@ class ManageEmailsTest(TestCase):
         )
 
     def test_one_unverified_email(self):
-        user = factories.UserFactory(emailaddress__verified=False)
+        user = factories.UserFactory.create(emailaddress__verified=False)
 
         self.assertEqual(
             self._get_buttons(user),
@@ -340,8 +340,8 @@ class ManageEmailsTest(TestCase):
 
     def test_two_verified_emails(self):
         """With two emails, we can remove either or make either primary."""
-        user = factories.UserFactory()
-        factories.EmailAddressFactory(
+        user = factories.UserFactory.create()
+        factories.EmailAddressFactory.create(
             user=user,
             email="some.other.email@example.com",
             primary=False,
@@ -367,10 +367,10 @@ class ManageEmailsTest(TestCase):
 
     def test_two_emails_but_one_unverified(self):
         """Test the case of a newly-added but still unverified email."""
-        user = factories.UserFactory(
+        user = factories.UserFactory.create(
             emailaddress__verified=True,
         )
-        factories.EmailAddressFactory(
+        factories.EmailAddressFactory.create(
             user=user,
             email="some.other.email@example.com",
             primary=False,
@@ -401,8 +401,8 @@ class ManageEmailsTest(TestCase):
 
     def test_multiple_unverified(self):
         """You can still add an email even if one is unverified!"""
-        user = factories.UserFactory()
-        factories.EmailAddressFactory(
+        user = factories.UserFactory.create()
+        factories.EmailAddressFactory.create(
             user=user,
             email="some.other.email@example.com",
             primary=False,

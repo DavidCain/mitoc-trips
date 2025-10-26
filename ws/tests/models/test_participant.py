@@ -427,14 +427,14 @@ class LeaderTest(TestCase):
         self.assertEqual("John Long (Full leader)", john.name_with_rating(trip))
 
     def test_participants_cannot_lead(self) -> None:
-        participant = factories.ParticipantFactory()
+        participant = factories.ParticipantFactory.create()
         self.assertFalse(participant.can_lead(enums.Program.WINTER_SCHOOL))
         # Even open programs aren't able to be led by any participant
         self.assertFalse(participant.can_lead(enums.Program.CIRCUS))
         self.assertCountEqual(participant.allowed_programs, [])
 
     def test_can_lead_own_activity_and_open(self) -> None:
-        participant = factories.ParticipantFactory()
+        participant = factories.ParticipantFactory.create()
         participant.leaderrating_set.add(
             factories.LeaderRatingFactory.create(
                 participant=participant, activity=enums.Activity.BIKING.value

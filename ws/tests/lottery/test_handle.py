@@ -330,8 +330,8 @@ class WinterSchoolPlacementTests(TestCase, Helpers):
         factories.SignUpFactory.create(participant=driver, trip=trip)
 
         # Place two other people on the trip first!
-        first = factories.ParticipantFactory()
-        second = factories.ParticipantFactory()
+        first = factories.ParticipantFactory.create()
+        second = factories.ParticipantFactory.create()
         # Include a ranking override so that we guarantee first is ranked second
         # (This ensures that `second_signup` will be yanked for the driver)
         factories.LotteryAdjustmentFactory.create(participant=first, adjustment=-1)

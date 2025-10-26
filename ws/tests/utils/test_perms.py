@@ -34,7 +34,7 @@ class PermUtilTests(TestCase):
         self.assertFalse(perm_utils.in_any_group(anon, {"group_name"}))
 
     def test_leader_on_trip_creator(self) -> None:
-        trip = TripFactory()
+        trip = TripFactory.create()
         self.assertTrue(
             perm_utils.leader_on_trip(trip.creator, trip, creator_allowed=True)
         )
@@ -43,7 +43,7 @@ class PermUtilTests(TestCase):
         )
 
     def test_leader_on_trip(self) -> None:
-        trip = TripFactory()
+        trip = TripFactory.create()
         self.assertFalse(perm_utils.leader_on_trip(trip.creator, trip))
         trip.leaders.add(trip.creator)
         self.assertTrue(perm_utils.leader_on_trip(trip.creator, trip))

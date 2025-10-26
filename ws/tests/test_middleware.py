@@ -79,7 +79,7 @@ class CustomMessagesMiddlewareTests(TestCase):
         self.request.user = self.user
         self.request.participant = ParticipantFactory.create(
             user_id=self.user.pk,
-            passwordquality=PasswordQualityFactory(is_insecure=True),
+            passwordquality=PasswordQualityFactory.create(is_insecure=True),
         )
 
         with mock.patch.object(security.messages, "add_message") as add_message:
@@ -91,7 +91,7 @@ class CustomMessagesMiddlewareTests(TestCase):
         self.request.user = self.user
         self.request.participant = ParticipantFactory.create(
             user_id=self.user.pk,
-            passwordquality=PasswordQualityFactory(is_insecure=False),
+            passwordquality=PasswordQualityFactory.create(is_insecure=False),
         )
 
         with mock.patch.object(security.messages, "add_message") as add_message:

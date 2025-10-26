@@ -564,7 +564,7 @@ class AdminTripSignupsViewTest(TestCase):
         self.client.force_login(self.user)
 
     def test_not_leader(self) -> None:
-        trip = factories.TripFactory()
+        trip = factories.TripFactory.create()
         resp = self.client.get(f"/trips/{trip.pk}/admin/signups/")
         self.assertEqual(resp.status_code, 403)
 
@@ -573,25 +573,25 @@ class AdminTripSignupsViewTest(TestCase):
     @freeze_time("2024-12-01 12:45")
     def test_signup_ordering(self) -> None:
         par = factories.ParticipantFactory.create(name="Tim B", user=self.user)
-        trip = factories.TripFactory(
+        trip = factories.TripFactory.create(
             algorithm="fcfs", creator=par, maximum_participants=2
         )
 
-        first_on_trip = factories.SignUpFactory(trip=trip, notes="Hi")
-        second_on_trip = factories.SignUpFactory(trip=trip)
+        first_on_trip = factories.SignUpFactory.create(trip=trip, notes="Hi")
+        second_on_trip = factories.SignUpFactory.create(trip=trip)
 
         # Two signups come in, but the leader manually ordered them!
-        second_on_waitlist = factories.SignUpFactory(trip=trip, on_trip=False)
+        second_on_waitlist = factories.SignUpFactory.create(trip=trip, on_trip=False)
         second_on_waitlist.waitlistsignup.manual_order = -3
         second_on_waitlist.waitlistsignup.save()
 
-        top_of_waitlist = factories.SignUpFactory(trip=trip, on_trip=False)
+        top_of_waitlist = factories.SignUpFactory.create(trip=trip, on_trip=False)
         top_of_waitlist.waitlistsignup.manual_order = -2
         top_of_waitlist.waitlistsignup.save()
 
         # This represents somebody who added themselves to the waitlist
         # Previously, they would appear at the *top* of the list!
-        bottom_of_waitlist = factories.SignUpFactory(trip=trip)
+        bottom_of_waitlist = factories.SignUpFactory.create(trip=trip)
 
         self.assertEqual(
             list(trip.waitlist.signups),

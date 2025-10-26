@@ -25,10 +25,10 @@ class StudentTravelFormTest(TestCase):
         )
         self.trip.leaders.add(self.leader)
 
-        suzy = factories.ParticipantFactory(
+        suzy = factories.ParticipantFactory.create(
             name="Suzy Queue", email="suzy@example.com", cell_phone="+17815551234"
         )
-        self.joe = factories.ParticipantFactory(
+        self.joe = factories.ParticipantFactory.create(
             name="Joe Schmo", email="joe@example.com", cell_phone=""
         )
         factories.SignUpFactory.create(participant=suzy, trip=self.trip, on_trip=True)
@@ -179,7 +179,7 @@ class StudentTravelFormTest(TestCase):
 
     def test_has_drivers(self):
         """Both leaders and participants will be reported as drivers."""
-        self.leader.car = factories.CarFactory(
+        self.leader.car = factories.CarFactory.create(
             make="Toyota",
             model="Prius",
             license_plate="VANITY",

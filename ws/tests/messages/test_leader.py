@@ -57,7 +57,7 @@ class LeaderMessagesTest(MessagesTestCase):
 
     @property
     def _leader(self):
-        trip_leader = factories.ParticipantFactory()
+        trip_leader = factories.ParticipantFactory.create()
         trip_leader.leaderrating_set.add(
             factories.LeaderRatingFactory.create(
                 participant=trip_leader, activity=models.LeaderRating.WINTER_SCHOOL

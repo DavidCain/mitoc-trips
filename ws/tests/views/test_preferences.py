@@ -680,7 +680,7 @@ class EmailUnsubscribeTest(TestCase):
         participant = factories.ParticipantFactory.create()
         token = unsubscribe.generate_unsubscribe_token(participant)
 
-        self.client.force_login(factories.ParticipantFactory().user)
+        self.client.force_login(factories.ParticipantFactory.create().user)
 
         with self._spy_on_add_message() as add_message:
             response = self.client.get(f"/preferences/email/unsubscribe/{token}/")

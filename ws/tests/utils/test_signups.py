@@ -80,7 +80,7 @@ class ManualOrderingTests(SimpleTestCase):
 class NonTripParticipantsTests(TestCase):
     def test_creator_is_eligible_as_participant(self):
         """So long as the creator is not a leader, they count as a non-trip participant."""
-        trip = factories.TripFactory()
+        trip = factories.TripFactory.create()
         self.assertNotIn(trip.creator, trip.leaders.all())
         self.assertIn(trip.creator, signup_utils.non_trip_participants(trip))
 
@@ -91,7 +91,7 @@ class NonTripParticipantsTests(TestCase):
 
     def test_participants_on_trip(self):
         """All participants not signed up for the trip are returned."""
-        trip = factories.TripFactory()
+        trip = factories.TripFactory.create()
         on_trip = factories.ParticipantFactory.create()
         factories.SignUpFactory.create(participant=on_trip, trip=trip, on_trip=True)
         off_trip = factories.ParticipantFactory.create()
@@ -132,17 +132,17 @@ class AddToWaitlistTests(TestCase):
 
     def test_can_add_to_top_of_list(self):
         """We can add somebody to the waitlist, passing all others."""
-        trip = factories.TripFactory()
+        trip = factories.TripFactory.create()
 
         # Build a waitlist with a mixture of ordered by time added & manually ordered
         spot_1 = factories.SignUpFactory.create(trip=trip, on_trip=False)
         spot_2 = factories.SignUpFactory.create(trip=trip, on_trip=False)
         spot_3 = factories.SignUpFactory.create(trip=trip, on_trip=False)
         spot_4 = factories.SignUpFactory.create(trip=trip, on_trip=False)
-        factories.WaitListSignupFactory(signup=spot_3)
-        factories.WaitListSignupFactory(signup=spot_4)
-        factories.WaitListSignupFactory(signup=spot_2, manual_order=10)
-        factories.WaitListSignupFactory(signup=spot_1, manual_order=11)
+        factories.WaitListSignupFactory.create(signup=spot_3)
+        factories.WaitListSignupFactory.create(signup=spot_4)
+        factories.WaitListSignupFactory.create(signup=spot_2, manual_order=10)
+        factories.WaitListSignupFactory.create(signup=spot_1, manual_order=11)
         self.assertEqual(list(trip.waitlist.signups), [spot_1, spot_2, spot_3, spot_4])
 
         signup = factories.SignUpFactory.create(trip=trip, on_trip=True)
@@ -153,7 +153,7 @@ class AddToWaitlistTests(TestCase):
 
     def test_can_add_to_bottom_of_priority(self):
         """Adding signups with priority puts them beneath other priorities, but above non."""
-        trip = factories.TripFactory()
+        trip = factories.TripFactory.create()
 
         spot_3 = factories.SignUpFactory.create(trip=trip, on_trip=False)
         spot_1 = factories.SignUpFactory.create(trip=trip, on_trip=False)

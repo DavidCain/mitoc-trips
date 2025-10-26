@@ -182,7 +182,7 @@ class QueryGearDBForMembershipTest(TestCase):
         (in practice, this should not happen - only participants can
         use the API route which hits this helper).
         """
-        user = factories.UserFactory(emailaddress__verified=False)
+        user = factories.UserFactory.create(emailaddress__verified=False)
         with responses.RequestsMock():  # (No API calls made)
             membership = geardb.query_geardb_for_membership(user)
         self.assertIsNone(membership)
@@ -193,7 +193,7 @@ class QueryGearDBForMembershipTest(TestCase):
 
         (I don't think this presently happens, but it's good to check)
         """
-        user = factories.UserFactory(email="timothy@mit.edu")
+        user = factories.UserFactory.create(email="timothy@mit.edu")
         responses.get(
             url="https://mitoc-gear.mit.edu/api-auth/v1/membership_waiver/?email=timothy@mit.edu",
             json={
@@ -216,7 +216,7 @@ class QueryGearDBForMembershipTest(TestCase):
 
     @responses.activate
     def test_no_membership_found(self):
-        user = factories.UserFactory(email="timothy@mit.edu")
+        user = factories.UserFactory.create(email="timothy@mit.edu")
         responses.get(
             url="https://mitoc-gear.mit.edu/api-auth/v1/membership_waiver/?email=timothy@mit.edu",
             json={
@@ -247,8 +247,8 @@ class QueryGearDBForMembershipTest(TestCase):
     @responses.activate
     @freeze_time("2022-07-11 22:00 EDT")
     def test_success(self):
-        user = factories.UserFactory(email="bob@mit.edu")
-        factories.EmailAddressFactory(
+        user = factories.UserFactory.create(email="bob@mit.edu")
+        factories.EmailAddressFactory.create(
             email="robert@mit.edu", verified=True, user=user, primary=False
         )
         responses.get(

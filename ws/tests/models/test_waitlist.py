@@ -7,7 +7,7 @@ from ws.tests import factories
 class OrderingTests(TestCase):
     def test_created_first(self):
         """Without manual ordering, waitlist signups are ordered by creation time."""
-        trip = factories.TripFactory()
+        trip = factories.TripFactory.create()
 
         # Order in which the signups are created will not determine waitlist order!
         spot_2 = factories.SignUpFactory.create(trip=trip, on_trip=False)
@@ -33,7 +33,7 @@ class OrderingTests(TestCase):
         participant who was previously on the trip has to be removed for some reason
         (lack of cars, is one example). Out of fairness, we manually order to the top.
         """
-        trip = factories.TripFactory()
+        trip = factories.TripFactory.create()
 
         # Order in which the signups are created will not determine waitlist order!
         spot_2 = factories.SignUpFactory.create(trip=trip, on_trip=False)

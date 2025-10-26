@@ -200,7 +200,7 @@ class SignupForTripTests(TestCase):
             )
         )
         self.assertTrue(trip.signups_closed)
-        soup = self._render(factories.ParticipantFactory(), trip)
+        soup = self._render(factories.ParticipantFactory.create(), trip)
         self.assertEqual(
             soup.find(class_="alert-info").get_text(" ", strip=True),
             "Signups for this trip are closed.",

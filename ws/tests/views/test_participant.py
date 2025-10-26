@@ -104,7 +104,7 @@ class LectureAttendanceTests(TestCase):
 
         # A future WS trip exists, which is a strong clue: it must be first week of WS
         with freeze_time("2022-01-04 12:00:00 EST"):
-            factories.TripFactory(
+            factories.TripFactory.create(
                 trip_date=date(2022, 1, 8),
                 program=enums.Program.WINTER_SCHOOL.value,
             )
@@ -129,7 +129,7 @@ class LectureAttendanceTests(TestCase):
 
         # We created a trip for Saturday in the first weekend
         with freeze_time("2022-01-04 12:00:00 EST"):
-            factories.TripFactory(
+            factories.TripFactory.create(
                 trip_date=date(2022, 1, 8),
                 program=enums.Program.WINTER_SCHOOL.value,
             )
