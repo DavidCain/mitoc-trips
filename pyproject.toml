@@ -231,12 +231,8 @@ disallow_untyped_defs = false
 # (After dropping support for Python versions before 3.5, it's easy to just type annotate directly
 module = [
     "allauth.*",
-    "celery.*",
     "debug_toolbar",
-    "freezegun",
-    "kombu.*",
-    "localflavor.*",
-    "markdown2",
+    "markdown2.*",
     "phonenumber_field.*",
     "phonenumbers",
     "pipeline.*",
