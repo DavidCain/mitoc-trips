@@ -8,7 +8,7 @@ class TripsConfig(AppConfig):
     @staticmethod
     def load_signals():
         # pylint: disable=unused-import, unused-variable, import-outside-toplevel
-        from . import signals  # noqa: F401
+        from . import signals  # noqa: F401, PLC0415
 
     def ready(self):
         self.load_signals()

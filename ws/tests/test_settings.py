@@ -34,11 +34,11 @@ class SettingsTests(unittest.TestCase):
         """
         # pylint: disable=import-outside-toplevel
         if "local_settings" in name:
-            from ws.conf import local_settings
+            from ws.conf import local_settings  # noqa: PLC0415
 
             reload(local_settings)
         elif "production_settings" in name:
-            from ws.conf import production_settings
+            from ws.conf import production_settings  # noqa: PLC0415
 
             reload(production_settings)
 

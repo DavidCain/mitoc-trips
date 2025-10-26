@@ -15,6 +15,9 @@ class Cycle:
         # Participant collection might be modified later. Make an immutable copy now.
         self._cycle = tuple(participants)
 
+    def __hash__(self) -> int:
+        return hash(sorted(par.pk for par in self._cycle))
+
     def __len__(self):
         return len(self._cycle)
 
