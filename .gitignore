@@ -1,5 +1,3 @@
-/.poetry_prod_up_to_date
-/.poetry_dev_up_to_date
 /.node_packages_up_to_date
 /.coverage
 /.mypy_cache

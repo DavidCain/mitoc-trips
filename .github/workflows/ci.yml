@@ -8,11 +8,11 @@ jobs:
       fail-fast: false
       matrix:
         command:
-          - "ruff check ."
-          - "ruff format --check ws"
-          - "mypy ws"
-          - "pylint --jobs=0 ws"
-          - "pytest"
+          - "uv run ruff check ."
+          - "uv run ruff format --check ws"
+          - "uv run mypy ws"
+          - "uv run pylint --jobs=0 ws"
+          - "uv run pytest"
     runs-on: ubuntu-22.04
     services:
       # TODO: Only the `test` step in the matrix needs this service up and running.
@@ -36,7 +36,7 @@ jobs:
 
       - name: "Install buildx"
         id: buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v3
 
       - name: "Restore Docker cache"
         uses: actions/cache@v4
