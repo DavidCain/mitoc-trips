@@ -6,6 +6,13 @@ import allauth.account.models as account_models
 import factory
 import factory.fuzzy
 from django.contrib.auth.models import User
+from factory.declarations import (
+    LazyAttribute,
+    RelatedFactory,
+    SelfAttribute,
+    Sequence,
+    SubFactory,
+)
 from factory.django import DjangoModelFactory
 from mitoc_const import affiliations
 
@@ -32,7 +39,7 @@ class EmergencyInfoFactory(BaseFactory):
     class Meta:
         model = models.EmergencyInfo
 
-    emergency_contact = factory.SubFactory(EmergencyContactFactory)
+    emergency_contact = SubFactory(EmergencyContactFactory)
     allergies = "None"
     medications = "None"
     medical_history = "None"
@@ -42,7 +49,7 @@ class EmailAddressFactory(BaseFactory):
     class Meta:
         model = account_models.EmailAddress
 
-    email = factory.LazyAttribute(lambda obj: obj.user.email)
+    email = LazyAttribute(lambda obj: obj.user.email)
     verified = True
     primary = True
 
@@ -51,9 +58,9 @@ class UserFactory(BaseFactory):
     class Meta:
         model = User
 
-    username = factory.Sequence(lambda n: f"user{n + 1}")
-    email = factory.Sequence(lambda n: f"user{n + 1}@example.com")
-    emailaddress = factory.RelatedFactory(EmailAddressFactory, "user")
+    username = Sequence(lambda n: f"user{n + 1}")
+    email = Sequence(lambda n: f"user{n + 1}@example.com")
+    emailaddress = RelatedFactory(EmailAddressFactory, "user")
     password = "password"  # (Will be hashed & salted by `create_user`)  # noqa: S105
 
     @classmethod
@@ -71,10 +78,10 @@ class MembershipFactory(BaseFactory):
     class Meta:
         model = models.Membership
 
-    membership_expires = factory.LazyAttribute(
+    membership_expires = LazyAttribute(
         lambda _obj: date_utils.local_date() + timedelta(days=365)
     )
-    waiver_expires = factory.LazyAttribute(
+    waiver_expires = LazyAttribute(
         lambda _obj: date_utils.local_date() + timedelta(days=365)
     )
 
@@ -84,11 +91,11 @@ class ParticipantFactory(BaseFactory):
         model = models.Participant
 
     affiliation = affiliations.NON_AFFILIATE.CODE
-    membership = factory.SubFactory(MembershipFactory)
-    email = factory.Sequence(lambda n: f"participant{n + 1}@example.com")
+    membership = SubFactory(MembershipFactory)
+    email = Sequence(lambda n: f"participant{n + 1}@example.com")
     name = "Test Participant"
     car = None
-    emergency_info = factory.SubFactory(EmergencyInfoFactory)
+    emergency_info = SubFactory(EmergencyInfoFactory)
 
     @staticmethod
     def _given_user(kwargs: dict[str, Any]) -> User | None:
@@ -135,7 +142,7 @@ class MembershipReminderFactory(BaseFactory):
     class Meta:
         model = models.MembershipReminder
 
-    participant = factory.SubFactory(ParticipantFactory)
+    participant = SubFactory(ParticipantFactory)
     reminder_sent_at = factory.fuzzy.FuzzyDateTime(
         start_dt=datetime(2021, 11, 13, tzinfo=ZoneInfo("UTC"))
     )
@@ -145,7 +152,7 @@ class PasswordQualityFactory(BaseFactory):
     class Meta:
         model = models.PasswordQuality
 
-    participant = factory.SubFactory(ParticipantFactory)
+    participant = SubFactory(ParticipantFactory)
 
 
 class CarFactory(BaseFactory):
@@ -166,8 +173,8 @@ class LeaderRatingFactory(BaseFactory):
 
     activity = models.LeaderRating.HIKING
     rating = "Full leader"
-    creator = factory.SubFactory(ParticipantFactory)
-    participant = factory.SubFactory(ParticipantFactory)
+    creator = SubFactory(ParticipantFactory)
+    participant = SubFactory(ParticipantFactory)
     active = True
 
 
@@ -177,15 +184,15 @@ class LeaderRecommendationFactory(BaseFactory):
 
     activity = models.LeaderRating.HIKING
     rating = "Should co-lead two trips"
-    creator = factory.SubFactory(ParticipantFactory)
-    participant = factory.SubFactory(ParticipantFactory)
+    creator = SubFactory(ParticipantFactory)
+    participant = SubFactory(ParticipantFactory)
 
 
 class LotteryInfoFactory(BaseFactory):
     class Meta:
         model = models.LotteryInfo
 
-    participant = factory.SubFactory(ParticipantFactory)
+    participant = SubFactory(ParticipantFactory)
     car_status = "rent"
     paired_with = None
 
@@ -194,47 +201,47 @@ class LotterySeparationFactory(BaseFactory):
     class Meta:
         model = models.LotterySeparation
 
-    creator = factory.SubFactory(ParticipantFactory)
-    initiator = factory.SubFactory(ParticipantFactory)
-    recipient = factory.SubFactory(ParticipantFactory)
+    creator = SubFactory(ParticipantFactory)
+    initiator = SubFactory(ParticipantFactory)
+    recipient = SubFactory(ParticipantFactory)
 
 
 class LotteryAdjustmentFactory(BaseFactory):
     class Meta:
         model = models.LotteryAdjustment
 
-    creator = factory.SubFactory(ParticipantFactory)
-    participant = factory.SubFactory(ParticipantFactory)
-    expires = factory.LazyAttribute(lambda _obj: date_utils.next_lottery())
+    creator = SubFactory(ParticipantFactory)
+    participant = SubFactory(ParticipantFactory)
+    expires = LazyAttribute(lambda _obj: date_utils.next_lottery())
 
 
 class TripFactory(BaseFactory):
     class Meta:
         model = models.Trip
 
-    name = factory.Sequence(lambda n: f"Test Trip #{n + 1}")
+    name = Sequence(lambda n: f"Test Trip #{n + 1}")
     description = "An awesome trip into the Whites"
     difficulty_rating = "Intermediate"
     winter_terrain_level = "B"
     activity = "winter_school"  # TODO: Remove!
     trip_type = enums.TripType.HIKING.value
     program = enums.Program.WINTER_SCHOOL.value
-    creator = factory.SubFactory(ParticipantFactory)
+    creator = SubFactory(ParticipantFactory)
 
 
 class ChairApprovalFactory(BaseFactory):
     class Meta:
         model = models.ChairApproval
 
-    trip = factory.SubFactory(TripFactory)
-    approver = factory.SubFactory(ParticipantFactory)
+    trip = SubFactory(TripFactory)
+    approver = SubFactory(ParticipantFactory)
 
 
 class ChairApprovalReminderFactory(BaseFactory):
     class Meta:
         model = models.ChairApprovalReminder
 
-    trip = factory.SubFactory(TripFactory)
+    trip = SubFactory(TripFactory)
 
 
 class TripInfoFactory(BaseFactory):
@@ -246,9 +253,9 @@ class FeedbackFactory(BaseFactory):
     class Meta:
         model = models.Feedback
 
-    participant = factory.SubFactory(ParticipantFactory)
-    leader = factory.SubFactory(ParticipantFactory)
-    trip = factory.SubFactory(TripFactory)
+    participant = SubFactory(ParticipantFactory)
+    leader = SubFactory(ParticipantFactory)
+    trip = SubFactory(TripFactory)
     comments = "Participant did a great job."
 
 
@@ -256,8 +263,8 @@ class SignUpFactory(BaseFactory):
     class Meta:
         model = models.SignUp
 
-    participant = factory.SubFactory(ParticipantFactory)
-    trip = factory.SubFactory(TripFactory)
+    participant = SubFactory(ParticipantFactory)
+    trip = SubFactory(TripFactory)
     notes = ""
     order = None
     manual_order = None
@@ -268,15 +275,15 @@ class WaitListSignupFactory(BaseFactory):
     class Meta:
         model = models.WaitListSignup
 
-    signup = factory.SubFactory(SignUpFactory)
-    waitlist = factory.SelfAttribute("signup.trip.waitlist")
+    signup = SubFactory(SignUpFactory)
+    waitlist = SelfAttribute("signup.trip.waitlist")
 
 
 class ClimbingLeaderApplicationFactory(BaseFactory):
     class Meta:
         model = models.ClimbingLeaderApplication
 
-    participant = factory.SubFactory(ParticipantFactory)
+    participant = SubFactory(ParticipantFactory)
     years_climbing = 9
     years_climbing_outside = 7
     outdoor_bouldering_grade = "V3"
@@ -305,7 +312,7 @@ class HikingLeaderApplicationFactory(BaseFactory):
     class Meta:
         model = models.HikingLeaderApplication
 
-    participant = factory.SubFactory(ParticipantFactory)
+    participant = SubFactory(ParticipantFactory)
     desired_rating = "Leader"
 
     mitoc_experience = "Member for 3 years, been to 2 Circuses, never led a trip"
@@ -317,7 +324,7 @@ class WinterSchoolLeaderApplicationFactory(BaseFactory):
     class Meta:
         model = models.WinterSchoolLeaderApplication
 
-    participant = factory.SubFactory(ParticipantFactory)
+    participant = SubFactory(ParticipantFactory)
     aspirational_rating = "C"
     desired_rating = "B coC"
     taking_wfa = "No"
@@ -333,5 +340,5 @@ class LectureAttendanceFactory(BaseFactory):
     class Meta:
         model = models.LectureAttendance
 
-    participant = factory.SubFactory(ParticipantFactory)
-    creator = factory.SubFactory(ParticipantFactory)
+    participant = SubFactory(ParticipantFactory)
+    creator = SubFactory(ParticipantFactory)

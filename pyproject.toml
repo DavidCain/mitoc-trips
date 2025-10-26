@@ -232,7 +232,6 @@ module = [
     "allauth.*",
     "celery.*",
     "debug_toolbar",
-    "factory.*",
     "freezegun",
     "kombu.*",
     "localflavor.*",
@@ -241,9 +240,14 @@ module = [
     "phonenumbers",
     "pipeline.*",
     "pwned_passwords_django.*",
-
 ]
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+# Sadly, a *ton* of the exported factory-boy functions lack types.
+module = "ws.tests.factories"
+disallow_untyped_calls = false
+
 
 [tool.django-stubs]
 django_settings_module = "ws.settings"

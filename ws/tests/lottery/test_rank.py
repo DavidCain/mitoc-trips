@@ -5,8 +5,6 @@ from datetime import date
 from typing import ClassVar, cast
 from unittest.mock import patch
 
-import factory
-from django.db.models import signals
 from django.test import SimpleTestCase, TestCase
 from freezegun import freeze_time
 
@@ -259,8 +257,7 @@ class ParticipantRankingTests(SimpleTestCase):
 
 
 class SingleTripParticipantRankerTests(TestCase):
-    @factory.django.mute_signals(signals.post_save)
-    def test_deterministic_ranking(self):
+    def test_deterministic_ranking(self) -> None:
         """Ranking of a particular single trip is based on its pk."""
         trip = TripFactory.create(activity="hiking", pk=822)
 
