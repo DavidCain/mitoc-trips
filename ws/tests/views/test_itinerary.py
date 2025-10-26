@@ -1,4 +1,4 @@
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 
 from bs4 import BeautifulSoup
 from django.contrib.auth.models import Group
@@ -551,7 +551,7 @@ class VersionedChairTripViewTest(TestCase):
         self.assertEqual(approval.trip, two)
         self.assertEqual(
             approval.time_created,
-            datetime(2019, 2, 15, 17, 25, tzinfo=timezone.utc),
+            datetime(2019, 2, 15, 17, 25, tzinfo=UTC),
         )
         self.assertEqual(approval.approver, self.participant)
         self.assertIs(two.chair_approved, True)

@@ -86,7 +86,7 @@ ignore-names = [
 [project]
 name = "ws"
 version = "0.1.0"
-requires-python = "~=3.10.19"
+requires-python = "~=3.12.12"
 description = "The MIT Outing Club's trip management system"
 license = "GPL-3.0"
 readme = "README.md"
@@ -152,7 +152,7 @@ localdev = [
 
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.12"
 plugins = ["mypy_django_plugin.main"]
 
 # Better errors
@@ -172,7 +172,6 @@ disallow_untyped_defs = false
 [[tool.mypy.overrides]]
 # Explicitly ignore imports that do not have type hints or library stubs
 # Periodically, it's worth checking in to see which of these may have types later!
-# (After dropping support for Python versions before 3.5, it's easy to just type annotate directly
 module = [
     "allauth.*",
     "debug_toolbar",

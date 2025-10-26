@@ -1,5 +1,5 @@
 # TODO:
-# - Consider python:3.10-slim
+# - Consider python:3.12-slim
 # - Once dropping legacy AngularJS, build FE bundles separately
 
 # Things needed to use this in production:
@@ -7,7 +7,7 @@
 # - Ensure that Celery works as well
 # - Run WSGI with an ENTRYPOINT
 
-FROM ubuntu:22.04 AS build
+FROM ubuntu:24.04 AS build
 
 WORKDIR /app/
 
