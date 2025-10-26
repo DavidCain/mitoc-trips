@@ -1,8 +1,10 @@
 from collections.abc import Callable
 from functools import wraps
+from typing import TYPE_CHECKING
 
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth.models import User
 from django.contrib.auth.views import redirect_to_login
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import resolve_url
@@ -12,6 +14,9 @@ import ws.utils.perms as perm_utils
 from ws import enums
 from ws.middleware import RequestWithParticipant
 from ws.utils.models import problems_with_profile
+
+if TYPE_CHECKING:
+    from django_stubs_ext import StrOrPromise
 
 
 def chairs_only() -> Callable:
@@ -48,7 +53,7 @@ def group_required(
     *,
     # A URL to redirect to after which the user _should_ have permissions
     # Be careful about redirect loops here!
-    redir_url: str | None = None,
+    redir_url: "StrOrPromise | None" = None,
     # If the user is anonymous, allow them to view the page anyway
     allow_anonymous: bool = False,
     allow_superusers: bool = True,
@@ -62,7 +67,7 @@ def group_required(
     """
     allowed_groups = {group_names} if isinstance(group_names, str) else group_names
 
-    def in_groups(user):
+    def in_groups(user: User) -> bool:
         if perm_utils.in_any_group(user, allowed_groups, allow_superusers):
             return True
         if not redir_url:  # No possible way to gain access, so 403
