@@ -8,16 +8,16 @@ from ws.templatetags import general_tags
 
 
 class GeneralTagsTests(SimpleTestCase):
-    def tearDown(self):
+    def tearDown(self) -> None:
         general_tags.SCRAMBLER.seed(time.time())  # Don't leak seed to other tests
 
-    def test_subtract(self):
+    def test_subtract(self) -> None:
         context = Context({"number": 37})
         template_to_render = Template("{% load general_tags %}{{ number|subtract:12 }}")
         rendered_template = template_to_render.render(context)
         self.assertEqual("25", rendered_template)
 
-    def test_strip_empty_lines(self):
+    def test_strip_empty_lines(self) -> None:
         context = Context({"number": 37})
         lines = [
             "{% load general_tags %}",
@@ -37,7 +37,7 @@ class GeneralTagsTests(SimpleTestCase):
         rendered_template = template_to_render.render(context)
         self.assertEqual(rendered_template, "\nstill newlines here\n25\n    hello  ")
 
-    def test_scramble(self):
+    def test_scramble(self) -> None:
         general_tags.SCRAMBLER.seed("Fixed seed to get consistent scrambling")
 
         text = "This is a super secret sentence (not really)."
@@ -54,10 +54,10 @@ class GeneralTagsTests(SimpleTestCase):
 
 
 class ScrambleTest(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         general_tags.SCRAMBLER.seed("Fixed seed to get consistent scrambling")
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         general_tags.SCRAMBLER.seed(time.time())  # Don't leak seed to other tests
 
     def assertScrambles(self, raw: str, scrambled: str) -> None:  # noqa: N802
@@ -66,37 +66,37 @@ class ScrambleTest(unittest.TestCase):
             scrambled,
         )
 
-    def test_leading_spaces(self):
+    def test_leading_spaces(self) -> None:
         self.assertScrambles(
             "  Weird, feedback should be stripped.",
             "  sfWpdt rdbsbria edihpe el ceuk.,edo",
         )
 
-    def test_trailing_spaces(self):
+    def test_trailing_spaces(self) -> None:
         self.assertScrambles(
             "  Weird, feedback should be stripped.    \n",
             "  sfWpdt rdbsbria edihpe el ceuk.,edo    \n",
         )
 
-    def test_extra_spaces_between_words(self):
+    def test_extra_spaces_between_words(self) -> None:
         self.assertScrambles(
             "What's         up?",
             "tWuhp?         s'a",
         )
 
-    def test_lots_of_whitespace(self):
+    def test_lots_of_whitespace(self) -> None:
         self.assertScrambles(
             "  Who\t  would write\n  feedback like\r this?",
             "  ilW\t  okwck eieot\n  lstehhwa edbf\r ?uird",
         )
 
-    def test_right_to_left_unicode(self):
+    def test_right_to_left_unicode(self) -> None:
         self.assertScrambles(
             "هل تتحدث العربية",
             "بت هتلاد ةثريلحع",
         )
 
-    def test_unicode_spaces(self):
+    def test_unicode_spaces(self) -> None:
         self.assertScrambles(
             "You\u2004Fancy, huh?\u2008",  # THREE-PER-EM SPACE, PUNCTUATION SPACE
             "hFY\u2004uoyhun c?,a\u2008",

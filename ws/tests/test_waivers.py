@@ -12,7 +12,7 @@ from ws.tests import factories
 
 
 class HeaderBaseTest(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         patched = mock.patch.object(waivers, "settings")
         orig_event_notif = settings.DOCUSIGN_EVENT_NOTIFICATION
         self.mocked_settings = patched.start()
@@ -52,7 +52,7 @@ class HeaderBaseTest(unittest.TestCase):
 
 
 class DocusignHeadersTests(HeaderBaseTest):
-    def test_headers(self):
+    def test_headers(self) -> None:
         """Authentication is provided as an XML object in HTTP headers."""
         self.assertEqual(
             waivers.get_headers(),
@@ -62,7 +62,7 @@ class DocusignHeadersTests(HeaderBaseTest):
             },
         )
 
-    def test_headers_used_fetching_base_url(self):
+    def test_headers_used_fetching_base_url(self) -> None:
         """Authentication is provided as an XML object in HTTP headers."""
         self.mocked_settings.DOCUSIGN_BASE = "https://demo.docusign.net/restapi/v2/"
         login_info = mock.Mock(spec=requests.Response)
@@ -97,12 +97,12 @@ def mock_base_url(url="https://demo.docusign.net/restapi/v2/accounts/123456"):
 
 
 class BasicWaiverTests(HeaderBaseTest):
-    def test_must_provide_participant_or_releasor(self):
+    def test_must_provide_participant_or_releasor(self) -> None:
         """We need a name & and an email address somehow to complete a waiver."""
         with self.assertRaises(ValueError):
             waivers.initiate_waiver(participant=None, releasor=None, guardian=None)
 
-    def test_prefilled_tabs(self):
+    def test_prefilled_tabs(self) -> None:
         """When a participant is given, we can prefill information.
 
         See the `mitoc-waiver` repository for the schema used here.
@@ -137,7 +137,7 @@ class BasicWaiverTests(HeaderBaseTest):
         self.assertEqual(waivers.prefilled_tabs(participant), expected)
 
     @mock_base_url()
-    def test_initiate_waiver_from_name_email(self):
+    def test_initiate_waiver_from_name_email(self) -> None:
         with mock.patch.object(requests, "post") as requests_post:
             result = waivers.initiate_waiver(
                 participant=None,
@@ -195,7 +195,7 @@ class ParticipantWaiverTests(HeaderBaseTest, TestCase):
             yield requests_post
 
     @mock_base_url()
-    def test_no_guardian(self):
+    def test_no_guardian(self) -> None:
         """When a participant submits the form, we start an embedded flow for them."""
         participant = factories.ParticipantFactory.create(
             name="Tim Beaver", email="tim@mit.edu"
@@ -271,7 +271,7 @@ class ParticipantWaiverTests(HeaderBaseTest, TestCase):
         )
 
     @mock_base_url()
-    def test_guardian(self):
+    def test_guardian(self) -> None:
         participant = factories.ParticipantFactory.create(
             name="Tim Beaver", email="tim@mit.edu"
         )

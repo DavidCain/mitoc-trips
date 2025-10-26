@@ -4,7 +4,7 @@ from ws.tests import factories
 
 
 class FeedbackTest(TestCase):
-    def test_str(self):
+    def test_str(self) -> None:
         feedback = factories.FeedbackFactory.build(
             leader__name="Janet Yellin",
             participant__name="Jerome Powell",

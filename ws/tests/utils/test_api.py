@@ -14,19 +14,19 @@ TOKEN = ".".join(
 
 
 class JwtTests(unittest.TestCase):
-    def test_raises_valueerror_on_non_bearer_token(self):
+    def test_raises_valueerror_on_non_bearer_token(self) -> None:
         request = HttpRequest()
         request.META["HTTP_AUTHORIZATION"] = TOKEN
         with self.assertRaises(ValueError):
             api.jwt_token_from_headers(request)
 
-    def test_raises_valueerror_on_missing_token(self):
+    def test_raises_valueerror_on_missing_token(self) -> None:
         request = HttpRequest()
         self.assertNotIn("HTTP_AUTHORIZATION", request.META)
         with self.assertRaises(ValueError):
             api.jwt_token_from_headers(request)
 
-    def test_auth_token_extracted(self):
+    def test_auth_token_extracted(self) -> None:
         """A JWT is extracted from a bearer token."""
         request = HttpRequest()
         request.META["HTTP_AUTHORIZATION"] = f"Bearer: {TOKEN}"

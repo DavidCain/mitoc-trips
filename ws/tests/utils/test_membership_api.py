@@ -9,7 +9,7 @@ from ws.utils import geardb, membership_api
 
 class JsonifyTest(SimpleTestCase):
     @freeze_time("2022-07-01 12:00 EDT")
-    def test_jsonify_membership_waiver(self):
+    def test_jsonify_membership_waiver(self) -> None:
         membership_waiver = geardb.MembershipWaiver(
             email="tim@mit.edu",
             membership_expires=date(2022, 11, 11),
@@ -32,7 +32,7 @@ class JsonifyTest(SimpleTestCase):
 class FormatCachedMembershipTest(SimpleTestCase):
     """Test translation of our internal cache to a JSON structure."""
 
-    def test_active_or_inactive_member(self):
+    def test_active_or_inactive_member(self) -> None:
         """Test the usual case - a participant with a waiver & membership on file."""
         par = factories.ParticipantFactory.build(
             membership__membership_expires=date(2022, 11, 11),
@@ -67,7 +67,7 @@ class FormatCachedMembershipTest(SimpleTestCase):
             )
 
     @freeze_time("2022-07-01 12:00 EDT")
-    def test_missing_membership(self):
+    def test_missing_membership(self) -> None:
         par = factories.ParticipantFactory.build(
             membership__membership_expires=None,
             membership__waiver_expires=date(2022, 12, 23),
@@ -82,7 +82,7 @@ class FormatCachedMembershipTest(SimpleTestCase):
         )
 
     @freeze_time("2022-07-01 12:00 EDT")
-    def test_missing_waiver(self):
+    def test_missing_waiver(self) -> None:
         par = factories.ParticipantFactory.build(
             membership__membership_expires=date(2022, 12, 24),
             membership__waiver_expires=None,
@@ -101,7 +101,7 @@ class FormatCachedMembershipTest(SimpleTestCase):
         )
 
     @freeze_time("2022-07-01 12:00 EDT")
-    def test_just_waiver_expired(self):
+    def test_just_waiver_expired(self) -> None:
         par = factories.ParticipantFactory.build(
             membership__membership_expires=date(2022, 12, 24),
             membership__waiver_expires=date(2022, 1, 1),
@@ -119,7 +119,7 @@ class FormatCachedMembershipTest(SimpleTestCase):
             },
         )
 
-    def test_cache_exists_but_is_missing(self):
+    def test_cache_exists_but_is_missing(self) -> None:
         par = factories.ParticipantFactory.build(
             membership__membership_expires=None,
             membership__waiver_expires=None,
@@ -133,7 +133,7 @@ class FormatCachedMembershipTest(SimpleTestCase):
             },
         )
 
-    def test_no_membership(self):
+    def test_no_membership(self) -> None:
         par = factories.ParticipantFactory.build(membership=None)
         self.assertEqual(
             membership_api.format_cached_membership(par),

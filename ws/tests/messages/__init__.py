@@ -6,7 +6,7 @@ from django.test import RequestFactory, TestCase
 
 
 class MessagesTestCase(TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.factory = RequestFactory()
 
     def _request_with_participant(self, participant):

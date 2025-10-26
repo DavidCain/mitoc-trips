@@ -14,7 +14,7 @@ from ws.tests.factories import ParticipantFactory
 class RenewTest(TestCase):
     maxDiff = None
 
-    def test_will_not_email_without_membership(self):
+    def test_will_not_email_without_membership(self) -> None:
         par = ParticipantFactory.create(membership=None)
 
         with mock.patch.object(mail.EmailMultiAlternatives, "send") as send:
@@ -24,7 +24,7 @@ class RenewTest(TestCase):
 
         self.assertIn("no membership on file", str(cm.exception))
 
-    def test_will_not_email_if_already_expired(self):
+    def test_will_not_email_if_already_expired(self) -> None:
         par = ParticipantFactory.create(
             membership__membership_expires=date(2020, 1, 10)
         )
@@ -36,7 +36,7 @@ class RenewTest(TestCase):
 
         self.assertIn("Membership has already expired", str(cm.exception))
 
-    def test_will_not_email_if_only_signed_waiver(self):
+    def test_will_not_email_if_only_signed_waiver(self) -> None:
         par = ParticipantFactory.create(
             membership__membership_expires=None,
             membership__waiver_expires=date(2018, 1, 1),
@@ -49,7 +49,7 @@ class RenewTest(TestCase):
 
         self.assertIn("no membership on file", str(cm.exception))
 
-    def test_will_not_email_before_renewal_date(self):
+    def test_will_not_email_before_renewal_date(self) -> None:
         par = ParticipantFactory.create(
             # 2 months left is *nearly* expiring, but not yet within the window
             membership__membership_expires=date(2020, 3, 13),
@@ -62,7 +62,7 @@ class RenewTest(TestCase):
 
         self.assertIn("don't yet recommend renewal", str(cm.exception))
 
-    def test_normal_renewal(self):
+    def test_normal_renewal(self) -> None:
         par = ParticipantFactory.create(
             # Exact token depends on the participant's PK
             pk=881203,

@@ -5,14 +5,14 @@ from ws.tests import factories
 
 
 class FormatPhoneNumberTest(SimpleTestCase):
-    def test_format_blank_phone_number(self):
+    def test_format_blank_phone_number(self) -> None:
         html_template = Template(
             "{% load misc_tags %}{{ par.cell_phone|format_phone_number }}"
         )
         context = Context({"par": factories.ParticipantFactory.build(cell_phone="")})
         self.assertFalse(html_template.render(context))
 
-    def test_format_us_phone_number(self):
+    def test_format_us_phone_number(self) -> None:
         html_template = Template(
             "{% load misc_tags %}{{ par.cell_phone|format_phone_number }}"
         )
@@ -21,7 +21,7 @@ class FormatPhoneNumberTest(SimpleTestCase):
         )
         self.assertEqual(html_template.render(context), "(617) 555-1234")
 
-    def test_international_phone_number(self):
+    def test_international_phone_number(self) -> None:
         html_template = Template(
             "{% load misc_tags %}{{ par.cell_phone|format_phone_number }}"
         )
@@ -32,7 +32,7 @@ class FormatPhoneNumberTest(SimpleTestCase):
 
 
 class RedactTest(SimpleTestCase):
-    def test_should_redact(self):
+    def test_should_redact(self) -> None:
         html_template = Template(
             "{% load misc_tags %}Secret identity: {{ name|redact:hide_name }}"
         )
@@ -41,7 +41,7 @@ class RedactTest(SimpleTestCase):
             html_template.render(context), "Secret identity: <em>redacted</em>"
         )
 
-    def test_should_not_redact(self):
+    def test_should_not_redact(self) -> None:
         html_template = Template("{% load misc_tags %}{{ name|redact:hide_name }}")
         context = Context({"name": "Jacques Clouseau", "hide_name": False})
         self.assertEqual(html_template.render(context), "Jacques Clouseau")

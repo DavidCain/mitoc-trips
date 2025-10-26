@@ -6,12 +6,12 @@ from ws.tests import factories
 
 
 class WimpTests(TestCase):
-    def test_no_active_wimps(self):
+    def test_no_active_wimps(self) -> None:
         self.assertFalse(Group.objects.get(name="WIMP").user_set.exists())
         self.assertCountEqual(wimp.active_wimps(), [])
         self.assertIsNone(wimp.current_wimp())
 
-    def test_single_wimp(self):
+    def test_single_wimp(self) -> None:
         wimp_par = factories.ParticipantFactory.create()
         wimp_group = Group.objects.get(name="WIMP")
         self.assertFalse(wimp_group.user_set.exists())
@@ -20,7 +20,7 @@ class WimpTests(TestCase):
         self.assertCountEqual(wimp.active_wimps(), [wimp_par])
         self.assertEqual(wimp_par, wimp.current_wimp())
 
-    def test_handle_edge_case_of_user_without_participant(self):
+    def test_handle_edge_case_of_user_without_participant(self) -> None:
         no_par_user = factories.UserFactory.create()
         self.assertFalse(
             models.Participant.objects.filter(user_id=no_par_user.pk).exists()
@@ -34,7 +34,7 @@ class WimpTests(TestCase):
         self.assertCountEqual(wimp.active_wimps(), [wimp_par])
         self.assertEqual(wimp_par, wimp.current_wimp())
 
-    def test_wimps_sorted_by_time_made_wimp(self):
+    def test_wimps_sorted_by_time_made_wimp(self) -> None:
         wimp_group = Group.objects.get(name="WIMP")
 
         # Participants are created in different orders

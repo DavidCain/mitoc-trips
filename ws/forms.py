@@ -404,7 +404,7 @@ class TripForm(forms.ModelForm):
         assert isinstance(level, str)
         return level
 
-    def _init_wimp(self):
+    def _init_wimp(self) -> None:
         """Configure the WIMP widget, load saved participant if applicable."""
         wimp = self.fields["wimp"].widget
         wimp.attrs["msg"] = "'Nobody'"

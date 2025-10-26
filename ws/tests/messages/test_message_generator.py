@@ -16,7 +16,7 @@ class MessageGeneratorTests(TestCase):
         with patched as add_message:
             yield add_message
 
-    def setUp(self):
+    def setUp(self) -> None:
         super().setUp()
         # We use a real client so that we can get access to messages middleware!
         user = factories.UserFactory.create()
@@ -30,7 +30,7 @@ class MessageGeneratorTests(TestCase):
         with self.assertRaises(NotImplementedError):
             base_generator.supply()
 
-    def test_add_unique_message(self):
+    def test_add_unique_message(self) -> None:
         """Once emitted, messages cannot be re-emitted!"""
         response = self.client.get("/")
         request = response.wsgi_request

@@ -4,18 +4,18 @@ from ws.tests import factories
 
 
 class LotteryInfoTest(TestCase):
-    def test_recipricoally_paired_with_nobody(self):
+    def test_recipricoally_paired_with_nobody(self) -> None:
         info = factories.LotteryInfoFactory.create(paired_with=None)
         self.assertFalse(info.reciprocally_paired_with)
 
-    def test_not_saved_yet(self):
+    def test_not_saved_yet(self) -> None:
         """Handles the case of not being saved yet, where it has a null PK."""
         par = factories.ParticipantFactory.build()
         other = factories.ParticipantFactory.build()
         info = factories.LotteryInfoFactory.build(participant=par, paired_with=other)
         self.assertFalse(info.reciprocally_paired_with)
 
-    def test_not_reciprocated(self):
+    def test_not_reciprocated(self) -> None:
         par = factories.ParticipantFactory.create()
         other = factories.ParticipantFactory.create()
         factories.LotteryInfoFactory.create(participant=other, paired_with=None)
@@ -23,7 +23,7 @@ class LotteryInfoTest(TestCase):
         info = factories.LotteryInfoFactory.create(participant=par, paired_with=other)
         self.assertFalse(info.reciprocally_paired_with)
 
-    def test_reciprocally_paired_with(self):
+    def test_reciprocally_paired_with(self) -> None:
         bert = factories.ParticipantFactory.create()
         ernie = factories.ParticipantFactory.create()
 
