@@ -98,6 +98,7 @@ INSTALLED_APPS = [
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",
     "crispy_forms",
+    "crispy_bootstrap3",
     "pipeline",
     "ws.apps.TripsConfig",
     "corsheaders",

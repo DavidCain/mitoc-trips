@@ -109,7 +109,8 @@ beautifulsoup4 = "*"
 celery = "^5.1"
 django-allauth= { version = "*", extras=["socialaccount"] }
 django-cors-headers = "*"
-django-crispy-forms = "^1.12.0"
+crispy-bootstrap3 = "*"
+django-crispy-forms = ">= 2"
 django-phonenumber-field = { version = ">= 2.0", extras = ["phonenumberslite"] }
 django-pipeline = "*"  # TODO: To eventually be replaced by webpack-loader
 django-smtp-ssl = "*"
