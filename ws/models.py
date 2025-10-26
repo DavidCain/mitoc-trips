@@ -1209,7 +1209,7 @@ class Trip(models.Model):
         activity_enum = self.program_enum.required_activity()
         if activity_enum is None:
             return "official_event"
-        return cast(str, activity_enum.value)
+        return activity_enum.value
 
     def required_activity_enum(self) -> enums.Activity | None:
         return self.program_enum.required_activity()

@@ -66,7 +66,7 @@ class ApplicationManager(ratings_utils.ApplicationManager, LeaderApplicationMixi
 
 
 # model is a property on LeaderApplicationMixin, but a class attribute on SingleObjectMixin
-class LeaderApplyView(LeaderApplicationMixin, CreateView):  # type: ignore[misc]
+class LeaderApplyView(LeaderApplicationMixin, CreateView):  # type: ignore[override]
     request: RequestWithParticipant
 
     template_name = "leaders/apply.html"
@@ -239,7 +239,7 @@ class AllLeaderApplicationsView(ApplicationManager, ListView):  # type: ignore[m
 
 
 # model is a property on LeaderApplicationMixin, but a class attribute on SingleObjectMixin
-class ArchiveLeaderApplicationView(ApplicationManager, SingleObjectMixin, View):  # type: ignore[misc]
+class ArchiveLeaderApplicationView(ApplicationManager, SingleObjectMixin, View):  # type: ignore[misc,override]
     def get(self, request, *args, **kwargs):
         return redirect(reverse("view_application", kwargs=kwargs))
 
@@ -286,7 +286,7 @@ class ArchiveLeaderApplicationView(ApplicationManager, SingleObjectMixin, View):
 
 
 # model is a property on LeaderApplicationMixin, but a class attribute on SingleObjectMixin
-class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type: ignore[misc]
+class LeaderApplicationView(ApplicationManager, FormMixin, DetailView):  # type: ignore[misc,override]
     """Handle applications by participants to become leaders."""
 
     form_class = forms.ApplicationLeaderForm

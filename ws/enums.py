@@ -1,7 +1,7 @@
 import enum
 from collections.abc import Mapping
 from types import MappingProxyType
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
 from urllib.parse import urlencode
 
 from django.urls import reverse
@@ -139,7 +139,7 @@ class TripIneligibilityReason(enum.Enum):
         initiate_waiver = reverse("initiate_waiver")
 
         # "you must... "
-        mapping: dict[int, str] = {
+        mapping: dict[TripIneligibilityReason, str] = {
             self.NOT_LOGGED_IN: f'<a href="{account_login}">log in</a>',
             self.NO_PROFILE_INFO: f'provide <a href="{edit_profile}">personal information</a>',
             self.IS_TRIP_WIMP: "be replaced in your role as the trip WIMP",
@@ -150,8 +150,7 @@ class TripIneligibilityReason(enum.Enum):
             self.WAIVER_MISSING: f'<a href="{initiate_waiver}">sign a waiver</a>',
             self.WAIVER_NEEDS_RENEWAL: f"""have a <a href="{initiate_waiver}">waiver that's valid until at least {trip_date}</a>""",
         }
-        typed_mapping = cast(dict[TripIneligibilityReason, str], mapping)
-        return mark_safe(typed_mapping[self])  # noqa: S308
+        return mark_safe(mapping[self])  # noqa: S308
 
 
 @enum.unique
