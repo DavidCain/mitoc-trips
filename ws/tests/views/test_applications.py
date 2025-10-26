@@ -430,15 +430,21 @@ class LeaderApplicationsBaseTest(TestCase, Helpers):
         submit: str,
     ) -> None:
         form = soup.find("form")
+        assert form is not None
         rating_input = form.find("input", attrs={"name": "rating"})
+        assert rating_input is not None
         notes_textarea = form.find("textarea", attrs={"name": "notes"})
+        assert notes_textarea is not None
         submit_btn = form.find("button", attrs={"type": "submit"})
+        assert submit_btn is not None
 
         self.assertEqual(notes_textarea.text.strip(), notes)
         self.assertEqual(rating_input.attrs.get("value", ""), rating)
         # (AngularJS quirk: The submit button has two spans for conditional content rendering.
         # Just use the first one, which is set by the server until AngularJS overrides.
-        self.assertEqual(submit_btn.find("span").text.strip(), submit)
+        submit_span = submit_btn.find("span")
+        assert submit_span is not None
+        self.assertEqual(submit_span.text.strip(), submit)
 
 
 class LeaderApplicationsTest(LeaderApplicationsBaseTest):

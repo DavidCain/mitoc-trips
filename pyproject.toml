@@ -230,7 +230,6 @@ disallow_untyped_defs = false
 # (After dropping support for Python versions before 3.5, it's easy to just type annotate directly
 module = [
     "allauth.*",
-    "bs4",
     "celery.*",
     "debug_toolbar",
     "factory.*",
