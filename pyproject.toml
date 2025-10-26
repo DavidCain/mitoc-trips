@@ -115,7 +115,7 @@ django-phonenumber-field = { version = ">= 2.0", extras = ["phonenumberslite"] }
 django-pipeline = "*"  # TODO: To eventually be replaced by webpack-loader
 django-smtp-ssl = "*"
 django-webpack-loader = "^1.1.0"  # Should maintain parity with frontend/package.json
-gunicorn = "^22.0.0"  # Used to run production worker
+gunicorn = "*"  # Used to run production worker
 markdown2 = "*"
 mitoc-const = "^1.0.0"  # (1.0.0 includes type hints)
 phonenumberslite = "*"
@@ -123,7 +123,7 @@ psycopg2 = "*"
 pwned-passwords-django = "*"
 requests = "*"
 sentry-sdk = ">=2"
-setuptools = "^69.5.1"  # Required by django-pipeline in prod!
+setuptools = "*"
 typing-extensions = "^4.11.0"  # Can remove after Python 3.11
 
 
