@@ -1,66 +1,20 @@
 [tool.ruff]
-lint.select = [
-  "A",     # flake8-builtins
-  "ANN",   # flake8-annotations
-  "ARG",   # flake8-unused-arguments
-  "ASYNC", # flake8-async
-  "B",     # flake8-bugbear
-  "BLE",   # flake8-blind-except
-  "C4",    # flake8-comprehensions
-  "C90",   # mccabe
-  "COM",   # flake8-commas
-  "D",     # pydocstyle
-  "DJ",    # flake8-django
-  "DTZ",   # flake8-datetimez
-  "E",     # pycodestyle error
-  "TD",    # flake8-todos
-  "EXE",   # flake8-executable
-  "F",     # Pyflakes
-  "FA",    # flake8-future-annotations
-  "G",     # flake8-logging-format
-  "I",     # isort
-  "ICN",   # flake8-import-conventions
-  "INP",   # flake8-no-pep420
-  "INT",   # flake8-gettext
-  "ISC",   # flake8-implicit-str-concat
-  "N",     # pep8-naming
-  "PGH",   # pygrep-hooks
-  "PIE",   # flake8-pie
-  "PLC",   # pylint convention
-  "PLE",   # pylint error
-  "PLR",   # pylint refactor
-  "PLW",   # pylint warning
-  "PT",    # flake8-pytest-style
-  "PYI",   # flake8-pyi
-  "RET",   # flake8-return
-  "RSE",   # flake8-raise
-  "RUF",   # Ruff-specific rules
-  "S",     # flake8-bandit
-  "SIM",   # flake8-simplify
-  "SLF",   # flake8-self
-  "T10",   # flake8-debugger
-  "T20",   # flake8-print
-  "TCH",   # flake8-type-checking
-  "TID",   # flake8-tidy-imports
-  "TRY",   # tryceratops
-  "UP",    # pyupgrade
-  "W",     # pycodestyle warning
-  "YTT",   # flake8-2020
-
-  # Interesting, should perhaps turn on later:
-  # "PTH",  # flake8-use-pathlib
-  # "FLY",  # flynt
-
-  # Intentionally omitted:
-  # "Q",     # flake8-quotes        -- we let the formatter handle quotes.
-  # "FBT",   # flake8-boolean-trap  -- I'm fine with boolean traps
-  # "ERA",   # eradicate            -- has tons of false-positives on commented "code"
-  # "EM",    # flake8-errmsg        -- I'm fine with strings directly in exceptions
-  # "PD",    # pandas-vet           -- I don't use pandas
-  # "NPY",   # NumPy-specific rules -- I don't use numpy
-]
+lint.select = ["ALL"]
 
 lint.ignore = [
+  # Interesting, should perhaps turn on later:
+  "FBT",  # flake8-boolean-trap
+  "FLY",  # flynt
+  "PTH",  # flake8-use-pathlib
+
+  # Whole rulesets that aren't necessary.
+  "EM",    # flake8-errmsg        -- I'm fine with strings directly in exceptions
+  "ERA",   # eradicate            -- has tons of false-positives on commented "code"
+  "FIX",   # flake8-fixme         -- this is largely a solo project, there's no Jira, etc.
+  "NPY",   # NumPy-specific rules -- I don't use numpy
+  "PD",    # pandas-vet           -- I don't use pandas
+  "Q",     # flake8-quotes        -- we let the formatter handle quotes.
+
   # Specific rules ignored from checkers I otherwise view as valuable:
   "ANN001",   # Type annotations are knowingly incomplete.
   "ANN002",   # Type annotations are knowingly incomplete.

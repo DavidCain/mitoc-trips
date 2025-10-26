@@ -61,8 +61,10 @@ class BaseSignUpView(CreateView, LotteryPairingMixin):
             errors.append("Already a leader on this trip!")
 
         # (Use the high-level utility method that enforces a cache refresh if necessary)
-        for reason in reasons_cannot_attend(self.request.user, signup.trip):
-            errors.append(reason.label)
+        errors.extend(
+            reason.label
+            for reason in reasons_cannot_attend(self.request.user, signup.trip)
+        )
         return errors
 
     def get_success_url(self):
