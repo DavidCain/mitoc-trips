@@ -80,7 +80,7 @@ lint-js: install-js
 test: test-python test-js
 
 .PHONY: test-python
-test-python: install-python-dev build-frontend
+test-python: install-python-dev
 	WS_DJANGO_TEST=1 poetry run coverage run -m pytest
 
 .PHONY: test-js

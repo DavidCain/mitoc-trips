@@ -26,12 +26,6 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Install node directly into the container we'll use for Django.
-# This is only necessary while we're still serving the legacy frontend.
-# Once we're on the new Vue setup, all we need to do is copy in the build bundle & webpack-stats.json
-RUN curl -sL https://deb.nodesource.com/setup_16.x | bash -
-RUN apt-get update && apt-get install --no-install-recommends -y nodejs
-
 RUN locale-gen en_US.UTF-8
 RUN update-locale en_US.UTF-8
 
@@ -53,14 +47,8 @@ ENV PATH="/app/.venv/bin:$PATH"
 COPY pyproject.toml .
 RUN poetry install --no-root --with=test,lint,mypy
 
-# Install legacy frontend
-COPY package.json package-lock.json ./
-RUN npm ci
-
-# Build the new Vue frontend, creating webpack-stats.json which Django will serve
-COPY frontend ./frontend
-RUN npm --prefix=frontend/ ci
-RUN npm --prefix=frontend/ run build
+# TODO: We should install & build the legacy frontend here.
+# But I'm likely going to just rebuild everything. See the Git log for more.
 
 COPY manage.py .
 COPY ws ./ws

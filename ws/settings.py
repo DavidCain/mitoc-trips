@@ -423,10 +423,17 @@ LOGGING = {
 }
 
 FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
+
 WEBPACK_LOADER = {
     "DEFAULT": {
         "CACHE": DEBUG,
         "BUNDLE_DIR_NAME": "/static/frontend/",
-        "STATS_FILE": os.path.join(FRONTEND_DIR, "webpack-stats.json"),
+        "STATS_FILE": (
+            # At least for now, bypass the tight coupling of FE & BE in unit tests.
+            # We'll just serve a dead-simple `webpack-stats.json` so that template tags work.
+            os.path.join(BASE_DIR, "ws", "tests", "webpack-stats.json")
+            if os.environ.get("WS_DJANGO_TEST")
+            else os.path.join(FRONTEND_DIR, "webpack-stats.json")
+        ),
     }
 }

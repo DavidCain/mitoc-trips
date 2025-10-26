@@ -1,0 +1,8 @@
+{
+  "status": "done",
+  "assets": {},
+  "chunks": {
+    "app": []
+  },
+  "publicPath": "/static/frontend/"
+}
