@@ -611,7 +611,9 @@ class Participant(models.Model):
         waiver_expires: date | None = None,
     ) -> tuple[Membership, bool]:
         """Update our own cached membership with new information."""
-        acct, created = Membership.objects.get_or_create(participant=self)
+        # TODO: This schema is a bit weird, Membership should have an FK to participant.
+        acct = self.membership or Membership()
+        created = acct.pk is None
         if membership_expires:
             acct.membership_expires = membership_expires
         if waiver_expires:

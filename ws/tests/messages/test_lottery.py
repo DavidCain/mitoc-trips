@@ -166,9 +166,8 @@ class LotteryMessagesTest(MessagesTestCase):
     def test_properly_configured(self):
         """Show that a WS participant with everything set up receives no warning."""
         with freeze_time("2017-01-15 13:25:00 EST"):
-            par = factories.ParticipantFactory.create()
+            par = factories.ParticipantFactory.create(car=factories.CarFactory.create())
             factories.LotteryInfoFactory.create(participant=par, car_status="own")
-            factories.CarFactory.create(participant=par)
 
             # Create (and rank) upcoming trips
             self._create_upcoming_ws_trip(par, order=1)

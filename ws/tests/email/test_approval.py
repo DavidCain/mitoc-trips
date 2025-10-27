@@ -99,8 +99,8 @@ class ReminderEmailTest(TestCase):
             self.assertFalse(approval.at_least_one_trip_merits_reminder_email([trip]))
 
             # Once filled out, *now* we can remind chairs (there's new info to review!)
-            factories.TripInfoFactory.create(trip=trip)
-            trip.refresh_from_db()
+            trip.info = factories.TripInfoFactory.create()
+            trip.save()
             self.assertFalse(approval.at_least_one_trip_merits_reminder_email([trip]))
 
     def test_trip_leaves_tomorrow(self) -> None:
@@ -116,9 +116,10 @@ class ReminderEmailTest(TestCase):
 
     def test_trip_changed_activity_type(self) -> None:
         trip = factories.TripFactory.create(
-            trip_date=date(2025, 11, 1), program=enums.Program.CLIMBING.value
+            trip_date=date(2025, 11, 1),
+            program=enums.Program.CLIMBING.value,
+            info=factories.TripInfoFactory.create(),
         )
-        factories.TripInfoFactory.create(trip=trip)
         with freeze_time("2025-10-30T19:00-05:00"):
             factories.ChairApprovalReminderFactory.create(
                 trip=trip,

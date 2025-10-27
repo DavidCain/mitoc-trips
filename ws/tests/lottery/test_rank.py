@@ -5,6 +5,7 @@ from datetime import date
 from typing import ClassVar, cast
 from unittest.mock import patch
 
+from django.db.models import QuerySet
 from django.test import SimpleTestCase, TestCase
 from freezegun import freeze_time
 
@@ -20,20 +21,20 @@ from ws.tests.factories import (
 
 
 class DemoRanker(rank.ParticipantRanker):
-    def __init__(self, participant_pks):
+    def __init__(self, participant_pks: set[int]) -> None:
         self.participant_pks = participant_pks
 
-    def priority_key(self, participant):
+    def priority_key(self, participant: models.Participant) -> int:
         return participant.pk  # (Doesn't matter how they're ordered)
 
-    def participants_to_handle(self):
+    def participants_to_handle(self) -> QuerySet[models.Participant]:
         return models.Participant.objects.filter(pk__in=self.participant_pks)
 
 
 class ParticipantPairingTests(TestCase):
     """Test the logic on reciprocal participant pairing."""
 
-    def expect_pairing(self, expected):
+    def expect_pairing(self, expected: dict[models.Participant, bool]) -> None:
         """Run noted participants through ranking, expect pairing results."""
         par_pks = {par.pk for par in expected}
         ranker = DemoRanker(participant_pks=par_pks)
@@ -42,7 +43,10 @@ class ParticipantPairingTests(TestCase):
 
     def test_no_lotteryinfo(self):
         """No lottery info still counts as not being paired."""
-        no_lotteryinfo = ParticipantFactory.create(lotteryinfo=None)
+        no_lotteryinfo = ParticipantFactory.create()
+        self.assertFalse(
+            models.LotteryInfo.objects.filter(participant=no_lotteryinfo).exists()
+        )
         self.expect_pairing({no_lotteryinfo: False})
 
     def test_on_their_own(self):
@@ -63,14 +67,15 @@ class ParticipantPairingTests(TestCase):
             }
         )
 
-    def test_nulls_do_not_mean_equal(self):
+    def test_nulls_do_not_mean_equal(self) -> None:
         """Participants that want no pairing aren't accidentallly paired.
 
         This checks an implementation detail, ensuring that null==null doesn't
         amount to the SQL query mistakenly regarding participants as paired.
         """
-        no_lotteryinfo_1 = ParticipantFactory.create(lotteryinfo=None)
-        no_lotteryinfo_2 = ParticipantFactory.create(lotteryinfo=None)
+        no_lotteryinfo_1 = ParticipantFactory.create()
+        no_lotteryinfo_2 = ParticipantFactory.create()
+        self.assertFalse(models.LotteryInfo.objects.exists())
         alone_1 = LotteryInfoFactory.create(paired_with=None)
         alone_2 = LotteryInfoFactory.create(paired_with=None)
 

@@ -201,7 +201,7 @@ def _get_trip_stats_by_user() -> dict[int, TripsInformation]:
             # Future optimization: *most* participants don't lead trips
             # Querying those separately should avoid the need to do pointless JOINs
             num_trips_led=Count("trips_led", distinct=True),
-            is_leader=Exists(
+            is_active_leader=Exists(
                 models.LeaderRating.objects.filter(
                     participant=OuterRef("pk"), active=True
                 )
@@ -211,7 +211,7 @@ def _get_trip_stats_by_user() -> dict[int, TripsInformation]:
             "pk",
             "user_id",
             "email",
-            "is_leader",
+            "is_active_leader",
             "num_trips_led",
         )
     )
@@ -220,7 +220,7 @@ def _get_trip_stats_by_user() -> dict[int, TripsInformation]:
         par["user_id"]: TripsInformation(
             email=par["email"],
             verified_mit_email=mit_email_for_students.get(par["pk"]),
-            is_leader=par["is_leader"],
+            is_leader=par["is_active_leader"],
             num_trips_attended=trips_per_participant.get(par["pk"], 0),
             num_trips_led=par["num_trips_led"],
         )

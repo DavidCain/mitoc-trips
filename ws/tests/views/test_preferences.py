@@ -107,7 +107,7 @@ class LotteryPrefsPostHelper:
 class LotteryPreferencesDriverStatusTests(TestCase, LotteryPrefsPostHelper):
     def test_bad_lottery_form(self):
         """The lottery form must have all its keys specified."""
-        par = factories.ParticipantFactory.create(lotteryinfo=None)
+        par = factories.ParticipantFactory.create()
         self.client.force_login(par.user)
         self.assertEqual(self._post({}).status_code, 400)
         self.assertEqual(self._post({"signups": []}).status_code, 400)
@@ -115,7 +115,7 @@ class LotteryPreferencesDriverStatusTests(TestCase, LotteryPrefsPostHelper):
     def test_no_car_no_trips_no_pairing(self):
         """Test the simplest submission of a user with no real preferences to express."""
         with freeze_time("2019-01-15 12:25:00 EST"):
-            par = factories.ParticipantFactory.create(lotteryinfo=None)
+            par = factories.ParticipantFactory.create()
 
             self.client.force_login(par.user)
             response = self._post({"signups": [], "car_status": "none"})
@@ -134,7 +134,7 @@ class LotteryPreferencesDriverStatusTests(TestCase, LotteryPrefsPostHelper):
     def test_can_drive_new_car(self):
         """Participants who own a car can express their willingness to drive."""
         with freeze_time("2019-01-15 12:25:00 EST"):
-            par = factories.ParticipantFactory.create(lotteryinfo=None, car=None)
+            par = factories.ParticipantFactory.create()
 
             self.client.force_login(par.user)
             response = self._post(
@@ -156,7 +156,7 @@ class LotteryPreferencesDriverStatusTests(TestCase, LotteryPrefsPostHelper):
 
     def test_willing_to_rent(self):
         """Participants can express a willingness to rent."""
-        par = factories.ParticipantFactory.create(lotteryinfo=None, car=None)
+        par = factories.ParticipantFactory.create()
 
         self.client.force_login(par.user)
         response = self._post(
@@ -176,7 +176,7 @@ class LotteryPreferencesDriverStatusTests(TestCase, LotteryPrefsPostHelper):
         It makes sense that if you're willing to rent, you can't know in
         advance how many people a hypothetical car would seat.
         """
-        par = factories.ParticipantFactory.create(lotteryinfo=None, car=None)
+        par = factories.ParticipantFactory.create()
 
         self.client.force_login(par.user)
         response = self._post(
@@ -195,7 +195,7 @@ class LotteryPreferencesDriverStatusTests(TestCase, LotteryPrefsPostHelper):
 class LotteryPreferencesSignupTests(TestCase, LotteryPrefsPostHelper):
     def test_missing_ordering(self):
         """Signups must specify signup ID, deletion, and ordering."""
-        par = factories.ParticipantFactory.create(lotteryinfo=None)
+        par = factories.ParticipantFactory.create()
         self.client.force_login(par.user)
 
         signup = factories.SignUpFactory.create(
@@ -219,7 +219,7 @@ class LotteryPreferencesSignupTests(TestCase, LotteryPrefsPostHelper):
 
     def test_invalid_ordering(self):
         """Ordering must be null or numeric."""
-        par = factories.ParticipantFactory.create(lotteryinfo=None)
+        par = factories.ParticipantFactory.create()
         self.client.force_login(par.user)
 
         signup = factories.SignUpFactory.create(
@@ -240,7 +240,7 @@ class LotteryPreferencesSignupTests(TestCase, LotteryPrefsPostHelper):
 
     def test_default_ranking(self):
         """By default, we list ranked signups by time of creation."""
-        par = factories.ParticipantFactory.create(lotteryinfo=None)
+        par = factories.ParticipantFactory.create()
 
         okay, fave, hate = (
             factories.SignUpFactory.create(
@@ -286,7 +286,7 @@ class LotteryPreferencesSignupTests(TestCase, LotteryPrefsPostHelper):
 
     def test_delete_signups(self):
         """We allow participants to remove signups."""
-        par = factories.ParticipantFactory.create(lotteryinfo=None)
+        par = factories.ParticipantFactory.create()
 
         keep, kill = (
             factories.SignUpFactory.create(
@@ -314,7 +314,7 @@ class LotteryPreferencesSignupTests(TestCase, LotteryPrefsPostHelper):
 
     def test_rank_signups(self):
         """Participants may manually rank their signups in order of preference."""
-        par = factories.ParticipantFactory.create(lotteryinfo=None)
+        par = factories.ParticipantFactory.create()
 
         okay, fave, hate = (
             factories.SignUpFactory.create(

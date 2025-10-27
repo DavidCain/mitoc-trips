@@ -77,10 +77,11 @@ class CustomMessagesMiddlewareTests(TestCase):
     def test_participant_with_insecure_password(self):
         """A participant with an insecure password will have a message generated."""
         self.request.user = self.user
-        self.request.participant = ParticipantFactory.create(
+        par = ParticipantFactory.create(
             user_id=self.user.pk,
-            passwordquality=PasswordQualityFactory.create(is_insecure=True),
         )
+        PasswordQualityFactory.create(participant=par, is_insecure=True)
+        self.request.participant = par
 
         with mock.patch.object(security.messages, "add_message") as add_message:
             self.cm(self.request)
@@ -89,10 +90,11 @@ class CustomMessagesMiddlewareTests(TestCase):
     def test_participant_with_secure_password(self):
         """A participant with secure password will have no messages generated."""
         self.request.user = self.user
-        self.request.participant = ParticipantFactory.create(
+        par = ParticipantFactory.create(
             user_id=self.user.pk,
-            passwordquality=PasswordQualityFactory.create(is_insecure=False),
         )
+        PasswordQualityFactory.create(participant=par, is_insecure=False)
+        self.request.participant = par
 
         with mock.patch.object(security.messages, "add_message") as add_message:
             self.cm(self.request)

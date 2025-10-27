@@ -19,9 +19,9 @@ class StudentTravelFormTest(TestCase):
         self.trip = factories.TripFactory.create(
             name="Mt. Lafayette",
             trip_date=date(2019, 10, 12),
-        )
-        factories.TripInfoFactory.create(
-            trip=self.trip, start_location="Old Bridle Path trailhead"
+            info=factories.TripInfoFactory.create(
+                start_location="Old Bridle Path trailhead"
+            ),
         )
         self.trip.leaders.add(self.leader)
 
@@ -164,8 +164,8 @@ class StudentTravelFormTest(TestCase):
 
     def test_trip_without_itinerary(self):
         """Prove that we can send emails without an itinerary (a former requirement)"""
-        self.trip.info.delete()
-        self.trip.refresh_from_db()
+        self.trip.info = None
+        self.trip.save()
 
         sole.send_email_to_funds(self.trip)
 
