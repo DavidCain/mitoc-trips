@@ -13,9 +13,6 @@ if os.getenv("EC2_IP"):
 
 ADMINS = (("David Cain", "davidjosephcain@gmail.com"),)
 
-SERVER_EMAIL = "no-reply@mitoc.org"
-DEFAULT_FROM_EMAIL = "mitoc-trips@mit.edu"
-
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 
 EMAIL_BACKEND = "django_smtp_ssl.SSLEmailBackend"

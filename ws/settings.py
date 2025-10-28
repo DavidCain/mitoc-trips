@@ -44,6 +44,9 @@ PRIVACY_AVATAR_URL = os.getenv(
     "PRIVACY_AVATAR_URL", "https://s3.amazonaws.com/mitoc-trips/privacy/avatar.svg"
 )
 
+SERVER_EMAIL = "no-reply@mitoc.org"
+DEFAULT_FROM_EMAIL = "mitoc-trips@mit.edu"
+
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 PROJECT_ROOT = os.path.normpath(os.path.dirname(__file__))
 
