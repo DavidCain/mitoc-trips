@@ -24,6 +24,11 @@
   </dd>
   <dt>Desired rating:</dt>
   <dd>{{ application.desired_rating }}</dd>
+  {# Field was only added on 2026 applications #}
+  {% if application.aspirational_rating %}
+    <dt>Aspirational rating:</dt>
+    <dd>{{ application.aspirational_rating }}</dd>
+  {% endif %}
   {% if assigned_rating %}
     <dt>Assigned rating:</dt>
     <dd>{{ assigned_rating.rating }}</dd>
