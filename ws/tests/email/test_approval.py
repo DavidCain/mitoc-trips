@@ -105,11 +105,12 @@ class ReminderEmailTest(TestCase):
 
     def test_trip_leaves_tomorrow(self) -> None:
         trip = factories.TripFactory.create(info=None, trip_date=date(2025, 11, 1))
-        factories.ChairApprovalReminderFactory.create(
-            trip=trip,
-            activity=trip.activity,
-            had_trip_info=False,
-        )
+        with freeze_time("2025-10-30T19:00-05:00"):
+            factories.ChairApprovalReminderFactory.create(
+                trip=trip,
+                activity=trip.activity,
+                had_trip_info=False,
+            )
         # Even though we've sent a reminder *and* it still lacks itinerary...
         with freeze_time("2025-10-31T19:00-05:00"):
             self.assertTrue(approval.at_least_one_trip_merits_reminder_email([trip]))
