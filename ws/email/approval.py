@@ -180,11 +180,15 @@ def emails_for_activity_chair(activity: enums.Activity) -> list[str]:
 def notify_activity_chair(
     activity_enum: enums.Activity,
     trips: list[models.Trip],
-) -> None:
+) -> EmailMultiAlternatives:
     context = {"activity_enum": activity_enum, "trips": trips}
 
-    text_content = get_template("email/sole/trips_needing_approval.txt").render(context)
-    html_content = get_template("email/sole/trips_needing_approval.html").render(
+    text_content = (
+        get_template("email/approval/trips_needing_approval.txt")
+        .render(context)
+        .strip()
+    )
+    html_content = get_template("email/approval/trips_needing_approval.html").render(
         context
     )
     msg = EmailMultiAlternatives(
@@ -210,3 +214,4 @@ def notify_activity_chair(
             for trip in trips
         ]
     )
+    return msg

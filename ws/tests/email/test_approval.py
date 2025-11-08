@@ -1,9 +1,12 @@
 from datetime import date
+from unittest import mock
 
+from bs4 import BeautifulSoup
+from django.core.mail import EmailMultiAlternatives
 from django.test import TestCase
 from freezegun import freeze_time
 
-from ws import enums
+from ws import enums, models
 from ws.email import approval
 from ws.tests import factories
 
@@ -159,3 +162,47 @@ class ReminderEmailTest(TestCase):
             self.assertTrue(
                 approval.at_least_one_trip_merits_reminder_email([*trips, new_trip])
             )
+
+    @freeze_time("2025-11-06 12:45 -05:00")
+    def test_notify_activity_chair(self) -> None:
+        trip_1 = factories.TripFactory.create(
+            name="Whitney G", trip_date=date(2025, 11, 7)
+        )
+        trip_2 = factories.TripFactory.create(
+            name="Moby G", trip_date=date(2025, 11, 7)
+        )
+        with mock.patch.object(EmailMultiAlternatives, "send") as send:
+            msg = approval.notify_activity_chair(
+                activity_enum=enums.Activity.CLIMBING, trips=[trip_1, trip_2]
+            )
+        reminder = models.ChairApprovalReminder.objects.get(trip=trip_1)
+        self.assertEqual(reminder.activity, enums.Activity.CLIMBING.value)
+        self.assertIs(reminder.had_trip_info, False)
+        send.assert_called_once()
+        expected_msg = "\n".join(
+            [
+                "2 climbing trips need activity chair approval as of Thursday, November 6",
+                "https://mitoc-trips.mit.edu/climbing/trips/",
+                "",
+                "- Whitney G (Fri, Nov 7)",
+                "- Moby G (Fri, Nov 7)",
+            ]
+        )
+        self.assertIn(expected_msg, msg.body)
+
+        self.assertEqual(len(msg.alternatives), 1)
+        html, attachment_type = msg.alternatives[0]
+        self.assertEqual(attachment_type, "text/html")
+        assert isinstance(html, str)
+        soup = BeautifulSoup(html, "html.parser")
+        assert soup.title is not None
+        self.assertEqual(
+            soup.title.text,
+            "Climbing trips need activity chair approval as of Thursday, November 6",
+        )
+
+        trip_link = soup.find(
+            href=f"https://mitoc-trips.mit.edu/climbing/trips/{trip_1.pk}/"
+        )
+        assert trip_link is not None
+        self.assertEqual(trip_link.text, "Whitney G")

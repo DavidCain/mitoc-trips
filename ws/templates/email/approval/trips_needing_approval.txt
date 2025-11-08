@@ -1,6 +1,14 @@
-{{ trips|length }} trip{{ trips|pluralize }} are awaiting approval.
-{% url 'manage_trips' trip.required_activity_enum.value %}
+{% load general_tags %}
+{{ trips|length }} {{ activity_enum.label|lower }} trip{{ trips|pluralize }} need activity chair approval as of {% now "l, F j" %}
+https://mitoc-trips.mit.edu{% url 'manage_trips' activity_enum.value %}
 
+{% gapless %}
 {% for trip in trips%}
 - {{ trip.name }} ({{ trip.trip_date|date:"D, M j" }})
 {% endfor %}
+{% endgapless %}
+
+You received this email because you are an activity chair.
+The only way to unsubscribe to these automated messages is to remove
+yourself from the activity chair mailing list. If you have questions,
+contact mitoc-webmaster@mit.edu or mitoc-owner@mit.edu.
