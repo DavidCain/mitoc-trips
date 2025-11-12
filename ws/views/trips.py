@@ -7,7 +7,7 @@ attended by any interested participants.
 from collections import defaultdict
 from collections.abc import Iterator
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, timedelta
 from typing import TYPE_CHECKING, Any, cast
 from urllib.parse import urlencode
 
@@ -16,7 +16,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
-from django.db.models import Q, QuerySet
+from django.db.models import Max, Q, QuerySet
 from django.forms.fields import TypedChoiceField
 from django.forms.utils import ErrorList
 from django.http import (
@@ -791,12 +791,37 @@ class ApproveTripsView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         trips = list(context["object_list"])
-        context["trips_needing_approval"] = trips
-        context["leader_emails_missing_itinerary"] = ", ".join(
-            sorted(set(self._leader_emails_missing_itinerary(trips)))
+        today = local_date()
+        cutoff = today - timedelta(days=180)
+        recent_trips = list(
+            models.Trip.objects.filter(
+                activity=self.kwargs["activity"],
+                trip_date__lt=today,
+                trip_date__gt=cutoff,
+            )
+            # Notably, we only created these records starting August 26, 2025
+            .annotate(last_approval=Max("chairapproval__time_created"))
+            .select_related("info")
+            .prefetch_related("leaders", "leaders__leaderrating_set")
+            .order_by("-trip_date")
         )
-        context["first_unapproved_trip"] = trips[0] if trips else None
-        return context
+        return {
+            "trips_needing_approval": trips,
+            "recent_trips": recent_trips,
+            "cutoff": cutoff,
+            "num_trips_approved": sum(
+                1
+                for trip in recent_trips
+                if trip.chair_approved
+                # Let's count trips with at least one chair approving.
+                # (At time of writing, updates *rescinded* trip approval!)
+                or trip.last_approval
+            ),
+            "leader_emails_missing_itinerary": ", ".join(
+                sorted(set(self._leader_emails_missing_itinerary(trips)))
+            ),
+            "first_unapproved_trip": trips[0] if trips else None,
+        }
 
 
 class RunTripLotteryView(DetailView, TripLeadersOnlyView):

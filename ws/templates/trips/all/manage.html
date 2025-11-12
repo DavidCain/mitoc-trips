@@ -31,4 +31,11 @@
   </p>
 {% endif %}
 
+{% if recent_trips %}
+  <hr />
+  <h2>Recent trips</h2>
+  <p>{{ num_trips_approved }} / {{ recent_trips|length }} trips since {{ cutoff }} received chair approval.</p>
+  {% trip_list_table recent_trips True %}
+{% endif %}
+
 {% endblock content %}

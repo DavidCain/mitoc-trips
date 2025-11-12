@@ -23,11 +23,22 @@
     {% for trip in trip_list %}
       <tr>
         <td>
-          {% trip_icon trip %}
           {% if approve_mode %}
+            {# The trip icon is generally not that helpful when all trips are for the same activity chair. #}
+            {# For past (already approved) trips, we'll reclaim the space to render approval status #}
+            {% if trip.chair_approved %}
+              {# We just surface the date -- more details can be found in the trip page #}
+              <span {% if trip.last_approval %}uib-tooltip="Approved {{ trip.last_approval }}"{% endif %}>
+                <i class="fas fa-fw fa-check text-success"></i>
+              </span>
+            {% else %}
+              {# Old unapproved trips (or upcoming trips) can still show an icon #}
+              {% trip_icon trip %}
+            {% endif %}
             <a href="{% url 'view_trip_for_approval' trip.activity trip.pk %}">
           {% else %}
             <a href="{% url 'view_trip' trip.pk %}">
+            {% trip_icon trip %}
           {% endif %}
               {{ trip.name|truncatechars:45 }}
             </a>

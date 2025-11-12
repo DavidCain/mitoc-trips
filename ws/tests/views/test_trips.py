@@ -1,7 +1,8 @@
 import re
 from collections.abc import Iterator
-from datetime import date
+from datetime import date, datetime
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from bs4 import BeautifulSoup
 from django.http import HttpResponseBase
@@ -944,11 +945,18 @@ class ApproveTripsViewTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["first_unapproved_trip"], unapproved)
 
-    @freeze_time("2019-07-05 12:25:00 EST")
-    def test_past_unapproved_trips_ignored(self):
+    @freeze_time("2019-07-05 12:25:00 EDT")
+    def test_past_unapproved_trips(self):
         """We only prompt chairs to look at trips which are upcoming & unapproved."""
-        # Unapproved, but it's in the past!
-        self._make_climbing_trip(trip_date=date(2019, 7, 4))
+        old_approved_trip = self._make_climbing_trip(trip_date=date(2019, 7, 3))
+        old_unapproved_trip = self._make_climbing_trip(trip_date=date(2019, 7, 4))
+        old_approved_trip.chair_approved = True
+
+        with freeze_time("2019-07-02 12:25:00 EDT"):
+            factories.ChairApprovalFactory.create(
+                trip=old_approved_trip,
+                trip_edit_revision=old_approved_trip.edit_revision,
+            )
 
         perm_utils.make_chair(self.user, enums.Activity.CLIMBING)
         response = self.client.get("/climbing/trips/")
@@ -963,6 +971,19 @@ class ApproveTripsViewTest(TestCase):
         context = self.client.get("/climbing/trips/").context
         self.assertEqual(context["trips_needing_approval"], [fri, sat, sun])
         self.assertEqual(context["first_unapproved_trip"], fri)
+
+        # We do, however, summarize these trips!
+        self.assertEqual(context["num_trips_approved"], 1)
+        self.assertEqual(
+            context["recent_trips"],
+            # Most recent trip appears first
+            [old_unapproved_trip, old_approved_trip],
+        )
+        self.assertIsNone(context["recent_trips"][0].last_approval)
+        self.assertEqual(
+            context["recent_trips"][1].last_approval,
+            datetime(2019, 7, 2, 12, 25, tzinfo=ZoneInfo("America/New_York")),
+        )
 
     @freeze_time("2019-07-05 12:25:00 EST")
     def test_trips_with_itinerary_first(self):
