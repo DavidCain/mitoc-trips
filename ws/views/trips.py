@@ -345,6 +345,9 @@ class CreateTripView(CreateView):
     def _can_select_ws_program(form: forms.TripForm) -> bool:
         program_field = cast(TypedChoiceField, form.fields["program"])
 
+        # Narrow down types so we can successfully iterate!
+        assert not callable(program_field.choices)
+
         for category, choices in program_field.choices:
             if not category:  # Ignore the default "none" option
                 continue
