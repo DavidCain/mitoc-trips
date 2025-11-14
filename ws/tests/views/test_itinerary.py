@@ -2,6 +2,7 @@ from datetime import UTC, date, datetime
 
 from bs4 import BeautifulSoup
 from django.contrib.auth.models import Group
+from django.http.response import HttpResponseBase
 from django.test import TestCase
 from freezegun import freeze_time
 
@@ -31,8 +32,10 @@ class TripItineraryViewTest(TestCase):
             program=enums.Program.CLIMBING.value, trip_date=date(2018, 2, 18)
         )
 
-    def _render(self):
-        response = self.client.get(f"/trips/{self.trip.pk}/itinerary/")
+    def _render(
+        self, trip_id: int | None = None
+    ) -> tuple[HttpResponseBase, BeautifulSoup]:
+        response = self.client.get(f"/trips/{trip_id or self.trip.pk}/itinerary/")
         soup = BeautifulSoup(response.content, "html.parser")
         return response, soup
 
@@ -104,6 +107,18 @@ class TripItineraryViewTest(TestCase):
 
         self.trip.refresh_from_db()
         self.assertIsNotNone(self.trip.info)
+
+    @freeze_time("2018-02-16 18:45:00 EST")
+    def test_boating_trip(self) -> None:
+        trip = factories.TripFactory.create(
+            program=enums.Program.BOATING.value, trip_date=date(2018, 2, 18)
+        )
+        trip.leaders.add(self.participant)
+        _, soup = self._render(trip.pk)
+        itinerary = soup.find(id="div_id_itinerary")
+        assert itinerary is not None
+        self.assertIn("A detailed account of your float plan.", itinerary.text)
+        self.assertNotIn("hike", itinerary.text)
 
     @freeze_time("2018-02-15 08:45:00 EST")
     def test_no_longer_editable(self):

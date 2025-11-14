@@ -59,10 +59,12 @@ class TripItineraryView(UpdateView, TripLeadersOnlyView):
         self.trip = self.get_object()
         return {"trip": self.trip}
 
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs["instance"] = self.trip.info
-        return kwargs
+    def get_form_kwargs(self) -> dict[str, Any]:
+        return {
+            **super().get_form_kwargs(),
+            "trip": self.trip,
+            "instance": self.trip.info,
+        }
 
     def get_form(self, form_class=None):
         form = super().get_form(form_class)

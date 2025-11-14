@@ -291,6 +291,18 @@ class TripInfoForm(forms.ModelForm):
             "itinerary",
         ]
 
+    def __init__(self, *args: Any, trip: models.Trip, **kwargs: Any) -> None:
+        # Trip Info forms are linked to trips via a column on the Trip object.
+        # We pass in the corresponding trip when initializing the form!
+        super().__init__(*args, **kwargs)
+        if trip.program_enum == enums.Program.BOATING:
+            self.fields["itinerary"].help_text = (
+                "A detailed account of your float plan. "
+                "Where will you be going? "
+                "What are the put-it and take-out locations? "
+                "What types of watercraft will you be using, and what's your injury response plan?"
+            )
+
 
 class TripForm(forms.ModelForm):
     class Meta:

@@ -23,7 +23,7 @@ def show_wimp(
 
 
 @register.inclusion_tag("for_templatetags/trip_itinerary.html")
-def trip_itinerary(trip):
+def trip_itinerary(trip: models.Trip) -> dict[str, Any]:
     """Return a stripped form for read-only display.
 
     Drivers will be displayed separately, and the 'accuracy' checkbox
@@ -31,7 +31,7 @@ def trip_itinerary(trip):
     """
     if not trip.info:
         return {"info_form": None}
-    info_form = forms.TripInfoForm(instance=trip.info)
+    info_form = forms.TripInfoForm(instance=trip.info, trip=trip)
     info_form.fields.pop("drivers")
     info_form.fields.pop("accurate")
     return {"info_form": info_form}
