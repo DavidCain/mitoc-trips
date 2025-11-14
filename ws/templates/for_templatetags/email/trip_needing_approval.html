@@ -10,7 +10,7 @@
         {% if trip.info %}
           Submitted, last updated {{ trip.info.last_updated }}
         {% elif not trip.info_editable %}
-          Will become available on {{ itinerary_available_at|date:"l, M jS" }}
+          Will become available on {{ trip.itinerary_available_at|date:"l, M jS" }}
         {% else %}
           Missing!
         {% endif %}

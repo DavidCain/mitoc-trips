@@ -8,7 +8,7 @@ from freezegun import freeze_time
 
 from ws import enums, models
 from ws.email import approval
-from ws.tests import factories
+from ws.tests import factories, strip_whitespace
 
 
 class ReminderEmailTest(TestCase):
@@ -169,7 +169,7 @@ class ReminderEmailTest(TestCase):
             name="Whitney G", trip_date=date(2025, 11, 7)
         )
         trip_2 = factories.TripFactory.create(
-            name="Moby G", trip_date=date(2025, 11, 7)
+            name="Moby G", trip_date=date(2025, 11, 16)
         )
         with mock.patch.object(EmailMultiAlternatives, "send") as send:
             msg = approval.notify_activity_chair(
@@ -185,7 +185,7 @@ class ReminderEmailTest(TestCase):
                 "https://mitoc-trips.mit.edu/climbing/trips/",
                 "",
                 "- Whitney G (Fri, Nov 7)",
-                "- Moby G (Fri, Nov 7)",
+                "- Moby G (Sun, Nov 16)",
             ]
         )
         self.assertIn(expected_msg, msg.body)
@@ -206,3 +206,12 @@ class ReminderEmailTest(TestCase):
         )
         assert trip_link is not None
         self.assertEqual(trip_link.text, "Whitney G")
+
+        moby_g = soup.find(string="Moby G")
+        assert moby_g is not None
+        first_label = moby_g.find_next("li")
+        assert first_label is not None
+        self.assertEqual(
+            strip_whitespace(first_label.text),
+            "Itinerary: Will become available on Thursday, Nov 13th",
+        )
