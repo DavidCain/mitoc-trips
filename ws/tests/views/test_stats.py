@@ -1,9 +1,258 @@
+import unittest
+from datetime import date
+
 from bs4 import BeautifulSoup
+from django.http import HttpResponseRedirect
 from django.test import TestCase
 from freezegun import freeze_time
 
-from ws import models
+from ws import enums, models
 from ws.tests import factories, strip_whitespace
+from ws.views import stats
+
+
+class SummarizeFiltersTest(unittest.TestCase):
+    def test_just_start_date(self) -> None:
+        self.assertEqual(
+            stats.summarize_filters(
+                {
+                    "q": "",
+                    "start_date": date(2024, 12, 1),
+                    "end_date": None,
+                    "program": "",
+                    "winter_terrain_level": "",
+                    "trip_type": "",
+                }
+            ),
+            "All trips led since 2024-12-01",
+        )
+
+    def test_date_range(self) -> None:
+        self.assertEqual(
+            stats.summarize_filters(
+                {
+                    "q": "",
+                    "start_date": date(2024, 12, 1),
+                    "end_date": date(2025, 11, 30),
+                    "program": "",
+                    "winter_terrain_level": "",
+                    "trip_type": "",
+                }
+            ),
+            "All trips led between 2024-12-01 and 2025-11-30",
+        )
+
+    def test_program(self) -> None:
+        self.assertEqual(
+            stats.summarize_filters(
+                {
+                    "q": "",
+                    "start_date": date(2024, 12, 1),
+                    "end_date": None,
+                    "program": "winter_school",
+                    "winter_terrain_level": "",
+                    "trip_type": "",
+                }
+            ),
+            "Winter School trips led since 2024-12-01",
+        )
+
+    def test_program_and_trip_type(self) -> None:
+        self.assertEqual(
+            stats.summarize_filters(
+                {
+                    "q": "",
+                    "start_date": date(2024, 12, 1),
+                    "end_date": None,
+                    "program": "climbing",
+                    "winter_terrain_level": "",
+                    "trip_type": "climbing_trad",
+                }
+            ),
+            "Trad climbing trips led since 2024-12-01, Climbing",
+        )
+
+    def test_all_filters(self) -> None:
+        self.assertEqual(
+            stats.summarize_filters(
+                {
+                    "q": "Frankenstein",
+                    "start_date": date(2024, 12, 1),
+                    "end_date": date(2025, 12, 1),
+                    "program": "winter_school",
+                    "winter_terrain_level": "B",
+                    "trip_type": "climbing_ice",
+                }
+            ),
+            "Ice climbing B 'Frankenstein' trips led between 2024-12-01 and 2025-12-01, Winter School",
+        )
+
+
+class LeaderboardTest(TestCase):
+    def setUp(self) -> None:
+        super().setUp()
+        # Intentionally create leaders such that PKs are not alphabetical by name.
+        self.tim = factories.ParticipantFactory.create(
+            name="Tim Beaver", email="tim@mit.edu"
+        )
+        self.emily = factories.ParticipantFactory.create(
+            name="Emily Emory", email="emily@emory.edu"
+        )
+        self.harry = factories.ParticipantFactory.create(
+            name="Harold Harvard", email="harry@harvard.edu"
+        )
+
+        self.client.force_login(self.tim.user)
+        factories.LeaderRatingFactory.create(participant=self.tim)
+
+    def _set_up_trips(self) -> None:
+        # Trips that tests will intentionally exclude
+        for will_not_match in [
+            factories.TripFactory.create(
+                # Out of date range
+                trip_date=date(2023, 1, 13),
+                program=enums.Program.CLIMBING.value,
+                trip_type=enums.TripType.TRAD_CLIMBING.value,
+            ),
+            factories.TripFactory.create(
+                trip_date=date(2023, 12, 25),
+                program=enums.Program.CLIMBING.value,
+                # Wrong trip type
+                trip_type=enums.TripType.GYM_CLIMBING.value,
+            ),
+        ]:
+            will_not_match.leaders.add(self.tim)
+            will_not_match.leaders.add(self.emily)
+            will_not_match.leaders.add(self.harry)
+
+        # Trips we'll actually consider in the leaderboard!
+        jan_2024 = factories.TripFactory.create(
+            trip_date=date(2024, 1, 13),
+            program=enums.Program.CLIMBING.value,
+            trip_type=enums.TripType.TRAD_CLIMBING.value,
+        )
+        jan_2025 = factories.TripFactory.create(
+            trip_date=date(2025, 1, 11), program=enums.Program.WINTER_SCHOOL.value
+        )
+        dec_2025 = factories.TripFactory.create(
+            trip_date=date(2025, 12, 1), program=enums.Program.WINTER_NON_IAP.value
+        )
+
+        jan_2024.leaders.add(self.tim)
+        jan_2025.leaders.add(self.tim)
+        dec_2025.leaders.add(self.tim)
+
+        jan_2024.leaders.add(self.emily)
+
+        jan_2024.leaders.add(self.harry)
+        jan_2025.leaders.add(self.harry)
+
+    def test_must_be_logged_in(self) -> None:
+        self.client.logout()
+        response = self.client.get("/stats/leaderboard/")
+        self.assertEqual(response.status_code, 302)
+        assert isinstance(response, HttpResponseRedirect)
+        self.assertEqual(
+            response.url,
+            "/accounts/login/?next=/stats/leaderboard/",
+        )
+
+    def test_must_be_leader(self) -> None:
+        models.LeaderRating.objects.filter(participant=self.tim).delete()
+        response = self.client.get("/stats/leaderboard/")
+        self.assertEqual(response.status_code, 403)
+
+    def test_default(self) -> None:
+        self._set_up_trips()
+        with freeze_time("2025-11-15 09:00:00 EST"):
+            response = self.client.get("/stats/leaderboard/")
+        soup = BeautifulSoup(response.content, "html.parser")
+
+        # We only show the "clear filters" button if there are filters to clear
+        self.assertIsNone(soup.find(class_="btn-default"))
+
+        header = soup.find("h1")
+        assert header is not None
+        self.assertEqual(header.text, "All trips led since 2024-11-15")
+        tbody = soup.find("tbody")
+        assert tbody is not None
+        self.assertIn("Tim Beaver", tbody.text)
+        self.assertIn("Harold Harvard", tbody.text)
+        self.assertNotIn("Emily Emory", tbody.text)
+
+        # 1. Leaders are listed in order of the number of trips they've led.
+        # 2. Only programs in the range are rendered.
+        # 3. Only leaders who led 1+ trips are shown.
+        self.assertEqual(
+            response.context["rows"],
+            [
+                {
+                    "Name": f'<a href="/participants/{self.tim.pk}/">Tim Beaver</a>',
+                    "Email": "tim@mit.edu",
+                    "Trips led": 2,
+                    '<span uib-tooltip="Winter (outside IAP)"><i class="fa fw fa-snowflake"></i></span>': 1,
+                    '<span uib-tooltip="Winter School"><i class="fa fw fa-snowflake"></i></span>': 1,
+                },
+                {
+                    "Name": f'<a href="/participants/{self.harry.pk}/">Harold Harvard</a>',
+                    "Email": "harry@harvard.edu",
+                    "Trips led": 1,
+                    '<span uib-tooltip="Winter (outside IAP)"><i class="fa fw fa-snowflake"></i></span>': 0,
+                    '<span uib-tooltip="Winter School"><i class="fa fw fa-snowflake"></i></span>': 1,
+                },
+            ],
+        )
+
+    def test_filters(self) -> None:
+        self._set_up_trips()
+        response = self.client.get(
+            "/stats/leaderboard/"
+            "?program=climbing"
+            # There is a gym climbing trip in Dec of 2023
+            "&trip_type=climbing_trad"
+            # There will be other non-climbing trips in this range!
+            # There will also be climbing trips outside the range.
+            "&start_date=2023-12-01"
+            "&end_date=2025-02-28"
+        )
+        soup = BeautifulSoup(response.content, "html.parser")
+
+        clear = soup.find(class_="btn-default")
+        assert clear is not None
+        self.assertEqual(clear.text, "Clear filters")
+        self.assertEqual(clear.attrs["href"], "/stats/leaderboard/")
+
+        header = soup.find("h1")
+        assert header is not None
+        self.assertEqual(
+            header.text,
+            "Trad climbing trips led between 2023-12-01 and 2025-02-28, Climbing",
+        )
+
+        self.assertEqual(
+            response.context["rows"],
+            [
+                # There's a perfect tie, so we sort alphabetically
+                {
+                    "Name": f'<a href="/participants/{self.emily.pk}/">Emily Emory</a>',
+                    "Email": "emily@emory.edu",
+                    "Trips led": 1,
+                    '<span uib-tooltip="Climbing"><i class="fa fw fa-hand-rock"></i></span>': 1,
+                },
+                {
+                    "Name": f'<a href="/participants/{self.harry.pk}/">Harold Harvard</a>',
+                    "Email": "harry@harvard.edu",
+                    "Trips led": 1,
+                    '<span uib-tooltip="Climbing"><i class="fa fw fa-hand-rock"></i></span>': 1,
+                },
+                {
+                    "Name": f'<a href="/participants/{self.tim.pk}/">Tim Beaver</a>',
+                    "Email": "tim@mit.edu",
+                    "Trips led": 1,
+                    '<span uib-tooltip="Climbing"><i class="fa fw fa-hand-rock"></i></span>': 1,
+                },
+            ],
+        )
 
 
 class MembershipStatsViewTest(TestCase):

@@ -1,19 +1,58 @@
 {% extends "base.html" %}
+{% load crispy_forms_tags %}
 {% block head_title %}Leaderboard{% endblock head_title %}
 
 {% block content %}
   {{ block.super }}
+  <form action="" method="post">
+    {% csrf_token %}
+    {# Let's not render the querystring field (though it works) #}
+    <div class="row">
+      <div class="col-md-4">
+        {{ form.program|as_crispy_field }}
+      </div>
+      <div class="col-md-4">
+        {{ form.winter_terrain_level|as_crispy_field }}
+      </div>
+      <div class="col-md-4">
+        {{ form.trip_type|as_crispy_field }}
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-xs-6">
+        {{ form.start_date|as_crispy_field }}
+      </div>
+      <div class="col-xs-6">
+        {{ form.end_date|as_crispy_field }}
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Search</button>
+    {% if request.GET %}<a href="{% url 'leaderboard' %}" role="button" class="btn btn-default">Clear filters</a>{% endif %}
+  </form>
 
-  <h1>Leaderboard</h1>
-  <p class="lead">Unfortunately, the leaderboard is disabled for now.</p>
-  <p>The leaderboard was intended to help activity chairs identify active leaders. It also kindled some friendly competition among leaders.</p>
-
-  <p>Unfortunately, it was built with some tools that are in the process of being phased out. It also relied on some trip properties that are also being overhauled.</p>
-
-  <p>
-      <strong>It will be back</strong>, hopefully better than ever.
-      Future improvements will include the ability to filter by the actual <em>type</em> of trip (skiing, ice climbing, bouldering, etc.)
-      Stay tuned!
-  </p>
+  <h1>{{ leaderboard_title }}</h1>
+  {% if not rows %}
+    <div class="alert alert-warning">No trips found!</div>
+  {% else %}
+    <table class="footable">
+      <thead>
+        <tr>
+          {% for key in rows.0.keys %}
+            {# Kind of a janky hardcoding that all other columns are numeric, but :shrug: #}
+            <th{% if key != "Name" and key != "Email" %} data-type="numeric"{% endif %}>{{ key }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+          <tr>
+            {% for value in row.values %}
+              <td>{{ value }}</td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
 
 {% endblock content %}
