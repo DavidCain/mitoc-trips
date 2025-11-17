@@ -751,6 +751,61 @@ class SearchTripsViewTest(TestCase):
         self.assertIsNone(soup.find("table"))
         self.assertIn("No matching trips!", soup.text)
 
+    def test_terrain_level_on_any_program_okay(self) -> None:
+        factories.TripFactory.create(
+            name="Walk around the Fells",
+            program=enums.Program.WINTER_SCHOOL.value,
+            winter_terrain_level="A",
+        )
+        factories.TripFactory.create(
+            program=enums.Program.WINTER_SCHOOL.value, winter_terrain_level="B"
+        )
+        soup = BeautifulSoup(
+            self.client.get("/trips/search/?winter_terrain_level=A").content,
+            "html.parser",
+        )
+        table = soup.find("table")
+        assert table is not None
+        tbody = table.find("tbody")
+        assert tbody is not None
+        links = []
+        for trip in tbody.find_all("tr"):
+            link = trip.find("a")
+            assert link is not None
+            links.append(link)
+        self.assertEqual(
+            [link.text.strip() for link in links],
+            ["Walk around the Fells"],
+        )
+
+    def test_terrain_level_on_non_ws(self) -> None:
+        resp = self.client.post(
+            "/trips/search/", {"program": "climbing", "winter_terrain_level": "A"}
+        )
+        # We don't redirect to a happy GET url (with a 302)
+        self.assertEqual(resp.status_code, 200)
+        post_soup = BeautifulSoup(resp.content, "html.parser")
+        terrain_level = post_soup.find(id="div_id_winter_terrain_level")
+        assert terrain_level is not None
+        self.assertIn(
+            "Winter terrain levels only apply to winter trips",
+            terrain_level.text,
+        )
+
+        # It also works when searching with plain GET
+        soup = BeautifulSoup(
+            self.client.get(
+                "/trips/search/?program=climbing&winter_terrain_level=A"
+            ).content,
+            "html.parser",
+        )
+        terrain_level = soup.find(id="div_id_winter_terrain_level")
+        assert terrain_level is not None
+        self.assertIn(
+            "Winter terrain levels only apply to winter trips",
+            terrain_level.text,
+        )
+
     def test_empty_post_redirects(self):
         """Posting an empty form is valid, but we warn about it."""
         resp = self.client.post("/trips/search/", follow=True)
@@ -873,6 +928,22 @@ class SearchTripsViewTest(TestCase):
             [trip.find("a").text.strip() for trip in rows],
             ["New Hampshire Frankenstein ice"],
         )
+
+    def test_search_date_range(self) -> None:
+        factories.TripFactory.create(name="June trip", trip_date=date(2024, 6, 1))
+        factories.TripFactory.create(name="July trip", trip_date=date(2024, 7, 1))
+        factories.TripFactory.create(name="Aug trip", trip_date=date(2024, 8, 1))
+
+        soup = BeautifulSoup(
+            self.client.get(
+                "/trips/search/?start_date=2024-06-24&end_date=2024-07-07"
+            ).content,
+            "html.parser",
+        )
+        tbody = soup.find("tbody")
+        assert tbody is not None
+        self.assertEqual(len(tbody.find_all("tr")), 1)
+        self.assertIn("July trip", tbody.text)
 
 
 class ApproveTripsViewTest(TestCase):

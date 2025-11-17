@@ -1,4 +1,5 @@
 from collections.abc import Iterator
+from datetime import date
 from typing import Any
 
 from django import forms
@@ -266,11 +267,39 @@ class TripSearchForm(forms.Form):
             ],
         ],
     )
+    start_date = forms.DateField(required=False)
+    end_date = forms.DateField(required=False)
 
-    def __init__(self, *args, **kwargs):
+    def clean_winter_terrain_level(self) -> str:
+        """Searching for terrain level on anything but winter trips makes no sense."""
+        terrain_level: str = self.cleaned_data["winter_terrain_level"]
+        if (
+            terrain_level
+            and self.cleaned_data["program"]
+            and (
+                enums.Program(self.cleaned_data["program"])
+                not in {
+                    enums.Program.WINTER_SCHOOL,
+                    enums.Program.WINTER_NON_IAP,
+                }
+            )
+        ):
+            raise ValidationError("Winter terrain levels only apply to winter trips")
+        return terrain_level
+
+    def clean_end_date(self) -> date | None:
+        end_date: date | None = self.cleaned_data["end_date"]
+        if "start_date" not in self.cleaned_data:
+            return end_date
+        start_date = self.cleaned_data["start_date"]
+        if end_date and (end_date < start_date):
+            raise ValidationError("End date must come after start date")
+        return end_date
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.fields["q"].widget.attrs["placeholder"] = "Franconia Notch..."
-        self.fields["q"].label = False
+        self.fields["q"].label = ""
 
 
 class TripInfoForm(forms.ModelForm):

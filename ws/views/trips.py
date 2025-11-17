@@ -22,6 +22,7 @@ from django.forms.utils import ErrorList
 from django.http import (
     Http404,
     HttpRequest,
+    HttpResponse,
     HttpResponseBadRequest,
     HttpResponseBase,
     HttpResponseRedirect,
@@ -694,7 +695,7 @@ class TripSearchView(ListView, FormView):
     query: str = ""
     limit: int = 100
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
         context["has_valid_search"] = any(
             self.request.GET.get(field)
@@ -710,6 +711,12 @@ class TripSearchView(ListView, FormView):
             for label in self.form_class.declared_fields
         }
 
+    def form_invalid(self, form: forms.TripSearchForm) -> HttpResponse:
+        # Fix a multiple inheritance edge case that breaks rendering, specifically
+        # prevent `get_context_data()` from failing on missing `object_list`
+        self.object_list = []
+        return super().form_invalid(form)
+
     def form_valid(self, form: forms.TripSearchForm) -> HttpResponseRedirect:
         """Populate successful form contents into the URL."""
         params = {
@@ -724,20 +731,32 @@ class TripSearchView(ListView, FormView):
             messages.error(self.request, "Specify a search query and/or some filters!")
         return redirect(url)
 
+    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        # This view implements some form logic directly allowing query args.
+        # So as to handle the case of loading the page with invalid args, validate!
+        form = self.form_class(self.request.GET)
+        if not form.is_valid():
+            return self.form_invalid(form)
+        return super().get(request, *args, **kwargs)
+
     def get_queryset(self) -> QuerySet[models.Trip]:
         """Return sorted trip matches based on the query and/or filters."""
-        if not self.request.GET:
+        form = self.form_class(self.request.GET)
+        if not (self.request.GET and form.is_valid()):
             return models.Trip.objects.none()
 
-        query = self.request.GET.get("q", "")
         specified_filters = {
             field: value
-            for field, value in self.request.GET.items()
+            for field, value in form.cleaned_data.items()
             if value and field in {"winter_terrain_level", "trip_type", "program"}
         }
+        if form.cleaned_data["start_date"]:
+            specified_filters["trip_date__gte"] = form.cleaned_data["start_date"]
+        if form.cleaned_data["end_date"]:
+            specified_filters["trip_date__lte"] = form.cleaned_data["end_date"]
         return annotated_for_trip_list(
             search_trips(
-                query,
+                form.cleaned_data["q"],
                 filters=Q(**specified_filters) if specified_filters else None,
                 limit=self.limit,
             ),
