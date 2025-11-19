@@ -58,7 +58,7 @@ class ReminderEmailTest(TestCase):
         self.assertEqual(len(log.records), 1)
         self.assertEqual(
             log.records[0].message,
-            "Trying to send another reminder at 2025-11-25 07:45:00-05:00, less than an hour since last reminder email at 2025-11-25 12:00:00+00:00",
+            "Trying to send another reminder for climbing trips at 2025-11-25 07:45:00-05:00, less than an hour since last reminder email at 2025-11-25 12:00:00+00:00",
         )
 
         # We can, however, notify *other* activity chairs!

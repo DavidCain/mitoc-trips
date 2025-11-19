@@ -63,7 +63,8 @@ def _notified_chairs_too_recently(trips: list[models.Trip]) -> bool:
     else:
         if last_reminder_sent.time_created > (now - timedelta(minutes=55)):
             logger.error(
-                "Trying to send another reminder at %s, less than an hour since last reminder email at %s",
+                "Trying to send another reminder for %s trips at %s, less than an hour since last reminder email at %s",
+                ", ".join(trip_activities),
                 now,
                 last_reminder_sent.time_created,
             )
@@ -191,8 +192,9 @@ def notify_activity_chair(
     html_content = get_template("email/approval/trips_needing_approval.html").render(
         context
     )
+
     msg = EmailMultiAlternatives(
-        f"{len(trips)} {activity_enum.label} trip{'' if len(trips) == 1 else 's'} need approval",
+        f"{len(trips)} {activity_enum.label} {'trip needs' if len(trips) == 1 else 'trips need'} approval",
         text_content,
         to=emails_for_activity_chair(activity_enum),
         # TEMPORARY while we make sure this feature works as expected.

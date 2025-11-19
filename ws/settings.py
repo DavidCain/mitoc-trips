@@ -160,7 +160,8 @@ CELERY_BEAT_SCHEDULE = {
     },
     "email-all-activity-chairs-about-unapproved-trips": {
         "task": "ws.tasks.email_all_activity_chairs_about_unapproved_trips",
-        "schedule": crontab(hour=17),
+        # 10 am and 7 pm daily
+        "schedule": crontab(hour="14,23", minute="59"),
     },
 }
 
