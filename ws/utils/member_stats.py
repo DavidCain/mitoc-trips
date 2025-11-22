@@ -3,12 +3,13 @@ from __future__ import annotations
 import enum
 import logging
 from datetime import datetime, timedelta
-from typing import TYPE_CHECKING, Any, NamedTuple, assert_never
+from typing import TYPE_CHECKING, Any, NamedTuple
 
 from allauth.account.models import EmailAddress
 from django.db.models import Count, Exists, OuterRef
 from django.db.models.functions import Lower
 from mitoc_const import affiliations
+from typing_extensions import assert_never
 
 from ws import models, tasks
 
