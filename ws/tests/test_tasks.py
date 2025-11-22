@@ -351,4 +351,8 @@ class UnapprovedTripsReminderTest(TestCase):
             tasks.email_activity_chair_about_unapproved_trips(
                 enums.Activity.HIKING.value, [trip.id]
             )
-        send_email.assert_called_once_with(enums.Activity.HIKING, [trip])
+        send_email.assert_called_once_with(
+            enums.Activity.HIKING,
+            [trip],
+            [f"trip #{trip.pk} starts very soon (on 2025-10-26) but has no approval!"],
+        )

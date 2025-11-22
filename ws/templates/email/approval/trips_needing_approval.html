@@ -24,4 +24,9 @@
   <a href="mailto:mitoc-webmaster@mit.edu" style="text-decoration: underline; color: #999999; font-size: 12px; text-align: center;">mitoc-webmaster@mit.edu</a>
   or
   <a href="mailto:mitoc-owner@mit.edu" style="text-decoration: underline; color: #999999; font-size: 12px; text-align: center;">mitoc-owner@mit.edu</a>.
+
+  {% if reasons_to_send %}
+  <hl>
+  We sent this reminder because {{ reasons_to_send|join:', ' }}
+  {% endif %}
 {% endblock footer %}

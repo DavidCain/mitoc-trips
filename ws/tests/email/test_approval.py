@@ -13,13 +13,11 @@ from ws.tests import factories, strip_whitespace
 
 class ReminderEmailTest(TestCase):
     def test_no_trips(self) -> None:
-        self.assertFalse(approval.at_least_one_trip_merits_reminder_email([]))
+        self.assertFalse(approval.reasons_to_remind_activity_chairs([]))
 
     def test_trip_without_required_activity(self) -> None:
         circus_trip = factories.TripFactory.create(program=enums.Program.CIRCUS.value)
-        self.assertFalse(
-            approval.at_least_one_trip_merits_reminder_email([circus_trip])
-        )
+        self.assertFalse(approval.reasons_to_remind_activity_chairs([circus_trip]))
 
     def test_past_trips_ignored(self) -> None:
         """Even if never approved, we missed the window to approve them."""
@@ -28,14 +26,14 @@ class ReminderEmailTest(TestCase):
         # Same day it'd be remindable!
         with freeze_time("2025-12-01 23:59-05:00"):
             self.assertEqual(
-                approval.at_least_one_trip_merits_reminder_email([trip]),
+                approval.reasons_to_remind_activity_chairs([trip]),
                 [
-                    f"Trip #{trip.pk} starts very soon (on 2025-12-01) but has no approval!"
+                    f"trip #{trip.pk} starts very soon (on 2025-12-01) but has no approval!"
                 ],
             )
         # Next day though? Window is gone.
         with freeze_time("2025-12-02 00:10-05:00"):
-            self.assertFalse(approval.at_least_one_trip_merits_reminder_email([trip]))
+            self.assertFalse(approval.reasons_to_remind_activity_chairs([trip]))
 
     def test_reminded_too_recently(self) -> None:
         """Ensure we have a very simple backstop against spam.
@@ -54,7 +52,7 @@ class ReminderEmailTest(TestCase):
                 had_trip_info=False,
             )
         with freeze_time("2025-11-25 12:45 UTC"), self.assertLogs(level="ERROR") as log:
-            self.assertFalse(approval.at_least_one_trip_merits_reminder_email([trip]))
+            self.assertFalse(approval.reasons_to_remind_activity_chairs([trip]))
         self.assertEqual(len(log.records), 1)
         self.assertEqual(
             log.records[0].message,
@@ -67,7 +65,11 @@ class ReminderEmailTest(TestCase):
                 program=enums.Program.HIKING.value,
                 trip_date=date(2025, 11, 26),
             )
-            self.assertTrue(approval.at_least_one_trip_merits_reminder_email([trip]))
+            reasons = approval.reasons_to_remind_activity_chairs([trip])
+        self.assertEqual(
+            reasons,
+            [f"trip #{trip.pk} starts very soon (on 2025-11-26) but has no approval!"],
+        )
 
     def test_reminder_already_sent_before_itinerary(self) -> None:
         # This trip has no trip info, but we already asked chairs to review it.
@@ -79,7 +81,7 @@ class ReminderEmailTest(TestCase):
         )
         with freeze_time("2025-11-25 12:00 UTC"):
             self.assertFalse(trip.info_editable)  # Still can't be edited!
-            self.assertFalse(approval.at_least_one_trip_merits_reminder_email([trip]))
+            self.assertFalse(approval.reasons_to_remind_activity_chairs([trip]))
 
     def test_reminder_sent_but_now_itinerary_is_completed(self) -> None:
         # This trip has no trip info, *and* we'd asked chairs to review.
@@ -92,19 +94,19 @@ class ReminderEmailTest(TestCase):
 
         # Trip info is still not completed, so don't remind again
         with freeze_time("2025-10-25 12:00 UTC"):
-            self.assertFalse(approval.at_least_one_trip_merits_reminder_email([trip]))
+            self.assertFalse(approval.reasons_to_remind_activity_chairs([trip]))
 
         # Closer to the trip date, itineraries are available
         with freeze_time("2025-10-30T19:00-05:00"):
             self.assertTrue(trip.info_editable)
 
             # Itinerary is *available*, but hasn't been filled out. Reminder is pointless!
-            self.assertFalse(approval.at_least_one_trip_merits_reminder_email([trip]))
+            self.assertFalse(approval.reasons_to_remind_activity_chairs([trip]))
 
             # Once filled out, *now* we can remind chairs (there's new info to review!)
             trip.info = factories.TripInfoFactory.create()
             trip.save()
-            self.assertFalse(approval.at_least_one_trip_merits_reminder_email([trip]))
+            self.assertFalse(approval.reasons_to_remind_activity_chairs([trip]))
 
     def test_trip_leaves_tomorrow(self) -> None:
         trip = factories.TripFactory.create(info=None, trip_date=date(2025, 11, 1))
@@ -116,7 +118,11 @@ class ReminderEmailTest(TestCase):
             )
         # Even though we've sent a reminder *and* it still lacks itinerary...
         with freeze_time("2025-10-31T19:00-05:00"):
-            self.assertTrue(approval.at_least_one_trip_merits_reminder_email([trip]))
+            reasons = approval.reasons_to_remind_activity_chairs([trip])
+        self.assertEqual(
+            reasons,
+            [f"trip #{trip.pk} starts very soon (on 2025-11-01) but has no approval!"],
+        )
 
     def test_trip_changed_activity_type(self) -> None:
         trip = factories.TripFactory.create(
@@ -131,13 +137,12 @@ class ReminderEmailTest(TestCase):
                 activity=enums.Activity.HIKING.value,
                 had_trip_info=True,
             )
-            self.assertEqual(
-                approval.at_least_one_trip_merits_reminder_email([trip]),
-                [
-                    f"Trip #{trip.id} could complete an itinerary, "
-                    "has done so, and chairs have not been emailed about the trip yet."
-                ],
-            )
+            self.assertIs(trip.info_editable, True)
+            reasons = approval.reasons_to_remind_activity_chairs([trip])
+        self.assertEqual(
+            reasons,
+            [f"trip #{trip.id} changed activities (a reminder was sent for Hiking)"],
+        )
 
     def test_only_one_trip_needs_reminding(self) -> None:
         with freeze_time("2025-10-30T19:00-05:00"):
@@ -152,15 +157,45 @@ class ReminderEmailTest(TestCase):
             )
 
             trips = [past_trip, trip_approved, itinerary_not_available]
-            # self.assertFalse(approval.at_least_one_trip_merits_reminder_email(trips))
+            self.assertFalse(approval.reasons_to_remind_activity_chairs(trips))
 
             # The addition of a single trip that needs approval changes it!
             new_trip = factories.TripFactory.create(
                 info=None, trip_date=date(2025, 11, 1), chair_approved=False
             )
             self.assertTrue(new_trip.info_editable)
-            self.assertTrue(
-                approval.at_least_one_trip_merits_reminder_email([*trips, new_trip])
+            reasons = approval.reasons_to_remind_activity_chairs([*trips, new_trip])
+            self.assertEqual(
+                reasons,
+                [f"trip #{new_trip.pk} has not been sent to activity chairs"],
+            )
+
+    def test_itinerary_since_completed(self) -> None:
+        with freeze_time("2025-10-30T17:00-05:00"):
+            trip = factories.TripFactory.create(
+                trip_date=date(2025, 11, 1),
+                chair_approved=False,
+                program=enums.Program.CLIMBING.value,
+            )
+            factories.ChairApprovalReminderFactory.create(
+                trip=trip,
+                had_trip_info=False,
+                activity=enums.Activity.CLIMBING.value,
+            )
+
+        with freeze_time("2025-10-30T19:00-05:00"):
+            self.assertTrue(trip.info_editable)
+
+            # Enough time has passed, but we won't notify again because nothing's changed.
+            self.assertFalse(approval.reasons_to_remind_activity_chairs([trip]))
+
+            # But once an itinerary is completed, we can notify again!
+            trip.info = factories.TripInfoFactory.create()
+            trip.save()
+            reasons = approval.reasons_to_remind_activity_chairs([trip])
+            self.assertEqual(
+                reasons,
+                [f"trip #{trip.pk} now has an itinerary"],
             )
 
     @freeze_time("2025-11-06 12:45 -05:00")
@@ -173,12 +208,18 @@ class ReminderEmailTest(TestCase):
         )
         with mock.patch.object(EmailMultiAlternatives, "send") as send:
             msg = approval.notify_activity_chair(
-                activity_enum=enums.Activity.CLIMBING, trips=[trip_1, trip_2]
+                activity_enum=enums.Activity.CLIMBING,
+                trips=[trip_1, trip_2],
+                reasons_to_send=[
+                    f"trip #{trip_1.pk} has not been sent to activity chairs",
+                    f"trip #{trip_2.pk} now has an itinerary",
+                ],
             )
         reminder = models.ChairApprovalReminder.objects.get(trip=trip_1)
         self.assertEqual(reminder.activity, enums.Activity.CLIMBING.value)
         self.assertIs(reminder.had_trip_info, False)
         send.assert_called_once()
+
         expected_msg = "\n".join(
             [
                 "2 climbing trips need activity chair approval as of Thursday, November 6",
@@ -186,6 +227,15 @@ class ReminderEmailTest(TestCase):
                 "",
                 "- Whitney G (Fri, Nov 7)",
                 "- Moby G (Sun, Nov 16)",
+                "",
+                "You received this email because you are an activity chair.",
+                "The only way to unsubscribe to these automated messages is to remove",
+                "yourself from the activity chair mailing list. If you have questions,",
+                "contact mitoc-webmaster@mit.edu or mitoc-owner@mit.edu.",
+                "",
+                "We sent this reminder because:",
+                f"- trip #{trip_1.pk} has not been sent to activity chairs",
+                f"- trip #{trip_2.pk} now has an itinerary",
             ]
         )
         self.assertIn(expected_msg, msg.body)
@@ -215,3 +265,12 @@ class ReminderEmailTest(TestCase):
             strip_whitespace(first_label.text),
             "Itinerary: Will become available on Thursday, Nov 13th",
         )
+
+        footer = soup.find(class_="footer")
+        assert footer is not None
+        reasons = (
+            "We sent this reminder because "
+            f"trip #{trip_1.pk} has not been sent to activity chairs, "
+            f"trip #{trip_2.pk} now has an itinerary"
+        )
+        self.assertIn(reasons, footer.text)

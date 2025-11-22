@@ -12,3 +12,10 @@ You received this email because you are an activity chair.
 The only way to unsubscribe to these automated messages is to remove
 yourself from the activity chair mailing list. If you have questions,
 contact mitoc-webmaster@mit.edu or mitoc-owner@mit.edu.
+
+{% gapless %}
+We sent this reminder because:
+{% for reason in reasons_to_send %}
+- {{ reason }}
+{% endfor %}
+{% endgapless %}

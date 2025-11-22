@@ -292,6 +292,7 @@ def email_activity_chair_about_unapproved_trips(
     # That's fine - it's pretty rare for trips to change activity anyway.
     # We at least know the activity was correct at the time this task was scheduled.
     # We'll send a reminder later to the new appropriate activity chair!
-    if not approval.at_least_one_trip_merits_reminder_email(trips):
+    reasons_to_send = approval.reasons_to_remind_activity_chairs(trips)
+    if not reasons_to_send:
         return
-    approval.notify_activity_chair(activity_enum, trips)
+    approval.notify_activity_chair(activity_enum, trips, reasons_to_send)

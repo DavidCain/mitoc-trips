@@ -1,4 +1,5 @@
 import logging
+from collections.abc import Iterator
 from datetime import timedelta
 from typing import NamedTuple, assert_never
 
@@ -12,8 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class ReminderIsSent(NamedTuple):
-    trip_id: int
-    activity: enums.Activity
+    activity_enum: enums.Activity
     has_trip_info: bool
 
 
@@ -72,57 +72,54 @@ def _notified_chairs_too_recently(trips: list[models.Trip]) -> bool:
     return False
 
 
-def _trips_without_similar_reminders(trips: list[models.Trip]) -> list[models.Trip]:
-    """Return any trips which have not already been sent to chairs in their current state."""
-    trip_ids_having_itinerary = set(
-        models.TripInfo.objects.filter(trip__in=trips).values_list("trip", flat=True)
-    )
+def _trips_without_similar_reminders(
+    trips: list[models.Trip],
+) -> Iterator[tuple[models.Trip, str]]:
+    """Identify trips which have not already been sent to chairs in their current state.
+
+    We can regard a trip as having been notified if both:
+    1. An email was sent containing that trip in the message.
+    2. The activity & itinerary (at the time the email was sent) match current values.
+    """
+    reminders_sent_per_trip: dict[models.Trip, list[ReminderIsSent]] = {}
 
     def _get_reminder_key(trip: models.Trip) -> ReminderIsSent:
         activity_enum = trip.required_activity_enum()
         assert activity_enum is not None, f"Trip #{trip.id} somehow has no activity?"
-        return ReminderIsSent(
-            trip.pk,
-            activity_enum,
-            trip.pk in trip_ids_having_itinerary,
+        return ReminderIsSent(activity_enum, trip.info_id is not None)
+
+    for reminder in models.ChairApprovalReminder.objects.filter(
+        trip_id__in=trips
+    ).select_related("trip"):
+        reminders_sent_per_trip.setdefault(reminder.trip, []).append(
+            ReminderIsSent(enums.Activity(reminder.activity), reminder.had_trip_info)
         )
 
-    # We can regard a trip as having been notified if both:
-    # 1. An email was sent containing that trip in the message.
-    # 2. The activity & itinerary (at the time the email was sent) match current values.
-    already_reminded_keys = {
-        ReminderIsSent(
-            reminder.trip_id,
-            enums.Activity(reminder.activity),
-            reminder.trip_id in trip_ids_having_itinerary,
-        )
-        for reminder in models.ChairApprovalReminder.objects.filter(trip_id__in=trips)
-    }
-
-    # Obviously, we can notify for *any* trip that's never had a reminder.
-    could_notify_trip_ids = {trip.id for trip in trips} - {
-        key.trip_id for key in already_reminded_keys
-    }
-    # Trips that were notified with a different activity *or* itinerary status
-    # are eligible for re-notification!
-    could_notify_trip_ids.update(
-        key.trip_id
-        for key in already_reminded_keys.difference(
-            _get_reminder_key(trip) for trip in trips
-        )
-    )
-    return [
-        trip
-        for trip in trips
-        if trip.id in could_notify_trip_ids
+    for trip in trips:
         # We do *not* want to prompt for "hey, approve these trips!" before itineraries are available.
         # 1. It encourages the wrong behavior (approving trips too early to silence emails).
         # 2. Trips are ideally meant to be approved once an itinerary is posted.
-        and trip.info_editable
-    ]
+        if not trip.info_editable:
+            continue
+        reminders = reminders_sent_per_trip.get(trip, [])
+        if not reminders:
+            yield trip, "has not been sent to activity chairs"
+        elif _get_reminder_key(trip) not in reminders:
+            previously_reminded_activities = {
+                reminder.activity_enum for reminder in reminders
+            }
+            if trip.required_activity_enum() not in previously_reminded_activities:
+                yield (
+                    trip,
+                    # This should be exceptionally rare...
+                    f"changed activities (a reminder was sent for {', '.join(sorted(activity.label for activity in previously_reminded_activities))})",
+                )
+            else:
+                # Itineraries can only be edited, not deleted.
+                yield trip, "now has an itinerary"
 
 
-def at_least_one_trip_merits_reminder_email(trips: list[models.Trip]) -> list[str]:
+def reasons_to_remind_activity_chairs(trips: list[models.Trip]) -> list[str]:
     """Avoid sending reminder emails until actually necessary.
 
     This will return a non-empty list  *only* if:
@@ -141,7 +138,7 @@ def at_least_one_trip_merits_reminder_email(trips: list[models.Trip]) -> list[st
     # If *any* trips leave tomorrow & don't have an approval, remind!
     tomorrow = now.date() + timedelta(days=1)
     trips_leaving_soon = [
-        f"Trip #{trip.id} starts very soon (on {trip.trip_date}) but has no approval!"
+        f"trip #{trip.id} starts very soon (on {trip.trip_date}) but has no approval!"
         for trip in trips_lacking_approval
         if trip.trip_date <= tomorrow
     ]
@@ -149,12 +146,8 @@ def at_least_one_trip_merits_reminder_email(trips: list[models.Trip]) -> list[st
         return trips_leaving_soon
 
     return [
-        (
-            f"Trip #{trip.id} could complete an itinerary, "
-            f"has{'' if trip.info else ' not'} done so, "
-            "and chairs have not been emailed about the trip yet."
-        )
-        for trip in _trips_without_similar_reminders(trips_lacking_approval)
+        f"trip #{trip.id} {reason}"
+        for trip, reason in _trips_without_similar_reminders(trips_lacking_approval)
     ]
 
 
@@ -181,8 +174,13 @@ def emails_for_activity_chair(activity: enums.Activity) -> list[str]:
 def notify_activity_chair(
     activity_enum: enums.Activity,
     trips: list[models.Trip],
+    reasons_to_send: list[str],
 ) -> EmailMultiAlternatives:
-    context = {"activity_enum": activity_enum, "trips": trips}
+    context = {
+        "activity_enum": activity_enum,
+        "trips": trips,
+        "reasons_to_send": reasons_to_send,
+    }
 
     text_content = (
         get_template("email/approval/trips_needing_approval.txt")
