@@ -1,7 +1,7 @@
 import contextlib
 import logging
 from collections.abc import Iterator
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from time import monotonic
 
 import requests
@@ -76,7 +76,7 @@ def update_member_stats(
 ) -> models.MembershipStats:
     cached = models.MembershipStats.load()
     acceptable_staleness = timedelta(seconds=acceptable_staleness_seconds)
-    now = datetime.now(UTC)
+    now = datetime.now(timezone.utc)
     if (now - cached.retrieved_at) > acceptable_staleness or not cached.response:
         response = geardb.query_api("/api-auth/v1/stats")
 
