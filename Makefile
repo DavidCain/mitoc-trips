@@ -1,6 +1,9 @@
 .DEFAULT_GOAL := all
 
+poetry_dev_bootstrap_file = .poetry_dev_up_to_date
+poetry_prod_bootstrap_file = .poetry_prod_up_to_date
 npm_bootstrap_file = .node_packages_up_to_date
+
 
 # Default `make` will give everything's that helpful for local development.
 .PHONY: all
@@ -11,13 +14,23 @@ all: install-python-dev install-js
 build: install-python-prod build-frontend
 
 .PHONY: install-python-dev
-install-python-dev:
-	uv sync --all-groups
+install-python-dev: $(poetry_dev_bootstrap_file)
+$(poetry_dev_bootstrap_file): poetry.lock
+	touch $(poetry_dev_bootstrap_file).notyet
+	poetry install --no-root --with=test,lint,mypy
+	mv $(poetry_dev_bootstrap_file).notyet $(poetry_dev_bootstrap_file)
+	@# Remove the prod bootstrap file, since we now have dev deps present.
+	rm -f $(poetry_prod_bootstrap_file)
 
-# Note this will actually *remove* any dev dependencies, if present.
+# Note this will actually *remove* any dev dependencies, if present
 .PHONY: install-python-prod
-install-python-prod:
-	uv sync --no-dev
+install-python-prod: $(poetry_prod_bootstrap_file)
+$(poetry_prod_bootstrap_file): poetry.lock
+	touch $(poetry_prod_bootstrap_file).notyet
+	poetry install --no-root --sync --only=prod
+	mv $(poetry_prod_bootstrap_file).notyet $(poetry_prod_bootstrap_file)
+	@# Remove the dev bootstrap file, since the `--no-dev` removed any present dev deps
+	rm -f $(poetry_dev_bootstrap_file)
 
 .PHONY: install-js
 install-js: $(npm_bootstrap_file)
@@ -35,18 +48,29 @@ build-frontend: install-js
 .PHONY: check
 check: lint test
 
+# Run automatic code formatters/linters that don't require human input
+# (might fix a broken `make check`)
+.PHONY: fix
+fix: install-python-dev
+	poetry run ruff format .
+	poetry run ruff check --fix .
+
 .PHONY: lint
 lint: lint-python typecheck-python lint-js
 
 .PHONY: lint-python
 lint-python: install-python-dev
-	uv run ruff format --check .
-	uv run ruff check .
-	uv run pylint --jobs 0 ws  # '0' tells pylint to auto-detect available processors
+	poetry run ruff format --check .
+	poetry run ruff check .
+	poetry run pylint --jobs 0 ws  # '0' tells pylint to auto-detect available processors
 
 .PHONY: typecheck-python
-typecheck-python:
-	uv run mypy --config-file pyproject.toml ws
+typecheck-python: install-python-dev
+	@# Annoying workaround for `Cannot find component WithAnnotations`
+	if ! poetry run mypy --config-file pyproject.toml ws; then \
+		rm -r .mypy_cache;  \
+		exit 1; \
+	fi
 
 .PHONY: lint-js
 lint-js: install-js
@@ -57,7 +81,7 @@ test: test-python test-js
 
 .PHONY: test-python
 test-python: install-python-dev
-	WS_DJANGO_TEST=1 uv run coverage run -m pytest
+	WS_DJANGO_TEST=1 poetry run coverage run -m pytest
 
 .PHONY: test-js
 test-js: install-js
@@ -66,7 +90,7 @@ test-js: install-js
 # Production webservers won't run this way, so install dev dependencies
 .PHONY: run
 run: install-python-dev
-	uv run python -Wd manage.py runserver
+	poetry run python -Wd manage.py runserver
 
 .PHONY: run-js
 run-js: install-js
@@ -74,6 +98,8 @@ run-js: install-js
 
 .PHONY: clean
 clean:
+	rm -f $(poetry_dev_bootstrap_file)
+	rm -f $(poetry_prod_bootstrap_file)
 	rm -f $(npm_bootstrap_file)
 	rm -rf .mypy_cache
 	find . -name '*.pyc' -delete

@@ -84,75 +84,86 @@ ignore-names = [
 ]
 
 [project]
+# When poetry full supports PEP 621, should migrate more information here!
+# See: https://github.com/python-poetry/roadmap/issues/3
+name = "ws"
+requires-python = "~=3.10"  # Keep in sync with Poetry
+
+[tool.poetry]
 name = "ws"
 version = "0.1.0"
-requires-python = "~=3.12.12"
 description = "The MIT Outing Club's trip management system"
 license = "GPL-3.0"
 readme = "README.md"
 homepage = "https://mitoc-trips.mit.edu"
 repository = "https://github.com/DavidCain/mitoc-trips/"
+authors = ["David Cain <davidjosephcain@gmail.com>"]
 
-dependencies = [
-  "beautifulsoup4",
-  "celery>=5",
-  "crispy-bootstrap3",
-  "django-allauth[socialaccount]",
-  "django-cors-headers",
-  "django-crispy-forms",
-  "django-phonenumber-field[phonenumberslite]",
-  "django-pipeline",
-  "django-smtp-ssl",
-  "django-webpack-loader<2",  # Should maintain parity with frontend/package.json
-  "django>=4.2.25,<5",
-  "gunicorn",
-  "markdown2",
-  "mitoc-const>=1.0.0",  # (1.0.0 includes type hints)
-  "phonenumberslite",
-  "psycopg2",
-  "pwned-passwords-django",
-  "pyjwt>=2",  # 2.0.0 changed the return type of `jwt.encode()`
-  "requests",
-  "sentry-sdk",
-  "setuptools",
-]
+[tool.poetry.dependencies]
+python = "^3.10.0"
 
-[dependency-groups]
-test = [
-  "coverage",
-  "factory_boy",
-  "freezegun",
-  "lxml",
-  "pytest",
-  "pytest-django",
-  "pytest-socket",
-  "responses",
-]
+[tool.poetry.group.prod.dependencies]
+Django = "^4.2"
+PyJWT = ">= 2.0.0"  # 2.0.0 changed the return type of `jwt.encode()`
+beautifulsoup4 = "*"
+celery = "^5.1"
+django-allauth= { version = "*", extras=["socialaccount"] }
+django-cors-headers = "*"
+crispy-bootstrap3 = "*"
+django-crispy-forms = ">= 2"
+django-phonenumber-field = { version = ">= 2.0", extras = ["phonenumberslite"] }
+django-pipeline = "*"  # TODO: To eventually be replaced by webpack-loader
+django-smtp-ssl = "*"
+django-webpack-loader = "^1.1.0"  # Should maintain parity with frontend/package.json
+gunicorn = "*"  # Used to run production worker
+markdown2 = "*"
+mitoc-const = "^1.0.0"  # (1.0.0 includes type hints)
+phonenumberslite = "*"
+psycopg2 = "*"
+pwned-passwords-django = "*"
+requests = "*"
+sentry-sdk = ">=2"
+setuptools = "*"
+typing-extensions = "^4.11.0"  # Can remove after Python 3.11
 
-lint = [
-  "pylint>=3",
-  "ruff>=0.14",
-]
 
-mypy = [
-  "celery-types",
-  "django-stubs<5.2.0",  # 5.1 had partial support for 4.2
-  "django-stubs-ext",
-  "mypy",
-  "types-certifi",
-  "types-cryptography",
-  "types-requests",
-]
+[tool.poetry.group.test.dependencies]
+coverage = { version = "*" }
+factory_boy = "*"
+freezegun = "*"
+lxml = "*"
+pytest = "*"
+pytest-django = "*"
+pytest-socket = "*"
+responses = "*"
+
+[tool.poetry.group.lint]
+optional = true
+[tool.poetry.group.lint.dependencies]
+pylint = "^3.0"
+ruff = ">=0.11.9"
+
+[tool.poetry.group.mypy]
+optional = true
+[tool.poetry.group.mypy.dependencies]
+celery-types = "^0.19.0"
+django-stubs = { version = "<5.2.0" }  # 5.1 had partial support for 4.2
+django-stubs-ext = { version = "*" }
+mypy = { version = "*"}
+types-certifi = { version = "*" }
+types-cryptography = { version = "*" }
+types-requests = { version = "*" }
 
 # Dependencies helpful for local development, not used otherwise
-localdev = [
-  "django-debug-toolbar",
-  "ipdb",
-]
+[tool.poetry.group.localdev]
+optional = true
+[tool.poetry.group.localdev.dependencies]
+django-debug-toolbar = { version = "*" }
+ipdb = { version = "*" }
 
 
 [tool.mypy]
-python_version = "3.12"
+python_version = "3.10"
 plugins = ["mypy_django_plugin.main"]
 
 # Better errors
@@ -172,6 +183,7 @@ disallow_untyped_defs = false
 [[tool.mypy.overrides]]
 # Explicitly ignore imports that do not have type hints or library stubs
 # Periodically, it's worth checking in to see which of these may have types later!
+# (After dropping support for Python versions before 3.5, it's easy to just type annotate directly
 module = [
     "allauth.*",
     "debug_toolbar",

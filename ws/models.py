@@ -2,7 +2,7 @@ import re
 from collections.abc import Collection, Iterable, Iterator
 from datetime import date, datetime, timedelta
 from functools import cache
-from typing import Any, Optional, Self, cast
+from typing import Any, Optional, cast
 from urllib.parse import urlencode
 from zoneinfo import ZoneInfo
 
@@ -25,6 +25,7 @@ from django.utils.text import format_lazy
 from mitoc_const import affiliations
 from mitoc_const.membership import RENEWAL_ALLOWED_WITH_DAYS_LEFT
 from phonenumber_field.modelfields import PhoneNumberField
+from typing_extensions import Self
 
 import ws.utils.dates as date_utils
 from ws import enums
