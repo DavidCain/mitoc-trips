@@ -1,10 +1,11 @@
 import logging
 from collections.abc import Iterator
 from datetime import timedelta
-from typing import NamedTuple, assert_never
+from typing import NamedTuple
 
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import get_template
+from typing_extensions import assert_never
 
 from ws import enums, models
 from ws.utils import dates as date_utils

@@ -1,7 +1,7 @@
 import json
 from collections.abc import Collection, Iterable, Iterator
 from datetime import date
-from typing import Any, NotRequired, TypedDict, cast
+from typing import Any, TypedDict, cast
 from zoneinfo import ZoneInfo
 
 import jwt
@@ -18,6 +18,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import DetailView, ListView, View
 from django.views.generic.detail import SingleObjectMixin
+from typing_extensions import NotRequired
 
 import ws.utils.geardb as geardb_utils
 import ws.utils.membership as membership_utils
