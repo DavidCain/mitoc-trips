@@ -169,7 +169,7 @@ class LeaderboardTest(TestCase):
         soup = BeautifulSoup(response.content, "html.parser")
 
         # We only show the "clear filters" button if there are filters to clear
-        self.assertIsNone(soup.find(class_="btn-default"))
+        self.assertIsNone(soup.find("a", class_="btn-default"))
 
         header = soup.find("h1")
         assert header is not None
@@ -186,21 +186,33 @@ class LeaderboardTest(TestCase):
         self.assertEqual(
             response.context["rows"],
             [
-                {
-                    "Name": f'<a href="/participants/{self.tim.pk}/">Tim Beaver</a>',
-                    "Email": "tim@mit.edu",
-                    "Trips led": 2,
-                    '<span uib-tooltip="Winter (outside IAP)"><i class="fa fw fa-snowflake"></i></span>': 1,
-                    '<span uib-tooltip="Winter School"><i class="fa fw fa-snowflake"></i></span>': 1,
-                },
-                {
-                    "Name": f'<a href="/participants/{self.harry.pk}/">Harold Harvard</a>',
-                    "Email": "harry@harvard.edu",
-                    "Trips led": 1,
-                    '<span uib-tooltip="Winter (outside IAP)"><i class="fa fw fa-snowflake"></i></span>': 0,
-                    '<span uib-tooltip="Winter School"><i class="fa fw fa-snowflake"></i></span>': 1,
-                },
+                stats.LeaderboardRow(
+                    leader=self.tim,
+                    total_trips_led=2,
+                    trips_led_per_program={
+                        enums.Program.WINTER_NON_IAP: 1,
+                        enums.Program.WINTER_SCHOOL: 1,
+                    },
+                ),
+                stats.LeaderboardRow(
+                    leader=self.harry,
+                    total_trips_led=1,
+                    trips_led_per_program={
+                        enums.Program.WINTER_NON_IAP: 0,
+                        enums.Program.WINTER_SCHOOL: 1,
+                    },
+                ),
             ],
+        )
+        with freeze_time("2025-11-15 09:00:00 EST"):
+            csv_response = self.client.get("/stats/leaderboard.csv")
+        self.assertEqual(
+            csv_response.getvalue(),
+            (
+                b"Name,Email,Trips led,Winter (outside IAP),Winter School\r\n"
+                b"Tim Beaver,tim@mit.edu,2,1,1\r\n"
+                b"Harold Harvard,harry@harvard.edu,1,0,1\r\n"
+            ),
         )
 
     def test_filters(self) -> None:
@@ -217,9 +229,9 @@ class LeaderboardTest(TestCase):
         )
         soup = BeautifulSoup(response.content, "html.parser")
 
-        clear = soup.find(class_="btn-default")
+        clear = soup.find("a", class_="btn-default")
         assert clear is not None
-        self.assertEqual(clear.text, "Clear filters")
+        self.assertEqual(clear.text, "\xa0Clear filters")
         self.assertEqual(clear.attrs["href"], "/stats/leaderboard/")
 
         header = soup.find("h1")
@@ -232,25 +244,21 @@ class LeaderboardTest(TestCase):
         self.assertEqual(
             response.context["rows"],
             [
-                # There's a perfect tie, so we sort alphabetically
-                {
-                    "Name": f'<a href="/participants/{self.emily.pk}/">Emily Emory</a>',
-                    "Email": "emily@emory.edu",
-                    "Trips led": 1,
-                    '<span uib-tooltip="Climbing"><i class="fa fw fa-hand-rock"></i></span>': 1,
-                },
-                {
-                    "Name": f'<a href="/participants/{self.harry.pk}/">Harold Harvard</a>',
-                    "Email": "harry@harvard.edu",
-                    "Trips led": 1,
-                    '<span uib-tooltip="Climbing"><i class="fa fw fa-hand-rock"></i></span>': 1,
-                },
-                {
-                    "Name": f'<a href="/participants/{self.tim.pk}/">Tim Beaver</a>',
-                    "Email": "tim@mit.edu",
-                    "Trips led": 1,
-                    '<span uib-tooltip="Climbing"><i class="fa fw fa-hand-rock"></i></span>': 1,
-                },
+                stats.LeaderboardRow(
+                    leader=self.emily,
+                    total_trips_led=1,
+                    trips_led_per_program={enums.Program.CLIMBING: 1},
+                ),
+                stats.LeaderboardRow(
+                    leader=self.harry,
+                    total_trips_led=1,
+                    trips_led_per_program={enums.Program.CLIMBING: 1},
+                ),
+                stats.LeaderboardRow(
+                    leader=self.tim,
+                    total_trips_led=1,
+                    trips_led_per_program={enums.Program.CLIMBING: 1},
+                ),
             ],
         )
 

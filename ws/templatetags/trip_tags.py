@@ -88,8 +88,14 @@ class TripStage(enum.IntEnum):
 
 
 @register.simple_tag
-def trip_icon(trip):
+def trip_icon(trip: models.Trip) -> str:
     return icons.for_trip(trip)
+
+
+@register.simple_tag
+def program_icon(program: enums.Program, default: str) -> str:
+    # The "none" program has no icon by default
+    return icons.ICON_BY_PROGRAM[program] or default
 
 
 def annotated_for_trip_list(trips: QuerySet[models.Trip]) -> QuerySet[AnnotatedTrip]:

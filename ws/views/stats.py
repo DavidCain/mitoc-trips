@@ -1,6 +1,8 @@
+import csv
+import logging
 from collections import defaultdict
 from datetime import date, timedelta
-from typing import Any, TypedDict, cast
+from typing import Any, NamedTuple, TypedDict, cast
 from urllib.parse import urlencode
 
 from django.db.models import Q, QuerySet
@@ -13,13 +15,15 @@ from django.http import (
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.decorators import method_decorator
-from django.utils.html import format_html
+from django.utils.safestring import SafeString
 from django.views.generic import FormView, TemplateView
 
-from ws import enums, forms, icons, models
+from ws import enums, forms, models
 from ws.decorators import group_required
 from ws.utils.dates import local_date
 from ws.utils.member_stats import CacheStrategy
+
+logger = logging.getLogger(__name__)
 
 
 class StatsView(TemplateView):
@@ -76,6 +80,23 @@ def summarize_filters(cleaned_data: SearchFields) -> str:
     return ", ".join([summary, *comma_separated_extras])
 
 
+class LeaderboardRow(NamedTuple):
+    leader: models.Participant
+    total_trips_led: int
+    trips_led_per_program: dict[enums.Program, int]
+
+
+class LeaderboardCell(NamedTuple):
+    header: str
+    contents: int | str | SafeString
+    # If given, will be rendered in place of the full header (which will be a tooltip)
+    icon: str | None
+    plain_text_contents: str | None = None
+
+    def is_trip_count(self) -> bool:
+        return isinstance(self.contents, int)
+
+
 class LeaderboardView(TemplateView, FormView):
     form_class = forms.TripSearchForm
     template_name = "stats/leaderboard.html"
@@ -96,7 +117,9 @@ class LeaderboardView(TemplateView, FormView):
             for label in form.declared_fields
             if form.cleaned_data[label]
         }
-        url = reverse("leaderboard")
+        url = reverse(
+            "leaderboard_csv" if self._is_csv_download(self.request) else "leaderboard"
+        )
         if params:
             url += f"?{urlencode(params)}"
         return redirect(url)
@@ -117,7 +140,7 @@ class LeaderboardView(TemplateView, FormView):
 
         return models.Trip.objects.filter(Q(**specified_filters))
 
-    def get_rows(self, cleaned_data: SearchFields) -> list[dict[str, str | int]]:
+    def get_rows(self, cleaned_data: SearchFields) -> list[LeaderboardRow]:
         """Produce the table rows describing the matched leaders."""
         total_trips_led: dict[models.Participant, int] = {}
 
@@ -136,22 +159,16 @@ class LeaderboardView(TemplateView, FormView):
         )
 
         return [
-            {
-                "Name": format_html(
-                    '<a href="/participants/{}/">{}</a>', par.pk, par.name
-                ),
-                "Email": par.email,
-                "Trips led": total_trips_led[par],
-                **{
-                    format_html(
-                        '<span uib-tooltip="{}"><i class="{}"></i></span>',
-                        program.label,
-                        f"fa fw fa-{icons.ICON_BY_PROGRAM[program] or 'times'}",
-                    ): by_program[par].get(program, 0)
+            LeaderboardRow(
+                leader=participant,
+                total_trips_led=total_trips_led[participant],
+                trips_led_per_program={
+                    program: by_program[participant].get(program, 0)
+                    # Note: it's important that all dicts be constructed in the same order.
                     for program in all_programs
                 },
-            }
-            for par in sorted(
+            )
+            for participant in sorted(
                 total_trips_led,
                 # The leaderboard is primarily used for competition.
                 # Sort by number of trips led, not just alphabetical.
@@ -159,12 +176,68 @@ class LeaderboardView(TemplateView, FormView):
             )
         ]
 
+    @staticmethod
+    def _is_csv_download(request: HttpRequest) -> bool:
+        return request.path.endswith(".csv")
+
+    def _get_csv(self) -> HttpResponse:
+        """Return a CSV after a succesful form validation."""
+        form = self.form_class(self.request.GET.dict())
+        assert form.is_valid()
+        search_fields = self._get_search_fields(form)
+
+        rows = self.get_rows(search_fields)
+
+        filename = "leaderboard_" + (
+            ",".join(f"{key}={value}" for key, value in search_fields.items() if value)
+            + ".csv"
+        )
+        if not filename.isascii():
+            # Yes, RFC 6266 exists to allow UTF-8 in filenames.
+            # However, the values in the querystring are all validated as enum values.
+            # And if I'm not using all-ASCII in those enums... what am I doing?
+            logger.error(
+                "Somehow generated a non-ASCII leaderboard CSV name %s", filename
+            )
+            filename = "leaderboard.csv"
+
+        response = HttpResponse(
+            content_type="text/csv",
+            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        )
+        if rows:
+            header = [
+                "Name",
+                "Email",
+                "Trips led",
+                *sorted(program.label for program in rows[0].trips_led_per_program),
+            ]
+            writer = csv.DictWriter(response, header)
+            writer.writeheader()
+            writer.writerows(
+                {
+                    "Name": row.leader.name,
+                    "Email": row.leader.email,
+                    "Trips led": row.total_trips_led,
+                    **{
+                        program.label: count
+                        for (program, count) in row.trips_led_per_program.items()
+                    },
+                }
+                for row in rows
+            )
+        return response
+
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         # This view implements some form logic directly allowing query args.
         # So as to handle the case of loading the page with invalid args, validate!
         form = self.form_class(self.request.GET)
         if not form.is_valid():
             return self.form_invalid(form)
+
+        if self._is_csv_download(request):
+            return self._get_csv()
+
         return super().get(request, *args, **kwargs)
 
     def get_initial(self) -> dict[str, str]:
@@ -177,6 +250,15 @@ class LeaderboardView(TemplateView, FormView):
             initial["start_date"] = self._default_start_date().isoformat()
         return initial
 
+    def _get_search_fields(self, form: forms.TripSearchForm) -> SearchFields:
+        assert form.is_valid()
+        cleaned_data = cast(SearchFields, form.cleaned_data)
+        # It's valid for there to be no start date in the querystring.
+        # Still fall back though to the default!
+        if not cleaned_data["start_date"]:
+            return {**cleaned_data, "start_date": self._default_start_date()}
+        return cleaned_data
+
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data()
         form = self.form_class(self.request.GET.dict())
@@ -184,23 +266,17 @@ class LeaderboardView(TemplateView, FormView):
         # We can only render a title & rows with a valid query.
         if not form.is_valid():
             return context
-        cleaned_data = cast(
-            SearchFields,
-            {
-                **form.cleaned_data,
-                "start_date": (
-                    # It's valid for there to be no start date in the querystring.
-                    # Still fall back though to the default!
-                    form.cleaned_data["start_date"] or self._default_start_date()
-                ),
-            },
-        )
-        rows = self.get_rows(cleaned_data)
+        search_fields = self._get_search_fields(form)
+        rows = self.get_rows(search_fields)
 
         return {
             **context,
             "rows": rows,
-            "leaderboard_title": summarize_filters(cleaned_data),
+            "leaderboard_title": summarize_filters(search_fields),
+            # If the search restricts the view to just a few programs...
+            "show_program_labels": (
+                bool(rows) and len(rows[0].trips_led_per_program) < 6
+            ),
         }
 
 

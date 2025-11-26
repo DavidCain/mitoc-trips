@@ -42,7 +42,7 @@ ICON_BY_PROGRAM: Mapping[Program, str] = MappingProxyType(
         Program.HIKING: "hiking",
         Program.SCHOOL_OF_ROCK: "school",
         Program.SERVICE: "hands-helping",
-        Program.WINTER_NON_IAP: "snowflake",
+        Program.WINTER_NON_IAP: "snowman",
         Program.WINTER_SCHOOL: "snowflake",
         # No icon for the 'none' program
         Program.NONE: "",

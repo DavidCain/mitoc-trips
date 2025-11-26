@@ -422,6 +422,9 @@ urlpatterns = [
     path("stats/", views.StatsView.as_view(), name="stats"),
     path("stats/leaderboard/", views.LeaderboardView.as_view(), name="leaderboard"),
     path(
+        "stats/leaderboard.csv", views.LeaderboardView.as_view(), name="leaderboard_csv"
+    ),
+    path(
         "stats/membership/",
         views.MembershipStatsView.as_view(),
         name="membership_stats",

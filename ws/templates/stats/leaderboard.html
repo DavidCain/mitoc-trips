@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load crispy_forms_tags %}
+{% load trip_tags %}
 {% block head_title %}Leaderboard{% endblock head_title %}
 
 {% block content %}
@@ -26,8 +27,10 @@
         {{ form.end_date|as_crispy_field }}
       </div>
     </div>
-    <button type="submit" class="btn btn-primary">Search</button>
-    {% if request.GET %}<a href="{% url 'leaderboard' %}" role="button" class="btn btn-default">Clear filters</a>{% endif %}
+    {# Edge case: Make sure that "Search" still returns HTML if a CSV was requested. #}
+    <button type="submit" class="btn btn-primary" formaction="{% url 'leaderboard' %}">Search</button>
+    <button type="submit" class="btn btn-default" formaction="{% url 'leaderboard_csv' %}"><i class="fas fa-download"></i>&nbsp; CSV</button>
+    {% if request.GET %}<a href="{% url 'leaderboard' %}" role="button" class="btn btn-default"><i class="fas fa-eraser"></i>&nbsp;Clear filters</a>{% endif %}
   </form>
 
   <h1>{{ leaderboard_title }}</h1>
@@ -37,17 +40,27 @@
     <table class="footable">
       <thead>
         <tr>
-          {% for key in rows.0.keys %}
-            {# Kind of a janky hardcoding that all other columns are numeric, but :shrug: #}
-            <th{% if key != "Name" and key != "Email" %} data-type="numeric"{% endif %}>{{ key }}</th>
+          <th>Name</th>
+          <th>Trips led</th>
+          {# All dicts will be in the exact same order! #}
+          {% for program in rows.0.trips_led_per_program %}
+            <th data-type="numeric">
+              {# When rendering *lots* of programs, we'll conserve space #}
+              <span{% if not show_program_labels %} uib-tooltip="{{ program.label }}"{% endif %}>
+                <i class="fa fw fa-{% program_icon program 'times' %}"></i>
+                {% if show_program_labels %}{{ program.label }}{% endif %}
+              </span>
+            </th>
           {% endfor %}
         </tr>
       </thead>
       <tbody>
         {% for row in rows %}
           <tr>
-            {% for value in row.values %}
-              <td>{{ value }}</td>
+            <td><a href="{% url 'view_participant' row.leader.pk %}">{{ row.leader.name }}</a></td>
+            <td>{{ row.total_trips_led }}</td>
+            {% for count in row.trips_led_per_program.values %}
+              <td>{{ count }}</td>
             {% endfor %}
           </tr>
         {% endfor %}
