@@ -35,6 +35,13 @@ Edit profile {% if participant %} - {{ participant.name }}{% endif %}
                 You don't appear to have a <a href="{% url 'account_email' %}">verified MIT email address</a>.
               </div>
             {% endif %}
+
+            <div class="alert alert-warning"
+                 data-ng-cloak
+                 data-ng-show="['MU', 'MG'].includes(affiliation)">
+                You must be enrolled at MIT as a full-time student to be a MITOC student member.
+                Cross-registered students from other instutitions (e.g. Harvard) <strong>do not</strong> qualify.
+            </div>
         </div>
         <div class="col-sm-6">
             <h3 id="car" class="required">

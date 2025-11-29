@@ -96,21 +96,32 @@
 
         </div>
 
-        <div class="alert alert-warning" data-ng-cloak data-ng-show="membershipform.$valid && ['MU', 'MG'].includes(affiliation) && !email.endsWith('mit.edu')">
+        {# It's okay for somebody with a verified MIT email to pay with a non-MIT email. #}
+        {# But for anonymous users, we'll straight-up block the form from submitting. #}
+        {% if missing_verified_mit_email or not viewing_participant %}
+          <div class="alert alert-danger" data-ng-cloak data-ng-show="membershipform.$valid && ['MU', 'MG'].includes(affiliation) && !email.endsWith('mit.edu')">
+            <p>
+              <strong>You must own an MIT email address</strong> in order to claim the MIT student rate.
+            </p>
+            <p>
+              Prefer to use your personal email address for your membership?
+              <a href="{% url 'account_signup' %}?next={% url 'pay_dues' %}">Sign up</a>
+              with your MIT email address, then add your personal email to your
+              <a href="{% url 'account_email' %}">verified email addresses</a>.
+            </p>
+          </div>
+        {% endif %}
+
+        <div class="alert alert-warning" data-ng-show="['MU', 'MG'].includes(affiliation)">
           <p>
-            <strong>You must own an MIT email address</strong> in order to claim the MIT student rate.
-          </p>
-          <p>
-            Prefer to use your personal email address for your membership?
-            <a href="{% url 'account_signup' %}?next={% url 'pay_dues' %}">Sign up</a>
-            with your MIT email address, then add your personal email to your
-            <a href="{% url 'account_email' %}">verified email addresses</a>.
+            You must be enrolled at MIT as a full-time student to be a MITOC student member.
+            Cross-registered students from other instutitions (e.g. Harvard) <strong>do not</strong> qualify.
           </p>
         </div>
 
         <p data-ng-show="['MU', 'MG'].includes(affiliation)">
             If <noscript>you are an MIT student and</noscript> the cost of club participation is prohibitive,
-            please see our <a href="https://mitoc.mit.edu/about/financial-aid">need-blind financial aid policies</a>.
+            see our <a href="https://mitoc.mit.edu/about/financial-aid">need-blind financial aid policies</a>.
         </p>
         <div class="btn-group">
           {% if viewing_participant %}

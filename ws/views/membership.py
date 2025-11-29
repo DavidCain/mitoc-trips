@@ -8,6 +8,7 @@ import contextlib
 from typing import TYPE_CHECKING, Any
 
 import requests
+from allauth.account.models import EmailAddress
 from django.contrib import messages
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect
@@ -59,10 +60,22 @@ class PayDuesView(FormView):
     template_name = "profile/membership.html"
     form_class = forms.DuesForm
 
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        return {
+            **super().get_context_data(),
+            "missing_verified_mit_email": (
+                self.request.user.is_authenticated
+                and not EmailAddress.objects.filter(
+                    user=self.request.user, verified=True, email__iendswith="mit.edu"
+                ).exists()
+            ),
+        }
+
     def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs["participant"] = self.request.participant
-        return kwargs
+        return {
+            **super().get_form_kwargs(),
+            "participant": self.request.participant,
+        }
 
     def post(self, request, *args, **kwargs):
         """Manually update the cache (just in case participants are distrustful)."""
