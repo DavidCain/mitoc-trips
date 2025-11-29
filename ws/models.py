@@ -491,7 +491,14 @@ class Participant(models.Model):
             return None
 
     def attended_lectures(self, year: int) -> bool:
-        return self.lectureattendance_set.filter(year=year).exists()
+        # Special case: in 2024 and 2025 (and *maybe* into the future?),
+        # we ran special lectures in November and December for next year's winter.
+        return any(
+            attendance.year >= year
+            for attendance in
+            # Use `.all()` to make prefetching work
+            self.lectureattendance_set.all()
+        )
 
     def missed_lectures(self, year: int) -> bool:
         """Whether the participant missed WS lectures in the given year."""
@@ -547,7 +554,7 @@ class Participant(models.Model):
         the current year's lectures in any UI that surfaces that information).
         """
         if not self.missed_lectures_for(trip):
-            return False  # Attended this year
+            return False  # Attended this year *or* it's just not a winter trip.
 
         # For Winter School leaders, we have a carve-out if you've attended lectures recently
         if not self.can_lead(enums.Program.WINTER_SCHOOL):

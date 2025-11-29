@@ -110,6 +110,23 @@ class AttendanceTest(TestCase):
         self.assertTrue(soup.find(string="Attended", class_="label-success"))
         self.assertFalse(soup.find("form"))
 
+    @freeze_time("Nov 28 2025 20:30:00 EST")
+    def test_next_year_lectures_recorded(self) -> None:
+        participant = factories.ParticipantFactory.create()
+        factories.LectureAttendanceFactory.create(participant=participant, year=2026)
+        html_template = Template(
+            "{% load ws_tags %}{% lecture_attendance par user_viewing can_set %}"
+        )
+        context = Context({"par": participant, "user_viewing": False, "can_set": False})
+        soup = BeautifulSoup(html_template.render(context), "html.parser")
+
+        paragraph = soup.find("p")
+        assert paragraph is not None
+        self.assertEqual(
+            strip_whitespace(paragraph.text),
+            "Attended Test Participant has attended WS 2026 lectures!",
+        )
+
     @freeze_time("Jan 12 2019 20:30:00 EST")
     def test_self_has_attended(self):
         """We affirm that participants have attended lectures during the first week!"""
@@ -125,7 +142,7 @@ class AttendanceTest(TestCase):
         paragraph = BeautifulSoup(html, "html.parser").find("p")
         self.assertEqual(
             strip_whitespace(paragraph.text),
-            "Attended You have attended this year's lectures!",
+            "Attended You have attended WS 2019 lectures!",
         )
 
         # We tell the participant they've attended (whether or not the form is open)

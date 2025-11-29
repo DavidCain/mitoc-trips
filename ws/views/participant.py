@@ -316,7 +316,7 @@ class ParticipantView(
             "emergency_info__emergency_contact",
             "car",
             "lotteryinfo",
-        )
+        ).prefetch_related("lectureattendance_set")
 
     def get_trips(self) -> GroupedTrips:
         participant = self.object or self.get_object()
@@ -399,6 +399,50 @@ class ParticipantView(
 
         return stats
 
+    def _show_lecture_attendance(
+        self,
+        participant: models.Participant,
+        *,
+        attendance_years: set[int],
+        user_viewing: bool,
+        can_set_attendance: bool,
+    ) -> bool:
+        """Determine if we should render whether or not the participant attended lectures.
+
+        This is surprisingly complicated.
+
+        There are a few times of year where it's important to show "yes, you attended"
+        1. The enrollment period where participants can record attendance (2nd lecture)
+        2. The first week of WS, after lectures but before weekend trips
+           (this is when participants may not have recorded attendance correctly)
+           In later weeks, we'll enforce lecture attendance as part of trip signup.
+        3. The participant was recorded *early* as having attended a year's lecture
+           (applicable in 2024 and 2025, when special fall lectures were held)
+        """
+        if not date_utils.is_currently_iap():
+            # Outside of WS, there's only one time it's relevant to show attendance.
+            # That's in the fall, when we've supported recording *next* year's attendance.
+            # (we did this in 2024 and 2025, and may or may not do it going forward)
+            current_year = date_utils.local_now().year
+            return any(year > current_year for year in attendance_years)
+
+        show_attendance = can_set_attendance or date_utils.ws_lectures_complete()
+
+        # We don't need to tell participants "You attended lectures!" later in WS.
+        # This is because signup rules enforce lecture attendance *after* week 1.
+        if (
+            show_attendance
+            and user_viewing
+            and models.Trip.objects.filter(
+                program=enums.Program.WINTER_SCHOOL.value,
+                trip_date__gte=date_utils.jan_1(),
+                trip_date__lt=date_utils.local_date(),
+            )
+        ):
+            return False
+
+        return show_attendance
+
     def _lecture_info(
         self,
         participant: models.Participant,
@@ -407,33 +451,20 @@ class ParticipantView(
         """Describe the participant's lecture attendance, if applicable."""
         can_set_attendance = self.can_set_attendance(participant)
 
-        # There are only *two* times of year where it's important to show "yes, you attended"
-        # 1. The enrollment period where participants can record attendance (2nd lecture)
-        # 2. The first week of WS, after lectures but before weekend trips
-        #    (this is when participants may not have recorded attendance correctly)
-        #    In later weeks, we'll enforce lecture attendance as part of trip signup.
-        show_attendance = date_utils.is_currently_iap() and (
-            can_set_attendance or date_utils.ws_lectures_complete()
+        attendance_years = {
+            attendance.year for attendance in participant.lectureattendance_set.all()
+        }
+        show_attendance = self._show_lecture_attendance(
+            participant,
+            user_viewing=user_viewing,
+            attendance_years=attendance_years,
+            can_set_attendance=can_set_attendance,
         )
-
-        if show_attendance:
-            attended_lectures = participant.attended_lectures(date_utils.ws_year())
-
-            # We don't need to tell participants "You attended lectures!" later in WS.
-            # This is because signup rules enforce lecture attendance *after* week 1.
-            if user_viewing and models.Trip.objects.filter(
-                program=enums.Program.WINTER_SCHOOL.value,
-                trip_date__gte=date_utils.jan_1(),
-                trip_date__lt=date_utils.local_date(),
-            ):
-                show_attendance = False
-        else:  # Skip unnecessary db queries
-            attended_lectures = False  # Maybe they actually did, but we're not showing.
 
         return {
             "can_set_attendance": can_set_attendance,
             "show_attendance": show_attendance,
-            "attended_lectures": attended_lectures,
+            "attended_lectures": participant.attended_lectures(date_utils.ws_year()),
         }
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:

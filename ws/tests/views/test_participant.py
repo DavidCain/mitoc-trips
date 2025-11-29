@@ -91,7 +91,7 @@ class LectureAttendanceTests(TestCase):
         attendance = soup.find("h3", string="Lecture Attendance")
         self.assertEqual(
             strip_whitespace(attendance.find_next("p").text),
-            "Attended You have attended this year's lectures!",
+            "Attended You have attended WS 2022 lectures!",
         )
 
     def test_warn_if_missing_after_lectures(self):
@@ -118,7 +118,7 @@ class LectureAttendanceTests(TestCase):
         attendance = soup.find("h3", string="Lecture Attendance")
         self.assertEqual(
             strip_whitespace(attendance.find_next("p").text),
-            "Attended You have attended this year's lectures!",
+            "Attended You have attended WS 2022 lectures!",
         )
 
     def test_attendance_not_shown_in_week_two(self):

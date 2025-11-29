@@ -9,7 +9,7 @@
     {% else %}
       {{ participant.name }} has
     {% endif %}
-    attended this year's lectures!
+    attended WS {{ lecture_year }} lectures!
   </p>
 {% elif can_set_attendance %}  {# User (or chair) can mark attendance. #}
   <form method="post" action="{% url 'lecture_attendance' %}">
@@ -30,8 +30,8 @@
           {% if past_attendance %}
             <p>
             Past years' attendance:
-            {% for record in past_attendance %}
-              <span class="label label-success"><i class="fas fa-fw fa-check"></i><span>{{ record.year }}</span></span>
+            {% for year in past_attendance %}
+              <span class="label label-success"><i class="fas fa-fw fa-check"></i><span>{{ year }}</span></span>
             {% endfor %}
             </p>
           {% endif %}
@@ -64,8 +64,8 @@
   {% if past_attendance %}
     <p>
     Past years' attendance:
-    {% for record in past_attendance %}
-      <span class="label label-success"><i class="fas fa-fw fa-check"></i>{{ record.year }}</span>
+    {% for year in past_attendance %}
+      <span class="label label-success"><i class="fas fa-fw fa-check"></i>{{ year }}</span>
     {% endfor %}
     </p>
   {% endif %}

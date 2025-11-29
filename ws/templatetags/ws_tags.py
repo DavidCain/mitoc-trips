@@ -23,7 +23,10 @@ def lecture_attendance(
      - The activity chair marks them manually as having attended
      - The user marks themselves during the allowed window
     """
-    attendance = participant.lectureattendance_set
+    years = sorted(
+        attendance.year for attendance in participant.lectureattendance_set.all()
+    )
+    max_year = years[-1] if years else None
     this_year = ws_year()
     form = AttendedLecturesForm(initial={"participant": participant})
     form.fields["participant"].widget = HiddenInput()  # Will be checked by view
@@ -31,7 +34,8 @@ def lecture_attendance(
         "form": form,
         "participant": participant,
         "user_viewing": user_viewing,
-        "attended_lectures": attendance.filter(year=this_year).exists(),
-        "past_attendance": attendance.exclude(year=this_year),
+        "attended_lectures": max_year and max_year >= this_year,
+        "lecture_year": max_year,
+        "past_attendance": [year for year in years if year < this_year],
         "can_set_attendance": can_set_attendance,
     }
