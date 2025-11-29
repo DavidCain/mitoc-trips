@@ -66,8 +66,12 @@ class PayDuesView(FormView):
             "missing_verified_mit_email": (
                 self.request.user.is_authenticated
                 and not EmailAddress.objects.filter(
-                    user=self.request.user, verified=True, email__iendswith="mit.edu"
-                ).exists()
+                    user=self.request.user,
+                    verified=True,
+                    email__iendswith="mit.edu",
+                )
+                .exclude(email__iendswith="alum.mit.edu")
+                .exists()
             ),
         }
 

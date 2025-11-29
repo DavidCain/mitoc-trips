@@ -99,7 +99,7 @@
         {# It's okay for somebody with a verified MIT email to pay with a non-MIT email. #}
         {# But for anonymous users, we'll straight-up block the form from submitting. #}
         {% if missing_verified_mit_email or not viewing_participant %}
-          <div class="alert alert-danger" data-ng-cloak data-ng-show="membershipform.$valid && ['MU', 'MG'].includes(affiliation) && !email.endsWith('mit.edu')">
+          <div class="alert alert-danger" data-ng-cloak data-ng-show="membershipform.$valid && ['MU', 'MG'].includes(affiliation) && (email.endsWith('@alum.mit.edu') || !email.endsWith('mit.edu'))">
             <p>
               <strong>You must own an MIT email address</strong> in order to claim the MIT student rate.
             </p>
@@ -130,8 +130,12 @@
             </a>
           {% endif %}
           <button type="submit" class="btn btn-primary"
-            {% if not viewing_participant %}
-              data-ng-disabled="!amount || ((affiliation === 'MU' || affiliation === 'MG') && !email.endsWith('mit.edu'))"
+            {% if missing_verified_mit_email %}
+              {# If they are trying to pay dues as an MIT student, but lack a verified email, prevent submission #}
+              {# This should generally be impossible -- only people who previously used alum.mit.edu emails should be flagged. #}
+              disabled
+            {% elif not viewing_participant %}
+              data-ng-disabled="!amount || ((affiliation === 'MU' || affiliation === 'MG') && (email.endsWith('@alum.mit.edu') || !email.endsWith('mit.edu')))"
             {% endif %}
             >
             <i class="fas fa-credit-card"></i>&nbsp;Pay <span data-ng-bind="amount ? '$' + amount: ''"></span> {{ viewing_participant.get_affiliation_display }} dues

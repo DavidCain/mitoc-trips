@@ -123,6 +123,11 @@ class ParticipantEditMixin(TemplateView):
 
         verified_mit_emails = self.user.emailaddress_set.filter(
             verified=True, email__iendswith="mit.edu"
+        ).exclude(
+            # We let anybody self-report MIT alum status.
+            # However, the alum subdomain should *not* be enough to claim MIT undergrad/grad.
+            # At time of writing, one member had used this to unfairly pay MIT undergrad dues.
+            email__iendswith="alum.mit.edu"
         )
 
         context = {
