@@ -1,6 +1,5 @@
 import csv
 import logging
-from collections import defaultdict
 from datetime import date, timedelta
 from typing import Any, NamedTuple, TypedDict, cast
 from urllib.parse import urlencode
@@ -83,7 +82,7 @@ def summarize_filters(cleaned_data: SearchFields) -> str:
 class LeaderboardRow(NamedTuple):
     leader: models.Participant
     total_trips_led: int
-    trips_led_per_program: dict[enums.Program, int]
+    trips_led_per_program: dict[enums.Program, list[models.Trip]]
 
 
 class LeaderboardCell(NamedTuple):
@@ -144,14 +143,19 @@ class LeaderboardView(TemplateView, FormView):
         """Produce the table rows describing the matched leaders."""
         total_trips_led: dict[models.Participant, int] = {}
 
-        by_program: dict[models.Participant, defaultdict[enums.Program, int]] = {}
+        by_program: dict[
+            models.Participant, dict[enums.Program, list[models.Trip]]
+        ] = {}
 
         # We'll be counting trips in a variety of ways per-leader.
         # Rather than a bunch of SQL aggregations, just do it in plain Python.
-        for trip in self._get_trips(cleaned_data).prefetch_related("leaders"):
+        for trip in (
+            self._get_trips(cleaned_data).order_by("id").prefetch_related("leaders")
+        ):
             for leader in trip.leaders.all():
                 total_trips_led[leader] = total_trips_led.get(leader, 0) + 1
-                by_program.setdefault(leader, defaultdict(int))[trip.program_enum] += 1
+                leader_count = by_program.setdefault(leader, {})
+                leader_count.setdefault(trip.program_enum, []).append(trip)
 
         all_programs = sorted(
             {program for programs in by_program.values() for program in programs},
@@ -163,7 +167,7 @@ class LeaderboardView(TemplateView, FormView):
                 leader=participant,
                 total_trips_led=total_trips_led[participant],
                 trips_led_per_program={
-                    program: by_program[participant].get(program, 0)
+                    program: by_program[participant].get(program, [])
                     # Note: it's important that all dicts be constructed in the same order.
                     for program in all_programs
                 },
@@ -220,8 +224,8 @@ class LeaderboardView(TemplateView, FormView):
                     "Email": row.leader.email,
                     "Trips led": row.total_trips_led,
                     **{
-                        program.label: count
-                        for (program, count) in row.trips_led_per_program.items()
+                        program.label: len(trips)
+                        for (program, trips) in row.trips_led_per_program.items()
                     },
                 }
                 for row in rows

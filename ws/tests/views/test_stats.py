@@ -126,26 +126,26 @@ class LeaderboardTest(TestCase):
             will_not_match.leaders.add(self.harry)
 
         # Trips we'll actually consider in the leaderboard!
-        jan_2024 = factories.TripFactory.create(
+        self.jan_2024 = factories.TripFactory.create(
             trip_date=date(2024, 1, 13),
             program=enums.Program.CLIMBING.value,
             trip_type=enums.TripType.TRAD_CLIMBING.value,
         )
-        jan_2025 = factories.TripFactory.create(
+        self.jan_2025 = factories.TripFactory.create(
             trip_date=date(2025, 1, 11), program=enums.Program.WINTER_SCHOOL.value
         )
-        dec_2025 = factories.TripFactory.create(
+        self.dec_2025 = factories.TripFactory.create(
             trip_date=date(2025, 12, 1), program=enums.Program.WINTER_NON_IAP.value
         )
 
-        jan_2024.leaders.add(self.tim)
-        jan_2025.leaders.add(self.tim)
-        dec_2025.leaders.add(self.tim)
+        self.jan_2024.leaders.add(self.tim)
+        self.jan_2025.leaders.add(self.tim)
+        self.dec_2025.leaders.add(self.tim)
 
-        jan_2024.leaders.add(self.emily)
+        self.jan_2024.leaders.add(self.emily)
 
-        jan_2024.leaders.add(self.harry)
-        jan_2025.leaders.add(self.harry)
+        self.jan_2024.leaders.add(self.harry)
+        self.jan_2025.leaders.add(self.harry)
 
     def test_must_be_logged_in(self) -> None:
         self.client.logout()
@@ -190,16 +190,16 @@ class LeaderboardTest(TestCase):
                     leader=self.tim,
                     total_trips_led=2,
                     trips_led_per_program={
-                        enums.Program.WINTER_NON_IAP: 1,
-                        enums.Program.WINTER_SCHOOL: 1,
+                        enums.Program.WINTER_NON_IAP: [self.dec_2025],
+                        enums.Program.WINTER_SCHOOL: [self.jan_2025],
                     },
                 ),
                 stats.LeaderboardRow(
                     leader=self.harry,
                     total_trips_led=1,
                     trips_led_per_program={
-                        enums.Program.WINTER_NON_IAP: 0,
-                        enums.Program.WINTER_SCHOOL: 1,
+                        enums.Program.WINTER_NON_IAP: [],
+                        enums.Program.WINTER_SCHOOL: [self.jan_2025],
                     },
                 ),
             ],
@@ -247,17 +247,17 @@ class LeaderboardTest(TestCase):
                 stats.LeaderboardRow(
                     leader=self.emily,
                     total_trips_led=1,
-                    trips_led_per_program={enums.Program.CLIMBING: 1},
+                    trips_led_per_program={enums.Program.CLIMBING: [self.jan_2024]},
                 ),
                 stats.LeaderboardRow(
                     leader=self.harry,
                     total_trips_led=1,
-                    trips_led_per_program={enums.Program.CLIMBING: 1},
+                    trips_led_per_program={enums.Program.CLIMBING: [self.jan_2024]},
                 ),
                 stats.LeaderboardRow(
                     leader=self.tim,
                     total_trips_led=1,
-                    trips_led_per_program={enums.Program.CLIMBING: 1},
+                    trips_led_per_program={enums.Program.CLIMBING: [self.jan_2024]},
                 ),
             ],
         )

@@ -59,8 +59,13 @@
           <tr>
             <td><a href="{% url 'view_participant' row.leader.pk %}">{{ row.leader.name }}</a></td>
             <td>{{ row.total_trips_led }}</td>
-            {% for count in row.trips_led_per_program.values %}
-              <td>{{ count }}</td>
+            {% for trips in row.trips_led_per_program.values %}
+              <td>
+                {# 50 words is roughly enough to display trip names for ten trips (and a sensible tooltip max) #}
+                <span{% if trips %} uib-tooltip="{{ trips|join:' | '|truncatewords:50 }}"{% endif %}>
+                  {{ trips|length }}
+                </span>
+              </td>
             {% endfor %}
           </tr>
         {% endfor %}
