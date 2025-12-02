@@ -1,6 +1,7 @@
 import re
 from collections.abc import Collection, Iterable, Iterator
 from datetime import date, datetime, timedelta
+from functools import cache
 from typing import Any, Optional, Self, cast
 from urllib.parse import urlencode
 from zoneinfo import ZoneInfo
@@ -33,6 +34,24 @@ from ws.utils.avatar import avatar_url
 alphanum = RegexValidator(
     r"^[a-zA-Z0-9 ]*$", "Only alphanumeric characters and spaces allowed"
 )
+
+
+@cache  # Really simple query; avoid querying db repeatedly
+def _models_for_each_activity() -> dict[enums.Activity, type["LeaderApplication"]]:
+    model_names = [
+        "".join(activity.value.split("_")).lower() + "leaderapplication"
+        for activity in enums.Activity
+    ]
+    mapping: dict[enums.Activity, type[LeaderApplication]] = {}
+    for content_type in ContentType.objects.filter(
+        app_label="ws", model__in=model_names
+    ):
+        model_class = content_type.model_class()
+        assert model_class is not None
+        assert issubclass(model_class, LeaderApplication)
+        mapping[model_class.activity_from_content_type(content_type)] = model_class
+
+    return mapping
 
 
 class NoApplicationDefinedError(Exception):
@@ -1816,6 +1835,14 @@ class LeaderApplication(models.Model):
         time_passed = date_utils.local_now() - latest_application.time_created
         return time_passed > timedelta(days=waiting_period_days)
 
+    @staticmethod
+    def activity_from_content_type(content_type: ContentType) -> enums.Activity:
+        model_name: str = content_type.model
+        activity = model_name[: model_name.rfind("leaderapplication")]
+        return enums.Activity(
+            "winter_school" if (activity == "winterschool") else activity
+        )
+
     @property
     def activity(self) -> str:
         """Extract the activity name from the class name/db_name.
@@ -1828,44 +1855,23 @@ class LeaderApplication(models.Model):
         set db_name to be the activity without underscores.
         """
         content_type = ContentType.objects.get_for_model(self)
-        model_name: str = content_type.model
-        activity = model_name[: model_name.rfind("leaderapplication")]
-        return "winter_school" if (activity == "winterschool") else activity
+        return self.activity_from_content_type(content_type).value
 
     @staticmethod
     def model_from_activity(
         activity: enums.Activity,
-    ) -> (
-        # Technically, `type[LeaderApplication]` would work too.
-        # However, being specific about supported applications helps mypy.
-        type["ClimbingLeaderApplication"]
-        | type["HikingLeaderApplication"]
-        | type["WinterSchoolLeaderApplication"]
-    ):
+    ) -> type["LeaderApplication"]:
         """Get the specific inheriting child from the activity.
 
         Inverse of activity().
         """
-        model = "".join(activity.value.split("_")).lower() + "leaderapplication"
+        mapping = _models_for_each_activity()
         try:
-            content_type = ContentType.objects.get(app_label="ws", model=model)
-        except ContentType.DoesNotExist as e:
+            return mapping[activity]
+        except KeyError as e:
             raise NoApplicationDefinedError(
                 f"No application for {activity.label}"
             ) from e
-
-        model_class = content_type.model_class()
-        if model_class is None:
-            raise NoApplicationDefinedError(f"No application for {activity.label}")
-        assert issubclass(
-            model_class,
-            (
-                ClimbingLeaderApplication
-                | HikingLeaderApplication
-                | WinterSchoolLeaderApplication
-            ),
-        )
-        return model_class
 
 
 class HikingLeaderApplication(LeaderApplication):
