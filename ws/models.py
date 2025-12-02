@@ -1816,6 +1816,14 @@ class LeaderApplication(models.Model):
         time_passed = date_utils.local_now() - latest_application.time_created
         return time_passed > timedelta(days=waiting_period_days)
 
+    @staticmethod
+    def activity_from_content_type(content_type: ContentType) -> enums.Activity:
+        model_name: str = content_type.model
+        activity = model_name[: model_name.rfind("leaderapplication")]
+        return enums.Activity(
+            "winter_school" if (activity == "winterschool") else activity
+        )
+
     @property
     def activity(self) -> str:
         """Extract the activity name from the class name/db_name.
@@ -1828,16 +1836,12 @@ class LeaderApplication(models.Model):
         set db_name to be the activity without underscores.
         """
         content_type = ContentType.objects.get_for_model(self)
-        model_name: str = content_type.model
-        activity = model_name[: model_name.rfind("leaderapplication")]
-        return "winter_school" if (activity == "winterschool") else activity
+        return self.activity_from_content_type(content_type).value
 
     @staticmethod
     def model_from_activity(
         activity: enums.Activity,
     ) -> (
-        # Technically, `type[LeaderApplication]` would work too.
-        # However, being specific about supported applications helps mypy.
         type["ClimbingLeaderApplication"]
         | type["HikingLeaderApplication"]
         | type["WinterSchoolLeaderApplication"]
@@ -1846,26 +1850,14 @@ class LeaderApplication(models.Model):
 
         Inverse of activity().
         """
-        model = "".join(activity.value.split("_")).lower() + "leaderapplication"
-        try:
-            content_type = ContentType.objects.get(app_label="ws", model=model)
-        except ContentType.DoesNotExist as e:
-            raise NoApplicationDefinedError(
-                f"No application for {activity.label}"
-            ) from e
-
-        model_class = content_type.model_class()
-        if model_class is None:
-            raise NoApplicationDefinedError(f"No application for {activity.label}")
-        assert issubclass(
-            model_class,
-            (
-                ClimbingLeaderApplication
-                | HikingLeaderApplication
-                | WinterSchoolLeaderApplication
-            ),
-        )
-        return model_class
+        # Could use Django's `ContentType` framework, but this can be simple.
+        if activity == enums.Activity.CLIMBING:
+            return ClimbingLeaderApplication
+        if activity == enums.Activity.HIKING:
+            return HikingLeaderApplication
+        if activity == enums.Activity.WINTER_SCHOOL:
+            return WinterSchoolLeaderApplication
+        raise NoApplicationDefinedError(f"No application for {activity.label}")
 
 
 class HikingLeaderApplication(LeaderApplication):
