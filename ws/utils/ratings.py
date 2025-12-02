@@ -148,6 +148,22 @@ class ApplicationManager(LeaderApplicationMixin, RatingsRecommendationsMixin):
             "-archived", "num_ratings", "num_recs", "time_created"
         )
 
+    def count_pending_applications(self) -> int:
+        # Some activities don't actually have an application type defined! (e.g. 'cabin')
+        # Exit early so we don't fail trying to build a database query
+        if not models.LeaderApplication.can_apply_for_activity(self.activity_enum):
+            return 0
+
+        return (
+            self.joined_queryset()
+            .annotate(
+                num_ratings=self.sum_annotation(self.gave_rating),
+            )
+            .filter(num_ratings=0)
+            .exclude(archived=True)
+            .count()
+        )
+
     def pending_applications(self) -> list[AnnotatedApplication]:
         """All applications which do not yet have a rating.
 

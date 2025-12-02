@@ -212,7 +212,7 @@ def pending_applications_count(
     - Viewing user hasn't given a rec
     """
     manager = ratings_utils.ApplicationManager(chair=chair, activity_enum=activity_enum)
-    return len(manager.pending_applications())
+    return manager.count_pending_applications()
 
 
 @register.filter
