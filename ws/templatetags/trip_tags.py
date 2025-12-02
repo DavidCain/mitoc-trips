@@ -132,11 +132,16 @@ def trip_list_table(
     trip_list: list[models.Trip],
     approve_mode: bool = False,
     show_trip_stage: bool = False,
+    show_signups_on_trip: bool = True,
 ) -> dict[str, Any]:
+    if approve_mode:
+        show_trip_stage = False
+        show_signups_on_trip = False
     return {
         "trip_list": trip_list,
         "approve_mode": approve_mode,
         "show_trip_stage": show_trip_stage,
+        "show_signups_on_trip": show_signups_on_trip,
     }
 
 

@@ -660,7 +660,7 @@ class TripListView(ListView):
         return context
 
 
-def search_trips(
+def _search_trips(
     text: str,
     filters: None | Q,
     limit: int = 100,
@@ -754,13 +754,14 @@ class TripSearchView(ListView, FormView):
             specified_filters["trip_date__gte"] = form.cleaned_data["start_date"]
         if form.cleaned_data["end_date"]:
             specified_filters["trip_date__lte"] = form.cleaned_data["end_date"]
-        return annotated_for_trip_list(
-            search_trips(
-                form.cleaned_data["q"],
-                filters=Q(**specified_filters) if specified_filters else None,
-                limit=self.limit,
-            ),
-        )
+
+        return _search_trips(
+            form.cleaned_data["q"],
+            filters=Q(**specified_filters) if specified_filters else None,
+            limit=self.limit,
+            # We'll use this query on the `trip_list_table`,
+            # but with signup counts disabled. Just prefetch leaders.
+        ).prefetch_related("leaders", "leaders__leaderrating_set")
 
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):

@@ -9,10 +9,10 @@
         <th data-hide="phone,tablet" class="nowrap">Terrain level</th>
       {% endif %}
       <th data-hide="phone,tablet" data-sort-ignore="true">Description</th>
-      {% if not approve_mode %}
-        {% if show_trip_stage %}
-          <th data-type="numeric" class="nowrap" data-hide="phone">Stage</th>
-        {% endif %}
+      {% if show_trip_stage %}
+        <th data-type="numeric" class="nowrap" data-hide="phone">Stage</th>
+      {% endif %}
+      {% if show_signups_on_trip %}
         <th data-type="numeric" class="nowrap">Spaces</th>
       {% endif %}
       <th data-hide="phone,tablet">Leaders</th>
@@ -71,13 +71,16 @@
           {{ trip.summary }}
         </td>
 
-        {% if not approve_mode %}
+        {% if show_trip_stage %}
           {% with signups_on_trip=trip.signups_on_trip %}
-            {% if show_trip_stage %}
             <td data-value="{{ trip|numeric_trip_stage_for_sorting:signups_on_trip }}">
               {% trip_stage trip signups_on_trip %}
             </td>
-            {% endif %}
+          {% endwith %}
+        {% endif %}
+
+        {% if show_signups_on_trip %}
+          {% with signups_on_trip=trip.signups_on_trip %}
             <td>{{ trip.maximum_participants|subtract:signups_on_trip }} / {{ trip.maximum_participants }}</td>
           {% endwith %}
         {% endif %}

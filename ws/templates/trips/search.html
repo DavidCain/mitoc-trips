@@ -29,7 +29,7 @@ Search trips
 <hr>
 
 {% if matching_trips %}
-  {% trip_list_table matching_trips %}
+  {% trip_list_table matching_trips False False False %}
   {% if max_results_shown %}
     <p>
       <em>Results limited. Try a more specific search.</em>
