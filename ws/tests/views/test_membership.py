@@ -3,9 +3,11 @@ from unittest import mock
 from zoneinfo import ZoneInfo
 
 import responses
+from allauth.account.models import EmailAddress
 from bs4 import BeautifulSoup
 from django.test import TestCase
 from freezegun import freeze_time
+from mitoc_const import affiliations
 
 from ws import forms, waivers
 from ws.tests import factories, strip_whitespace
@@ -149,8 +151,8 @@ class RefreshMembershipViewTest(TestCase):
         )
 
 
-class PayDuesTests(TestCase):
-    def test_load_form_as_anonymous_user(self):
+class PayDuesTest(TestCase):
+    def test_load_form_as_anonymous_user(self) -> None:
         """Several hidden inputs are pre-filled for all members."""
         response = self.client.get("/profile/membership/")
         form = response.context["form"]
@@ -192,7 +194,7 @@ class PayDuesTests(TestCase):
         self.assertIsNone(form.fields["merchantDefinedData3"].initial)
         self.assertIsNone(form.fields["merchantDefinedData4"].initial)
 
-    def test_load_form_as_logged_in_participant(self):
+    def test_load_form_as_logged_in_participant(self) -> None:
         """We pre-populate the form for participants with information on file."""
         par = factories.ParticipantFactory.create(
             name="Timothy Beaver",
@@ -213,7 +215,7 @@ class PayDuesTests(TestCase):
         self.assertEqual(form.fields["merchantDefinedData4"].initial, "Timothy Beaver")
 
     @freeze_time("2021-12-10 12:00:00 EST")
-    def test_load_form_as_member_able_to_renew(self):
+    def test_load_form_as_member_able_to_renew(self) -> None:
         """We clearly communicate when membership ends if you renew."""
         par = factories.ParticipantFactory.create(
             membership__membership_expires=date(2021, 12, 25)
@@ -225,18 +227,21 @@ class PayDuesTests(TestCase):
 
         soup = BeautifulSoup(response.content, "html.parser")
         lead_par = soup.find("p", class_="lead")
+        assert lead_par is not None
         self.assertEqual(
             lead_par.text,
             "To make the most of MITOC, you must be up-to-date on annual dues.",
         )
+        main_paragraph = lead_par.find_next("p")
+        assert main_paragraph is not None
         self.assertEqual(
-            strip_whitespace(lead_par.find_next("p").text),
+            strip_whitespace(main_paragraph.text),
             "Renewing today keeps your account active until Dec 25, 2022. "
             "Staying current on dues enables you to rent gear from the office, participate in upcoming trips, and stay at MITOC's cabins.",
         )
 
     @freeze_time("2021-12-10 12:00:00 EST")
-    def test_load_form_as_lapsed_member(self):
+    def test_load_form_as_lapsed_member(self) -> None:
         par = factories.ParticipantFactory.create(
             membership__membership_expires=date(2021, 1, 2)
         )
@@ -249,17 +254,20 @@ class PayDuesTests(TestCase):
 
         soup = BeautifulSoup(response.content, "html.parser")
         lead_par = soup.find("p", class_="lead")
+        assert lead_par is not None
         self.assertEqual(
             lead_par.text,
             "To make the most of MITOC, you must be up-to-date on annual dues.",
         )
+        main_paragraph = lead_par.find_next("p")
+        assert main_paragraph is not None
         self.assertEqual(
-            strip_whitespace(lead_par.find_next("p").text),
+            strip_whitespace(main_paragraph.text),
             "Dues are valid for 365 days. Paying dues enables you to "
             "rent gear from the office, participate in upcoming trips, and stay at MITOC's cabins.",
         )
 
-    def test_pay_anonymously(self):
+    def test_pay_anonymously(self) -> None:
         """Users need not log in to pay dues."""
         valid_form_data = {
             "merchant_id": "mit_sao_mitoc",
@@ -275,6 +283,71 @@ class PayDuesTests(TestCase):
         self.assertTrue(forms.DuesForm(valid_form_data, participant=None).is_valid())
 
         # We can't test that CyberSource accepts the payload, so stop here
+
+    def test_missing_mit_email(self) -> None:
+        par = factories.ParticipantFactory.create(
+            affiliation=affiliations.MIT_UNDERGRAD.CODE,
+        )
+
+        self.client.force_login(par.user)
+
+        response = self.client.get("/profile/membership/")
+        soup = BeautifulSoup(response.content, "html.parser")
+        form = soup.find(
+            "form", action="https://shopmitprd.mit.edu/controller/index.php"
+        )
+        assert form is not None
+        submit = form.find("button")
+        assert submit is not None
+        self.assertIn("disabled", submit.attrs)
+        strong = form.find("strong")
+        assert strong is not None
+        self.assertEqual(strong.text, "You must own an MIT email address")
+        alert = strong.find_parent("div", class_="alert alert-danger")
+        assert alert is not None
+
+        # Importantly, there is no conditional rendering (no `ng-*` attrs)
+        self.assertCountEqual(alert.attrs, {"class"})
+
+    def test_has_mit_email(self) -> None:
+        par = factories.ParticipantFactory.create(
+            affiliation=affiliations.MIT_UNDERGRAD.CODE, email="tim@mit.edu"
+        )
+        # The factory ensures a verified email; just check that!
+        email = EmailAddress.objects.get(user=par.user)
+        self.assertTrue(email.verified)
+
+        self.client.force_login(par.user)
+        response = self.client.get("/profile/membership/")
+        soup = BeautifulSoup(response.content, "html.parser")
+        form = soup.find(
+            "form", action="https://shopmitprd.mit.edu/controller/index.php"
+        )
+        assert form is not None
+        submit = form.find("button")
+        assert submit is not None
+        self.assertNotIn("disabled", submit.attrs)
+
+    def test_has_secondary_mit_email(self) -> None:
+        par = factories.ParticipantFactory.create(
+            affiliation=affiliations.MIT_UNDERGRAD.CODE,
+        )
+        factories.EmailAddressFactory.create(
+            user=par.user,
+            email="timothy@mit.edu",
+            verified=True,
+            primary=False,
+        )
+        self.client.force_login(par.user)
+        response = self.client.get("/profile/membership/")
+        soup = BeautifulSoup(response.content, "html.parser")
+        form = soup.find(
+            "form", action="https://shopmitprd.mit.edu/controller/index.php"
+        )
+        assert form is not None
+        submit = form.find("button")
+        assert submit is not None
+        self.assertNotIn("disabled", submit.attrs)
 
 
 class SignWaiverTests(TestCase):

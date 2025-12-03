@@ -5,6 +5,7 @@ these documents expire after 12 months.
 """
 
 import contextlib
+import logging
 from typing import TYPE_CHECKING, Any
 
 import requests
@@ -22,6 +23,9 @@ from ws.utils.membership import get_latest_membership
 
 if TYPE_CHECKING:
     from ws.models import Participant
+
+
+logger = logging.getLogger(__name__)
 
 
 class RefreshMembershipView(DetailView):
@@ -60,19 +64,36 @@ class PayDuesView(FormView):
     template_name = "profile/membership.html"
     form_class = forms.DuesForm
 
+    def _is_missing_verified_mit_email(self) -> bool:
+        """Return if they claim MIT student status, but lack verified emails.
+
+        Notably, this should be exceptionally rare, since we have requirements
+        in the profile-editing page about claiming student status.
+
+        (A notable edge case is that you can delete an MIT email from verified
+        emails, but still claim student status)
+        """
+        if not self.request.user.is_authenticated:
+            return False
+        participant: models.Participant | None = self.request.participant  # type: ignore[attr-defined]
+        if participant is None:
+            logger.error("Should not be able to view dues page without a participant!")
+            return False
+        return (
+            participant.is_mit_student
+            and not EmailAddress.objects.filter(
+                user=self.request.user,
+                verified=True,
+                email__iendswith="mit.edu",
+            )
+            .exclude(email__iendswith="alum.mit.edu")
+            .exists()
+        )
+
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         return {
             **super().get_context_data(),
-            "missing_verified_mit_email": (
-                self.request.user.is_authenticated
-                and not EmailAddress.objects.filter(
-                    user=self.request.user,
-                    verified=True,
-                    email__iendswith="mit.edu",
-                )
-                .exclude(email__iendswith="alum.mit.edu")
-                .exists()
-            ),
+            "missing_verified_mit_email": self._is_missing_verified_mit_email(),
         }
 
     def get_form_kwargs(self):
