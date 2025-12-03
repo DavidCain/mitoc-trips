@@ -90,14 +90,13 @@ class ParticipantForm(forms.ModelForm):
         par = self.instance
         _bind_input(self, "affiliation", initial=par and par.affiliation)
 
-    def clean_affiliation(self):
+    def clean_affiliation(self) -> str:
         """Require a valid MIT email address for MIT student affiliation."""
-        mit_student_codes = {
+        affiliation: str = self.cleaned_data["affiliation"]
+        if affiliation not in {
             affiliations.MIT_UNDERGRAD.CODE,
             affiliations.MIT_GRAD_STUDENT.CODE,
-        }
-        affiliation = self.cleaned_data["affiliation"]
-        if affiliation not in mit_student_codes:
+        }:
             return affiliation  # Nothing extra needs to be done!
         if not any(email.lower().endswith("mit.edu") for email in self.verified_emails):
             raise ValidationError(
@@ -802,18 +801,21 @@ class DuesForm(forms.Form):
         choices=list(amount_choices(value_is_amount=True)),
     )
 
-    def __init__(self, *args, **kwargs):
-        participant = kwargs.pop("participant")
-
+    def __init__(
+        self,
+        *args: Any,
+        participant: models.Participant | None,
+        **kwargs: Any,
+    ) -> None:
         super().__init__(*args, **kwargs)
         email = self.fields["merchantDefinedData3"]
 
-        if not participant:
+        if participant is None:
             email.widget.attrs["placeholder"] = "tim@mit.edu"
             # Without this, the default choice is 'Undergraduate student'.
             # This heading doesn't render as a choice, but it behaves like one.
             self.fields["amount"].initial = ""
-        if participant:
+        else:
             email.initial = participant.email
             self.fields["merchantDefinedData4"].initial = participant.name
             self.fields["merchantDefinedData2"].initial = participant.affiliation

@@ -99,7 +99,13 @@
         {# It's okay for somebody with a verified MIT email to pay with a non-MIT email. #}
         {# But for anonymous users, we'll straight-up block the form from submitting. #}
         {% if missing_verified_mit_email or not viewing_participant %}
-          <div class="alert alert-danger" data-ng-cloak data-ng-show="membershipform.$valid && ['MU', 'MG'].includes(affiliation) && (email.endsWith('@alum.mit.edu') || !email.endsWith('mit.edu'))">
+          <div
+            {# When authenticated, you can't edit form contents directly, so remove conditionality. #}
+            {# (It's harmless, just not necessary) #}
+            {% if not viewing_participant %}
+              data-ng-cloak data-ng-show="membershipform.$valid && ['MU', 'MG'].includes(affiliation) && (email.endsWith('@alum.mit.edu') || !email.endsWith('mit.edu'))"
+            {% endif %}
+            class="alert alert-danger">
             <p>
               <strong>You must own an MIT email address</strong> in order to claim the MIT student rate.
             </p>
@@ -112,14 +118,14 @@
           </div>
         {% endif %}
 
-        <div class="alert alert-warning" data-ng-show="['MU', 'MG'].includes(affiliation)">
+        <div class="alert alert-warning" data-ng-cloak data-ng-show="['MU', 'MG'].includes(affiliation)">
           <p>
             You must be enrolled at MIT as a full-time student to be a MITOC student member.
             Cross-registered students from other instutitions (e.g. Harvard) <strong>do not</strong> qualify.
           </p>
         </div>
 
-        <p data-ng-show="['MU', 'MG'].includes(affiliation)">
+        <p data-ng-cloak data-ng-show="['MU', 'MG'].includes(affiliation)">
             If <noscript>you are an MIT student and</noscript> the cost of club participation is prohibitive,
             see our <a href="https://mitoc.mit.edu/about/financial-aid">need-blind financial aid policies</a>.
         </p>
@@ -133,7 +139,7 @@
             {% if missing_verified_mit_email %}
               {# If they are trying to pay dues as an MIT student, but lack a verified email, prevent submission #}
               {# This should generally be impossible -- only people who previously used alum.mit.edu emails should be flagged. #}
-              disabled
+              disabled uib-tooltip="Must have a verified MIT email to claim MIT student status!"
             {% elif not viewing_participant %}
               data-ng-disabled="!amount || ((affiliation === 'MU' || affiliation === 'MG') && (email.endsWith('@alum.mit.edu') || !email.endsWith('mit.edu')))"
             {% endif %}
