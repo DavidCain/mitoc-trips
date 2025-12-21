@@ -304,7 +304,7 @@ class TripSearchForm(forms.Form):
 class TripInfoForm(forms.ModelForm):
     accurate = forms.BooleanField(
         required=True,
-        label="I affirm that all participant and driver information is correct",
+        label="I affirm that all participant and driver information is correct and that all participants on this trip have been vetted",
     )
 
     class Meta:
