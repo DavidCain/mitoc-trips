@@ -321,9 +321,7 @@ class UnapprovedTripsReminderTest(TestCase):
             trip_date=date(2025, 10, 26), chair_approved=True
         )
         # Not actually consulted at present, but let's favor a complete data model
-        factories.ChairApprovalFactory.create(
-            trip=approved, trip_edit_revision=approved.edit_revision
-        )
+        factories.ChairApprovalFactory.create(trip=approved)
 
         with patch.object(
             tasks.email_activity_chair_about_unapproved_trips, "delay"

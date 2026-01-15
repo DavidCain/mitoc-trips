@@ -249,12 +249,10 @@ class WarnIfEditingApprovedTripTest(TestCase):
             )
             factories.ChairApprovalFactory.create(
                 trip=trip,
-                trip_edit_revision=trip.edit_revision,
                 approver__name="First Approver",
             )
             factories.ChairApprovalFactory.create(
                 trip=trip,
-                trip_edit_revision=trip.edit_revision,
                 approver__name="Second Approver",
             )
             rendered = self._render(trip)
@@ -277,17 +275,14 @@ class WarnIfEditingApprovedTripTest(TestCase):
             )
             factories.ChairApprovalFactory.create(
                 trip=trip,
-                trip_edit_revision=trip.edit_revision,
                 approver__name="First Approver",
             )
             factories.ChairApprovalFactory.create(
                 trip=trip,
-                trip_edit_revision=trip.edit_revision,
                 approver__name="Second Approver",
             )
             factories.ChairApprovalFactory.create(
                 trip=trip,
-                trip_edit_revision=trip.edit_revision,
                 approver__name="Third Approver",
             )
             rendered = self._render(trip)
@@ -310,7 +305,6 @@ class WarnIfEditingApprovedTripTest(TestCase):
             )
             factories.ChairApprovalFactory.create(
                 trip=trip,
-                trip_edit_revision=trip.edit_revision,
                 approver__name="Suzie Queue",
             )
             rendered = self._render(trip)

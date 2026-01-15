@@ -384,6 +384,12 @@ class DeleteTripView(DeleteView, TripLeadersOnlyView):
     model = models.Trip
     success_url = reverse_lazy("trips")
 
+    def form_valid(self, form: forms.TripForm) -> HttpResponse:
+        # We don't need to retain records of old chair approval
+        models.ChairApprovalReminder.objects.filter(trip=self.object).delete()
+        models.ChairApproval.objects.filter(trip=self.object).delete()
+        return super().form_valid(form)
+
     def get(self, request, *args, **kwargs):
         """Request is valid, but method is not (use POST)."""
         messages.warning(self.request, "Use delete button to remove trips.")

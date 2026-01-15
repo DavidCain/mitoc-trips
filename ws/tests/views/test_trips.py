@@ -621,7 +621,6 @@ class EditTripViewTest(TestCase, Helpers):
             trip=trip,
             approver__name="Tim Beaver",
             approver__email="tim@mit.edu",
-            trip_edit_revision=trip.edit_revision,
         )
 
         _edit_resp, soup = self._get(f"/trips/{trip.pk}/edit/")
@@ -695,7 +694,7 @@ class EditTripViewTest(TestCase, Helpers):
 
 
 class DeleteTripViewTest(TestCase, Helpers):
-    def test_cannot_get(self):
+    def test_cannot_get(self) -> None:
         """Supporting GET would let attackers embed "images" and such."""
         participant = factories.ParticipantFactory.create()
         self.client.force_login(participant.user)
@@ -704,9 +703,36 @@ class DeleteTripViewTest(TestCase, Helpers):
 
         resp = self.client.get(f"/trips/{trip.pk}/delete/")
         self.assertEqual(resp.status_code, 302)
+        assert isinstance(resp, HttpResponseRedirect)
         self.assertEqual(resp.url, f"/trips/{trip.pk}/")
 
-    def test_can_delete_your_own_trip(self):
+    def test_deleting_approved_trip(self) -> None:
+        participant = factories.ParticipantFactory.create()
+        self.client.force_login(participant.user)
+
+        trip = factories.TripFactory.create(creator=participant)
+        factories.ChairApprovalReminderFactory.create(trip=trip)
+        factories.ChairApprovalFactory.create(trip=trip)
+        factories.ChairApprovalFactory.create(trip=trip)
+
+        other_reminder = factories.ChairApprovalReminderFactory.create()
+        other_approval = factories.ChairApprovalFactory.create()
+
+        resp = self.client.post(f"/trips/{trip.pk}/delete/")
+        self.assertEqual(resp.status_code, 302)
+        assert isinstance(resp, HttpResponseRedirect)
+        self.assertEqual(resp.url, "/trips/")
+        self.assertFalse(
+            models.ChairApprovalReminder.objects.filter(trip_id=trip.pk).exists()
+        )
+        self.assertFalse(models.ChairApproval.objects.filter(trip_id=trip.pk).exists())
+        self.assertFalse(models.Trip.objects.filter(pk=trip.pk).exists())
+
+        # We don't delete *other* approvals, which would be bad
+        other_reminder.refresh_from_db()
+        other_approval.refresh_from_db()
+
+    def test_can_delete_your_own_trip(self) -> None:
         participant = factories.ParticipantFactory.create()
         self.client.force_login(participant.user)
 
@@ -714,10 +740,11 @@ class DeleteTripViewTest(TestCase, Helpers):
 
         resp = self.client.post(f"/trips/{trip.pk}/delete/")
         self.assertEqual(resp.status_code, 302)
+        assert isinstance(resp, HttpResponseRedirect)
         self.assertEqual(resp.url, "/trips/")
         self.assertFalse(models.Trip.objects.filter(pk=trip.pk).exists())
 
-    def test_cannot_delete_old_trips(self):
+    def test_cannot_delete_old_trips(self) -> None:
         participant = factories.ParticipantFactory.create()
         self.client.force_login(participant.user)
 
@@ -725,10 +752,12 @@ class DeleteTripViewTest(TestCase, Helpers):
             creator=participant,
             trip_date=date(2020, 2, 5),
         )
+        approval = factories.ChairApprovalFactory.create(trip=trip)
         with freeze_time("2020-03-12 12:25:00 EST"):
             resp = self.client.post(f"/trips/{trip.pk}/delete/")
         self.assertEqual(resp.status_code, 200)
-        self.assertTrue(models.Trip.objects.filter(pk=trip.pk).exists())
+        trip.refresh_from_db()
+        approval.refresh_from_db()
 
 
 class SearchTripsViewTest(TestCase):
@@ -1036,10 +1065,7 @@ class ApproveTripsViewTest(TestCase):
         old_approved_trip.chair_approved = True
 
         with freeze_time("2019-07-02 12:25:00 EDT"):
-            factories.ChairApprovalFactory.create(
-                trip=old_approved_trip,
-                trip_edit_revision=old_approved_trip.edit_revision,
-            )
+            factories.ChairApprovalFactory.create(trip=old_approved_trip)
 
         perm_utils.make_chair(self.user, enums.Activity.CLIMBING)
         response = self.client.get("/climbing/trips/")

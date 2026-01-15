@@ -149,9 +149,7 @@ class ReminderEmailTest(TestCase):
             past_trip = factories.TripFactory.create(trip_date=date(2024, 3, 4))
 
             trip_approved = factories.TripFactory.create(chair_approved=True)
-            factories.ChairApprovalFactory.create(
-                trip=trip_approved, trip_edit_revision=trip_approved.edit_revision
-            )
+            factories.ChairApprovalFactory.create(trip=trip_approved)
             itinerary_not_available = factories.TripFactory.create(
                 trip_date=date(2026, 4, 5)
             )

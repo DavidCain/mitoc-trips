@@ -234,6 +234,7 @@ class ChairApprovalFactory(BaseFactory):
         model = models.ChairApproval
 
     trip = SubFactory(TripFactory)
+    trip_edit_revision = LazyAttribute(lambda obj: obj.trip.edit_revision)
     approver = SubFactory(ParticipantFactory)
 
 
@@ -242,6 +243,7 @@ class ChairApprovalReminderFactory(BaseFactory):
         model = models.ChairApprovalReminder
 
     trip = SubFactory(TripFactory)
+    had_trip_info = LazyAttribute(lambda obj: obj.trip.info is not None)
 
 
 class TripInfoFactory(BaseFactory):
