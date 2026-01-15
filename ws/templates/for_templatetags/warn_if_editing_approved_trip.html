@@ -1,0 +1,7 @@
+{% if should_warn %}
+  <div class="alert alert-warning">
+    <strong>This trip has been approved</strong> by {{ approver_info }}!
+
+    If making substantial changes, please inform {{ chair_contacts }}.
+  </div>
+{% endif %}

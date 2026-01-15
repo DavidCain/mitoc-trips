@@ -151,23 +151,34 @@ def reasons_to_remind_activity_chairs(trips: list[models.Trip]) -> list[str]:
     ]
 
 
-def emails_for_activity_chair(activity: enums.Activity) -> list[str]:
+class ChairContact(NamedTuple):
+    name: str
+    email: str
+
+
+def contacts_for_activity_chair(activity: enums.Activity) -> list[ChairContact]:
     if activity == enums.Activity.BIKING:
-        return ["mtnbike-chair@mit.edu"]
+        return [ChairContact("mountain biking chair", "mtnbike-chair@mit.edu")]
     if activity == enums.Activity.BOATING:
-        return ["boathouse-mgr@mit.edu"]
+        return [ChairContact("boathouse manager", "boathouse-mgr@mit.edu")]
     if activity == enums.Activity.CABIN:
         # 1) Cabin trips don't require approval
         # 2) We don't provide any way to indicate *which* cabin is being used.
-        return ["camelot-mgr@mit.edu", "intervale-mgr@mit.edu"]
+        return [
+            ChairContact("Camelot manager", "camelot-mgr@mit.edu"),
+            ChairContact("Interval manager", "intervale-mgr@mit.edu"),
+        ]
     if activity == enums.Activity.CLIMBING:
-        return ["climbing-chair@mit.edu"]
+        return [ChairContact("climbing chair", "climbing-chair@mit.edu")]
     if activity == enums.Activity.HIKING:
         # Include 3-season chair for now, 3SSC is new
-        return ["3s-hiking-chair@mit.edu", "mitoc-3ssc@mit.edu"]
+        return [
+            ChairContact("3-season hiking chair", "3s-hiking-chair@mit.edu"),
+            ChairContact("3-season Safety Committee", "mitoc-3ssc@mit.edu"),
+        ]
     if activity == enums.Activity.WINTER_SCHOOL:
         # Exclude WS chairs, they don't approve trips.
-        return ["mitoc-wsc@mit.edu"]
+        return [ChairContact("Winter Safety Committee", "mitoc-wsc@mit.edu")]
     assert_never(activity)
 
 
@@ -194,7 +205,7 @@ def notify_activity_chair(
     msg = EmailMultiAlternatives(
         f"{len(trips)} {activity_enum.label} {'trip needs' if len(trips) == 1 else 'trips need'} approval",
         text_content,
-        to=emails_for_activity_chair(activity_enum),
+        to=[contact.email for contact in contacts_for_activity_chair(activity_enum)],
         # TEMPORARY while we make sure this feature works as expected.
         cc=["djcain@mit.edu"],
     )

@@ -5,7 +5,7 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 from bs4 import BeautifulSoup
-from django.http import HttpResponseBase
+from django.http import HttpResponseBase, HttpResponseRedirect
 from django.test import Client, TestCase
 from freezegun import freeze_time
 
@@ -605,7 +605,7 @@ class EditTripViewTest(TestCase, Helpers):
         self.assertEqual(trip.activity, "winter_school")
 
     @freeze_time("2019-02-15 12:25:00 EST")
-    def test_update_rescinds_approval(self):
+    def test_updating_approved_trip(self) -> None:
         leader = factories.ParticipantFactory.create()
         self.client.force_login(leader.user)
         factories.LeaderRatingFactory.create(
@@ -617,27 +617,39 @@ class EditTripViewTest(TestCase, Helpers):
             trip_date=date(2019, 3, 2),
             chair_approved=True,
         )
+        factories.ChairApprovalFactory.create(
+            trip=trip,
+            approver__name="Tim Beaver",
+            approver__email="tim@mit.edu",
+            trip_edit_revision=trip.edit_revision,
+        )
 
-        edit_resp, soup = self._get(f"/trips/{trip.pk}/edit/")
-        self.assertTrue(edit_resp.context["update_rescinds_approval"])
+        _edit_resp, soup = self._get(f"/trips/{trip.pk}/edit/")
 
         form = soup.find("form")
         form_data = dict(self._form_data(form))
 
+        warning = soup.find(class_="alert-warning")
         self.assertEqual(
-            strip_whitespace(soup.find(class_="alert-warning").text),
-            "This trip has been approved by the activity chair. "
-            "Making any changes will rescind this approval.",
+            strip_whitespace(warning.text),
+            "This trip has been approved by Tim Beaver! "
+            "If making substantial changes, please inform the climbing chair.",
+        )
+        self.assertEqual(
+            [link.attrs["href"] for link in warning.find_all("a")],
+            ["mailto:tim@mit.edu", "mailto:climbing-chair@mit.edu"],
         )
 
         # Upon form submission, we're redirected to the new trip's page!
         resp = self.client.post(f"/trips/{trip.pk}/edit/", form_data, follow=False)
         self.assertEqual(resp.status_code, 302)
+        assert isinstance(resp, HttpResponseRedirect)
         self.assertEqual(resp.url, f"/trips/{trip.pk}/")
 
-        # We can see that chair approval is now removed.
+        # The chair approval still persists!
+        # (Previously, we rescinded this)
         trip = models.Trip.objects.get(pk=trip.pk)
-        self.assertFalse(trip.chair_approved)
+        self.assertIs(trip.chair_approved, True)
 
     @freeze_time("2019-02-15 12:25:00 EST")
     def test_updates_on_stale_trips(self):

@@ -1,17 +1,8 @@
 {% extends "trips/__create_or_edit.html" %}
+{% load trip_tags %}
 {% block head_title %}Edit {{ trip.name }}{% endblock head_title %}
 
 {% block content %}
-  {% if update_rescinds_approval %}
-    <div class="alert alert-warning">
-      This trip has been approved by
-      {% if trip.winter_rules_apply %}
-        the Winter Safety Committee.
-      {% else %}
-        the activity chair.
-      {% endif %}
-      Making any changes will rescind this approval.
-    </div>
-  {% endif %}
-    {{ block.super }}
+  {% warn_if_editing_approved_trip trip %}
+  {{ block.super }}
 {% endblock content %}

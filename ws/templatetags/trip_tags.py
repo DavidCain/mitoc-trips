@@ -1,16 +1,18 @@
 import enum
-from collections.abc import Collection
+from collections.abc import Collection, Iterable
 from datetime import timedelta
 from typing import TYPE_CHECKING, Any, TypedDict
 
 from django import template
 from django.contrib.auth.models import User
 from django.db.models import Case, Count, IntegerField, QuerySet, Sum, When
+from django.utils.html import format_html_join
 
 import ws.utils.dates as date_utils
 import ws.utils.perms as perm_utils
 import ws.utils.ratings as ratings_utils
 from ws import enums, icons, models
+from ws.email import approval
 from ws.utils.feedback import feedback_cutoff
 
 register = template.Library()
@@ -326,4 +328,63 @@ def wimp_trips(participant, user):
     return {
         "can_wimp_all_trips": wimp_all,
         "upcoming_trips": upcoming_trips.order_by("trip_date", "name"),
+    }
+
+
+def _format_contacts(
+    contacts: Iterable[approval.ChairContact], prefix: str = ""
+) -> str:
+    addresses = [[prefix, contact.email, contact.name] for contact in contacts]
+    if len(addresses) > 2:
+        addresses[-1][0] = "and " + addresses[-1][0]  # Janky oxford comma
+    return format_html_join(
+        ", " if len(addresses) > 2 else " and ",
+        '{}<a href="mailto:{}">{}</a>',
+        addresses,
+    )
+
+
+@register.inclusion_tag("for_templatetags/warn_if_editing_approved_trip.html")
+def warn_if_editing_approved_trip(trip: models.Trip) -> dict[str, bool | str]:
+    activity_enum = trip.required_activity_enum()
+
+    if (
+        # It doesn't matter if the trip ever *was* approved (which happens!)
+        # (At least 80 trips are now in the "None" program, but were previously approved)
+        # If no chair is presently responsible for the trip, we needn't warn.
+        activity_enum is None
+        # It's possible for a trip to be approved by an activity chair,
+        # then to have its program changed entirely (e.g. the old shuttle trips).
+        # At time of writing, 81 trips had the "None" program, but some mark of approval.
+        or not trip.chair_approved
+        # If the trip already happened, there's no safety concern in editing it!
+        or trip.trip_date < date_utils.local_date()
+    ):
+        return {"should_warn": False}
+
+    chair_contacts = _format_contacts(
+        approval.contacts_for_activity_chair(activity_enum),
+        prefix="the ",
+    )
+
+    return {
+        "should_warn": True,
+        "chair_contacts": chair_contacts,
+        # Marking just a single person as the approver isn't strictly correct.
+        # (Committees review trips *together*).
+        # Hopefully this gives an extra human touch though.
+        "approver_info": (
+            _format_contacts(
+                approval.ChairContact(
+                    email=chair_approval.approver.email,
+                    name=chair_approval.approver.name,
+                )
+                for chair_approval in models.ChairApproval.objects.filter(trip=trip)
+                .select_related("approver")
+                .order_by("pk")
+            )
+            # Very old trips did not record `ChairApproval` objects.
+            # We can just say that the chairs approved if so!
+            or chair_contacts
+        ),
     }

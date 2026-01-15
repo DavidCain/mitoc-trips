@@ -405,24 +405,6 @@ class EditTripView(UpdateView, TripLeadersOnlyView):
             kwargs["allowed_programs"] = list(self.request.participant.allowed_programs)
         return kwargs
 
-    @property
-    def update_rescinds_approval(self) -> bool:
-        trip = self.object
-        activity_enum = trip.required_activity_enum()
-        if activity_enum is None:
-            return False  # No required activity, thus no chair to rescind
-
-        return (
-            trip.chair_approved
-            and trip.trip_date >= local_date()
-            and not perm_utils.is_chair(self.request.user, activity_enum)
-        )
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["update_rescinds_approval"] = self.update_rescinds_approval
-        return context
-
     def get_success_url(self):
         return reverse("view_trip", args=(self.object.pk,))
 
@@ -431,7 +413,7 @@ class EditTripView(UpdateView, TripLeadersOnlyView):
         new_pks = {leader.pk for leader in form.cleaned_data["leaders"]}
         return bool(old_pks.symmetric_difference(new_pks))
 
-    def _ignore_leaders_if_unchanged(self, form):
+    def _ignore_leaders_if_unchanged(self, form: forms.TripForm) -> None:
         """Don't update the leaders m2m field if unchanged.
 
         This is a hack to avoid updating the m2m set (normally cleared, then
@@ -489,7 +471,7 @@ class EditTripView(UpdateView, TripLeadersOnlyView):
             ]
         )
 
-    def form_valid(self, form):
+    def form_valid(self, form: forms.TripForm) -> HttpResponse:
         self._ignore_leaders_if_unchanged(form)
 
         trip = form.save(commit=False)
@@ -497,8 +479,6 @@ class EditTripView(UpdateView, TripLeadersOnlyView):
             trip.summary = trip.description_to_text(
                 maxchars=models.Trip.summary.field.max_length
             )
-        if self.update_rescinds_approval:
-            trip.chair_approved = False
 
         trip.activity = trip.get_legacy_activity()
 
@@ -512,7 +492,7 @@ class EditTripView(UpdateView, TripLeadersOnlyView):
                 form.errors["__all__"] = ErrorList([stale_msg])
                 return self.form_invalid(form)
 
-            trip.last_updated_by = self.request.participant
+            trip.last_updated_by = self.request.participant  # type: ignore[attr-defined]
             trip.edit_revision += 1
             return super().form_valid(form)
 
