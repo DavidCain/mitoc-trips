@@ -30,7 +30,8 @@ UNSUBSCRIBE_SECRET_KEY = os.getenv(
 PRNG_SEED_SECRET = os.getenv("PRNG_SEED_SECRET", "some-key-unknown-to-participants")
 
 MEMBERSHIP_SECRET_KEY = os.getenv(
-    "MEMBERSHIP_SECRET_KEY", "secret shared with the mitoc-aws repo"
+    "MEMBERSHIP_SECRET_KEY",
+    "secret shared with the mitoc-aws repo, ideally at least 64 bytes for use with SHA512",
 )
 GEARDB_SECRET_KEY = os.getenv(
     "GEARDB_SECRET_KEY", "secret shared with the mitoc-gear repo"

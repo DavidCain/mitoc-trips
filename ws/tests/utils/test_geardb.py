@@ -11,20 +11,22 @@ from freezegun import freeze_time
 from ws.tests import factories
 from ws.utils import geardb
 
+FAKE_KEY = "some secret, ideally at least 32 bytes"
+
 
 class JwtTest(unittest.TestCase):
     @freeze_time("Wed, 15 Jan 2020 14:45:00 EST")
     def test_sign_no_data(self):
         """Without a payload, we simple sign a token with an expiration."""
         with mock.patch.object(geardb, "settings") as settings:
-            settings.GEARDB_SECRET_KEY = "sooper.secret"  # noqa: S105
+            settings.GEARDB_SECRET_KEY = FAKE_KEY
             header = geardb.gear_bearer_jwt()
 
         name, content = header.split(" ")
         self.assertEqual(name, "Bearer:")
 
         self.assertEqual(
-            jwt.decode(content, "sooper.secret", algorithms=["HS256"]),
+            jwt.decode(content, FAKE_KEY, algorithms=["HS256"]),
             {
                 # Token expires 15 minutes in the future (as UTC timestamp)
                 "exp": 1579118400,
@@ -35,14 +37,14 @@ class JwtTest(unittest.TestCase):
     def test_sign_data_with_jwt(self):
         """The `gear_bearer_jwt()` method signs data for a 15-min period."""
         with mock.patch.object(geardb, "settings") as settings:
-            settings.GEARDB_SECRET_KEY = "sooper.secret"  # noqa: S105
+            settings.GEARDB_SECRET_KEY = FAKE_KEY
             header = geardb.gear_bearer_jwt(email="tim@mit.edu")
 
         name, content = header.split(" ")
         self.assertEqual(name, "Bearer:")
 
         self.assertEqual(
-            jwt.decode(content, "sooper.secret", algorithms=["HS256"]),
+            jwt.decode(content, FAKE_KEY, algorithms=["HS256"]),
             {
                 "email": "tim@mit.edu",
                 # Token expires 15 minutes in the future (as UTC timestamp)
@@ -64,7 +66,7 @@ class ApiTest(SimpleTestCase):
     @responses.activate
     @mock.patch.object(geardb, "settings")
     def test_query_api(self, settings):
-        settings.GEARDB_SECRET_KEY = "sooper.secret"  # noqa: S105
+        settings.GEARDB_SECRET_KEY = FAKE_KEY
 
         responses.get(
             url="https://mitoc-gear.mit.edu/credentials",
