@@ -13,7 +13,7 @@ jobs:
           - "uv run mypy ws"
           - "uv run pylint --jobs=0 ws"
           - "uv run pytest"
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     services:
       # TODO: Only the `test` step in the matrix needs this service up and running.
       # All others have no need to hit the database.
@@ -32,14 +32,14 @@ jobs:
 
     steps:
       - name: "Clone repo"
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: "Install buildx"
         id: buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: "Restore Docker cache"
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         id: cache
         with:
           path: /tmp/.buildx-cache
@@ -54,7 +54,7 @@ jobs:
             --cache-to   "type=local,dest=/tmp/.buildx-cache" \
             --load \
             --tag ws \
-            --target build \
+            --target ci \
             .
 
       - name: ${{ matrix.command }}
@@ -68,5 +68,6 @@ jobs:
             --env WS_DJANGO_TEST \
             --env DB_HOST \
             --env DB_PASSWORD \
-            --rm ws \
+            --rm \
+            ws \
             ${{ matrix.command }}

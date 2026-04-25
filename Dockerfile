@@ -1,23 +1,25 @@
 # TODO:
-# - Consider python:3.12-slim
 # - Once dropping legacy AngularJS, build FE bundles separately
 
 # Things needed to use this in production:
 # - Direct logs to files outside the container
-# - Ensure that Celery works as well
-# - Run WSGI with an ENTRYPOINT
+# - Define containers for Celery workers
+# - Run Postgres in a container locally
 
-FROM ubuntu:24.04 AS build
-
-WORKDIR /app/
+FROM ubuntu:26.04 AS build
 
 ENV DEBIAN_FRONTEND="noninteractive"
+ENV UV_PYTHON_INSTALL_DIR="/opt/python"
+# Use copy mode since the cache and build filesystem are on different volumes.
+ENV UV_LINK_MODE=copy
+ENV PYTHONUNBUFFERED=1
+# https://docs.astral.sh/uv/guides/integration/docker/#compiling-bytecode
+ENV UV_COMPILE_BYTECODE=1
 
 RUN apt-get update && apt-get install --no-install-recommends -y \
     build-essential \
     gcc \
     locales \
-    # Postgres client (for accessing RDS in production) \
     postgresql-client postgresql-contrib libpq-dev \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
@@ -29,35 +31,64 @@ ENV LANGUAGE=en_US.UTF-8
 ENV LANG=en_US.UTF-8
 ENV LC_ALL=en_US.UTF-8
 
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/
-COPY pyproject.toml .
-RUN uv sync --all-groups
+WORKDIR /app/
 
-# TODO: We should install & build the legacy frontend here.
-# But I'm likely going to just rebuild everything. See the Git log for more.
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/
+COPY .python-version .
+
+# From both Astral & Docker guides, you shouldn't *have* to copy these...
+COPY pyproject.toml .
+COPY uv.lock .
+
+# https://docs.astral.sh/uv/guides/integration/docker/#intermediate-layers-in-workspaces
+# We do explicitly add `all-groups` so our image can be used in tests.
+# (Production images will remove dev deps)
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --frozen --all-groups --no-install-project
 
 COPY manage.py .
 COPY ws ./ws
 
-# NOTE: For the legacy AngularJS build, setting `WS_DJANGO_TEST` bypasses compressors
-# (yuglify, specifically). Not a problem for tests, but does break production.
-# Hopefully we've dropped the legacy setup & can just use webpack.
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --all-groups --locked
+
+# ------------------------------------------------------------------------
+
+FROM build AS ci
+
 RUN WS_DJANGO_TEST=1 uv run manage.py collectstatic
 
 # ------------------------------------------------------------------------
 
 FROM build AS installer
 
+# At present, production purposes read some secrets from env vars.
+# However, there's no need for that to *only* collect static files.
+RUN WS_DJANGO_LOCAL=1 uv run manage.py collectstatic
+
 # Remove dev dependencies (smaller venv, no dev deps in prod)
 RUN uv sync --no-dev
 
-FROM ubuntu:22.04
+# ------------------------------------------------------------------------
+
+# TODO: Consider alpine
+FROM ubuntu:26.04 AS production
 
 WORKDIR /app/
 ENV PATH="/app/.venv/bin:$PATH"
-COPY ws ./ws
 
+# The venv symlinks its Python to the version that `uv` installs globally.
+COPY --from=installer /opt/python /opt/python
 # We now copy the venv which should have *only* production dependencies.
 COPY --from=installer /app/.venv ./.venv
-# TODO: Copy static files too (but only if still serving legacy FE)
-# ENTRYPOINT = ...
+
+COPY ws ./ws
+COPY entrypoint.sh ./
+
+# Copy collected static files (JS bundles & more)
+COPY --from=installer /app/static ./static
+
+EXPOSE 8000
+ENTRYPOINT ["./entrypoint.sh"]

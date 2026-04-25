@@ -351,8 +351,13 @@ vendor_js = [
 local_js = ["js/ws/*.js", "js/footable_breakpoints.js"]
 
 PIPELINE = {
-    "JS_COMPRESSOR": "pipeline.compressors.uglifyjs.UglifyJSCompressor",
-    "CSS_COMPRESSOR": "pipeline.compressors.yuglify.YuglifyCompressor",
+    # For now, skip all compression.
+    # Yes, it's indeed a good idea for production & reducing bandwith.
+    # But avoiding compression helps us avoid global JS dependencies.
+    # "JS_COMPRESSOR": "pipeline.compressors.uglifyjs.UglifyJSCompressor",
+    # "CSS_COMPRESSOR": "pipeline.compressors.yuglify.YuglifyCompressor",
+    "JS_COMPRESSOR": "pipeline.compressors.NoopCompressor",
+    "CSS_COMPRESSOR": "pipeline.compressors.NoopCompressor",
     "JAVASCRIPT": {
         # Bootstrap JS is used on most every page (in the main menu)
         # Other JavaScript is in the process of being deprecated, so we should be able to serve just this.
