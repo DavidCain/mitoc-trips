@@ -1,0 +1,74 @@
+services:
+  migrate:
+    build:
+      context: .
+      target: development
+    command: uv run python manage.py migrate --noinput
+    environment:
+      - WS_DJANGO_LOCAL=1
+      - DATABASE_NAME=ws
+      - DATABASE_USER=ws
+      - DATABASE_PASSWORD=password
+      - DATABASE_HOST=db
+      - DATABASE_PORT=5432
+    depends_on:
+      db:
+        condition: service_healthy
+  web:
+    build:
+      context: .
+      # Build the development stage from the multi-stage Dockerfile.
+      target: development
+    ports:
+      - "8000:8000"
+    environment:
+      - WS_DJANGO_LOCAL=1  # (Also sets DEBUG=True, ALLOWED_HOSTS)
+      - DATABASE_NAME=ws
+      - DATABASE_USER=ws
+      - DATABASE_PASSWORD=password
+      - DATABASE_HOST=db
+      - DATABASE_PORT=5432
+    # Wait for the database to pass its healthcheck before starting the web service.
+    depends_on:
+      db:
+        condition: service_healthy
+    develop:
+      watch:
+        # Sync source file changes directly into the container so Django's
+        # dev server can reload them without a full image rebuild.
+        - action: sync
+          path: .
+          target: /app
+          ignore:
+            - __pycache__/
+            - "*.pyc"
+            - .git/
+            - .venv/
+        # Rebuild the image when dependencies change.
+        - action: rebuild
+          path: pyproject.toml
+        - action: rebuild
+          path: uv.lock
+  db:
+    image: postgres:18
+    user: postgres
+    restart: always
+    volumes:
+      # Persist database data across container restarts.
+      - db-data:/var/lib/postgresql
+    environment:
+      - POSTGRES_DB=ws
+      - POSTGRES_USER=ws
+      - PGUSER=ws
+      - POSTGRES_PASSWORD=password
+    ports:
+      - 5432:5432
+    # Only report healthy once PostgreSQL is ready to accept connections,
+    # so the web service doesn't start before the database is available.
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+volumes:
+  db-data:

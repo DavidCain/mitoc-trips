@@ -62,6 +62,21 @@ RUN WS_DJANGO_TEST=1 uv run manage.py collectstatic
 
 # ------------------------------------------------------------------------
 
+FROM build AS development
+
+ENV PATH="/app/.venv/bin:$PATH"
+
+COPY --from=build /opt/python /opt/python
+COPY --from=build /app/.venv ./.venv
+COPY ws ./ws
+# Whereas production contexts use built bundles, we'll reference JS directly.
+COPY node_modules ./node_modules
+
+EXPOSE 8000
+CMD ["uv", "run", "python", "manage.py", "runserver", "0.0.0.0:8000"]
+
+# ------------------------------------------------------------------------
+
 FROM build AS installer
 
 # At present, production purposes read some secrets from env vars.
