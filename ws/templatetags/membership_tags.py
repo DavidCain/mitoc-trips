@@ -1,4 +1,5 @@
 from collections.abc import Mapping
+from datetime import timedelta
 from types import MappingProxyType
 from typing import Any
 
@@ -6,6 +7,7 @@ from django import template
 from django.template.context import Context
 
 from ws import models
+from ws.utils import dates as date_utils
 from ws.utils import membership_api
 from ws.utils.membership import get_latest_membership
 
@@ -25,12 +27,13 @@ STATUS_TO_BOOTSTRAP_LABEL: Mapping[membership_api.Status, str] = MappingProxyTyp
 
 
 @register.inclusion_tag("for_templatetags/membership_status.html", takes_context=True)
-def membership_status(
+def membership_status(  # noqa: PLR0913
     context: Context,
     participant: models.Participant,
     can_link_to_pay_dues: bool,
     can_link_to_sign_waiver: bool,
     personalize: bool,
+    just_signed: bool = False,
 ) -> dict[str, Any]:
     try:
         membership = participant.membership
@@ -39,8 +42,27 @@ def membership_status(
 
     can_renew_early = bool(membership and membership.in_early_renewal_period)
 
-    membership_info = membership_api.format_cached_membership(participant)
-    status = "Expiring Soon" if can_renew_early else membership_info["status"]
+    today = date_utils.local_date()
+    waiver_valid_until = (
+        today + timedelta(days=365)
+        if just_signed
+        else (membership.waiver_expires if membership else None)
+    )
+
+    if can_renew_early:
+        status: membership_api.Status = "Expiring Soon"
+    else:
+        status = (
+            membership_api.format_membership(
+                participant.email,
+                membership_expires=(
+                    membership.membership_expires if membership else None
+                ),
+                waiver_expires=waiver_valid_until,
+            )
+            if just_signed
+            else membership_api.format_cached_membership(participant)
+        )["status"]
 
     link_to_pay_dues = can_link_to_pay_dues and (
         can_renew_early or not (membership and membership.dues_active)
@@ -52,8 +74,10 @@ def membership_status(
     # We only need to provide a link if:
     # 1. waiver is expired
     # 2. we're prompting an early renewal of membership
-    link_to_sign_waiver = can_link_to_sign_waiver and (
-        can_renew_early or not (membership and membership.waiver_active)
+    link_to_sign_waiver = (
+        can_link_to_sign_waiver
+        and not just_signed
+        and (can_renew_early or not (membership and membership.waiver_active))
     )
 
     return {
@@ -66,4 +90,6 @@ def membership_status(
         "link_to_pay_dues": link_to_pay_dues,
         "link_to_sign_waiver": link_to_sign_waiver,
         "personalize": personalize,
+        "today": today,
+        "waiver_valid_until": waiver_valid_until,
     }

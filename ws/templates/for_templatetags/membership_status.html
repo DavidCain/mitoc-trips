@@ -20,12 +20,16 @@
   </div>
   <div>
     <label>Waiver:</label>
-      {% if membership.waiver_expires %}
-        {% if membership.waiver_active %}Valid until{% else %}Expired on{% endif %} {{ membership.waiver_expires }}
+      {% if waiver_valid_until %}
+        {% if waiver_valid_until >= today %}
+          Valid until
+        {% else %}
+          Expired on
+        {% endif %}
+        {{ waiver_valid_until }}
       {% else %}
         Not found!
       {% endif %}
-
       {% if link_to_sign_waiver %}
         <a href="{% url 'initiate_waiver' %}">Sign a new waiver</a>
       {% endif %}

@@ -56,10 +56,10 @@ class MembershipDict(TypedDict):
 
 
 def jsonify_membership_waiver(mem: geardb.MembershipWaiver) -> MembershipDict:
-    return _format_membership(
+    return format_membership(
         mem.email,
-        mem.membership_expires,
-        mem.waiver_expires,
+        membership_expires=mem.membership_expires,
+        waiver_expires=mem.waiver_expires,
     )
 
 
@@ -76,10 +76,10 @@ def format_cached_membership(participant: models.Participant) -> MembershipDict:
     mem = participant.membership
     if mem is None:
         return _blank_membership()
-    return _format_membership(
+    return format_membership(
         participant.email,
-        mem.membership_expires,
-        mem.waiver_expires,
+        membership_expires=mem.membership_expires,
+        waiver_expires=mem.waiver_expires,
     )
 
 
@@ -101,8 +101,9 @@ def _represent_status(
     return "Active"
 
 
-def _format_membership(
+def format_membership(
     email: str | None,
+    *,
     membership_expires: date | None,
     waiver_expires: date | None,
 ) -> MembershipDict:

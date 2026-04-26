@@ -203,15 +203,7 @@
 
     <div class="row">
       <div class="col-md-12 col-sm-6">
-        {% if participant.membership and not just_signed %}
-          {% membership_status participant user_viewing user_viewing False %}
-        {% elif just_signed %}
-          <membership-status
-            user-id="{{ participant.user_id }}"
-            v-bind:personalized="{{ user_viewing|yesno:"true,false" }}"
-            v-bind:just-signed="true"true,false" }}">
-          </membership-status>
-        {% endif %}
+        {% membership_status participant user_viewing user_viewing False just_signed %}
       </div>
       <div class="col-md-12 col-sm-6">
         <outstanding-rentals data-user-id="{{ participant.user_id }}">
