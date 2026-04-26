@@ -103,7 +103,6 @@ dependencies = [
   "django-phonenumber-field[phonenumberslite]",
   "django-pipeline",
   "django-smtp-ssl",
-  "django-webpack-loader<2",  # Should maintain parity with frontend/package.json
   "django>=4.2.25,<5",
   "gunicorn",
   "markdown2",
