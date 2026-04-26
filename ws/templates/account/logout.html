@@ -1,0 +1,22 @@
+{% extends "base_no_scripts.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block head_title %}Log Out{% endblock head_title %}
+
+{% block content %}
+<p class="lead">
+  Are you sure you want to log out?
+</p>
+<div class="row">
+  <div class="col-sm-6">
+    <form novalidate method="POST" action="">
+      {% csrf_token %}
+      <button class="btn btn-primary" type="submit">
+          Log out
+      </button>
+    </form>
+  </div>
+</div>
+
+{% endblock content %}
