@@ -1,3 +1,5 @@
+{% load membership_tags %}
+
 <div class="alert alert-danger">
   In order to participate on this trip, you
 
@@ -14,6 +16,5 @@
 </div>
 
 {% if show_membership_status %}
-  <membership-status user-id="{{ user.pk }}" v-bind:personalized="true">
-  </membership-status>
+  {% membership_status user.participant True True False False %}
 {% endif %}

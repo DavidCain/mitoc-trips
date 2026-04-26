@@ -90,7 +90,9 @@
           {% endif %}
           in order to participate on trips, rent gear, or use cabins.
         </p>
-      {% elif not membership.dues_active or not membership.waiver_active %}
+      {% endif %}
+
+      {% if not membership.dues_active or not membership.waiver_active %}
         <div class="well">
           <h5>Why isn't my membership or waiver showing up?</h5>
           <p>
