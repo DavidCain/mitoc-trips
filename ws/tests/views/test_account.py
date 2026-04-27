@@ -3,14 +3,55 @@ from datetime import datetime
 from unittest import mock
 from zoneinfo import ZoneInfo
 
+import pytest
 from bs4 import BeautifulSoup
-from django.test import TestCase
+from django.test import Client, TestCase
 from freezegun import freeze_time
 from pwned_passwords_django import api, exceptions
 
 from ws import auth, models
 from ws.tests import factories
 from ws.views import account
+
+
+@pytest.mark.parametrize(
+    ("url", "forbids_js", "should_be_logged_in"),
+    [
+        # Unauthenticated views that expect passwords, so no JS
+        ("/accounts/signup/", True, False),
+        ("/accounts/login/", True, False),
+        ("/accounts/inactive/", False, False),  # We don't use this, but it's available
+        ("/accounts/confirm-email/", False, False),
+        ("/accounts/confirm-email/long-token-sent-to-email/", False, False),
+        ("/accounts/password/reset/", False, False),
+        ("/accounts/password/reset/done/", False, False),
+        (
+            "/accounts/password/reset/key/1-d7ov99-ab000000000000000000000000000000/",
+            False,
+            False,
+        ),
+        # Authenticated views
+        ("/accounts/email/", False, True),
+        ("/accounts/password/change/", True, True),
+        ("/accounts/logout/", True, True),
+    ],
+)
+@pytest.mark.django_db
+def test_all_views(url: str, forbids_js: bool, should_be_logged_in: bool) -> None:
+    """All the allauth views should use our shared base template.
+
+    This test exists because there was a style regression!
+    """
+    client = Client()
+    if should_be_logged_in:
+        client.force_login(factories.UserFactory.create())
+    response = client.get(url)
+
+    assert response.status_code == 200
+    # soup = BeautifulSoup(response.content, "html.parser")
+    assert b'<div id="root">' in response.content
+    if forbids_js:
+        assert b"<script>" not in response.content
 
 
 @freeze_time("2019-08-29 12:25:00 EST")

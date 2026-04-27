@@ -34,6 +34,7 @@
 </head>
 
 <body data-ng-app="ws">
+  {% block body %}
   {% block cached_templates %}
     {# Pre-populate `$templateCache` for faster interaction with directives #}
     {% for filename, contents in angular_templates.items %}
@@ -205,5 +206,8 @@
         </div>
     </footer>
   </div>
+  {% endblock body %}
+  {% block extra_body %}
+  {% endblock extra_body %}
 </body>
 </html>

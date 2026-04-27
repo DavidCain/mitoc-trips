@@ -61,7 +61,6 @@
       {% csrf_token %}
       {{ form|crispy }}
       <input class="btn btn-primary" type="submit" value="Log In" />
-      <small><a href="{% url 'account_reset_password' %}">Forgot your password?</a></small>
 
       {% if redirect_field_value %}
         <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
