@@ -2,6 +2,10 @@
   <div class="list-group-item" data-ng-repeat="signup in signups" data-ng-class="{'disabled': signup.deleted}">
     <div class="row">
       <div class="col-md-3">
+        <span class="sort-handle">
+          <i class="fas fa-grip-vertical mr-1"></i>
+        </span>
+	
         <i data-ng-if="signup.paired_with" class="fas fa-link"></i>
         <label data-ng-bind="signup.participant.name"></label>
         <car-badge data-car-status="signup.car_status"
