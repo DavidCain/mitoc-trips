@@ -58,7 +58,9 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 FROM build AS ci
 
-RUN WS_DJANGO_TEST=1 uv run manage.py collectstatic
+# To collect static files, we need to load `settings.py`
+# And to import that file without errors, we need key settings set.
+RUN WS_MODE=local WS_DJANGO_LOCAL=1 uv run manage.py collectstatic
 
 # ------------------------------------------------------------------------
 
@@ -79,9 +81,9 @@ CMD ["uv", "run", "python", "manage.py", "runserver", "0.0.0.0:8000"]
 
 FROM build AS installer
 
-# At present, production purposes read some secrets from env vars.
-# However, there's no need for that to *only* collect static files.
-RUN WS_DJANGO_LOCAL=1 uv run manage.py collectstatic
+# At present, live deployments must read secrets from env vars.
+# However, there's no need for secrets *just* to collect static files.
+RUN WS_MODE=local WS_DJANGO_LOCAL=1 uv run manage.py collectstatic
 
 # Remove dev dependencies (smaller venv, no dev deps in prod)
 RUN uv sync --no-dev

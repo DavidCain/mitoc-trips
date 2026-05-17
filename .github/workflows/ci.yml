@@ -59,15 +59,12 @@ jobs:
 
       - name: ${{ matrix.command }}
         env:
-          WS_DJANGO_TEST: "1"
           DB_HOST: "localhost"
           DB_PASSWORD: "password"
         run: |
           docker run \
             --network host \
-            --env WS_DJANGO_TEST \
-            --env DB_HOST \
-            --env DB_PASSWORD \
+            --env-file ws/conf/local.env \
             --rm \
             ws \
             ${{ matrix.command }}
