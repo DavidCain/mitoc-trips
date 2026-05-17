@@ -16,10 +16,8 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 # Don't send emails to verify email addresses (rapid account creation)
 ACCOUNT_EMAIL_VERIFICATION = "none"
 
-
 DEBUG_TOOLBAR_PATCH_SETTINGS = False
-INTERNAL_IPS = ["127.0.0.1", "192.168.33.15"]
-
+INTERNAL_IPS = ["127.0.0.1"]
 
 # Tell Celery to only attempt once, then immediately give up.
 # (by default, Celery will retry forever)

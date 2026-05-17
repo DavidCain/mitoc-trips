@@ -4,13 +4,10 @@ services:
       context: .
       target: development
     command: uv run python manage.py migrate --noinput
+    env_file:
+      - ./ws/conf/local.env
     environment:
-      - WS_DJANGO_LOCAL=1
-      - DATABASE_NAME=ws
-      - DATABASE_USER=ws
-      - DATABASE_PASSWORD=password
-      - DATABASE_HOST=db
-      - DATABASE_PORT=5432
+      - DATABASE_HOST=db  # local.env is set up for `localhost`
     depends_on:
       db:
         condition: service_healthy
@@ -21,13 +18,10 @@ services:
       target: development
     ports:
       - "8000:8000"
+    env_file:
+      - ./ws/conf/local.env
     environment:
-      - WS_DJANGO_LOCAL=1  # (Also sets DEBUG=True, ALLOWED_HOSTS)
-      - DATABASE_NAME=ws
-      - DATABASE_USER=ws
-      - DATABASE_PASSWORD=password
-      - DATABASE_HOST=db
-      - DATABASE_PORT=5432
+      - DATABASE_HOST=db  # local.env is set up for `localhost`
     # Wait for the database to pass its healthcheck before starting the web service.
     depends_on:
       db:
@@ -57,6 +51,7 @@ services:
       # Persist database data across container restarts.
       - db-data:/var/lib/postgresql
     environment:
+      # Environment values match settings in local.env
       - POSTGRES_DB=ws
       - POSTGRES_USER=ws
       - PGUSER=ws

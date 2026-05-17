@@ -4,10 +4,9 @@ import os
 
 DEBUG = False
 
-# In true production, 'mitoc-trips.mit.edu'
-# Running in Vagrant, this is set to 'mitoc-trips.local'
 ALLOWED_HOSTS = [os.environ["DJANGO_ALLOWED_HOST"]]
 
+# TODO: This is legacy, we needn't support it once moving off EC2.
 if os.getenv("EC2_IP"):
     ALLOWED_HOSTS.append(os.environ["EC2_IP"])
 

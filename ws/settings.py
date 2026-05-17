@@ -1,49 +1,48 @@
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
-from typing import Any
+from typing import Any, assert_never
 
 import sentry_sdk
 from celery.schedules import crontab
 from sentry_sdk.integrations.celery import CeleryIntegration
 from sentry_sdk.integrations.django import DjangoIntegration
 
+from ws.conf import environments
+
+# (Reads from env var WS_MODE)
+WS_MODE = environments.get_ws_mode()
+
+# The Docker build process calls a few Django commands *before* secrets are available.
+# We'll eventually refactor so that `settings.py` does not have to eagerly load secrets.
+# But until then, support a single env var to set local mode *with* default local secrets.
+if os.environ.get("WS_DJANGO_LOCAL"):
+    environments.load_local_env_vars()
+
+
 # Configure Sentry right away so that any other errors are captured!
-# TODO: Rename env var - Raven was the name of the legacy client
-if "RAVEN_DSN" in os.environ:
+# TODO: This should probably be done at worker startup instead...
+if os.environ["SENTRY_DSN"]:
     # See: https://docs.sentry.io/platforms/python/django/
     sentry_sdk.init(  # pylint: disable=abstract-class-instantiated
-        os.environ["RAVEN_DSN"],
+        os.environ["SENTRY_DSN"],
         integrations=[DjangoIntegration(), CeleryIntegration()],
         # This attaches basic user data to the event
         send_default_pii=True,
     )
 
-SECRET_KEY = os.getenv(
-    "DJANGO_SECRET_KEY", "*this-is-obviously-not-secure-only-use-it-locally*"
-)
-UNSUBSCRIBE_SECRET_KEY = os.getenv(
-    "UNSUBSCRIBE_SECRET_KEY", "*secret-used-only-for-unsubscribe-tokens*"
-)
+SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
+
+UNSUBSCRIBE_SECRET_KEY = os.environ["UNSUBSCRIBE_SECRET_KEY"]
+
 # This secret is used as part of a complete seed for a pseudo-random number generator
 # Since random.random is not suitable for cryptographic applications, we use
 # a separate secret key rather than re-use SECRET_KEY
-PRNG_SEED_SECRET = os.getenv("PRNG_SEED_SECRET", "some-key-unknown-to-participants")
+PRNG_SEED_SECRET = os.environ["PRNG_SEED_SECRET"]
 
-MEMBERSHIP_SECRET_KEY = os.getenv(
-    "MEMBERSHIP_SECRET_KEY",
-    "secret shared with the mitoc-aws repo, ideally at least 64 bytes for use with SHA512",
-)
-GEARDB_SECRET_KEY = os.getenv(
-    "GEARDB_SECRET_KEY", "secret shared with the mitoc-gear repo"
-)
-WS_LOTTERY_LOG_DIR = os.getenv("WS_LOTTERY_LOG_DIR", "/tmp/")  # noqa: S108
+MEMBERSHIP_SECRET_KEY = os.environ["MEMBERSHIP_SECRET_KEY"]
 
-# URL to an avatar image that is self-hosted
-# (Users who opt out of Gravatar would prefer to not have requests made to
-#  Gravatar to fetch the "mystery man" image)
-PRIVACY_AVATAR_URL = os.getenv(
-    "PRIVACY_AVATAR_URL", "https://s3.amazonaws.com/mitoc-trips/privacy/avatar.svg"
-)
+GEARDB_SECRET_KEY = os.environ["GEARDB_SECRET_KEY"]
+
+WS_LOTTERY_LOG_DIR = os.environ["WS_LOTTERY_LOG_DIR"]
 
 SERVER_EMAIL = "no-reply@mitoc.org"
 DEFAULT_FROM_EMAIL = "mitoc-trips@mit.edu"
@@ -53,9 +52,8 @@ PROJECT_ROOT = os.path.normpath(os.path.dirname(__file__))
 
 NODE_MODULES = os.path.join(BASE_DIR, "node_modules")
 
-# Settings may override these defaults (easily defined here due to BASE_DIR)
 STATIC_URL = "/static/"
-STATIC_ROOT = os.getenv("STATIC_ROOT", os.path.join(BASE_DIR, "static"))
+STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
 STORAGE = {
     "default": {
@@ -115,7 +113,7 @@ else:
 
 
 # Celery settings
-CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "amqp://guest:guest@127.0.0.1//")
+CELERY_BROKER_URL = os.environ["CELERY_BROKER_URL"]
 CELERY_RESULT_BACKEND = "rpc"
 CELERY_RESULT_PERSISTENT = True  # Don't reset msgs after broker restart (requires RPC)
 CELERY_TASK_SERIALIZER = "json"
@@ -176,13 +174,6 @@ ALLOWED_BAD_PASSWORDS: tuple[str, ...] = ()
 # Still, to minimize reliance on wildcard imports, default to off.
 DEBUG = False
 
-if os.environ.get("WS_DJANGO_TEST"):
-    from .conf.test_settings import *  # pylint: disable=wildcard-import,unused-wildcard-import  # noqa: F403
-elif os.environ.get("WS_DJANGO_LOCAL"):
-    from .conf.local_settings import *  # pylint: disable=wildcard-import,unused-wildcard-import  # noqa: F403
-else:
-    from .conf.production_settings import *  # pylint: disable=wildcard-import,unused-wildcard-import  # noqa: F403
-
 # 32 bit signed integers (default before Django 3.2) are plenty big enough for our purposes.
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
@@ -195,11 +186,11 @@ DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("DATABASE_NAME", "ws"),
-        "USER": os.getenv("DATABASE_USER", "ws"),
-        "PASSWORD": os.getenv("DATABASE_PASSWORD", "password"),
-        "HOST": os.getenv("DATABASE_HOST", "localhost"),
-        "PORT": os.getenv("DATABASE_PORT", "5432"),
+        "NAME": os.environ["DATABASE_NAME"],
+        "USER": os.environ["DATABASE_USER"],
+        "PASSWORD": os.environ["DATABASE_PASSWORD"],
+        "HOST": os.environ["DATABASE_HOST"],
+        "PORT": os.environ["DATABASE_PORT"],
     },
 }
 
@@ -277,7 +268,7 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
-BURSAR_NAME = os.getenv("BURSAR_NAME", "MITOC Bursar")
+BURSAR_NAME = os.environ["BURSAR_NAME"]
 
 ROOT_URLCONF = "ws.urls"
 
@@ -285,13 +276,12 @@ WSGI_APPLICATION = "ws.wsgi.application"
 
 
 # DocuSign
-DOCUSIGN_API_BASE = os.getenv(
-    "DOCUSIGN_API_BASE", "https://demo.docusign.net/restapi/v2/"
-)
-DOCUSIGN_USERNAME = os.getenv("DOCUSIGN_USERNAME", "djcain@mit.edu")
-DOCUSIGN_PASSWORD = os.getenv("DOCUSIGN_PASSWORD", "super-secret")
-DOCUSIGN_INTEGRATOR_KEY = os.getenv("DOCUSIGN_INTEGRATOR_KEY", "secret-uuid")
-DOCUSIGN_WAIVER_TEMPLATE_ID = os.getenv("DOCUSIGN_WAIVER_TEMPLATE_ID", "template-uuid")
+DOCUSIGN_API_BASE = os.environ["DOCUSIGN_API_BASE"]
+
+DOCUSIGN_USERNAME = os.environ["DOCUSIGN_USERNAME"]
+DOCUSIGN_PASSWORD = os.environ["DOCUSIGN_PASSWORD"]
+DOCUSIGN_INTEGRATOR_KEY = os.environ["DOCUSIGN_INTEGRATOR_KEY"]
+DOCUSIGN_WAIVER_TEMPLATE_ID = os.environ["DOCUSIGN_WAIVER_TEMPLATE_ID"]
 
 # Hit endpoints when we successfully complete a waiver
 DOCUSIGN_EVENT_NOTIFICATION = {
@@ -419,7 +409,7 @@ LOGGING = {
         "file": {
             "level": "INFO",
             "class": "logging.FileHandler",
-            "filename": os.getenv("DJANGO_LOG_FILE", "/tmp/django.log"),  # noqa: S108
+            "filename": os.environ["DJANGO_LOG_FILE"],
             "formatter": "verbose",
         }
     },
@@ -428,3 +418,14 @@ LOGGING = {
         "ws": {"handlers": ["file"], "level": "INFO", "propagate": True},
     },
 }
+
+# Optionally, we support per-environment overrides.
+# These are generally more specific than just a single env var.
+if WS_MODE == environments.Mode.TEST:
+    from .conf.test_settings import *  # pylint: disable=wildcard-import,unused-wildcard-import  # noqa: F403
+elif WS_MODE == environments.Mode.LOCAL:
+    from .conf.local_settings import *  # pylint: disable=wildcard-import,unused-wildcard-import  # noqa: F403
+elif WS_MODE == environments.Mode.DEPLOYED:
+    from .conf.production_settings import *  # pylint: disable=wildcard-import,unused-wildcard-import  # noqa: F403
+else:
+    assert_never(WS_MODE)

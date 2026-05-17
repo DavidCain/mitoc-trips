@@ -5,4 +5,4 @@ import pytest
 
 @pytest.fixture(scope="session", autouse=True)
 def set_testing() -> None:
-    os.environ["WS_DJANGO_TEST"] = "1"
+    os.environ["WS_MODE"] = "test"

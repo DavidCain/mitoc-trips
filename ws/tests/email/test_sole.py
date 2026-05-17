@@ -122,7 +122,7 @@ class StudentTravelFormTest(TestCase):
         self.assertEqual(
             dict(self._dl_elements(approval)),
             {
-                "Financial signatory": "MITOC Bursar",
+                "Financial signatory": "Bursar",
                 "Travel expenses approved": "$0.00",
                 "Cost object": "2720209",
             },

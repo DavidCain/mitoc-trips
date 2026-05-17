@@ -40,7 +40,7 @@ test: test-python test-js
 
 .PHONY: test-python
 test-python: install-python-dev
-	WS_DJANGO_TEST=1 uv run coverage run -m pytest
+	WS_MODE=test uv run coverage run -m pytest
 
 # Production webservers won't run this way, so install dev dependencies
 .PHONY: run
