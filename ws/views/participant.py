@@ -192,8 +192,8 @@ class ParticipantEditMixin(TemplateView):
                 except OperationalError:
                     logger.exception(
                         "Unable to update affiliation to %s for participant %s",
-                        participant.pk,
                         participant.affiliation,
+                        participant.pk,
                     )
 
             return self.success_redirect()
