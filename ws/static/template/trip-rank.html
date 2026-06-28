@@ -2,7 +2,7 @@
 
 <div data-ng-show="signups.length">
   <ul class="list-group" ui-sortable="sortableOptions" data-ng-model="activeSignups">
-    <li class="list-group-item clearfix" data-ng-repeat="signup in activeSignups">
+    <li class="list-group-item clearfix sort-handle" data-ng-repeat="signup in activeSignups">
       <span data-ng-bind="'#' + ($index + 1)"></span>
       <label data-ng-bind="signup.trip__name"></label>
       <button type="button" class="btn btn-sm btn-danger pull-right" data-ng-click="deleteSignup(signup, $index)">Delete</button>
