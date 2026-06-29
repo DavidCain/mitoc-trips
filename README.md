@@ -9,11 +9,53 @@ biking, skiing, mountaineering, rafting, canoeing, and surfing. Trips are open
 to everyone in the club - a community of thousands.
 
 
-# Deployment
-It takes a single command and a few minutes to deploy this software.
-Clone the [mitoc-ansible][mitoc-ansible] repository and follow the instructions
-there to easily launch an instance.
+# Development
 
+There are a number of ways to approach local development, and none of the
+suggested steps are strictly required. The key moving parts are:
+
+1. A Postgres server
+2. Astral's `uv` managing Python & a virtualenv
+3. Node for management of the frontend
+
+Homebrew & asdf are just suggested ways to manage dependencies for local dev.
+
+## Docker
+
+First, install Docker, Docker Compose, and either Docker Desktop or Colima.
+If you use Homebrew:
+```
+brew install docker docker-compose colima
+colima start
+```
+
+Then start the database & web server:
+
+```bash
+docker compose up --build --watch
+```
+
+http://localhost:8000/ will then have a running webserver.
+You can access the Postgres database directly:
+
+```bash
+docker exec -it mitoc-trips-db-1 psql -U ws ws
+```
+
+## Local development
+
+You don't have to use Docker - all development can take place directly on your
+localhost if desired:
+
+```bash
+brew bundle install
+direnv allow # (Don't just trust me - inspect .envrc)
+export PATH="${$HOME}/.asdf/shims:$PATH"  # (Also add to your rcfiles)
+asdf install
+npm install
+uv run manage.py migrate
+make run
+```
 
 # Screenshots
 ## Profile page
@@ -66,7 +108,6 @@ activities like ice climbing were more accessible.
 Today, all MITOC trips are organized through this portal. Many trips are
 first-come, first-serve, but we use lottery-based signups for other popular
 trip formats once subject to same problems as Winter School.
-
 
 
   [mitoc]: https://mitoc.mit.edu
