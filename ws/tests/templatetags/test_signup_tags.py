@@ -4,11 +4,12 @@ from zoneinfo import ZoneInfo
 
 from bs4 import BeautifulSoup
 from django.template import Context, Template
-from django.test import TestCase
+from django.test import SimpleTestCase, TestCase
 from freezegun import freeze_time
 
 import ws.utils.dates as date_utils
 from ws import enums, models
+from ws.templatetags import signup_tags
 from ws.tests import factories, strip_whitespace
 
 
@@ -479,3 +480,47 @@ class PairingInfoTest(TestCase):
                 "Change your pairing preferences",
             ],
         )
+
+
+class CountAffiliationsTest(SimpleTestCase):
+    def test_nothing_to_count(self) -> None:
+        self.assertEqual(signup_tags.count_affiliations([]), "")
+
+    def test_affiliations(self) -> None:
+        participants = [
+            # 3 MIT students
+            factories.ParticipantFactory.build(affiliation="MU"),
+            factories.ParticipantFactory.build(affiliation="MG"),
+            factories.ParticipantFactory.build(affiliation="MG"),
+            # 1 affiliate
+            factories.ParticipantFactory.build(affiliation="MA"),
+            # Others!
+            factories.ParticipantFactory.build(affiliation="NU"),
+            factories.ParticipantFactory.build(affiliation="NG"),
+            factories.ParticipantFactory.build(affiliation="NG"),
+            # MIT *alumni*
+            factories.ParticipantFactory.build(affiliation="ML"),
+            factories.ParticipantFactory.build(affiliation="ML"),
+        ]
+        self.assertEqual(
+            signup_tags.count_affiliations(participants),
+            (
+                "3 MIT students, 1 MIT affiliate, 5 others "
+                # We report *in order* of the three main groups:
+                "(1 MIT undergrad, 2 MIT grad students, 1 MIT affiliate, 1 Non-MIT undergrad, 2 Non-MIT grad students, 2 MIT alumni)"
+            ),
+        )
+
+    # TODO: We *should* have this behavior...
+    # def test_affiliations_when_major_group_is_zero(self) -> None:
+    #     participants = [
+    #         factories.ParticipantFactory.build(affiliation="MA"),
+    #         factories.ParticipantFactory.build(affiliation="NA"),
+    #     ]
+    #     self.assertEqual(
+    #         signup_tags.count_affiliations(participants),
+    #         (
+    #             "0 MIT students, 1 MIT affiliate, 1 other "
+    #             "(1 MIT affiliate, 1 Non-affiliate)"
+    #         ),
+    #     )

@@ -1,9 +1,13 @@
+import enum
+from collections import Counter
+from collections.abc import Iterable, Iterator
 from itertools import chain
 from typing import Any
 
 from django import template
 from django.db.models import Q, QuerySet
 from django.forms import HiddenInput
+from mitoc_const import affiliations
 
 import ws.utils.perms as perm_utils
 from ws import models
@@ -37,7 +41,9 @@ def dues_active(participant):
     return participant.dues_active
 
 
-def leader_signup_is_allowed(trip, participant):
+def leader_signup_is_allowed(
+    trip: models.Trip, participant: models.Participant
+) -> bool:
     """Determine whether or not to display the leader signup form.
 
     Note: This is not validation - the user's ultimate ability to sign
@@ -253,3 +259,59 @@ def not_on_trip(trip, signups_on_trip, signups_off_trip, display_notes):
         "display_table": display_table,
         "display_notes": display_notes,
     }
+
+
+class SimpleMitAffiliation(enum.Enum):
+    STUDENT = "MIT student"
+    AFFILIATE = "MIT affiliate"
+    OTHER = "other"
+
+
+def _simple_mit_category(affiliation: affiliations.Affiliation) -> SimpleMitAffiliation:
+    """Categorize affiliations into *simple* buckets for the treasurer.
+
+    For reimbursement purposes, MIT only cares about these three categories.
+    """
+    # I really should have used an `Enum` type so `assert_never` would work here...
+    if affiliation.CODE in (
+        affiliations.MIT_UNDERGRAD.CODE,
+        affiliations.MIT_GRAD_STUDENT.CODE,
+    ):
+        return SimpleMitAffiliation.STUDENT
+    if affiliation.CODE == affiliations.MIT_AFFILIATE.CODE:
+        return SimpleMitAffiliation.AFFILIATE
+    return SimpleMitAffiliation.OTHER
+
+
+def _counted_affiliations(affiliation_labels: Iterable[str]) -> Iterator[str]:
+    for label, count in Counter(affiliation_labels).items():
+        plural = "" if count == 1 else ("ni" if label.endswith("alum") else "s")
+        yield f"{count} {label}{plural}"
+
+
+@register.filter
+def count_affiliations(participants: Iterable[models.Participant]) -> str:
+    participant_affiliations = sorted(
+        (par.affiliation_enum for par in participants),
+        key=lambda aff: (
+            list(SimpleMitAffiliation).index(_simple_mit_category(aff)),
+            affiliations.ALL.index(aff),
+        ),
+    )
+
+    main_categories = ", ".join(
+        _counted_affiliations(
+            _simple_mit_category(aff).value for aff in participant_affiliations
+        )
+    )
+    if not main_categories:
+        return ""
+    specific_affiliations = ", ".join(
+        _counted_affiliations(aff.VALUE for aff in participant_affiliations)
+    )
+    return f"{main_categories} ({specific_affiliations})"
+
+
+@register.filter
+def count_signup_affiliations(signups: Iterable[models.SignUp]) -> str:
+    return count_affiliations(signup.participant for signup in signups)
