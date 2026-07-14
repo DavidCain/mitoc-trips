@@ -395,6 +395,16 @@ class Participant(models.Model):
     def avatar_url(self, size: int = 100) -> str:
         return avatar_url(self, size)
 
+    # Not actually an enum... should have made it one.
+    @property
+    def affiliation_enum(self) -> affiliations.Affiliation:
+        # This should be comprehensive!
+        return next(
+            affiliation
+            for affiliation in [*affiliations.ALL, affiliations.DEPRECATED_STUDENT]
+            if self.affiliation == affiliation.CODE
+        )
+
     @staticmethod
     def affiliation_to_annual_dues(affiliation: str) -> int:
         prices = {aff.CODE: aff.ANNUAL_DUES for aff in affiliations.ALL}
