@@ -287,15 +287,22 @@ ROOT_URLCONF = "ws.urls"
 WSGI_APPLICATION = "ws.wsgi.application"
 
 
-# DocuSign
-DOCUSIGN_API_BASE = os.getenv(
-    "DOCUSIGN_API_BASE", "https://demo.docusign.net/restapi/v2/"
-)
-DOCUSIGN_USERNAME = os.getenv("DOCUSIGN_USERNAME", "djcain@mit.edu")
-DOCUSIGN_PASSWORD = os.getenv("DOCUSIGN_PASSWORD", "super-secret")
-DOCUSIGN_INTEGRATOR_KEY = os.getenv("DOCUSIGN_INTEGRATOR_KEY", "secret-uuid")
-DOCUSIGN_WAIVER_TEMPLATE_ID = os.getenv("DOCUSIGN_WAIVER_TEMPLATE_ID", "template-uuid")
-
+# Docusign
+# ========
+# The "integrator key" is the only constant *shared* between demo & production!
+DOCUSIGN_INTEGRATOR_KEY = os.environ["DOCUSIGN_INTEGRATOR_KEY"]
+# The host used for authenticating *accounts* (e.g. for JWT consent)
+DOCUSIGN_ACCOUNT_HOST = os.environ["DOCUSIGN_ACCOUNT_HOST"]  # "{www,demo}.docusign.net"
+# The host for the REST API
+DOCUSIGN_HOST = os.environ["DOCUSIGN_HOST"]  # "{www,demo}.docusign.net"
+# Comes from "Apps and Keys" in the Docusign admin API (under "My Account Information")
+DOCUSIGN_API_ACCOUNT_ID = os.environ["DOCUSIGN_API_ACCOUNT_ID"]
+# Can be obtained directly from the user's profile (*or* listing all users)
+DOCUSIGN_API_USER_GUID = os.environ["DOCUSIGN_API_USER_GUID"]
+# *Public* key is uploaded to "Service Integration" in "Apps and Keys"
+DOCUSIGN_RSA_PRIVATE_KEY = os.environ["DOCUSIGN_RSA_PRIVATE_KEY"]
+# The "Template" of the document that's to be signed
+DOCUSIGN_WAIVER_TEMPLATE_ID = os.environ["DOCUSIGN_WAIVER_TEMPLATE_ID"]
 # Hit endpoints when we successfully complete a waiver
 DOCUSIGN_EVENT_NOTIFICATION = {
     "url": "https://docusign.mitoc.org/members/waiver",

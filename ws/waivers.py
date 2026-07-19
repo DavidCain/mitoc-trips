@@ -1,10 +1,15 @@
-from typing import Any, NamedTuple, TypedDict, cast
-from xml.etree import ElementTree as ET
+import logging
+import time
+from typing import Any, Final, NamedTuple, TypedDict, cast
 
+import jwt
 import requests
+from django.conf import settings
 from mitoc_const import affiliations
 
-from ws import models, settings
+from ws import models
+
+logger = logging.getLogger(__name__)
 
 AFFILIATION_MAPPING = {aff.CODE: aff.VALUE for aff in affiliations.ALL}
 
@@ -18,6 +23,51 @@ class LoginAccount(TypedDict):
     userId: str
     email: str
     siteDescription: str
+
+
+JWT_EXP_SECONDS: Final = 3600
+
+
+def _get_system_to_system_jwt() -> str:
+    hostname = settings.DOCUSIGN_ACCOUNT_HOST
+    assert hostname in (
+        "account.docusign.com",  # PROD
+        "account-d.docusign.com",  # DEMO
+        "demo.docusign.net",  # DEMO (also works!)
+    )
+    now = int(time.time())
+    claim = {
+        "iss": settings.DOCUSIGN_INTEGRATOR_KEY,
+        "sub": settings.DOCUSIGN_API_USER_GUID,
+        "aud": hostname,
+        "iat": now,
+        "exp": now + 3600,
+        "scope": "signature impersonation",
+    }
+    token = jwt.encode(
+        payload=claim, key=settings.DOCUSIGN_RSA_PRIVATE_KEY, algorithm="RS256"
+    )
+    response = requests.post(
+        f"https://{hostname}/oauth/token",
+        data={
+            "assertion": token,
+            "grant_type": "urn:ietf:params:oauth:grant-type:jwt-bearer",
+        },
+        timeout=10,
+    )
+    body = response.json()
+    if "error" in body and body["error"] == "consent_required":
+        consent_url = (
+            f"https://{hostname}/oauth/auth?response_type=code"
+            "&scope=signature%20impersonation"
+            f"&client_id={settings.DOCUSIGN_INTEGRATOR_KEY}"
+            "&redirect_uri=https://developers.docusign.com/platform/auth/consent"
+        )
+        logger.error("Must manually consent for the API user: %s", consent_url)
+    response.raise_for_status()
+    token = body["access_token"]
+    assert isinstance(token, str)
+    return token
 
 
 class Person(NamedTuple):
@@ -42,35 +92,16 @@ class InitiatedWaiverResult(NamedTuple):
     url: str | None
 
 
-def get_headers() -> dict[str, str]:
+def get_headers(access_token: str) -> dict[str, str]:
     """Get standard headers to be used with every DocuSign API request."""
-    creds = ET.Element("DocuSignCredentials")
-    ET.SubElement(creds, "Username").text = settings.DOCUSIGN_USERNAME
-    ET.SubElement(creds, "Password").text = settings.DOCUSIGN_PASSWORD
-    ET.SubElement(creds, "IntegratorKey").text = settings.DOCUSIGN_INTEGRATOR_KEY
-    return {
-        "X-DocuSign-Authentication": ET.tostring(creds).decode("utf-8"),
-        "Accept": "application/json",
-    }
+    return {"Authorization": f"Bearer {access_token}", "Accept": "application/json"}
 
 
 def get_base_url() -> str:
-    """Get the base URL from which API requests must be made.
-
-    DocuSign does not guarantee that this URL remains static, so query
-    it every time we intend to use the API.
-
-    The response URL will look like:
-    https://na2.docusign.net/restapi/v2/accounts/<numeric_account_id>
-    """
-    v2_base = settings.DOCUSIGN_API_BASE  # (Demo or production)
-    resp = requests.get(
-        v2_base + "login_information", headers=get_headers(), timeout=10
-    )
-
-    login_accounts = cast(list[LoginAccount], resp.json()["loginAccounts"])
-    assert login_accounts
-    return login_accounts[0]["baseUrl"]
+    """Get the base URL from which API requests must be made."""
+    # Demo: demo.docusign.net
+    # Prod: www.docusign.net
+    return f"https://{settings.DOCUSIGN_HOST}/restapi/v2.1/accounts/{settings.DOCUSIGN_API_ACCOUNT_ID}"
 
 
 DocusignTabs = dict[str, list[dict[str, Any]]]
@@ -157,7 +188,8 @@ def _sign_embedded(
     participant: models.Participant,
     releasor_dict: DocusignRole,
     envelope_id: str,
-    base_url: str | None = None,
+    *,
+    access_token: str,
 ) -> str:
     """Take a known user and go straight to the waiver flow.
 
@@ -169,8 +201,7 @@ def _sign_embedded(
     The releasor object is a standard role definition that has already been
     configured for use with a template, and has a 'clientUserId' assigned.
     """
-    base_url = base_url or get_base_url()
-    recipient_url = f"{base_url}/envelopes/{envelope_id}/views/recipient"
+    recipient_url = f"{get_base_url()}/envelopes/{envelope_id}/views/recipient"
     user = {
         "userName": releasor_dict["name"],
         "email": releasor_dict["email"],
@@ -180,8 +211,9 @@ def _sign_embedded(
     }
     # Fetch a URL that can be used to sign the waiver (expires in 5 minutes)
     redir_url = requests.post(
-        recipient_url, json=user, headers=get_headers(), timeout=10
+        recipient_url, json=user, headers=get_headers(access_token), timeout=10
     )
+    redir_url.raise_for_status()
     return cast(str, redir_url.json()["url"])
 
 
@@ -204,9 +236,11 @@ def initiate_waiver(
     elif participant:
         releasor = Person(name=participant.name, email=participant.email)
 
+    # TODO: Just use mypy @override to enforce this
     if not releasor:
         raise ValueError("Participant or name/email required!")
 
+    access_token = _get_system_to_system_jwt()
     roles = get_roles(releasor, participant, guardian)
     releasor_dict = roles[0]
 
@@ -223,16 +257,21 @@ def initiate_waiver(
     if participant:
         releasor_dict["clientUserId"] = participant.pk
 
-    base_url = get_base_url()
     env = requests.post(
-        f"{base_url}/envelopes", json=new_env, headers=get_headers(), timeout=10
+        f"{get_base_url()}/envelopes",
+        json=new_env,
+        headers=get_headers(access_token),
+        timeout=10,
     )
+    env.raise_for_status()
 
     # If there's no participant, an email will be sent; no need to redirect
     redir_url: str | None = None
 
     if participant:  # We need a participant to do embedded signing
         envelope_id = env.json()["envelopeId"]
-        redir_url = _sign_embedded(participant, releasor_dict, envelope_id, base_url)
+        redir_url = _sign_embedded(
+            participant, releasor_dict, envelope_id, access_token=access_token
+        )
 
     return InitiatedWaiverResult(email=releasor_dict["email"], url=redir_url)
