@@ -31,7 +31,9 @@ class SingleTripLotteryTests(TestCase):
 
     def test_run_with_no_signups(self):
         """We still run the lottery when nobody signed up."""
-        trip = factories.TripFactory.create(algorithm="lottery")
+        trip = factories.TripFactory.create(
+            algorithm="lottery", program=enums.Program.HIKING.value
+        )
         runner = run.SingleTripLotteryRunner(trip)
         runner()
         trip.refresh_from_db()

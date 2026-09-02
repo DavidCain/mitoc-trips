@@ -254,7 +254,7 @@ class RemindIndividualParticipantsToRenewTest(TestCase):
 
 
 class RunLotteryTest(TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         # Create a trip to make sure the ID sequence is initialized.
         # Without this step, Postgres may raise an exception on `select currval()`
         # This is an okay assumption to make at test time:
@@ -263,18 +263,18 @@ class RunLotteryTest(TestCase):
 
         super().setUp()
 
-    def test_bogus_trip_pk(self):
+    def test_bogus_trip_pk(self) -> None:
         """Make sure that the task fails if passed an ID that was never a real trip."""
         # I sure hope `nextval()` never creates 32k trips in our test suite...
         with self.assertRaises(models.Trip.DoesNotExist):
             tasks.run_lottery(32_000)
 
-    def test_zero_pk(self):
+    def test_zero_pk(self) -> None:
         """All our sequences start at 1; 0 is never a valid pk."""
         with self.assertRaises(models.Trip.DoesNotExist):
             tasks.run_lottery(0)
 
-    def test_non_integer_trip_id(self):
+    def test_non_integer_trip_id(self) -> None:
         """Make sure that we raise *something* if given a non-integer ID.
 
         We do some integer comparisons of the given ID & `currval()`,
@@ -285,27 +285,29 @@ class RunLotteryTest(TestCase):
         be bypassed at runtime.
         """
         with self.assertRaises(ValueError):
-            tasks.run_lottery("not-an-id")
+            tasks.run_lottery("not-an-id")  # type: ignore[arg-type]
 
-    def test_trip_deleted(self):
+    def test_trip_deleted(self) -> None:
         """We silently complete the task if the trip was deleted."""
-        trip = factories.TripFactory.create()
+        trip = factories.TripFactory.create(program=enums.Program.CLIMBING.value)
         trip_id = trip.pk
         trip.delete()
         tasks.run_lottery(trip_id)
 
-    def test_trip_not_the_most_recent_deleted(self):
+    def test_trip_not_the_most_recent_deleted(self) -> None:
         """Our `currval()` logic can handle trips which have PKs lower than the latest."""
-        trip = factories.TripFactory.create()
+        trip = factories.TripFactory.create(program=enums.Program.CLIMBING.value)
         trip_id = trip.pk
         newer_trip = factories.TripFactory.create()
-        self.assertGreater(newer_trip.pk, trip.pk)
+        self.assertGreater(newer_trip.pk, trip_id)
         trip.delete()
         tasks.run_lottery(trip_id)
 
-    def test_success(self):
+    def test_success(self) -> None:
         """Test the usual case: a real trip exists, needs a lottery run."""
-        trip = factories.TripFactory.create(algorithm="lottery")
+        trip = factories.TripFactory.create(
+            algorithm="lottery", program=enums.Program.CLIMBING.value
+        )
         tasks.run_lottery(trip.pk)
         trip.refresh_from_db()
         self.assertEqual(trip.algorithm, "fcfs")
