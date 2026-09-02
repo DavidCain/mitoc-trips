@@ -24,6 +24,7 @@ AFFILIATION_MAPPING: Mapping[str, str] = MappingProxyType(
         for aff in affiliations.ALL
     }
 )
+logger = logging.getLogger(__name__)
 
 
 class LotteryRunner:
@@ -108,6 +109,14 @@ class SingleTripLotteryRunner(LotteryRunner):
 
     def __call__(self) -> None:
         if self.trip.algorithm != "lottery":
+            self.log_stream.close()
+            return
+
+        # Regular (during IAP) winter trips *always* run with the multi-trip runner.
+        # Refuse to do anything in that event!
+        # (We should never have allowed calling this, so log an error to track down)
+        if self.trip.program_enum == enums.Program.WINTER_SCHOOL:
+            logger.error("Cannot run WS trip #{self.trip.pk} as a single trip lottery!")
             self.log_stream.close()
             return
 

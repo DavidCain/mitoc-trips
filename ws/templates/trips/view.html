@@ -41,18 +41,15 @@
         <uib-tab heading="Admin">
           {% if trip.algorithm == 'fcfs' %}
             <admin-trip-signups data-trip-id="{{ trip.pk }}" data-maximum_participants="{{ trip.maximum_participants }}"></admin-trip-signups>
-          {% else %}
+          {% elif trip.algoritm == 'lottery' %}
             <h3>Trip still in lottery mode</h3>
             <p>Once this trip's lottery completes, you can manage participants here.</p>
 
-            {# Temporarily disable this control for non-admins #}
-            {% if user.is_superuser %}
-            {% if trip.algorithm == 'lottery' and trip.program != 'winter_school' %}
+            {% if can_run_lottery %}
               <form method="POST" action="{% url 'run_lottery' trip.pk %}">
                 {% csrf_token %}
-                <button class="btn btn-success" type="submit">Run Lottery Now</button>
+                <button class="btn btn-success" type="submit">Run lottery now</button>
               </form>
-            {% endif %}
             {% endif %}
           {% endif %}
         </uib-tab>
