@@ -298,6 +298,7 @@ class AdminTripSignupsView(
                 F("waitlistsignup__manual_order").desc(nulls_last=True),
                 F("waitlistsignup__time_created").asc(),
                 "last_updated",
+                "pk",
             )
         )
 
