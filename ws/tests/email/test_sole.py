@@ -225,6 +225,15 @@ class StudentTravelFormTest(TestCase):
         ]
         expected = [
             [
+                ("Driver", "Joe Schmo"),
+                ("Make + Model", "Ford Fiesta"),
+                ("Plate", "ABC 123"),
+                ("State", "VT"),
+                ("Year", "2001"),
+                ("Color", "Green"),
+                ("Car Status", "Can drive others"),
+            ],
+            [
                 ("Driver", "Tim Beaver"),
                 ("Make + Model", "Toyota Prius"),
                 ("Plate", "VANITY"),
@@ -234,23 +243,14 @@ class StudentTravelFormTest(TestCase):
                 # The leader never submitted lottery info
                 ("Car Status", ""),
             ],
-            [
-                ("Driver", "Joe Schmo"),
-                ("Make + Model", "Ford Fiesta"),
-                ("Plate", "ABC 123"),
-                ("State", "VT"),
-                ("Year", "2001"),
-                ("Color", "Green"),
-                ("Car Status", "Can drive others"),
-            ],
         ]
-        self.assertCountEqual([list(driver) for driver in drivers], expected)
+        self.assertEqual([list(driver) for driver in drivers], expected)
 
         as_text = "\n".join(
             [
                 "Drivers:",
-                " - Tim Beaver: Blue 2019 Toyota Prius VANITY (NH)",
                 " - Joe Schmo: Green 2001 Ford Fiesta ABC 123 (VT)",
+                " - Tim Beaver: Blue 2019 Toyota Prius VANITY (NH)",
                 "\n",
             ]
         )
