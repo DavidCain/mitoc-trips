@@ -44,7 +44,7 @@ import ws.utils.dates as date_utils
 import ws.utils.perms as perm_utils
 import ws.utils.signups as signup_utils
 from ws import enums, forms, models
-from ws.decorators import group_required
+from ws.decorators import group_required, participant_required
 from ws.lottery.run import SingleTripLotteryRunner
 from ws.mixins import TripLeadersOnlyView
 from ws.templatetags.trip_tags import annotated_for_trip_list
@@ -135,10 +135,15 @@ class TripView(DetailView):
         context["leader_on_trip"] = perm_utils.leader_on_trip(
             self.request.participant, trip, True
         )
-        context["can_admin"] = context["leader_on_trip"] or perm_utils.chair_or_admin(
+        is_chair = perm_utils.chair_or_admin(
             self.request.user, trip.required_activity_enum()
         )
-
+        context["can_run_lottery"] = (
+            trip.algorithm == "lottery"
+            and trip.program_enum != enums.Program.WINTER_SCHOOL
+            and (is_chair or self.request.participant == trip.creator)
+        )
+        context["can_admin"] = context["leader_on_trip"] or is_chair
         context["can_see_rentals"] = context["can_admin"] or perm_utils.is_leader(
             self.request.user
         )
@@ -833,15 +838,38 @@ class ApproveTripsView(ListView):
 class RunTripLotteryView(DetailView, TripLeadersOnlyView):
     model = models.Trip
 
-    # There's no need to build in this prevention;
-    # old trips will never be in lottery mode
-    forbid_modifying_old_trips = False
-
     def get(self, request, *args, **kwargs):
         return redirect(reverse("view_trip", kwargs=self.kwargs))
 
     def post(self, request, *args, **kwargs):
-        trip = self.get_object()
-        runner = SingleTripLotteryRunner(trip)
-        runner()
+        with transaction.atomic():
+            trip = self.get_object(self.get_queryset().select_for_update())
+            if trip.program_enum == enums.Program.WINTER_SCHOOL:
+                messages.error(
+                    self.request,
+                    "Winter School trips run as part of a multi-trip lottery!",
+                )
+            # The lottery runner exits cleanly if the trip is no longer in lottery mode.
+            # However, if somebody (say) had a stale page & Celery picked up execution...
+            elif trip.algorithm != "lottery":
+                messages.warning(
+                    self.request,
+                    "Cannot manually run lottery - trip was not in lottery mode!",
+                )
+            else:
+                # Once locked, this *requires* the trip to be in lottery mode, or it noops
+                runner = SingleTripLotteryRunner(trip)
+                runner()
         return redirect(reverse("view_trip", args=(trip.pk,)))
+
+    @method_decorator(participant_required)
+    def dispatch(self, request, *args, **kwargs):
+        trip = self.get_object()
+        if not (
+            trip.creator == self.request.participant
+            or perm_utils.chair_or_admin(
+                self.request.user, trip.required_activity_enum()
+            )
+        ):
+            return render(request, "not_your_trip.html", {"trip": trip})
+        return super().dispatch(request, *args, **kwargs)
