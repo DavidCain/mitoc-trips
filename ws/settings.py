@@ -310,7 +310,8 @@ DOCUSIGN_EVENT_NOTIFICATION = {
     "requireAcknowledgment": "true",
     "useSoapInterface": "false",
     "includeCertificateWithSoap": "false",
-    "signMessageWithX509Cert": "true",
+    "includeHMAC": "true",  # Include an HMAC signature in HTTP headers
+    "signMessageWithX509Cert": "true",  # Enable Mutual TLS
     "includeDocuments": "false",  # No need
     "includeCertificateOfCompletion": "false",
     "includeEnvelopeVoidReason": "true",
