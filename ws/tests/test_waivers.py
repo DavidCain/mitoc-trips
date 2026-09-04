@@ -51,6 +51,7 @@ EXPECTED_EVENT_NOTIFICATION = {
     "useSoapInterface": "false",
     "includeCertificateWithSoap": "false",
     "signMessageWithX509Cert": "true",
+    "includeHMAC": "true",
     "includeDocuments": "false",
     "includeCertificateOfCompletion": "false",
     "includeEnvelopeVoidReason": "true",
