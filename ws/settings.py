@@ -34,7 +34,8 @@ MEMBERSHIP_SECRET_KEY = os.getenv(
     "secret shared with the mitoc-aws repo, ideally at least 64 bytes for use with SHA512",
 )
 GEARDB_SECRET_KEY = os.getenv(
-    "GEARDB_SECRET_KEY", "secret shared with the mitoc-gear repo"
+    "GEARDB_SECRET_KEY",
+    "secret-shared-with-the,mitoc-gear-repo-which-is-ideally-at-least-64-bytes-for-use-with-SHA512",
 )
 WS_LOTTERY_LOG_DIR = os.getenv("WS_LOTTERY_LOG_DIR", "/tmp/")  # noqa: S108
 

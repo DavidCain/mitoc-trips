@@ -24,5 +24,5 @@ def bearer_jwt(secret: str, **payload: Any) -> str:
     information.
     """
     expires = timezone.now() + timedelta(minutes=15)
-    token = jwt.encode({**payload, "exp": expires}, secret, algorithm="HS256")
+    token = jwt.encode({**payload, "exp": expires}, secret, algorithm="HS512")
     return f"Bearer: {token}"
