@@ -11,7 +11,7 @@ from freezegun import freeze_time
 from ws.tests import factories
 from ws.utils import geardb
 
-FAKE_KEY = "some secret, ideally at least 32 bytes"
+FAKE_KEY = "some secret (ideally at least 64 bytes) to be used with HS512/SHA512"
 
 
 class JwtTest(unittest.TestCase):
@@ -26,7 +26,7 @@ class JwtTest(unittest.TestCase):
         self.assertEqual(name, "Bearer:")
 
         self.assertEqual(
-            jwt.decode(content, FAKE_KEY, algorithms=["HS256"]),
+            jwt.decode(content, FAKE_KEY, algorithms=["HS512"]),
             {
                 # Token expires 15 minutes in the future (as UTC timestamp)
                 "exp": 1579118400,
@@ -44,7 +44,7 @@ class JwtTest(unittest.TestCase):
         self.assertEqual(name, "Bearer:")
 
         self.assertEqual(
-            jwt.decode(content, FAKE_KEY, algorithms=["HS256"]),
+            jwt.decode(content, FAKE_KEY, algorithms=["HS512"]),
             {
                 "email": "tim@mit.edu",
                 # Token expires 15 minutes in the future (as UTC timestamp)
