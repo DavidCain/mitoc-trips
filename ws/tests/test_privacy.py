@@ -161,6 +161,7 @@ class DataDumpTest(TestCase):
                     "ice_experience": "",
                     "ski_experience": "",
                     "other_experience": "Leader in my college outing club",
+                    "past_mentorship": "",
                     "notes_or_comments": "",
                     "mentorship_goals": "",
                     "mentorship_longevity": "",
