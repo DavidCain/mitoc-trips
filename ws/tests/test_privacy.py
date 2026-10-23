@@ -163,6 +163,7 @@ class DataDumpTest(TestCase):
                     "other_experience": "Leader in my college outing club",
                     "notes_or_comments": "",
                     "mentorship_goals": "",
+                    "past_mentorship": "",
                     "mentorship_longevity": "",
                     "mentor_activities": [],
                     "mentee_activities": [],

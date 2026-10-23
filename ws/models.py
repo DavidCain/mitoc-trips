@@ -2022,6 +2022,11 @@ class WinterSchoolLeaderApplication(LeaderApplication):
             'or "learning how to manage group dynamics."'
         ),
     )
+    past_mentorship = models.TextField(
+        blank=True,
+        max_length=5000,
+        verbose_name="Have you had mentors (or been a mentor) in previous Winter Schools? If so, with whom?",
+    )
     mentorship_longevity = models.TextField(
         blank=True,
         max_length=5000,
