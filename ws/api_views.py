@@ -424,11 +424,8 @@ class JsonParticipantsView(ListView):
 
         return JsonResponse({"participants": list(matches)})
 
-    @method_decorator(login_required)
+    @method_decorator(group_required("leaders"))
     def dispatch(self, request, *args, **kwargs):
-        """Participant object must exist, but it need not be current."""
-        if not self.request.participant:
-            return JsonResponse({}, status=403)
         return super().dispatch(request, *args, **kwargs)
 
 

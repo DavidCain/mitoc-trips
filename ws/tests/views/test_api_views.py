@@ -1,8 +1,10 @@
 import time
+from typing import Any
 from unittest import mock
 
 import jwt
 import responses
+from django.http import HttpResponseRedirect
 from django.test import TestCase
 from freezegun import freeze_time
 
@@ -315,27 +317,34 @@ class JsonProgramLeadersViewTest(TestCase):
 
 
 class JsonParticipantsTest(TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         super().setUp()
         self.participant = factories.ParticipantFactory.create(
             name="Mr. Bolton", email="michael@example.com"
         )
         self.client.force_login(self.participant.user)
 
-    def test_just_user(self):
-        user = factories.UserFactory.create()
-        self.client.force_login(user)
+    def test_not_a_leader(self) -> None:
         response = self.client.get("/participants.json")
         self.assertEqual(response.status_code, 403)
 
-    def test_unauthenticated(self):
+    def test_no_participant(self) -> None:
+        user = factories.UserFactory.create()
+        self.client.force_login(user)
+        response = self.client.get("/participants.json")
+        self.assertEqual(response.status_code, 302)
+        assert isinstance(response, HttpResponseRedirect)
+        self.assertEqual(response.url, "/profile/edit/?next=/participants.json")
+
+    def test_unauthenticated(self) -> None:
         self.client.logout()
         response = self.client.get("/participants.json")
         self.assertEqual(response.status_code, 302)
+        assert isinstance(response, HttpResponseRedirect)
         self.assertEqual(response.url, "/accounts/login/?next=/participants.json")
 
     @staticmethod
-    def _expect(par):
+    def _expect(par: models.Participant) -> dict[str, Any]:
         return {
             "id": par.pk,
             "name": par.name,
@@ -343,7 +352,9 @@ class JsonParticipantsTest(TestCase):
             "avatar": mock.ANY,  # (we test elsewhere)
         }
 
-    def test_search(self):
+    def test_search(self) -> None:
+        factories.LeaderRatingFactory.create(participant=self.participant)
+
         michaela = factories.ParticipantFactory.create(name="Michaela the MITOCer")
         michele = factories.ParticipantFactory.create(name="Michele da Italia")
         miguel = factories.ParticipantFactory.create(name="Miguel Michele")
@@ -374,8 +385,10 @@ class JsonParticipantsTest(TestCase):
         no_self_matches = response.json()["participants"]
         self.assertCountEqual(no_self_matches, others)
 
-    def test_exact_id(self):
+    def test_exact_id(self) -> None:
         """Participants can be queried by an exact ID."""
+        factories.LeaderRatingFactory.create(participant=self.participant)
+
         one = factories.ParticipantFactory.create()
         two = factories.ParticipantFactory.create()
         factories.ParticipantFactory.create()
