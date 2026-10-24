@@ -71,7 +71,7 @@ class ParticipantForm(forms.ModelForm):
         }
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
-        user = kwargs.pop("user")
+        self.user = kwargs.pop("user")
 
         # Mark any old affiliations as equivalent to blank
         # (Will properly trigger a "complete this field" warning)
@@ -80,9 +80,9 @@ class ParticipantForm(forms.ModelForm):
 
         super().__init__(*args, **kwargs)
 
-        self.verified_emails = user.emailaddress_set.filter(verified=True).values_list(
-            "email", flat=True
-        )
+        self.verified_emails = self.user.emailaddress_set.filter(
+            verified=True
+        ).values_list("email", flat=True)
         self.fields["email"].widget.choices = [
             (email, email) for email in self.verified_emails
         ]
@@ -104,6 +104,12 @@ class ParticipantForm(forms.ModelForm):
                 code="lacks_mit_email",
             )
         return affiliation
+
+    def clean_email(self) -> str:
+        email: str = self.cleaned_data["email"]
+        if not self.user.emailaddress_set.filter(verified=True, email=email).exists():
+            raise ValidationError(f"You have not verified {email}")
+        return email
 
 
 class ParticipantLookupForm(forms.Form):

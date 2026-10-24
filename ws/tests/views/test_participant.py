@@ -266,6 +266,12 @@ class EditProfileViewTests(TestCase):
     def setUp(self):
         super().setUp()
         self.user = factories.UserFactory.create()
+        factories.EmailAddressFactory.create(
+            email="new.participant@example.com",
+            verified=True,
+            user=self.user,
+            primary=False,
+        )
         self.client.force_login(self.user)
 
     def _assert_form_data_saved(self, participant):
@@ -350,6 +356,46 @@ class EditProfileViewTests(TestCase):
             soup.find(class_="alert").get_text(strip=True),
             "Please supply your full legal name.",
         )
+
+    def test_edit_existing_participant_unverified_email(self) -> None:
+        """We restrict emails to only validated ones!"""
+        par = factories.ParticipantFactory.create(user_id=self.user.pk)
+        factories.EmailAddressFactory.create(
+            email="valid.other.verified.email@example.com",
+            verified=True,
+            user=self.user,
+            primary=False,
+        )
+
+        # You can update your preferred email to a verified email!
+        self.client.post(
+            "/profile/edit/?next=https://example.com",
+            {
+                **self.form_data,
+                "participant-email": "valid.other.verified.email@example.com",
+            },
+        )
+        par.refresh_from_db()
+        self.assertEqual(par.email, "valid.other.verified.email@example.com")
+
+        # You *cannot* update to another email:
+        self.client.post(
+            "/profile/edit/?next=https://example.com",
+            {**self.form_data, "participant-email": "director@nsa.gov"},
+        )
+        par.refresh_from_db()
+        self.assertNotEqual(par.email, "director@nsa.gov")
+
+        # Importantly, even if the email is verified, it must belong to *you*.
+        factories.EmailAddressFactory.create(
+            email="director@nsa.gov", verified=True, primary=False
+        )
+        self.client.post(
+            "/profile/edit/?next=https://example.com",
+            {**self.form_data, "participant-email": "director@nsa.gov"},
+        )
+        par.refresh_from_db()
+        self.assertNotEqual(par.email, "director@nsa.gov")
 
 
 class ParticipantDetailViewTest(TestCase):

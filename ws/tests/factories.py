@@ -50,6 +50,7 @@ class EmailAddressFactory(BaseFactory):
         model = account_models.EmailAddress
 
     email = LazyAttribute(lambda obj: obj.user.email)
+    user = SubFactory("ws.tests.factories.UserFactory")
     verified = True
     primary = True
 
