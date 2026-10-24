@@ -12,10 +12,11 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import Q, QuerySet
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.generic import DeleteView, DetailView, FormView, TemplateView, View
 from django.views.generic.detail import SingleObjectMixin
 from kombu.exceptions import OperationalError
@@ -246,8 +247,19 @@ class ParticipantEditMixin(TemplateView):
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
-    def success_redirect(self):
-        return redirect(self.request.GET.get("next", "home"))
+    def success_redirect(self) -> HttpResponseRedirect:
+        requested_next = self.request.GET.get("next", "/")
+
+        return redirect(
+            requested_next
+            if url_has_allowed_host_and_scheme(
+                requested_next,
+                # Yes, this hardcodes the expected domain, somewhat breaking absolute URL locally.
+                # But that's fine, we should *only* even be passing relative URLs anyway.
+                allowed_hosts={"mitoc-trips.mit.edu"},
+            )
+            else "/"
+        )
 
 
 class EditParticipantView(ParticipantEditMixin, SingleObjectMixin):

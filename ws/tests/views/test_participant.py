@@ -4,6 +4,7 @@ from zoneinfo import ZoneInfo
 
 from bs4 import BeautifulSoup
 from django.contrib.auth.models import Group
+from django.http import HttpResponseRedirect
 from django.test import TestCase
 from freezegun import freeze_time
 
@@ -326,6 +327,18 @@ class EditProfileViewTests(TestCase):
         self.assertEqual(participant.last_updated, now)
         # Since the participant modified their own profile, we save `profile_last_updated`
         self.assertEqual(participant.profile_last_updated, now)
+
+    def test_open_redirect(self) -> None:
+        response = self.client.get("/profile/edit/")
+        with mock.patch.object(tasks, "update_participant_affiliation"):
+            response = self.client.post(
+                "/profile/edit/?next=https://example.com", self.form_data, follow=False
+            )
+
+        # The save was successful, redirects home (not to example.com)
+        self.assertEqual(response.status_code, 302)
+        assert isinstance(response, HttpResponseRedirect)
+        self.assertEqual(response.url, "/")
 
     def test_existing_participant_with_problems(self):
         factories.ParticipantFactory.create(name="Cher", user_id=self.user.pk)
