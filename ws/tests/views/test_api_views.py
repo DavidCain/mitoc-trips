@@ -43,6 +43,18 @@ class JWTSecurityTest(TestCase):
         )
         self.assertEqual(response.status_code, 401)
 
+    @freeze_time("2019-02-22 12:25:00 EST")
+    def test_no_exp_claim_token_denied(self) -> None:
+        token = jwt.encode(
+            {},
+            algorithm="HS256",
+            key="this is definitely not the real secret",
+        )
+        response = self.client.get(
+            "/data/verified_emails/", HTTP_AUTHORIZATION=f"Bearer: {token}"
+        )
+        self.assertEqual(response.status_code, 401)
+
     def test_real_secret_works(self):
         """First, we show that requests using a signed, non-expired token work."""
         year_2525 = 17514144000

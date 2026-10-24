@@ -562,7 +562,12 @@ class JWTView(View):
 
         secret = settings.MEMBERSHIP_SECRET_KEY
         try:
-            self.payload = jwt.decode(token, secret, algorithms=["HS512", "HS256"])
+            self.payload = jwt.decode(
+                token,
+                secret,
+                algorithms=["HS512", "HS256"],
+                options={"require": ["exp"]},
+            )
         except jwt.exceptions.InvalidAlgorithmError:
             return JsonResponse({"message": "invalid algorithm"}, status=401)
         except (jwt.exceptions.InvalidTokenError, KeyError):
