@@ -8,6 +8,7 @@ from django.http import HttpResponseRedirect
 from django.test import TestCase
 from freezegun import freeze_time
 
+import ws.utils.perms as perm_utils
 from ws import enums, models, settings, tasks
 from ws.api_views import MemberInfo
 from ws.tests import factories
@@ -396,6 +397,42 @@ class JsonParticipantsTest(TestCase):
         response = self.client.get(f"/participants.json?id={one.pk}&id={two.pk}")
         self.assertEqual(
             response.json(), {"participants": [self._expect(one), self._expect(two)]}
+        )
+
+
+class GetRatingTest(TestCase):
+    def setUp(self) -> None:
+        super().setUp()
+
+        self.par = factories.ParticipantFactory.create()
+        self.client.force_login(self.par.user)
+
+        rating = factories.LeaderRatingFactory.create(
+            active=True,
+            activity=models.LeaderRating.WINTER_SCHOOL,
+            notes="Contingent on WFA completion",
+            rating="B coC",
+        )
+        self.url = f"/leaders/{rating.participant.pk}/ratings/winter_school.json"
+
+    def test_must_be_chair(self) -> None:
+        par = factories.ParticipantFactory.create()
+        self.client.force_login(par.user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 403)
+
+    def test_leader_is_not_sufficient(self) -> None:
+        factories.LeaderRatingFactory.create(participant=self.par)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 403)
+
+    def test_chairs_can_view(self) -> None:
+        # Any chair will do.
+        perm_utils.make_chair(self.par.user, enums.Activity.CLIMBING)
+        response = self.client.get(self.url)
+        self.assertEqual(
+            response.json(),
+            {"rating": "B coC", "notes": "Contingent on WFA completion"},
         )
 
 

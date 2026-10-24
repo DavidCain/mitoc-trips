@@ -24,7 +24,7 @@ import ws.utils.membership as membership_utils
 import ws.utils.perms as perm_utils
 import ws.utils.signups as signup_utils
 from ws import enums, models
-from ws.decorators import group_required
+from ws.decorators import chairs_only, group_required
 from ws.middleware import RequestWithParticipant
 from ws.mixins import JsonTripLeadersOnlyView
 from ws.utils import membership_api
@@ -474,11 +474,17 @@ class JsonProgramLeadersView(View):
         return super().dispatch(request, *args, **kwargs)
 
 
-@login_required
-def get_rating(request, pk, activity):
-    query = Q(participant__pk=pk, activity=activity, active=True)
-    lr = models.LeaderRating.objects.filter(query).values("rating", "notes")
-    return JsonResponse(lr[0] if lr else {})
+# Ratings are not at all private, nor are the attached notes.
+# Still, this route is only used by activity chairs, might as well restrict it.
+@chairs_only()
+def get_rating(request: HttpRequest, pk: int, activity: str) -> JsonResponse:
+    try:
+        rating = models.LeaderRating.objects.only("rating", "notes").get(
+            participant__pk=pk, activity=activity, active=True
+        )
+    except models.LeaderRating.DoesNotExist:
+        return JsonResponse({})
+    return JsonResponse({"rating": rating.rating, "notes": rating.notes})
 
 
 class UserView(DetailView):
