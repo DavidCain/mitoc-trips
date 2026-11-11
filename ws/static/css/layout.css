@@ -114,9 +114,12 @@ label.required:after,
 }
 
 /* UI-sortable */
-.ui-sortable .list-group-item,
-.ui-sortable label {
+.ui-sortable .sort-handle {
   cursor: move;
+}
+
+.sort-handle {
+  padding-right: 5px;
 }
 
 admin-trip-signups button.btn-default {
