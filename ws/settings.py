@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from typing import Any, assert_never
 
 import sentry_sdk
@@ -280,15 +281,20 @@ WSGI_APPLICATION = "ws.wsgi.application"
 # The "integrator key" is the only constant *shared* between demo & production!
 DOCUSIGN_INTEGRATOR_KEY = os.environ["DOCUSIGN_INTEGRATOR_KEY"]
 # The host used for authenticating *accounts* (e.g. for JWT consent)
-DOCUSIGN_ACCOUNT_HOST = os.environ["DOCUSIGN_ACCOUNT_HOST"]  # "{www,demo}.docusign.net"
-# The host for the REST API
-DOCUSIGN_HOST = os.environ["DOCUSIGN_HOST"]  # "{www,demo}.docusign.net"
+DOCUSIGN_ACCOUNT_HOST = os.environ["DOCUSIGN_ACCOUNT_HOST"]  # account{-d,}.docusign.com
+# The host for the REST API (https://developers.docusign.com/platform/api-endpoint-base-paths)
+DOCUSIGN_HOST = os.environ["DOCUSIGN_HOST"]  # "{na2,demo}.docusign.net"
 # Comes from "Apps and Keys" in the Docusign admin API (under "My Account Information")
 DOCUSIGN_API_ACCOUNT_ID = os.environ["DOCUSIGN_API_ACCOUNT_ID"]
 # Can be obtained directly from the user's profile (*or* listing all users)
 DOCUSIGN_API_USER_GUID = os.environ["DOCUSIGN_API_USER_GUID"]
 # *Public* key is uploaded to "Service Integration" in "Apps and Keys"
-DOCUSIGN_RSA_PRIVATE_KEY = os.environ["DOCUSIGN_RSA_PRIVATE_KEY"]
+# FOR NOW, just hardcode a file. In the future, we won't have this in an env var...
+DOCUSIGN_RSA_PRIVATE_KEY = (
+    Path("/etc/ssl/docusign.crt").read_text(encoding="utf-8")
+    if Path("/etc/ssl/docusign.crt").exists()
+    else ""
+)
 # The "Template" of the document that's to be signed
 DOCUSIGN_WAIVER_TEMPLATE_ID = os.environ["DOCUSIGN_WAIVER_TEMPLATE_ID"]
 # Hit endpoints when we successfully complete a waiver
