@@ -302,6 +302,7 @@ angular.module('ws.forms', ['ui.select', 'ngSanitize'])
         updateSignups(false);
       };
       scope.sortableOptions = {stop: updateKeepDeleted,
+                               handle: '.sort-handle',
                                connectWith: '.signup-list'};
       scope.$watch('maximumParticipants', updateKeepDeleted);
 
