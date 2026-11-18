@@ -101,7 +101,7 @@ dependencies = [
   "beautifulsoup4",
   "celery>=5",
   "crispy-bootstrap3",
-  "django-allauth[socialaccount]",
+  "django-allauth[socialaccount]==65.12.1", # Newer versions are breaking login with a plain 403
   "django-cors-headers",
   "django-crispy-forms",
   "django-phonenumber-field[phonenumberslite]",
