@@ -17,7 +17,7 @@ def _bind_input(
     form: forms.ModelForm | forms.Form,
     field_name: str,
     # Initial value - either from field initial, or instance value (or neither)
-    initial: None | str | int | bool = None,
+    initial: str | int | bool | None = None,
     # (Can optionally use a different model name)
     model_name: str | None = None,
 ) -> None:
@@ -375,8 +375,7 @@ class TripForm(forms.ModelForm):
         )
         ex_descr = "\n".join(
             [
-                "We'll be heading up into the [Whites][whites] "
-                "for a ~~day~~ weekend of exploring!",
+                "We'll be heading up into the [Whites][whites] for a ~~day~~ weekend of exploring!",
                 "",
                 "### Why?",
                 "Because it's _fun_!",

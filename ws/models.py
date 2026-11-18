@@ -96,13 +96,13 @@ class EmergencyInfo(models.Model):
         max_length=2000, help_text="Anything your trip leader would want to know about."
     )
 
-    def __str__(self):
+    def __str__(self) -> str:
         return " | ".join(
             [
-                f"Allergies: {self.allergies}"
-                f"Medications: {self.medications}"
-                f"History: {self.medical_history}"
-                f"Contact: {self.emergency_contact}"
+                f"Allergies: {self.allergies}",
+                f"Medications: {self.medications}",
+                f"History: {self.medical_history}",
+                f"Contact: {self.emergency_contact}",
             ]
         )
 

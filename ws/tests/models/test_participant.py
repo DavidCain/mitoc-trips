@@ -1,4 +1,4 @@
-import datetime
+import datetime as dt
 import unittest
 from datetime import date
 from unittest import mock
@@ -344,7 +344,7 @@ class ProblemsWithProfileTest(TestCase):
     def test_not_updated_since_affiliation_overhaul(self) -> None:
         """Any participant with affiliation predating our new categories should re-submit!"""
         # This is right before the time when we released new categories!
-        before_cutoff = datetime.datetime(
+        before_cutoff = dt.datetime(
             2018, 10, 27, 3, 15, tzinfo=ZoneInfo("America/New_York")
         )
 
