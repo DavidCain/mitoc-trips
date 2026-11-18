@@ -17,7 +17,8 @@ install-python-dev:
 # Note this will actually *remove* any dev dependencies, if present.
 .PHONY: install-python-prod
 install-python-prod:
-	uv sync --no-dev
+	poetry sync --only main
+	# uv sync --no-dev
 
 .PHONY: check
 check: lint test
