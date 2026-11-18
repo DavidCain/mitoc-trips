@@ -8,6 +8,7 @@ lint.ignore = [
   "PTH",  # flake8-use-pathlib
 
   # Whole rulesets that aren't necessary.
+  "CPY",   # flake8-copyright     -- This whole repo is GPL'ed
   "EM",    # flake8-errmsg        -- I'm fine with strings directly in exceptions
   "ERA",   # eradicate            -- has tons of false-positives on commented "code"
   "FIX",   # flake8-fixme         -- this is largely a solo project, there's no Jira, etc.
@@ -82,6 +83,9 @@ ignore-names = [
   "_fields",
   "_meta",
 ]
+
+[tool.ruff.lint.pylint]
+max-positional-args = 7
 
 [project]
 name = "ws"

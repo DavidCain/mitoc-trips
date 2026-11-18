@@ -653,7 +653,7 @@ class TripListView(ListView):
 
 def _search_trips(
     text: str,
-    filters: None | Q,
+    filters: Q | None,
     limit: int = 100,
 ) -> QuerySet[models.Trip]:
     trips = models.Trip.objects.all()
