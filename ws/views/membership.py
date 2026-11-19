@@ -4,7 +4,6 @@ Every MITOC member is required to have a current membership and waiver. Each of
 these documents expire after 12 months.
 """
 
-import contextlib
 import logging
 from typing import TYPE_CHECKING, Any
 
@@ -15,6 +14,7 @@ from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.generic import DetailView, FormView
 
 from ws import forms, models, waivers
@@ -33,11 +33,30 @@ class RefreshMembershipView(DetailView):
 
     def _update_membership(self, request: HttpRequest) -> HttpResponse:
         participant = self.get_object()
-        # Notably, we *could* add some failure message if the request fails.
-        # However, `view_participant` doesn't render messages to the end user.
-        with contextlib.suppress(requests.exceptions.RequestException):
+        try:
             get_latest_membership(participant)
-        return redirect(reverse("view_participant", args=(participant.pk,)))
+        except requests.exceptions.RequestException:
+            # Messages do *not* appear on other participant profiles
+            if participant == self.request.participant:  # type: ignore[attr-defined]
+                messages.error(
+                    request,
+                    "Error hitting MITOC's membership database. Try again later.",
+                )
+        requested_next = self.request.GET.get("next", "")
+
+        return redirect(
+            requested_next
+            if (
+                requested_next
+                and url_has_allowed_host_and_scheme(
+                    requested_next,
+                    # Yes, this hardcodes the expected domain, somewhat breaking absolute URL locally.
+                    # But that's fine, we should *only* even be passing relative URLs anyway.
+                    allowed_hosts={"mitoc-trips.mit.edu"},
+                )
+            )
+            else reverse("view_participant", args=(participant.pk,))
+        )
 
     def post(self, request: HttpRequest, **kwargs: Any) -> HttpResponse:
         return self._update_membership(request)

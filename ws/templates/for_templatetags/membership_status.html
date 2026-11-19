@@ -36,15 +36,10 @@
   </div>
 
   {% if membership %}
-    <form
-        {% if viewing_participant == participant %}
-          action="{% url 'pay_dues' %}"
-        {% else %}
-          action="{% url 'refresh_participant_membership' participant.pk %}"
-        {% endif %}
-        method="post">
+    <form action="{% url 'refresh_participant_membership' participant.pk %}?next={{ next_url }}"
+          method="post">
       {% csrf_token %}
-      <small><em>Last updated {{ membership.last_cached }}</em></small>
+      <small><em>Last updated {{ membership.last_cached|date:datetime_format }}</em></small>
       {% if status != 'Active' %}
         <button type="submit" class="btn btn-default btn-xs">Check again?</button>
       {% endif %}

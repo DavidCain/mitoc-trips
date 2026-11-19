@@ -1,5 +1,5 @@
 from collections.abc import Mapping
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 from types import MappingProxyType
 from typing import Any
 
@@ -82,13 +82,20 @@ def membership_status(  # noqa: PLR0913
 
     return {
         "participant": participant,
-        "viewing_participant": context["viewing_participant"],
+        # For recent cache refreshes, show it accurately to the second!
+        "datetime_format": (
+            "M j, g:i:s a"  # "Nov 6, 8:45:59 pm" (adds seconds, drops the year)
+            if membership
+            and (datetime.now(UTC) - membership.last_cached) < timedelta(minutes=5)
+            else "DATETIME_FORMAT"
+        ),
         "membership": membership,
         "status": status,
         "in_early_renewal_period": can_renew_early,
         "label_class": STATUS_TO_BOOTSTRAP_LABEL[status],
         "link_to_pay_dues": link_to_pay_dues,
         "link_to_sign_waiver": link_to_sign_waiver,
+        "next_url": context["request"].path,
         "personalize": personalize,
         "today": today,
         "waiver_valid_until": waiver_valid_until,
